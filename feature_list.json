@@ -35,14 +35,14 @@
     "area": "curriculum",
     "title": "阶段一课程：发音规则 + 300 高频词",
     "user_visible_behavior": "用户能在 Web 端看到发音规则说明（中文解释）和 300 个高频词，每个词有 TTS 音频和例句",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "访问 /learn/phase-1 页面正常渲染",
       "每个词条有音频播放按钮，点击能播放 TTS 音频",
       "中文解释内容存在且正确",
       "npm test 通过"
     ],
-    "evidence": "Codex1 2026-05-13 15:45: fixed COURSE-001 after Codex2 QA failure by expanding content/curriculum/phase1-words.json from 18 seed words to the full targetCount=300 list (100 nouns, 100 verbs, 100 adjectives/adverbs), generating 300 real Spanish TTS WAV assets under public/audio/words using Microsoft Sabina Desktop, and tightening tests to require 300 words plus existing audio assets. Verification: node --test tests/course001.test.mjs passed 3/3; npm test passed 21/21; npm run build passed; clean Next dev harness on port 3003 returned /learn/phase-1 200 with required title/sections and /audio/words/casa.wav 200 audio/wav length 68416. Ready for Codex2 re-QA. Note: generated assets are WAV because this machine has offline Spanish SAPI but no MP3 encoder/ffmpeg.",
+    "evidence": "Codex2 QA 2026-05-13 16:05: git status --short was empty at QA start. content/curriculum/phase1-words.json verified targetCount=300, words.length=300, partOfSpeech counts noun=100 verb=100 adjective=100, and every sampled/checked word has spanish, chinese, example, audioSrc. public/audio/words exists with 300 WAV files; sampled abierto.wav 75958 bytes, abrir-2.wav 70618 bytes, abrir.wav 70618 bytes, all >1024. node --test tests/course001.test.mjs passed 3/3; npm test passed 21/21; npm run build passed and prerendered /learn/phase-1. Clean Next dev harness on port 3006 returned /learn/phase-1 200 containing ???????????, ????, ????; /audio/words/casa.wav returned 200 audio/wav length 68416. QA accepts WAV because acceptance requires real playable TTS audio, not a hard MP3 container.",
     "notes": "需要 UI 评审。依赖 INFRA-001。音频文件预生成存储，不实时调用 TTS"
   },
   {

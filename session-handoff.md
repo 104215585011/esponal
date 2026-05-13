@@ -8,6 +8,7 @@
 
 - `INFRA-001`：✅ passing
 - `VOCAB-001`：✅ passing（Codex2 真实数据库验收通过，2026-05-13）
+- `COURSE-001`：✅ passing（Codex2 复验 300 词 + 300 WAV TTS 通过，2026-05-13 16:05）
 
 ## 并行执行计划（更新，2026-05-13）
 
@@ -19,9 +20,9 @@
 | VOCAB-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
 | EXT-001 | Codex1 | ✅ 完成 |
 | EXT-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
-| COURSE-001 开发 | Codex1 | 🟡 ready_for_qa（2026-05-13，需重点验 300 词与音频资产）|
-| COURSE-002 开发 | Codex1 | 🟡 ready_for_qa（2026-05-13）|
-| VOCAB-002 开发 | Codex1 | 🟡 ready_for_qa（2026-05-13，依赖 VOCAB-001 ✅）|
+| COURSE-001 开发 | Codex1 | ✅ 完成（Codex2 复验通过，2026-05-13 16:05）|
+| COURSE-002 开发 | Codex1 | ✅ 完成（Codex2 验收通过，2026-05-13 15:18）|
+| VOCAB-002 开发 | Codex1 | ✅ 完成（Codex2 验收通过，2026-05-13 15:18）|
 | EXT-002 开发 | Codex1 | 📋 待启动（UI 已通过，依赖 EXT-001 ✅）|
 
 ---
@@ -1124,3 +1125,142 @@ Codex2 验收 `COURSE-001` 失败：页面 smoke 通过，但词汇内容只有 
 
 **下一步最佳动作**：
 Codex2 复验 `COURSE-001`。若接受 WAV 资产，更新 `feature_list.json` 为 `passing`；若必须 MP3，返回 PM 确认音频格式要求。
+
+---
+
+## 测试 Report：COURSE-001 阶段一课程页面 /learn/phase-1（复验）
+**时间**：2026-05-13 16:05
+**测试人**：Codex2
+
+**结论**：通过
+
+**验收裁决**：接受本轮 WAV 音频资产。`COURSE-001` 验收标准要求真实可播放 TTS 音频，设计文档描述为 TTS 音频固化存储，未硬性要求 MP3 容器；本轮 `/audio/words/casa.wav` HTTP 返回 `200 audio/wav` 且文件大小 68416 bytes，因此按真实 TTS 音频判定通过。
+
+**验证步骤执行记录**：
+1. 确认工作区开始状态
+   命令：`git status --short`
+   输出：
+   ```text
+   （空输出，QA 开始前工作区干净）
+   ```
+   结果：✅
+
+2. 核查 `content/curriculum/phase1-words.json`
+   命令：Node 读取并解析 JSON，统计 `targetCount`、`words.length`、词性与必填字段
+   输出：
+   ```json
+   {
+     "targetCount": 300,
+     "wordCount": 300,
+     "partOfSpeechCounts": {
+       "noun": 100,
+       "verb": 100,
+       "adjective": 100
+     },
+     "missingRequiredSample": [],
+     "first": {
+       "id": "casa",
+       "spanish": "casa",
+       "partOfSpeech": "noun",
+       "gender": "feminine",
+       "chinese": "家，房子",
+       "audioSrc": "/audio/words/casa.wav"
+     },
+     "last": {
+       "id": "mexicano",
+       "spanish": "mexicano",
+       "partOfSpeech": "adjective",
+       "chinese": "墨西哥的",
+       "audioSrc": "/audio/words/mexicano.wav"
+     }
+   }
+   ```
+   结果：✅
+
+3. 核查音频资产
+   命令：`Get-ChildItem public/audio/words -Filter *.wav`
+   输出：
+   ```json
+   {
+     "Exists": true,
+     "WavCount": 300,
+     "Sample": [
+       { "Name": "abierto.wav", "Length": 75958, "Gt1024": true },
+       { "Name": "abrir-2.wav", "Length": 70618, "Gt1024": true },
+       { "Name": "abrir.wav", "Length": 70618, "Gt1024": true }
+     ]
+   }
+   ```
+   结果：✅
+
+4. 运行 COURSE-001 单测
+   命令：`node --test tests/course001.test.mjs`
+   输出：
+   ```text
+   ✔ COURSE-001 static curriculum content has pronunciation rules and seed words
+   ✔ COURSE-001 page renders the approved no-pressure layout
+   ✔ COURSE-001 audio button is client-side and degrades when audio is absent
+   ℹ tests 3
+   ℹ pass 3
+   ℹ fail 0
+   ```
+   结果：✅
+
+5. 运行全量测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ COURSE-001 static curriculum content has pronunciation rules and seed words
+   ✔ COURSE-002 grammar content defines homepage order and required groups
+   ✔ extension declares a Manifest V3 Chrome extension
+   ✔ /vocab page requires authentication and loads current user's words
+   ✔ vocab library exposes the ticket CRUD functions
+   ℹ tests 21
+   ℹ pass 21
+   ℹ fail 0
+   ```
+   结果：✅
+
+6. 运行生产构建
+   命令：`npm run build`
+   输出：
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (16/16)
+   ○ /learn/phase-1 709 B 87.8 kB
+   ```
+   结果：✅
+
+7. 干净 dev server HTTP smoke
+   命令：Node harness 启动 `next dev -p 3006`，请求 `/learn/phase-1` 与 `/audio/words/casa.wav`
+   输出：
+   ```json
+   {
+     "port": 3006,
+     "pageStatus": 200,
+     "found": {
+       "title": true,
+       "pron": true,
+       "vocab": true
+     },
+     "audioStatus": 200,
+     "audioContentType": "audio/wav",
+     "audioLength": 68416
+   }
+   ```
+   页面 snippet 证据：
+   ```html
+   <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">阶段一：入门词汇与发音</h1>
+   <h2 class="text-xl font-semibold text-gray-800">发音规则</h2>
+   ```
+   结果：✅
+
+**失败/异常说明**：
+- 第一次 dev harness 使用 `Start-Process` 时 stdout/stderr 指向同一日志文件，PowerShell 报错：`RedirectStandardOutput` 和 `RedirectStandardError` 不能相同。未启动服务，不计为产品失败。
+- 第二次 `Start-Process` 命中本机 Windows `Path/PATH` 重复环境变量问题，未启动服务，不计为产品失败。
+- 随后改用 Node harness 直接启动 Next dev，HTTP smoke 已通过；进程已停止。
+
+**通过后移交**：
+- 已更新 `feature_list.json`：`COURSE-001.status = passing`，并填写 Codex2 QA evidence。
+- 已更新 `claude-progress.md` 与本 `session-handoff.md`。
+- 不需要 Codex1 继续修 `COURSE-001`；若 PM 后续强制要求 MP3 容器，需要作为新决策/新任务处理。
