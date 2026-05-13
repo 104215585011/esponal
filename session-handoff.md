@@ -743,3 +743,97 @@ Codex2 按 `ROLE-QA.md` 验收 `EXT-001`。若通过，更新 `feature_list.json
 
 **仍需 Codex2 复验**：
 - 用 Codex2 子 agent 重新验收 EXT-001，确认 Chrome/Chromium 加载、YouTube 注入、console 无 uncaught error，再决定是否把 `feature_list.json` 改为 `passing`。
+
+
+---
+
+## 测试 Report：EXT-001 Chrome 插件脚手架（复验）
+**时间**：2026-05-13 13:38
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 确认当前工作区状态和 Codex1 修复范围
+   命令：`git status --short`
+   输出：
+   ```text
+   M .gitignore
+   M claude-progress.md
+   M extension/manifest.json
+   M session-handoff.md
+   M tests/extension.test.mjs
+   ```
+   结果：✅（确认存在 Codex1 未提交修复；QA 未修改实现代码）
+
+2. 运行项目自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ extension declares a Manifest V3 Chrome extension
+   ✔ extension content script injects only on YouTube watch pages
+   ✔ extension files provide background, content, and popup behavior
+   ✔ extension has an esbuild package scaffold
+   ✔ package declares the INFRA-001 application stack
+   ✔ welcome page is present in the Next.js App Router
+   ✔ Prisma is configured for PostgreSQL with initial models
+   ✔ initial Prisma migration is checked in
+   ✔ environment example documents required local services
+   ✔ Prisma schema defines vocabulary words owned by users
+   ✔ Prisma schema defines word encounters linked to words
+   ✔ vocab library exposes the ticket CRUD functions
+   ℹ tests 12
+   ℹ pass 12
+   ℹ fail 0
+   ```
+   结果：✅
+
+3. 运行插件独立构建
+   命令：`npm run build`（工作目录：`extension/`）
+   输出：
+   ```text
+   > esponal-extension@0.1.0 build
+   > esbuild background.js content.js popup.js --bundle --outdir=dist --format=iife
+
+     dist\content.js     523b
+     dist\background.js  280b
+     dist\popup.js       191b
+
+   Done in 5ms
+   ```
+   结果：✅
+
+4. 使用 Playwright bundled Chromium 加载当前扩展并打开 YouTube watch 页面
+   命令：`C:\Users\wang\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe .qa\ext001-retest.mjs`
+   输出：
+   ```json
+   {
+     "extensionLoaded": true,
+     "serviceWorkers": [
+       "chrome-extension://femikpdmddmphkepjjdgceooacjkclae/background.js",
+       "https://www.youtube.com/sw.js"
+     ],
+     "marker": {
+       "href": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+       "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster) - YouTube",
+       "readyDataset": "true",
+       "readyClass": true
+     },
+     "pageErrorCount": 0,
+     "consoleErrorCount": 1,
+     "pageErrors": [],
+     "consoleErrors": [
+       "Failed to load resource: the server responded with a status of 403 ()"
+     ]
+   }
+   ```
+   结果：✅
+
+**剩余限制**：
+- Playwright/Chromium 可确认扩展已加载、content script 已注入、DOM marker 正确、无 page-level uncaught exception。
+- 本轮自动化无法直接观察 Chrome toolbar icon 的视觉“激活”状态；基于 matched content script 成功注入 YouTube watch 页面，功能验收通过。
+- console 中有 1 条 YouTube 资源 403，不是扩展 uncaught error，且 `pageErrorCount = 0`。
+
+**通过后移交**：
+- `EXT-001` 为非 UI 功能，已更新 `feature_list.json.status = passing` 并写入 QA evidence。
+- 下一步可由 PM 启动 `EXT-002` 或其他最高优先级 ticket。

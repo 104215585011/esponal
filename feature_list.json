@@ -83,13 +83,13 @@
     "area": "extension",
     "title": "Chrome 插件脚手架",
     "user_visible_behavior": "Chrome 插件能安装，在 YouTube 页面注入内容脚本不报错",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "chrome://extensions 加载插件无报错",
       "打开任意 YouTube 视频，插件 icon 激活",
       "console 无 uncaught error"
     ],
-    "evidence": "Codex1 2026-05-13 13:30: fixed EXT-001 after Codex2 QA found YouTube content script marker missing; added https://www.youtube.com/* to extension host_permissions; npm test passed 12/12; extension npm run build passed; Playwright bundled Chromium loaded extension and verified service worker chrome-extension://.../background.js plus YouTube page marker readyDataset=true and readyClass=true. Final Codex2 child-agent recheck still pending.",
+    "evidence": "Codex2 QA 2026-05-13 13:38: npm test passed 12/12; extension npm run build passed and emitted dist/content.js, dist/background.js, dist/popup.js; Playwright bundled Chromium loaded extension from C:\\Users\\wang\\esponal\\extension, detected chrome-extension://femikpdmddmphkepjjdgceooacjkclae/background.js service worker, opened https://www.youtube.com/watch?v=dQw4w9WgXcQ, document.documentElement.dataset.esponalExtensionReady returned 'true', document.documentElement.classList.contains('esponal-extension-ready') returned true, pageErrorCount was 0. One YouTube resource console error 403 was observed, not an uncaught extension/page exception.",
     "notes": "Manifest V3，放在 /extension 目录，独立构建流程"
   },
   {
