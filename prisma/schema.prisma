@@ -15,6 +15,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  words         Word[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -51,4 +52,39 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+enum WordStatus {
+  NEW
+  LEARNING
+  KNOWN
+}
+
+model Word {
+  id          String          @id @default(cuid())
+  userId      String
+  lemma       String
+  translation String
+  forms       String[]        @default([])
+  status      WordStatus      @default(NEW)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encounters  WordEncounter[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([userId, lemma])
+  @@index([userId])
+}
+
+model WordEncounter {
+  id                 String   @id @default(cuid())
+  wordId             String
+  sourceUrl          String   @db.Text
+  timestampSec       Int
+  originalSentence   String   @db.Text
+  translatedSentence String   @db.Text
+  word               Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+
+  @@index([wordId])
 }

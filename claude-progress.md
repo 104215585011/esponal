@@ -55,3 +55,30 @@
 
 **下一步最佳动作**：
 Claude1（PM）启动 `VOCAB-001` ticket，交给 Codex1 实现词汇数据模型（无 UI 评审需要）
+
+### 会话 #2 — 2026-05-13
+
+**本轮目标**：Codex1 实现 `VOCAB-001` 词汇数据模型，并确认工作流文件是否损坏。
+
+**已完成**：
+- 确认 `AGENTS.md`、角色文件、`claude-progress.md`、`feature_list.json`、`session-handoff.md`、产品设计文档在磁盘上为 UTF-8 可读；PowerShell 输出乱码不是文件内容损坏
+- 确认 `feature_list.json` 可被 JSON 解析，未修改任何功能的 `status` 或 `evidence`
+- 新增 Prisma 词汇模型：`WordStatus`、`Word`、`WordEncounter`
+- 新增词汇迁移 SQL：`prisma/migrations/20260513093000_add_vocab_models/migration.sql`
+- 新增词库工具函数：`createWord`、`addEncounter`、`getWordsByUser`、`getWordWithEncounters`
+- 新增 `tests/vocab.test.mjs`
+- 生成 `package-lock.json`
+
+**运行过的验证**：
+- `npm test`：8/8 通过
+- `npm run lint`：通过
+- `npx prisma validate`：通过（临时设置本地 `DATABASE_URL`）
+- `npx prisma generate`：通过
+- `npm run build`：通过
+- `npx prisma migrate diff --from-empty --to-schema-datamodel prisma\schema.prisma --script`：通过，输出包含 VOCAB-001 相关 SQL
+
+**未完成或阻塞**：
+- `npx prisma migrate dev --name add_vocab_models` 未执行成功，因为本机 `5432` 已被 `linguaai-postgres` 容器占用，Esponal 的 Postgres 容器无法绑定端口。未停止其他项目容器，未向其他项目数据库写入迁移。
+
+**下一步最佳动作**：
+交给 Codex2 测试 `VOCAB-001`；若需要真实数据库迁移验收，先释放 `5432` 或由 PM 决定 Esponal 本地数据库端口策略。

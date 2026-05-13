@@ -7,7 +7,8 @@
 ## 当前已验证
 
 - `INFRA-001` 脚手架：✅ 通过（`npm test` scaffold 测试通过）
-- 所有其他功能：`not_started`
+- `VOCAB-001`：Codex1 已实现数据模型、迁移文件、词库工具函数和测试；等待 Codex2 测试验收后再更新 `feature_list.json` 状态/evidence
+- 工作流文档：2026-05-13 11:10 已确认 `AGENTS.md`、角色文件、`claude-progress.md`、`feature_list.json`、`session-handoff.md`、产品设计文档在磁盘上均为 UTF-8 可读；此前乱码是 PowerShell 输出编码问题，不是文件内容损坏
 
 ## 并行执行计划（PM 决策，2026-05-13）
 
@@ -55,6 +56,34 @@ EXT-001 等 VOCAB-001 完成后启动。
 - [ ] 查询词根能返回该用户该词根下的所有变位形态和遭遇记录
 
 **不要动**：现有 Prisma schema 中的认证表、`tests/scaffold.test.mjs`
+
+**Codex1 实现记录 — 2026-05-13 11:10**
+
+**改动原因**：PM 确认工作流文件若损坏应优先修复；经 Python UTF-8 读取和 JSON 解析验证，文件实际未损坏，仅 PowerShell 输出乱码。因此未重写文档内容，避免无意义 churn。
+
+**本轮改动文件**：
+- `.gitignore`：忽略本地 npm cache 目录 `.npm-cache`
+- `package-lock.json`：安装依赖后生成锁文件
+- `prisma/schema.prisma`：新增 `WordStatus`、`Word`、`WordEncounter`，并在 `User` 上增加 `words` 关系字段
+- `prisma/migrations/20260513093000_add_vocab_models/migration.sql`：新增词汇模型迁移 SQL
+- `src/lib/vocab.ts`：新增 `createWord`、`addEncounter`、`getWordsByUser`、`getWordWithEncounters`
+- `tests/vocab.test.mjs`：新增 VOCAB-001 schema/lib 契约测试
+- `claude-progress.md`、`session-handoff.md`：记录本轮进展和交接信息
+
+**已验证**：
+- `npm test`：8/8 通过
+- `npm run lint`：通过，无 ESLint warnings/errors
+- `npx prisma validate`（临时设置 `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/espanol?schema=public`）：通过
+- `npx prisma generate`：通过
+- `npm run build`：通过
+- `npx prisma migrate diff --from-empty --to-schema-datamodel prisma\schema.prisma --script`：可生成包含 `WordStatus`、`Word`、`WordEncounter` 的 SQL
+
+**未完成/环境阻塞**：
+- `npx prisma migrate dev --name add_vocab_models` 未能完成。原因：`docker compose up -d postgres redis` 拉起服务时，`5432` 已被 `linguaai-postgres` 容器占用，Esponal 的 Postgres 容器无法绑定端口；我没有停止或修改其他项目容器，也没有把迁移写入其他项目数据库。
+- `docker ps` 当时显示：`linguaai-postgres` 占用 `0.0.0.0:5432->5432/tcp`，`esponal-redis-1` 已启动。
+
+**下一步最佳动作**：
+Codex2 测试 `VOCAB-001`。若需要执行真实 `prisma migrate dev`，先释放本机 `5432`，或由 PM 决定是否把 Esponal 本地 Postgres 暂时改到其他端口。
 
 ---
 
