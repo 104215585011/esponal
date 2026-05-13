@@ -1,0 +1,157 @@
+[
+  {
+    "id": "INFRA-001",
+    "priority": 0,
+    "area": "infrastructure",
+    "title": "项目脚手架",
+    "user_visible_behavior": "开发者能跑起 Next.js 应用，访问 /api/health 返回 200",
+    "status": "passing",
+    "verification": [
+      "运行 npm test，tests/scaffold.test.mjs 通过",
+      "npm run dev 启动后访问 http://localhost:3000 无报错",
+      "访问 /api/health 返回 { status: 'ok' }"
+    ],
+    "evidence": "commit 0c36a0f，tests/scaffold.test.mjs 全部通过",
+    "notes": "NextAuth、Prisma、Redis 已配置，待数据库迁移"
+  },
+  {
+    "id": "VOCAB-001",
+    "priority": 1,
+    "area": "vocabulary",
+    "title": "词汇数据模型",
+    "user_visible_behavior": "系统能存储用户的词条，包括词根、变位形态、遭遇记录（视频来源 + 时间戳 + 原句）",
+    "status": "not_started",
+    "verification": [
+      "prisma migrate dev 成功",
+      "npm test 通过（包含词汇模型的 CRUD 测试）",
+      "能创建词条并关联遭遇记录，查询词根能返回所有变位形态"
+    ],
+    "evidence": "",
+    "notes": "依赖 INFRA-001。Schema 需新增 Word、WordEncounter 表，参考设计文档第五节"
+  },
+  {
+    "id": "COURSE-001",
+    "priority": 2,
+    "area": "curriculum",
+    "title": "阶段一课程：发音规则 + 300 高频词",
+    "user_visible_behavior": "用户能在 Web 端看到发音规则说明（中文解释）和 300 个高频词，每个词有 TTS 音频和例句",
+    "status": "not_started",
+    "verification": [
+      "访问 /learn/phase-1 页面正常渲染",
+      "每个词条有音频播放按钮，点击能播放 TTS 音频",
+      "中文解释内容存在且正确",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "需要 UI 评审。依赖 INFRA-001。音频文件预生成存储，不实时调用 TTS"
+  },
+  {
+    "id": "COURSE-002",
+    "priority": 3,
+    "area": "curriculum",
+    "title": "语法知识库：动词变位 + 阴阳性规则",
+    "user_visible_behavior": "用户能查阅针对中文母语者写的语法解释：ser/estar/tener/ir/querer/poder 的现在时变位表，阴阳性判断规则",
+    "status": "not_started",
+    "verification": [
+      "访问 /grammar 页面正常渲染",
+      "包含 6 个核心动词的完整变位表",
+      "阴阳性规则页面有中文类比解释",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "需要 UI 评审。内容由人工整理，写成 JSON/MDX 存入 /content/grammar/"
+  },
+  {
+    "id": "VOCAB-002",
+    "priority": 4,
+    "area": "vocabulary",
+    "title": "词库 Web 界面",
+    "user_visible_behavior": "登录用户能在 /vocab 看到自己的词条列表，按词根浏览，点击词条能看到所有遭遇记录",
+    "status": "not_started",
+    "verification": [
+      "访问 /vocab 显示当前用户的词条",
+      "词条按词根归类，不按变位形式",
+      "点击词条展开遭遇记录列表（视频标题 + 时间戳 + 原句）",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "需要 UI 评审。依赖 VOCAB-001"
+  },
+  {
+    "id": "EXT-001",
+    "priority": 5,
+    "area": "extension",
+    "title": "Chrome 插件脚手架",
+    "user_visible_behavior": "Chrome 插件能安装，在 YouTube 页面注入内容脚本不报错",
+    "status": "not_started",
+    "verification": [
+      "chrome://extensions 加载插件无报错",
+      "打开任意 YouTube 视频，插件 icon 激活",
+      "console 无 uncaught error"
+    ],
+    "evidence": "",
+    "notes": "Manifest V3，放在 /extension 目录，独立构建流程"
+  },
+  {
+    "id": "EXT-002",
+    "priority": 6,
+    "area": "extension",
+    "title": "YouTube 字幕提取 + 双语叠加",
+    "user_visible_behavior": "用户在 YouTube 观看西语视频时，插件自动显示西语原文字幕和中文翻译字幕",
+    "status": "not_started",
+    "verification": [
+      "打开有官方字幕的西语 YouTube 视频，双语字幕自动出现",
+      "打开无官方字幕的视频，降级到自动生成字幕",
+      "中文翻译显示正确（抽查 3 条）",
+      "字幕跟随视频进度更新"
+    ],
+    "evidence": "",
+    "notes": "依赖 EXT-001。翻译调用 MiniMax API（服务端代理，不在插件直接暴露 key）"
+  },
+  {
+    "id": "EXT-003",
+    "priority": 7,
+    "area": "extension",
+    "title": "词形还原 + 点击查词",
+    "user_visible_behavior": "用户点击字幕中任意西语词，弹出卡片显示：词根、当前变位形式说明、中文释义，包含「加入我的词库」按钮",
+    "status": "not_started",
+    "verification": [
+      "点击 'fui' 弹出卡片，显示词根 ir，标注「简单过去时 / 第一人称单数」",
+      "点击 'hablan' 弹出卡片，显示词根 hablar",
+      "点击「加入我的词库」后，词条出现在 /vocab 页面",
+      "弹出卡片不打断视频播放"
+    ],
+    "evidence": "",
+    "notes": "依赖 EXT-002、VOCAB-001。词形还原服务端用 spacy es 模型，插件通过 API 调用"
+  },
+  {
+    "id": "EXT-004",
+    "priority": 8,
+    "area": "extension",
+    "title": "已学词高亮",
+    "user_visible_behavior": "字幕中，课程里学过的词显示绿色，词库里保存过的词显示蓝色",
+    "status": "not_started",
+    "verification": [
+      "在课程中学过的词在 YouTube 字幕里显示绿色高亮",
+      "词库中保存的词显示蓝色高亮",
+      "陌生词不高亮",
+      "高亮颜色不影响字幕可读性"
+    ],
+    "evidence": "",
+    "notes": "需要 UI 评审（颜色方案）。依赖 EXT-002、VOCAB-001、COURSE-001"
+  },
+  {
+    "id": "VOCAB-003",
+    "priority": 9,
+    "area": "vocabulary",
+    "title": "遭遇记录跳回视频",
+    "user_visible_behavior": "用户在 /vocab 页面点击某条遭遇记录，能跳转到原 YouTube 视频的对应时间点",
+    "status": "not_started",
+    "verification": [
+      "点击遭遇记录中的视频链接，跳转到 YouTube 并定位到正确时间戳（误差 < 2 秒）",
+      "跳转后字幕高亮正确"
+    ],
+    "evidence": "",
+    "notes": "依赖 VOCAB-002、EXT-003"
+  }
+]
