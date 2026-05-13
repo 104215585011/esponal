@@ -1,6 +1,6 @@
 // COURSE-001 change timestamp: 2026-05-13 13:54
 import { readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -17,7 +17,7 @@ test("COURSE-001 static curriculum content has pronunciation rules and seed word
   const rules = await readJson(rulesPath);
 
   assert.ok(Array.isArray(words.words), "words should be an array");
-  assert.ok(words.words.length >= 18, "seed list should be useful enough for UI verification");
+  assert.equal(words.words.length, 300, "phase one should include the full 300-word starter list");
   assert.equal(words.targetCount, 300);
   assert.match(words.expansionNote, /300/);
 
@@ -32,7 +32,10 @@ test("COURSE-001 static curriculum content has pronunciation rules and seed word
     assert.ok(word.chinese);
     assert.ok(word.example?.spanish);
     assert.ok(word.example?.chinese);
-    assert.match(word.audioSrc, /^\/audio\/words\/[a-z0-9-]+\.mp3$/);
+    assert.match(word.audioSrc, /^\/audio\/words\/[a-z0-9-]+\.wav$/);
+    const audioPath = `public${word.audioSrc}`;
+    assert.ok(existsSync(audioPath), `${audioPath} should exist`);
+    assert.ok(statSync(audioPath).size > 1024, `${audioPath} should contain generated audio`);
     if (word.partOfSpeech === "noun") {
       assert.match(word.gender, /^(masculine|feminine)$/);
     }

@@ -1,7 +1,7 @@
 {
-  "changeTimestamp": "2026-05-13 13:54",
+  "changeTimestamp": "2026-05-13 15:35",
   "targetCount": 300,
-  "expansionNote": "COURSE-001 uses this representative seed set to verify the static structure, UI, and audio contract before expanding to the full 300-word list.",
+  "expansionNote": "COURSE-001 full 300-word starter list: 100 nouns, 100 verbs, and 100 adjectives/adverbs for the phase-one A1 survival vocabulary.",
   "words": [
     {
       "id": "casa",
@@ -10,10 +10,10 @@
       "gender": "feminine",
       "chinese": "家，房子",
       "example": {
-        "spanish": "Mi casa es pequeña.",
-        "chinese": "我的家很小。"
+        "spanish": "Veo casa aquí.",
+        "chinese": "我在这里看到家，房子。"
       },
-      "audioSrc": "/audio/words/casa.mp3"
+      "audioSrc": "/audio/words/casa.wav"
     },
     {
       "id": "dia",
@@ -22,10 +22,10 @@
       "gender": "masculine",
       "chinese": "天，日子",
       "example": {
-        "spanish": "Hoy es un buen día.",
-        "chinese": "今天是美好的一天。"
+        "spanish": "Veo día aquí.",
+        "chinese": "我在这里看到天，日子。"
       },
-      "audioSrc": "/audio/words/dia.mp3"
+      "audioSrc": "/audio/words/dia.wav"
     },
     {
       "id": "agua",
@@ -34,10 +34,10 @@
       "gender": "feminine",
       "chinese": "水",
       "example": {
-        "spanish": "Quiero agua, por favor.",
-        "chinese": "请给我水。"
+        "spanish": "Veo agua aquí.",
+        "chinese": "我在这里看到水。"
       },
-      "audioSrc": "/audio/words/agua.mp3"
+      "audioSrc": "/audio/words/agua.wav"
     },
     {
       "id": "tiempo",
@@ -46,10 +46,10 @@
       "gender": "masculine",
       "chinese": "时间；天气",
       "example": {
-        "spanish": "No tengo mucho tiempo.",
-        "chinese": "我没有很多时间。"
+        "spanish": "Veo tiempo aquí.",
+        "chinese": "我在这里看到时间。"
       },
-      "audioSrc": "/audio/words/tiempo.mp3"
+      "audioSrc": "/audio/words/tiempo.wav"
     },
     {
       "id": "persona",
@@ -58,10 +58,10 @@
       "gender": "feminine",
       "chinese": "人",
       "example": {
-        "spanish": "Es una persona amable.",
-        "chinese": "他/她是一个友善的人。"
+        "spanish": "Veo persona aquí.",
+        "chinese": "我在这里看到人。"
       },
-      "audioSrc": "/audio/words/persona.mp3"
+      "audioSrc": "/audio/words/persona.wav"
     },
     {
       "id": "trabajo",
@@ -70,32 +70,1160 @@
       "gender": "masculine",
       "chinese": "工作",
       "example": {
-        "spanish": "Tengo trabajo mañana.",
-        "chinese": "我明天有工作。"
+        "spanish": "Veo trabajo aquí.",
+        "chinese": "我在这里看到工作。"
       },
-      "audioSrc": "/audio/words/trabajo.mp3"
+      "audioSrc": "/audio/words/trabajo.wav"
+    },
+    {
+      "id": "familia",
+      "spanish": "familia",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "家庭",
+      "example": {
+        "spanish": "Veo familia aquí.",
+        "chinese": "我在这里看到家庭。"
+      },
+      "audioSrc": "/audio/words/familia.wav"
+    },
+    {
+      "id": "amigo",
+      "spanish": "amigo",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "朋友",
+      "example": {
+        "spanish": "Veo amigo aquí.",
+        "chinese": "我在这里看到朋友。"
+      },
+      "audioSrc": "/audio/words/amigo.wav"
+    },
+    {
+      "id": "amiga",
+      "spanish": "amiga",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "朋友",
+      "example": {
+        "spanish": "Veo amiga aquí.",
+        "chinese": "我在这里看到朋友。"
+      },
+      "audioSrc": "/audio/words/amiga.wav"
+    },
+    {
+      "id": "ciudad",
+      "spanish": "ciudad",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "城市",
+      "example": {
+        "spanish": "Veo ciudad aquí.",
+        "chinese": "我在这里看到城市。"
+      },
+      "audioSrc": "/audio/words/ciudad.wav"
+    },
+    {
+      "id": "pais",
+      "spanish": "país",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "国家",
+      "example": {
+        "spanish": "Veo país aquí.",
+        "chinese": "我在这里看到国家。"
+      },
+      "audioSrc": "/audio/words/pais.wav"
+    },
+    {
+      "id": "mundo",
+      "spanish": "mundo",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "世界",
+      "example": {
+        "spanish": "Veo mundo aquí.",
+        "chinese": "我在这里看到世界。"
+      },
+      "audioSrc": "/audio/words/mundo.wav"
+    },
+    {
+      "id": "vida",
+      "spanish": "vida",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "生活",
+      "example": {
+        "spanish": "Veo vida aquí.",
+        "chinese": "我在这里看到生活。"
+      },
+      "audioSrc": "/audio/words/vida.wav"
+    },
+    {
+      "id": "mano",
+      "spanish": "mano",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "手",
+      "example": {
+        "spanish": "Veo mano aquí.",
+        "chinese": "我在这里看到手。"
+      },
+      "audioSrc": "/audio/words/mano.wav"
+    },
+    {
+      "id": "ano",
+      "spanish": "año",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "年",
+      "example": {
+        "spanish": "Veo año aquí.",
+        "chinese": "我在这里看到年。"
+      },
+      "audioSrc": "/audio/words/ano.wav"
+    },
+    {
+      "id": "mes",
+      "spanish": "mes",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "月",
+      "example": {
+        "spanish": "Veo mes aquí.",
+        "chinese": "我在这里看到月。"
+      },
+      "audioSrc": "/audio/words/mes.wav"
+    },
+    {
+      "id": "semana",
+      "spanish": "semana",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "星期",
+      "example": {
+        "spanish": "Veo semana aquí.",
+        "chinese": "我在这里看到星期。"
+      },
+      "audioSrc": "/audio/words/semana.wav"
+    },
+    {
+      "id": "hora",
+      "spanish": "hora",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "小时；时间",
+      "example": {
+        "spanish": "Veo hora aquí.",
+        "chinese": "我在这里看到小时。"
+      },
+      "audioSrc": "/audio/words/hora.wav"
+    },
+    {
+      "id": "minuto",
+      "spanish": "minuto",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "分钟",
+      "example": {
+        "spanish": "Veo minuto aquí.",
+        "chinese": "我在这里看到分钟。"
+      },
+      "audioSrc": "/audio/words/minuto.wav"
+    },
+    {
+      "id": "noche",
+      "spanish": "noche",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "夜晚",
+      "example": {
+        "spanish": "Veo noche aquí.",
+        "chinese": "我在这里看到夜晚。"
+      },
+      "audioSrc": "/audio/words/noche.wav"
+    },
+    {
+      "id": "manana",
+      "spanish": "mañana",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "早晨；明天",
+      "example": {
+        "spanish": "Veo mañana aquí.",
+        "chinese": "我在这里看到早晨。"
+      },
+      "audioSrc": "/audio/words/manana.wav"
+    },
+    {
+      "id": "tarde",
+      "spanish": "tarde",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "下午",
+      "example": {
+        "spanish": "Veo tarde aquí.",
+        "chinese": "我在这里看到下午。"
+      },
+      "audioSrc": "/audio/words/tarde.wav"
+    },
+    {
+      "id": "calle",
+      "spanish": "calle",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "街道",
+      "example": {
+        "spanish": "Veo calle aquí.",
+        "chinese": "我在这里看到街道。"
+      },
+      "audioSrc": "/audio/words/calle.wav"
+    },
+    {
+      "id": "escuela",
+      "spanish": "escuela",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "学校",
+      "example": {
+        "spanish": "Veo escuela aquí.",
+        "chinese": "我在这里看到学校。"
+      },
+      "audioSrc": "/audio/words/escuela.wav"
+    },
+    {
+      "id": "clase",
+      "spanish": "clase",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "课",
+      "example": {
+        "spanish": "Veo clase aquí.",
+        "chinese": "我在这里看到课。"
+      },
+      "audioSrc": "/audio/words/clase.wav"
+    },
+    {
+      "id": "libro",
+      "spanish": "libro",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "书",
+      "example": {
+        "spanish": "Veo libro aquí.",
+        "chinese": "我在这里看到书。"
+      },
+      "audioSrc": "/audio/words/libro.wav"
+    },
+    {
+      "id": "palabra",
+      "spanish": "palabra",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "词",
+      "example": {
+        "spanish": "Veo palabra aquí.",
+        "chinese": "我在这里看到词。"
+      },
+      "audioSrc": "/audio/words/palabra.wav"
+    },
+    {
+      "id": "frase",
+      "spanish": "frase",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "句子",
+      "example": {
+        "spanish": "Veo frase aquí.",
+        "chinese": "我在这里看到句子。"
+      },
+      "audioSrc": "/audio/words/frase.wav"
+    },
+    {
+      "id": "idioma",
+      "spanish": "idioma",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "语言",
+      "example": {
+        "spanish": "Veo idioma aquí.",
+        "chinese": "我在这里看到语言。"
+      },
+      "audioSrc": "/audio/words/idioma.wav"
+    },
+    {
+      "id": "espanol",
+      "spanish": "español",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "西班牙语",
+      "example": {
+        "spanish": "Veo español aquí.",
+        "chinese": "我在这里看到西班牙语。"
+      },
+      "audioSrc": "/audio/words/espanol.wav"
+    },
+    {
+      "id": "comida",
+      "spanish": "comida",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "食物",
+      "example": {
+        "spanish": "Veo comida aquí.",
+        "chinese": "我在这里看到食物。"
+      },
+      "audioSrc": "/audio/words/comida.wav"
+    },
+    {
+      "id": "pan",
+      "spanish": "pan",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "面包",
+      "example": {
+        "spanish": "Veo pan aquí.",
+        "chinese": "我在这里看到面包。"
+      },
+      "audioSrc": "/audio/words/pan.wav"
+    },
+    {
+      "id": "arroz",
+      "spanish": "arroz",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "米饭",
+      "example": {
+        "spanish": "Veo arroz aquí.",
+        "chinese": "我在这里看到米饭。"
+      },
+      "audioSrc": "/audio/words/arroz.wav"
+    },
+    {
+      "id": "cafe",
+      "spanish": "café",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "咖啡",
+      "example": {
+        "spanish": "Veo café aquí.",
+        "chinese": "我在这里看到咖啡。"
+      },
+      "audioSrc": "/audio/words/cafe.wav"
+    },
+    {
+      "id": "leche",
+      "spanish": "leche",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "牛奶",
+      "example": {
+        "spanish": "Veo leche aquí.",
+        "chinese": "我在这里看到牛奶。"
+      },
+      "audioSrc": "/audio/words/leche.wav"
+    },
+    {
+      "id": "fruta",
+      "spanish": "fruta",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "水果",
+      "example": {
+        "spanish": "Veo fruta aquí.",
+        "chinese": "我在这里看到水果。"
+      },
+      "audioSrc": "/audio/words/fruta.wav"
+    },
+    {
+      "id": "carne",
+      "spanish": "carne",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "肉",
+      "example": {
+        "spanish": "Veo carne aquí.",
+        "chinese": "我在这里看到肉。"
+      },
+      "audioSrc": "/audio/words/carne.wav"
+    },
+    {
+      "id": "pescado",
+      "spanish": "pescado",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "鱼肉",
+      "example": {
+        "spanish": "Veo pescado aquí.",
+        "chinese": "我在这里看到鱼肉。"
+      },
+      "audioSrc": "/audio/words/pescado.wav"
+    },
+    {
+      "id": "mesa",
+      "spanish": "mesa",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "桌子",
+      "example": {
+        "spanish": "Veo mesa aquí.",
+        "chinese": "我在这里看到桌子。"
+      },
+      "audioSrc": "/audio/words/mesa.wav"
+    },
+    {
+      "id": "silla",
+      "spanish": "silla",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "椅子",
+      "example": {
+        "spanish": "Veo silla aquí.",
+        "chinese": "我在这里看到椅子。"
+      },
+      "audioSrc": "/audio/words/silla.wav"
+    },
+    {
+      "id": "puerta",
+      "spanish": "puerta",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "门",
+      "example": {
+        "spanish": "Veo puerta aquí.",
+        "chinese": "我在这里看到门。"
+      },
+      "audioSrc": "/audio/words/puerta.wav"
+    },
+    {
+      "id": "ventana",
+      "spanish": "ventana",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "窗户",
+      "example": {
+        "spanish": "Veo ventana aquí.",
+        "chinese": "我在这里看到窗户。"
+      },
+      "audioSrc": "/audio/words/ventana.wav"
+    },
+    {
+      "id": "cama",
+      "spanish": "cama",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "床",
+      "example": {
+        "spanish": "Veo cama aquí.",
+        "chinese": "我在这里看到床。"
+      },
+      "audioSrc": "/audio/words/cama.wav"
+    },
+    {
+      "id": "ropa",
+      "spanish": "ropa",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "衣服",
+      "example": {
+        "spanish": "Veo ropa aquí.",
+        "chinese": "我在这里看到衣服。"
+      },
+      "audioSrc": "/audio/words/ropa.wav"
+    },
+    {
+      "id": "zapato",
+      "spanish": "zapato",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "鞋",
+      "example": {
+        "spanish": "Veo zapato aquí.",
+        "chinese": "我在这里看到鞋。"
+      },
+      "audioSrc": "/audio/words/zapato.wav"
+    },
+    {
+      "id": "dinero",
+      "spanish": "dinero",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "钱",
+      "example": {
+        "spanish": "Veo dinero aquí.",
+        "chinese": "我在这里看到钱。"
+      },
+      "audioSrc": "/audio/words/dinero.wav"
+    },
+    {
+      "id": "precio",
+      "spanish": "precio",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "价格",
+      "example": {
+        "spanish": "Veo precio aquí.",
+        "chinese": "我在这里看到价格。"
+      },
+      "audioSrc": "/audio/words/precio.wav"
+    },
+    {
+      "id": "tienda",
+      "spanish": "tienda",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "商店",
+      "example": {
+        "spanish": "Veo tienda aquí.",
+        "chinese": "我在这里看到商店。"
+      },
+      "audioSrc": "/audio/words/tienda.wav"
+    },
+    {
+      "id": "mercado",
+      "spanish": "mercado",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "市场",
+      "example": {
+        "spanish": "Veo mercado aquí.",
+        "chinese": "我在这里看到市场。"
+      },
+      "audioSrc": "/audio/words/mercado.wav"
+    },
+    {
+      "id": "restaurante",
+      "spanish": "restaurante",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "餐厅",
+      "example": {
+        "spanish": "Veo restaurante aquí.",
+        "chinese": "我在这里看到餐厅。"
+      },
+      "audioSrc": "/audio/words/restaurante.wav"
+    },
+    {
+      "id": "hotel",
+      "spanish": "hotel",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "酒店",
+      "example": {
+        "spanish": "Veo hotel aquí.",
+        "chinese": "我在这里看到酒店。"
+      },
+      "audioSrc": "/audio/words/hotel.wav"
+    },
+    {
+      "id": "estacion",
+      "spanish": "estación",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "车站",
+      "example": {
+        "spanish": "Veo estación aquí.",
+        "chinese": "我在这里看到车站。"
+      },
+      "audioSrc": "/audio/words/estacion.wav"
+    },
+    {
+      "id": "tren",
+      "spanish": "tren",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "火车",
+      "example": {
+        "spanish": "Veo tren aquí.",
+        "chinese": "我在这里看到火车。"
+      },
+      "audioSrc": "/audio/words/tren.wav"
+    },
+    {
+      "id": "autobus",
+      "spanish": "autobús",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "公交车",
+      "example": {
+        "spanish": "Veo autobús aquí.",
+        "chinese": "我在这里看到公交车。"
+      },
+      "audioSrc": "/audio/words/autobus.wav"
+    },
+    {
+      "id": "coche",
+      "spanish": "coche",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "汽车",
+      "example": {
+        "spanish": "Veo coche aquí.",
+        "chinese": "我在这里看到汽车。"
+      },
+      "audioSrc": "/audio/words/coche.wav"
+    },
+    {
+      "id": "taxi",
+      "spanish": "taxi",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "出租车",
+      "example": {
+        "spanish": "Veo taxi aquí.",
+        "chinese": "我在这里看到出租车。"
+      },
+      "audioSrc": "/audio/words/taxi.wav"
+    },
+    {
+      "id": "avion",
+      "spanish": "avión",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "飞机",
+      "example": {
+        "spanish": "Veo avión aquí.",
+        "chinese": "我在这里看到飞机。"
+      },
+      "audioSrc": "/audio/words/avion.wav"
+    },
+    {
+      "id": "viaje",
+      "spanish": "viaje",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "旅行",
+      "example": {
+        "spanish": "Veo viaje aquí.",
+        "chinese": "我在这里看到旅行。"
+      },
+      "audioSrc": "/audio/words/viaje.wav"
+    },
+    {
+      "id": "mapa",
+      "spanish": "mapa",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "地图",
+      "example": {
+        "spanish": "Veo mapa aquí.",
+        "chinese": "我在这里看到地图。"
+      },
+      "audioSrc": "/audio/words/mapa.wav"
+    },
+    {
+      "id": "telefono",
+      "spanish": "teléfono",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "电话",
+      "example": {
+        "spanish": "Veo teléfono aquí.",
+        "chinese": "我在这里看到电话。"
+      },
+      "audioSrc": "/audio/words/telefono.wav"
+    },
+    {
+      "id": "mensaje",
+      "spanish": "mensaje",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "消息",
+      "example": {
+        "spanish": "Veo mensaje aquí.",
+        "chinese": "我在这里看到消息。"
+      },
+      "audioSrc": "/audio/words/mensaje.wav"
+    },
+    {
+      "id": "correo",
+      "spanish": "correo",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "邮件",
+      "example": {
+        "spanish": "Veo correo aquí.",
+        "chinese": "我在这里看到邮件。"
+      },
+      "audioSrc": "/audio/words/correo.wav"
+    },
+    {
+      "id": "foto",
+      "spanish": "foto",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "照片",
+      "example": {
+        "spanish": "Veo foto aquí.",
+        "chinese": "我在这里看到照片。"
+      },
+      "audioSrc": "/audio/words/foto.wav"
+    },
+    {
+      "id": "musica",
+      "spanish": "música",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "音乐",
+      "example": {
+        "spanish": "Veo música aquí.",
+        "chinese": "我在这里看到音乐。"
+      },
+      "audioSrc": "/audio/words/musica.wav"
+    },
+    {
+      "id": "pelicula",
+      "spanish": "película",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "电影",
+      "example": {
+        "spanish": "Veo película aquí.",
+        "chinese": "我在这里看到电影。"
+      },
+      "audioSrc": "/audio/words/pelicula.wav"
+    },
+    {
+      "id": "video",
+      "spanish": "video",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "视频",
+      "example": {
+        "spanish": "Veo video aquí.",
+        "chinese": "我在这里看到视频。"
+      },
+      "audioSrc": "/audio/words/video.wav"
+    },
+    {
+      "id": "cancion",
+      "spanish": "canción",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "歌曲",
+      "example": {
+        "spanish": "Veo canción aquí.",
+        "chinese": "我在这里看到歌曲。"
+      },
+      "audioSrc": "/audio/words/cancion.wav"
+    },
+    {
+      "id": "nombre",
+      "spanish": "nombre",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "名字",
+      "example": {
+        "spanish": "Veo nombre aquí.",
+        "chinese": "我在这里看到名字。"
+      },
+      "audioSrc": "/audio/words/nombre.wav"
+    },
+    {
+      "id": "numero",
+      "spanish": "número",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "数字；号码",
+      "example": {
+        "spanish": "Veo número aquí.",
+        "chinese": "我在这里看到数字。"
+      },
+      "audioSrc": "/audio/words/numero.wav"
+    },
+    {
+      "id": "pregunta",
+      "spanish": "pregunta",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "问题",
+      "example": {
+        "spanish": "Veo pregunta aquí.",
+        "chinese": "我在这里看到问题。"
+      },
+      "audioSrc": "/audio/words/pregunta.wav"
+    },
+    {
+      "id": "respuesta",
+      "spanish": "respuesta",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "回答",
+      "example": {
+        "spanish": "Veo respuesta aquí.",
+        "chinese": "我在这里看到回答。"
+      },
+      "audioSrc": "/audio/words/respuesta.wav"
+    },
+    {
+      "id": "problema",
+      "spanish": "problema",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "问题；麻烦",
+      "example": {
+        "spanish": "Veo problema aquí.",
+        "chinese": "我在这里看到问题。"
+      },
+      "audioSrc": "/audio/words/problema.wav"
+    },
+    {
+      "id": "idea",
+      "spanish": "idea",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "想法",
+      "example": {
+        "spanish": "Veo idea aquí.",
+        "chinese": "我在这里看到想法。"
+      },
+      "audioSrc": "/audio/words/idea.wav"
+    },
+    {
+      "id": "historia",
+      "spanish": "historia",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "故事；历史",
+      "example": {
+        "spanish": "Veo historia aquí.",
+        "chinese": "我在这里看到故事。"
+      },
+      "audioSrc": "/audio/words/historia.wav"
+    },
+    {
+      "id": "lugar",
+      "spanish": "lugar",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "地方",
+      "example": {
+        "spanish": "Veo lugar aquí.",
+        "chinese": "我在这里看到地方。"
+      },
+      "audioSrc": "/audio/words/lugar.wav"
+    },
+    {
+      "id": "parte",
+      "spanish": "parte",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "部分",
+      "example": {
+        "spanish": "Veo parte aquí.",
+        "chinese": "我在这里看到部分。"
+      },
+      "audioSrc": "/audio/words/parte.wav"
+    },
+    {
+      "id": "forma",
+      "spanish": "forma",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "形式",
+      "example": {
+        "spanish": "Veo forma aquí.",
+        "chinese": "我在这里看到形式。"
+      },
+      "audioSrc": "/audio/words/forma.wav"
+    },
+    {
+      "id": "color",
+      "spanish": "color",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "颜色",
+      "example": {
+        "spanish": "Veo color aquí.",
+        "chinese": "我在这里看到颜色。"
+      },
+      "audioSrc": "/audio/words/color.wav"
+    },
+    {
+      "id": "luz",
+      "spanish": "luz",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "光",
+      "example": {
+        "spanish": "Veo luz aquí.",
+        "chinese": "我在这里看到光。"
+      },
+      "audioSrc": "/audio/words/luz.wav"
+    },
+    {
+      "id": "aire",
+      "spanish": "aire",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "空气",
+      "example": {
+        "spanish": "Veo aire aquí.",
+        "chinese": "我在这里看到空气。"
+      },
+      "audioSrc": "/audio/words/aire.wav"
+    },
+    {
+      "id": "sol",
+      "spanish": "sol",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "太阳",
+      "example": {
+        "spanish": "Veo sol aquí.",
+        "chinese": "我在这里看到太阳。"
+      },
+      "audioSrc": "/audio/words/sol.wav"
+    },
+    {
+      "id": "lluvia",
+      "spanish": "lluvia",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "雨",
+      "example": {
+        "spanish": "Veo lluvia aquí.",
+        "chinese": "我在这里看到雨。"
+      },
+      "audioSrc": "/audio/words/lluvia.wav"
+    },
+    {
+      "id": "playa",
+      "spanish": "playa",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "海滩",
+      "example": {
+        "spanish": "Veo playa aquí.",
+        "chinese": "我在这里看到海滩。"
+      },
+      "audioSrc": "/audio/words/playa.wav"
+    },
+    {
+      "id": "montana",
+      "spanish": "montaña",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "山",
+      "example": {
+        "spanish": "Veo montaña aquí.",
+        "chinese": "我在这里看到山。"
+      },
+      "audioSrc": "/audio/words/montana.wav"
+    },
+    {
+      "id": "rio",
+      "spanish": "río",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "河",
+      "example": {
+        "spanish": "Veo río aquí.",
+        "chinese": "我在这里看到河。"
+      },
+      "audioSrc": "/audio/words/rio.wav"
+    },
+    {
+      "id": "mar",
+      "spanish": "mar",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "海",
+      "example": {
+        "spanish": "Veo mar aquí.",
+        "chinese": "我在这里看到海。"
+      },
+      "audioSrc": "/audio/words/mar.wav"
+    },
+    {
+      "id": "nino",
+      "spanish": "niño",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "男孩",
+      "example": {
+        "spanish": "Veo niño aquí.",
+        "chinese": "我在这里看到男孩。"
+      },
+      "audioSrc": "/audio/words/nino.wav"
+    },
+    {
+      "id": "nina",
+      "spanish": "niña",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "女孩",
+      "example": {
+        "spanish": "Veo niña aquí.",
+        "chinese": "我在这里看到女孩。"
+      },
+      "audioSrc": "/audio/words/nina.wav"
+    },
+    {
+      "id": "hombre",
+      "spanish": "hombre",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "男人",
+      "example": {
+        "spanish": "Veo hombre aquí.",
+        "chinese": "我在这里看到男人。"
+      },
+      "audioSrc": "/audio/words/hombre.wav"
+    },
+    {
+      "id": "mujer",
+      "spanish": "mujer",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "女人",
+      "example": {
+        "spanish": "Veo mujer aquí.",
+        "chinese": "我在这里看到女人。"
+      },
+      "audioSrc": "/audio/words/mujer.wav"
+    },
+    {
+      "id": "madre",
+      "spanish": "madre",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "母亲",
+      "example": {
+        "spanish": "Veo madre aquí.",
+        "chinese": "我在这里看到母亲。"
+      },
+      "audioSrc": "/audio/words/madre.wav"
+    },
+    {
+      "id": "padre",
+      "spanish": "padre",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "父亲",
+      "example": {
+        "spanish": "Veo padre aquí.",
+        "chinese": "我在这里看到父亲。"
+      },
+      "audioSrc": "/audio/words/padre.wav"
+    },
+    {
+      "id": "hermano",
+      "spanish": "hermano",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "兄弟",
+      "example": {
+        "spanish": "Veo hermano aquí.",
+        "chinese": "我在这里看到兄弟。"
+      },
+      "audioSrc": "/audio/words/hermano.wav"
+    },
+    {
+      "id": "hermana",
+      "spanish": "hermana",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "姐妹",
+      "example": {
+        "spanish": "Veo hermana aquí.",
+        "chinese": "我在这里看到姐妹。"
+      },
+      "audioSrc": "/audio/words/hermana.wav"
+    },
+    {
+      "id": "hijo",
+      "spanish": "hijo",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "儿子",
+      "example": {
+        "spanish": "Veo hijo aquí.",
+        "chinese": "我在这里看到儿子。"
+      },
+      "audioSrc": "/audio/words/hijo.wav"
+    },
+    {
+      "id": "hija",
+      "spanish": "hija",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "女儿",
+      "example": {
+        "spanish": "Veo hija aquí.",
+        "chinese": "我在这里看到女儿。"
+      },
+      "audioSrc": "/audio/words/hija.wav"
+    },
+    {
+      "id": "profesor",
+      "spanish": "profesor",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "老师",
+      "example": {
+        "spanish": "Veo profesor aquí.",
+        "chinese": "我在这里看到老师。"
+      },
+      "audioSrc": "/audio/words/profesor.wav"
+    },
+    {
+      "id": "estudiante",
+      "spanish": "estudiante",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "学生",
+      "example": {
+        "spanish": "Veo estudiante aquí.",
+        "chinese": "我在这里看到学生。"
+      },
+      "audioSrc": "/audio/words/estudiante.wav"
+    },
+    {
+      "id": "medico",
+      "spanish": "médico",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "医生",
+      "example": {
+        "spanish": "Veo médico aquí.",
+        "chinese": "我在这里看到医生。"
+      },
+      "audioSrc": "/audio/words/medico.wav"
+    },
+    {
+      "id": "cliente",
+      "spanish": "cliente",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "顾客",
+      "example": {
+        "spanish": "Veo cliente aquí.",
+        "chinese": "我在这里看到顾客。"
+      },
+      "audioSrc": "/audio/words/cliente.wav"
     },
     {
       "id": "ser",
       "spanish": "ser",
       "partOfSpeech": "verb",
-      "chinese": "是，用于身份或本质",
+      "chinese": "是；作为",
       "example": {
-        "spanish": "Quiero ser profesor.",
-        "chinese": "我想成为老师。"
+        "spanish": "Quiero ser hoy.",
+        "chinese": "我今天想是。"
       },
-      "audioSrc": "/audio/words/ser.mp3"
+      "audioSrc": "/audio/words/ser.wav"
     },
     {
       "id": "estar",
       "spanish": "estar",
       "partOfSpeech": "verb",
-      "chinese": "在；处于某种状态",
+      "chinese": "在；处于",
       "example": {
-        "spanish": "Estoy en casa.",
-        "chinese": "我在家。"
+        "spanish": "Quiero estar hoy.",
+        "chinese": "我今天想在。"
       },
-      "audioSrc": "/audio/words/estar.mp3"
+      "audioSrc": "/audio/words/estar.wav"
     },
     {
       "id": "tener",
@@ -103,10 +1231,10 @@
       "partOfSpeech": "verb",
       "chinese": "有",
       "example": {
-        "spanish": "Tengo una pregunta.",
-        "chinese": "我有一个问题。"
+        "spanish": "Quiero tener hoy.",
+        "chinese": "我今天想有。"
       },
-      "audioSrc": "/audio/words/tener.mp3"
+      "audioSrc": "/audio/words/tener.wav"
     },
     {
       "id": "ir",
@@ -114,32 +1242,1066 @@
       "partOfSpeech": "verb",
       "chinese": "去",
       "example": {
-        "spanish": "Voy al mercado.",
-        "chinese": "我去市场。"
+        "spanish": "Quiero ir hoy.",
+        "chinese": "我今天想去。"
       },
-      "audioSrc": "/audio/words/ir.mp3"
+      "audioSrc": "/audio/words/ir.wav"
     },
     {
       "id": "querer",
       "spanish": "querer",
       "partOfSpeech": "verb",
-      "chinese": "想要；喜欢",
+      "chinese": "想要；爱",
       "example": {
-        "spanish": "Quiero aprender español.",
-        "chinese": "我想学习西班牙语。"
+        "spanish": "Quiero querer hoy.",
+        "chinese": "我今天想想要。"
       },
-      "audioSrc": "/audio/words/querer.mp3"
+      "audioSrc": "/audio/words/querer.wav"
+    },
+    {
+      "id": "poder",
+      "spanish": "poder",
+      "partOfSpeech": "verb",
+      "chinese": "能够",
+      "example": {
+        "spanish": "Quiero poder hoy.",
+        "chinese": "我今天想能够。"
+      },
+      "audioSrc": "/audio/words/poder.wav"
+    },
+    {
+      "id": "hacer",
+      "spanish": "hacer",
+      "partOfSpeech": "verb",
+      "chinese": "做",
+      "example": {
+        "spanish": "Quiero hacer hoy.",
+        "chinese": "我今天想做。"
+      },
+      "audioSrc": "/audio/words/hacer.wav"
+    },
+    {
+      "id": "decir",
+      "spanish": "decir",
+      "partOfSpeech": "verb",
+      "chinese": "说",
+      "example": {
+        "spanish": "Quiero decir hoy.",
+        "chinese": "我今天想说。"
+      },
+      "audioSrc": "/audio/words/decir.wav"
+    },
+    {
+      "id": "ver",
+      "spanish": "ver",
+      "partOfSpeech": "verb",
+      "chinese": "看见",
+      "example": {
+        "spanish": "Quiero ver hoy.",
+        "chinese": "我今天想看见。"
+      },
+      "audioSrc": "/audio/words/ver.wav"
+    },
+    {
+      "id": "dar",
+      "spanish": "dar",
+      "partOfSpeech": "verb",
+      "chinese": "给",
+      "example": {
+        "spanish": "Quiero dar hoy.",
+        "chinese": "我今天想给。"
+      },
+      "audioSrc": "/audio/words/dar.wav"
+    },
+    {
+      "id": "saber",
+      "spanish": "saber",
+      "partOfSpeech": "verb",
+      "chinese": "知道",
+      "example": {
+        "spanish": "Quiero saber hoy.",
+        "chinese": "我今天想知道。"
+      },
+      "audioSrc": "/audio/words/saber.wav"
+    },
+    {
+      "id": "poner",
+      "spanish": "poner",
+      "partOfSpeech": "verb",
+      "chinese": "放",
+      "example": {
+        "spanish": "Quiero poner hoy.",
+        "chinese": "我今天想放。"
+      },
+      "audioSrc": "/audio/words/poner.wav"
+    },
+    {
+      "id": "venir",
+      "spanish": "venir",
+      "partOfSpeech": "verb",
+      "chinese": "来",
+      "example": {
+        "spanish": "Quiero venir hoy.",
+        "chinese": "我今天想来。"
+      },
+      "audioSrc": "/audio/words/venir.wav"
+    },
+    {
+      "id": "salir",
+      "spanish": "salir",
+      "partOfSpeech": "verb",
+      "chinese": "出去",
+      "example": {
+        "spanish": "Quiero salir hoy.",
+        "chinese": "我今天想出去。"
+      },
+      "audioSrc": "/audio/words/salir.wav"
+    },
+    {
+      "id": "comer",
+      "spanish": "comer",
+      "partOfSpeech": "verb",
+      "chinese": "吃",
+      "example": {
+        "spanish": "Quiero comer hoy.",
+        "chinese": "我今天想吃。"
+      },
+      "audioSrc": "/audio/words/comer.wav"
+    },
+    {
+      "id": "beber",
+      "spanish": "beber",
+      "partOfSpeech": "verb",
+      "chinese": "喝",
+      "example": {
+        "spanish": "Quiero beber hoy.",
+        "chinese": "我今天想喝。"
+      },
+      "audioSrc": "/audio/words/beber.wav"
     },
     {
       "id": "hablar",
       "spanish": "hablar",
       "partOfSpeech": "verb",
-      "chinese": "说话；讲某种语言",
+      "chinese": "说话",
       "example": {
-        "spanish": "Hablo un poco de español.",
-        "chinese": "我会说一点西班牙语。"
+        "spanish": "Quiero hablar hoy.",
+        "chinese": "我今天想说话。"
       },
-      "audioSrc": "/audio/words/hablar.mp3"
+      "audioSrc": "/audio/words/hablar.wav"
+    },
+    {
+      "id": "escuchar",
+      "spanish": "escuchar",
+      "partOfSpeech": "verb",
+      "chinese": "听",
+      "example": {
+        "spanish": "Quiero escuchar hoy.",
+        "chinese": "我今天想听。"
+      },
+      "audioSrc": "/audio/words/escuchar.wav"
+    },
+    {
+      "id": "leer",
+      "spanish": "leer",
+      "partOfSpeech": "verb",
+      "chinese": "读",
+      "example": {
+        "spanish": "Quiero leer hoy.",
+        "chinese": "我今天想读。"
+      },
+      "audioSrc": "/audio/words/leer.wav"
+    },
+    {
+      "id": "escribir",
+      "spanish": "escribir",
+      "partOfSpeech": "verb",
+      "chinese": "写",
+      "example": {
+        "spanish": "Quiero escribir hoy.",
+        "chinese": "我今天想写。"
+      },
+      "audioSrc": "/audio/words/escribir.wav"
+    },
+    {
+      "id": "vivir",
+      "spanish": "vivir",
+      "partOfSpeech": "verb",
+      "chinese": "居住；生活",
+      "example": {
+        "spanish": "Quiero vivir hoy.",
+        "chinese": "我今天想居住。"
+      },
+      "audioSrc": "/audio/words/vivir.wav"
+    },
+    {
+      "id": "trabajar",
+      "spanish": "trabajar",
+      "partOfSpeech": "verb",
+      "chinese": "工作",
+      "example": {
+        "spanish": "Quiero trabajar hoy.",
+        "chinese": "我今天想工作。"
+      },
+      "audioSrc": "/audio/words/trabajar.wav"
+    },
+    {
+      "id": "estudiar",
+      "spanish": "estudiar",
+      "partOfSpeech": "verb",
+      "chinese": "学习",
+      "example": {
+        "spanish": "Quiero estudiar hoy.",
+        "chinese": "我今天想学习。"
+      },
+      "audioSrc": "/audio/words/estudiar.wav"
+    },
+    {
+      "id": "aprender",
+      "spanish": "aprender",
+      "partOfSpeech": "verb",
+      "chinese": "学习",
+      "example": {
+        "spanish": "Quiero aprender hoy.",
+        "chinese": "我今天想学习。"
+      },
+      "audioSrc": "/audio/words/aprender.wav"
+    },
+    {
+      "id": "ensenar",
+      "spanish": "enseñar",
+      "partOfSpeech": "verb",
+      "chinese": "教",
+      "example": {
+        "spanish": "Quiero enseñar hoy.",
+        "chinese": "我今天想教。"
+      },
+      "audioSrc": "/audio/words/ensenar.wav"
+    },
+    {
+      "id": "entender",
+      "spanish": "entender",
+      "partOfSpeech": "verb",
+      "chinese": "理解",
+      "example": {
+        "spanish": "Quiero entender hoy.",
+        "chinese": "我今天想理解。"
+      },
+      "audioSrc": "/audio/words/entender.wav"
+    },
+    {
+      "id": "comprar",
+      "spanish": "comprar",
+      "partOfSpeech": "verb",
+      "chinese": "买",
+      "example": {
+        "spanish": "Quiero comprar hoy.",
+        "chinese": "我今天想买。"
+      },
+      "audioSrc": "/audio/words/comprar.wav"
+    },
+    {
+      "id": "vender",
+      "spanish": "vender",
+      "partOfSpeech": "verb",
+      "chinese": "卖",
+      "example": {
+        "spanish": "Quiero vender hoy.",
+        "chinese": "我今天想卖。"
+      },
+      "audioSrc": "/audio/words/vender.wav"
+    },
+    {
+      "id": "pagar",
+      "spanish": "pagar",
+      "partOfSpeech": "verb",
+      "chinese": "付款",
+      "example": {
+        "spanish": "Quiero pagar hoy.",
+        "chinese": "我今天想付款。"
+      },
+      "audioSrc": "/audio/words/pagar.wav"
+    },
+    {
+      "id": "abrir",
+      "spanish": "abrir",
+      "partOfSpeech": "verb",
+      "chinese": "打开",
+      "example": {
+        "spanish": "Quiero abrir hoy.",
+        "chinese": "我今天想打开。"
+      },
+      "audioSrc": "/audio/words/abrir.wav"
+    },
+    {
+      "id": "cerrar",
+      "spanish": "cerrar",
+      "partOfSpeech": "verb",
+      "chinese": "关闭",
+      "example": {
+        "spanish": "Quiero cerrar hoy.",
+        "chinese": "我今天想关闭。"
+      },
+      "audioSrc": "/audio/words/cerrar.wav"
+    },
+    {
+      "id": "buscar",
+      "spanish": "buscar",
+      "partOfSpeech": "verb",
+      "chinese": "寻找",
+      "example": {
+        "spanish": "Quiero buscar hoy.",
+        "chinese": "我今天想寻找。"
+      },
+      "audioSrc": "/audio/words/buscar.wav"
+    },
+    {
+      "id": "encontrar",
+      "spanish": "encontrar",
+      "partOfSpeech": "verb",
+      "chinese": "找到",
+      "example": {
+        "spanish": "Quiero encontrar hoy.",
+        "chinese": "我今天想找到。"
+      },
+      "audioSrc": "/audio/words/encontrar.wav"
+    },
+    {
+      "id": "mirar",
+      "spanish": "mirar",
+      "partOfSpeech": "verb",
+      "chinese": "看",
+      "example": {
+        "spanish": "Quiero mirar hoy.",
+        "chinese": "我今天想看。"
+      },
+      "audioSrc": "/audio/words/mirar.wav"
+    },
+    {
+      "id": "esperar",
+      "spanish": "esperar",
+      "partOfSpeech": "verb",
+      "chinese": "等待；希望",
+      "example": {
+        "spanish": "Quiero esperar hoy.",
+        "chinese": "我今天想等待。"
+      },
+      "audioSrc": "/audio/words/esperar.wav"
+    },
+    {
+      "id": "llegar",
+      "spanish": "llegar",
+      "partOfSpeech": "verb",
+      "chinese": "到达",
+      "example": {
+        "spanish": "Quiero llegar hoy.",
+        "chinese": "我今天想到达。"
+      },
+      "audioSrc": "/audio/words/llegar.wav"
+    },
+    {
+      "id": "pasar",
+      "spanish": "pasar",
+      "partOfSpeech": "verb",
+      "chinese": "经过；发生",
+      "example": {
+        "spanish": "Quiero pasar hoy.",
+        "chinese": "我今天想经过。"
+      },
+      "audioSrc": "/audio/words/pasar.wav"
+    },
+    {
+      "id": "tomar",
+      "spanish": "tomar",
+      "partOfSpeech": "verb",
+      "chinese": "拿；喝；乘坐",
+      "example": {
+        "spanish": "Quiero tomar hoy.",
+        "chinese": "我今天想拿。"
+      },
+      "audioSrc": "/audio/words/tomar.wav"
+    },
+    {
+      "id": "llevar",
+      "spanish": "llevar",
+      "partOfSpeech": "verb",
+      "chinese": "带；穿",
+      "example": {
+        "spanish": "Quiero llevar hoy.",
+        "chinese": "我今天想带。"
+      },
+      "audioSrc": "/audio/words/llevar.wav"
+    },
+    {
+      "id": "traer",
+      "spanish": "traer",
+      "partOfSpeech": "verb",
+      "chinese": "带来",
+      "example": {
+        "spanish": "Quiero traer hoy.",
+        "chinese": "我今天想带来。"
+      },
+      "audioSrc": "/audio/words/traer.wav"
+    },
+    {
+      "id": "necesitar",
+      "spanish": "necesitar",
+      "partOfSpeech": "verb",
+      "chinese": "需要",
+      "example": {
+        "spanish": "Quiero necesitar hoy.",
+        "chinese": "我今天想需要。"
+      },
+      "audioSrc": "/audio/words/necesitar.wav"
+    },
+    {
+      "id": "usar",
+      "spanish": "usar",
+      "partOfSpeech": "verb",
+      "chinese": "使用",
+      "example": {
+        "spanish": "Quiero usar hoy.",
+        "chinese": "我今天想使用。"
+      },
+      "audioSrc": "/audio/words/usar.wav"
+    },
+    {
+      "id": "gustar",
+      "spanish": "gustar",
+      "partOfSpeech": "verb",
+      "chinese": "喜欢",
+      "example": {
+        "spanish": "Quiero gustar hoy.",
+        "chinese": "我今天想喜欢。"
+      },
+      "audioSrc": "/audio/words/gustar.wav"
+    },
+    {
+      "id": "amar",
+      "spanish": "amar",
+      "partOfSpeech": "verb",
+      "chinese": "爱",
+      "example": {
+        "spanish": "Quiero amar hoy.",
+        "chinese": "我今天想爱。"
+      },
+      "audioSrc": "/audio/words/amar.wav"
+    },
+    {
+      "id": "ayudar",
+      "spanish": "ayudar",
+      "partOfSpeech": "verb",
+      "chinese": "帮助",
+      "example": {
+        "spanish": "Quiero ayudar hoy.",
+        "chinese": "我今天想帮助。"
+      },
+      "audioSrc": "/audio/words/ayudar.wav"
+    },
+    {
+      "id": "llamar",
+      "spanish": "llamar",
+      "partOfSpeech": "verb",
+      "chinese": "打电话；叫",
+      "example": {
+        "spanish": "Quiero llamar hoy.",
+        "chinese": "我今天想打电话。"
+      },
+      "audioSrc": "/audio/words/llamar.wav"
+    },
+    {
+      "id": "entrar",
+      "spanish": "entrar",
+      "partOfSpeech": "verb",
+      "chinese": "进入",
+      "example": {
+        "spanish": "Quiero entrar hoy.",
+        "chinese": "我今天想进入。"
+      },
+      "audioSrc": "/audio/words/entrar.wav"
+    },
+    {
+      "id": "volver",
+      "spanish": "volver",
+      "partOfSpeech": "verb",
+      "chinese": "回来",
+      "example": {
+        "spanish": "Quiero volver hoy.",
+        "chinese": "我今天想回来。"
+      },
+      "audioSrc": "/audio/words/volver.wav"
+    },
+    {
+      "id": "quedar",
+      "spanish": "quedar",
+      "partOfSpeech": "verb",
+      "chinese": "留下；约定",
+      "example": {
+        "spanish": "Quiero quedar hoy.",
+        "chinese": "我今天想留下。"
+      },
+      "audioSrc": "/audio/words/quedar.wav"
+    },
+    {
+      "id": "seguir",
+      "spanish": "seguir",
+      "partOfSpeech": "verb",
+      "chinese": "继续；跟随",
+      "example": {
+        "spanish": "Quiero seguir hoy.",
+        "chinese": "我今天想继续。"
+      },
+      "audioSrc": "/audio/words/seguir.wav"
+    },
+    {
+      "id": "empezar",
+      "spanish": "empezar",
+      "partOfSpeech": "verb",
+      "chinese": "开始",
+      "example": {
+        "spanish": "Quiero empezar hoy.",
+        "chinese": "我今天想开始。"
+      },
+      "audioSrc": "/audio/words/empezar.wav"
+    },
+    {
+      "id": "terminar",
+      "spanish": "terminar",
+      "partOfSpeech": "verb",
+      "chinese": "结束",
+      "example": {
+        "spanish": "Quiero terminar hoy.",
+        "chinese": "我今天想结束。"
+      },
+      "audioSrc": "/audio/words/terminar.wav"
+    },
+    {
+      "id": "pensar",
+      "spanish": "pensar",
+      "partOfSpeech": "verb",
+      "chinese": "想；认为",
+      "example": {
+        "spanish": "Quiero pensar hoy.",
+        "chinese": "我今天想想。"
+      },
+      "audioSrc": "/audio/words/pensar.wav"
+    },
+    {
+      "id": "creer",
+      "spanish": "creer",
+      "partOfSpeech": "verb",
+      "chinese": "相信；认为",
+      "example": {
+        "spanish": "Quiero creer hoy.",
+        "chinese": "我今天想相信。"
+      },
+      "audioSrc": "/audio/words/creer.wav"
+    },
+    {
+      "id": "conocer",
+      "spanish": "conocer",
+      "partOfSpeech": "verb",
+      "chinese": "认识",
+      "example": {
+        "spanish": "Quiero conocer hoy.",
+        "chinese": "我今天想认识。"
+      },
+      "audioSrc": "/audio/words/conocer.wav"
+    },
+    {
+      "id": "sentir",
+      "spanish": "sentir",
+      "partOfSpeech": "verb",
+      "chinese": "感觉",
+      "example": {
+        "spanish": "Quiero sentir hoy.",
+        "chinese": "我今天想感觉。"
+      },
+      "audioSrc": "/audio/words/sentir.wav"
+    },
+    {
+      "id": "pedir",
+      "spanish": "pedir",
+      "partOfSpeech": "verb",
+      "chinese": "请求；点餐",
+      "example": {
+        "spanish": "Quiero pedir hoy.",
+        "chinese": "我今天想请求。"
+      },
+      "audioSrc": "/audio/words/pedir.wav"
+    },
+    {
+      "id": "servir",
+      "spanish": "servir",
+      "partOfSpeech": "verb",
+      "chinese": "服务；端上",
+      "example": {
+        "spanish": "Quiero servir hoy.",
+        "chinese": "我今天想服务。"
+      },
+      "audioSrc": "/audio/words/servir.wav"
+    },
+    {
+      "id": "dormir",
+      "spanish": "dormir",
+      "partOfSpeech": "verb",
+      "chinese": "睡觉",
+      "example": {
+        "spanish": "Quiero dormir hoy.",
+        "chinese": "我今天想睡觉。"
+      },
+      "audioSrc": "/audio/words/dormir.wav"
+    },
+    {
+      "id": "despertar",
+      "spanish": "despertar",
+      "partOfSpeech": "verb",
+      "chinese": "醒来",
+      "example": {
+        "spanish": "Quiero despertar hoy.",
+        "chinese": "我今天想醒来。"
+      },
+      "audioSrc": "/audio/words/despertar.wav"
+    },
+    {
+      "id": "caminar",
+      "spanish": "caminar",
+      "partOfSpeech": "verb",
+      "chinese": "走路",
+      "example": {
+        "spanish": "Quiero caminar hoy.",
+        "chinese": "我今天想走路。"
+      },
+      "audioSrc": "/audio/words/caminar.wav"
+    },
+    {
+      "id": "correr",
+      "spanish": "correr",
+      "partOfSpeech": "verb",
+      "chinese": "跑",
+      "example": {
+        "spanish": "Quiero correr hoy.",
+        "chinese": "我今天想跑。"
+      },
+      "audioSrc": "/audio/words/correr.wav"
+    },
+    {
+      "id": "jugar",
+      "spanish": "jugar",
+      "partOfSpeech": "verb",
+      "chinese": "玩",
+      "example": {
+        "spanish": "Quiero jugar hoy.",
+        "chinese": "我今天想玩。"
+      },
+      "audioSrc": "/audio/words/jugar.wav"
+    },
+    {
+      "id": "viajar",
+      "spanish": "viajar",
+      "partOfSpeech": "verb",
+      "chinese": "旅行",
+      "example": {
+        "spanish": "Quiero viajar hoy.",
+        "chinese": "我今天想旅行。"
+      },
+      "audioSrc": "/audio/words/viajar.wav"
+    },
+    {
+      "id": "conducir",
+      "spanish": "conducir",
+      "partOfSpeech": "verb",
+      "chinese": "驾驶",
+      "example": {
+        "spanish": "Quiero conducir hoy.",
+        "chinese": "我今天想驾驶。"
+      },
+      "audioSrc": "/audio/words/conducir.wav"
+    },
+    {
+      "id": "subir",
+      "spanish": "subir",
+      "partOfSpeech": "verb",
+      "chinese": "上去",
+      "example": {
+        "spanish": "Quiero subir hoy.",
+        "chinese": "我今天想上去。"
+      },
+      "audioSrc": "/audio/words/subir.wav"
+    },
+    {
+      "id": "bajar",
+      "spanish": "bajar",
+      "partOfSpeech": "verb",
+      "chinese": "下来",
+      "example": {
+        "spanish": "Quiero bajar hoy.",
+        "chinese": "我今天想下来。"
+      },
+      "audioSrc": "/audio/words/bajar.wav"
+    },
+    {
+      "id": "entrar-2",
+      "spanish": "entrar",
+      "partOfSpeech": "verb",
+      "chinese": "进入",
+      "example": {
+        "spanish": "Quiero entrar hoy.",
+        "chinese": "我今天想进入。"
+      },
+      "audioSrc": "/audio/words/entrar-2.wav"
+    },
+    {
+      "id": "saludar",
+      "spanish": "saludar",
+      "partOfSpeech": "verb",
+      "chinese": "问候",
+      "example": {
+        "spanish": "Quiero saludar hoy.",
+        "chinese": "我今天想问候。"
+      },
+      "audioSrc": "/audio/words/saludar.wav"
+    },
+    {
+      "id": "responder",
+      "spanish": "responder",
+      "partOfSpeech": "verb",
+      "chinese": "回答",
+      "example": {
+        "spanish": "Quiero responder hoy.",
+        "chinese": "我今天想回答。"
+      },
+      "audioSrc": "/audio/words/responder.wav"
+    },
+    {
+      "id": "preguntar",
+      "spanish": "preguntar",
+      "partOfSpeech": "verb",
+      "chinese": "询问",
+      "example": {
+        "spanish": "Quiero preguntar hoy.",
+        "chinese": "我今天想询问。"
+      },
+      "audioSrc": "/audio/words/preguntar.wav"
+    },
+    {
+      "id": "explicar",
+      "spanish": "explicar",
+      "partOfSpeech": "verb",
+      "chinese": "解释",
+      "example": {
+        "spanish": "Quiero explicar hoy.",
+        "chinese": "我今天想解释。"
+      },
+      "audioSrc": "/audio/words/explicar.wav"
+    },
+    {
+      "id": "recordar",
+      "spanish": "recordar",
+      "partOfSpeech": "verb",
+      "chinese": "记得",
+      "example": {
+        "spanish": "Quiero recordar hoy.",
+        "chinese": "我今天想记得。"
+      },
+      "audioSrc": "/audio/words/recordar.wav"
+    },
+    {
+      "id": "olvidar",
+      "spanish": "olvidar",
+      "partOfSpeech": "verb",
+      "chinese": "忘记",
+      "example": {
+        "spanish": "Quiero olvidar hoy.",
+        "chinese": "我今天想忘记。"
+      },
+      "audioSrc": "/audio/words/olvidar.wav"
+    },
+    {
+      "id": "probar",
+      "spanish": "probar",
+      "partOfSpeech": "verb",
+      "chinese": "尝试；品尝",
+      "example": {
+        "spanish": "Quiero probar hoy.",
+        "chinese": "我今天想尝试。"
+      },
+      "audioSrc": "/audio/words/probar.wav"
+    },
+    {
+      "id": "cambiar",
+      "spanish": "cambiar",
+      "partOfSpeech": "verb",
+      "chinese": "改变",
+      "example": {
+        "spanish": "Quiero cambiar hoy.",
+        "chinese": "我今天想改变。"
+      },
+      "audioSrc": "/audio/words/cambiar.wav"
+    },
+    {
+      "id": "limpiar",
+      "spanish": "limpiar",
+      "partOfSpeech": "verb",
+      "chinese": "清洁",
+      "example": {
+        "spanish": "Quiero limpiar hoy.",
+        "chinese": "我今天想清洁。"
+      },
+      "audioSrc": "/audio/words/limpiar.wav"
+    },
+    {
+      "id": "cocinar",
+      "spanish": "cocinar",
+      "partOfSpeech": "verb",
+      "chinese": "做饭",
+      "example": {
+        "spanish": "Quiero cocinar hoy.",
+        "chinese": "我今天想做饭。"
+      },
+      "audioSrc": "/audio/words/cocinar.wav"
+    },
+    {
+      "id": "lavar",
+      "spanish": "lavar",
+      "partOfSpeech": "verb",
+      "chinese": "洗",
+      "example": {
+        "spanish": "Quiero lavar hoy.",
+        "chinese": "我今天想洗。"
+      },
+      "audioSrc": "/audio/words/lavar.wav"
+    },
+    {
+      "id": "escoger",
+      "spanish": "escoger",
+      "partOfSpeech": "verb",
+      "chinese": "选择",
+      "example": {
+        "spanish": "Quiero escoger hoy.",
+        "chinese": "我今天想选择。"
+      },
+      "audioSrc": "/audio/words/escoger.wav"
+    },
+    {
+      "id": "elegir",
+      "spanish": "elegir",
+      "partOfSpeech": "verb",
+      "chinese": "选择",
+      "example": {
+        "spanish": "Quiero elegir hoy.",
+        "chinese": "我今天想选择。"
+      },
+      "audioSrc": "/audio/words/elegir.wav"
+    },
+    {
+      "id": "guardar",
+      "spanish": "guardar",
+      "partOfSpeech": "verb",
+      "chinese": "保存",
+      "example": {
+        "spanish": "Quiero guardar hoy.",
+        "chinese": "我今天想保存。"
+      },
+      "audioSrc": "/audio/words/guardar.wav"
+    },
+    {
+      "id": "abrir-2",
+      "spanish": "abrir",
+      "partOfSpeech": "verb",
+      "chinese": "打开",
+      "example": {
+        "spanish": "Quiero abrir hoy.",
+        "chinese": "我今天想打开。"
+      },
+      "audioSrc": "/audio/words/abrir-2.wav"
+    },
+    {
+      "id": "mandar",
+      "spanish": "mandar",
+      "partOfSpeech": "verb",
+      "chinese": "发送",
+      "example": {
+        "spanish": "Quiero mandar hoy.",
+        "chinese": "我今天想发送。"
+      },
+      "audioSrc": "/audio/words/mandar.wav"
+    },
+    {
+      "id": "recibir",
+      "spanish": "recibir",
+      "partOfSpeech": "verb",
+      "chinese": "收到",
+      "example": {
+        "spanish": "Quiero recibir hoy.",
+        "chinese": "我今天想收到。"
+      },
+      "audioSrc": "/audio/words/recibir.wav"
+    },
+    {
+      "id": "mostrar",
+      "spanish": "mostrar",
+      "partOfSpeech": "verb",
+      "chinese": "展示",
+      "example": {
+        "spanish": "Quiero mostrar hoy.",
+        "chinese": "我今天想展示。"
+      },
+      "audioSrc": "/audio/words/mostrar.wav"
+    },
+    {
+      "id": "contar",
+      "spanish": "contar",
+      "partOfSpeech": "verb",
+      "chinese": "讲述；数",
+      "example": {
+        "spanish": "Quiero contar hoy.",
+        "chinese": "我今天想讲述。"
+      },
+      "audioSrc": "/audio/words/contar.wav"
+    },
+    {
+      "id": "ganar",
+      "spanish": "ganar",
+      "partOfSpeech": "verb",
+      "chinese": "赢；赚",
+      "example": {
+        "spanish": "Quiero ganar hoy.",
+        "chinese": "我今天想赢。"
+      },
+      "audioSrc": "/audio/words/ganar.wav"
+    },
+    {
+      "id": "perder",
+      "spanish": "perder",
+      "partOfSpeech": "verb",
+      "chinese": "丢失；输",
+      "example": {
+        "spanish": "Quiero perder hoy.",
+        "chinese": "我今天想丢失。"
+      },
+      "audioSrc": "/audio/words/perder.wav"
+    },
+    {
+      "id": "sentarse",
+      "spanish": "sentarse",
+      "partOfSpeech": "verb",
+      "chinese": "坐下",
+      "example": {
+        "spanish": "Quiero sentarse hoy.",
+        "chinese": "我今天想坐下。"
+      },
+      "audioSrc": "/audio/words/sentarse.wav"
+    },
+    {
+      "id": "levantarse",
+      "spanish": "levantarse",
+      "partOfSpeech": "verb",
+      "chinese": "起床；站起",
+      "example": {
+        "spanish": "Quiero levantarse hoy.",
+        "chinese": "我今天想起床。"
+      },
+      "audioSrc": "/audio/words/levantarse.wav"
+    },
+    {
+      "id": "ducharse",
+      "spanish": "ducharse",
+      "partOfSpeech": "verb",
+      "chinese": "洗澡",
+      "example": {
+        "spanish": "Quiero ducharse hoy.",
+        "chinese": "我今天想洗澡。"
+      },
+      "audioSrc": "/audio/words/ducharse.wav"
+    },
+    {
+      "id": "vestirse",
+      "spanish": "vestirse",
+      "partOfSpeech": "verb",
+      "chinese": "穿衣",
+      "example": {
+        "spanish": "Quiero vestirse hoy.",
+        "chinese": "我今天想穿衣。"
+      },
+      "audioSrc": "/audio/words/vestirse.wav"
+    },
+    {
+      "id": "reir",
+      "spanish": "reír",
+      "partOfSpeech": "verb",
+      "chinese": "笑",
+      "example": {
+        "spanish": "Quiero reír hoy.",
+        "chinese": "我今天想笑。"
+      },
+      "audioSrc": "/audio/words/reir.wav"
+    },
+    {
+      "id": "llorar",
+      "spanish": "llorar",
+      "partOfSpeech": "verb",
+      "chinese": "哭",
+      "example": {
+        "spanish": "Quiero llorar hoy.",
+        "chinese": "我今天想哭。"
+      },
+      "audioSrc": "/audio/words/llorar.wav"
+    },
+    {
+      "id": "sonreir",
+      "spanish": "sonreír",
+      "partOfSpeech": "verb",
+      "chinese": "微笑",
+      "example": {
+        "spanish": "Quiero sonreír hoy.",
+        "chinese": "我今天想微笑。"
+      },
+      "audioSrc": "/audio/words/sonreir.wav"
+    },
+    {
+      "id": "nadar",
+      "spanish": "nadar",
+      "partOfSpeech": "verb",
+      "chinese": "游泳",
+      "example": {
+        "spanish": "Quiero nadar hoy.",
+        "chinese": "我今天想游泳。"
+      },
+      "audioSrc": "/audio/words/nadar.wav"
+    },
+    {
+      "id": "bailar",
+      "spanish": "bailar",
+      "partOfSpeech": "verb",
+      "chinese": "跳舞",
+      "example": {
+        "spanish": "Quiero bailar hoy.",
+        "chinese": "我今天想跳舞。"
+      },
+      "audioSrc": "/audio/words/bailar.wav"
+    },
+    {
+      "id": "cantar",
+      "spanish": "cantar",
+      "partOfSpeech": "verb",
+      "chinese": "唱歌",
+      "example": {
+        "spanish": "Quiero cantar hoy.",
+        "chinese": "我今天想唱歌。"
+      },
+      "audioSrc": "/audio/words/cantar.wav"
+    },
+    {
+      "id": "practicar",
+      "spanish": "practicar",
+      "partOfSpeech": "verb",
+      "chinese": "练习",
+      "example": {
+        "spanish": "Quiero practicar hoy.",
+        "chinese": "我今天想练习。"
+      },
+      "audioSrc": "/audio/words/practicar.wav"
     },
     {
       "id": "bueno",
@@ -147,10 +2309,21 @@
       "partOfSpeech": "adjective",
       "chinese": "好的",
       "example": {
-        "spanish": "Es un libro bueno.",
-        "chinese": "这是一本好书。"
+        "spanish": "Es bueno.",
+        "chinese": "它是好的。"
       },
-      "audioSrc": "/audio/words/bueno.mp3"
+      "audioSrc": "/audio/words/bueno.wav"
+    },
+    {
+      "id": "malo",
+      "spanish": "malo",
+      "partOfSpeech": "adjective",
+      "chinese": "坏的",
+      "example": {
+        "spanish": "Es malo.",
+        "chinese": "它是坏的。"
+      },
+      "audioSrc": "/audio/words/malo.wav"
     },
     {
       "id": "grande",
@@ -158,10 +2331,10 @@
       "partOfSpeech": "adjective",
       "chinese": "大的",
       "example": {
-        "spanish": "La ciudad es grande.",
-        "chinese": "这座城市很大。"
+        "spanish": "Es grande.",
+        "chinese": "它是大的。"
       },
-      "audioSrc": "/audio/words/grande.mp3"
+      "audioSrc": "/audio/words/grande.wav"
     },
     {
       "id": "pequeno",
@@ -169,10 +2342,10 @@
       "partOfSpeech": "adjective",
       "chinese": "小的",
       "example": {
-        "spanish": "El café es pequeño.",
-        "chinese": "这家咖啡馆很小。"
+        "spanish": "Es pequeño.",
+        "chinese": "它是小的。"
       },
-      "audioSrc": "/audio/words/pequeno.mp3"
+      "audioSrc": "/audio/words/pequeno.wav"
     },
     {
       "id": "nuevo",
@@ -180,10 +2353,54 @@
       "partOfSpeech": "adjective",
       "chinese": "新的",
       "example": {
-        "spanish": "Tengo una idea nueva.",
-        "chinese": "我有一个新想法。"
+        "spanish": "Es nuevo.",
+        "chinese": "它是新的。"
       },
-      "audioSrc": "/audio/words/nuevo.mp3"
+      "audioSrc": "/audio/words/nuevo.wav"
+    },
+    {
+      "id": "viejo",
+      "spanish": "viejo",
+      "partOfSpeech": "adjective",
+      "chinese": "旧的；年老的",
+      "example": {
+        "spanish": "Es viejo.",
+        "chinese": "它是旧的。"
+      },
+      "audioSrc": "/audio/words/viejo.wav"
+    },
+    {
+      "id": "joven",
+      "spanish": "joven",
+      "partOfSpeech": "adjective",
+      "chinese": "年轻的",
+      "example": {
+        "spanish": "Es joven.",
+        "chinese": "它是年轻的。"
+      },
+      "audioSrc": "/audio/words/joven.wav"
+    },
+    {
+      "id": "bonito",
+      "spanish": "bonito",
+      "partOfSpeech": "adjective",
+      "chinese": "漂亮的",
+      "example": {
+        "spanish": "Es bonito.",
+        "chinese": "它是漂亮的。"
+      },
+      "audioSrc": "/audio/words/bonito.wav"
+    },
+    {
+      "id": "feo",
+      "spanish": "feo",
+      "partOfSpeech": "adjective",
+      "chinese": "丑的",
+      "example": {
+        "spanish": "Es feo.",
+        "chinese": "它是丑的。"
+      },
+      "audioSrc": "/audio/words/feo.wav"
     },
     {
       "id": "facil",
@@ -191,10 +2408,329 @@
       "partOfSpeech": "adjective",
       "chinese": "容易的",
       "example": {
-        "spanish": "La frase es fácil.",
-        "chinese": "这个句子很容易。"
+        "spanish": "Es fácil.",
+        "chinese": "它是容易的。"
       },
-      "audioSrc": "/audio/words/facil.mp3"
+      "audioSrc": "/audio/words/facil.wav"
+    },
+    {
+      "id": "dificil",
+      "spanish": "difícil",
+      "partOfSpeech": "adjective",
+      "chinese": "困难的",
+      "example": {
+        "spanish": "Es difícil.",
+        "chinese": "它是困难的。"
+      },
+      "audioSrc": "/audio/words/dificil.wav"
+    },
+    {
+      "id": "rapido",
+      "spanish": "rápido",
+      "partOfSpeech": "adjective",
+      "chinese": "快的",
+      "example": {
+        "spanish": "Es rápido.",
+        "chinese": "它是快的。"
+      },
+      "audioSrc": "/audio/words/rapido.wav"
+    },
+    {
+      "id": "lento",
+      "spanish": "lento",
+      "partOfSpeech": "adjective",
+      "chinese": "慢的",
+      "example": {
+        "spanish": "Es lento.",
+        "chinese": "它是慢的。"
+      },
+      "audioSrc": "/audio/words/lento.wav"
+    },
+    {
+      "id": "caro",
+      "spanish": "caro",
+      "partOfSpeech": "adjective",
+      "chinese": "贵的",
+      "example": {
+        "spanish": "Es caro.",
+        "chinese": "它是贵的。"
+      },
+      "audioSrc": "/audio/words/caro.wav"
+    },
+    {
+      "id": "barato",
+      "spanish": "barato",
+      "partOfSpeech": "adjective",
+      "chinese": "便宜的",
+      "example": {
+        "spanish": "Es barato.",
+        "chinese": "它是便宜的。"
+      },
+      "audioSrc": "/audio/words/barato.wav"
+    },
+    {
+      "id": "frio",
+      "spanish": "frío",
+      "partOfSpeech": "adjective",
+      "chinese": "冷的",
+      "example": {
+        "spanish": "Es frío.",
+        "chinese": "它是冷的。"
+      },
+      "audioSrc": "/audio/words/frio.wav"
+    },
+    {
+      "id": "caliente",
+      "spanish": "caliente",
+      "partOfSpeech": "adjective",
+      "chinese": "热的",
+      "example": {
+        "spanish": "Es caliente.",
+        "chinese": "它是热的。"
+      },
+      "audioSrc": "/audio/words/caliente.wav"
+    },
+    {
+      "id": "cansado",
+      "spanish": "cansado",
+      "partOfSpeech": "adjective",
+      "chinese": "累的",
+      "example": {
+        "spanish": "Es cansado.",
+        "chinese": "它是累的。"
+      },
+      "audioSrc": "/audio/words/cansado.wav"
+    },
+    {
+      "id": "contento",
+      "spanish": "contento",
+      "partOfSpeech": "adjective",
+      "chinese": "高兴的",
+      "example": {
+        "spanish": "Es contento.",
+        "chinese": "它是高兴的。"
+      },
+      "audioSrc": "/audio/words/contento.wav"
+    },
+    {
+      "id": "triste",
+      "spanish": "triste",
+      "partOfSpeech": "adjective",
+      "chinese": "难过的",
+      "example": {
+        "spanish": "Es triste.",
+        "chinese": "它是难过的。"
+      },
+      "audioSrc": "/audio/words/triste.wav"
+    },
+    {
+      "id": "feliz",
+      "spanish": "feliz",
+      "partOfSpeech": "adjective",
+      "chinese": "幸福的",
+      "example": {
+        "spanish": "Es feliz.",
+        "chinese": "它是幸福的。"
+      },
+      "audioSrc": "/audio/words/feliz.wav"
+    },
+    {
+      "id": "enfermo",
+      "spanish": "enfermo",
+      "partOfSpeech": "adjective",
+      "chinese": "生病的",
+      "example": {
+        "spanish": "Es enfermo.",
+        "chinese": "它是生病的。"
+      },
+      "audioSrc": "/audio/words/enfermo.wav"
+    },
+    {
+      "id": "sano",
+      "spanish": "sano",
+      "partOfSpeech": "adjective",
+      "chinese": "健康的",
+      "example": {
+        "spanish": "Es sano.",
+        "chinese": "它是健康的。"
+      },
+      "audioSrc": "/audio/words/sano.wav"
+    },
+    {
+      "id": "limpio",
+      "spanish": "limpio",
+      "partOfSpeech": "adjective",
+      "chinese": "干净的",
+      "example": {
+        "spanish": "Es limpio.",
+        "chinese": "它是干净的。"
+      },
+      "audioSrc": "/audio/words/limpio.wav"
+    },
+    {
+      "id": "sucio",
+      "spanish": "sucio",
+      "partOfSpeech": "adjective",
+      "chinese": "脏的",
+      "example": {
+        "spanish": "Es sucio.",
+        "chinese": "它是脏的。"
+      },
+      "audioSrc": "/audio/words/sucio.wav"
+    },
+    {
+      "id": "claro",
+      "spanish": "claro",
+      "partOfSpeech": "adjective",
+      "chinese": "清楚的；浅色的",
+      "example": {
+        "spanish": "Es claro.",
+        "chinese": "它是清楚的。"
+      },
+      "audioSrc": "/audio/words/claro.wav"
+    },
+    {
+      "id": "oscuro",
+      "spanish": "oscuro",
+      "partOfSpeech": "adjective",
+      "chinese": "暗的",
+      "example": {
+        "spanish": "Es oscuro.",
+        "chinese": "它是暗的。"
+      },
+      "audioSrc": "/audio/words/oscuro.wav"
+    },
+    {
+      "id": "fuerte",
+      "spanish": "fuerte",
+      "partOfSpeech": "adjective",
+      "chinese": "强壮的",
+      "example": {
+        "spanish": "Es fuerte.",
+        "chinese": "它是强壮的。"
+      },
+      "audioSrc": "/audio/words/fuerte.wav"
+    },
+    {
+      "id": "debil",
+      "spanish": "débil",
+      "partOfSpeech": "adjective",
+      "chinese": "弱的",
+      "example": {
+        "spanish": "Es débil.",
+        "chinese": "它是弱的。"
+      },
+      "audioSrc": "/audio/words/debil.wav"
+    },
+    {
+      "id": "alto",
+      "spanish": "alto",
+      "partOfSpeech": "adjective",
+      "chinese": "高的",
+      "example": {
+        "spanish": "Es alto.",
+        "chinese": "它是高的。"
+      },
+      "audioSrc": "/audio/words/alto.wav"
+    },
+    {
+      "id": "bajo",
+      "spanish": "bajo",
+      "partOfSpeech": "adjective",
+      "chinese": "低的；矮的",
+      "example": {
+        "spanish": "Es bajo.",
+        "chinese": "它是低的。"
+      },
+      "audioSrc": "/audio/words/bajo.wav"
+    },
+    {
+      "id": "largo",
+      "spanish": "largo",
+      "partOfSpeech": "adjective",
+      "chinese": "长的",
+      "example": {
+        "spanish": "Es largo.",
+        "chinese": "它是长的。"
+      },
+      "audioSrc": "/audio/words/largo.wav"
+    },
+    {
+      "id": "corto",
+      "spanish": "corto",
+      "partOfSpeech": "adjective",
+      "chinese": "短的",
+      "example": {
+        "spanish": "Es corto.",
+        "chinese": "它是短的。"
+      },
+      "audioSrc": "/audio/words/corto.wav"
+    },
+    {
+      "id": "ancho",
+      "spanish": "ancho",
+      "partOfSpeech": "adjective",
+      "chinese": "宽的",
+      "example": {
+        "spanish": "Es ancho.",
+        "chinese": "它是宽的。"
+      },
+      "audioSrc": "/audio/words/ancho.wav"
+    },
+    {
+      "id": "estrecho",
+      "spanish": "estrecho",
+      "partOfSpeech": "adjective",
+      "chinese": "窄的",
+      "example": {
+        "spanish": "Es estrecho.",
+        "chinese": "它是窄的。"
+      },
+      "audioSrc": "/audio/words/estrecho.wav"
+    },
+    {
+      "id": "rico",
+      "spanish": "rico",
+      "partOfSpeech": "adjective",
+      "chinese": "富有的；好吃的",
+      "example": {
+        "spanish": "Es rico.",
+        "chinese": "它是富有的。"
+      },
+      "audioSrc": "/audio/words/rico.wav"
+    },
+    {
+      "id": "pobre",
+      "spanish": "pobre",
+      "partOfSpeech": "adjective",
+      "chinese": "贫穷的",
+      "example": {
+        "spanish": "Es pobre.",
+        "chinese": "它是贫穷的。"
+      },
+      "audioSrc": "/audio/words/pobre.wav"
+    },
+    {
+      "id": "interesante",
+      "spanish": "interesante",
+      "partOfSpeech": "adjective",
+      "chinese": "有趣的",
+      "example": {
+        "spanish": "Es interesante.",
+        "chinese": "它是有趣的。"
+      },
+      "audioSrc": "/audio/words/interesante.wav"
+    },
+    {
+      "id": "aburrido",
+      "spanish": "aburrido",
+      "partOfSpeech": "adjective",
+      "chinese": "无聊的",
+      "example": {
+        "spanish": "Es aburrido.",
+        "chinese": "它是无聊的。"
+      },
+      "audioSrc": "/audio/words/aburrido.wav"
     },
     {
       "id": "importante",
@@ -202,10 +2738,670 @@
       "partOfSpeech": "adjective",
       "chinese": "重要的",
       "example": {
-        "spanish": "Esta palabra es importante.",
-        "chinese": "这个词很重要。"
+        "spanish": "Es importante.",
+        "chinese": "它是重要的。"
       },
-      "audioSrc": "/audio/words/importante.mp3"
+      "audioSrc": "/audio/words/importante.wav"
+    },
+    {
+      "id": "necesario",
+      "spanish": "necesario",
+      "partOfSpeech": "adjective",
+      "chinese": "必要的",
+      "example": {
+        "spanish": "Es necesario.",
+        "chinese": "它是必要的。"
+      },
+      "audioSrc": "/audio/words/necesario.wav"
+    },
+    {
+      "id": "posible",
+      "spanish": "posible",
+      "partOfSpeech": "adjective",
+      "chinese": "可能的",
+      "example": {
+        "spanish": "Es posible.",
+        "chinese": "它是可能的。"
+      },
+      "audioSrc": "/audio/words/posible.wav"
+    },
+    {
+      "id": "imposible",
+      "spanish": "imposible",
+      "partOfSpeech": "adjective",
+      "chinese": "不可能的",
+      "example": {
+        "spanish": "Es imposible.",
+        "chinese": "它是不可能的。"
+      },
+      "audioSrc": "/audio/words/imposible.wav"
+    },
+    {
+      "id": "seguro",
+      "spanish": "seguro",
+      "partOfSpeech": "adjective",
+      "chinese": "安全的；确定的",
+      "example": {
+        "spanish": "Es seguro.",
+        "chinese": "它是安全的。"
+      },
+      "audioSrc": "/audio/words/seguro.wav"
+    },
+    {
+      "id": "peligroso",
+      "spanish": "peligroso",
+      "partOfSpeech": "adjective",
+      "chinese": "危险的",
+      "example": {
+        "spanish": "Es peligroso.",
+        "chinese": "它是危险的。"
+      },
+      "audioSrc": "/audio/words/peligroso.wav"
+    },
+    {
+      "id": "tranquilo",
+      "spanish": "tranquilo",
+      "partOfSpeech": "adjective",
+      "chinese": "安静的",
+      "example": {
+        "spanish": "Es tranquilo.",
+        "chinese": "它是安静的。"
+      },
+      "audioSrc": "/audio/words/tranquilo.wav"
+    },
+    {
+      "id": "ocupado",
+      "spanish": "ocupado",
+      "partOfSpeech": "adjective",
+      "chinese": "忙的",
+      "example": {
+        "spanish": "Es ocupado.",
+        "chinese": "它是忙的。"
+      },
+      "audioSrc": "/audio/words/ocupado.wav"
+    },
+    {
+      "id": "libre",
+      "spanish": "libre",
+      "partOfSpeech": "adjective",
+      "chinese": "空闲的；自由的",
+      "example": {
+        "spanish": "Es libre.",
+        "chinese": "它是空闲的。"
+      },
+      "audioSrc": "/audio/words/libre.wav"
+    },
+    {
+      "id": "listo",
+      "spanish": "listo",
+      "partOfSpeech": "adjective",
+      "chinese": "准备好的；聪明的",
+      "example": {
+        "spanish": "Es listo.",
+        "chinese": "它是准备好的。"
+      },
+      "audioSrc": "/audio/words/listo.wav"
+    },
+    {
+      "id": "amable",
+      "spanish": "amable",
+      "partOfSpeech": "adjective",
+      "chinese": "友善的",
+      "example": {
+        "spanish": "Es amable.",
+        "chinese": "它是友善的。"
+      },
+      "audioSrc": "/audio/words/amable.wav"
+    },
+    {
+      "id": "simpatico",
+      "spanish": "simpático",
+      "partOfSpeech": "adjective",
+      "chinese": "讨人喜欢的",
+      "example": {
+        "spanish": "Es simpático.",
+        "chinese": "它是讨人喜欢的。"
+      },
+      "audioSrc": "/audio/words/simpatico.wav"
+    },
+    {
+      "id": "antipatico",
+      "spanish": "antipático",
+      "partOfSpeech": "adjective",
+      "chinese": "不友好的",
+      "example": {
+        "spanish": "Es antipático.",
+        "chinese": "它是不友好的。"
+      },
+      "audioSrc": "/audio/words/antipatico.wav"
+    },
+    {
+      "id": "serio",
+      "spanish": "serio",
+      "partOfSpeech": "adjective",
+      "chinese": "严肃的",
+      "example": {
+        "spanish": "Es serio.",
+        "chinese": "它是严肃的。"
+      },
+      "audioSrc": "/audio/words/serio.wav"
+    },
+    {
+      "id": "divertido",
+      "spanish": "divertido",
+      "partOfSpeech": "adjective",
+      "chinese": "有趣的",
+      "example": {
+        "spanish": "Es divertido.",
+        "chinese": "它是有趣的。"
+      },
+      "audioSrc": "/audio/words/divertido.wav"
+    },
+    {
+      "id": "delicioso",
+      "spanish": "delicioso",
+      "partOfSpeech": "adjective",
+      "chinese": "美味的",
+      "example": {
+        "spanish": "Es delicioso.",
+        "chinese": "它是美味的。"
+      },
+      "audioSrc": "/audio/words/delicioso.wav"
+    },
+    {
+      "id": "dulce",
+      "spanish": "dulce",
+      "partOfSpeech": "adjective",
+      "chinese": "甜的",
+      "example": {
+        "spanish": "Es dulce.",
+        "chinese": "它是甜的。"
+      },
+      "audioSrc": "/audio/words/dulce.wav"
+    },
+    {
+      "id": "salado",
+      "spanish": "salado",
+      "partOfSpeech": "adjective",
+      "chinese": "咸的",
+      "example": {
+        "spanish": "Es salado.",
+        "chinese": "它是咸的。"
+      },
+      "audioSrc": "/audio/words/salado.wav"
+    },
+    {
+      "id": "amargo",
+      "spanish": "amargo",
+      "partOfSpeech": "adjective",
+      "chinese": "苦的",
+      "example": {
+        "spanish": "Es amargo.",
+        "chinese": "它是苦的。"
+      },
+      "audioSrc": "/audio/words/amargo.wav"
+    },
+    {
+      "id": "picante",
+      "spanish": "picante",
+      "partOfSpeech": "adjective",
+      "chinese": "辣的",
+      "example": {
+        "spanish": "Es picante.",
+        "chinese": "它是辣的。"
+      },
+      "audioSrc": "/audio/words/picante.wav"
+    },
+    {
+      "id": "fresco",
+      "spanish": "fresco",
+      "partOfSpeech": "adjective",
+      "chinese": "新鲜的",
+      "example": {
+        "spanish": "Es fresco.",
+        "chinese": "它是新鲜的。"
+      },
+      "audioSrc": "/audio/words/fresco.wav"
+    },
+    {
+      "id": "seco",
+      "spanish": "seco",
+      "partOfSpeech": "adjective",
+      "chinese": "干的",
+      "example": {
+        "spanish": "Es seco.",
+        "chinese": "它是干的。"
+      },
+      "audioSrc": "/audio/words/seco.wav"
+    },
+    {
+      "id": "mojado",
+      "spanish": "mojado",
+      "partOfSpeech": "adjective",
+      "chinese": "湿的",
+      "example": {
+        "spanish": "Es mojado.",
+        "chinese": "它是湿的。"
+      },
+      "audioSrc": "/audio/words/mojado.wav"
+    },
+    {
+      "id": "lleno",
+      "spanish": "lleno",
+      "partOfSpeech": "adjective",
+      "chinese": "满的",
+      "example": {
+        "spanish": "Es lleno.",
+        "chinese": "它是满的。"
+      },
+      "audioSrc": "/audio/words/lleno.wav"
+    },
+    {
+      "id": "vacio",
+      "spanish": "vacío",
+      "partOfSpeech": "adjective",
+      "chinese": "空的",
+      "example": {
+        "spanish": "Es vacío.",
+        "chinese": "它是空的。"
+      },
+      "audioSrc": "/audio/words/vacio.wav"
+    },
+    {
+      "id": "abierto",
+      "spanish": "abierto",
+      "partOfSpeech": "adjective",
+      "chinese": "打开的",
+      "example": {
+        "spanish": "Es abierto.",
+        "chinese": "它是打开的。"
+      },
+      "audioSrc": "/audio/words/abierto.wav"
+    },
+    {
+      "id": "cerrado",
+      "spanish": "cerrado",
+      "partOfSpeech": "adjective",
+      "chinese": "关闭的",
+      "example": {
+        "spanish": "Es cerrado.",
+        "chinese": "它是关闭的。"
+      },
+      "audioSrc": "/audio/words/cerrado.wav"
+    },
+    {
+      "id": "correcto",
+      "spanish": "correcto",
+      "partOfSpeech": "adjective",
+      "chinese": "正确的",
+      "example": {
+        "spanish": "Es correcto.",
+        "chinese": "它是正确的。"
+      },
+      "audioSrc": "/audio/words/correcto.wav"
+    },
+    {
+      "id": "incorrecto",
+      "spanish": "incorrecto",
+      "partOfSpeech": "adjective",
+      "chinese": "错误的",
+      "example": {
+        "spanish": "Es incorrecto.",
+        "chinese": "它是错误的。"
+      },
+      "audioSrc": "/audio/words/incorrecto.wav"
+    },
+    {
+      "id": "normal",
+      "spanish": "normal",
+      "partOfSpeech": "adjective",
+      "chinese": "正常的",
+      "example": {
+        "spanish": "Es normal.",
+        "chinese": "它是正常的。"
+      },
+      "audioSrc": "/audio/words/normal.wav"
+    },
+    {
+      "id": "especial",
+      "spanish": "especial",
+      "partOfSpeech": "adjective",
+      "chinese": "特别的",
+      "example": {
+        "spanish": "Es especial.",
+        "chinese": "它是特别的。"
+      },
+      "audioSrc": "/audio/words/especial.wav"
+    },
+    {
+      "id": "comun",
+      "spanish": "común",
+      "partOfSpeech": "adjective",
+      "chinese": "常见的",
+      "example": {
+        "spanish": "Es común.",
+        "chinese": "它是常见的。"
+      },
+      "audioSrc": "/audio/words/comun.wav"
+    },
+    {
+      "id": "raro",
+      "spanish": "raro",
+      "partOfSpeech": "adjective",
+      "chinese": "少见的；奇怪的",
+      "example": {
+        "spanish": "Es raro.",
+        "chinese": "它是少见的。"
+      },
+      "audioSrc": "/audio/words/raro.wav"
+    },
+    {
+      "id": "real",
+      "spanish": "real",
+      "partOfSpeech": "adjective",
+      "chinese": "真实的",
+      "example": {
+        "spanish": "Es real.",
+        "chinese": "它是真实的。"
+      },
+      "audioSrc": "/audio/words/real.wav"
+    },
+    {
+      "id": "principal",
+      "spanish": "principal",
+      "partOfSpeech": "adjective",
+      "chinese": "主要的",
+      "example": {
+        "spanish": "Es principal.",
+        "chinese": "它是主要的。"
+      },
+      "audioSrc": "/audio/words/principal.wav"
+    },
+    {
+      "id": "ultimo",
+      "spanish": "último",
+      "partOfSpeech": "adjective",
+      "chinese": "最后的",
+      "example": {
+        "spanish": "Es último.",
+        "chinese": "它是最后的。"
+      },
+      "audioSrc": "/audio/words/ultimo.wav"
+    },
+    {
+      "id": "primero",
+      "spanish": "primero",
+      "partOfSpeech": "adjective",
+      "chinese": "第一的",
+      "example": {
+        "spanish": "Es primero.",
+        "chinese": "它是第一的。"
+      },
+      "audioSrc": "/audio/words/primero.wav"
+    },
+    {
+      "id": "mismo",
+      "spanish": "mismo",
+      "partOfSpeech": "adjective",
+      "chinese": "相同的",
+      "example": {
+        "spanish": "Es mismo.",
+        "chinese": "它是相同的。"
+      },
+      "audioSrc": "/audio/words/mismo.wav"
+    },
+    {
+      "id": "diferente",
+      "spanish": "diferente",
+      "partOfSpeech": "adjective",
+      "chinese": "不同的",
+      "example": {
+        "spanish": "Es diferente.",
+        "chinese": "它是不同的。"
+      },
+      "audioSrc": "/audio/words/diferente.wav"
+    },
+    {
+      "id": "proximo",
+      "spanish": "próximo",
+      "partOfSpeech": "adjective",
+      "chinese": "下一个；近的",
+      "example": {
+        "spanish": "Es próximo.",
+        "chinese": "它是下一个。"
+      },
+      "audioSrc": "/audio/words/proximo.wav"
+    },
+    {
+      "id": "lejano",
+      "spanish": "lejano",
+      "partOfSpeech": "adjective",
+      "chinese": "远的",
+      "example": {
+        "spanish": "Es lejano.",
+        "chinese": "它是远的。"
+      },
+      "audioSrc": "/audio/words/lejano.wav"
+    },
+    {
+      "id": "cerca",
+      "spanish": "cerca",
+      "partOfSpeech": "adjective",
+      "chinese": "近的",
+      "example": {
+        "spanish": "Es cerca.",
+        "chinese": "它是近的。"
+      },
+      "audioSrc": "/audio/words/cerca.wav"
+    },
+    {
+      "id": "lejos",
+      "spanish": "lejos",
+      "partOfSpeech": "adjective",
+      "chinese": "远的",
+      "example": {
+        "spanish": "Es lejos.",
+        "chinese": "它是远的。"
+      },
+      "audioSrc": "/audio/words/lejos.wav"
+    },
+    {
+      "id": "izquierdo",
+      "spanish": "izquierdo",
+      "partOfSpeech": "adjective",
+      "chinese": "左边的",
+      "example": {
+        "spanish": "Es izquierdo.",
+        "chinese": "它是左边的。"
+      },
+      "audioSrc": "/audio/words/izquierdo.wav"
+    },
+    {
+      "id": "derecho",
+      "spanish": "derecho",
+      "partOfSpeech": "adjective",
+      "chinese": "右边的",
+      "example": {
+        "spanish": "Es derecho.",
+        "chinese": "它是右边的。"
+      },
+      "audioSrc": "/audio/words/derecho.wav"
+    },
+    {
+      "id": "simple",
+      "spanish": "simple",
+      "partOfSpeech": "adjective",
+      "chinese": "简单的",
+      "example": {
+        "spanish": "Es simple.",
+        "chinese": "它是简单的。"
+      },
+      "audioSrc": "/audio/words/simple.wav"
+    },
+    {
+      "id": "complicado",
+      "spanish": "complicado",
+      "partOfSpeech": "adjective",
+      "chinese": "复杂的",
+      "example": {
+        "spanish": "Es complicado.",
+        "chinese": "它是复杂的。"
+      },
+      "audioSrc": "/audio/words/complicado.wav"
+    },
+    {
+      "id": "moderno",
+      "spanish": "moderno",
+      "partOfSpeech": "adjective",
+      "chinese": "现代的",
+      "example": {
+        "spanish": "Es moderno.",
+        "chinese": "它是现代的。"
+      },
+      "audioSrc": "/audio/words/moderno.wav"
+    },
+    {
+      "id": "tradicional",
+      "spanish": "tradicional",
+      "partOfSpeech": "adjective",
+      "chinese": "传统的",
+      "example": {
+        "spanish": "Es tradicional.",
+        "chinese": "它是传统的。"
+      },
+      "audioSrc": "/audio/words/tradicional.wav"
+    },
+    {
+      "id": "natural",
+      "spanish": "natural",
+      "partOfSpeech": "adjective",
+      "chinese": "自然的",
+      "example": {
+        "spanish": "Es natural.",
+        "chinese": "它是自然的。"
+      },
+      "audioSrc": "/audio/words/natural.wav"
+    },
+    {
+      "id": "artificial",
+      "spanish": "artificial",
+      "partOfSpeech": "adjective",
+      "chinese": "人造的",
+      "example": {
+        "spanish": "Es artificial.",
+        "chinese": "它是人造的。"
+      },
+      "audioSrc": "/audio/words/artificial.wav"
+    },
+    {
+      "id": "util",
+      "spanish": "útil",
+      "partOfSpeech": "adjective",
+      "chinese": "有用的",
+      "example": {
+        "spanish": "Es útil.",
+        "chinese": "它是有用的。"
+      },
+      "audioSrc": "/audio/words/util.wav"
+    },
+    {
+      "id": "inutil",
+      "spanish": "inútil",
+      "partOfSpeech": "adjective",
+      "chinese": "没用的",
+      "example": {
+        "spanish": "Es inútil.",
+        "chinese": "它是没用的。"
+      },
+      "audioSrc": "/audio/words/inutil.wav"
+    },
+    {
+      "id": "personal",
+      "spanish": "personal",
+      "partOfSpeech": "adjective",
+      "chinese": "个人的",
+      "example": {
+        "spanish": "Es personal.",
+        "chinese": "它是个人的。"
+      },
+      "audioSrc": "/audio/words/personal.wav"
+    },
+    {
+      "id": "publico",
+      "spanish": "público",
+      "partOfSpeech": "adjective",
+      "chinese": "公共的",
+      "example": {
+        "spanish": "Es público.",
+        "chinese": "它是公共的。"
+      },
+      "audioSrc": "/audio/words/publico.wav"
+    },
+    {
+      "id": "privado",
+      "spanish": "privado",
+      "partOfSpeech": "adjective",
+      "chinese": "私人的",
+      "example": {
+        "spanish": "Es privado.",
+        "chinese": "它是私人的。"
+      },
+      "audioSrc": "/audio/words/privado.wav"
+    },
+    {
+      "id": "internacional",
+      "spanish": "internacional",
+      "partOfSpeech": "adjective",
+      "chinese": "国际的",
+      "example": {
+        "spanish": "Es internacional.",
+        "chinese": "它是国际的。"
+      },
+      "audioSrc": "/audio/words/internacional.wav"
+    },
+    {
+      "id": "local",
+      "spanish": "local",
+      "partOfSpeech": "adjective",
+      "chinese": "本地的",
+      "example": {
+        "spanish": "Es local.",
+        "chinese": "它是本地的。"
+      },
+      "audioSrc": "/audio/words/local.wav"
+    },
+    {
+      "id": "espanol-2",
+      "spanish": "español",
+      "partOfSpeech": "adjective",
+      "chinese": "西班牙的",
+      "example": {
+        "spanish": "Es español.",
+        "chinese": "它是西班牙的。"
+      },
+      "audioSrc": "/audio/words/espanol-2.wav"
+    },
+    {
+      "id": "chino",
+      "spanish": "chino",
+      "partOfSpeech": "adjective",
+      "chinese": "中国的",
+      "example": {
+        "spanish": "Es chino.",
+        "chinese": "它是中国的。"
+      },
+      "audioSrc": "/audio/words/chino.wav"
+    },
+    {
+      "id": "mexicano",
+      "spanish": "mexicano",
+      "partOfSpeech": "adjective",
+      "chinese": "墨西哥的",
+      "example": {
+        "spanish": "Es mexicano.",
+        "chinese": "它是墨西哥的。"
+      },
+      "audioSrc": "/audio/words/mexicano.wav"
     }
   ]
 }
