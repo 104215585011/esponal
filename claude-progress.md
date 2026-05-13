@@ -10,19 +10,19 @@
 
 **标准验证路径**：`npm test`
 
-**当前最高优先级未完成功能**：`VOCAB-001`（词汇数据模型）
+**当前最高优先级未完成功能**：`EXT-001`（Chrome 插件脚手架）
 
 **当前 blocker**：无
 
 **已验证通过的功能**：
 - `INFRA-001`：项目脚手架（Next.js 14 + TypeScript + Prisma + Redis + NextAuth）
+- `VOCAB-001`：词汇数据模型（Word + WordEncounter 表、CRUD 函数、真实迁移通过）
 
 **待启动功能（按优先级）**：
-1. `VOCAB-001` — 词汇数据模型
-2. `COURSE-001` — 阶段一课程页面（需 UI 评审）
-3. `COURSE-002` — 语法知识库（需 UI 评审）
-4. `VOCAB-002` — 词库 Web 界面（需 UI 评审）
-5. `EXT-001` — Chrome 插件脚手架
+1. `EXT-001` — Chrome 插件脚手架（Codex1 可直接开始，无需 UI 评审）
+2. `COURSE-001` — 阶段一课程页面（等 Claude2 UI 评审）
+3. `COURSE-002` — 语法知识库（等 Claude2 UI 评审）
+4. `VOCAB-002` — 词库 Web 界面（等 Claude2 UI 评审，VOCAB-001 依赖已满足）
 
 ---
 
