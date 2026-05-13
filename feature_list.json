@@ -42,7 +42,7 @@
       "中文解释内容存在且正确",
       "npm test 通过"
     ],
-    "evidence": "Codex1 2026-05-13 14:35: implemented /learn/phase-1 with static pronunciation rules, seed phase1 vocabulary content, reviewed no-pressure UI, client AudioButton with unavailable fallback; npm test passed 21/21; npm run build passed; HTTP smoke http://localhost:3000/learn/phase-1 returned 200. QA focus: current content contains 18 representative seed words with targetCount=300, and audio paths are stable static contracts but mp3 files are not yet generated.",
+    "evidence": "Codex2 QA 2026-05-13 15:18: npm test passed 21/21; npm run build passed; clean Next dev harness on port 3002 returned /learn/phase-1 200 with 阶段一：入门词汇与发音, 发音规则, 高频词汇 present. Fail: content/curriculum/phase1-words.json has targetCount=300 but only 18 actual words; public/audio/words does not exist, so there are 0 mp3 assets and the TTS playback acceptance criterion is not met. Return to Codex1 to supply full 300 words and generated audio mp3 files.",
     "notes": "需要 UI 评审。依赖 INFRA-001。音频文件预生成存储，不实时调用 TTS"
   },
   {
@@ -51,14 +51,14 @@
     "area": "curriculum",
     "title": "语法知识库：动词变位 + 阴阳性规则",
     "user_visible_behavior": "用户能查阅针对中文母语者写的语法解释：ser/estar/tener/ir/querer/poder 的现在时变位表，阴阳性判断规则",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "访问 /grammar 页面正常渲染",
       "包含 6 个核心动词的完整变位表",
       "阴阳性规则页面有中文类比解释",
       "npm test 通过"
     ],
-    "evidence": "Codex1 2026-05-13 14:35: implemented /grammar and /grammar/[slug] with static grammar content for ser/estar/tener/ir/querer/poder, noun gender, ser vs estar; responsive sidebar/mobile selector, semantic conjugation tables, Chinese analogy blocks; npm test passed 21/21; npm run build passed; HTTP smoke /grammar and /grammar/ser returned 200 with expected text.",
+    "evidence": "Codex2 QA 2026-05-13 15:18: npm test passed 21/21; npm run build passed; clean Next dev harness on port 3002 returned /grammar 200 containing 语法知识库 and /grammar/ser 200 containing ser 现在时变位 plus conjugation content soy/eres/nosotros. Source/content check confirmed ser, estar, tener, ir, querer, poder topics and complete present-tense forms; noun gender rules include 阳性/阴性, -ción/-sión/-dad, el día/la mano; ser vs estar comparison content exists. UI source matches Claude2 layout requirements: 220px desktop sidebar, mobile selector, semantic table, Chinese analogy block, ser/estar comparison section.",
     "notes": "需要 UI 评审。内容由人工整理，写成 JSON/MDX 存入 /content/grammar/"
   },
   {
@@ -67,14 +67,14 @@
     "area": "vocabulary",
     "title": "词库 Web 界面",
     "user_visible_behavior": "登录用户能在 /vocab 看到自己的词条列表，按词根浏览，点击词条能看到所有遭遇记录",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "访问 /vocab 显示当前用户的词条",
       "词条按词根归类，不按变位形式",
       "点击词条展开遭遇记录列表（视频标题 + 时间戳 + 原句）",
       "npm test 通过"
     ],
-    "evidence": "Codex1 2026-05-13 14:35: implemented authenticated /vocab server page using getServerSession(authOptions), redirect to /api/auth/signin when unauthenticated, getWordsByUser data serialization sorted by recent encounter, client accordion with encounter rows/date dividers/empty state; npm test passed 21/21; npm run build passed; HTTP smoke /vocab returned 307 Location /api/auth/signin when unauthenticated.",
+    "evidence": "Codex2 QA 2026-05-13 15:18: npm test passed 21/21; npm run build passed; clean Next dev harness on port 3002 returned unauthenticated /vocab as 307 Location /api/auth/signin. Source check confirmed src/app/vocab/page.tsx uses getServerSession(authOptions), redirects unauthenticated users, calls getWordsByUser(session.user.id) after login, serializes encounters sorted by recent encounter; VocabAccordion implements click-to-expand rows, date dividers, encounter rows, 跳回视频 links, and empty state. Real authenticated DB browser verification was not run because no logged-in session fixture was available in this QA pass.",
     "notes": "需要 UI 评审。依赖 VOCAB-001"
   },
   {

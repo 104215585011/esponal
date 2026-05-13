@@ -950,3 +950,147 @@ Codex2 按 `ROLE-QA.md` 验收 `EXT-001`。若通过，更新 `feature_list.json
 
 **下一步最佳动作**：
 Codex2 按 `ROLE-QA.md` 分别验收 `COURSE-001`、`COURSE-002`、`VOCAB-002`。通过后由 Codex2 更新 `feature_list.json` 为 `passing`；若 `COURSE-001` 的 300 词或音频资产不满足验收，返回 Codex1 补齐。
+
+---
+
+## 测试 Report：COURSE-001 阶段一课程页面 /learn/phase-1
+**时间**：2026-05-13 15:18
+**测试人**：Codex2
+
+**结论**：失败，返回 Codex1 修复
+
+**验证步骤执行记录**：
+1. 工作区状态
+   命令：git status --short
+   输出：
+   ```text
+   （空输出，验收开始前工作区干净）
+   ```
+   结果：✅
+
+2. 自动化测试
+   命令：npm test
+   输出：
+   ```text
+   tests 21
+   pass 21
+   fail 0
+   ```
+   结果：✅
+
+3. 生产构建
+   命令：npm run build
+   输出：
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (16/16)
+   /learn/phase-1 prerendered as static content
+   ```
+   结果：✅
+
+4. HTTP smoke
+   命令：Node harness 启动 Next dev -p 3002 后请求 /learn/phase-1
+   输出：
+   ```text
+   READY=true
+   /learn/phase-1 STATUS=200 title=true pronunciation=true vocab=true
+   ```
+   结果：✅
+
+5. 300 词与音频资产核查
+   命令：读取 content/curriculum/phase1-words.json；检查 public/audio/words/*.mp3
+   输出：
+   ```json
+   { "targetCount": 300, "wordCount": 18, "first": "casa", "last": "importante" }
+   public/audio/words MISSING
+   ```
+   结果：❌
+
+**失败详情**：
+- 失败点：验收标准要求 300 高频词和可播放 TTS 音频，但当前只有 18 个 seed 词，且没有 public/audio/words mp3 资产。
+- 复现步骤：运行 node 读取 phase1-words.json 的 words.length；检查 public/audio/words 是否存在。
+- 判定：页面 smoke 通过，但内容与音频硬标准不满足，不能标记 passing。
+
+**返回 Codex1 修复**：补齐 300 个实际词条，并生成/放置对应 mp3 音频资产后重新交 QA。
+
+---
+
+## 测试 Report：COURSE-002 语法知识库 /grammar 和 /grammar/[slug]
+**时间**：2026-05-13 15:18
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 自动化测试与构建
+   命令：npm test；npm run build
+   输出：
+   ```text
+   npm test: tests 21, pass 21, fail 0
+   npm run build: ✓ Compiled successfully; /grammar and /grammar/[slug] generated
+   ```
+   结果：✅
+
+2. HTTP smoke
+   命令：Node harness 启动 Next dev -p 3002 后请求 /grammar 和 /grammar/ser
+   输出：
+   ```text
+   /grammar STATUS=200 grammar=true
+   /grammar/ser STATUS=200 serTitle=true soy=true eres=true nosotros=true
+   ```
+   结果：✅
+
+3. 内容完整性与 UI 结构核查
+   命令：rg / node 读取 content/grammar/topics.ts 与 src/app/grammar
+   输出：
+   ```text
+   ser/estar/tener/ir/querer/poder topics=true
+   each verb present-tense forms=true
+   noun gender rules=true
+   /grammar uses 220px desktop sidebar + mobile GrammarTopicSelect
+   detail page uses Chinese analogy block, semantic table, ser / estar comparison
+   ```
+   结果：✅
+
+**通过后移交**：已更新 feature_list.json：COURSE-002.status = passing，并填写 Codex2 QA evidence。
+
+---
+
+## 测试 Report：VOCAB-002 词库 Web 界面 /vocab
+**时间**：2026-05-13 15:18
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 自动化测试与构建
+   命令：npm test；npm run build
+   输出：
+   ```text
+   npm test: tests 21, pass 21, fail 0
+   npm run build: ✓ Compiled successfully; /vocab dynamic server-rendered route present
+   ```
+   结果：✅
+
+2. 未登录重定向 smoke
+   命令：Node harness 启动 Next dev -p 3002 后请求 /vocab
+   输出：
+   ```text
+   /vocab STATUS=307 LOCATION=/api/auth/signin
+   ```
+   结果：✅
+
+3. 源码核查
+   命令：rg getServerSession/authOptions/redirect/getWordsByUser/VocabAccordion
+   输出：
+   ```text
+   src/app/vocab/page.tsx imports getServerSession and authOptions
+   unauthenticated path calls redirect("/api/auth/signin")
+   authenticated path calls getWordsByUser(session.user.id)
+   VocabAccordion implements openWordId, max-height accordion, date dividers, encounter rows, 跳回视频 links, empty state
+   ```
+   结果：✅
+
+**限制说明**：本轮没有可用的已登录浏览器 session fixture，因此未做登录态真实 DB 页面渲染；已通过源码、自动化测试和未登录服务端重定向验证主链路。
+
+**通过后移交**：已更新 feature_list.json：VOCAB-002.status = passing，并填写 Codex2 QA evidence。
