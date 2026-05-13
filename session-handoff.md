@@ -98,6 +98,84 @@ EXT-001 等 VOCAB-001 完成后启动。
 **下一步最佳动作**：
 Codex2 测试 `VOCAB-001`。
 
+## 测试 Report：VOCAB-001 词汇数据模型
+**时间**：2026-05-13 11:23
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 启动本地依赖服务并确认 5433 端口
+   命令：`docker compose up -d postgres redis`
+   输出：
+   ```text
+   Container esponal-redis-1 Running
+   Container esponal-postgres-1 Running
+   ```
+   命令：`docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Ports}}"`
+   输出：
+   ```text
+   esponal-postgres-1        postgres:16-alpine      0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
+   esponal-redis-1           redis:7-alpine          0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
+   linguaai-postgres         postgres:17-bookworm    0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+   ```
+   结果：✅
+
+2. 复制 `.env.example` 为 `.env`
+   命令：`Copy-Item -Force .env.example .env`
+   输出：无错误输出；`git status --short --ignored .env` 显示 `!! .env`
+   结果：✅
+
+3. 执行 Prisma 迁移
+   命令：`npx prisma migrate dev`
+   输出：
+   ```text
+   Environment variables loaded from .env
+   Datasource "db": PostgreSQL database "espanol", schema "public" at "localhost:5433"
+   Already in sync, no schema change or pending migration was found.
+   ✔ Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 69ms
+   ```
+   结果：✅
+
+4. 执行自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ package declares the INFRA-001 application stack
+   ✔ welcome page is present in the Next.js App Router
+   ✔ Prisma is configured for PostgreSQL with initial models
+   ✔ initial Prisma migration is checked in
+   ✔ environment example documents required local services
+   ✔ Prisma schema defines vocabulary words owned by users
+   ✔ Prisma schema defines word encounters linked to words
+   ✔ vocab library exposes the ticket CRUD functions
+   ℹ tests 8
+   ℹ pass 8
+   ℹ fail 0
+   ```
+   结果：✅
+
+5. 执行真实数据库 CRUD 验证
+   命令：临时 Node + Prisma 脚本创建 `User`、`Word`、`WordEncounter`，按 `userId+lemma` 查询并清理 QA 数据
+   输出：
+   ```json
+   {
+     "ok": true,
+     "lemma": "ir",
+     "forms": ["ir", "fui", "fueron", "vas"],
+     "encounterCount": 1,
+     "timestampSec": 222
+   }
+   ```
+   结果：✅
+
+**若失败，失败详情**：
+- 无
+
+**若通过，移交**：
+- `VOCAB-001` 为非 UI 功能，已更新 `feature_list.json`：`status` 改为 `passing`，`evidence` 已填写。
+- 下一步可由 PM 启动 `EXT-001` 或继续推进依赖 `VOCAB-001` 的后续任务。
+
 ---
 
 ### Ticket: COURSE-001 阶段一课程页面
