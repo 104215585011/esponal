@@ -13,7 +13,10 @@ test("extension declares a Manifest V3 Chrome extension", async () => {
   assert.equal(manifest.name, "Esponal");
   assert.equal(manifest.action.default_popup, "popup.html");
   assert.equal(manifest.background.service_worker, "background.js");
-  assert.deepEqual(manifest.host_permissions, ["https://localhost:3000/*"]);
+  assert.deepEqual(manifest.host_permissions, [
+    "https://localhost:3000/*",
+    "https://www.youtube.com/*"
+  ]);
   assert.deepEqual(manifest.permissions, ["activeTab", "storage"]);
 });
 

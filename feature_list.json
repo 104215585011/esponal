@@ -89,7 +89,7 @@
       "打开任意 YouTube 视频，插件 icon 激活",
       "console 无 uncaught error"
     ],
-    "evidence": "Codex1 2026-05-13 11:31: added Manifest V3 extension scaffold under extension/ with manifest.json, background.js, content.js, popup.html, popup.js, package.json and package-lock.json; npm test passed 12/12; extension npm install passed; extension npm run build passed and emitted bundled files to ignored extension/dist. Chrome load and YouTube console checks still require Codex2 manual QA.",
+    "evidence": "Codex1 2026-05-13 13:30: fixed EXT-001 after Codex2 QA found YouTube content script marker missing; added https://www.youtube.com/* to extension host_permissions; npm test passed 12/12; extension npm run build passed; Playwright bundled Chromium loaded extension and verified service worker chrome-extension://.../background.js plus YouTube page marker readyDataset=true and readyClass=true. Final Codex2 child-agent recheck still pending.",
     "notes": "Manifest V3，放在 /extension 目录，独立构建流程"
   },
   {

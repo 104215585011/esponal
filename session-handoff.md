@@ -593,3 +593,153 @@ npm run build        # 构建
 
 **下一步最佳动作**：
 Codex2 按 `ROLE-QA.md` 验收 `EXT-001`。若通过，更新 `feature_list.json` 为 `passing` 并补 QA evidence。
+
+---
+
+## 测试 Report：EXT-001 Chrome 插件脚手架
+**时间**：2026-05-13 11:43
+**测试人**：Codex2
+
+**结论**：失败，返回 Codex1 修复
+
+**验证步骤执行记录**：
+1. 确认 ticket 状态和验收标准
+   命令：`node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('feature_list.json','utf8')); const t=data.find(x=>x.id==='EXT-001'); console.log(JSON.stringify(t,null,2));"`
+   输出：
+   ```json
+   {
+     "id": "EXT-001",
+     "status": "ready_for_qa",
+     "verification": [
+       "chrome://extensions 加载插件无报错",
+       "打开任意 YouTube 视频，插件 icon 激活",
+       "console 无 uncaught error"
+     ]
+   }
+   ```
+   结果：✅
+
+2. 检查扩展文件和 Manifest V3 配置
+   命令：`node -e "...read extension/manifest.json and extension scripts..."`
+   关键输出：
+   ```text
+   manifest_version: 3
+   background.service_worker: background.js
+   content_scripts[0].matches: ["https://www.youtube.com/watch*"]
+   content_scripts[0].js: ["content.js"]
+   content.js contains esponal-extension-ready marker
+   background.js contains Esponal extension service worker started log
+   ```
+   结果：✅
+
+3. 运行项目自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ extension declares a Manifest V3 Chrome extension
+   ✔ extension content script injects only on YouTube watch pages
+   ✔ extension files provide background, content, and popup behavior
+   ✔ extension has an esbuild package scaffold
+   ✔ package declares the INFRA-001 application stack
+   ✔ welcome page is present in the Next.js App Router
+   ✔ Prisma is configured for PostgreSQL with initial models
+   ✔ initial Prisma migration is checked in
+   ✔ environment example documents required local services
+   ✔ Prisma schema defines vocabulary words owned by users
+   ✔ Prisma schema defines word encounters linked to words
+   ✔ vocab library exposes the ticket CRUD functions
+   ℹ tests 12
+   ℹ pass 12
+   ℹ fail 0
+   ```
+   结果：✅
+
+4. 运行插件独立构建
+   命令：`npm run build`（工作目录：`extension/`）
+   输出：
+   ```text
+   > esponal-extension@0.1.0 build
+   > esbuild background.js content.js popup.js --bundle --outdir=dist --format=iife
+
+     dist\content.js     523b
+     dist\background.js  280b
+     dist\popup.js       191b
+
+   Done in 4ms
+   ```
+   结果：✅
+
+5. 尝试 Chrome 扩展加载与 YouTube 注入验证
+   命令：`Start-Process chrome.exe --user-data-dir .qa/chrome-profile-2 --remote-debugging-port=9224 --disable-features=DisableLoadExtensionCommandLineSwitch --disable-extensions-except=C:\Users\wang\esponal\extension --load-extension=C:\Users\wang\esponal\extension https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+   输出：
+   ```json
+   {
+     "title": "Service Worker chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js",
+     "type": "service_worker",
+     "url": "chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js"
+   }
+   ```
+   结果：✅ 扩展 service worker 目标可见，说明扩展有被 Chrome 加载。
+
+6. 验证 YouTube 页面是否被 content.js 注入
+   命令：通过 Chrome DevTools Protocol reload YouTube 页面后执行 `document.documentElement.dataset.esponalExtensionReady` 和 `document.documentElement.classList.contains("esponal-extension-ready")`
+   输出：
+   ```json
+   {
+     "page": {
+       "href": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+       "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster) - YouTube",
+       "readyDataset": null,
+       "readyClass": false
+     },
+     "extensionContexts": [],
+     "exceptionCount": 0,
+     "logErrorCount": 0
+   }
+   ```
+   结果：❌
+
+**失败详情**：
+- 失败点：YouTube 页面没有出现 `content.js` 应写入的 `data-esponal-extension-ready="true"`，也没有 `esponal-extension-ready` class。
+- CDP 事件中没有发现 `chrome-extension://...` 的 isolated execution context，说明 content script 未在 YouTube watch 页面执行。
+- 浏览器 console 未捕获 uncaught exception，但这是因为脚本没有注入，不能作为通过依据。
+
+**复现步骤**：
+1. 用临时 Chrome profile 加载 `C:\Users\wang\esponal\extension`
+2. 打开 `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
+3. reload 后检查：
+   ```js
+   document.documentElement.dataset.esponalExtensionReady
+   document.documentElement.classList.contains("esponal-extension-ready")
+   ```
+4. 实际返回 `null` 和 `false`
+
+**返回 Codex1 修复建议**：
+- 优先检查 Manifest V3 静态 content script 在 Chrome 148 下为何未注入 YouTube watch 页面。
+- 建议 Codex1 修复后新增可自动化验证脚本或测试说明，至少能证明 YouTube 页面 DOM marker 被 content script 写入。
+- `feature_list.json` 未改为 `passing`，EXT-001 保持 `ready_for_qa`。
+
+---
+
+## Codex1 修复记录：EXT-001 content script 未注入
+**时间**：2026-05-13 13:30
+**执行人**：Codex1
+
+**问题来源**：Codex2 子 agent 实机验收发现扩展被 Chrome 加载过，但 YouTube watch 页面没有 `data-esponal-extension-ready="true"`，也没有 `esponal-extension-ready` class。
+
+**修复内容**：
+- `extension/manifest.json`：`host_permissions` 增加 `https://www.youtube.com/*`
+- `tests/extension.test.mjs`：同步检查 YouTube host permission
+- `.gitignore`：忽略 `.qa` 临时浏览器 profile/测试产物
+- `feature_list.json`：保留 `EXT-001` 为 `ready_for_qa`，更新 Codex1 修复 evidence
+
+**已验证**：
+- `npm test`：12/12 通过
+- `npm run build`（在 `extension/` 下）：通过
+- Playwright bundled Chromium 加载 `C:\Users\wang\esponal\extension` 后打开 `https://www.youtube.com/watch?v=dQw4w9WgXcQ`：
+  - service worker 包含 `chrome-extension://.../background.js`
+  - `document.documentElement.dataset.esponalExtensionReady` 返回 `"true"`
+  - `document.documentElement.classList.contains("esponal-extension-ready")` 返回 `true`
+
+**仍需 Codex2 复验**：
+- 用 Codex2 子 agent 重新验收 EXT-001，确认 Chrome/Chromium 加载、YouTube 注入、console 无 uncaught error，再决定是否把 `feature_list.json` 改为 `passing`。

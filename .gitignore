@@ -1,6 +1,7 @@
 .env
 .env*.local
 .claude
+.qa
 .next
 node_modules
 .npm-cache
