@@ -19,9 +19,9 @@
 | VOCAB-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
 | EXT-001 | Codex1 | ✅ 完成 |
 | EXT-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
-| COURSE-001 开发 | Codex1 | 📋 待启动（UI 已通过）|
-| COURSE-002 开发 | Codex1 | 📋 待启动（UI 已通过）|
-| VOCAB-002 开发 | Codex1 | 📋 待启动（UI 已通过，依赖 VOCAB-001 ✅）|
+| COURSE-001 开发 | Codex1 | 🟡 ready_for_qa（2026-05-13，需重点验 300 词与音频资产）|
+| COURSE-002 开发 | Codex1 | 🟡 ready_for_qa（2026-05-13）|
+| VOCAB-002 开发 | Codex1 | 🟡 ready_for_qa（2026-05-13，依赖 VOCAB-001 ✅）|
 | EXT-002 开发 | Codex1 | 📋 待启动（UI 已通过，依赖 EXT-001 ✅）|
 
 ---
@@ -894,3 +894,59 @@ Codex2 按 `ROLE-QA.md` 验收 `EXT-001`。若通过，更新 `feature_list.json
 **通过后移交**：
 - `EXT-001` 为非 UI 功能，已更新 `feature_list.json.status = passing` 并写入 QA evidence。
 - 下一步可由 PM 启动 `EXT-002` 或其他最高优先级 ticket。
+
+---
+
+## Codex1 实现记录：COURSE-001 / COURSE-002 / VOCAB-002 并行开发
+**时间**：2026-05-13 14:35
+**执行人**：Codex1
+
+**状态**：三个功能均已交付到 `ready_for_qa`，等待 Codex2 验收；未标记 `passing`。
+
+### COURSE-001 阶段一课程页面
+
+**本轮改动文件**：
+- `content/curriculum/phase1-words.json`：新增阶段一词汇内容结构，含 18 个代表词 seed、`targetCount: 300`
+- `content/curriculum/pronunciation-rules.json`：新增中文发音规则内容
+- `src/app/learn/phase-1/page.tsx`：新增 `/learn/phase-1` 页面，按 Claude2 UI 规格渲染发音规则和词汇卡片
+- `src/app/components/audio/AudioButton.tsx`：新增客户端音频按钮，支持播放/停止和音频缺失提示
+- `tests/course001.test.mjs`：新增 COURSE-001 自动化测试
+
+**已验证**：
+- `npm test`：21/21 通过
+- `npm run build`：通过
+- HTTP smoke：`http://localhost:3000/learn/phase-1` 返回 200
+
+**交给 Codex2 重点验收**：
+- 当前不是完整 300 词，只是 18 个代表词 seed；若 PM/QA 要求本 ticket 必须一次性补齐 300 词，应返回 Codex1 补内容。
+- 当前没有真实 mp3 音频资产，`AudioButton` 会在静态路径不可用时降级为「音频暂时不可用」；若验收标准要求点击即播放真实 TTS，需要补音频生成/资产。
+
+### COURSE-002 语法知识库
+
+**本轮改动文件**：
+- `content/grammar/topics.ts`：新增 6 个核心动词、阴阳性规则、ser vs estar 的静态语法内容
+- `src/app/grammar/page.tsx`：新增 `/grammar` 首页
+- `src/app/grammar/[slug]/page.tsx`：新增语法详情页、语义变位表、中文类比块、ser/estar 对比
+- `src/app/grammar/GrammarTopicSelect.tsx`：新增移动端话题选择器
+- `tests/course002.test.mjs`：新增 COURSE-002 自动化测试
+
+**已验证**：
+- `npm test`：21/21 通过
+- `npm run build`：通过
+- HTTP smoke：`/grammar` 返回 200，包含「语法知识库」
+- HTTP smoke：`/grammar/ser` 返回 200，包含「ser 现在时变位」
+
+### VOCAB-002 词库 Web 界面
+
+**本轮改动文件**：
+- `src/app/vocab/page.tsx`：新增登录态服务端页面；未登录重定向到 `/api/auth/signin`；登录后调用 `getWordsByUser`
+- `src/app/components/vocab/VocabAccordion.tsx`：新增词条展开、遭遇记录、日期分隔、空状态 UI
+- `tests/vocab-ui.test.mjs`：新增 VOCAB-002 自动化测试
+
+**已验证**：
+- `npm test`：21/21 通过
+- `npm run build`：通过
+- HTTP smoke：未登录访问 `/vocab` 返回 307，Location 为 `/api/auth/signin`
+
+**下一步最佳动作**：
+Codex2 按 `ROLE-QA.md` 分别验收 `COURSE-001`、`COURSE-002`、`VOCAB-002`。通过后由 Codex2 更新 `feature_list.json` 为 `passing`；若 `COURSE-001` 的 300 词或音频资产不满足验收，返回 Codex1 补齐。

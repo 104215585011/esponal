@@ -1,0 +1,211 @@
+{
+  "changeTimestamp": "2026-05-13 13:54",
+  "targetCount": 300,
+  "expansionNote": "COURSE-001 uses this representative seed set to verify the static structure, UI, and audio contract before expanding to the full 300-word list.",
+  "words": [
+    {
+      "id": "casa",
+      "spanish": "casa",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "家，房子",
+      "example": {
+        "spanish": "Mi casa es pequeña.",
+        "chinese": "我的家很小。"
+      },
+      "audioSrc": "/audio/words/casa.mp3"
+    },
+    {
+      "id": "dia",
+      "spanish": "día",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "天，日子",
+      "example": {
+        "spanish": "Hoy es un buen día.",
+        "chinese": "今天是美好的一天。"
+      },
+      "audioSrc": "/audio/words/dia.mp3"
+    },
+    {
+      "id": "agua",
+      "spanish": "agua",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "水",
+      "example": {
+        "spanish": "Quiero agua, por favor.",
+        "chinese": "请给我水。"
+      },
+      "audioSrc": "/audio/words/agua.mp3"
+    },
+    {
+      "id": "tiempo",
+      "spanish": "tiempo",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "时间；天气",
+      "example": {
+        "spanish": "No tengo mucho tiempo.",
+        "chinese": "我没有很多时间。"
+      },
+      "audioSrc": "/audio/words/tiempo.mp3"
+    },
+    {
+      "id": "persona",
+      "spanish": "persona",
+      "partOfSpeech": "noun",
+      "gender": "feminine",
+      "chinese": "人",
+      "example": {
+        "spanish": "Es una persona amable.",
+        "chinese": "他/她是一个友善的人。"
+      },
+      "audioSrc": "/audio/words/persona.mp3"
+    },
+    {
+      "id": "trabajo",
+      "spanish": "trabajo",
+      "partOfSpeech": "noun",
+      "gender": "masculine",
+      "chinese": "工作",
+      "example": {
+        "spanish": "Tengo trabajo mañana.",
+        "chinese": "我明天有工作。"
+      },
+      "audioSrc": "/audio/words/trabajo.mp3"
+    },
+    {
+      "id": "ser",
+      "spanish": "ser",
+      "partOfSpeech": "verb",
+      "chinese": "是，用于身份或本质",
+      "example": {
+        "spanish": "Quiero ser profesor.",
+        "chinese": "我想成为老师。"
+      },
+      "audioSrc": "/audio/words/ser.mp3"
+    },
+    {
+      "id": "estar",
+      "spanish": "estar",
+      "partOfSpeech": "verb",
+      "chinese": "在；处于某种状态",
+      "example": {
+        "spanish": "Estoy en casa.",
+        "chinese": "我在家。"
+      },
+      "audioSrc": "/audio/words/estar.mp3"
+    },
+    {
+      "id": "tener",
+      "spanish": "tener",
+      "partOfSpeech": "verb",
+      "chinese": "有",
+      "example": {
+        "spanish": "Tengo una pregunta.",
+        "chinese": "我有一个问题。"
+      },
+      "audioSrc": "/audio/words/tener.mp3"
+    },
+    {
+      "id": "ir",
+      "spanish": "ir",
+      "partOfSpeech": "verb",
+      "chinese": "去",
+      "example": {
+        "spanish": "Voy al mercado.",
+        "chinese": "我去市场。"
+      },
+      "audioSrc": "/audio/words/ir.mp3"
+    },
+    {
+      "id": "querer",
+      "spanish": "querer",
+      "partOfSpeech": "verb",
+      "chinese": "想要；喜欢",
+      "example": {
+        "spanish": "Quiero aprender español.",
+        "chinese": "我想学习西班牙语。"
+      },
+      "audioSrc": "/audio/words/querer.mp3"
+    },
+    {
+      "id": "hablar",
+      "spanish": "hablar",
+      "partOfSpeech": "verb",
+      "chinese": "说话；讲某种语言",
+      "example": {
+        "spanish": "Hablo un poco de español.",
+        "chinese": "我会说一点西班牙语。"
+      },
+      "audioSrc": "/audio/words/hablar.mp3"
+    },
+    {
+      "id": "bueno",
+      "spanish": "bueno",
+      "partOfSpeech": "adjective",
+      "chinese": "好的",
+      "example": {
+        "spanish": "Es un libro bueno.",
+        "chinese": "这是一本好书。"
+      },
+      "audioSrc": "/audio/words/bueno.mp3"
+    },
+    {
+      "id": "grande",
+      "spanish": "grande",
+      "partOfSpeech": "adjective",
+      "chinese": "大的",
+      "example": {
+        "spanish": "La ciudad es grande.",
+        "chinese": "这座城市很大。"
+      },
+      "audioSrc": "/audio/words/grande.mp3"
+    },
+    {
+      "id": "pequeno",
+      "spanish": "pequeño",
+      "partOfSpeech": "adjective",
+      "chinese": "小的",
+      "example": {
+        "spanish": "El café es pequeño.",
+        "chinese": "这家咖啡馆很小。"
+      },
+      "audioSrc": "/audio/words/pequeno.mp3"
+    },
+    {
+      "id": "nuevo",
+      "spanish": "nuevo",
+      "partOfSpeech": "adjective",
+      "chinese": "新的",
+      "example": {
+        "spanish": "Tengo una idea nueva.",
+        "chinese": "我有一个新想法。"
+      },
+      "audioSrc": "/audio/words/nuevo.mp3"
+    },
+    {
+      "id": "facil",
+      "spanish": "fácil",
+      "partOfSpeech": "adjective",
+      "chinese": "容易的",
+      "example": {
+        "spanish": "La frase es fácil.",
+        "chinese": "这个句子很容易。"
+      },
+      "audioSrc": "/audio/words/facil.mp3"
+    },
+    {
+      "id": "importante",
+      "spanish": "importante",
+      "partOfSpeech": "adjective",
+      "chinese": "重要的",
+      "example": {
+        "spanish": "Esta palabra es importante.",
+        "chinese": "这个词很重要。"
+      },
+      "audioSrc": "/audio/words/importante.mp3"
+    }
+  ]
+}

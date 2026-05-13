@@ -1,0 +1,135 @@
+{
+  "changeTimestamp": "2026-05-13 13:54",
+  "rules": [
+    {
+      "id": "vowels",
+      "letters": ["a", "e", "i", "o", "u"],
+      "titleChinese": "元音很稳定",
+      "explanationChinese": "西语 a/e/i/o/u 基本固定发音，不像英语同一个字母有很多读法。先把它们读稳，后面拼读会轻松很多。",
+      "example": {
+        "spanish": "casa, mesa, vino, todo, uno",
+        "chinesePronunciation": "卡萨，梅萨，比诺，托多，乌诺"
+      }
+    },
+    {
+      "id": "b-v",
+      "letters": ["b", "v"],
+      "titleChinese": "b 和 v 发音接近",
+      "explanationChinese": "入门阶段可以都当作接近汉语“b”的音来读，嘴唇不要太用力。",
+      "example": {
+        "spanish": "bebé, vivir",
+        "chinesePronunciation": "贝贝，比比尔"
+      }
+    },
+    {
+      "id": "c-q-k",
+      "letters": ["c", "q", "k"],
+      "titleChinese": "c/q/k 的硬音",
+      "explanationChinese": "c 在 a/o/u 前读类似“k”；qu 也读“k”，u 不单独发音。",
+      "example": {
+        "spanish": "casa, queso, kilo",
+        "chinesePronunciation": "卡萨，凯索，基洛"
+      }
+    },
+    {
+      "id": "ce-ci-z",
+      "letters": ["c", "z"],
+      "titleChinese": "ce/ci 和 z",
+      "explanationChinese": "拉美西语里 ce/ci/z 常读类似“s”。西班牙部分地区会读成英语 think 里的 th。",
+      "example": {
+        "spanish": "cena, cinco, zona",
+        "chinesePronunciation": "塞纳，辛科，索纳"
+      }
+    },
+    {
+      "id": "d-t",
+      "letters": ["d", "t"],
+      "titleChinese": "d/t 比中文更轻",
+      "explanationChinese": "舌尖贴近上齿后方，声音短而轻，不要读成很重的中文“得/特”。",
+      "example": {
+        "spanish": "día, todo, tarde",
+        "chinesePronunciation": "迪亚，托多，塔尔德"
+      }
+    },
+    {
+      "id": "f-l-m-n-p-s",
+      "letters": ["f", "l", "m", "n", "p", "s"],
+      "titleChinese": "常见辅音可直接拼",
+      "explanationChinese": "f/l/m/n/p/s 对中文母语者比较友好，重点是和后面的元音连起来读，不要在末尾多加一个“呃”。",
+      "example": {
+        "spanish": "familia, mapa, sol",
+        "chinesePronunciation": "法米利亚，马帕，索尔"
+      }
+    },
+    {
+      "id": "g",
+      "letters": ["g"],
+      "titleChinese": "g 有硬音和喉音",
+      "explanationChinese": "ga/go/gu 读类似“g”；ge/gi 更接近喉部摩擦音，类似轻一点的“喝”。",
+      "example": {
+        "spanish": "gato, amigo, gente",
+        "chinesePronunciation": "嘎托，阿米戈，亨特"
+      }
+    },
+    {
+      "id": "h-j",
+      "letters": ["h", "j"],
+      "titleChinese": "h 不发音，j 是喉音",
+      "explanationChinese": "h 通常不读；j 不是英语 j，而是从喉部出来的摩擦音，像轻轻的“喝”。",
+      "example": {
+        "spanish": "hola, hijo, trabajo",
+        "chinesePronunciation": "奥拉，伊霍，特拉巴霍"
+      }
+    },
+    {
+      "id": "ll-y",
+      "letters": ["y"],
+      "titleChinese": "ll/y 常读类似 y",
+      "explanationChinese": "多数地区 ll 和 y 接近英语 yes 的 y，也有地区读得更像“zh”。入门先掌握常见读法即可。",
+      "example": {
+        "spanish": "yo, calle, llamar",
+        "chinesePronunciation": "约，卡耶，亚马尔"
+      }
+    },
+    {
+      "id": "n-tilde",
+      "letters": ["ñ"],
+      "titleChinese": "ñ 是一个独立字母",
+      "explanationChinese": "ñ 不是 n 加符号，而是类似“尼亚”连在一起的鼻音。",
+      "example": {
+        "spanish": "niño, español",
+        "chinesePronunciation": "尼纽，埃斯帕尼奥尔"
+      }
+    },
+    {
+      "id": "r-rr",
+      "letters": ["r"],
+      "titleChinese": "r 和 rr 要弹舌",
+      "explanationChinese": "单 r 轻弹一下，rr 连续弹。刚开始弹不出来也没关系，先避免读成英语 r。",
+      "example": {
+        "spanish": "pero, perro, rápido",
+        "chinesePronunciation": "佩罗，佩罗，拉皮多"
+      }
+    },
+    {
+      "id": "x",
+      "letters": ["x"],
+      "titleChinese": "x 多数读 ks",
+      "explanationChinese": "常见词里 x 多读成 k+s 的连读，速度快时会更轻。",
+      "example": {
+        "spanish": "examen, texto",
+        "chinesePronunciation": "埃克萨门，特克斯托"
+      }
+    },
+    {
+      "id": "w",
+      "letters": ["w"],
+      "titleChinese": "w 多出现在外来词",
+      "explanationChinese": "w 不是西语原生高频字母，常见于外来词或名字，通常按来源语言读。",
+      "example": {
+        "spanish": "wifi, web",
+        "chinesePronunciation": "维菲，韦布"
+      }
+    }
+  ]
+}
