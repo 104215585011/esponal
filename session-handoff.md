@@ -1989,3 +1989,86 @@ CSS 规格：
 - 根目录 `npm run build` 过程中仍出现现有 `ioredis` `ECONNREFUSED` warning，但不影响 Next.js 编译成功；本轮未改动 Redis 相关实现
 
 **下一步最佳动作**：交给 Codex2 重新验收 `EXT-004`。重点验证 `/api/vocab/highlight` 路由存在、`extension/dist/content.js` 已包含高亮颜色与 `data-status` 逻辑，以及 fixture/代码检查能确认课程词与词库词两种状态都被正确上色。
+
+## 测试 Report：EXT-004 已学词高亮
+**时间**：2026-05-13 23:54
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**
+1. 基线自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   tests 32
+   pass 32
+   fail 0
+   ```
+   结果：✅
+
+2. 根目录构建
+   命令：`npm run build`
+   输出：
+   ```text
+   Route (app) includes /api/vocab/highlight
+   ✓ Compiled successfully
+   ✓ Generating static pages (20/20)
+   [ioredis] Unhandled error event: AggregateError [ECONNREFUSED]
+   ```
+   结果：✅
+   备注：存在既有 `ioredis ECONNREFUSED` warning，但构建成功，未阻塞 EXT-004 验收。
+
+3. 扩展构建
+   命令：`cd extension && npm run build`
+   输出：
+   ```text
+   dist\content.js     20.4kb
+   dist\popup.js        1.5kb
+   dist\background.js   280b
+   ```
+   结果：✅
+
+4. Highlight 路由代码核查
+   命令：`rg -n "course|saved|unknown|getServerSession|phase1-words" src\app\api\vocab\highlight\route.ts`
+   输出：
+   ```text
+   src\app\api\vocab\highlight\route.ts:2:import { getServerSession } from "next-auth";
+   src\app\api\vocab\highlight\route.ts:5:import phaseOneWords from "../../../../../content/curriculum/phase1-words.json";
+   src\app\api\vocab\highlight\route.ts:11:type HighlightStatus = "course" | "saved" | "unknown";
+   src\app\api\vocab\highlight\route.ts:37:    status: courseWordSet.has(word) ? ("course" satisfies HighlightStatus) : ("unknown" satisfies HighlightStatus)
+   src\app\api\vocab\highlight\route.ts:42:  const session = await getServerSession(authOptions);
+   src\app\api\vocab\highlight\route.ts:97:        status: savedWordSet.has(item.word) ? "saved" : item.status
+   ```
+   结果：✅
+
+5. Content script 与构建产物核查
+   命令：`rg -n "/api/vocab/highlight|data-status|#86EFAC|#93C5FD" extension\content.js extension\dist\content.js`
+   输出：
+   ```text
+   extension\content.js:4:const ESPONAL_VOCAB_HIGHLIGHT_URL = "http://localhost:3000/api/vocab/highlight";
+   extension\content.js:8:  course: "#86EFAC",
+   extension\content.js:9:  saved: "#93C5FD",
+   extension\content.js:199:  wordElement.setAttribute("data-status", status);
+   extension\dist\content.js:7:  var ESPONAL_VOCAB_HIGHLIGHT_URL = "http://localhost:3000/api/vocab/highlight";
+   extension\dist\content.js:11:    course: "#86EFAC",
+   extension\dist\content.js:12:    saved: "#93C5FD",
+   extension\dist\content.js:167:    wordElement.setAttribute("data-status", status);
+   ```
+   结果：✅
+
+6. `chrome.*` 顶层保护复核
+   命令：`rg -n "typeof chrome !== \"undefined\"" extension\content.js extension\dist\content.js`
+   输出：
+   ```text
+   extension\content.js:756:if (typeof chrome !== "undefined" && chrome.storage?.local) {
+   extension\content.js:767:if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
+   extension\dist\content.js:633:  if (typeof chrome !== "undefined" && ((_a = chrome.storage) == null ? void 0 : _a.local)) {
+   extension\dist\content.js:643:  if (typeof chrome !== "undefined" && ((_b = chrome.runtime) == null ? void 0 : _b.onMessage)) {
+   ```
+   结果：✅
+
+**通过后移交**
+- 已将 `feature_list.json` 中 `EXT-004.status` 更新为 `passing`
+- 已填写 Codex2 QA evidence
+- 当前 10 个功能均为 `passing`

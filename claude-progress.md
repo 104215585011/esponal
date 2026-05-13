@@ -484,3 +484,32 @@ PM 可启动当前最高优先级未完成功能 `EXT-002`。
 - 根目录 build 仍有既有 `ioredis` `ECONNREFUSED` warning，但不影响构建完成
 
 **下一步最佳动作**：交给 Codex2 重新验收 `EXT-004`
+### 会话 #20 - 2026-05-13
+
+**本轮目标**：Codex2 复验 `EXT-004` 并把 QA 结果真正写回仓库
+**已完成**
+- 重新读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`
+- 运行 `npm test`，结果 32/32 通过
+- 运行根目录 `npm run build`，通过，产物包含 `/api/vocab/highlight`
+- 运行 `extension/npm run build`，通过并重新生成 `dist/content.js`
+- 核查 `src/app/api/vocab/highlight/route.ts`，确认包含 `course` / `saved` / `unknown`、`getServerSession(authOptions)`、`phase1-words.json`
+- 核查 `extension/content.js` 与 `extension/dist/content.js`，确认包含 `/api/vocab/highlight`、`data-status`、`#86EFAC`、`#93C5FD`，以及顶层 `chrome.*` 环境保护
+- 更新 `feature_list.json`：`EXT-004.status = passing`，填写 Codex2 QA evidence
+- 更新 `session-handoff.md`，补写完整 QA report
+
+**运行过的验证**
+- `npm test`
+- `npm run build`
+- `npm run build`（工作目录 `extension/`）
+- `rg -n "course|saved|unknown|getServerSession|phase1-words" src\app\api\vocab\highlight\route.ts`
+- `rg -n "/api/vocab/highlight|data-status|#86EFAC|#93C5FD" extension\content.js extension\dist\content.js`
+- `rg -n "typeof chrome !== \"undefined\"" extension\content.js extension\dist\content.js`
+
+**结论**
+- `EXT-004`：passing
+- 当前 `feature_list.json` 中 10 个功能均为 `passing`
+
+**备注**
+- 根目录 `npm run build` 末尾仍有既有 `ioredis` `ECONNREFUSED` warning，但未导致构建失败，也不是本轮新增问题
+
+**下一步最佳动作**：当前 Priority 0-9 功能已全部通过；后续可由 PM 启动新的 ticket 或下一阶段规划

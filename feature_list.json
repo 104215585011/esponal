@@ -130,14 +130,14 @@
     "area": "extension",
     "title": "已学词高亮",
     "user_visible_behavior": "字幕中，课程里学过的词显示绿色，词库里保存过的词显示蓝色",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "在课程中学过的词在 YouTube 字幕里显示绿色高亮",
       "词库中保存的词显示蓝色高亮",
       "陌生词不高亮",
       "高亮颜色不影响字幕可读性"
     ],
-    "evidence": "Codex1 2026-05-13 22:48: added src/app/api/vocab/highlight/route.ts to classify subtitle words as course/saved/unknown from phase1-words.json plus authenticated saved vocab lookups; updated extension/content.js to POST batch words to /api/vocab/highlight, set data-status on .esponal-word spans, and apply reviewed colors #86EFAC and #93C5FD; added tests/ext004.test.mjs. Verification passed: node --test tests/ext004.test.mjs (2/2), npm test (32/32), npm run build at repo root, and npm run build in extension. Next step is Codex2 QA.",
+    "evidence": "Codex2 QA 2026-05-13 23:51: git status --short --branch was clean at QA start. npm test passed 32/32. npm run build passed at repo root and emitted /api/vocab/highlight; build completed despite existing ioredis ECONNREFUSED warnings. extension npm run build passed and regenerated extension/dist/content.js (20919 bytes, LastWriteTime 2026-05-13 23:46:49). Code checks confirmed src/app/api/vocab/highlight/route.ts returns course/saved/unknown and uses getServerSession(authOptions) plus phase1-words.json. extension/content.js and extension/dist/content.js both contain /api/vocab/highlight, data-status wiring, highlight colors #86EFAC and #93C5FD, and typeof chrome !== \"undefined\" guards around chrome.storage and chrome.runtime top-level calls.",
     "notes": "需要 UI 评审（颜色方案）。依赖 EXT-002、VOCAB-001、COURSE-001"
   },
   {
