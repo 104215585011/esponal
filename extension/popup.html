@@ -36,11 +36,17 @@
         font-weight: 700;
         padding: 9px 12px;
       }
+
+      button + button {
+        margin-top: 8px;
+        background: #2f8f6f;
+      }
     </style>
   </head>
   <body>
     <h1>Esponal</h1>
     <p>西语沉浸学习插件已准备好。</p>
+    <button id="toggleChinese" type="button">隐藏中文翻译</button>
     <button id="openApp" type="button">打开 Web App</button>
     <script src="popup.js"></script>
   </body>

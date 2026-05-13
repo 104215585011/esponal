@@ -98,14 +98,14 @@
     "area": "extension",
     "title": "YouTube 字幕提取 + 双语叠加",
     "user_visible_behavior": "用户在 YouTube 观看西语视频时，插件自动显示西语原文字幕和中文翻译字幕",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "打开有官方字幕的西语 YouTube 视频，双语字幕自动出现",
       "打开无官方字幕的视频，降级到自动生成字幕",
       "中文翻译显示正确（抽查 3 条）",
       "字幕跟随视频进度更新"
     ],
-    "evidence": "",
+    "evidence": "Codex1 2026-05-13 16:42: implemented YouTube subtitle extraction and bilingual overlay in extension/content.js using MutationObserver on .ytp-caption-segment, persistent Chinese toggle via chrome.storage.local, and popup badge state in extension/popup.js. Added server route src/app/api/translate/route.ts for POST /api/translate with MiniMax OpenAI-compatible chat/completions call (model abab5.5-chat), Redis cache key subtitle:${sha256(text)} and 7-day TTL, plus MINIMAX_API_KEY and MINIMAX_GROUP_ID in .env.example. Verification passed: npm test 25/25, npm run build, and extension npm run build.",
     "notes": "依赖 EXT-001。翻译调用 MiniMax API（服务端代理，不在插件直接暴露 key）"
   },
   {

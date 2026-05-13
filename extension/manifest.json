@@ -17,6 +17,10 @@
       "run_at": "document_idle"
     }
   ],
-  "host_permissions": ["https://localhost:3000/*", "https://www.youtube.com/*"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://localhost:3000/*",
+    "https://www.youtube.com/*"
+  ],
   "permissions": ["activeTab", "storage"]
 }

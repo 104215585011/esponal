@@ -14,6 +14,7 @@ test("extension declares a Manifest V3 Chrome extension", async () => {
   assert.equal(manifest.action.default_popup, "popup.html");
   assert.equal(manifest.background.service_worker, "background.js");
   assert.deepEqual(manifest.host_permissions, [
+    "http://localhost:3000/*",
     "https://localhost:3000/*",
     "https://www.youtube.com/*"
   ]);
@@ -45,10 +46,12 @@ test("extension files provide background, content, and popup behavior", async ()
   const popupScript = await readText("extension/popup.js");
 
   assert.match(background, /Esponal extension service worker started/);
-  assert.match(content, /https:\/\/localhost:3000\/api\//);
+  assert.match(content, /http:\/\/localhost:3000\/api\/translate/);
   assert.match(content, /esponal-extension-ready/);
   assert.match(popup, /Esponal/);
   assert.match(popupScript, /chrome\.tabs\.create/);
+  assert.match(popupScript, /chrome\.storage\.local/);
+  assert.match(popupScript, /TOGGLE_CHINESE_SUBTITLES/);
 });
 
 test("extension has an esbuild package scaffold", async () => {
