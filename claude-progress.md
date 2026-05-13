@@ -10,19 +10,20 @@
 
 **标准验证路径**：`npm test`
 
-**当前最高优先级未完成功能**：`EXT-001`（Chrome 插件脚手架）
+**当前最高优先级未完成功能**：`COURSE-001`（阶段一课程页面）
 
 **当前 blocker**：无
 
 **已验证通过的功能**：
-- `INFRA-001`：项目脚手架（Next.js 14 + TypeScript + Prisma + Redis + NextAuth）
-- `VOCAB-001`：词汇数据模型（Word + WordEncounter 表、CRUD 函数、真实迁移通过）
+- `INFRA-001`：项目脚手架
+- `VOCAB-001`：词汇数据模型
+- `EXT-001`：Chrome 插件脚手架（Playwright 自动化验证 content script 注入成功）
 
 **待启动功能（按优先级）**：
-1. `EXT-001` — Chrome 插件脚手架（Codex1 可直接开始，无需 UI 评审）
-2. `COURSE-001` — 阶段一课程页面（等 Claude2 UI 评审）
-3. `COURSE-002` — 语法知识库（等 Claude2 UI 评审）
-4. `VOCAB-002` — 词库 Web 界面（等 Claude2 UI 评审，VOCAB-001 依赖已满足）
+1. `COURSE-001` — 阶段一课程页面（UI 已通过，Codex1 可直接开始）
+2. `COURSE-002` — 语法知识库（UI 已通过，Codex1 可直接开始）
+3. `VOCAB-002` — 词库 Web 界面（UI 已通过，Codex1 可直接开始）
+4. `EXT-002` — YouTube 双语字幕（等 Claude2 UI 评审，依赖 EXT-001 ✅）
 
 ---
 
