@@ -83,13 +83,13 @@
     "area": "extension",
     "title": "Chrome 插件脚手架",
     "user_visible_behavior": "Chrome 插件能安装，在 YouTube 页面注入内容脚本不报错",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "chrome://extensions 加载插件无报错",
       "打开任意 YouTube 视频，插件 icon 激活",
       "console 无 uncaught error"
     ],
-    "evidence": "",
+    "evidence": "Codex1 2026-05-13 11:31: added Manifest V3 extension scaffold under extension/ with manifest.json, background.js, content.js, popup.html, popup.js, package.json and package-lock.json; npm test passed 12/12; extension npm install passed; extension npm run build passed and emitted bundled files to ignored extension/dist. Chrome load and YouTube console checks still require Codex2 manual QA.",
     "notes": "Manifest V3，放在 /extension 目录，独立构建流程"
   },
   {

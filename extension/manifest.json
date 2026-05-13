@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Esponal",
+  "description": "Esponal YouTube learning companion.",
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Esponal"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": ["https://localhost:3000/*"],
+  "permissions": ["activeTab", "storage"]
+}

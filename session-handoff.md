@@ -558,3 +558,38 @@ npm run build        # 构建
 ---
 
 *最后更新：2026-05-13，会话 #2，Claude1（PM）*
+
+---
+
+## Codex1 实现记录：EXT-001 Chrome 插件脚手架
+**时间**：2026-05-13 11:31
+**执行人**：Codex1
+
+**状态**：ready_for_qa，等待 Codex2 验收
+
+**本轮目标**：建立 `extension/` 独立插件工程基础，满足 Manifest V3、YouTube watch 页面 content script 注入、background 启动日志、极简 popup、esbuild 构建脚本。
+
+**本轮改动文件**：
+- `extension/manifest.json`：新增 Manifest V3 配置，content script 只匹配 `https://www.youtube.com/watch*`
+- `extension/background.js`：新增 service worker 启动/安装日志
+- `extension/content.js`：新增 YouTube 页面 ready marker 和开发 API base URL `https://localhost:3000/api/`
+- `extension/popup.html`：新增极简 popup
+- `extension/popup.js`：新增打开本地 Web App 的按钮行为
+- `extension/package.json`：新增独立 esbuild 构建脚本
+- `extension/package-lock.json`：锁定插件依赖
+- `tests/extension.test.mjs`：新增 EXT-001 scaffold 测试
+- `feature_list.json`：`EXT-001` 改为 `ready_for_qa`，填写 Codex1 evidence
+
+**已验证**：
+- `npm test`：12/12 通过
+- `npm install --cache ..\.npm-cache`（在 `extension/` 下）：通过
+- `npm run build`（在 `extension/` 下）：通过，输出 `dist\content.js`、`dist\background.js`、`dist\popup.js`
+
+**未验证，交给 Codex2**：
+- `chrome://extensions` 加载 `extension/` 目录无报错
+- 打开 YouTube 视频页后插件 icon 激活
+- 浏览器 console 无 uncaught error
+- background.js 启动日志在扩展 service worker 控制台可见
+
+**下一步最佳动作**：
+Codex2 按 `ROLE-QA.md` 验收 `EXT-001`。若通过，更新 `feature_list.json` 为 `passing` 并补 QA evidence。

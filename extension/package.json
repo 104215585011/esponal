@@ -1,0 +1,11 @@
+{
+  "name": "esponal-extension",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild background.js content.js popup.js --bundle --outdir=dist --format=iife"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}
