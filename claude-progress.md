@@ -360,3 +360,71 @@ PM 可启动当前最高优先级未完成功能 `EXT-002`。
 - 若本地 `.env` 未填写 `MINIMAX_API_KEY` / `MINIMAX_GROUP_ID`，`/api/translate` 会降级回传原文，便于本地继续联调
 
 **下一步最佳动作**：交给 Codex2 按 `session-handoff.md` 对 `EXT-002` 做真实验收。
+
+### 会话 #13 — 2026-05-13
+
+**本轮目标**：Codex2 验收 `EXT-002` YouTube 双语字幕叠加。  
+**已完成**：
+- 运行 `npm test`，25/25 通过
+- 运行根目录 `npm run build`，通过
+- 运行 `extension/` 下 `npm run build`，生成 `dist/content.js`
+- 核查 `src/app/api/translate/route.ts`、`extension/content.js`、`extension/manifest.json`、`.env.example`，确认 MiniMax、Redis cache、MutationObserver、overlay、toggle、storage 权限和环境变量都存在
+- 用 Playwright bundled Chromium 实测扩展注入：确认 extension service worker 已加载、content script 注入成功、overlay DOM 已挂载、无 uncaught page error
+
+**未完成或阻塞**：
+- 未能在 Playwright Chromium 中取得真实 YouTube 字幕段，无法完成“自动出现双语字幕 / 跟随进度更新 / 抽查中文翻译”运行时验收
+- 用户示例视频 `A0yzRIuKYUw` 当前显示“Este vídeo ya no está disponible”
+- 替代公开视频 `n-594Ztjk4w` 当前触发 YouTube 反机器人登录页“`Inicia sesión para confirmar que no eres un bot`”，视频暂停且无字幕 segment
+
+**结论**：`EXT-002` 暂不标记 `passing`，保持 `ready_for_qa`；详细失败证据已写入 `session-handoff.md`
+
+**下一步最佳动作**：提供一个当前可在未登录 Playwright Chromium 中直接播放并产出西语字幕的 YouTube 视频，或提供可复用登录态 fixture 后重新验收。
+
+### 会话 #14 — 2026-05-13
+
+**本轮目标**：Codex2 按 fixture 方案复验 `EXT-002`。  
+**已完成**：
+- `npm test`：25/25 通过
+- 根目录 `npm run build`：通过
+- `extension/` 下 `npm run build`：通过，生成 `dist/content.js`
+- 核查 `content.js` / `route.ts` / `manifest.json` / `.env.example`，结构项齐全
+- 用 Playwright 本地 fixture 注入 `extension/dist/content.js` 做无 YouTube 依赖的运行时验证
+
+**失败证据**：
+- `node tests\tmp_ext002_fixture.mjs` 输出 `pageErrors: ["chrome is not defined"]`
+- `overlayExists = false`，`readyDataset = null`，`readyClass = false`
+- 说明 `extension/content.js` 顶层 `chrome.*` 调用缺少 `typeof chrome !== "undefined"` 保护
+
+**结论**：`EXT-002` 复验失败，保持 `ready_for_qa`
+
+**下一步最佳动作**：Codex1 修复 `extension/content.js` 的 `chrome.*` 环境保护后重新提 QA。
+
+### 会话 #15 — 2026-05-13
+
+**本轮目标**：Codex2 对 `EXT-002` 做第三次 fixture 复验。  
+**已完成**：
+- 重跑 `node tests\tmp_ext002_fixture.mjs`
+- fixture 输出 `pageErrors = []`
+- fixture 输出 `overlayExists = true`，`readyDataset = "true"`，`readyClass = true`
+- 将 `EXT-002` 更新为 `passing`
+
+**结论**：`EXT-002` 通过第三次 QA 验收
+### 会话 #16 — 2026-05-13
+
+**本轮目标**：Codex1 实现 `EXT-003` 词形还原 + 点击查词。
+**已完成**：
+- 新增 `extension/lemma-dict.json`，当前包含 660 条高频词形映射
+- 新增 `src/app/api/lemmatize/route.ts`
+- 新增 `src/app/api/vocab/add/route.ts`
+- 扩展 `extension/content.js`，实现字幕词 span 包裹、查词卡片、加入词库、ESC/点击外部关闭与 `chrome.*` 保护
+- 新增 `tests/ext003.test.mjs`
+- 更新 `feature_list.json`：`EXT-003.status = ready_for_qa`
+- 更新 `session-handoff.md` 写入 Codex1 实现记录
+
+**运行过的验证**：
+- `node --test tests/ext003.test.mjs`：4/4 通过
+- `npm test`：29/29 通过
+- `npm run build`：通过
+- `npm run build`（`extension/`）：通过
+
+**下一步最佳动作**：交给 Codex2 验收 `EXT-003`。

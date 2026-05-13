@@ -98,14 +98,14 @@
     "area": "extension",
     "title": "YouTube 字幕提取 + 双语叠加",
     "user_visible_behavior": "用户在 YouTube 观看西语视频时，插件自动显示西语原文字幕和中文翻译字幕",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "打开有官方字幕的西语 YouTube 视频，双语字幕自动出现",
       "打开无官方字幕的视频，降级到自动生成字幕",
       "中文翻译显示正确（抽查 3 条）",
       "字幕跟随视频进度更新"
     ],
-    "evidence": "Codex1 2026-05-13 16:42: implemented YouTube subtitle extraction and bilingual overlay in extension/content.js using MutationObserver on .ytp-caption-segment, persistent Chinese toggle via chrome.storage.local, and popup badge state in extension/popup.js. Added server route src/app/api/translate/route.ts for POST /api/translate with MiniMax OpenAI-compatible chat/completions call (model abab5.5-chat), Redis cache key subtitle:${sha256(text)} and 7-day TTL, plus MINIMAX_API_KEY and MINIMAX_GROUP_ID in .env.example. Verification passed: npm test 25/25, npm run build, and extension npm run build.",
+    "evidence": "Codex2 QA 2026-05-13 17:06: after PM added typeof chrome !== 'undefined' guards around the top-level chrome.* calls in extension/content.js and rebuilt extension/dist/content.js, fixture rerun via node tests/tmp_ext002_fixture.mjs passed with pageErrors=[], consoleErrors=[], overlayExists=true, readyDataset='true', readyClass=true, spanishText='hola mundo', chineseText='…'. Prior baseline automation/builds had already passed: npm test 25/25, npm run build, and extension npm run build.",
     "notes": "依赖 EXT-001。翻译调用 MiniMax API（服务端代理，不在插件直接暴露 key）"
   },
   {
@@ -114,14 +114,14 @@
     "area": "extension",
     "title": "词形还原 + 点击查词",
     "user_visible_behavior": "用户点击字幕中任意西语词，弹出卡片显示：词根、当前变位形式说明、中文释义，包含「加入我的词库」按钮",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "点击 'fui' 弹出卡片，显示词根 ir，标注「简单过去时 / 第一人称单数」",
       "点击 'hablan' 弹出卡片，显示词根 hablar",
       "点击「加入我的词库」后，词条出现在 /vocab 页面",
       "弹出卡片不打断视频播放"
     ],
-    "evidence": "",
+    "evidence": "Codex1 2026-05-13 17:16: added extension/lemma-dict.json with 660 entries covering required forms fui, fueron, vas, hablan, soy, eres, tiene; implemented src/app/api/lemmatize/route.ts and src/app/api/vocab/add/route.ts; extended extension/content.js with clickable .esponal-word spans, lookup card UI, ESC/outside-close behavior, chrome guards, and add-to-vocab flow. Verification passed: node --test tests/ext003.test.mjs (4/4), npm test (29/29), npm run build, and extension npm run build.",
     "notes": "依赖 EXT-002、VOCAB-001。词形还原服务端用 spacy es 模型，插件通过 API 调用"
   },
   {

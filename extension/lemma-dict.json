@@ -1,0 +1,3962 @@
+{
+  "hablar": {
+    "lemma": "hablar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "hablo": {
+    "lemma": "hablar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "hablas": {
+    "lemma": "hablar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "habla": {
+    "lemma": "hablar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "hablamos": {
+    "lemma": "hablar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "hablan": {
+    "lemma": "hablar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "comer": {
+    "lemma": "comer",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "como": {
+    "lemma": "comer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "comes": {
+    "lemma": "comer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "come": {
+    "lemma": "comer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "comemos": {
+    "lemma": "comer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "comen": {
+    "lemma": "comer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vivir": {
+    "lemma": "vivir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "vivo": {
+    "lemma": "vivir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "vives": {
+    "lemma": "vivir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "vive": {
+    "lemma": "vivir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "vivimos": {
+    "lemma": "vivir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viven": {
+    "lemma": "vivir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mirar": {
+    "lemma": "mirar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "miro": {
+    "lemma": "mirar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "miras": {
+    "lemma": "mirar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "mira": {
+    "lemma": "mirar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "miramos": {
+    "lemma": "mirar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "miran": {
+    "lemma": "mirar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escuchar": {
+    "lemma": "escuchar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escucho": {
+    "lemma": "escuchar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escuchas": {
+    "lemma": "escuchar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escucha": {
+    "lemma": "escuchar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escuchamos": {
+    "lemma": "escuchar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escuchan": {
+    "lemma": "escuchar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "estudiar": {
+    "lemma": "estudiar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "estudio": {
+    "lemma": "estudiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "estudias": {
+    "lemma": "estudiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "estudia": {
+    "lemma": "estudiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "estudiamos": {
+    "lemma": "estudiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "estudian": {
+    "lemma": "estudiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabajar": {
+    "lemma": "trabajar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabajo": {
+    "lemma": "trabajo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabajas": {
+    "lemma": "trabajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabaja": {
+    "lemma": "trabajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabajamos": {
+    "lemma": "trabajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabajan": {
+    "lemma": "trabajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "caminar": {
+    "lemma": "caminar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "camino": {
+    "lemma": "caminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "caminas": {
+    "lemma": "caminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "camina": {
+    "lemma": "caminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "caminamos": {
+    "lemma": "caminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "caminan": {
+    "lemma": "caminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprar": {
+    "lemma": "comprar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "compro": {
+    "lemma": "comprar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "compras": {
+    "lemma": "comprar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "compra": {
+    "lemma": "comprar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "compramos": {
+    "lemma": "comprar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "compran": {
+    "lemma": "comprar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vender": {
+    "lemma": "vender",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vendo": {
+    "lemma": "vender",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vendes": {
+    "lemma": "vender",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vende": {
+    "lemma": "vender",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vendemos": {
+    "lemma": "vender",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "venden": {
+    "lemma": "vender",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "abrir": {
+    "lemma": "abrir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abro": {
+    "lemma": "abrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abres": {
+    "lemma": "abrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abre": {
+    "lemma": "abrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abrimos": {
+    "lemma": "abrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abren": {
+    "lemma": "abrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cerrar": {
+    "lemma": "cerrar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cerro": {
+    "lemma": "cerrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cerras": {
+    "lemma": "cerrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cerra": {
+    "lemma": "cerrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cerramos": {
+    "lemma": "cerrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cerran": {
+    "lemma": "cerrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escribir": {
+    "lemma": "escribir",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escribo": {
+    "lemma": "escribir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escribes": {
+    "lemma": "escribir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escribe": {
+    "lemma": "escribir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escribimos": {
+    "lemma": "escribir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "escriben": {
+    "lemma": "escribir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "leer": {
+    "lemma": "leer",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "leo": {
+    "lemma": "leer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "lees": {
+    "lemma": "leer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "lee": {
+    "lemma": "leer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "leemos": {
+    "lemma": "leer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "leen": {
+    "lemma": "leer",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "beber": {
+    "lemma": "beber",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "bebo": {
+    "lemma": "beber",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "bebes": {
+    "lemma": "beber",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "bebe": {
+    "lemma": "beber",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "bebemos": {
+    "lemma": "beber",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "beben": {
+    "lemma": "beber",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "cantar": {
+    "lemma": "cantar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "canto": {
+    "lemma": "cantar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "cantas": {
+    "lemma": "cantar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "canta": {
+    "lemma": "cantar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "cantamos": {
+    "lemma": "cantar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "cantan": {
+    "lemma": "cantar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "bailar": {
+    "lemma": "bailar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bailo": {
+    "lemma": "bailar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bailas": {
+    "lemma": "bailar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "baila": {
+    "lemma": "bailar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bailamos": {
+    "lemma": "bailar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bailan": {
+    "lemma": "bailar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cocinar": {
+    "lemma": "cocinar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cocino": {
+    "lemma": "cocinar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cocinas": {
+    "lemma": "cocinar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cocina": {
+    "lemma": "cocinar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cocinamos": {
+    "lemma": "cocinar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cocinan": {
+    "lemma": "cocinar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viajar": {
+    "lemma": "viajar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viajo": {
+    "lemma": "viajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viajas": {
+    "lemma": "viajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viaja": {
+    "lemma": "viajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viajamos": {
+    "lemma": "viajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viajan": {
+    "lemma": "viajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llamar": {
+    "lemma": "llamar",
+    "morphInfo": "?? / ???",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "llamo": {
+    "lemma": "llamar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "llamas": {
+    "lemma": "llamar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "llama": {
+    "lemma": "llamar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "llamamos": {
+    "lemma": "llamar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "llaman": {
+    "lemma": "llamar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "esperar": {
+    "lemma": "esperar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "espero": {
+    "lemma": "esperar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "esperas": {
+    "lemma": "esperar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "espera": {
+    "lemma": "esperar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "esperamos": {
+    "lemma": "esperar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "esperan": {
+    "lemma": "esperar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "necesitar": {
+    "lemma": "necesitar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "necesito": {
+    "lemma": "necesitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "necesitas": {
+    "lemma": "necesitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "necesita": {
+    "lemma": "necesitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "necesitamos": {
+    "lemma": "necesitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "necesitan": {
+    "lemma": "necesitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ayudar": {
+    "lemma": "ayudar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ayudo": {
+    "lemma": "ayudar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ayudas": {
+    "lemma": "ayudar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ayuda": {
+    "lemma": "ayudar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ayudamos": {
+    "lemma": "ayudar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ayudan": {
+    "lemma": "ayudar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "buscar": {
+    "lemma": "buscar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "busco": {
+    "lemma": "buscar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "buscas": {
+    "lemma": "buscar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "busca": {
+    "lemma": "buscar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "buscamos": {
+    "lemma": "buscar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "buscan": {
+    "lemma": "buscar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "encontrar": {
+    "lemma": "encontrar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "encontro": {
+    "lemma": "encontrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "encontras": {
+    "lemma": "encontrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "encontra": {
+    "lemma": "encontrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "encontramos": {
+    "lemma": "encontrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "encontran": {
+    "lemma": "encontrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llevar": {
+    "lemma": "llevar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llevo": {
+    "lemma": "llevar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llevas": {
+    "lemma": "llevar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "lleva": {
+    "lemma": "llevar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llevamos": {
+    "lemma": "llevar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llevan": {
+    "lemma": "llevar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "usar": {
+    "lemma": "usar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "uso": {
+    "lemma": "usar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "usas": {
+    "lemma": "usar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "usa": {
+    "lemma": "usar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "usamos": {
+    "lemma": "usar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "usan": {
+    "lemma": "usar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pagar": {
+    "lemma": "pagar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pago": {
+    "lemma": "pagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pagas": {
+    "lemma": "pagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "paga": {
+    "lemma": "pagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pagamos": {
+    "lemma": "pagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pagan": {
+    "lemma": "pagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "entrar": {
+    "lemma": "entrar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "entro": {
+    "lemma": "entrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "entras": {
+    "lemma": "entrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "entra": {
+    "lemma": "entrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "entramos": {
+    "lemma": "entrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "entran": {
+    "lemma": "entrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "salir": {
+    "lemma": "salir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "salo": {
+    "lemma": "salir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "sales": {
+    "lemma": "salir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "sale": {
+    "lemma": "salir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "salimos": {
+    "lemma": "salir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "salen": {
+    "lemma": "salir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "subir": {
+    "lemma": "subir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "subo": {
+    "lemma": "subir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "subes": {
+    "lemma": "subir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "sube": {
+    "lemma": "subir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "subimos": {
+    "lemma": "subir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "suben": {
+    "lemma": "subir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bajar": {
+    "lemma": "bajar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bajo": {
+    "lemma": "bajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bajas": {
+    "lemma": "bajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "baja": {
+    "lemma": "bajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bajamos": {
+    "lemma": "bajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bajan": {
+    "lemma": "bajar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "aprender": {
+    "lemma": "aprender",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "aprendo": {
+    "lemma": "aprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "aprendes": {
+    "lemma": "aprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "aprende": {
+    "lemma": "aprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "aprendemos": {
+    "lemma": "aprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "aprenden": {
+    "lemma": "aprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ense?ar": {
+    "lemma": "ense?ar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ense?o": {
+    "lemma": "ense?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ense?as": {
+    "lemma": "ense?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ense?a": {
+    "lemma": "ense?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ense?amos": {
+    "lemma": "ense?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ense?an": {
+    "lemma": "ense?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "preguntar": {
+    "lemma": "preguntar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pregunto": {
+    "lemma": "preguntar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preguntas": {
+    "lemma": "pregunta",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pregunta": {
+    "lemma": "pregunta",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preguntamos": {
+    "lemma": "preguntar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preguntan": {
+    "lemma": "preguntar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "responder": {
+    "lemma": "responder",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "respondo": {
+    "lemma": "responder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "respondes": {
+    "lemma": "responder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "responde": {
+    "lemma": "responder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "respondemos": {
+    "lemma": "responder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "responden": {
+    "lemma": "responder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descansar": {
+    "lemma": "descansar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descanso": {
+    "lemma": "descansar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descansas": {
+    "lemma": "descansar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descansa": {
+    "lemma": "descansar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descansamos": {
+    "lemma": "descansar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descansan": {
+    "lemma": "descansar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "limpiar": {
+    "lemma": "limpiar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "limpio": {
+    "lemma": "limpiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "limpias": {
+    "lemma": "limpiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "limpia": {
+    "lemma": "limpiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "limpiamos": {
+    "lemma": "limpiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "limpian": {
+    "lemma": "limpiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cambiar": {
+    "lemma": "cambiar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cambio": {
+    "lemma": "cambiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cambias": {
+    "lemma": "cambiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cambia": {
+    "lemma": "cambiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cambiamos": {
+    "lemma": "cambiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cambian": {
+    "lemma": "cambiar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ganar": {
+    "lemma": "ganar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "gano": {
+    "lemma": "ganar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ganas": {
+    "lemma": "ganar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "gana": {
+    "lemma": "ganar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ganamos": {
+    "lemma": "ganar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ganan": {
+    "lemma": "ganar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perder": {
+    "lemma": "perder",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perdo": {
+    "lemma": "perder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perdes": {
+    "lemma": "perder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perde": {
+    "lemma": "perder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perdemos": {
+    "lemma": "perder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perden": {
+    "lemma": "perder",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recordar": {
+    "lemma": "recordar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recordo": {
+    "lemma": "recordar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recordas": {
+    "lemma": "recordar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recorda": {
+    "lemma": "recordar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recordamos": {
+    "lemma": "recordar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recordan": {
+    "lemma": "recordar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "olvidar": {
+    "lemma": "olvidar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "olvido": {
+    "lemma": "olvidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "olvidas": {
+    "lemma": "olvidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "olvida": {
+    "lemma": "olvidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "olvidamos": {
+    "lemma": "olvidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "olvidan": {
+    "lemma": "olvidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "empezar": {
+    "lemma": "empezar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "empezo": {
+    "lemma": "empezar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "empezas": {
+    "lemma": "empezar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "empeza": {
+    "lemma": "empezar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "empezamos": {
+    "lemma": "empezar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "empezan": {
+    "lemma": "empezar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "terminar": {
+    "lemma": "terminar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "termino": {
+    "lemma": "terminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "terminas": {
+    "lemma": "terminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "termina": {
+    "lemma": "terminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "terminamos": {
+    "lemma": "terminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "terminan": {
+    "lemma": "terminar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mandar": {
+    "lemma": "mandar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mando": {
+    "lemma": "mandar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mandas": {
+    "lemma": "mandar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "manda": {
+    "lemma": "mandar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mandamos": {
+    "lemma": "mandar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mandan": {
+    "lemma": "mandar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recibir": {
+    "lemma": "recibir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recibo": {
+    "lemma": "recibir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recibes": {
+    "lemma": "recibir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recibe": {
+    "lemma": "recibir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "recibimos": {
+    "lemma": "recibir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "reciben": {
+    "lemma": "recibir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abracar": {
+    "lemma": "abracar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abraco": {
+    "lemma": "abracar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abracas": {
+    "lemma": "abracar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abraca": {
+    "lemma": "abracar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abracamos": {
+    "lemma": "abracar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abracan": {
+    "lemma": "abracar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "practicar": {
+    "lemma": "practicar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "practico": {
+    "lemma": "practicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "practicas": {
+    "lemma": "practicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "practica": {
+    "lemma": "practicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "practicamos": {
+    "lemma": "practicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "practican": {
+    "lemma": "practicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "tocar": {
+    "lemma": "tocar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "toco": {
+    "lemma": "tocar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "tocas": {
+    "lemma": "tocar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "toca": {
+    "lemma": "tocar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "tocamos": {
+    "lemma": "tocar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "tocan": {
+    "lemma": "tocar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "visitar": {
+    "lemma": "visitar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "visito": {
+    "lemma": "visitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "visitas": {
+    "lemma": "visitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "visita": {
+    "lemma": "visitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "visitamos": {
+    "lemma": "visitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "visitan": {
+    "lemma": "visitar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preparar": {
+    "lemma": "preparar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preparo": {
+    "lemma": "preparar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preparas": {
+    "lemma": "preparar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prepara": {
+    "lemma": "preparar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preparamos": {
+    "lemma": "preparar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "preparan": {
+    "lemma": "preparar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "explicar": {
+    "lemma": "explicar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "explico": {
+    "lemma": "explicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "explicas": {
+    "lemma": "explicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "explica": {
+    "lemma": "explicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "explicamos": {
+    "lemma": "explicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "explican": {
+    "lemma": "explicar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "dibujar": {
+    "lemma": "dibujar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "dibujo": {
+    "lemma": "dibujar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "dibujas": {
+    "lemma": "dibujar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "dibuja": {
+    "lemma": "dibujar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "dibujamos": {
+    "lemma": "dibujar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "dibujan": {
+    "lemma": "dibujar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "nadar": {
+    "lemma": "nadar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "nado": {
+    "lemma": "nadar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "nadas": {
+    "lemma": "nadar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "nada": {
+    "lemma": "nadar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "nadamos": {
+    "lemma": "nadar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "nadan": {
+    "lemma": "nadar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "correr": {
+    "lemma": "correr",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "corro": {
+    "lemma": "correr",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "corres": {
+    "lemma": "correr",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "corre": {
+    "lemma": "correr",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "corremos": {
+    "lemma": "correr",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "corren": {
+    "lemma": "correr",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "desayunar": {
+    "lemma": "desayunar",
+    "morphInfo": "?? / ???",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "desayuno": {
+    "lemma": "desayuno",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "desayunas": {
+    "lemma": "desayunar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "desayuna": {
+    "lemma": "desayunar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "desayunamos": {
+    "lemma": "desayunar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "desayunan": {
+    "lemma": "desayunar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "cenar": {
+    "lemma": "cenar",
+    "morphInfo": "?? / ???",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "ceno": {
+    "lemma": "cenar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "cenas": {
+    "lemma": "cena",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cena": {
+    "lemma": "cena",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cenamos": {
+    "lemma": "cenar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "cenan": {
+    "lemma": "cenar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "almorzar": {
+    "lemma": "almorzar",
+    "morphInfo": "?? / ???",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "almorzo": {
+    "lemma": "almorzar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "almorzas": {
+    "lemma": "almorzar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "almorza": {
+    "lemma": "almorzar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "almorzamos": {
+    "lemma": "almorzar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "almorzan": {
+    "lemma": "almorzar",
+    "morphInfo": "??? / ??????",
+    "translation": "???",
+    "partOfSpeech": "??"
+  },
+  "brindar": {
+    "lemma": "brindar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brindo": {
+    "lemma": "brindar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brindas": {
+    "lemma": "brindar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brinda": {
+    "lemma": "brindar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brindamos": {
+    "lemma": "brindar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brindan": {
+    "lemma": "brindar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprender": {
+    "lemma": "comprender",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprendo": {
+    "lemma": "comprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprendes": {
+    "lemma": "comprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprende": {
+    "lemma": "comprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprendemos": {
+    "lemma": "comprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comprenden": {
+    "lemma": "comprender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "decidir": {
+    "lemma": "decidir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "decido": {
+    "lemma": "decidir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "decides": {
+    "lemma": "decidir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "decide": {
+    "lemma": "decidir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "decidimos": {
+    "lemma": "decidir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "deciden": {
+    "lemma": "decidir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prometer": {
+    "lemma": "prometer",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prometo": {
+    "lemma": "prometer",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prometes": {
+    "lemma": "prometer",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "promete": {
+    "lemma": "prometer",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prometemos": {
+    "lemma": "prometer",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prometen": {
+    "lemma": "prometer",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "permitir": {
+    "lemma": "permitir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "permito": {
+    "lemma": "permitir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "permites": {
+    "lemma": "permitir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "permite": {
+    "lemma": "permitir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "permitimos": {
+    "lemma": "permitir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "permiten": {
+    "lemma": "permitir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "compartir": {
+    "lemma": "compartir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comparto": {
+    "lemma": "compartir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "compartes": {
+    "lemma": "compartir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comparte": {
+    "lemma": "compartir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "compartimos": {
+    "lemma": "compartir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comparten": {
+    "lemma": "compartir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brillar": {
+    "lemma": "brillar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brillo": {
+    "lemma": "brillar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brillas": {
+    "lemma": "brillar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brilla": {
+    "lemma": "brillar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brillamos": {
+    "lemma": "brillar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "brillan": {
+    "lemma": "brillar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "llorar": {
+    "lemma": "llorar",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "lloro": {
+    "lemma": "llorar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "lloras": {
+    "lemma": "llorar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "llora": {
+    "lemma": "llorar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "lloramos": {
+    "lemma": "llorar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "lloran": {
+    "lemma": "llorar",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "abrigar": {
+    "lemma": "abrigar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abrigo": {
+    "lemma": "abrigar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abrigas": {
+    "lemma": "abrigar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abriga": {
+    "lemma": "abrigar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abrigamos": {
+    "lemma": "abrigar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "abrigan": {
+    "lemma": "abrigar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cuidar": {
+    "lemma": "cuidar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cuido": {
+    "lemma": "cuidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cuidas": {
+    "lemma": "cuidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cuida": {
+    "lemma": "cuidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cuidamos": {
+    "lemma": "cuidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "cuidan": {
+    "lemma": "cuidar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "admirar": {
+    "lemma": "admirar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "admiro": {
+    "lemma": "admirar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "admiras": {
+    "lemma": "admirar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "admira": {
+    "lemma": "admirar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "admiramos": {
+    "lemma": "admirar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "admiran": {
+    "lemma": "admirar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "contestar": {
+    "lemma": "contestar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "contesto": {
+    "lemma": "contestar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "contestas": {
+    "lemma": "contestar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "contesta": {
+    "lemma": "contestar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "contestamos": {
+    "lemma": "contestar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "contestan": {
+    "lemma": "contestar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prender": {
+    "lemma": "prender",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prendo": {
+    "lemma": "prender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prendes": {
+    "lemma": "prender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prende": {
+    "lemma": "prender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prendemos": {
+    "lemma": "prender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "prenden": {
+    "lemma": "prender",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "apagar": {
+    "lemma": "apagar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "apago": {
+    "lemma": "apagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "apagas": {
+    "lemma": "apagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "apaga": {
+    "lemma": "apagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "apagamos": {
+    "lemma": "apagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "apagan": {
+    "lemma": "apagar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "planear": {
+    "lemma": "planear",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "planeo": {
+    "lemma": "planear",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "planeas": {
+    "lemma": "planear",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "planea": {
+    "lemma": "planear",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "planeamos": {
+    "lemma": "planear",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "planean": {
+    "lemma": "planear",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "guardar": {
+    "lemma": "guardar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "guardo": {
+    "lemma": "guardar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "guardas": {
+    "lemma": "guardar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "guarda": {
+    "lemma": "guardar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "guardamos": {
+    "lemma": "guardar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "guardan": {
+    "lemma": "guardar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mostrar": {
+    "lemma": "mostrar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mostro": {
+    "lemma": "mostrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mostras": {
+    "lemma": "mostrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mostra": {
+    "lemma": "mostrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mostramos": {
+    "lemma": "mostrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mostran": {
+    "lemma": "mostrar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "so?ar": {
+    "lemma": "so?ar",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "so?o": {
+    "lemma": "so?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "so?as": {
+    "lemma": "so?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "so?a": {
+    "lemma": "so?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "so?amos": {
+    "lemma": "so?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "so?an": {
+    "lemma": "so?ar",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descubrir": {
+    "lemma": "descubrir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descubro": {
+    "lemma": "descubrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descubres": {
+    "lemma": "descubrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descubre": {
+    "lemma": "descubrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descubrimos": {
+    "lemma": "descubrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "descubren": {
+    "lemma": "descubrir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escoger": {
+    "lemma": "escoger",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escogo": {
+    "lemma": "escoger",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escoges": {
+    "lemma": "escoger",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escoge": {
+    "lemma": "escoger",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escogemos": {
+    "lemma": "escoger",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escogen": {
+    "lemma": "escoger",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "repetir": {
+    "lemma": "repetir",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "repeto": {
+    "lemma": "repetir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "repetes": {
+    "lemma": "repetir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "repete": {
+    "lemma": "repetir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "repetimos": {
+    "lemma": "repetir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "repeten": {
+    "lemma": "repetir",
+    "morphInfo": "??? / ??????",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ir": {
+    "lemma": "ir",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "fui": {
+    "lemma": "ir",
+    "morphInfo": "????? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "fuiste": {
+    "lemma": "ir",
+    "morphInfo": "????? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "fue": {
+    "lemma": "ir",
+    "morphInfo": "????? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "fuimos": {
+    "lemma": "ir",
+    "morphInfo": "????? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "fueron": {
+    "lemma": "ir",
+    "morphInfo": "????? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "voy": {
+    "lemma": "ir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vas": {
+    "lemma": "ir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "va": {
+    "lemma": "ir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "vamos": {
+    "lemma": "ir",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ser": {
+    "lemma": "ser",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "soy": {
+    "lemma": "ser",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "eres": {
+    "lemma": "ser",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "es": {
+    "lemma": "ser",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "somos": {
+    "lemma": "ser",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "son": {
+    "lemma": "ser",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tener": {
+    "lemma": "tener",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tengo": {
+    "lemma": "tener",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tienes": {
+    "lemma": "tener",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tiene": {
+    "lemma": "tener",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tenemos": {
+    "lemma": "tener",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tienen": {
+    "lemma": "tener",
+    "morphInfo": "??? / ??????",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "casa": {
+    "lemma": "casa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "casas": {
+    "lemma": "casa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "libro": {
+    "lemma": "libro",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "libros": {
+    "lemma": "libro",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "mesa": {
+    "lemma": "mesa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mesas": {
+    "lemma": "mesa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "silla": {
+    "lemma": "silla",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "sillas": {
+    "lemma": "silla",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "perro": {
+    "lemma": "perro",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "perros": {
+    "lemma": "perro",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "gato": {
+    "lemma": "gato",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "gatos": {
+    "lemma": "gato",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ciudad": {
+    "lemma": "ciudad",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ciudads": {
+    "lemma": "ciudad",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escuela": {
+    "lemma": "escuela",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "escuelas": {
+    "lemma": "escuela",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "amigo": {
+    "lemma": "amigo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "amigos": {
+    "lemma": "amigo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "familia": {
+    "lemma": "familia",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "familias": {
+    "lemma": "familia",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comida": {
+    "lemma": "comida",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "comidas": {
+    "lemma": "comida",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "agua": {
+    "lemma": "agua",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "aguas": {
+    "lemma": "agua",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "tiempo": {
+    "lemma": "tiempo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "tiempos": {
+    "lemma": "tiempo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "d?a": {
+    "lemma": "d?a",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "d?as": {
+    "lemma": "d?a",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "noche": {
+    "lemma": "noche",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "noches": {
+    "lemma": "noche",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mano": {
+    "lemma": "mano",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "manos": {
+    "lemma": "mano",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "mundo": {
+    "lemma": "mundo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mundos": {
+    "lemma": "mundo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mujer": {
+    "lemma": "mujer",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "mujers": {
+    "lemma": "mujer",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "hombre": {
+    "lemma": "hombre",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "hombres": {
+    "lemma": "hombre",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ni?o": {
+    "lemma": "ni?o",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ni?os": {
+    "lemma": "ni?o",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ni?a": {
+    "lemma": "ni?a",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ni?as": {
+    "lemma": "ni?a",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "puerta": {
+    "lemma": "puerta",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "puertas": {
+    "lemma": "puerta",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "ventana": {
+    "lemma": "ventana",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ventanas": {
+    "lemma": "ventana",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "calle": {
+    "lemma": "calle",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "calles": {
+    "lemma": "calle",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "coche": {
+    "lemma": "coche",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "coches": {
+    "lemma": "coche",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "tren": {
+    "lemma": "tren",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trens": {
+    "lemma": "tren",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "avi?n": {
+    "lemma": "avi?n",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "avi?ns": {
+    "lemma": "avi?n",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "playa": {
+    "lemma": "playa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "playas": {
+    "lemma": "playa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "monta?a": {
+    "lemma": "monta?a",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "monta?as": {
+    "lemma": "monta?a",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "parque": {
+    "lemma": "parque",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "parques": {
+    "lemma": "parque",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pel?cula": {
+    "lemma": "pel?cula",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "pel?culas": {
+    "lemma": "pel?cula",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "m?sica": {
+    "lemma": "m?sica",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "m?sicas": {
+    "lemma": "m?sica",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "respuesta": {
+    "lemma": "respuesta",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "respuestas": {
+    "lemma": "respuesta",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "clase": {
+    "lemma": "clase",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "clases": {
+    "lemma": "clase",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "profesor": {
+    "lemma": "profesor",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "profesors": {
+    "lemma": "profesor",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "profesora": {
+    "lemma": "profesora",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "profesoras": {
+    "lemma": "profesora",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "trabajos": {
+    "lemma": "trabajo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "dinero": {
+    "lemma": "dinero",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "dineros": {
+    "lemma": "dinero",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "color": {
+    "lemma": "color",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "colors": {
+    "lemma": "color",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ropa": {
+    "lemma": "ropa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "ropas": {
+    "lemma": "ropa",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "zapato": {
+    "lemma": "zapato",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "zapatos": {
+    "lemma": "zapato",
+    "morphInfo": "?? / ??",
+    "translation": "?",
+    "partOfSpeech": "??"
+  },
+  "desayunos": {
+    "lemma": "desayuno",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "almuerzo": {
+    "lemma": "almuerzo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "almuerzos": {
+    "lemma": "almuerzo",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "hotel": {
+    "lemma": "hotel",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "hotels": {
+    "lemma": "hotel",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viaje": {
+    "lemma": "viaje",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "viajes": {
+    "lemma": "viaje",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "idioma": {
+    "lemma": "idioma",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "idiomas": {
+    "lemma": "idioma",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "palabra": {
+    "lemma": "palabra",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "palabras": {
+    "lemma": "palabra",
+    "morphInfo": "?? / ??",
+    "translation": "??",
+    "partOfSpeech": "??"
+  },
+  "bueno": {
+    "lemma": "bueno",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "buena": {
+    "lemma": "bueno",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "buenos": {
+    "lemma": "bueno",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "buenas": {
+    "lemma": "bueno",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "malo": {
+    "lemma": "malo",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "mala": {
+    "lemma": "malo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "malos": {
+    "lemma": "malo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "malas": {
+    "lemma": "malo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "grande": {
+    "lemma": "grande",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "grandes": {
+    "lemma": "grande",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "peque?o": {
+    "lemma": "peque?o",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "peque?a": {
+    "lemma": "peque?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "peque?os": {
+    "lemma": "peque?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "peque?as": {
+    "lemma": "peque?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "nuevo": {
+    "lemma": "nuevo",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "nueva": {
+    "lemma": "nuevo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "nuevos": {
+    "lemma": "nuevo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "nuevas": {
+    "lemma": "nuevo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "viejo": {
+    "lemma": "viejo",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "vieja": {
+    "lemma": "viejo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "viejos": {
+    "lemma": "viejo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "viejas": {
+    "lemma": "viejo",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "r?pido": {
+    "lemma": "r?pido",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "r?pida": {
+    "lemma": "r?pido",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "r?pidos": {
+    "lemma": "r?pido",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "r?pidas": {
+    "lemma": "r?pido",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "lento": {
+    "lemma": "lento",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "lenta": {
+    "lemma": "lento",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "lentos": {
+    "lemma": "lento",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "lentas": {
+    "lemma": "lento",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "feliz": {
+    "lemma": "feliz",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "felizs": {
+    "lemma": "feliz",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "triste": {
+    "lemma": "triste",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "tristes": {
+    "lemma": "triste",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "importante": {
+    "lemma": "importante",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "importantes": {
+    "lemma": "importante",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "dif?cil": {
+    "lemma": "dif?cil",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "dif?cils": {
+    "lemma": "dif?cil",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "f?cil": {
+    "lemma": "f?cil",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "f?cils": {
+    "lemma": "f?cil",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "bonito": {
+    "lemma": "bonito",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "bonita": {
+    "lemma": "bonito",
+    "morphInfo": "???? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "bonitos": {
+    "lemma": "bonito",
+    "morphInfo": "???? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "bonitas": {
+    "lemma": "bonito",
+    "morphInfo": "???? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "claro": {
+    "lemma": "claro",
+    "morphInfo": "?? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "clara": {
+    "lemma": "claro",
+    "morphInfo": "???? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "claros": {
+    "lemma": "claro",
+    "morphInfo": "???? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "claras": {
+    "lemma": "claro",
+    "morphInfo": "???? / ???",
+    "translation": "??",
+    "partOfSpeech": "???"
+  },
+  "oscuro": {
+    "lemma": "oscuro",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "oscura": {
+    "lemma": "oscuro",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "oscuros": {
+    "lemma": "oscuro",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "oscuras": {
+    "lemma": "oscuro",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "caliente": {
+    "lemma": "caliente",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "calientes": {
+    "lemma": "caliente",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "fr?o": {
+    "lemma": "fr?o",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "fr?a": {
+    "lemma": "fr?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "fr?os": {
+    "lemma": "fr?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "fr?as": {
+    "lemma": "fr?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "lleno": {
+    "lemma": "lleno",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "llena": {
+    "lemma": "lleno",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "llenos": {
+    "lemma": "lleno",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "llenas": {
+    "lemma": "lleno",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "vac?o": {
+    "lemma": "vac?o",
+    "morphInfo": "?? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "vac?a": {
+    "lemma": "vac?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "vac?os": {
+    "lemma": "vac?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  },
+  "vac?as": {
+    "lemma": "vac?o",
+    "morphInfo": "???? / ???",
+    "translation": "?",
+    "partOfSpeech": "???"
+  }
+}
