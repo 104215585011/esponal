@@ -78,12 +78,25 @@ EXT-001 等 VOCAB-001 完成后启动。
 - `npm run build`：通过
 - `npx prisma migrate diff --from-empty --to-schema-datamodel prisma\schema.prisma --script`：可生成包含 `WordStatus`、`Word`、`WordEncounter` 的 SQL
 
-**未完成/环境阻塞**：
-- `npx prisma migrate dev --name add_vocab_models` 未能完成。原因：`docker compose up -d postgres redis` 拉起服务时，`5432` 已被 `linguaai-postgres` 容器占用，Esponal 的 Postgres 容器无法绑定端口；我没有停止或修改其他项目容器，也没有把迁移写入其他项目数据库。
-- `docker ps` 当时显示：`linguaai-postgres` 占用 `0.0.0.0:5432->5432/tcp`，`esponal-redis-1` 已启动。
+**端口修复与迁移记录 — 2026-05-13 11:17**
+
+**改动原因**：本机 `5432` 会持续被其他项目占用，PM 决定 Esponal 固定改用本机 `5433`，不停止其他项目容器。
+
+**本轮补充改动**：
+- `docker-compose.yml`：Esponal Postgres 改为 `5433:5432`
+- `.env.example`：`DATABASE_URL` 改为 `localhost:5433`
+- `.env`：本地同步为 `localhost:5433`，该文件被 `.gitignore` 忽略，不提交
+- `.gitignore`：忽略 `.claude`
+- Prisma migration 目录从 `20260513093000_add_vocab_models` 重命名为 `20260513113000_add_vocab_models`，确保排在已有 `20260513112000_init` 之后；否则 shadow DB 会先跑 VOCAB migration，导致 `User` 表不存在
+
+**已验证**：
+- `docker compose up -d postgres`：通过
+- `docker ps`：`esponal-postgres-1` 映射为 `0.0.0.0:5433->5432/tcp`，`linguaai-postgres` 仍占用 `5432`，未被停止
+- `npx prisma migrate dev --name add_vocab_models`：通过，依次应用 `20260513112000_init` 和 `20260513113000_add_vocab_models`
+- `npm test`：8/8 通过
 
 **下一步最佳动作**：
-Codex2 测试 `VOCAB-001`。若需要执行真实 `prisma migrate dev`，先释放本机 `5432`，或由 PM 决定是否把 Esponal 本地 Postgres 暂时改到其他端口。
+Codex2 测试 `VOCAB-001`。
 
 ---
 
