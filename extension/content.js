@@ -1,8 +1,14 @@
 const ESPONAL_TRANSLATE_URL = "http://localhost:3000/api/translate";
 const ESPONAL_LEMMATIZE_URL = "http://localhost:3000/api/lemmatize";
 const ESPONAL_VOCAB_ADD_URL = "http://localhost:3000/api/vocab/add";
+const ESPONAL_VOCAB_HIGHLIGHT_URL = "http://localhost:3000/api/vocab/highlight";
 const ESPONAL_LOGIN_URL = "http://localhost:3000/api/auth/signin";
 const SHOW_CHINESE_KEY = "showChineseSubtitles";
+const WORD_HIGHLIGHT_COLORS = {
+  course: "#86EFAC",
+  saved: "#93C5FD",
+  unknown: ""
+};
 
 let overlay;
 let spanishLine;
@@ -18,6 +24,7 @@ let activeLookupToken = 0;
 let activeLookupWord = "";
 const localTranslationCache = new Map();
 const localLemmaCache = new Map();
+const localHighlightCache = new Map();
 const savedLemmaSet = new Set();
 
 function markPageReady() {
@@ -164,13 +171,98 @@ function renderSpanishWords(text) {
     const word = document.createElement("span");
     word.className = "esponal-word";
     word.dataset.word = normalized;
+    word.dataset.status = "unknown";
     word.setAttribute("data-word", normalized);
+    word.setAttribute("data-status", "unknown");
     word.textContent = token;
     Object.assign(word.style, {
       cursor: "pointer",
-      pointerEvents: "auto"
+      pointerEvents: "auto",
+      color: WORD_HIGHLIGHT_COLORS.unknown
     });
     spanishLine.append(word);
+  }
+}
+
+function collectUniqueCaptionWords(text) {
+  return Array.from(
+    new Set(
+      tokenizeCaptionText(text)
+        .map((token) => normalizeWordToken(token))
+        .filter(Boolean)
+    )
+  );
+}
+
+function applyHighlightToWordElement(wordElement, status) {
+  wordElement.dataset.status = status;
+  wordElement.setAttribute("data-status", status);
+  wordElement.style.color = WORD_HIGHLIGHT_COLORS[status];
+}
+
+async function fetchHighlightStatuses(words) {
+  const uncachedWords = words.filter((word) => !localHighlightCache.has(word));
+
+  if (uncachedWords.length > 0) {
+    const response = await fetch(ESPONAL_VOCAB_HIGHLIGHT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ words: uncachedWords })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Highlight failed: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+
+    for (const item of items) {
+      if (typeof item?.word !== "string") {
+        continue;
+      }
+
+      const status =
+        item.status === "saved" || item.status === "course" ? item.status : "unknown";
+      localHighlightCache.set(item.word, status);
+    }
+  }
+
+  return new Map(
+    words.map((word) => [word, localHighlightCache.get(word) ?? "unknown"])
+  );
+}
+
+async function updateSubtitleHighlights(text) {
+  if (!spanishLine) {
+    return;
+  }
+
+  const words = collectUniqueCaptionWords(text);
+
+  if (words.length === 0) {
+    return;
+  }
+
+  try {
+    const statusByWord = await fetchHighlightStatuses(words);
+
+    if (text !== lastSubtitleText || !spanishLine) {
+      return;
+    }
+
+    for (const wordElement of spanishLine.querySelectorAll(".esponal-word")) {
+      if (!(wordElement instanceof HTMLElement)) {
+        continue;
+      }
+
+      const status = statusByWord.get(wordElement.dataset.word ?? "") ?? "unknown";
+      applyHighlightToWordElement(wordElement, status);
+    }
+  } catch (error) {
+    console.warn("Esponal subtitle highlight failed", error);
   }
 }
 
@@ -609,6 +701,7 @@ async function renderSubtitle(text) {
   closeLookupCard();
   lastSubtitleText = text;
   renderSpanishWords(text);
+  void updateSubtitleHighlights(text);
   chineseLine.textContent = "…";
   chineseLine.style.color = "rgba(255,255,255,0.4)";
 

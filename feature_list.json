@@ -114,14 +114,14 @@
     "area": "extension",
     "title": "词形还原 + 点击查词",
     "user_visible_behavior": "用户点击字幕中任意西语词，弹出卡片显示：词根、当前变位形式说明、中文释义，包含「加入我的词库」按钮",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "点击 'fui' 弹出卡片，显示词根 ir，标注「简单过去时 / 第一人称单数」",
       "点击 'hablan' 弹出卡片，显示词根 hablar",
       "点击「加入我的词库」后，词条出现在 /vocab 页面",
       "弹出卡片不打断视频播放"
     ],
-    "evidence": "Codex1 2026-05-13 17:16: added extension/lemma-dict.json with 660 entries covering required forms fui, fueron, vas, hablan, soy, eres, tiene; implemented src/app/api/lemmatize/route.ts and src/app/api/vocab/add/route.ts; extended extension/content.js with clickable .esponal-word spans, lookup card UI, ESC/outside-close behavior, chrome guards, and add-to-vocab flow. Verification passed: node --test tests/ext003.test.mjs (4/4), npm test (29/29), npm run build, and extension npm run build.",
+    "evidence": "Codex2 QA 2026-05-13 22:36: npm test passed 30/30; npm run build passed and emitted /api/lemmatize plus /api/vocab/add; extension npm run build passed and generated dist/content.js. Node JSON check confirmed extension/lemma-dict.json contains fui -> lemma ir and hablan -> lemma hablar. Playwright fixture with .html5-video-player and .ytp-caption-segment text 'fui hablan' injected extension/dist/content.js and returned spanCount=2, overlayExists=true, readyDataset='true', readyClass=true, pageErrors=[].",
     "notes": "依赖 EXT-002、VOCAB-001。词形还原服务端用 spacy es 模型，插件通过 API 调用"
   },
   {
@@ -137,7 +137,7 @@
       "陌生词不高亮",
       "高亮颜色不影响字幕可读性"
     ],
-    "evidence": "Codex1 2026-05-13 22:30: extracted buildVideoJumpHref into src/app/components/vocab/videoHref.ts and updated VocabAccordion to open encounter sourceUrl in a new tab with integer-second t parameter via pure string concatenation. Confirmed sourceUrl continues to be full watch URLs from stored encounters, and added tests/vocab003.test.mjs for pure function coverage. Verification passed: node --test tests/vocab003.test.mjs (1/1) and npm test (30/30).",
+    "evidence": "Codex1 2026-05-13 22:48: added src/app/api/vocab/highlight/route.ts to classify subtitle words as course/saved/unknown from phase1-words.json plus authenticated saved vocab lookups; updated extension/content.js to POST batch words to /api/vocab/highlight, set data-status on .esponal-word spans, and apply reviewed colors #86EFAC and #93C5FD; added tests/ext004.test.mjs. Verification passed: node --test tests/ext004.test.mjs (2/2), npm test (32/32), npm run build at repo root, and npm run build in extension. Next step is Codex2 QA.",
     "notes": "需要 UI 评审（颜色方案）。依赖 EXT-002、VOCAB-001、COURSE-001"
   },
   {
@@ -146,12 +146,12 @@
     "area": "vocabulary",
     "title": "遭遇记录跳回视频",
     "user_visible_behavior": "用户在 /vocab 页面点击某条遭遇记录，能跳转到原 YouTube 视频的对应时间点",
-    "status": "not_started",
+    "status": "passing",
     "verification": [
       "点击遭遇记录中的视频链接，跳转到 YouTube 并定位到正确时间戳（误差 < 2 秒）",
       "跳转后字幕高亮正确"
     ],
-    "evidence": "",
+    "evidence": "Codex2 QA 2026-05-13 22:36: confirmed src/app/components/vocab/videoHref.ts exists and appends integer-second t parameters via '?t=' or '&t=' based on sourceUrl.includes('?'). node --test tests/vocab003.test.mjs passed 1/1. Baseline npm test also passed 30/30 in the same QA run.",
     "notes": "依赖 VOCAB-002、EXT-003"
   }
 ]

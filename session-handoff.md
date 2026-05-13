@@ -1838,3 +1838,154 @@ CSS 规格：
 - 遭遇记录链接在新标签页打开
 - URL 末尾带正确整数秒 `t` 参数
 - 对已有查询串的 watch URL 使用 `&t=` 而不是覆盖原参数
+## 测试 Report：EXT-003 / EXT-004 / VOCAB-003 联合验收
+**时间**：2026-05-13 22:36
+**测试人**：Codex2
+
+**结论**
+- `EXT-003`：通过
+- `EXT-004`：失败
+- `VOCAB-003`：通过
+
+**验证步骤执行记录**
+1. 基线自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   tests 30
+   pass 30
+   fail 0
+   ```
+   结果：通过
+
+2. 根目录构建
+   命令：`npm run build`
+   输出：
+   ```text
+   Compiled successfully
+   Generating static pages (19/19)
+   Route (app) includes /api/lemmatize, /api/translate, /api/vocab/add
+   ```
+   结果：通过
+   备注：构建末尾有 `ioredis ECONNREFUSED` 日志，但未导致构建失败。
+
+3. 扩展构建
+   命令：`cd extension && npm run build`
+   输出：
+   ```text
+   dist\content.js     17.9kb
+   dist\popup.js        1.5kb
+   dist\background.js   280b
+   ```
+   结果：通过
+
+4. EXT-003 词典与路由核查
+   命令：`node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('extension/lemma-dict.json','utf8')); console.log(JSON.stringify({fui:d.fui,hablan:d.hablan},null,2));"`
+   输出：
+   ```json
+   {
+     "fui": {
+       "lemma": "ir"
+     },
+     "hablan": {
+       "lemma": "hablar"
+     }
+   }
+   ```
+   命令：`Test-Path src\app\api\lemmatize\route.ts; Test-Path src\app\api\vocab\add\route.ts`
+   输出：
+   ```text
+   True
+   True
+   ```
+   结果：通过
+
+5. EXT-003 Playwright fixture 验证
+   操作：创建临时 `tests/tmp_ext003_fixture.mjs`，注入 `extension/dist/content.js` 到包含 `.html5-video-player` 和 `.ytp-caption-segment`（文本 `fui hablan`）的本地 HTML fixture，执行后删除临时脚本。
+   命令：`node tests\tmp_ext003_fixture.mjs`
+   输出：
+   ```json
+   {
+     "result": {
+       "spanCount": 2,
+       "overlayExists": true,
+       "readyDataset": "true",
+       "readyClass": true
+     },
+     "pageErrors": []
+   }
+   ```
+   结果：通过
+
+6. EXT-004 路由与高亮颜色核查
+   命令：`Test-Path src\app\api\vocab\highlight\route.ts`
+   输出：
+   ```text
+   False
+   ```
+   命令：`rg -n "#86EFAC|#93C5FD" extension\content.js`
+   输出：
+   ```text
+   [no matches]
+   ```
+   结果：失败
+
+7. VOCAB-003 链接逻辑核查
+   命令：`Get-Content src\app\components\vocab\videoHref.ts`
+   输出：
+   ```ts
+   export function buildVideoJumpHref(sourceUrl: string, timestampSec: number) {
+     const safeTimestamp = Math.max(0, Math.floor(timestampSec));
+
+     return sourceUrl.includes("?")
+       ? `${sourceUrl}&t=${safeTimestamp}`
+       : `${sourceUrl}?t=${safeTimestamp}`;
+   }
+   ```
+   命令：`node --test tests\vocab003.test.mjs`
+   输出：
+   ```text
+   tests 1
+   pass 1
+   fail 0
+   ```
+   结果：通过
+
+**失败详情**
+- 失败项：`EXT-004`
+- 失败点 1：`src/app/api/vocab/highlight/route.ts` 不存在
+- 失败点 2：`extension/content.js` 中未找到 `#86EFAC` 和 `#93C5FD` 高亮色实现
+- 复现步骤：
+  1. `Test-Path src\app\api\vocab\highlight\route.ts`
+  2. `rg -n "#86EFAC|#93C5FD" extension\content.js`
+
+**状态处理**
+- 已将 `EXT-003` 更新为 `passing`
+- `EXT-004` 保持未通过，不改为 `passing`
+- 已将 `VOCAB-003` 更新为 `passing`
+- 当前未达到“全部 10 个功能 passing”，因为 `EXT-004` 仍需 Codex1 实现后再验
+---
+
+## Codex1 实现记录：EXT-004 已学词高亮
+**时间**：2026-05-13 22:48
+**执行人**：Codex1
+
+**修复原因**：Codex2 在 2026-05-13 22:36 的联合验收中确认 `EXT-004` 未实现，缺少 `/api/vocab/highlight` 路由，且字幕词高亮颜色 `#86EFAC` / `#93C5FD` 未接入 `extension/content.js`。
+
+**本轮改动文件**
+- `src/app/api/vocab/highlight/route.ts`：新增批量高亮路由，接收 `{ words }`，基于 `content/curriculum/phase1-words.json` 识别 course 词，并在登录态下结合 Prisma `Word` / `forms` 返回 `saved`、`course`、`unknown`
+- `extension/content.js`：新增 `/api/vocab/highlight` 调用、本地高亮缓存、`.esponal-word[data-status]` 状态写入，以及课程词 `#86EFAC` / 词库词 `#93C5FD` 颜色应用
+- `tests/ext004.test.mjs`：新增 EXT-004 契约测试，覆盖 highlight route 存在性、返回状态类别、content script 颜色与 `data-status` 接线
+- `feature_list.json`：将 `EXT-004` 保持为 `ready_for_qa`，改写为 Codex1 开发 evidence
+- `claude-progress.md`、`session-handoff.md`：记录本轮实现与验证结果
+
+**运行过的验证**
+- `node --test tests/ext004.test.mjs`：2/2 通过
+- `npm test`：32/32 通过
+- `npm run build`（仓库根目录）：通过，产物包含 `/api/vocab/highlight`
+- `npm run build`（`extension/`）：通过，重新生成 `dist/content.js`
+
+**备注**
+- 根目录 `npm run build` 过程中仍出现现有 `ioredis` `ECONNREFUSED` warning，但不影响 Next.js 编译成功；本轮未改动 Redis 相关实现
+
+**下一步最佳动作**：交给 Codex2 重新验收 `EXT-004`。重点验证 `/api/vocab/highlight` 路由存在、`extension/dist/content.js` 已包含高亮颜色与 `data-status` 逻辑，以及 fixture/代码检查能确认课程词与词库词两种状态都被正确上色。

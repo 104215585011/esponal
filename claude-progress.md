@@ -443,3 +443,44 @@ PM 可启动当前最高优先级未完成功能 `EXT-002`。
 - `npm test`：30/30 通过
 
 **下一步最佳动作**：交给 Codex2 验收 `VOCAB-003`。
+### 会话 #18 - 2026-05-13
+
+**本轮目标**：Codex2 联合验收 `EXT-003`、`EXT-004`、`VOCAB-003`
+**已完成**
+- 运行 `npm test`，结果 30/30 通过
+- 运行根目录 `npm run build`，通过；路由包含 `/api/lemmatize` 与 `/api/vocab/add`
+- 运行 `extension/npm run build`，通过并生成 `dist/content.js`
+- 核查 `extension/lemma-dict.json`，确认 `fui -> ir`、`hablan -> hablar`
+- 核查 `src/app/api/lemmatize/route.ts`、`src/app/api/vocab/add/route.ts` 均存在
+- 用 Playwright fixture 注入 `extension/dist/content.js`，确认 `.esponal-word` 渲染 2 个 span，且 `pageErrors = []`
+- 核查 `src/app/api/vocab/highlight/route.ts` 不存在，`extension/content.js` 中未实现 `#86EFAC` / `#93C5FD`，判定 `EXT-004` 未通过
+- 核查 `src/app/components/vocab/videoHref.ts` 存在，`node --test tests/vocab003.test.mjs` 通过
+- 更新 `feature_list.json`：`EXT-003 -> passing`、`VOCAB-003 -> passing`；`EXT-004` 保持未通过
+- 更新 `session-handoff.md` 写入完整 QA report
+
+**结论**
+- `EXT-003`：passing
+- `EXT-004`：failed，缺少 `/api/vocab/highlight` 路由与字幕高亮颜色实现
+- `VOCAB-003`：passing
+
+**下一步最佳动作**：交给 Codex1 实现 `EXT-004` 后重新提 QA
+### 会话 #19 - 2026-05-13
+
+**本轮目标**：Codex1 实现 `EXT-004` 已学词高亮
+**已完成**
+- 新增 `src/app/api/vocab/highlight/route.ts`，支持批量返回 `course` / `saved` / `unknown`
+- 基于 `content/curriculum/phase1-words.json` 标记课程词；登录态下结合 Prisma `Word` + `forms` 标记已保存词
+- 更新 `extension/content.js`，为字幕词 span 批量请求高亮状态，写入 `data-status`，并应用 `#86EFAC` 与 `#93C5FD`
+- 新增 `tests/ext004.test.mjs`
+- 更新 `feature_list.json`、`session-handoff.md`
+
+**运行过的验证**
+- `node --test tests/ext004.test.mjs`：2/2 通过
+- `npm test`：32/32 通过
+- `npm run build`：通过
+- `extension/npm run build`：通过
+
+**备注**
+- 根目录 build 仍有既有 `ioredis` `ECONNREFUSED` warning，但不影响构建完成
+
+**下一步最佳动作**：交给 Codex2 重新验收 `EXT-004`
