@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buildVideoJumpHref } from "@/app/components/vocab/videoHref";
 
 // VOCAB-002 change timestamp: 2026-05-13 13:54
 export type VocabEncounter = {
@@ -52,16 +53,6 @@ const formatDividerDate = (dateValue: string) =>
   }).format(new Date(dateValue));
 
 const getDateKey = (dateValue: string) => dateValue.slice(0, 10);
-
-const buildVideoHref = (sourceUrl: string, timestampSec: number) => {
-  try {
-    const url = new URL(sourceUrl);
-    url.searchParams.set("t", String(timestampSec));
-    return url.toString();
-  } catch {
-    return sourceUrl;
-  }
-};
 
 function EmptyState() {
   return (
@@ -180,7 +171,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                           </div>
                           <a
                             className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-medium text-emerald-600 hover:underline"
-                            href={buildVideoHref(
+                            href={buildVideoJumpHref(
                               encounter.sourceUrl,
                               encounter.timestampSec
                             )}

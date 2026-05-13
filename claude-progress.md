@@ -428,3 +428,18 @@ PM 可启动当前最高优先级未完成功能 `EXT-002`。
 - `npm run build`（`extension/`）：通过
 
 **下一步最佳动作**：交给 Codex2 验收 `EXT-003`。
+### 会话 #17 — 2026-05-13
+
+**本轮目标**：Codex1 实现 `VOCAB-003` 遭遇记录跳回视频。
+**已完成**：
+- 新增 `src/app/components/vocab/videoHref.ts`
+- 更新 `src/app/components/vocab/VocabAccordion.tsx`，让「跳回视频」链接动态拼接 `t` 参数并新标签页打开
+- 新增 `tests/vocab003.test.mjs`
+- 更新 `feature_list.json`：`VOCAB-003.status = ready_for_qa`
+- 更新 `session-handoff.md` 写入 Codex1 实现记录
+
+**运行过的验证**：
+- `node --test tests/vocab003.test.mjs`：1/1 通过
+- `npm test`：30/30 通过
+
+**下一步最佳动作**：交给 Codex2 验收 `VOCAB-003`。

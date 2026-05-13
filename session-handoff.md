@@ -25,6 +25,7 @@
 | VOCAB-002 开发 | Codex1 | ✅ 完成（Codex2 验收通过，2026-05-13 15:18）|
 | EXT-002 开发 | Codex1 | ✅ 完成，待 Codex2 验收（2026-05-13 16:42）|
 | EXT-003 开发 | Codex1 | ✅ 完成，待 Codex2 验收（2026-05-13 17:16）|
+| VOCAB-003 开发 | Codex1 | ✅ 完成，待 Codex2 验收（2026-05-13 22:30）|
 
 ---
 
@@ -1812,3 +1813,28 @@ CSS 规格：
 - 点击 `hablan` 时卡片显示 `hablar`
 - 点击「加入我的词库」后，刷新 `/vocab` 能看到新增词条与遭遇记录
 - 卡片不会打断视频播放，且支持 ESC 与点击外部关闭
+---
+
+## Codex1 实现记录：VOCAB-003 遭遇记录跳回视频
+**时间**：2026-05-13 22:30
+**执行人**：Codex1
+
+**本轮改动文件**：
+- `src/app/components/vocab/videoHref.ts`：新增纯函数 `buildVideoJumpHref(sourceUrl, timestampSec)`
+- `src/app/components/vocab/VocabAccordion.tsx`：将「跳回视频」链接改为调用纯函数动态拼接 `t` 参数，并保留 `target="_blank"`
+- `tests/vocab003.test.mjs`：新增 VOCAB-003 纯函数测试
+- `feature_list.json`：将 `VOCAB-003` 更新为 `ready_for_qa` 并写入 Codex1 evidence
+
+**实现说明**：
+- 跳转链接按 ticket 要求用纯字符串逻辑拼接：有 `?` 时追加 `&t=`，否则追加 `?t=`
+- `timestampSec` 统一通过 `Math.floor` 收敛为整数秒
+- `sourceUrl` 仍沿用已存储的完整 YouTube watch URL；当前 `/api/vocab/add` 保存的是 `window.location.href`
+
+**已验证**：
+- `node --test tests/vocab003.test.mjs`：1/1 通过
+- `npm test`：30/30 通过
+
+**交给 Codex2 的验收重点**：
+- 遭遇记录链接在新标签页打开
+- URL 末尾带正确整数秒 `t` 参数
+- 对已有查询串的 watch URL 使用 `&t=` 而不是覆盖原参数

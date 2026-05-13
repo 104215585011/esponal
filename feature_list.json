@@ -130,14 +130,14 @@
     "area": "extension",
     "title": "已学词高亮",
     "user_visible_behavior": "字幕中，课程里学过的词显示绿色，词库里保存过的词显示蓝色",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "在课程中学过的词在 YouTube 字幕里显示绿色高亮",
       "词库中保存的词显示蓝色高亮",
       "陌生词不高亮",
       "高亮颜色不影响字幕可读性"
     ],
-    "evidence": "",
+    "evidence": "Codex1 2026-05-13 22:30: extracted buildVideoJumpHref into src/app/components/vocab/videoHref.ts and updated VocabAccordion to open encounter sourceUrl in a new tab with integer-second t parameter via pure string concatenation. Confirmed sourceUrl continues to be full watch URLs from stored encounters, and added tests/vocab003.test.mjs for pure function coverage. Verification passed: node --test tests/vocab003.test.mjs (1/1) and npm test (30/30).",
     "notes": "需要 UI 评审（颜色方案）。依赖 EXT-002、VOCAB-001、COURSE-001"
   },
   {
