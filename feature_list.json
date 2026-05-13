@@ -20,7 +20,7 @@
     "area": "vocabulary",
     "title": "词汇数据模型",
     "user_visible_behavior": "系统能存储用户的词条，包括词根、变位形态、遭遇记录（视频来源 + 时间戳 + 原句）",
-    "status": "not_started",
+    "status": "in_progress",
     "verification": [
       "prisma migrate dev 成功",
       "npm test 通过（包含词汇模型的 CRUD 测试）",
