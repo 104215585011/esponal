@@ -17,14 +17,71 @@
 | COURSE-001 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
 | COURSE-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
 | VOCAB-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
-| EXT-001 | Codex1 | 🔴 进行中 |
+| EXT-001 | Codex1 | ✅ 完成 |
+| EXT-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
 | COURSE-001 开发 | Codex1 | 📋 待启动（UI 已通过）|
 | COURSE-002 开发 | Codex1 | 📋 待启动（UI 已通过）|
 | VOCAB-002 开发 | Codex1 | 📋 待启动（UI 已通过，依赖 VOCAB-001 ✅）|
+| EXT-002 开发 | Codex1 | 📋 待启动（UI 已通过，依赖 EXT-001 ✅）|
 
 ---
 
 ## Claude2 UI 评审 Reports（2026-05-13）
+
+### UI 评审 Report：EXT-002
+**时间**：2026-05-13
+**评审人**：Claude2
+**结论**：✅ 通过
+
+**设计规格（Codex1 实现参考）**：
+
+**字幕位置与布局**：
+- 叠加容器定位于 YouTube 原生字幕容器**正下方**，不与原生字幕层重叠
+- `position: absolute`，挂载至 `.html5-video-player`，`z-index: 2147483640`
+- 水平居中：`left: 50%` + `transform: translateX(-50%)`，最大宽度 `90%` of 播放器宽
+- 距播放器底部 `60px` 安全距离；控制栏出现时自动上移 `48px`（监听 `.ytp-chrome-bottom` visibility）
+- 全屏时自动跟随（挂载点在播放器内部，无需额外处理）
+
+**中文字幕样式**：
+- 字体：`"PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif`
+- 字号：`18px`（非全屏）；全屏时 `2.8%` of 播放器高，范围 `16px~26px`
+- 字重：`500`，颜色：`#FFFFFF`
+- 文字阴影：`0 1px 4px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.6)`（双层，无描边）
+- 行高 `1.5`，`letter-spacing: 0.02em`
+- **禁止半透明背景色块**，保持透明叠加
+
+**双行排版**：
+- 上行西语：`15px`，`rgba(255,255,255,0.75)`，`font-weight: 400`（降权，引导视线先看中文）
+- 下行中文：`18px`，`#FFFFFF`，`font-weight: 500`（主行）
+- 两行间距：`margin-top: 6px`
+- 各自独立换行，`text-align: center`
+
+**显示/隐藏切换**：
+- 点击插件 icon → `chrome.tabs.sendMessage` → content.js 切换状态
+- **仅隐藏中文行**，西语原文始终显示
+- 隐藏：`opacity: 0` + `max-height: 0` + `overflow: hidden`
+- 显示：`opacity: 1` + `max-height: 2em`
+- 状态持久化：`chrome.storage.local`
+- Badge：显示中文时空 badge；隐藏时 badge 文字 `"中"`，背景 `#9CA3AF`（灰色，不用红色）
+
+**动效**：
+- 切换：`transition: opacity 200ms ease, max-height 200ms ease`
+- 字幕内容切换：直接替换，无动效（保持与 YouTube 原生节奏一致）
+- 翻译加载中：中文行显示 `…`，颜色 `rgba(255,255,255,0.4)`，不用 spinner
+
+**背景适配**：
+- 双层文字阴影适配任意背景，无需检测背景色
+- 测试要求：必须覆盖白色背景（旅游类）和黑色背景（影视类）两种场景
+
+**移动端**：Chrome 插件不支持移动端，本 ticket 不处理
+
+**附加建议（不阻塞，但建议同步实现）**：
+- 本地句子级缓存（西语原文为 key），减少重复 API 请求和省略号闪烁
+- `MutationObserver` 监听播放器容器，YouTube 重建 DOM 时自动重新挂载字幕层
+
+**通过后交给**：Codex1 开发
+
+---
 
 ### UI 评审 Report：COURSE-001
 **时间**：2026-05-13
