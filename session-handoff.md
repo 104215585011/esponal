@@ -6,22 +6,143 @@
 
 ## 当前已验证
 
-- `INFRA-001` 脚手架：✅ 通过（`npm test` scaffold 测试通过）
-- `VOCAB-001`：Codex1 已实现数据模型、迁移文件、词库工具函数和测试；等待 Codex2 测试验收后再更新 `feature_list.json` 状态/evidence
-- 工作流文档：2026-05-13 11:10 已确认 `AGENTS.md`、角色文件、`claude-progress.md`、`feature_list.json`、`session-handoff.md`、产品设计文档在磁盘上均为 UTF-8 可读；此前乱码是 PowerShell 输出编码问题，不是文件内容损坏
+- `INFRA-001`：✅ passing
+- `VOCAB-001`：✅ passing（Codex2 真实数据库验收通过，2026-05-13）
 
-## 并行执行计划（PM 决策，2026-05-13）
-
-以下任务可立即并行启动：
+## 并行执行计划（更新，2026-05-13）
 
 | 任务 | 交给谁 | 状态 |
 |---|---|---|
-| VOCAB-001 | Codex1 开发 | 🔴 立即开始 |
-| COURSE-001 UI 评审 | Claude2 | 🔴 立即开始（与 VOCAB-001 并行）|
-| COURSE-002 UI 评审 | Claude2 | 🔴 立即开始（与 VOCAB-001 并行）|
-| VOCAB-002 UI 评审 | Claude2 | 🔴 立即开始（开发依赖 VOCAB-001，但评审可先行）|
+| VOCAB-001 | Codex1 | ✅ 完成 |
+| COURSE-001 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
+| COURSE-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
+| VOCAB-002 UI 评审 | Claude2 | ✅ 通过（2026-05-13）|
+| EXT-001 | Codex1 | 🔴 进行中 |
+| COURSE-001 开发 | Codex1 | 📋 待启动（UI 已通过）|
+| COURSE-002 开发 | Codex1 | 📋 待启动（UI 已通过）|
+| VOCAB-002 开发 | Codex1 | 📋 待启动（UI 已通过，依赖 VOCAB-001 ✅）|
 
-EXT-001 等 VOCAB-001 完成后启动。
+---
+
+## Claude2 UI 评审 Reports（2026-05-13）
+
+### UI 评审 Report：COURSE-001
+**时间**：2026-05-13
+**评审人**：Claude2
+**结论**：✅ 通过
+
+**设计规格（Codex1 实现参考）**：
+
+**布局**：
+- 页面 `max-w-3xl` 居中，`px-4`（移动）/ `px-8`（桌面）
+- 两个 Section 用 `border-t border-gray-100` 分隔，不用卡片容器包裹整个 Section
+- Section 标题中文：「发音规则」「高频词汇」，`text-xl font-semibold text-gray-800`，不加序号或进度数字
+- 词条列表 `flex flex-col gap-3`，长滚动，不分页，不显示"第 X/300 条"
+
+**词条卡片**：
+- 白色背景，`rounded-xl shadow-sm border border-gray-100 p-4`
+- 三行结构：① 西语单词（`text-lg font-bold text-gray-900`）+ 词性 badge（`text-xs bg-gray-100 text-gray-500`）+ 右侧音频按钮 ② 中文释义（`text-base text-gray-700`）③ 例句西语（`text-sm text-gray-500 italic`）+ 例句中文（`text-sm text-gray-400`）
+- 名词在中文释义旁标注「（阴性）」「（阳性）」，`text-gray-400`，不做红绿色区分
+
+**音频播放**：
+- 圆形按钮直径 `36px`，`bg-emerald-50`，图标 `text-emerald-600`
+- 播放中：方形停止符，`bg-emerald-100`，不做脉冲动画
+- 错误状态：图标变灰，hover tooltip 显示「音频暂时不可用」
+
+**发音规则**：
+- 每条格式：规则名（中文粗体）+ 说明 + 示例（西语加粗 + 中文注音）
+- 直接展示全部，不折叠
+
+**颜色/字体**：
+- 页面底色 `#F9FAFB`，卡片白色 `#FFFFFF`
+- 强调色 `emerald-600` 仅用于音频按钮
+- 中文字体优先 `"PingFang SC", "Microsoft YaHei", sans-serif`
+
+**无压迫感检查**：
+- 标题只写「阶段一：入门词汇与发音」，不出现进度条/打卡天数/掌握百分比
+- 词条卡不标注已学/未学状态
+
+**移动端**：词条不横排两列；音频按钮热区 ≥ `44x44px`；顶部无固定进度栏
+
+---
+
+### UI 评审 Report：COURSE-002
+**时间**：2026-05-13
+**评审人**：Claude2
+**结论**：✅ 通过
+
+**设计规格（Codex1 实现参考）**：
+
+**布局**：
+- 桌面端：左侧固定侧边栏 `220px`（话题导航）+ 右侧内容区 `max-w-2xl`
+- 移动端：侧边栏替换为顶部下拉选择器（`<select>` 或 Dropdown）
+
+**侧边栏**：
+- 标题「语法话题」，分组：「动词变位」「名词性别」「常见辨析」
+- 条目 `text-sm text-gray-700`，激活状态左侧 `3px solid emerald-500` 竖线，不加背景高亮
+
+**首页卡片列表**：
+- 话题卡片与词条卡同款样式（`rounded-xl shadow-sm border border-gray-100`）
+- 每张卡：话题名（中文）+ 一句话简介 + 右箭头
+- 顺序：动词变位（6个）→ 阴阳性规则 → ser vs estar 辨析
+
+**变位表**：
+- 用语义 `<table>`，无外边框，仅 `border-b border-gray-100` 行分隔，表头 `bg-gray-50`
+- 列：人称代词（西语）| 人称说明（中文）| 变位形式 | 音频（可选）
+- 人称列 `text-gray-500 text-sm`，变位形式列 `text-gray-900 font-medium text-base`
+- 移动端 `overflow-x-auto` 横向滚动，第一列 `position: sticky left: 0`
+
+**中文类比块**：
+- 左侧 `3px solid emerald-200` 竖线，背景 `bg-emerald-50/40 rounded-r-lg p-3`
+- 标题「中文类比」，`text-xs font-semibold text-emerald-700 uppercase tracking-wide`
+- 默认展示，不折叠
+
+**ser vs estar 页**：
+- 对比双栏表格，左 `ser` / 右 `estar`，表头加中文副标题
+- 每栏 3-4 例句，西语加粗，下方跟中文翻译 + 括号内解释用 ser/estar 的理由
+
+**词库跳转**：词条卡底部 `text-xs text-emerald-600` 的「查看相关语法 →」链接
+
+---
+
+### UI 评审 Report：VOCAB-002
+**时间**：2026-05-13
+**评审人**：Claude2
+**结论**：✅ 通过
+
+**设计规格（Codex1 实现参考）**：
+
+**布局**：
+- `max-w-2xl` 居中，底色 `#F9FAFB`
+- 标题「我的词库」（`text-2xl font-bold text-gray-900`），副标题「按词根归类，记录你遭遇过的词」（`text-sm text-gray-400`），无词条总数显示
+
+**词条行**：
+- 白色，`rounded-xl border border-gray-100 p-4 cursor-pointer`
+- 左：词根（`text-base font-semibold text-gray-900`）+ 中文释义（`text-sm text-gray-500`）
+- 右：「遭遇 X 次」（`text-xs text-gray-400`）+ 最近时间（`text-xs text-gray-300`）+ 展开箭头
+- 不显示已掌握/未掌握状态
+- 按最近遭遇时间倒序排列
+
+**遭遇记录展开（Accordion）**：
+- 点击行内向下展开，`max-height` 过渡 `200ms ease-out`，不跳新页
+- 展开区：`bg-gray-50 rounded-b-xl px-4 py-3`
+- 每条记录结构：
+  - 行一：视频标题（`text-sm font-medium text-gray-700`）+ 时间戳 badge（`text-xs bg-gray-200 text-gray-500`）+ 右上角「跳回视频」（`text-xs text-emerald-600 font-medium`，hover 下划线）
+  - 行二：西语原句（`text-sm text-gray-600 italic`）
+  - 行三：中文翻译（`text-sm text-gray-400`）
+  - 行间 `border-b border-gray-100`
+
+**时间线**：日期变化处插入日期分隔文字（`text-xs text-gray-300 text-center`）+ 两侧线条
+
+**空状态**：
+- 居中区块，高度 ≥ `240px`，线条风格插图
+- 主文案「还没有遭遇过词汇」（`text-base text-gray-500`）
+- 副文案「看视频时遇到的词会自动收录到这里」（`text-sm text-gray-400`）
+- 不加任何 CTA 按钮
+
+**未登录**：服务端直接 redirect 到 `/api/auth/signin`，不前端跳转
+
+**移动端**：「跳回视频」热区 ≥ `44x44px`；展开区 `px-3`
 
 ---
 
