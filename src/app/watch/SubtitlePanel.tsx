@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LookupCard } from "./LookupCard";
 
 type SubtitleCue = {
   start: number;
@@ -15,6 +16,11 @@ type SubtitlePanelProps = {
 
 type TranslateResponse = {
   translation?: string;
+};
+
+type ActiveLookup = {
+  form: string;
+  sentence: string;
 };
 
 type YouTubePlayerStateChangeEvent = {
@@ -58,6 +64,19 @@ function findActiveCue(cues: SubtitleCue[], currentTime: number) {
       (cue) => currentTime >= cue.start && currentTime <= cue.start + cue.dur
     ) ?? null
   );
+}
+
+function normalizeLookupWord(token: string) {
+  return token
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/^[^a-záéíóúñ]+|[^a-záéíóúñ]+$/gi, "")
+    .trim();
+}
+
+function splitSubtitleTokens(text: string) {
+  return text.match(/\S+|\s+/g) ?? [];
 }
 
 function loadYouTubeIframeApi() {
@@ -105,10 +124,14 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
   const [spanishLine, setSpanishLine] = useState("");
   const [chineseLine, setChineseLine] = useState("");
   const [hasLoadedSubtitles, setHasLoadedSubtitles] = useState(false);
+  const [currentTimeSec, setCurrentTimeSec] = useState(0);
+  const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const playerRef = useRef<YouTubePlayer | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
   const activeCueText = useMemo(() => spanishLine.trim(), [spanishLine]);
+  const subtitleTokens = useMemo(() => splitSubtitleTokens(spanishLine), [spanishLine]);
 
   useEffect(() => {
     let cancelled = false;
@@ -177,6 +200,7 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
 
     const syncSubtitle = () => {
       const currentTime = playerRef.current?.getCurrentTime?.() ?? 0;
+      setCurrentTimeSec(currentTime);
       const activeCue = findActiveCue(subtitleCues, currentTime);
       const nextSpanish = activeCue?.text ?? "";
 
@@ -290,10 +314,34 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
     };
   }, [activeCueText]);
 
+  useEffect(() => {
+    setActiveLookup(null);
+  }, [spanishLine]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!panelRef.current) {
+        return;
+      }
+
+      if (!panelRef.current.contains(event.target as Node)) {
+        setActiveLookup(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, []);
+
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0 && !spanishLine;
 
   return (
-    <section className="min-h-20 rounded-b-xl bg-[#1A1A1A] px-6 py-3 text-center">
+    <section
+      className="relative min-h-20 rounded-b-xl bg-[#1A1A1A] px-6 py-3 text-center"
+      ref={panelRef}
+    >
       <div className="mb-2 flex justify-end">
         <button
           className="text-xs text-white/40 transition hover:text-white/70"
@@ -304,13 +352,62 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
         </button>
       </div>
       <p className="text-sm leading-6 text-white/75">
-        {spanishLine || (showEmptyState ? "暂无字幕" : "")}
+        {showEmptyState
+          ? "暂无字幕"
+          : subtitleTokens.map((token, index) => {
+              const normalizedWord = normalizeLookupWord(token);
+
+              if (!normalizedWord) {
+                return <span key={`${token}-${index}`}>{token}</span>;
+              }
+
+              return (
+                <span
+                  className="cursor-pointer rounded-sm px-0.5 text-white/75 transition hover:bg-white/10"
+                  key={`${token}-${index}`}
+                  onClick={() =>
+                    setActiveLookup({
+                      form: normalizedWord,
+                      sentence: spanishLine
+                    })
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setActiveLookup({
+                        form: normalizedWord,
+                        sentence: spanishLine
+                      });
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="underline decoration-white/10 underline-offset-4">
+                    {token}
+                  </span>
+                </span>
+              );
+            })}
       </p>
-      <p className={`mt-1.5 text-lg font-medium leading-7 text-white ${showChinese ? "" : "hidden"}`}>
+      <p
+        className={`mt-1.5 text-lg font-medium leading-7 text-white ${
+          showChinese ? "" : "hidden"
+        }`}
+      >
         {showEmptyState ? "" : chineseLine || "…"}
       </p>
       {showEmptyState ? (
         <p className="mt-1 text-xs text-white/20">暂无字幕</p>
+      ) : null}
+      {activeLookup ? (
+        <LookupCard
+          currentTimeSec={currentTimeSec}
+          form={activeLookup.form}
+          onClose={() => setActiveLookup(null)}
+          originalSentence={activeLookup.sentence}
+          translatedSentence={chineseLine}
+        />
       ) : null}
     </section>
   );
