@@ -137,7 +137,7 @@ export async function GET(request: Request) {
       () => fetchChannelVideos(channelId, maxResults)
     );
 
-    return NextResponse.json({ videos });
+    return NextResponse.json(videos);
   } catch (error) {
     console.error("YouTube channel fetch failed", error);
 

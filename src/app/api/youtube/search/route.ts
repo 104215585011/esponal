@@ -110,7 +110,7 @@ export async function GET(request: Request) {
       () => fetchSearchVideos(query, maxResults)
     );
 
-    return NextResponse.json({ videos });
+    return NextResponse.json(videos);
   } catch (error) {
     console.error("YouTube search failed", error);
 

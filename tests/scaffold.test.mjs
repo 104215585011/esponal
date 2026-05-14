@@ -25,9 +25,9 @@ test("welcome page is present in the Next.js App Router", async () => {
   assert.ok(existsSync("src/app/page.tsx"), "src/app/page.tsx should exist");
 
   const page = await readText("src/app/page.tsx");
-  assert.match(page, /西语学习平台/);
-  assert.match(page, /INFRA-001/);
-  assert.match(page, /Next\.js 14/);
+  assert.match(page, /SiteHeader/);
+  assert.match(page, /curatedChannels/);
+  assert.match(page, /api\/youtube\/channel/);
 });
 
 test("Prisma is configured for PostgreSQL with initial models", async () => {

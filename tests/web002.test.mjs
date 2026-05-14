@@ -15,6 +15,7 @@ test("WEB-002 channel route exists and uses YouTube playlistItems plus Redis cac
   assert.match(route, /export\s+async\s+function\s+GET/);
   assert.match(route, /playlistItems/);
   assert.match(route, /maxResults/);
+  assert.match(route, /NextResponse\.json\(videos\)/);
   assert.match(route, /60\s*\*\s*60/);
   assert.match(route, /duration/);
   assert.match(route, /channelTitle/);
@@ -34,6 +35,7 @@ test("WEB-002 search route exists and uses YouTube search with Spanish relevance
   assert.match(route, /search/);
   assert.match(route, /type["']?\s*:\s*["']video["']/);
   assert.match(route, /relevanceLanguage["']?\s*:\s*["']es["']/);
+  assert.match(route, /NextResponse\.json\(videos\)/);
   assert.match(route, /60\s*\*\s*15/);
   assert.match(youtubeLib, /YOUTUBE_API_KEY/);
   assert.match(youtubeLib, /redis\.get/);
