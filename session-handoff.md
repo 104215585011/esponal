@@ -2295,3 +2295,38 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 **移交**：
 - `feature_list.json`：`WEB-006` 已更新为 `passing`
 - 当前 `feature_list.json` 全部功能均为 `passing`
+---
+
+## Codex1 Dev Report - Session #30 (2026-05-14 14:44)
+
+**Scope**
+- DEPLOY-001: 修复 Vercel 构建期 `/api/auth/[...nextauth]` 初始化失败
+
+**Files changed**
+- `src/app/api/auth/[...nextauth]/route.ts`
+- `src/lib/auth.ts`
+- `tests/deploy001.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Marked the NextAuth app-route as dynamic via `export const dynamic = "force-dynamic"`
+- Guarded `PrismaAdapter(prisma)` behind `process.env.DATABASE_URL` so the adapter is not created during builds that do not expose database env vars
+- Guarded Google provider initialization behind `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+- Switched session strategy to `jwt` when the Prisma adapter is unavailable so build-time auth config does not depend on database sessions
+- Added `tests/deploy001.test.mjs` to verify the route-level dynamic flag and auth env guards
+
+**Verification run**
+- `node tests/deploy001.test.mjs` -> pass (2/2)
+- `npm test` -> pass (44/44)
+- `npm run build` -> pass
+
+**Important limitation**
+- Local build is fixed and no longer fails on `/api/auth/[...nextauth]`
+- Vercel redeploy success has **not** been live-verified in this session because no remote deploy run/log was executed here yet
+
+**Notes**
+- Build still emits the pre-existing `SiteHeader.tsx` `<img>` lint warning and `ioredis ECONNREFUSED` warnings when Redis is not running; these did not block the successful build
+
+**Next best action**
+- Push this change, trigger a fresh Vercel deployment, and confirm the old `Failed to collect page data` error is gone
