@@ -23,6 +23,12 @@ type SubtitleCue = {
   text: string;
 };
 
+type SubtitleSource = {
+  lang: string;
+  tlang?: string;
+  kind?: "asr";
+};
+
 function normalizeSubtitleText(event: TimedTextEvent) {
   return (event.segs ?? [])
     .map((segment) => segment.utf8 ?? "")
@@ -51,9 +57,36 @@ function parseSubtitleEvents(payload: TimedTextResponse) {
   }, []);
 }
 
-async function fetchSubtitleCues(videoId: string, lang: string) {
+function buildSubtitleSources(lang: string): SubtitleSource[] {
+  return [
+    { lang },
+    { lang: "es-419" },
+    { lang: "es-MX" },
+    { lang: "es", tlang: "es", kind: "asr" }
+  ];
+}
+
+function buildTimedTextUrl(videoId: string, source: SubtitleSource) {
+  const params = new URLSearchParams({
+    v: videoId,
+    lang: source.lang,
+    fmt: "json3"
+  });
+
+  if (source.tlang) {
+    params.set("tlang", source.tlang);
+  }
+
+  if (source.kind) {
+    params.set("kind", source.kind);
+  }
+
+  return `https://www.youtube.com/api/timedtext?${params.toString()}`;
+}
+
+async function fetchSubtitleSource(videoId: string, source: SubtitleSource) {
   const response = await fetch(
-    `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lang)}&fmt=json3`,
+    buildTimedTextUrl(videoId, source),
     {
       next: { revalidate: 0 }
     }
@@ -65,6 +98,18 @@ async function fetchSubtitleCues(videoId: string, lang: string) {
 
   const payload = (await response.json()) as TimedTextResponse;
   return parseSubtitleEvents(payload);
+}
+
+async function fetchSubtitleCues(videoId: string, lang: string) {
+  for (const source of buildSubtitleSources(lang)) {
+    const cues = await fetchSubtitleSource(videoId, source);
+
+    if (cues.length > 0) {
+      return cues;
+    }
+  }
+
+  return [] as SubtitleCue[];
 }
 
 export async function GET(request: Request) {

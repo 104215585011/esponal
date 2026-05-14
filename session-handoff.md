@@ -2415,3 +2415,34 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 
 **Next best action**
 - Redeploy latest `main` on Vercel.
+
+---
+
+## Codex1 Dev Addendum - Session #34 (2026-05-14 16:05)
+
+**Scope**
+- WEB-004 subtitle runtime fix: add multiple YouTube timedtext fallback sources.
+
+**Root cause found**
+- `/api/subtitle` only requested one timedtext source, `lang=${lang}&fmt=json3`.
+- Some videos expose Spanish captions as Latin American Spanish (`es-419`), Mexican Spanish (`es-MX`), or automatic captions (`kind=asr`), so the single-source route could return `[]` and show `暂无字幕`.
+
+**Files changed**
+- `src/app/api/subtitle/route.ts`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added ordered fallback sources: `lang=es&fmt=json3`, `lang=es-419&fmt=json3`, `lang=es-MX&fmt=json3`, and `lang=es&tlang=es&kind=asr&fmt=json3`.
+- Route now returns the first parsed non-empty cue list and only returns `[]` after all sources are empty.
+- WEB-004 test now asserts the fallback source contract.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.
