@@ -32,3 +32,10 @@ test("DEPLOY-001 auth options are built lazily behind env checks", async () => {
   assert.match(auth, /strategy: "jwt"/);
   assert.match(auth, /strategy: "database"/);
 });
+
+test("DEPLOY-001 vercel install generates Prisma Client before Next build", async () => {
+  const packageJson = JSON.parse(await readText("package.json"));
+
+  assert.equal(packageJson.scripts.build, "next build");
+  assert.equal(packageJson.scripts.postinstall, "prisma generate");
+});

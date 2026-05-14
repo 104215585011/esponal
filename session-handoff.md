@@ -2354,3 +2354,34 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 **Current confidence**
 - Local reproduction no longer fails for `/api/auth/[...nextauth]`
 - Remaining unknown is only the external Vercel deploy environment; latest commit still needs a fresh remote deploy attempt
+
+---
+
+## Codex1 Dev Addendum - Session #32 (2026-05-14 14:58)
+
+**Scope**
+- DEPLOY-001: Fix Vercel Prisma Client generation failure after auth route build fix
+
+**New evidence from Vercel**
+- Vercel failed while collecting `/api/auth/[...nextauth]` page data because `@prisma/client` had not been generated in the Vercel environment.
+- Vercel log explicitly recommends running `prisma generate` during the build process.
+- Vercel is currently cloning `github.com/104215585011/esponalsssssss` at commit `79c9a10`, while this workspace pushes to `github.com/104215585011/esponal.git`. This repository mismatch must be resolved or the fix will not affect the deployed project.
+
+**Files changed**
+- `package.json`
+- `tests/deploy001.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added `postinstall: prisma generate` so Vercel dependency installation generates Prisma Client before Next.js route collection.
+- Kept `build: next build` so local Windows builds do not fail when Prisma's query engine DLL is locked by existing Node processes.
+- Updated `tests/deploy001.test.mjs` to assert the deployment script contract.
+
+**Verification run**
+- `node tests/deploy001.test.mjs` -> pass (3/3)
+- `npm test` -> pass (45/45)
+- `npm run build` -> pass
+
+**Next best action**
+- Ensure Vercel deploys the same repository/commit that contains this fix, then redeploy with cache disabled.
