@@ -236,12 +236,12 @@
     "area": "web",
     "title": "Web 端词语高亮",
     "user_visible_behavior": "字幕中课程词显示绿色（#86EFAC），词库词显示蓝色（#93C5FD）",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "课程词绿色高亮，词库词蓝色高亮，陌生词无高亮",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 2026-05-14 14:23: updated src/app/watch/SubtitlePanel.tsx to POST normalized current-line words to /api/vocab/highlight, map returned course/saved/unknown statuses to inline text colors #86EFAC and #93C5FD, and silently degrade to no highlight when the route returns 401 or any fetch error. Added tests/web006.test.mjs. Verification: node tests/web006.test.mjs passed 1/1; npm test passed 42/42; npm run build passed. Build still shows the pre-existing SiteHeader <img> lint warning and ioredis ECONNREFUSED warnings when Redis is absent, but WEB-006 compiles and tests cleanly.",
     "notes": "复用 /api/vocab/highlight（已有）。依赖 WEB-005"
   }
 ]

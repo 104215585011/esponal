@@ -23,6 +23,15 @@ type ActiveLookup = {
   sentence: string;
 };
 
+type HighlightStatus = "course" | "saved" | "unknown";
+
+type HighlightResponse = {
+  items?: Array<{
+    word?: string;
+    status?: HighlightStatus;
+  }>;
+};
+
 type YouTubePlayerStateChangeEvent = {
   data: number;
 };
@@ -119,6 +128,8 @@ function loadYouTubeIframeApi() {
 }
 
 export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
+  const COURSE_HIGHLIGHT = "#86EFAC";
+  const SAVED_HIGHLIGHT = "#93C5FD";
   const [showChinese, setShowChinese] = useState(true);
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
   const [spanishLine, setSpanishLine] = useState("");
@@ -126,6 +137,7 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
   const [hasLoadedSubtitles, setHasLoadedSubtitles] = useState(false);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
+  const [highlightMap, setHighlightMap] = useState<Record<string, HighlightStatus>>({});
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const playerRef = useRef<YouTubePlayer | null>(null);
   const intervalRef = useRef<number | null>(null);
@@ -315,6 +327,80 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
   }, [activeCueText]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadHighlights() {
+      const words = Array.from(
+        new Set(
+          subtitleTokens
+            .map((token) => normalizeLookupWord(token))
+            .filter(Boolean)
+        )
+      );
+
+      if (words.length === 0) {
+        setHighlightMap({});
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/vocab/highlight", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ words })
+        });
+
+        if (response.status === 401) {
+          if (!cancelled) {
+            setHighlightMap({});
+          }
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Highlight request failed: ${response.status}`);
+        }
+
+        const payload = (await response.json()) as HighlightResponse;
+        const nextMap = Object.fromEntries(
+          (payload.items ?? [])
+            .filter(
+              (
+                item
+              ): item is {
+                word: string;
+                status: HighlightStatus;
+              } =>
+                typeof item.word === "string" &&
+                (item.status === "course" ||
+                  item.status === "saved" ||
+                  item.status === "unknown")
+            )
+            .map((item) => [item.word, item.status])
+        );
+
+        if (!cancelled) {
+          setHighlightMap(nextMap);
+        }
+      } catch (error) {
+        console.error("Subtitle highlight failed", error);
+
+        if (!cancelled) {
+          setHighlightMap({});
+        }
+      }
+    }
+
+    void loadHighlights();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [subtitleTokens]);
+
+  useEffect(() => {
     setActiveLookup(null);
   }, [spanishLine]);
 
@@ -356,6 +442,13 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
           ? "暂无字幕"
           : subtitleTokens.map((token, index) => {
               const normalizedWord = normalizeLookupWord(token);
+              const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+              const highlightColor =
+                highlightStatus === "course"
+                  ? COURSE_HIGHLIGHT
+                  : highlightStatus === "saved"
+                    ? SAVED_HIGHLIGHT
+                    : undefined;
 
               if (!normalizedWord) {
                 return <span key={`${token}-${index}`}>{token}</span>;
@@ -381,6 +474,7 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
                     }
                   }}
                   role="button"
+                  style={highlightColor ? { color: highlightColor } : undefined}
                   tabIndex={0}
                 >
                   <span className="underline decoration-white/10 underline-offset-4">
