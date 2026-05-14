@@ -534,3 +534,28 @@ PM 可启动当前最高优先级未完成功能 `EXT-002`。
 - 路由已标记 `force-dynamic`，避免查询参数 API 在构建阶段触发动态路由噪音
 
 **下一步最佳动作**：交给 Codex2 验收 `WEB-002`
+
+### 会话 #22 - 2026-05-14
+
+**本轮目标**：Codex2 验收 `WEB-002` YouTube Data API 接入
+**已完成**
+- 读取 `AGENTS.md`、`roles/ROLE-QA.md`、`feature_list.json`、`session-handoff.md`
+- 运行 `npm test`，结果 35/35 通过
+- 运行 `npm run build`，结果通过
+- 核查 `src/lib/channels.ts`，确认至少包含 3 个策划频道 ID
+- 核查 `src/app/api/youtube/channel/route.ts` 与 `src/app/api/youtube/search/route.ts` 均存在
+- 核查 `.env.example`，确认包含 `YOUTUBE_API_KEY`
+- 启动临时 Next dev server 于 `http://127.0.0.1:3002`
+- 实际调用 `GET /api/youtube/search?q=hola&maxResults=5`，确认接口联通并返回真实 YouTube 数据
+- 更新 `feature_list.json`、`session-handoff.md` 记录 QA 失败证据
+
+**运行过的验证**
+- `npm test`：35/35 通过
+- `npm run build`：通过
+- `GET http://127.0.0.1:3002/api/youtube/search?q=hola&maxResults=5`：HTTP 200，返回 5 条视频数据，但顶层结构为 `{ "videos": [...] }`
+
+**结论**
+- `WEB-002` 本轮 **未通过**
+- 失败原因不是环境，而是 API 返回结构与 ticket 不符：验收要求“直接返回视频数组”，当前 `youtube/search` 与 `youtube/channel` 都返回 `NextResponse.json({ videos })`
+
+**下一步最佳动作**：返回 Codex1，将两个路由的成功响应从对象包裹改为顶层数组后重新提 QA

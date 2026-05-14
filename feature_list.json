@@ -160,14 +160,14 @@
     "area": "web",
     "title": "首页重设计：频道卡片流 + 搜索栏",
     "user_visible_behavior": "用户打开 Esponal 看到类 YouTube 风格首页：顶部搜索栏，下方策划频道横向滚动卡片流（Extra Spanish、Dreaming Spanish 等）",
-    "status": "ready_for_qa",
+    "status": "not_started",
     "verification": [
       "访问 / 显示搜索栏和至少 2 个频道区块",
       "每个频道区块显示横向滚动的视频卡片（封面 + 标题 + 时长）",
       "npm test 通过"
     ],
     "evidence": "",
-    "notes": "依赖 WEB-002。需要 Claude2 UI 评审。策划频道列表硬编码在 src/lib/channels.ts"
+    "notes": "依赖 WEB-002。Claude2 UI 已通过（见 session-handoff.md）。策划频道列表在 src/lib/channels.ts"
   },
   {
     "id": "WEB-002",
@@ -181,7 +181,7 @@
       "GET /api/youtube/search?q=QUERY 返回搜索结果",
       "npm test 通过"
     ],
-    "evidence": "Codex1 2026-05-14 09:15: added src/lib/channels.ts with 3 curated starter channels; added src/lib/youtube.ts for shared YouTube Data API fetch + Redis cache helpers; implemented GET /api/youtube/channel?id=CHANNEL_ID&maxResults=12 in src/app/api/youtube/channel/route.ts using channels -> playlistItems -> videos(contentDetails) to return { id, title, thumbnail, duration, channelTitle, publishedAt } with 1 hour cache; implemented GET /api/youtube/search?q=QUERY&maxResults=20 in src/app/api/youtube/search/route.ts using search(type=video,relevanceLanguage=es) -> videos(contentDetails) with 15 minute cache; added tests/web002.test.mjs. Verification passed: node --test tests/web002.test.mjs (3/3), npm test (35/35), npm run build.",
+    "evidence": "Codex2 QA 2026-05-14 09:24: failed. npm test passed 35/35 and npm run build passed. src/lib/channels.ts exists and includes Extra Spanish, Dreaming Spanish, and Espanol con Juan channel IDs. src/app/api/youtube/channel/route.ts and src/app/api/youtube/search/route.ts exist, and .env.example contains YOUTUBE_API_KEY. Real dev-server check on http://127.0.0.1:3002/api/youtube/search?q=hola&maxResults=5 returned HTTP 200 with live YouTube data, but the payload shape was {\"videos\":[...]} instead of the ticket's required top-level JSON array. The route currently returns NextResponse.json({ videos }) in both youtube/search and youtube/channel, so WEB-002 does not meet the API response contract yet.",
     "notes": "YOUTUBE_API_KEY 已配置到 .env。Redis 缓存频道视频列表（TTL 1小时），搜索结果（TTL 15分钟）"
   },
   {

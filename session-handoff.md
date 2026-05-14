@@ -2104,6 +2104,122 @@ CSS 规格：
 
 **下一步最佳动作**：交给 Codex2 验收 `WEB-002`。重点核查两个路由文件、`src/lib/channels.ts`、Redis TTL 约定，以及实际接口返回结构。
 
+## 测试 Report：WEB-002 YouTube Data API 接入
+**时间**：2026-05-14 09:24
+**测试人**：Codex2
+
+**结论**：失败
+
+**验证步骤执行记录**
+1. 基线自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ COURSE-001 static curriculum content has pronunciation rules and seed words
+   ✔ COURSE-001 page renders the approved no-pressure layout
+   ✔ COURSE-001 audio button is client-side and degrades when audio is absent
+   ✔ COURSE-002 grammar content defines homepage order and required groups
+   ✔ COURSE-002 grammar pages render required responsive layout and semantic tables
+   ✔ COURSE-002 grammar detail content covers conjugations, gender rules, and ser vs estar
+   ✔ EXT-002 translate API route validates input, calls MiniMax, and caches subtitles
+   ✔ EXT-002 environment example documents MiniMax credentials
+   ✔ EXT-002 manifest and popup support persistent Chinese subtitle toggling
+   ✔ EXT-002 content script observes YouTube captions and injects reviewed overlay styling
+   ✔ EXT-003 lemmatize route exists and returns lemma payload shape
+   ✔ EXT-003 lemma dictionary exists and covers reviewed forms
+   ✔ EXT-003 vocab add route exists and requires auth-aware save payload
+   ✔ EXT-003 content script contains clickable word spans and lookup card hooks
+   ✔ EXT-004 highlight route exists and returns reviewed status categories
+   ✔ EXT-004 content script includes reviewed highlight colors and status wiring
+   ✔ extension declares a Manifest V3 Chrome extension
+   ✔ extension content script injects only on YouTube watch pages
+   ✔ extension files provide background, content, and popup behavior
+   ✔ extension has an esbuild package scaffold
+   ✔ package declares the INFRA-001 application stack
+   ✔ welcome page is present in the Next.js App Router
+   ✔ Prisma is configured for PostgreSQL with initial models
+   ✔ initial Prisma migration is checked in
+   ✔ environment example documents required local services
+   ✔ /vocab page requires authentication and loads current user's words
+   ✔ /vocab page serializes words by most recent encounter for the client accordion
+   ✔ vocab accordion renders reviewed row, encounter, divider, and empty states
+   ✔ Prisma schema defines vocabulary words owned by users
+   ✔ Prisma schema defines word encounters linked to words
+   ✔ vocab library exposes the ticket CRUD functions
+   ✔ VOCAB-003 buildVideoJumpHref appends integer timestamp to watch URLs
+   ✔ WEB-002 channel route exists and uses YouTube playlistItems plus Redis caching
+   ✔ WEB-002 search route exists and uses YouTube search with Spanish relevance plus Redis caching
+   ✔ WEB-002 curated channel list exists with at least three starter channels
+   ℹ tests 35
+   ℹ pass 35
+   ℹ fail 0
+   ```
+   结果：✅
+
+2. 生产构建
+   命令：`npm run build`
+   输出：
+   ```text
+   ▲ Next.js 14.2.18
+   - Environments: .env
+   ✓ Compiled successfully
+   ✓ Generating static pages (20/20)
+   Route (app) includes /api/youtube/channel and /api/youtube/search
+   ```
+   结果：✅
+
+3. 核查频道列表、路由文件与环境变量
+   命令：`rg -n "YOUTUBE_API_KEY|Extra Spanish|Dreaming Spanish|Espa[nñ]ol con Juan|UCo8bcnLyZH8tBIH9V1mLgqQ|UCxZBjsGkdFIBxN-PQ5MZPSA|UCLKsD7YzCkTFT5AhFgkWN_g" .env.example src/lib/channels.ts`
+   输出：
+   ```text
+   src/lib/channels.ts:8:    title: "Extra Spanish",
+   src/lib/channels.ts:9:    id: "UCo8bcnLyZH8tBIH9V1mLgqQ"
+   src/lib/channels.ts:12:    title: "Dreaming Spanish",
+   src/lib/channels.ts:13:    id: "UCxZBjsGkdFIBxN-PQ5MZPSA"
+   src/lib/channels.ts:16:    title: "Español con Juan",
+   src/lib/channels.ts:17:    id: "UCLKsD7YzCkTFT5AhFgkWN_g"
+   .env.example:9:YOUTUBE_API_KEY=""
+   ```
+   命令：`Get-ChildItem src/app/api/youtube -Recurse | Select-Object FullName`
+   输出：
+   ```text
+   C:\Users\wang\esponal\src\app\api\youtube\channel
+   C:\Users\wang\esponal\src\app\api\youtube\search
+   C:\Users\wang\esponal\src\app\api\youtube\channel\route.ts
+   C:\Users\wang\esponal\src\app\api\youtube\search\route.ts
+   ```
+   结果：✅
+
+4. 实际启动 dev server 并联调搜索接口
+   命令：临时起 `PORT=3002 npm run dev`，然后请求 `GET http://127.0.0.1:3002/api/youtube/search?q=hola&maxResults=5`
+   输出：
+   ```text
+   {"videos":[{"id":"nlXqp3FVrq8","title":"Dalex - Hola Remix ft. Lenny TavÃ¡rez, Chencho Corleone, Juhn &quot;El All Star&quot; (Video LÃ­rico Oficial)","thumbnail":"https://i.ytimg.com/vi/nlXqp3FVrq8/hqdefault.jpg","duration":"PT4M12S","channelTitle":"Dalex","publishedAt":"2019-11-01T04:00:10Z"},{"id":"XOwhRiqHNhU","title":"Salastkbron - HOLA (Video Oficial)","thumbnail":"https://i.ytimg.com/vi/XOwhRiqHNhU/hqdefault.jpg","duration":"PT2M44S","channelTitle":"Salastkbron","publishedAt":"2024-11-15T00:00:07Z"},{"id":"4deUxsQOGps","title":"Â¡Hola! | Canciones Infantiles | Super Simple EspaÃ±ol","thumbnail":"https://i.ytimg.com/vi/4deUxsQOGps/hqdefault.jpg","duration":"PT1M30S","channelTitle":"Super Simple EspaÃ±ol - Canciones Infantiles Y MÃ¡s","publishedAt":"2017-03-15T15:30:04Z"},{"id":"eA3aX-hp8F4","title":"Tokischa &amp; Eladio Carrion - Hola (Official Video)","thumbnail":"https://i.ytimg.com/vi/eA3aX-hp8F4/hqdefault.jpg","duration":"PT3M37S","channelTitle":"Tokischa","publishedAt":"2022-08-05T04:18:26Z"},{"id":"QuqesF0egDc","title":"Alex Otaola en vivo, noticias de Cuba - Hola! Ota-Ola (martes 12 de mayo del 2026)","thumbnail":"https://i.ytimg.com/vi/QuqesF0egDc/hqdefault.jpg","duration":"PT3H8M39S","channelTitle":"Cubanos por el Mundo - Live","publishedAt":"2026-05-13T00:47:10Z"}]}
+
+   > espanol-learning-platform@0.1.0 dev
+   > next dev
+
+     - Local:        http://localhost:3002
+     ✓ Ready in 1117ms
+     GET /api/health 200
+     GET /api/youtube/search?q=hola&maxResults=5 200
+   ```
+   结果：❌
+
+**失败详情**
+- 失败点：步骤 4
+- 错误信息：接口虽然联通并返回了真实视频数据，但返回结构是 `{"videos":[...]}`，不是 ticket 要求的“顶层 JSON 数组”
+- 复现步骤：
+  1. 在仓库根目录设置 `PORT=3002` 启动 `npm run dev`
+  2. 请求 `http://127.0.0.1:3002/api/youtube/search?q=hola&maxResults=5`
+  3. 观察响应体顶层是对象而不是数组
+  4. 读取 `src/app/api/youtube/search/route.ts` 与 `src/app/api/youtube/channel/route.ts`，可见成功分支都是 `return NextResponse.json({ videos })`
+
+**返回 Codex1 修复建议**
+- 将 `src/app/api/youtube/search/route.ts` 成功响应从 `NextResponse.json({ videos })` 改为 `NextResponse.json(videos)`
+- 将 `src/app/api/youtube/channel/route.ts` 成功响应从 `NextResponse.json({ videos })` 改为 `NextResponse.json(videos)`
+- 修复后重跑真实联调，再重新提 QA
+
 
 ---
 
