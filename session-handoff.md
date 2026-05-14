@@ -2385,3 +2385,33 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 
 **Next best action**
 - Ensure Vercel deploys the same repository/commit that contains this fix, then redeploy with cache disabled.
+
+---
+
+## Codex1 Dev Addendum - Session #33 (2026-05-14 15:27)
+
+**Scope**
+- Deploy hardening: ensure Vercel installs/builds only the web app from the repository root and does not touch the Chrome extension build chain.
+
+**Files changed**
+- `vercel.json`
+- `tests/deploy001.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added `vercel.json` with `installCommand: npm install` and `buildCommand: npm run build`.
+- Kept Prisma generation in root `postinstall`, because Vercel needs Prisma Client generated before route collection.
+- Added tests asserting Vercel config does not reference `extension` or `esbuild` and root package scripts do not build the Chrome extension.
+
+**Verification run**
+- `node tests/deploy001.test.mjs` -> pass (5/5)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Root `package.json` has no workspace config and no extension-related install/build script.
+- The Chrome extension remains buildable from `extension/`, but Vercel web deployment does not need it.
+
+**Next best action**
+- Redeploy latest `main` on Vercel.

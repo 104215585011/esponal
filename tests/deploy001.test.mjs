@@ -39,3 +39,21 @@ test("DEPLOY-001 vercel install generates Prisma Client before Next build", asyn
   assert.equal(packageJson.scripts.build, "next build");
   assert.equal(packageJson.scripts.postinstall, "prisma generate");
 });
+
+test("DEPLOY-001 vercel config builds only the web app from the repo root", async () => {
+  const vercelConfigPath = "vercel.json";
+  assert.ok(existsSync(vercelConfigPath), `${vercelConfigPath} should exist`);
+
+  const vercelConfig = JSON.parse(await readText(vercelConfigPath));
+
+  assert.equal(vercelConfig.installCommand, "npm install");
+  assert.equal(vercelConfig.buildCommand, "npm run build");
+  assert.doesNotMatch(JSON.stringify(vercelConfig), /extension|esbuild/);
+});
+
+test("DEPLOY-001 root package scripts do not build the Chrome extension", async () => {
+  const packageJson = JSON.parse(await readText("package.json"));
+  const scripts = JSON.stringify(packageJson.scripts ?? {});
+
+  assert.doesNotMatch(scripts, /extension|esbuild/);
+});
