@@ -752,3 +752,33 @@
 **备注**
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #35 - 2026-05-14
+
+**本轮目标**：Codex1 重写 `/api/subtitle` 字幕获取逻辑，先查询 YouTube 可用字幕轨道，再按 `lang_code + name` 精确拉取字幕。
+
+**根因**
+- 直接猜 `lang=es` / `es-419` / `es-MX` 仍可能拿不到字幕，因为 YouTube timedtext 对具名字幕轨道需要带 `name` 参数。
+- 需要先通过 `type=list` 获取轨道列表，再选择西语轨道构造精确字幕 URL。
+
+**已完成**
+- `src/app/api/subtitle/route.ts` 改为两步获取：先请求 `timedtext?type=list`，解析 XML 中 `lang_code` 和 `name`；再请求 `timedtext?lang=...&name=...&fmt=json3`。
+- 增加 YouTube 请求 `User-Agent` header。
+- 增加诊断日志：`[subtitle] list tracks:` 和 `[subtitle] selected lang:`。
+- 非 JSON 响应会安全返回 `[]`，不抛错。
+- 字幕缓存 namespace 改为 `youtube:subtitle:v2`，避免旧空数组缓存继续命中。
+- `tests/web004.test.mjs` 更新为验证两步协议和日志/防护逻辑。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `npm test`：47/47 通过
+- `npm run build`：通过
+
+**备注**
+- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
+- 本次没有修改 `.env`，没有提交任何密钥。

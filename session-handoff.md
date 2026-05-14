@@ -2446,3 +2446,36 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 **Notes**
 - Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
 - No `.env` or secret files were modified.
+
+---
+
+## Codex1 Dev Addendum - Session #35 (2026-05-14 16:17)
+
+**Scope**
+- WEB-004 subtitle runtime fix: query YouTube caption track list before fetching json3 subtitles.
+
+**Root cause found**
+- Some YouTube captions require the exact `name` attribute from `type=list`; requesting only `lang=es` can return empty even when a Spanish track exists.
+
+**Files changed**
+- `src/app/api/subtitle/route.ts`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added `type=list` timedtext request with desktop Chrome-like `User-Agent`.
+- Parse `<track ...>` XML tags for `lang_code` and `name`, preferring `es`, then `es-419`, then `es-MX`.
+- Fetch exact caption URL using selected `lang_code` and `encodeURIComponent(track.name)` with `fmt=json3`.
+- Guard non-JSON or empty caption responses by returning `[]`.
+- Added Vercel/runtime diagnostics: `[subtitle] list tracks:` and `[subtitle] selected lang:`.
+- Changed cache namespace to `youtube:subtitle:v2` to avoid stale empty subtitle caches.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.

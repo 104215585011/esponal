@@ -4,6 +4,10 @@ import { getCachedJson } from "@/lib/youtube";
 export const dynamic = "force-dynamic";
 
 const SUBTITLE_CACHE_TTL_SECONDS = 24 * 60 * 60;
+const TIMEDTEXT_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+};
+const SPANISH_LANG_CODES = ["es", "es-419", "es-MX"];
 
 type TimedTextEvent = {
   tStartMs?: number;
@@ -23,10 +27,9 @@ type SubtitleCue = {
   text: string;
 };
 
-type SubtitleSource = {
-  lang: string;
-  tlang?: string;
-  kind?: "asr";
+type CaptionTrack = {
+  langCode: string;
+  name: string;
 };
 
 function normalizeSubtitleText(event: TimedTextEvent) {
@@ -57,59 +60,91 @@ function parseSubtitleEvents(payload: TimedTextResponse) {
   }, []);
 }
 
-function buildSubtitleSources(lang: string): SubtitleSource[] {
-  return [
-    { lang },
-    { lang: "es-419" },
-    { lang: "es-MX" },
-    { lang: "es", tlang: "es", kind: "asr" }
-  ];
+function decodeXmlAttribute(value: string) {
+  return value
+    .replace(/&quot;/g, "\"")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
 }
 
-function buildTimedTextUrl(videoId: string, source: SubtitleSource) {
-  const params = new URLSearchParams({
-    v: videoId,
-    lang: source.lang,
-    fmt: "json3"
-  });
+function readTrackAttribute(trackTag: string, attributeName: string) {
+  const match = trackTag.match(new RegExp(`${attributeName}="([^"]*)"`));
 
-  if (source.tlang) {
-    params.set("tlang", source.tlang);
-  }
-
-  if (source.kind) {
-    params.set("kind", source.kind);
-  }
-
-  return `https://www.youtube.com/api/timedtext?${params.toString()}`;
+  return match ? decodeXmlAttribute(match[1]) : "";
 }
 
-async function fetchSubtitleSource(videoId: string, source: SubtitleSource) {
-  const response = await fetch(
-    buildTimedTextUrl(videoId, source),
-    {
-      next: { revalidate: 0 }
-    }
+function parseCaptionTracks(listXml: string, preferredLang: string) {
+  const trackTags = listXml.match(/<track\b[^>]*>/g) ?? [];
+  const tracks = trackTags
+    .map((trackTag) => ({
+      langCode: readTrackAttribute(trackTag, "lang_code"),
+      name: readTrackAttribute(trackTag, "name")
+    }))
+    .filter((track): track is CaptionTrack => Boolean(track.langCode));
+  const preferredLangCodes = Array.from(
+    new Set([preferredLang, ...SPANISH_LANG_CODES].filter(Boolean))
   );
 
-  if (!response.ok) {
-    return [] as SubtitleCue[];
+  for (const langCode of preferredLangCodes) {
+    const track = tracks.find((item) => item.langCode === langCode);
+
+    if (track) {
+      return track;
+    }
   }
 
-  const payload = (await response.json()) as TimedTextResponse;
-  return parseSubtitleEvents(payload);
+  return null;
+}
+
+async function findSpanishCaptionTrack(videoId: string, preferredLang: string) {
+  const listUrl = `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&type=list`;
+  const listRes = await fetch(listUrl, {
+    headers: TIMEDTEXT_HEADERS,
+    next: { revalidate: 0 }
+  });
+  const listXml = await listRes.text();
+
+  console.log("[subtitle] list tracks:", listXml.slice(0, 300));
+
+  if (!listRes.ok || !listXml.trim()) {
+    return null;
+  }
+
+  const track = parseCaptionTracks(listXml, preferredLang);
+
+  if (track) {
+    console.log("[subtitle] selected lang:", track.langCode, "name:", track.name);
+  }
+
+  return track;
 }
 
 async function fetchSubtitleCues(videoId: string, lang: string) {
-  for (const source of buildSubtitleSources(lang)) {
-    const cues = await fetchSubtitleSource(videoId, source);
+  const track = await findSpanishCaptionTrack(videoId, lang);
 
-    if (cues.length > 0) {
-      return cues;
-    }
+  if (!track) {
+    return [] as SubtitleCue[];
   }
 
-  return [] as SubtitleCue[];
+  const captionUrl = `https://www.youtube.com/api/timedtext?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(track.langCode)}&name=${encodeURIComponent(track.name)}&fmt=json3`;
+  const res = await fetch(captionUrl, {
+    headers: TIMEDTEXT_HEADERS,
+    next: { revalidate: 0 }
+  });
+  const text = await res.text();
+
+  if (!res.ok || !text || !text.trim().startsWith("{")) {
+    return [] as SubtitleCue[];
+  }
+
+  try {
+    const data = JSON.parse(text) as TimedTextResponse;
+    return parseSubtitleEvents(data);
+  } catch {
+    return [] as SubtitleCue[];
+  }
 }
 
 export async function GET(request: Request) {
@@ -123,7 +158,7 @@ export async function GET(request: Request) {
     }
 
     const cues = await getCachedJson(
-      "youtube:subtitle",
+      "youtube:subtitle:v2",
       `${videoId}:${lang}`,
       SUBTITLE_CACHE_TTL_SECONDS,
       () => fetchSubtitleCues(videoId, lang)

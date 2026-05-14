@@ -13,10 +13,16 @@ test("WEB-004 subtitle route exists and fetches YouTube timedtext", async () => 
 
   assert.match(route, /export\s+async\s+function\s+GET/);
   assert.match(route, /timedtext/);
-  assert.match(route, /fmt["']?\s*:\s*["']json3["']/);
+  assert.match(route, /type=list/);
+  assert.match(route, /User-Agent/);
+  assert.match(route, /listXml\.slice\(0,\s*300\)/);
+  assert.match(route, /lang_code/);
+  assert.match(route, /name/);
+  assert.match(route, /encodeURIComponent\(track\.name\)/);
+  assert.match(route, /startsWith\(["']\{["']\)/);
+  assert.match(route, /fmt=json3/);
   assert.match(route, /es-419/);
   assert.match(route, /es-MX/);
-  assert.match(route, /kind["']?\s*:\s*["']asr["']/);
   assert.match(route, /24\s*\*\s*60\s*\*\s*60/);
 });
 
