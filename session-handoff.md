@@ -2577,3 +2577,37 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 **Notes**
 - Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
 - No `.env` or secret files were modified.
+
+---
+
+## Codex1 Dev Addendum - Session #39 (2026-05-14 20:48)
+
+**Scope**
+- WEB-004-FIX revised: move `/api/subtitle` to Edge Runtime and remove `youtube-transcript`.
+
+**Files changed**
+- `package.json`
+- `package-lock.json`
+- `src/app/api/subtitle/route.ts`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Uninstalled `youtube-transcript`.
+- Replaced subtitle route with an Edge Runtime implementation using `export const runtime = "edge"`.
+- Removed Node-only imports from subtitle route: no `getCachedJson`, no Redis/ioredis, no `youtube-transcript`.
+- Edge route fetches YouTube timedtext `type=list`, parses `lang_code` and `name`, then fetches the selected `fmt=json3` caption track.
+- Keeps Spanish priority `es`, `es-419`, `es-MX`.
+- Adds diagnostics: `[subtitle] edge list tracks:`, `[subtitle] edge selected lang:`, `[subtitle] fetched`, and `[subtitle] edge fetch failed:`.
+- Uses HTTP `Cache-Control: s-maxage=86400, stale-while-revalidate=3600` instead of Redis cache because Edge Runtime cannot use the existing ioredis client.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Build shows the expected Edge warning: `Using edge runtime on a page currently disables static generation for that page`.
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.

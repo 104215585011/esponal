@@ -867,3 +867,32 @@
 **备注**
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #39 - 2026-05-14
+
+**本轮目标**：Codex1 实现 WEB-004-FIX 修订版，将 `/api/subtitle` 改为 Edge Runtime，并卸载 `youtube-transcript`。
+
+**已完成**
+- 执行 `npm uninstall youtube-transcript`，移除依赖和 lockfile 记录。
+- 完整替换 `src/app/api/subtitle/route.ts` 为 Edge Runtime route：`export const runtime = "edge"`。
+- Edge route 不再 import `getCachedJson` / `ioredis` / `youtube-transcript`。
+- 使用 Edge `fetch` 请求 YouTube `timedtext?type=list`，解析 XML 中 `lang_code` 和 `name`，优先 `es` / `es-419` / `es-MX`。
+- 使用选中的 track 构造 `fmt=json3` timedtext 请求，解析为现有 `{ start, dur, text }` 字幕格式。
+- 加入 `User-Agent` / `Accept-Language` headers 和诊断日志：`[subtitle] edge list tracks:`、`[subtitle] edge selected lang:`、`[subtitle] fetched`、`[subtitle] edge fetch failed:`。
+- 因 Edge Runtime 不能用 Redis client，改用响应头 `Cache-Control: s-maxage=86400, stale-while-revalidate=3600`。
+- 更新 `tests/web004.test.mjs`，断言 Edge Runtime、timedtext list/json3、无 `youtube-transcript`、无 `getCachedJson`。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `npm test`：47/47 通过
+- `npm run build`：通过
+
+**备注**
+- `npm run build` 出现预期提示：Using edge runtime on a page currently disables static generation for that page。
+- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
+- 本次没有修改 `.env`，没有提交任何密钥。
