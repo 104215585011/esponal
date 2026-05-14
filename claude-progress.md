@@ -896,3 +896,31 @@
 - `npm run build` 出现预期提示：Using edge runtime on a page currently disables static generation for that page。
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #40 - 2026-05-14
+
+**本轮目标**：Codex1 推送 PM 新增的 Apify 字幕抓取实现。
+
+**已完成**
+- 检查本地未提交改动：`src/app/api/subtitle/route.ts` 与 `vercel.json`。
+- 确认代码未写入 Apify token 明文，仅通过 `process.env.APIFY_API_TOKEN` 读取。
+- `/api/subtitle` 改为使用 Apify actor `streamers/youtube-scraper` 同步抓取 YouTube 字幕 SRT。
+- 新增 SRT 解析逻辑，将 SRT 转为现有 `{ start, dur, text }` 格式。
+- 保留 Redis 缓存：`subtitle:${videoId}:${lang}`，TTL 86400 秒。
+- `vercel.json` 为 subtitle function 设置 `maxDuration: 60`。
+- 更新 `tests/web004.test.mjs`，断言 Apify、SRT、Redis cache 合同。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `npm test`：47/47 通过
+- `npm run build`：通过
+
+**备注**
+- 生产环境需要配置 `APIFY_API_TOKEN`。
+- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
+- 本次没有修改 `.env`，没有提交任何密钥。

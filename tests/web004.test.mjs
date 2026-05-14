@@ -13,15 +13,15 @@ test("WEB-004 subtitle route exists and fetches YouTube timedtext", async () => 
   const pkg = JSON.parse(await readText("package.json"));
 
   assert.match(route, /export\s+async\s+function\s+GET/);
-  assert.match(route, /runtime\s*=\s*["']edge["']/);
-  assert.match(route, /timedtext/);
-  assert.match(route, /type:\s*["']list["']/);
-  assert.match(route, /lang_code/);
-  assert.match(route, /fmt:\s*["']json3["']/);
-  assert.match(route, /\[subtitle\] fetched/);
-  assert.match(route, /\[subtitle\] edge fetch failed/);
+  assert.match(route, /APIFY_API_TOKEN/);
+  assert.match(route, /api\.apify\.com/);
+  assert.match(route, /downloadSubtitles/);
+  assert.match(route, /subtitlesFormat:\s*["']srt["']/);
+  assert.match(route, /parseSrt/);
+  assert.match(route, /redis\.get/);
+  assert.match(route, /redis\.set/);
+  assert.match(route, /\[subtitle\] Apify fetched/);
   assert.doesNotMatch(route, /YoutubeTranscript/);
-  assert.doesNotMatch(route, /getCachedJson/);
   assert.ok(!pkg.dependencies["youtube-transcript"]);
 });
 

@@ -1,33 +1,11 @@
 import { NextResponse } from "next/server";
+import { redis } from "@/lib/redis";
 
-export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
-const YOUTUBE_TIMEDTEXT_URL = "https://www.youtube.com/api/timedtext";
-const TIMEDTEXT_HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-  Accept: "*/*",
-  "Accept-Language": "es,en;q=0.8"
-};
-const FALLBACK_LANG_CODES = ["es", "es-419", "es-MX"];
-
-type TimedTextEvent = {
-  tStartMs?: number;
-  dDurationMs?: number;
-  segs?: Array<{
-    utf8?: string;
-  }>;
-};
-
-type TimedTextResponse = {
-  events?: TimedTextEvent[];
-};
-
-type CaptionTrack = {
-  langCode: string;
-  name: string;
-};
+const APIFY_ACTOR_URL =
+  "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items";
+const SUBTITLE_CACHE_TTL = 86400;
 
 type SubtitleCue = {
   start: number;
@@ -35,128 +13,111 @@ type SubtitleCue = {
   text: string;
 };
 
-function normalizeSubtitleText(event: TimedTextEvent) {
-  return (event.segs ?? [])
-    .map((segment) => segment.utf8 ?? "")
-    .join("")
-    .replace(/\s+/g, " ")
-    .trim();
+type ApifySubtitleTrack = {
+  srtUrl?: string | null;
+  type?: string;
+  language?: string;
+  srt?: string | null;
+};
+
+type ApifyVideoItem = {
+  subtitles?: ApifySubtitleTrack[] | null;
+};
+
+function parseSrtTime(timeStr: string): number {
+  const [timePart, msPart] = timeStr.split(",");
+  const [h, m, s] = timePart.split(":").map(Number);
+  return h * 3600 + m * 60 + s + Number(msPart) / 1000;
 }
 
-function parseSubtitleEvents(payload: TimedTextResponse) {
-  return (payload.events ?? []).reduce<SubtitleCue[]>((cues, event) => {
-    const text = normalizeSubtitleText(event);
-    const start = typeof event.tStartMs === "number" ? event.tStartMs / 1000 : NaN;
-    const dur = typeof event.dDurationMs === "number" ? event.dDurationMs / 1000 : NaN;
+function parseSrt(srt: string): SubtitleCue[] {
+  const blocks = srt.trim().split(/\n\n+/);
+  const cues: SubtitleCue[] = [];
 
-    if (!text || !Number.isFinite(start) || !Number.isFinite(dur) || dur <= 0) {
-      return cues;
+  for (const block of blocks) {
+    const lines = block.trim().split("\n");
+    const timingLineIndex = lines.findIndex((l) =>
+      /\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}/.test(l)
+    );
+
+    if (timingLineIndex === -1) {
+      continue;
     }
 
-    cues.push({ start, dur, text });
+    const timingMatch = lines[timingLineIndex].match(
+      /(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})/
+    );
 
-    return cues;
-  }, []);
-}
+    if (!timingMatch) {
+      continue;
+    }
 
-function decodeXmlAttribute(value: string) {
-  return value
-    .replace(/&quot;/g, "\"")
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
-}
+    const start = parseSrtTime(timingMatch[1]);
+    const end = parseSrtTime(timingMatch[2]);
+    const dur = end - start;
+    const text = lines
+      .slice(timingLineIndex + 1)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-function readTrackAttribute(trackTag: string, attributeName: string) {
-  const match = trackTag.match(new RegExp(`${attributeName}="([^"]*)"`));
-
-  return match ? decodeXmlAttribute(match[1]) : "";
-}
-
-function parseCaptionTracks(listXml: string, preferredLang: string) {
-  const trackTags = listXml.match(/<track\b[^>]*>/g) ?? [];
-  const tracks = trackTags
-    .map((trackTag) => ({
-      langCode: readTrackAttribute(trackTag, "lang_code"),
-      name: readTrackAttribute(trackTag, "name")
-    }))
-    .filter((track): track is CaptionTrack => Boolean(track.langCode));
-  const langCodes = Array.from(
-    new Set([preferredLang, ...FALLBACK_LANG_CODES].filter(Boolean))
-  );
-
-  for (const langCode of langCodes) {
-    const track = tracks.find((item) => item.langCode === langCode);
-
-    if (track) {
-      return track;
+    if (text && Number.isFinite(start) && Number.isFinite(dur) && dur > 0) {
+      cues.push({ start, dur, text });
     }
   }
 
-  return null;
+  return cues;
 }
 
-function buildTimedTextUrl(params: Record<string, string>) {
-  const searchParams = new URLSearchParams(params);
+async function fetchFromApify(videoId: string, lang: string): Promise<SubtitleCue[]> {
+  const token = process.env.APIFY_API_TOKEN;
 
-  return `${YOUTUBE_TIMEDTEXT_URL}?${searchParams.toString()}`;
-}
-
-async function fetchCaptionTrack(videoId: string, lang: string) {
-  const listUrl = buildTimedTextUrl({
-    v: videoId,
-    type: "list"
-  });
-  const response = await fetch(listUrl, {
-    headers: TIMEDTEXT_HEADERS,
-    cache: "no-store"
-  });
-  const listXml = await response.text();
-
-  console.log("[subtitle] edge list tracks:", listXml.slice(0, 300));
-
-  if (!response.ok || !listXml.trim()) {
-    return null;
+  if (!token) {
+    console.error("[subtitle] APIFY_API_TOKEN not set");
+    return [];
   }
 
-  const track = parseCaptionTracks(listXml, lang);
-
-  if (track) {
-    console.log("[subtitle] edge selected lang:", track.langCode, "name:", track.name);
-  }
-
-  return track;
-}
-
-async function fetchSubtitleCues(videoId: string, lang: string) {
-  const track = await fetchCaptionTrack(videoId, lang);
-
-  if (!track) {
-    return [] as SubtitleCue[];
-  }
-
-  const captionUrl = buildTimedTextUrl({
-    v: videoId,
-    lang: track.langCode,
-    name: track.name,
-    fmt: "json3"
+  const url = `${APIFY_ACTOR_URL}?token=${token}&timeout=55&memory=256`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      startUrls: [{ url: `https://www.youtube.com/watch?v=${videoId}` }],
+      downloadSubtitles: true,
+      subtitlesLanguage: lang,
+      subtitlesFormat: "srt",
+      preferAutoGeneratedSubtitles: true,
+      maxResults: 1
+    }),
+    signal: AbortSignal.timeout(60000)
   });
-  const response = await fetch(captionUrl, {
-    headers: TIMEDTEXT_HEADERS,
-    cache: "no-store"
-  });
-  const text = await response.text();
 
-  if (!response.ok || !text.trim().startsWith("{")) {
-    return [] as SubtitleCue[];
+  if (!response.ok) {
+    console.error("[subtitle] Apify request failed:", response.status);
+    return [];
   }
 
-  const payload = JSON.parse(text) as TimedTextResponse;
-  const cues = parseSubtitleEvents(payload);
+  const items = (await response.json()) as ApifyVideoItem[];
+  const firstItem = items[0];
 
-  console.log("[subtitle] fetched", cues.length, "cues for", videoId);
+  if (!firstItem?.subtitles?.length) {
+    console.log("[subtitle] Apify: no subtitles for", videoId);
+    return [];
+  }
 
+  const langPrefix = lang.split("-")[0];
+  const track =
+    firstItem.subtitles.find((t) => t.language === lang) ??
+    firstItem.subtitles.find((t) => t.language?.startsWith(langPrefix)) ??
+    firstItem.subtitles[0];
+
+  if (!track?.srt) {
+    console.log("[subtitle] Apify: no SRT content for", videoId, lang);
+    return [];
+  }
+
+  const cues = parseSrt(track.srt);
+  console.log("[subtitle] Apify fetched", cues.length, "cues for", videoId, lang);
   return cues;
 }
 
@@ -169,18 +130,37 @@ export async function GET(request: Request) {
     return NextResponse.json([], { status: 200 });
   }
 
+  const cacheKey = `subtitle:${videoId}:${lang}`;
+
   try {
-    const cues = await fetchSubtitleCues(videoId, lang);
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(JSON.parse(cached) as SubtitleCue[], {
+        headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600" }
+      });
+    }
+  } catch {
+    // Redis unavailable, fall through to Apify
+  }
+
+  try {
+    const cues = await fetchFromApify(videoId, lang);
+
+    if (cues.length > 0) {
+      try {
+        await redis.set(cacheKey, JSON.stringify(cues), "EX", SUBTITLE_CACHE_TTL);
+      } catch {
+        // Redis write failed, still return cues
+      }
+    }
 
     return NextResponse.json(cues, {
-      headers: {
-        "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600"
-      }
+      headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600" }
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log("[subtitle] edge fetch failed:", message);
-
+    console.error("[subtitle] fetch failed:", message);
     return NextResponse.json([], { status: 200 });
   }
 }

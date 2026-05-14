@@ -2611,3 +2611,35 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 - Build shows the expected Edge warning: `Using edge runtime on a page currently disables static generation for that page`.
 - Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
 - No `.env` or secret files were modified.
+
+---
+
+## Codex1 Dev Addendum - Session #40 (2026-05-14 23:20)
+
+**Scope**
+- WEB-004 subtitle backend change: push PM's Apify-based subtitle fetcher.
+
+**Files changed**
+- `src/app/api/subtitle/route.ts`
+- `vercel.json`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Replaced the previous Edge timedtext route with Apify actor call to `streamers/youtube-scraper`.
+- Uses `process.env.APIFY_API_TOKEN`; no token is committed.
+- Requests SRT subtitles from Apify and parses SRT blocks into `{ start, dur, text }` cues.
+- Restores Redis caching for subtitles with key `subtitle:${videoId}:${lang}` and TTL 86400 seconds.
+- Adds `vercel.json` function max duration for `src/app/api/subtitle/route.ts` set to 60 seconds.
+- Updated WEB-004 structure tests for Apify/SRT/Redis behavior.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Production must have `APIFY_API_TOKEN` configured.
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.

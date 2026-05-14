@@ -1,4 +1,9 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "functions": {
+    "src/app/api/subtitle/route.ts": {
+      "maxDuration": 60
+    }
+  }
 }
