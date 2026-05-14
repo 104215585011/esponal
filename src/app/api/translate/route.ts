@@ -63,8 +63,8 @@ function buildAuthorizationHeader(
 }
 
 async function translateWithTencent(text: string): Promise<string> {
-  const secretId = process.env.TENCENT_SECRET_ID;
-  const secretKey = process.env.TENCENT_SECRET_KEY;
+  const secretId = process.env.TENCENT_SECRET_ID?.trim();
+  const secretKey = process.env.TENCENT_SECRET_KEY?.trim();
 
   if (!secretId || !secretKey) {
     return text;
