@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 const readText = (path) => readFile(path, "utf8");
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 
-test("EXT-002 translate API route validates input, calls MiniMax, and caches subtitles", async () => {
+test("EXT-002 translate API route validates input, calls Tencent TMT, and caches translations", async () => {
   const routePath = "src/app/api/translate/route.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
 
@@ -15,14 +15,15 @@ test("EXT-002 translate API route validates input, calls MiniMax, and caches sub
   assert.match(route, /export\s+async\s+function\s+POST/);
   assert.match(route, /NextResponse\.json/);
   assert.match(route, /text/);
-  assert.match(route, /MINIMAX_API_KEY/);
-  assert.match(route, /MINIMAX_GROUP_ID/);
-  assert.match(route, /abab5\.5-chat/);
-  assert.match(route, /subtitle:\$\{hashSubtitleText\(text\)\}/);
+  assert.match(route, /TENCENT_SECRET_ID/);
+  assert.match(route, /TENCENT_SECRET_KEY/);
+  assert.match(route, /TextTranslate/);
+  assert.match(route, /TC3-HMAC-SHA256/);
+  assert.match(route, /tmt\.tencentcloudapi\.com/);
+  assert.match(route, /translate:\$\{sha256Hex\(text\)\}/);
   assert.match(route, /60\s*\*\s*60\s*\*\s*24\s*\*\s*7/);
   assert.match(route, /redis\.get/);
   assert.match(route, /redis\.set/);
-  assert.match(route, /chat\/completions/);
 });
 
 test("EXT-002 environment example documents MiniMax credentials", async () => {

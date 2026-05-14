@@ -1,62 +1,115 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
 
-const MINIMAX_ENDPOINT = "https://api.minimax.chat/v1/chat/completions";
-const SUBTITLE_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
+const TENCENT_TMT_HOST = "tmt.tencentcloudapi.com";
+const TENCENT_TMT_ENDPOINT = `https://${TENCENT_TMT_HOST}/`;
+const TENCENT_REGION = "ap-guangzhou";
+const TRANSLATION_CACHE_TTL = 60 * 60 * 24 * 7;
 
-function hashSubtitleText(text: string) {
-  return createHash("sha256").update(text.trim()).digest("hex");
-}
-
-type MiniMaxResponse = {
-  choices?: Array<{
-    message?: {
-      content?: string;
+type TencentTranslateResponse = {
+  Response?: {
+    TargetText?: string;
+    Error?: {
+      Code: string;
+      Message: string;
     };
-  }>;
+  };
 };
 
-async function requestMiniMaxTranslation(text: string) {
-  const apiKey = process.env.MINIMAX_API_KEY;
-  const groupId = process.env.MINIMAX_GROUP_ID;
+function sha256Hex(data: string): string {
+  return createHash("sha256").update(data).digest("hex");
+}
 
-  if (!apiKey || !groupId) {
+function hmacSha256(key: Buffer | string, data: string): Buffer {
+  return createHmac("sha256", key).update(data).digest();
+}
+
+function buildAuthorizationHeader(
+  secretId: string,
+  secretKey: string,
+  payload: string,
+  timestamp: number
+): string {
+  const service = "tmt";
+  const algorithm = "TC3-HMAC-SHA256";
+  const date = new Date(timestamp * 1000).toISOString().split("T")[0];
+
+  const canonicalHeaders = `content-type:application/json\nhost:${TENCENT_TMT_HOST}\n`;
+  const signedHeaders = "content-type;host";
+  const canonicalRequest = [
+    "POST",
+    "/",
+    "",
+    canonicalHeaders,
+    signedHeaders,
+    sha256Hex(payload)
+  ].join("\n");
+
+  const credentialScope = `${date}/${service}/tc3_request`;
+  const stringToSign = [
+    algorithm,
+    timestamp.toString(),
+    credentialScope,
+    sha256Hex(canonicalRequest)
+  ].join("\n");
+
+  const secretDate = hmacSha256(`TC3${secretKey}`, date);
+  const secretService = hmacSha256(secretDate, service);
+  const secretSigning = hmacSha256(secretService, "tc3_request");
+  const signature = createHmac("sha256", secretSigning).update(stringToSign).digest("hex");
+
+  return `${algorithm} Credential=${secretId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+}
+
+async function translateWithTencent(text: string): Promise<string> {
+  const secretId = process.env.TENCENT_SECRET_ID;
+  const secretKey = process.env.TENCENT_SECRET_KEY;
+
+  if (!secretId || !secretKey) {
     return text;
   }
 
-  const response = await fetch(`${MINIMAX_ENDPOINT}?GroupId=${groupId}`, {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const payload = JSON.stringify({
+    SourceText: text,
+    Source: "es",
+    Target: "zh",
+    ProjectId: 0
+  });
+
+  const authorization = buildAuthorizationHeader(secretId, secretKey, payload, timestamp);
+
+  const response = await fetch(TENCENT_TMT_ENDPOINT, {
     method: "POST",
     headers: {
+      Authorization: authorization,
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
+      Host: TENCENT_TMT_HOST,
+      "X-TC-Action": "TextTranslate",
+      "X-TC-Timestamp": timestamp.toString(),
+      "X-TC-Version": "2018-03-21",
+      "X-TC-Region": TENCENT_REGION
     },
-    body: JSON.stringify({
-      model: "abab5.5-chat",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Translate Spanish YouTube subtitles into concise Simplified Chinese. Return only the translation."
-        },
-        {
-          role: "user",
-          content: text
-        }
-      ],
-      temperature: 0.2
-    })
+    body: payload
   });
 
   if (!response.ok) {
-    throw new Error(`MiniMax translate failed: ${response.status}`);
+    throw new Error(`Tencent translate request failed: ${response.status}`);
   }
 
-  const data = (await response.json()) as MiniMaxResponse;
-  const translation = data.choices?.[0]?.message?.content?.trim();
+  const data = (await response.json()) as TencentTranslateResponse;
+
+  if (data.Response?.Error) {
+    throw new Error(
+      `Tencent translate error: ${data.Response.Error.Code} ${data.Response.Error.Message}`
+    );
+  }
+
+  const translation = data.Response?.TargetText?.trim();
 
   if (!translation) {
-    throw new Error("MiniMax translate returned an empty response");
+    throw new Error("Tencent translate returned empty response");
   }
 
   return translation;
@@ -75,23 +128,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "text is too long" }, { status: 400 });
     }
 
-    const cacheKey = `subtitle:${hashSubtitleText(text)}`;
+    const cacheKey = `translate:${sha256Hex(text)}`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
       return NextResponse.json({ translation: cached, cached: true });
     }
 
-    const translation = await requestMiniMaxTranslation(text);
-    await redis.set(cacheKey, translation, "EX", SUBTITLE_CACHE_TTL_SECONDS);
+    const translation = await translateWithTencent(text);
+    await redis.set(cacheKey, translation, "EX", TRANSLATION_CACHE_TTL);
 
     return NextResponse.json({ translation, cached: false });
   } catch (error) {
     console.error("Subtitle translation failed", error);
 
-    return NextResponse.json(
-      { error: "translation failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "translation failed" }, { status: 500 });
   }
 }
