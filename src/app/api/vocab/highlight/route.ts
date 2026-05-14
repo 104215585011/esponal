@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
+import { getAuthOptions } from "@/lib/auth";
 import phaseOneWords from "../../../../../content/curriculum/phase1-words.json";
 
 type HighlightBody = {
@@ -39,7 +39,7 @@ function buildDefaultStatuses(words: string[]) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
 
   try {
     const body = (await request.json()) as HighlightBody;

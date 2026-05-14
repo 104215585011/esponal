@@ -2330,3 +2330,27 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 
 **Next best action**
 - Push this change, trigger a fresh Vercel deployment, and confirm the old `Failed to collect page data` error is gone
+
+---
+
+## Codex1 Dev Addendum - Session #31 (2026-05-14 14:44)
+
+**Why a second pass was needed**
+- The first DEPLOY-001 pass removed the obvious adapter guard and made the route dynamic, but `auth.ts` still exported a module-level auth object and still imported the auth stack eagerly.
+- To reduce the chance of Vercel evaluating auth setup during route collection, auth config is now built lazily on demand.
+
+**Additional changes**
+- Replaced exported `authOptions` constant with `getAuthOptions()` in `src/lib/auth.ts`
+- Deferred Prisma import until `DATABASE_URL` is present
+- Deferred `NextAuth(...)` creation until `GET/POST` execution in `src/app/api/auth/[...nextauth]/route.ts`
+- Updated all `getServerSession(...)` call sites to use `getAuthOptions()`
+- Updated affected structural tests that previously pinned the old `authOptions` string form
+
+**Verification rerun**
+- `npm test` -> pass (44/44)
+- `npm run build` -> pass
+- Confirmed build also passes with auth/database env vars blanked in the shell before `npm run build`
+
+**Current confidence**
+- Local reproduction no longer fails for `/api/auth/[...nextauth]`
+- Remaining unknown is only the external Vercel deploy environment; latest commit still needs a fresh remote deploy attempt

@@ -12,7 +12,7 @@ test("/vocab page requires authentication and loads current user's words", async
 
   const page = await readText(pagePath);
 
-  assert.match(page, /getServerSession\(authOptions\)/);
+  assert.match(page, /getServerSession\(getAuthOptions\(\)\)/);
   assert.match(page, /redirect\(["']\/api\/auth\/signin["']\)/);
   assert.match(page, /getWordsByUser\(session\.user\.id\)/);
   assert.match(page, /我的词库/);

@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
-import { authOptions } from "@/lib/auth";
+import { getAuthOptions } from "@/lib/auth";
 import { getSiteUrl } from "@/lib/site-url";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { SubtitlePanel } from "./SubtitlePanel";
@@ -86,7 +86,7 @@ async function fetchRelatedVideos(query: string, currentVideoId: string) {
 export default async function WatchPage({ searchParams }: WatchPageProps) {
   const videoId = searchParams?.v?.trim() ?? "";
   const [session, videoInfo] = await Promise.all([
-    getServerSession(authOptions),
+    getServerSession(getAuthOptions()),
     fetchVideoInfo(videoId)
   ]);
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelTitle, videoId);

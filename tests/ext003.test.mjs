@@ -45,7 +45,7 @@ test("EXT-003 vocab add route exists and requires auth-aware save payload", asyn
 
   const route = await readText(routePath);
 
-  assert.match(route, /getServerSession\(authOptions\)/);
+  assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
   assert.match(route, /status:\s*401/);
   assert.match(route, /createWord/);
   assert.match(route, /addEncounter/);

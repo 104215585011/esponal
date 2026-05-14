@@ -12,18 +12,23 @@ test("DEPLOY-001 nextauth route is force-dynamic", async () => {
   const route = await readText(routePath);
 
   assert.match(route, /export const dynamic = "force-dynamic"/);
-  assert.match(route, /NextAuth\(authOptions\)/);
+  assert.match(route, /NextAuth\(getAuthOptions\(\)\)/);
+  assert.match(route, /export async function GET/);
+  assert.match(route, /export async function POST/);
 });
 
-test("DEPLOY-001 auth options guard adapter and providers behind env checks", async () => {
+test("DEPLOY-001 auth options are built lazily behind env checks", async () => {
   const authPath = "src/lib/auth.ts";
   assert.ok(existsSync(authPath), `${authPath} should exist`);
 
   const auth = await readText(authPath);
 
+  assert.match(auth, /export function getAuthOptions\(\): NextAuthOptions/);
   assert.match(auth, /const hasDatabaseUrl = Boolean\(process\.env\.DATABASE_URL\)/);
   assert.match(auth, /const hasGoogleProvider = Boolean\(/);
-  assert.match(auth, /const adapter = hasDatabaseUrl \? PrismaAdapter\(prisma\) : undefined/);
   assert.match(auth, /providers = hasGoogleProvider/);
-  assert.match(auth, /strategy: adapter \? "database" : "jwt"/);
+  assert.match(auth, /if \(!hasDatabaseUrl\)/);
+  assert.match(auth, /const \{ prisma \} = require\("@\/lib\/prisma"\)/);
+  assert.match(auth, /strategy: "jwt"/);
+  assert.match(auth, /strategy: "database"/);
 });

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthOptions } from "@/lib/auth";
 
 type SiteHeaderProps = {
   searchAction?: string;
@@ -20,7 +20,7 @@ export async function SiteHeader({
   searchAction = "/search",
   initialQuery = ""
 }: SiteHeaderProps) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   const displayName = session?.user?.name?.trim() || "Esponal User";
   const initials = getInitials(displayName) || "ES";
 

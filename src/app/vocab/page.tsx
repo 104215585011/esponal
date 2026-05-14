@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import VocabAccordion, {
   type VocabWord
 } from "@/app/components/vocab/VocabAccordion";
-import { authOptions } from "@/lib/auth";
+import { getAuthOptions } from "@/lib/auth";
 import { getWordsByUser } from "@/lib/vocab";
 
 // VOCAB-002 change timestamp: 2026-05-13 13:54
@@ -17,7 +17,7 @@ const getVideoTitle = (sourceUrl: string) => {
 };
 
 export default async function VocabPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
 
   if (
     !session?.user ||

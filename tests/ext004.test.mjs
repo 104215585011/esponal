@@ -14,7 +14,7 @@ test("EXT-004 highlight route exists and returns reviewed status categories", as
   assert.match(route, /export\s+async\s+function\s+POST/);
   assert.match(route, /course|saved|unknown/);
   assert.match(route, /phase1-words\.json/);
-  assert.match(route, /getServerSession\(authOptions\)/);
+  assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
   assert.match(route, /NextResponse\.json/);
 });
 
