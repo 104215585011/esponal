@@ -153,5 +153,95 @@
     ],
     "evidence": "Codex2 QA 2026-05-13 22:36: confirmed src/app/components/vocab/videoHref.ts exists and appends integer-second t parameters via '?t=' or '&t=' based on sourceUrl.includes('?'). node --test tests/vocab003.test.mjs passed 1/1. Baseline npm test also passed 30/30 in the same QA run.",
     "notes": "依赖 VOCAB-002、EXT-003"
+  },
+  {
+    "id": "WEB-001",
+    "priority": 10,
+    "area": "web",
+    "title": "首页重设计：频道卡片流 + 搜索栏",
+    "user_visible_behavior": "用户打开 Esponal 看到类 YouTube 风格首页：顶部搜索栏，下方策划频道横向滚动卡片流（Extra Spanish、Dreaming Spanish 等）",
+    "status": "ready_for_qa",
+    "verification": [
+      "访问 / 显示搜索栏和至少 2 个频道区块",
+      "每个频道区块显示横向滚动的视频卡片（封面 + 标题 + 时长）",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-002。需要 Claude2 UI 评审。策划频道列表硬编码在 src/lib/channels.ts"
+  },
+  {
+    "id": "WEB-002",
+    "priority": 11,
+    "area": "web",
+    "title": "YouTube Data API 接入",
+    "user_visible_behavior": "系统能通过 YouTube Data API 获取频道视频列表和搜索结果",
+    "status": "ready_for_qa",
+    "verification": [
+      "GET /api/youtube/channel?id=CHANNEL_ID 返回视频列表",
+      "GET /api/youtube/search?q=QUERY 返回搜索结果",
+      "npm test 通过"
+    ],
+    "evidence": "Codex1 2026-05-14 09:15: added src/lib/channels.ts with 3 curated starter channels; added src/lib/youtube.ts for shared YouTube Data API fetch + Redis cache helpers; implemented GET /api/youtube/channel?id=CHANNEL_ID&maxResults=12 in src/app/api/youtube/channel/route.ts using channels -> playlistItems -> videos(contentDetails) to return { id, title, thumbnail, duration, channelTitle, publishedAt } with 1 hour cache; implemented GET /api/youtube/search?q=QUERY&maxResults=20 in src/app/api/youtube/search/route.ts using search(type=video,relevanceLanguage=es) -> videos(contentDetails) with 15 minute cache; added tests/web002.test.mjs. Verification passed: node --test tests/web002.test.mjs (3/3), npm test (35/35), npm run build.",
+    "notes": "YOUTUBE_API_KEY 已配置到 .env。Redis 缓存频道视频列表（TTL 1小时），搜索结果（TTL 15分钟）"
+  },
+  {
+    "id": "WEB-003",
+    "priority": 12,
+    "area": "web",
+    "title": "播放器页基础",
+    "user_visible_behavior": "访问 /watch?v=VIDEO_ID 看到嵌入的 YouTube 播放器，视频正常播放",
+    "status": "not_started",
+    "verification": [
+      "访问 /watch?v=dQw4w9WgXcQ 页面正常渲染，视频可播放",
+      "页面包含视频标题、频道名",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "使用 YouTube iframe API。需要 Claude2 UI 评审（播放器页整体布局）"
+  },
+  {
+    "id": "WEB-004",
+    "priority": 13,
+    "area": "web",
+    "title": "Web 端双语字幕",
+    "user_visible_behavior": "播放器页自动显示西语原文字幕 + 中文翻译，与视频进度同步",
+    "status": "not_started",
+    "verification": [
+      "有字幕的西语视频自动显示双语字幕",
+      "字幕跟随视频进度更新",
+      "中文翻译语义正确（抽查 3 条）",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "服务端拉取 YouTube timedtext XML → 解析为 JSON → 前端按 currentTime 同步渲染。翻译走 /api/translate（已有），Redis 缓存。依赖 WEB-003"
+  },
+  {
+    "id": "WEB-005",
+    "priority": 14,
+    "area": "web",
+    "title": "Web 端点击查词",
+    "user_visible_behavior": "点击播放器页字幕中任意西语词，弹出查词卡片（词根、变位说明、释义、加入词库）",
+    "status": "not_started",
+    "verification": [
+      "点击 fui 弹出卡片显示词根 ir",
+      "点击加入词库后 /vocab 出现该词条",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "从 EXT-003 迁移逻辑到 Web 组件。依赖 WEB-004"
+  },
+  {
+    "id": "WEB-006",
+    "priority": 15,
+    "area": "web",
+    "title": "Web 端词语高亮",
+    "user_visible_behavior": "字幕中课程词显示绿色（#86EFAC），词库词显示蓝色（#93C5FD）",
+    "status": "not_started",
+    "verification": [
+      "课程词绿色高亮，词库词蓝色高亮，陌生词无高亮",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "复用 /api/vocab/highlight（已有）。依赖 WEB-005"
   }
 ]

@@ -513,3 +513,24 @@ PM 可启动当前最高优先级未完成功能 `EXT-002`。
 - 根目录 `npm run build` 末尾仍有既有 `ioredis` `ECONNREFUSED` warning，但未导致构建失败，也不是本轮新增问题
 
 **下一步最佳动作**：当前 Priority 0-9 功能已全部通过；后续可由 PM 启动新的 ticket 或下一阶段规划
+### 会话 #21 - 2026-05-14
+
+**本轮目标**：Codex1 实现 `WEB-002` YouTube Data API 接入
+**已完成**
+- 新增 `src/lib/channels.ts`，写入 3 个策划频道
+- 新增 `src/lib/youtube.ts`，封装 YouTube Data API 调用、Redis 缓存、缩略图选择与结果规范化
+- 新增 `src/app/api/youtube/channel/route.ts`，支持频道上传视频列表查询与 1 小时缓存
+- 新增 `src/app/api/youtube/search/route.ts`，支持西语视频搜索与 15 分钟缓存
+- 新增 `tests/web002.test.mjs`
+- 更新 `feature_list.json`、`session-handoff.md`
+
+**运行过的验证**
+- `node --test tests/web002.test.mjs`：3/3 通过
+- `npm test`：35/35 通过
+- `npm run build`：通过
+
+**备注**
+- 当前验证不调用真实 YouTube API，真实联调依赖本地 `.env` 中的 `YOUTUBE_API_KEY`
+- 路由已标记 `force-dynamic`，避免查询参数 API 在构建阶段触发动态路由噪音
+
+**下一步最佳动作**：交给 Codex2 验收 `WEB-002`

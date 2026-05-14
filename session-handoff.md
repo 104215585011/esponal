@@ -2072,3 +2072,211 @@ CSS 规格：
 - 已将 `feature_list.json` 中 `EXT-004.status` 更新为 `passing`
 - 已填写 Codex2 QA evidence
 - 当前 10 个功能均为 `passing`
+
+---
+
+## Codex1 实现记录：WEB-002 YouTube Data API 接入
+**时间**：2026-05-14 09:15
+**执行人**：Codex1
+
+**本轮改动文件**
+- `src/lib/channels.ts`：新增策划频道列表，包含 Extra Spanish、Dreaming Spanish、Español con Juan
+- `src/lib/youtube.ts`：新增 YouTube Data API 公共工具，封装 `YOUTUBE_API_KEY`、Redis 缓存读写、缩略图选择、结果规范化与 `maxResults` 边界处理
+- `src/app/api/youtube/channel/route.ts`：新增频道视频列表路由，流程为 `channels -> playlistItems -> videos(contentDetails)`，返回 `{ id, title, thumbnail, duration, channelTitle, publishedAt }`，TTL 1 小时
+- `src/app/api/youtube/search/route.ts`：新增搜索路由，流程为 `search(type=video,relevanceLanguage=es) -> videos(contentDetails)`，返回同结构视频数组，TTL 15 分钟
+- `tests/web002.test.mjs`：新增 WEB-002 契约测试
+- `feature_list.json`：将 `WEB-002` 更新为 `ready_for_qa` 并填写 Codex1 evidence
+- `session-handoff.md`、`claude-progress.md`：记录本轮实现与验证
+
+**实现说明**
+- 频道路由接受 `GET /api/youtube/channel?id=CHANNEL_ID&maxResults=12`
+- 搜索路由接受 `GET /api/youtube/search?q=QUERY&maxResults=20`
+- 两个路由都通过 Redis 做服务端缓存；若 Redis 不可用，会降级为直接请求 YouTube API，不阻塞返回
+- 两个路由都显式标记为 `force-dynamic`，避免 Next.js 将依赖查询参数的 API 误判为静态路由
+
+**运行过的验证**
+- `node --test tests/web002.test.mjs`：3/3 通过
+- `npm test`：35/35 通过
+- `npm run build`：通过，产物包含 `/api/youtube/channel` 与 `/api/youtube/search`
+
+**备注**
+- 当前测试为结构与构建验证，不会真实调用 YouTube Data API；线上联调依赖本地 `.env` 中已有的 `YOUTUBE_API_KEY`
+
+**下一步最佳动作**：交给 Codex2 验收 `WEB-002`。重点核查两个路由文件、`src/lib/channels.ts`、Redis TTL 约定，以及实际接口返回结构。
+
+
+---
+
+## UI 评审 Report：WEB-001
+**时间**：2026-05-14 10:00
+**评审人**：Claude2
+
+**结论**：✅ 通过
+
+**设计规格（Codex1 实现参考）**：
+
+### 顶部导航栏
+
+- 高度：`64px`，`position: sticky top-0`，`z-index: 50`
+- 背景：`#FFFFFF`，底部 `border-b border-gray-100`，轻微 `box-shadow: 0 1px 3px rgba(0,0,0,0.05)`
+- 左侧：Logo 图标（正方形，`32px`）+ 产品名「Esponal」，`text-xl font-bold text-gray-900`，间距 `gap-2`
+- 中间：搜索栏（见下方规格）
+- 右侧：登录状态区——未登录显示「登录」文字按钮（`text-sm text-gray-600 hover:text-gray-900`）；已登录显示用户头像圆形缩略图（`32px`），hover 展开下拉菜单（「我的词库」「设置」「退出」）
+- 无 XP 显示、无学习进度、无连续天数
+
+### 搜索栏
+
+- **位置**：固定在顶部导航栏中央，不做首屏大搜索（理由：首页内容密度已足够，类 YouTube 首页导航栏搜索体验更自然；Esponal 不是空白起点的内容发现引擎，频道内容是策划好的）
+- 宽度：`max-w-md`（约 `448px`），flex-grow 但有上限
+- 高度：`40px`，`border-radius: 9999px`（完整圆角）
+- 边框：`border border-gray-200`，focus 时 `border-emerald-400 ring-2 ring-emerald-100`
+- 背景：`#F9FAFB`（非白色，与导航栏白色区分）
+- placeholder 文字：「搜索西语视频…」，`text-gray-400`
+- 左侧搜索图标：`16px`，`text-gray-400`，`px-3`
+- 提交：回车触发；无独立搜索按钮（保持简洁）
+
+### 频道区块
+
+**区块结构**：
+- 页面顶部保留 `pt-6 pb-2`，区块间距 `mb-8`
+- 区块标题：频道名称（中文/英文原名均可）+ 频道描述一句话（`text-sm text-gray-400`），区块标题本身 `text-lg font-semibold text-gray-800`
+- 标题行右侧「查看全部 →」：`text-sm text-emerald-600 hover:underline`
+- 区块之间用 `border-t border-gray-100` 分隔，不用卡片容器包裹整个区块
+
+**视频卡片**：
+- 封面图：`16:9` 比例，`border-radius: 8px`，`overflow-hidden`
+- 宽度：固定 `240px`（桌面），移动端 `160px`
+- 封面上：右下角时长徽章，`bg-black/75 text-white text-xs px-1.5 py-0.5 rounded`，格式「12:34」
+- 标题：封面下方，`mt-2 text-sm font-medium text-gray-800`，最多 2 行（`line-clamp-2`），超出截断
+- 频道名（如果区块内混合多个频道来源时显示）：`text-xs text-gray-400 mt-1`
+- 无点赞数、无观看数（避免焦虑感）
+- hover 效果：封面轻微上移 `transform: translateY(-2px)`，`transition: 200ms ease`；封面叠加 `rgba(0,0,0,0.08)` 遮罩
+- 点击整卡跳转 `/watch?v=VIDEO_ID`
+
+**横向滚动**：
+- 卡片行：`display: flex; gap: 16px; overflow-x: auto`
+- 隐藏滚动条（`scrollbar-width: none`，`::-webkit-scrollbar { display: none }`）
+- 两端 `padding: 0 16px`（避免卡片贴边）
+- 不分页、不虚拟滚动（单频道视频数通常 ≤ 20，无需虚拟滚动）
+- 桌面端可选显示左右箭头按钮（`position: absolute`，渐变遮罩 + 箭头图标，hover 时出现）
+
+**策划频道列表顺序**（硬编码，Codex1 写入 `src/lib/channels.ts`）：
+1. Dreaming Spanish（推荐入门，语速慢）
+2. Extra en Español（情景剧，趣味强）
+3. Español con Juan（语法讲解）
+4. 更多频道依 PM 确认后添加
+
+### 整体配色
+
+- 页面底色：`#F9FAFB`（沿用，浅灰色调比纯白更柔和，减少对比压迫感）
+- 主色调：**保留 emerald**，不换颜色——理由：emerald 已在课程侧、词库侧、插件侧全面使用，视频平台风不需要换色，一致性优先
+- 卡片：白色背景 `#FFFFFF`，`border-radius: 8px`，封面圆角；卡片容器本身无边框、无 shadow（卡片阴影会让频道区块显得拥挤）
+- 链接颜色：`emerald-600`
+
+### 无压迫感检查
+
+- 不显示「今天还没学习」
+- 不显示连续学习天数
+- 不显示词汇掌握率
+- 不显示推荐视频与学习目标的关联（「这个视频包含你未掌握的 N 个词」此类提示不做）
+- 频道区块顺序固定，不按「你最需要复习的词汇」动态排序
+
+### 移动端
+
+- 导航栏：Logo + 产品名 + 右侧头像/登录，搜索图标替换搜索栏（点击展开全屏搜索）
+- 视频卡片宽度 `160px`，字号相应缩小
+- 频道区块标题行：「查看全部」移到标题下方单独一行
+
+**通过后交给**：Codex1 开发
+
+---
+
+## UI 评审 Report：WEB-003
+**时间**：2026-05-14 10:00
+**评审人**：Claude2
+
+**结论**：✅ 通过
+
+**设计规格（Codex1 实现参考）**：
+
+### 整体布局
+
+- 页面最大宽度：`max-w-screen-xl`（约 `1280px`），`mx-auto px-4`
+- 桌面端分栏比例：**左侧播放区 70% / 右侧面板 30%**，`gap-6`（24px）
+- 右侧面板固定宽度 `320px`，播放区 flex-grow 占剩余
+- 移动端（< `768px`）：播放器全宽，右侧面板折叠到播放器下方，竖向堆叠
+- 布局容器：`display: flex; flex-direction: row`（桌面），`flex-direction: column`（移动端）
+
+### 播放器区
+
+**iframe 容器**：
+- 宽高比：`16:9`，使用 `aspect-ratio: 16/9` 或 padding-top 56.25% 技巧
+- `border-radius: 12px; overflow: hidden`
+- iframe 宽度 `100%`，高度由宽高比自动计算
+- `allow="autoplay; encrypted-media; fullscreen"` 属性
+
+**视频信息区**（iframe 下方）：
+- 视频标题：`text-xl font-semibold text-gray-900 mt-4`，最多 2 行 line-clamp
+- 频道名：`text-sm text-gray-500 mt-1`
+- 不显示观看次数、发布日期、点赞数
+
+**字幕渲染区**（独立区域，iframe 正下方）：
+
+技术约束说明：YouTube iframe 为跨域 iframe，无法在其内部叠加 DOM 元素。字幕必须在 iframe 外部独立渲染，不能用 `position:absolute` 叠加在 iframe 上。
+
+- 字幕区位置：iframe 下方、视频标题上方，紧贴 iframe 底部（`mt-0`）
+- 字幕区高度：固定 `min-height: 80px`，有内容时撑开，无字幕时保留区域（避免布局抖动）
+- 字幕区背景：`#1A1A1A`（接近纯黑），`border-radius: 0 0 12px 12px`（与上方 iframe 底部圆角衔接）
+- padding：`px-6 py-3`
+
+**字幕样式**（沿用 EXT-002 双层阴影风格核心思路，有背景色后可适度简化）：
+- 西语行（上行）：`text-base text-white/70 font-normal`，行高 `1.6`，`text-align: center`
+- 中文行（下行）：`text-lg text-white font-medium`，行高 `1.6`，`text-align: center`
+- 中文字体：`"PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif`
+- 两行间距：`mt-1`（4px）
+- 加载中：中文行显示 `…`，`text-white/30`，不用 spinner
+- 无字幕：区块显示「暂无字幕」，`text-xs text-white/20`
+
+**字幕切换控制**：
+- 字幕区右上角：「隐藏中文」/「显示中文」文字 toggle，`text-xs text-white/40 hover:text-white/70`
+- 不做全功能控制栏，保持极简
+
+### 右侧面板
+
+**面板结构**：
+- 顶部 Tab 栏（两个 Tab）：「相关视频」 | 「本视频词汇」
+- Tab 下划线样式，激活 `border-b-2 border-emerald-500 text-gray-900`，非激活 `text-gray-400`
+- Tab 栏高度 `44px`
+- 默认激活：「相关视频」Tab
+
+**Tab 1：相关视频**
+- 同频道其他视频列表，垂直滚动
+- 视频缩略卡片：水平排列，左侧封面 `120px × 68px`（16:9），右侧文字区
+- 封面：`border-radius: 6px`，右下角时长徽章同首页规格
+- 标题：`text-sm font-medium text-gray-800 line-clamp-2`
+- 频道名：`text-xs text-gray-400 mt-0.5`
+- 整卡 hover：`bg-gray-50 rounded-lg`，`transition: 150ms`
+- 整卡点击跳转 `/watch?v=VIDEO_ID`
+- 卡片间距：`gap-2`（8px），无分隔线
+
+**Tab 2：本视频词汇**
+- 显示当前播放视频中已保存到词库的词（从 /vocab 数据中筛选 sourceUrl 匹配）
+- 未登录：「登录后查看本视频的词库积累」提示，`text-sm text-gray-400`，居中
+- 已登录但无词汇：「还没有保存过这个视频的词」，`text-sm text-gray-400`，居中
+- 词条列表：每行显示词根（`text-sm font-medium text-gray-800`）+ 中文释义（`text-sm text-gray-500`）+ 遭遇时间戳（`text-xs text-gray-300`）
+- 点击词条展开详情（`inline-expand`），或留到 WEB-005 实现（本 ticket 仅渲染列表）
+- 不显示「你学了多少词」的计数
+
+### 移动端
+
+- 播放器满屏宽（`w-full`），字幕区跟随
+- 右侧面板改为下方区域，Tab 栏保持，`max-height: 60vh overflow-y: auto`
+- 缩略卡片封面尺寸缩小至 `96px × 54px`
+
+### 无压迫感检查
+
+- 不显示「你在这个视频里学了 N 个新词」的大号数字
+- 「本视频词汇」Tab 不主动推送「你还有 N 个词未复习」
+- 不在播放器上叠加任何学习提示浮层
+
+**通过后交给**：Codex1 开发
