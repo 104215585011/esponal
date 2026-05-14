@@ -837,3 +837,33 @@
 **备注**
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #38 - 2026-05-14
+
+**本轮目标**：Codex1 修复 React 重渲染与 YouTube iframe API 生命周期冲突，避免旧 interval 对已重建 iframe 调用 `getCurrentTime()` / postMessage。
+
+**根因**
+- `SubtitlePanel.tsx` 的播放器初始化 effect 依赖 `[iframeId, subtitleCues, videoId]`。
+- 字幕数据加载后 `subtitleCues` 更新会导致 effect 清理并重新 `new YT.Player(...)`，旧 interval 与新 iframe 加载时序可能交错，引发 postMessage origin mismatch 或播放器初始化异常。
+
+**已完成**
+- 新增 `subtitleCuesRef` 保存最新字幕数组，播放器 polling 从 ref 读取字幕，避免 player effect 依赖 `subtitleCues`。
+- `getCurrentTime()` 调用包进 `try/catch`，player 未就绪或 iframe 切换中时静默跳过。
+- `new YT.Player(...)` 前检查 `playerRef.current`，避免重复初始化。
+- `onReady` 中才启动 100ms polling interval。
+- cleanup 中清理 interval，并用 try/catch 安全销毁 player，随后置空 `playerRef.current`。
+- 更新 `tests/web004.test.mjs`，覆盖 `subtitleCuesRef`、try/catch、动态 origin、以及不再依赖 `[iframeId, subtitleCues, videoId]`。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `npm test`：47/47 通过
+- `npm run build`：通过
+
+**备注**
+- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
+- 本次没有修改 `.env`，没有提交任何密钥。

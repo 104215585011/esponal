@@ -2543,3 +2543,37 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 **Notes**
 - Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
 - No `.env` or secret files were modified.
+
+---
+
+## Codex1 Dev Addendum - Session #38 (2026-05-14 16:44)
+
+**Scope**
+- WEB-003/WEB-004 player runtime fix: prevent React subtitle updates from recreating the YouTube iframe API player.
+
+**Root cause found**
+- The player setup effect depended on `subtitleCues`, so fetching subtitles caused `YT.Player` teardown/recreation.
+- During that window, an old interval could still call `getCurrentTime()` on a stale player/iframe while the replacement iframe was not ready, triggering postMessage/origin noise and playback instability.
+
+**Files changed**
+- `src/app/watch/SubtitlePanel.tsx`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added `subtitleCuesRef` so polling reads the latest subtitle data without recreating the player.
+- Changed player effect dependencies to `[iframeId, videoId]`.
+- Wrapped `getCurrentTime()` in `try/catch` and skipped ticks when `playerRef.current` is absent.
+- Only creates a new `YT.Player` when `playerRef.current` is empty.
+- Starts polling from `onReady` and clears interval/player safely on cleanup.
+- Added regression test assertions for lifecycle guards.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.

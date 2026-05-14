@@ -144,9 +144,14 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const playerRef = useRef<YouTubePlayer | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const subtitleCuesRef = useRef<SubtitleCue[]>([]);
   const panelRef = useRef<HTMLElement | null>(null);
   const activeCueText = useMemo(() => spanishLine.trim(), [spanishLine]);
   const subtitleTokens = useMemo(() => splitSubtitleTokens(spanishLine), [spanishLine]);
+
+  useEffect(() => {
+    subtitleCuesRef.current = subtitleCues;
+  }, [subtitleCues]);
 
   useEffect(() => {
     let cancelled = false;
@@ -213,20 +218,31 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
       }
     };
 
-    const syncSubtitle = () => {
-      const currentTime = playerRef.current?.getCurrentTime?.() ?? 0;
+    const syncSubtitle = (currentTime: number) => {
       setCurrentTimeSec(currentTime);
-      const activeCue = findActiveCue(subtitleCues, currentTime);
+      const activeCue = findActiveCue(subtitleCuesRef.current, currentTime);
       const nextSpanish = activeCue?.text ?? "";
 
       setSpanishLine((previous) => (previous === nextSpanish ? previous : nextSpanish));
     };
 
+    const tick = () => {
+      try {
+        if (!playerRef.current) {
+          return;
+        }
+
+        syncSubtitle(playerRef.current.getCurrentTime());
+      } catch {
+        // The YouTube player can briefly be unavailable while its iframe reloads.
+      }
+    };
+
     const startPolling = () => {
       stopPolling();
-      syncSubtitle();
+      tick();
       intervalRef.current = window.setInterval(() => {
-        syncSubtitle();
+        tick();
       }, 100);
     };
 
@@ -236,13 +252,17 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
           return;
         }
 
+        if (playerRef.current) {
+          return;
+        }
+
         playerRef.current = new yt.Player(iframeId, {
           playerVars: {
             origin: window.location.origin
           },
           events: {
             onReady: () => {
-              syncSubtitle();
+              startPolling();
             },
             onStateChange: (event) => {
               const playing = yt.PlayerState?.PLAYING ?? 1;
@@ -256,7 +276,7 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
 
               if (event.data === paused) {
                 stopPolling();
-                syncSubtitle();
+                tick();
                 return;
               }
 
@@ -272,10 +292,14 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
     return () => {
       cancelled = true;
       stopPolling();
-      playerRef.current?.destroy?.();
+      try {
+        playerRef.current?.destroy?.();
+      } catch {
+        // Ignore stale iframe/player teardown errors during route transitions.
+      }
       playerRef.current = null;
     };
-  }, [iframeId, subtitleCues, videoId]);
+  }, [iframeId, videoId]);
 
   useEffect(() => {
     let cancelled = false;

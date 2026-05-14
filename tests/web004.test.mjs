@@ -31,6 +31,11 @@ test("WEB-004 subtitle panel exists and contains player sync plus translate hook
 
   assert.match(panel, /getCurrentTime/);
   assert.match(panel, /setInterval/);
+  assert.match(panel, /subtitleCuesRef/);
+  assert.match(panel, /try\s*{[\s\S]*getCurrentTime/);
+  assert.match(panel, /if\s*\(!playerRef\.current\)/);
+  assert.match(panel, /\[iframeId,\s*videoId\]/);
+  assert.doesNotMatch(panel, /\[iframeId,\s*subtitleCues,\s*videoId\]/);
   assert.match(panel, /\/api\/translate/);
   assert.match(panel, /origin:\s*window\.location\.origin/);
   assert.doesNotMatch(panel, /vercel\.app/);
