@@ -782,3 +782,30 @@
 **备注**
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #36 - 2026-05-14
+
+**本轮目标**：Codex1 按新 ticket 将 `/api/subtitle` 从手写 YouTube timedtext URL 改为使用 `youtube-transcript` 包。
+
+**已完成**
+- 安装 `youtube-transcript` 依赖。
+- 重写 `src/app/api/subtitle/route.ts`：使用 `YoutubeTranscript.fetchTranscript(videoId, { lang })` 获取字幕。
+- 保留 Redis 缓存逻辑，缓存 namespace 改为 `youtube:subtitle:transcript`，TTL 24h。
+- 将 `youtube-transcript` 返回的 `{ text, duration, offset }` 转为现有 `{ start, dur, text }`，毫秒转秒。
+- 增加日志：`[subtitle] fetched ... cues for ...` 和 `[subtitle] youtube-transcript failed: ...`。
+- 更新 `tests/web004.test.mjs`，验证依赖、转换逻辑和日志合同。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `npm test`：47/47 通过
+- `npm run build`：通过
+
+**备注**
+- 首次 `npm install youtube-transcript` 因 npm 使用全局 `C:\Program Files\nodejs\node_cache` 无权限失败；改用 `C:\tmp\npm-cache` 后安装成功。
+- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
+- 本次没有修改 `.env`，没有提交任何密钥。

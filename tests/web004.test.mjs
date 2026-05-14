@@ -10,20 +10,17 @@ test("WEB-004 subtitle route exists and fetches YouTube timedtext", async () => 
   assert.ok(existsSync(routePath), `${routePath} should exist`);
 
   const route = await readText(routePath);
+  const pkg = JSON.parse(await readText("package.json"));
 
   assert.match(route, /export\s+async\s+function\s+GET/);
-  assert.match(route, /timedtext/);
-  assert.match(route, /type=list/);
-  assert.match(route, /User-Agent/);
-  assert.match(route, /listXml\.slice\(0,\s*300\)/);
-  assert.match(route, /lang_code/);
-  assert.match(route, /name/);
-  assert.match(route, /encodeURIComponent\(track\.name\)/);
-  assert.match(route, /startsWith\(["']\{["']\)/);
-  assert.match(route, /fmt=json3/);
-  assert.match(route, /es-419/);
-  assert.match(route, /es-MX/);
+  assert.match(route, /YoutubeTranscript/);
+  assert.match(route, /fetchTranscript/);
+  assert.match(route, /offset\s*\/\s*1000/);
+  assert.match(route, /duration\s*\/\s*1000/);
+  assert.match(route, /\[subtitle\] fetched/);
+  assert.match(route, /\[subtitle\] youtube-transcript failed/);
   assert.match(route, /24\s*\*\s*60\s*\*\s*60/);
+  assert.ok(pkg.dependencies["youtube-transcript"]);
 });
 
 test("WEB-004 subtitle panel exists and contains player sync plus translate hooks", async () => {

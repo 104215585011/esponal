@@ -2479,3 +2479,35 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 **Notes**
 - Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
 - No `.env` or secret files were modified.
+
+---
+
+## Codex1 Dev Addendum - Session #36 (2026-05-14 16:29)
+
+**Scope**
+- WEB-004 subtitle runtime fix: replace hand-built timedtext fetching with `youtube-transcript`.
+
+**Files changed**
+- `package.json`
+- `package-lock.json`
+- `src/app/api/subtitle/route.ts`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added `youtube-transcript` dependency.
+- Rewrote `/api/subtitle` to call `YoutubeTranscript.fetchTranscript(videoId, { lang })`.
+- Preserved Redis caching through `getCachedJson`, with cache namespace `youtube:subtitle:transcript` and TTL 24h.
+- Converted transcript items from `{ text, duration, offset }` to `{ start, dur, text }` using milliseconds-to-seconds conversion.
+- Added runtime logs: `[subtitle] fetched` on success and `[subtitle] youtube-transcript failed:` on failure.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Local install required `npm_config_cache=C:\tmp\npm-cache` because the machine-global npm cache under `C:\Program Files\nodejs\node_cache` is not writable.
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.
