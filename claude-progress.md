@@ -809,3 +809,31 @@
 - 首次 `npm install youtube-transcript` 因 npm 使用全局 `C:\Program Files\nodejs\node_cache` 无权限失败；改用 `C:\tmp\npm-cache` 后安装成功。
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #37 - 2026-05-14
+
+**本轮目标**：Codex1 排查并修复 YouTube iframe API postMessage origin mismatch 与播放器打不开风险。
+
+**排查结论**
+- `npm run build` 本地通过，`youtube-transcript` 没有引入构建错误。
+- `youtube-transcript` 只在 `src/app/api/subtitle/route.ts` 服务端 route 中 import，没有进入客户端组件。
+- 源码中没有写死旧 Vercel URL，也没有 `origin=` iframe query。
+- `SubtitlePanel.tsx` 的 `YT.Player` 初始化之前没有传 origin；在 Vercel preview URL 高频变化时，显式使用当前页面 origin 更稳。
+
+**已完成**
+- `src/app/watch/SubtitlePanel.tsx` 的 `YT.Player` 初始化增加 `playerVars.origin = window.location.origin`。
+- 更新 `tests/web004.test.mjs`，断言使用动态 origin 且不包含 `vercel.app` 写死域名。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `npm test`：47/47 通过
+- `npm run build`：通过
+
+**备注**
+- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
+- 本次没有修改 `.env`，没有提交任何密钥。

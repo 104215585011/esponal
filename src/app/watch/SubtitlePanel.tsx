@@ -44,6 +44,9 @@ type YouTubePlayer = {
 type YouTubePlayerConstructor = new (
   elementId: string,
   config: {
+    playerVars?: {
+      origin?: string;
+    };
     events?: {
       onReady?: () => void;
       onStateChange?: (event: YouTubePlayerStateChangeEvent) => void;
@@ -234,6 +237,9 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
         }
 
         playerRef.current = new yt.Player(iframeId, {
+          playerVars: {
+            origin: window.location.origin
+          },
           events: {
             onReady: () => {
               syncSubtitle();

@@ -2511,3 +2511,35 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 - Local install required `npm_config_cache=C:\tmp\npm-cache` because the machine-global npm cache under `C:\Program Files\nodejs\node_cache` is not writable.
 - Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
 - No `.env` or secret files were modified.
+
+---
+
+## Codex1 Dev Addendum - Session #37 (2026-05-14 16:36)
+
+**Scope**
+- WEB-003/WEB-004 player runtime fix: avoid YouTube iframe API origin mismatch on Vercel preview deployments.
+
+**Findings**
+- `npm run build` passed locally before code changes.
+- `youtube-transcript` is imported only by `src/app/api/subtitle/route.ts`, so it is server-only and not bundled into `SubtitlePanel`.
+- No hardcoded Vercel URL or `origin=` iframe query existed in source.
+- `YT.Player` was initialized without an explicit origin, which can be brittle when Vercel deployment URLs change.
+
+**Files changed**
+- `src/app/watch/SubtitlePanel.tsx`
+- `tests/web004.test.mjs`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**What changed**
+- Added `playerVars: { origin: window.location.origin }` to `new yt.Player(...)`.
+- Added regression test coverage that asserts dynamic origin use and no hardcoded `vercel.app` domain.
+
+**Verification run**
+- `node tests/web004.test.mjs` -> pass (2/2)
+- `npm test` -> pass (47/47)
+- `npm run build` -> pass
+
+**Notes**
+- Build still emits the existing `SiteHeader.tsx` `<img>` lint warning and Node `url.parse()` deprecation warnings; neither blocks build.
+- No `.env` or secret files were modified.
