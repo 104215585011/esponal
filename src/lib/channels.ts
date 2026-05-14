@@ -5,15 +5,15 @@ export type CuratedChannel = {
 
 export const curatedChannels: CuratedChannel[] = [
   {
-    title: "Extra Spanish",
-    id: "UCo8bcnLyZH8tBIH9V1mLgqQ"
-  },
-  {
     title: "Dreaming Spanish",
-    id: "UCxZBjsGkdFIBxN-PQ5MZPSA"
+    id: "UCouyFdE9-Lrjo3M_2idKq1A"
   },
   {
-    title: "Español con Juan",
-    id: "UCLKsD7YzCkTFT5AhFgkWN_g"
+    title: "Spanish Okay",
+    id: "UCW1FQuVy10_biDAxAj1iTEQ"
+  },
+  {
+    title: "Easy Spanish",
+    id: "UCAL4AMMMXKxHDu3FqZV6CbQ"
   }
 ];

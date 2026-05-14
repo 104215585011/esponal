@@ -48,10 +48,10 @@ test("WEB-002 curated channel list exists with at least three starter channels",
 
   const channels = await readText(channelsPath);
 
-  assert.match(channels, /Extra Spanish/);
   assert.match(channels, /Dreaming Spanish/);
-  assert.match(channels, /Español con Juan/);
-  assert.match(channels, /UCo8bcnLyZH8tBIH9V1mLgqQ/);
-  assert.match(channels, /UCxZBjsGkdFIBxN-PQ5MZPSA/);
-  assert.match(channels, /UCLKsD7YzCkTFT5AhFgkWN_g/);
+  assert.match(channels, /Spanish Okay/);
+  assert.match(channels, /Easy Spanish/);
+  assert.match(channels, /UCouyFdE9-Lrjo3M_2idKq1A/);
+  assert.match(channels, /UCW1FQuVy10_biDAxAj1iTEQ/);
+  assert.match(channels, /UCAL4AMMMXKxHDu3FqZV6CbQ/);
 });
