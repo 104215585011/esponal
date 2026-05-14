@@ -205,14 +205,14 @@
     "area": "web",
     "title": "Web 端双语字幕",
     "user_visible_behavior": "播放器页自动显示西语原文字幕 + 中文翻译，与视频进度同步",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "有字幕的西语视频自动显示双语字幕",
       "字幕跟随视频进度更新",
       "中文翻译语义正确（抽查 3 条）",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 2026-05-14 11:03: added src/app/api/subtitle/route.ts to fetch YouTube timedtext json3 subtitles, normalize events into [{ start, dur, text }], and cache by videoId+lang for 24 hours via Redis. Rebuilt src/app/watch/SubtitlePanel.tsx to load the YouTube iframe API, poll player.getCurrentTime() every 100ms while playing, sync the active Spanish subtitle cue, and translate changed lines through /api/translate with a local Map cache. Updated src/app/watch/page.tsx to provide a stable iframe id and added tests/web004.test.mjs. Verification: node --test tests/web004.test.mjs passed 2/2; npm test passed 39/39; npm run build passed.",
     "notes": "服务端拉取 YouTube timedtext XML → 解析为 JSON → 前端按 currentTime 同步渲染。翻译走 /api/translate（已有），Redis 缓存。依赖 WEB-003"
   },
   {

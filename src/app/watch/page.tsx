@@ -8,6 +8,8 @@ import { WatchSidebar } from "./WatchSidebar";
 
 export const dynamic = "force-dynamic";
 
+const PLAYER_IFRAME_ID = "esponal-youtube-player";
+
 type WatchPageProps = {
   searchParams?: {
     v?: string;
@@ -101,6 +103,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
                   allow="autoplay; encrypted-media; fullscreen"
                   allowFullScreen
                   className="h-full w-full border-0"
+                  id={PLAYER_IFRAME_ID}
                   src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1`}
                   title={videoInfo.title}
                 />
@@ -110,10 +113,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
                 </div>
               )}
             </div>
-            <SubtitlePanel
-              chineseLine="…"
-              spanishLine={videoId ? "字幕将在这里显示" : ""}
-            />
+            <SubtitlePanel iframeId={PLAYER_IFRAME_ID} videoId={videoId} />
           </div>
 
           <div className="mt-4">
