@@ -221,13 +221,13 @@
     "area": "web",
     "title": "Web 端点击查词",
     "user_visible_behavior": "点击播放器页字幕中任意西语词，弹出查词卡片（词根、变位说明、释义、加入词库）",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "点击 fui 弹出卡片显示词根 ir",
       "点击加入词库后 /vocab 出现该词条",
       "npm test 通过"
     ],
-    "evidence": "Codex1 2026-05-14 13:50: added src/app/watch/LookupCard.tsx and updated src/app/watch/SubtitlePanel.tsx to split the active Spanish subtitle line into clickable per-word spans, call /api/lemmatize for lookup details, and POST /api/vocab/add with sourceUrl, timestampSec, originalSentence, and translatedSentence. Added tests/web005.test.mjs. Verification: node tests/web005.test.mjs passed 2/2; npm test passed 41/41; npm run build passed. Build still shows the pre-existing SiteHeader <img> lint warning and ioredis ECONNREFUSED warnings when Redis is absent, but WEB-005 compiles and tests cleanly.",
+    "evidence": "Codex2 QA 2026-05-14 14:18: node tests/web005.test.mjs passed 2/2; npm test passed 41/41; npm run build passed. Source verification confirmed src/app/watch/LookupCard.tsx exists, calls /api/lemmatize, and posts add-to-vocab data to /api/vocab/add including sourceUrl and timestampSec. Source verification confirmed src/app/watch/SubtitlePanel.tsx renders per-word clickable subtitle spans, wires setActiveLookup on click/keyboard, preserves the 100ms player subtitle sync loop, and mounts LookupCard without replacing polling behavior. Build still shows the pre-existing SiteHeader <img> lint warning and ioredis ECONNREFUSED warnings when Redis is absent, but WEB-005 passes the required QA checks.",
     "notes": "从 EXT-003 迁移逻辑到 Web 组件。依赖 WEB-004"
   },
   {

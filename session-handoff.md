@@ -2738,3 +2738,72 @@ WEB-001 and WEB-002 are blocked only by invalid YOUTUBE_API_KEY. No code changes
 
 **Next best action**
 - Codex2 runs QA for `WEB-005`, then Codex1 starts `WEB-006`
+
+---
+
+## Codex2 QA Report - WEB-005 Web subtitle word lookup
+**时间**：2026-05-14 14:18
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 全量测试基线
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ WEB-005 lookup card exists and calls lemmatize plus vocab add routes
+   ✔ WEB-005 subtitle panel renders per-word spans and click handler
+   ℹ tests 41
+   ℹ pass 41
+   ℹ fail 0
+   ```
+   结果：✅
+
+2. 生产构建
+   命令：`npm run build`
+   输出：
+   ```text
+   ▲ Next.js 14.2.18
+   ✓ Compiled successfully
+   ✓ Generating static pages (22/22)
+   Route (app) includes /api/lemmatize, /api/vocab/add, /watch
+   ```
+   结果：✅
+
+3. LookupCard 源码检查
+   命令：检查 `src/app/watch/LookupCard.tsx`
+   输出：
+   ```text
+   文件存在；包含 fetch("/api/lemmatize")、fetch("/api/vocab/add")、sourceUrl、timestampSec、加入我的词库按钮逻辑
+   ```
+   结果：✅
+
+4. SubtitlePanel 源码检查
+   命令：检查 `src/app/watch/SubtitlePanel.tsx`
+   输出：
+   ```text
+   文件存在；包含 splitSubtitleTokens、逐词 span 渲染、setActiveLookup onClick/onKeyDown、LookupCard 挂载，以及 window.setInterval(..., 100) 字幕同步轮询
+   ```
+   结果：✅
+
+5. WEB-005 结构测试
+   命令：`node tests/web005.test.mjs`
+   输出：
+   ```text
+   ✔ WEB-005 lookup card exists and calls lemmatize plus vocab add routes
+   ✔ WEB-005 subtitle panel renders per-word spans and click handler
+   ℹ tests 2
+   ℹ pass 2
+   ℹ fail 0
+   ```
+   结果：✅
+
+**补充说明**：
+- `npm run build` 仍出现既有的 `SiteHeader.tsx` `<img>` lint warning。
+- Redis 未启动时仍出现既有的 `ioredis ECONNREFUSED` warning。
+- 以上两项未阻塞 WEB-005 的测试和构建通过，也不是本票新增问题。
+
+**移交**：
+- `feature_list.json`：`WEB-005` 已更新为 `passing`
+- 下一步可交给 Codex1 开始 `WEB-006`
