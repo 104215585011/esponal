@@ -704,9 +704,12 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     }, 250);
   }, [activeCueIndex, followMode, renderEnd, renderStart]);
 
+  // Clear lookup only on context switches (display mode / video change),
+  // NOT on activeCueIndex change — user wants the card to stay while
+  // playback continues so they can finish reading the entry.
   useEffect(() => {
     setActiveLookup(null);
-  }, [activeCueIndex, displayMode, videoId]);
+  }, [displayMode, videoId]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
