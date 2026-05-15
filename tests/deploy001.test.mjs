@@ -26,11 +26,11 @@ test("DEPLOY-001 auth options are built lazily behind env checks", async () => {
   assert.match(auth, /export function getAuthOptions\(\): NextAuthOptions/);
   assert.match(auth, /const hasDatabaseUrl = Boolean\(process\.env\.DATABASE_URL\)/);
   assert.match(auth, /const hasGoogleProvider = Boolean\(/);
-  assert.match(auth, /providers = hasGoogleProvider/);
+  assert.match(auth, /providers: Provider\[\] = hasGoogleProvider/);
   assert.match(auth, /if \(!hasDatabaseUrl\)/);
   assert.match(auth, /const \{ prisma \} = require\("@\/lib\/prisma"\)/);
   assert.match(auth, /strategy: "jwt"/);
-  assert.match(auth, /strategy: "database"/);
+  assert.doesNotMatch(auth, /strategy: "database"/);
 });
 
 test("DEPLOY-001 vercel install generates Prisma Client before Next build", async () => {

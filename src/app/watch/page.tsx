@@ -1,14 +1,18 @@
-import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
-import { getAuthOptions } from "@/lib/auth";
 import { getSiteUrl } from "@/lib/site-url";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
-import { SubtitlePanel } from "./SubtitlePanel";
-import { WatchSidebar } from "./WatchSidebar";
+import { RelatedPanel } from "./RelatedPanel";
+import { TranscriptPanel } from "./TranscriptPanel";
 
 export const dynamic = "force-dynamic";
 
 const PLAYER_IFRAME_ID = "esponal-youtube-player";
+const MOCK_CHAPTERS = [
+  { time: "0:00", title: "介绍与嘉宾登场" },
+  { time: "1:45", title: "加拿大人学西语的旅程" },
+  { time: "5:20", title: "阿根廷口音的特点" },
+  { time: "9:10", title: "vos 用法与日常对话" }
+];
 
 type WatchPageProps = {
   searchParams?: {
@@ -85,18 +89,15 @@ async function fetchRelatedVideos(query: string, currentVideoId: string) {
 
 export default async function WatchPage({ searchParams }: WatchPageProps) {
   const videoId = searchParams?.v?.trim() ?? "";
-  const [session, videoInfo] = await Promise.all([
-    getServerSession(getAuthOptions()),
-    fetchVideoInfo(videoId)
-  ]);
+  const videoInfo = await fetchVideoInfo(videoId);
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelTitle, videoId);
 
   return (
     <main className="min-h-screen bg-[#F9FAFB]">
       <SiteHeader />
-      <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 px-4 py-6 md:flex-row">
-        <section className="min-w-0 flex-1">
-          <div className="overflow-hidden rounded-t-xl bg-black">
+      <div className="relative flex min-h-[calc(100vh-58px)] overflow-hidden pl-7">
+        <section className="flex basis-[63%] flex-col justify-center overflow-y-auto py-8 pr-6">
+          <div className="w-full overflow-hidden rounded-[14px] bg-black shadow-[0_1px_3px_rgba(0,0,0,0.07),0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="aspect-video w-full">
               {videoId ? (
                 <iframe
@@ -113,22 +114,49 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
                 </div>
               )}
             </div>
-            <SubtitlePanel iframeId={PLAYER_IFRAME_ID} videoId={videoId} />
           </div>
 
-          <div className="mt-4">
-            <h1 className="line-clamp-2 text-xl font-semibold text-gray-900">
+          <div className="mt-4 px-0.5">
+            <div className="mb-2 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11.5px] font-semibold text-green-700">
+              A1 入门级
+            </div>
+            <h1 className="line-clamp-2 text-[17px] font-semibold leading-7 text-gray-900">
               {videoInfo.title}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">{videoInfo.channelTitle}</p>
+            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-green-600 to-sky-500 text-[10px] font-bold text-white">
+                ES
+              </div>
+              <span>{videoInfo.channelTitle}</span>
+            </div>
+          </div>
+
+          <div className="mt-5 px-0.5">
+            <div className="mb-3 h-px bg-gray-200" />
+            <p className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.5px] text-gray-500">
+              章节
+            </p>
+            <div className="space-y-1">
+              {MOCK_CHAPTERS.map((chapter) => (
+                <div
+                  className="flex items-center gap-3 rounded-md px-1 py-1.5 text-sm text-gray-700 transition hover:bg-gray-100"
+                  key={chapter.time}
+                >
+                  <span className="w-9 shrink-0 text-[11px] font-semibold text-gray-400">
+                    {chapter.time}
+                  </span>
+                  <span>{chapter.title}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        <WatchSidebar
-          isLoggedIn={Boolean(session?.user)}
-          relatedVideos={relatedVideos}
-          savedWords={[]}
-        />
+        <section className="min-w-0 flex-1 border-l border-gray-200 bg-white">
+          <TranscriptPanel iframeId={PLAYER_IFRAME_ID} videoId={videoId} />
+        </section>
+
+        <RelatedPanel relatedVideos={relatedVideos} />
       </div>
     </main>
   );

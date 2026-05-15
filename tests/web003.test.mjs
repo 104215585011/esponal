@@ -13,6 +13,6 @@ test("WEB-003 watch page exists and embeds the YouTube player shell", async () =
 
   assert.match(page, /youtube\.com\/embed/);
   assert.match(page, /enablejsapi=1/);
-  assert.match(page, /WatchSidebar/);
-  assert.match(page, /SubtitlePanel/);
+  assert.match(page, /TranscriptPanel/);
+  assert.match(page, /RelatedPanel/);
 });

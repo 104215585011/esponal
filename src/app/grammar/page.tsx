@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { grammarGroups, grammarTopics } from "../../../content/grammar/topics";
 import { GrammarTopicSelect } from "./GrammarTopicSelect";
 
 export default function GrammarHomePage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] text-gray-900">
+      <SiteHeader />
       <div className="mx-auto flex w-full max-w-5xl gap-8 px-4 py-8 sm:px-8">
         <aside className="hidden w-[220px] shrink-0 lg:block">
           <h2 className="mb-4 text-sm font-semibold text-gray-900">语法话题</h2>

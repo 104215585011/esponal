@@ -53,6 +53,21 @@ export async function SiteHeader({
           />
         </form>
 
+        <nav className="hidden items-center gap-1 sm:flex">
+          <Link
+            className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+            href="/learn/phase-1"
+          >
+            课程
+          </Link>
+          <Link
+            className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+            href="/grammar"
+          >
+            语法
+          </Link>
+        </nav>
+
         <div className="shrink-0">
           {session?.user ? (
             <details className="relative">
@@ -77,9 +92,6 @@ export async function SiteHeader({
                 >
                   我的词库
                 </Link>
-                <span className="block rounded-md px-3 py-2 text-sm text-gray-300">
-                  设置
-                </span>
                 <Link
                   className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   href="/api/auth/signout"
@@ -91,7 +103,7 @@ export async function SiteHeader({
           ) : (
             <Link
               className="text-sm text-gray-600 transition hover:text-gray-900"
-              href="/api/auth/signin"
+              href="/auth/sign-in"
             >
               登录
             </Link>

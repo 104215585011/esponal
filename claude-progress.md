@@ -924,3 +924,204 @@
 - 生产环境需要配置 `APIFY_API_TOKEN`。
 - 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
 - 本次没有修改 `.env`，没有提交任何密钥。
+
+### Session #41 - 2026-05-15
+
+**本轮目标**：PM 写 WEB-007 ticket，播放页重设计
+
+**背景**：
+WEB-004/005/006 全部通过。字幕、翻译、查词、高亮功能均已验收。
+用户提出将播放页改为双列布局：左大播放器 + 右全文双语字幕面板，
+相关视频改为悬停弹出覆层。UI 模型已由 Claude2 完成并通过 PM 评审（`mockup-watch.html`）。
+
+**新增 Ticket：WEB-007 — 播放页重设计（双语字幕面板布局）**
+
+---
+
+#### WEB-007 Ticket
+
+**优先级**：P1
+**依赖**：WEB-004 ✅、WEB-005 ✅、WEB-006 ✅
+**UI 规范**：`mockup-watch.html`（项目根目录，已通过 PM + Claude2 评审）
+**执行人**：Codex1 实现 → Codex2 验收
+
+**需求背景**：
+当前播放页字幕叠在视频下方黑色面板，一次只显示一句。
+新设计：左侧大播放器垂直居中，右侧显示完整双语字幕面板（全篇），
+相关视频改为右边缘悬停弹出覆层。
+
+**布局规格**：
+- 整体：两列，左 63% 右 37%，右侧贴右边缘
+- 左列：视频播放器（16:9）垂直居中 + 标题/频道 + 章节占位（3-4 条 mock 章节，UI 仅展示，不接后端）
+- 右列：TranscriptPanel，全篇双语字幕，顶部有三个切换 tab（ES+中 / 仅西语 / 仅中文）
+- 右边缘：RelatedPanel 覆层，24×48px 箭头 tab，悬停 120ms 展开，300ms 后收起，点击固定
+
+**组件变更**：
+
+1. **删除** `SubtitlePanel.tsx` 在 `watch/page.tsx` 中的使用（黑色字幕条移除）
+   - `SubtitlePanel.tsx` 文件本身保留，但从页面中卸载
+
+2. **新建** `src/app/watch/TranscriptPanel.tsx`（客户端组件）：
+   - 加载字幕：`GET /api/subtitle?v={videoId}&lang=es`，拿到全部 cues
+   - 翻译：对每条 cue 调用 `POST /api/translate`，**限流**：每批最多 5 个并发，首屏优先，后台异步完成其余
+   - 展示：时间戳（hover 才显示）+ 西语行 + 中文行，按 `mockup-watch.html` 样式
+   - 高亮：接收 `currentTimeSec` prop，找到当前 cue，加绿色左边框 + 字体加粗，无背景色填充
+   - 自动滚动：当前 cue 滚入可视区，用户手动滚动后停止，显示「↓ 回到当前位置」浮动按钮
+   - 点击 cue：调用父层传入的 `onSeek(start)` 回调
+   - tab 切换：ES+中 / 仅西语 / 仅中文，控制 `cue-zh` 行的显示隐藏
+   - 复用 `LookupCard`：点击西语行中的单词仍可查词（逻辑从 SubtitlePanel 迁移过来）
+
+3. **新建** `src/app/watch/RelatedPanel.tsx`（客户端组件）：
+   - 接收 `relatedVideos` prop
+   - 右边缘 tab（24×48px，半透明白色，仅三边边框）
+   - 悬停 120ms → 展开，离开 300ms → 收起（未固定时）
+   - 点击 tab 或"固定"按钮 → 固定展开，再点取消固定
+   - 内部：视频卡片列表（thumbnail + 标题 + 频道），复用现有 `VideoCard`
+
+4. **修改** `src/app/watch/page.tsx`：
+   - 布局改为 `flex` 两列（左 63% 右 37%），右侧无右 padding（贴边）
+   - 左列：`flex-col justify-center`，内含 video iframe + meta + 章节区
+   - 右列：`TranscriptPanel`，传入 `videoId`、`currentTimeSec`、`onSeek`
+   - `RelatedPanel` 覆盖在右侧，`position: fixed/absolute` right: 0
+   - `YT.Player` 实例和 `currentTimeSec` 状态提升到 page 级（或保留在 TranscriptPanel 内部管理）
+   - 移除 `WatchSidebar` 引用
+
+5. **修改** `src/app/watch/WatchSidebar.tsx`：
+   - 暂时保留文件，但 page.tsx 不再引用
+   - 词汇 tab 功能后续另立 ticket
+
+**播放器集成**：
+- YouTube iframe API（`YT.Player`）初始化逻辑从 SubtitlePanel 迁移至 TranscriptPanel 或 page 层
+- `currentTimeSec` 每 100ms poll 一次（仅播放中），暂停时停止 poll
+- `onSeek(start)` → `player.seekTo(start, true)` + `player.playVideo()`
+
+**测试要求（Codex2 验收）**：
+- `npm test` 通过（更新 `tests/web004.test.mjs`，断言 TranscriptPanel 存在、SubtitlePanel 从 page 移除）
+- `npm run build` 通过
+- 新增 `tests/web007.test.mjs`：断言 TranscriptPanel、RelatedPanel 文件存在，关键 prop/接口合同
+
+**不做（本 ticket 范围外）**：
+- 真实章节数据接入（章节区显示 mock 数据即可）
+- 词汇 tab / 本视频词汇面板（后续 ticket）
+- 移动端响应式（后续 ticket）
+
+---
+
+**下一步最佳动作**：交给 Codex1 实现 WEB-007
+
+### Session #42 - 2026-05-15
+
+**本轮目标**：Codex1 实现 `WEB-007` 播放器页重设计。
+**已完成**
+- 新增 `src/app/watch/TranscriptPanel.tsx`，用整篇 transcript 取代旧的底部黑色字幕条。
+- TranscriptPanel 接入 `/api/subtitle`，按最多 5 并发调用 `/api/translate`，首屏 cues 优先翻译。
+- TranscriptPanel 保留逐词点击查词能力，继续复用 `LookupCard`，并把课程词/词库词高亮迁移到整篇 transcript。
+- TranscriptPanel 内部接管 YouTube iframe API 轮询与 `seekTo()` 跳转，支持 active cue 自动滚动、手动滚动后“回到当前位置”按钮。
+- 新增 `src/app/watch/RelatedPanel.tsx`，实现右边缘 hover 展开、离开收起、点击固定的相关视频覆层。
+- 重写 `src/app/watch/page.tsx` 为 63/37 双列布局，左侧播放器 + meta + mock chapters，右侧 TranscriptPanel，页面不再挂载 `SubtitlePanel` 或 `WatchSidebar`。
+- 更新 `tests/web003.test.mjs`、`tests/web004.test.mjs`，并新增 `tests/web007.test.mjs` 覆盖新页面契约。
+- 保持 `src/app/watch/SubtitlePanel.tsx` 与 `src/app/watch/WatchSidebar.tsx` 文件存在，但不再由页面入口使用。
+
+**运行过的验证**
+- `node tests/web004.test.mjs`
+- `node tests/web007.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node tests/web004.test.mjs`：2/2 通过
+- `node tests/web007.test.mjs`：2/2 通过
+- `npm test`：49/49 通过
+- `npm run build`：通过
+
+**备注**
+- `npm run build` 仍会出现既有的 `SiteHeader.tsx` `<img>` lint warning。
+- 构建输出仍有既有的 Node `url.parse()` deprecation warnings，不阻塞本票。
+- 本轮未改动 `.env`，未提交任何密钥文件。
+
+**下一步最佳动作**：交给 Codex2 按 `WEB-007` 新布局做 QA 验收，并确认 transcript / related overlay 的结构契约与构建结果。
+
+### Session #43 - 2026-05-15
+
+**本轮目标**：Codex2 验收 `WEB-007` 播放器页重设计。
+
+**已完成**
+- 读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`、`feature_list.json`、`claude-progress.md`。
+- 运行 `npm test`，49/49 通过。
+- 运行 `npm run build`，构建通过；仅保留既有 `SiteHeader.tsx` `<img>` warning 与 Node `url.parse()` deprecation warnings。
+- 检查 `src/app/watch/page.tsx`，确认挂载 `TranscriptPanel` / `RelatedPanel`，未 import 或渲染 `SubtitlePanel` / `WatchSidebar`。
+- 检查 `TranscriptPanel.tsx`，确认包含 `/api/subtitle`、`/api/translate`、`/api/vocab/highlight`、`LookupCard`、`seekTo`、`scrollIntoView`、三种显示模式与高亮颜色。
+- 检查 `RelatedPanel.tsx`，确认包含 `relatedVideos`、120ms 展开、300ms 收起、pinned/pin toggle 与右侧 overlay/tab 样式。
+- 运行 `node tests/web004.test.mjs` 与 `node tests/web007.test.mjs`，均 2/2 通过。
+- 检查 `feature_list.json` 可解析，且 QA 更新前 `WEB-007.status` 为 `ready_for_qa`。
+- 更新 `feature_list.json`：`WEB-007.status = passing`，填写 Codex2 QA evidence。
+- 更新 `session-handoff.md`：追加 Codex2 QA Report。
+
+**结论**：`WEB-007` Codex2 功能验收通过。后续如需 UI 视觉终验，可交给 Claude2。
+
+### Session #42 - 2026-05-15
+
+**本轮目标**：WEB-007 实现、验收、UI 视觉终验，修复 active 行中文颜色
+
+**已完成**：
+- Codex1 实现 WEB-007：新建 TranscriptPanel.tsx、RelatedPanel.tsx，重构 watch/page.tsx，移除黑色字幕条
+- Codex2 功能验收：49/49 通过，build 通过，WEB-007 status = passing
+- Claude2 UI 视觉终验：有条件通过，发现 active 行中文颜色未切换（P1）
+- Codex1 修复 P1：TranscriptPanel.tsx 第 678 行 isActive 时 text-gray-500 → text-gray-600
+- 修复后 npm test 49/49，build 通过，WEB-007 正式关闭
+
+**当前最高优先级未完成功能**：待 PM 规划 Phase 3
+
+**下一步最佳动作**：PM 规划下一阶段
+
+### Session #44 - 2026-05-15
+
+**本轮目标**：Codex1 实现 `AUTH-001` 完整认证系统（Google OAuth + 邮箱密码）。
+
+**已完成**
+- 在 `prisma/schema.prisma` 的 `User` model 增加 nullable `password String?`，用于邮箱密码用户保存 bcrypt hash，Google 用户保持 null。
+- 运行 `npx prisma migrate dev --name add-user-password`，已生成并应用 `prisma/migrations/20260515022642_add_user_password/migration.sql`。
+- 安装 `bcryptjs` 与 `@types/bcryptjs`。
+- 新增 `src/app/api/auth/register/route.ts`，支持邮箱格式校验、密码最少 8 位、邮箱查重、bcrypt hash、创建用户并返回 201。
+- 更新 `src/lib/auth.ts`，加入 `CredentialsProvider`，使用 bcrypt compare 验证密码；Google 用户因 `password = null` 会拒绝 credentials 登录；session 统一为 `jwt`。
+- 新增 `src/app/auth/sign-in/page.tsx` 和 `src/app/auth/sign-up/page.tsx`，按 `mockup-signin.html` / `mockup-signup.html` 的白卡、绿色主题实现登录和注册流程。
+- 新增 `tests/auth001.test.mjs`，更新 `tests/deploy001.test.mjs` 中 AUTH-001 后的 JWT session 约定。
+- 更新 `feature_list.json`，新增 `AUTH-001` 并标记为 `ready_for_qa`。
+
+**运行过的验证**
+- `node tests/auth001.test.mjs` -> 6/6 通过
+- `npm test` -> 55/55 通过
+- `npm run build` -> 通过
+
+**备注**
+- `npx prisma migrate dev` 的 Prisma Client generate 阶段曾出现 Windows 文件 rename EPERM，但后续 `npm run build` 通过，说明当前生成产物足以完成构建。
+- `npm run build` 仍有既有 `SiteHeader.tsx` `<img>` lint warning 与 Node `url.parse()` deprecation warnings，未阻塞构建。
+- 本轮未修改 `.env`，未提交任何密钥文件。
+
+**下一步最佳动作**：交给 Codex2 按 AUTH-001 验收标准测试 Google 登录、邮箱注册、邮箱登录和错误提示。
+
+**AUTH-001 补充记录（2026-05-15 10:33）**
+- 为兼容既有词库接口，`src/lib/auth.ts` 已补充 `jwt` / `session` callbacks，把用户 id 保留到 JWT session 的 `session.user.id`。
+- 已重新运行 `node tests/auth001.test.mjs`、`npm test` 与 `npm run build`，均通过。
+
+### Session #45 - 2026-05-15
+
+**本轮目标**：Codex2 验收 `AUTH-001` 完整认证系统（Google OAuth + 邮箱密码）。
+
+**已完成**
+- 按 Codex2 流程读取 `AGENTS.md`、`roles/ROLE-QA.md`、`claude-progress.md`、`feature_list.json`、`session-handoff.md`，定位 `AUTH-001` 与 Codex1 Dev Report。
+- 运行 `npm test`，55/55 通过。
+- 运行 `npm run build`，构建通过；仅保留既有 `SiteHeader.tsx` `<img>` warning 与 Node `url.parse()` deprecation warnings。
+- 核查 `prisma/schema.prisma`、`prisma/migrations/20260515022642_add_user_password/migration.sql`、`package.json`、`src/app/api/auth/register/route.ts`、`src/lib/auth.ts`、`src/app/auth/sign-in/page.tsx`、`src/app/auth/sign-up/page.tsx`，AUTH-001 结构合同全部通过。
+- 使用临时 dev server `npm run dev -- -p 3004` 做 HTTP smoke，`/auth/sign-in` 与 `/auth/sign-up` 均返回 200，随后确认 3004 无监听。
+- 更新 `feature_list.json`：`AUTH-001.status = passing`，填写 Codex2 QA evidence。
+- 更新 `session-handoff.md`：追加 Codex2 QA Report。
+
+**结论**：`AUTH-001` Codex2 功能验收通过。
+
+**备注**
+- 未修改 `.env`，未提交任何密钥文件。
+- 未 revert 或覆盖 WEB-007 未提交文件。
+- Google OAuth 真实外部授权流程仍依赖环境变量与 provider 配置，本轮确认登录页、provider 调用和页面 HTTP 可访问。
+
+**下一步最佳动作**：PM 规划下一阶段或安排真实 OAuth 环境联调。

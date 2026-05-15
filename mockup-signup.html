@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Esponal — 创建账号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:        #16A34A;
+    --green-light:  #F0FDF4;
+    --green-border: #BBF7D0;
+    --green-text:   #15803D;
+    --green-hover:  #15803D;
+    --gray-50:  #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-400: #9CA3AF;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-zh:   'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --radius-lg: 16px;
+    --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.07),
+                   0 10px 24px -4px rgba(0,0,0,0.09);
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font-main);
+    background: var(--gray-50);
+    color: var(--gray-900);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 40px 40px 32px;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 24px;
+  }
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+    background: var(--green);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.5px;
+    box-shadow: 0 2px 8px rgba(22,163,74,0.32);
+    flex-shrink: 0;
+  }
+  .logo-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.4px;
+  }
+  .logo-name span { color: var(--green); }
+
+  .headline {
+    font-family: var(--font-zh);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--gray-900);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .subline {
+    font-family: var(--font-zh);
+    font-size: 13px;
+    color: var(--gray-500);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 20px;
+    background: #fff;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--font-main);
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--gray-700);
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    text-decoration: none;
+    user-select: none;
+  }
+  .btn-google:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  }
+  .btn-google:active { background: var(--gray-100); box-shadow: none; }
+  .google-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 20px 0;
+  }
+  .or-divider::before,
+  .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+  }
+  .or-divider span {
+    font-family: var(--font-zh);
+    font-size: 12px;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+
+  .form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .field label {
+    font-family: var(--font-zh);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+  }
+  .field input {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-family: var(--font-main);
+    font-size: 14px;
+    color: var(--gray-900);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field input::placeholder { color: var(--gray-400); }
+  .field input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(22,163,74,0.12);
+  }
+
+  /* 密码强度提示 */
+  .hint {
+    font-family: var(--font-zh);
+    font-size: 11.5px;
+    color: var(--gray-400);
+    margin-top: 2px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 11px;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font-zh);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, box-shadow 0.15s;
+    margin-top: 2px;
+  }
+  .btn-submit:hover {
+    background: var(--green-hover);
+    box-shadow: 0 2px 10px rgba(22,163,74,0.28);
+  }
+  .btn-submit:active { background: #166534; box-shadow: none; }
+
+  .footer-links {
+    margin-top: 20px;
+    font-family: var(--font-zh);
+    font-size: 12.5px;
+    color: var(--gray-400);
+    text-align: center;
+  }
+  .footer-links a {
+    color: var(--green-text);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .footer-links a:hover { text-decoration: underline; }
+
+  .legal {
+    margin-top: 16px;
+    font-family: var(--font-zh);
+    font-size: 11.5px;
+    color: var(--gray-400);
+    text-align: center;
+    line-height: 1.7;
+  }
+  .legal a {
+    color: var(--gray-500);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .legal a:hover { color: var(--green-text); }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Logo -->
+  <a class="logo" href="#">
+    <div class="logo-mark">E</div>
+    <span class="logo-name">Espo<span>nal</span></span>
+  </a>
+
+  <!-- Headline -->
+  <p class="headline">创建你的账号</p>
+  <p class="subline">开始你的西语学习之旅</p>
+
+  <!-- Form -->
+  <form class="form" onsubmit="return false">
+
+    <div class="field">
+      <label for="name">昵称</label>
+      <input id="name" type="text" placeholder="你的名字" autocomplete="name" />
+    </div>
+
+    <div class="field">
+      <label for="email">邮箱</label>
+      <input id="email" type="email" placeholder="your@email.com" autocomplete="email" />
+    </div>
+
+    <div class="field">
+      <label for="password">密码</label>
+      <input id="password" type="password" placeholder="至少 8 位" autocomplete="new-password" />
+      <span class="hint">建议包含字母和数字</span>
+    </div>
+
+    <button class="btn-submit" type="submit">创建账号</button>
+
+  </form>
+
+  <!-- Login link -->
+  <p class="footer-links">
+    已有账号？<a href="#">登录</a>
+  </p>
+
+  <!-- Legal -->
+  <p class="legal">
+    注册即代表同意 <a href="#">服务条款</a> 与 <a href="#">隐私政策</a>
+  </p>
+
+</div>
+
+</body>
+</html>

@@ -25,21 +25,25 @@ test("WEB-004 subtitle route exists and fetches YouTube timedtext", async () => 
   assert.ok(!pkg.dependencies["youtube-transcript"]);
 });
 
-test("WEB-004 subtitle panel exists and contains player sync plus translate hooks", async () => {
-  const panelPath = "src/app/watch/SubtitlePanel.tsx";
-  assert.ok(existsSync(panelPath), `${panelPath} should exist`);
+test("WEB-004 transcript panel exists and watch page no longer mounts SubtitlePanel", async () => {
+  const transcriptPanelPath = "src/app/watch/TranscriptPanel.tsx";
+  const watchPagePath = "src/app/watch/page.tsx";
+  const subtitlePanelPath = "src/app/watch/SubtitlePanel.tsx";
 
-  const panel = await readText(panelPath);
+  assert.ok(existsSync(transcriptPanelPath), `${transcriptPanelPath} should exist`);
+  assert.ok(existsSync(watchPagePath), `${watchPagePath} should exist`);
+  assert.ok(existsSync(subtitlePanelPath), `${subtitlePanelPath} should still exist`);
 
-  assert.match(panel, /getCurrentTime/);
-  assert.match(panel, /setInterval/);
-  assert.match(panel, /subtitleCuesRef/);
-  assert.match(panel, /try\s*{[\s\S]*getCurrentTime/);
-  assert.match(panel, /if\s*\(!playerRef\.current\)/);
-  assert.match(panel, /\[iframeId,\s*videoId\]/);
-  assert.doesNotMatch(panel, /\[iframeId,\s*subtitleCues,\s*videoId\]/);
-  assert.match(panel, /\/api\/translate/);
-  assert.match(panel, /origin:\s*window\.location\.origin/);
-  assert.doesNotMatch(panel, /vercel\.app/);
-  assert.match(panel, /text-white\/75/);
+  const transcriptPanel = await readText(transcriptPanelPath);
+  const watchPage = await readText(watchPagePath);
+
+  assert.match(transcriptPanel, /\/api\/subtitle/);
+  assert.match(transcriptPanel, /\/api\/translate/);
+  assert.match(transcriptPanel, /LookupCard/);
+  assert.match(transcriptPanel, /currentTimeSec/);
+  assert.match(transcriptPanel, /seekTo|onSeek/);
+  assert.match(watchPage, /TranscriptPanel/);
+  assert.match(watchPage, /RelatedPanel/);
+  assert.doesNotMatch(watchPage, /<SubtitlePanel/);
+  assert.doesNotMatch(watchPage, /from\s+["']\.\/SubtitlePanel["']/);
 });

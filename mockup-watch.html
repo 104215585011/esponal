@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Esponal — 西语沉浸式学习</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #16A34A;
+    --green-light: #F0FDF4;
+    --green-mid: #DCFCE7;
+    --green-border: #BBF7D0;
+    --green-text: #15803D;
+    --gray-50: #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-400: #9CA3AF;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-zh: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-panel: -6px 0 24px rgba(0,0,0,0.09);
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-main);
+    background: var(--gray-50);
+    color: var(--gray-900);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 28px;
+    height: 58px;
+    background: #fff;
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .logo-mark {
+    width: 30px;
+    height: 30px;
+    background: var(--green);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.5px;
+    box-shadow: 0 2px 6px rgba(22,163,74,0.35);
+  }
+  .logo-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.3px;
+  }
+  .logo-name span { color: var(--green); }
+
+  .search-wrap {
+    display: flex;
+    justify-content: flex-start;
+    margin-right: auto;
+  }
+  .search-inner {
+    position: relative;
+    width: 320px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    pointer-events: none;
+    line-height: 1;
+    font-size: 14px;
+  }
+  .search-inner input {
+    width: 100%;
+    padding: 9px 14px 9px 36px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 9999px;
+    font-size: 14px;
+    font-family: var(--font-main);
+    background: var(--gray-50);
+    color: var(--gray-900);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-inner input::placeholder { color: var(--gray-400); }
+  .search-inner input:focus {
+    border-color: var(--green);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .btn-login {
+    padding: 7px 18px;
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: var(--font-main);
+    color: var(--gray-700);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 9999px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-login:hover { border-color: var(--green); color: var(--green); }
+  .btn-signup {
+    padding: 7px 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: var(--font-main);
+    color: #fff;
+    background: var(--green);
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-signup:hover { background: #15803D; }
+  .btn-signup:active { transform: scale(0.97); }
+
+  /* ── Page layout ─────────────────────────────────────────── */
+  .page {
+    display: flex;
+    height: calc(100vh - 58px);
+    overflow: hidden;
+    position: relative;
+    padding: 0 0 0 28px;
+    gap: 0;
+  }
+
+  /* ── Video column ────────────────────────────────────────── */
+  .video-col {
+    flex: 0 0 63%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 32px 24px 32px 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-200) transparent;
+  }
+  .video-col::-webkit-scrollbar { width: 5px; }
+  .video-col::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+
+  .video-wrapper {
+    background: #000;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    box-shadow: var(--shadow-sm), 0 4px 20px rgba(0,0,0,0.12);
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
+  }
+  .video-poster {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .video-poster::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 60%, rgba(22,163,74,0.08) 0%, transparent 70%);
+  }
+  .poster-label {
+    display: none;
+  }
+  .play-circle {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .video-poster:hover .play-circle { transform: scale(1.08); background: #fff; }
+  .play-circle svg { margin-left: 4px; }
+  .progress-bar-wrap {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.18);
+    z-index: 1;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 28%;
+    background: var(--green);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 6px rgba(22,163,74,0.5);
+  }
+
+  .video-meta {
+    margin-top: 16px;
+    padding: 0 2px;
+  }
+  .video-level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--green-text);
+    margin-bottom: 9px;
+  }
+  .video-title {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--gray-900);
+    letter-spacing: -0.2px;
+  }
+  .video-channel-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .channel-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #16A34A, #0ea5e9);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .channel-name { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+  .video-stats { font-size: 12px; color: var(--gray-400); margin-left: auto; }
+
+  /* ── Transcript column ───────────────────────────────────── */
+  .transcript-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--gray-200);
+    background: #fff;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .transcript-header {
+    padding: 15px 20px 13px;
+    border-bottom: 1px solid var(--gray-100);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .transcript-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    letter-spacing: 0.1px;
+  }
+  .transcript-hint {
+    font-size: 11.5px;
+    color: var(--gray-400);
+    margin-left: auto;
+    font-family: var(--font-zh);
+  }
+  .transcript-lang-pill {
+    display: flex;
+    background: var(--gray-100);
+    border-radius: 99px;
+    padding: 2px;
+    gap: 1px;
+  }
+  .lang-opt {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 99px;
+    cursor: pointer;
+    color: var(--gray-500);
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .lang-opt.active { background: #fff; color: var(--gray-900); box-shadow: var(--shadow-sm); }
+
+  .transcript-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-200) transparent;
+  }
+  .transcript-body::-webkit-scrollbar { width: 4px; }
+  .transcript-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+
+  .cue {
+    padding: 13px 20px 13px 18px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.12s, border-color 0.12s;
+    position: relative;
+  }
+  .cue + .cue { border-top: 1px solid var(--gray-100); }
+  .cue:hover { background: var(--gray-50); }
+  .cue.active {
+    background: transparent;
+    border-left: 3px solid var(--green);
+  }
+  .cue.active:hover { background: var(--gray-50); }
+
+  .cue-ts {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--gray-400);
+    letter-spacing: 0.3px;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    margin-right: 7px;
+    vertical-align: baseline;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .cue:hover .cue-ts { opacity: 1; }
+  .cue.active .cue-ts { color: var(--green); opacity: 1; }
+
+  .cue-es {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--gray-900);
+    line-height: 1.55;
+    letter-spacing: 0.05px;
+    display: inline;
+  }
+  .cue.active .cue-es { color: var(--green-text); font-weight: 700; }
+
+  .cue-zh {
+    font-size: 12.5px;
+    color: var(--gray-500);
+    line-height: 1.6;
+    margin-top: 5px;
+    font-family: var(--font-zh);
+    font-weight: 400;
+    display: block;
+  }
+  .cue.active .cue-zh { color: var(--gray-600, #4B5563); }
+
+  /* ── Related videos panel ────────────────────────────────── */
+  .related-panel {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 290px;
+    background: #fff;
+    border-left: 1px solid var(--gray-200);
+    transform: translateX(100%);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 25;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-panel);
+    will-change: transform;
+  }
+  .related-panel.visible { transform: translateX(0); }
+  .related-panel.pinned { transform: translateX(0); }
+
+  .related-tab {
+    position: absolute;
+    left: -24px; top: 40%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 48px;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--gray-200);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.05);
+    transition: background 0.15s;
+    backdrop-filter: blur(4px);
+  }
+  .related-tab:hover { background: rgba(255,255,255,0.95); }
+  .tab-arrow {
+    font-size: 11px;
+    color: var(--gray-500);
+    transition: transform 0.22s;
+    line-height: 1;
+  }
+  .related-panel.pinned .tab-arrow { transform: rotate(180deg); }
+
+  .related-header {
+    padding: 15px 16px 13px;
+    border-bottom: 1px solid var(--gray-100);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .related-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+  .pin-toggle {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: 4px 10px;
+    border: 1px solid var(--gray-200);
+    border-radius: 99px;
+    background: none;
+    font-family: var(--font-main);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pin-toggle:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  .pin-toggle.pinned-state { border-color: var(--green-border); color: var(--green-text); background: var(--green-light); }
+
+  .related-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 10px 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-200) transparent;
+  }
+  .related-body::-webkit-scrollbar { width: 4px; }
+  .related-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+
+  .video-card {
+    display: flex;
+    gap: 10px;
+    padding: 9px 8px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.12s;
+    align-items: flex-start;
+  }
+  .video-card:hover { background: var(--gray-50); }
+
+  .thumb {
+    width: 108px;
+    height: 60px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .thumb-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb-play {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #111;
+    padding-left: 2px;
+  }
+  .thumb-dur {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.78);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.2px;
+  }
+  .thumb-level {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(22,163,74,0.88);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  .card-meta { flex: 1; min-width: 0; padding-top: 1px; }
+  .card-title {
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--gray-900);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    letter-spacing: 0.05px;
+  }
+  .card-channel {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .card-level {
+    display: inline-block;
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--green-text);
+    background: var(--green-light);
+    border-radius: 3px;
+    padding: 1px 6px;
+  }
+
+  /* ── Chapters section ───────────────────────────────────── */
+  .chapters-section {
+    margin-top: 20px;
+    padding: 0 2px;
+  }
+  .chapters-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin-bottom: 12px;
+  }
+  .chapters-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--gray-500);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .chapter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background 0.12s;
+  }
+  .chapter-row:hover { background: var(--gray-100); padding-left: 6px; }
+  .chapter-ts {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-400);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    width: 34px;
+  }
+  .chapter-title {
+    font-size: 13px;
+    color: var(--gray-700);
+    font-weight: 400;
+  }
+
+  /* hover zone (invisible strip on far right edge of transcript) */
+  .panel-hover-zone {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 10px;
+    z-index: 24;
+    cursor: e-resize;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-mark">E</div>
+    <span class="logo-name">es<span>ponal</span></span>
+  </a>
+  <div class="search-wrap">
+    <div class="search-inner">
+      <span class="search-icon">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="9" r="6"/><line x1="14.5" y1="14.5" x2="19" y2="19"/>
+        </svg>
+      </span>
+      <input type="text" placeholder="搜索西语视频…" />
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-login">登录</button>
+    <button class="btn-signup">免费注册</button>
+  </div>
+</header>
+
+<div class="page" id="page">
+
+  <!-- Left: video + meta -->
+  <div class="video-col">
+    <div class="video-wrapper">
+      <div class="video-poster" id="videoPoster">
+        <span class="poster-label">Dreaming Spanish</span>
+        <div class="play-circle">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#111">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="video-meta">
+      <div class="video-level-badge">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="6" y="9" text-anchor="middle" font-size="6" font-weight="700" fill="currentColor">A1</text></svg>
+        A1 入门级
+      </div>
+      <div class="video-title">Esta Chica Canadiense Habla Español Argentino con Fluidez</div>
+      <div class="video-channel-row">
+        <div class="channel-avatar">DS</div>
+        <span class="channel-name">Dreaming Spanish</span>
+        <span class="video-stats">42K 次观看 · 2025年3月</span>
+      </div>
+    </div>
+
+    <div class="chapters-section">
+      <div class="chapters-divider"></div>
+      <div class="chapters-label">章节</div>
+      <div class="chapter-row">
+        <span class="chapter-ts">0:00</span>
+        <span class="chapter-title">介绍与嘉宾登场</span>
+      </div>
+      <div class="chapter-row">
+        <span class="chapter-ts">1:45</span>
+        <span class="chapter-title">加拿大人学西语的旅程</span>
+      </div>
+      <div class="chapter-row">
+        <span class="chapter-ts">5:20</span>
+        <span class="chapter-title">阿根廷口音的特点</span>
+      </div>
+      <div class="chapter-row">
+        <span class="chapter-ts">9:10</span>
+        <span class="chapter-title">vos 用法与日常对话</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: transcript -->
+  <div class="transcript-col">
+    <div class="transcript-header">
+      <div class="transcript-lang-pill">
+        <span class="lang-opt active">ES + 中</span>
+        <span class="lang-opt">仅西语</span>
+        <span class="lang-opt">仅中文</span>
+      </div>
+      <span class="transcript-hint">点击字幕跳转</span>
+    </div>
+
+    <div class="transcript-body" id="transcriptBody">
+
+      <div class="cue" data-t="8.2">
+        <div class="cue-ts">0:08</div>
+        <div class="cue-es">Hola a todos, bienvenidos a un nuevo video de Dreaming Spanish.</div>
+        <div class="cue-zh">大家好，欢迎来到 Dreaming Spanish 的新视频。</div>
+      </div>
+
+      <div class="cue" data-t="13.5">
+        <div class="cue-ts">0:13</div>
+        <div class="cue-es">Hoy estamos aquí con una chica increíble que aprendió español completamente de forma natural.</div>
+        <div class="cue-zh">今天我们请来了一位了不起的姑娘，她完全用自然习得的方式学会了西班牙语。</div>
+      </div>
+
+      <div class="cue" data-t="21.0">
+        <div class="cue-ts">0:21</div>
+        <div class="cue-es">Ella es de Canadá, pero lleva tres años viviendo en Buenos Aires.</div>
+        <div class="cue-zh">她来自加拿大，但已经在布宜诺斯艾利斯生活了三年。</div>
+      </div>
+
+      <div class="cue active" data-t="28.4">
+        <div class="cue-ts">0:28</div>
+        <div class="cue-es">Lo más interesante es que nunca tomó clases formales de gramática.</div>
+        <div class="cue-zh">最有趣的是，她从来没有上过正式的语法课。</div>
+      </div>
+
+      <div class="cue" data-t="35.8">
+        <div class="cue-ts">0:35</div>
+        <div class="cue-es">Todo lo que sabe lo aprendió escuchando, viendo series y hablando con gente.</div>
+        <div class="cue-zh">她所知道的一切都是通过听、看剧和与人交流习得的。</div>
+      </div>
+
+      <div class="cue" data-t="43.2">
+        <div class="cue-ts">0:43</div>
+        <div class="cue-es">El acento rioplatense tiene una melodía especial que lo distingue del resto.</div>
+        <div class="cue-zh">拉普拉塔口音有一种独特的旋律感，使其有别于其他地区。</div>
+      </div>
+
+      <div class="cue" data-t="51.6">
+        <div class="cue-ts">0:51</div>
+        <div class="cue-es">En Argentina, la "ll" y la "y" se pronuncian como "sh", algo muy distinto al español estándar.</div>
+        <div class="cue-zh">在阿根廷，"ll"和"y"发音像英语的"sh"，与标准西班牙语差异很大。</div>
+      </div>
+
+      <div class="cue" data-t="61.0">
+        <div class="cue-ts">1:01</div>
+        <div class="cue-es">Además, los argentinos usan "vos" en lugar de "tú", lo que cambia toda la conjugación.</div>
+        <div class="cue-zh">此外，阿根廷人用"vos"代替"tú"，这使整套动词变位都有所不同。</div>
+      </div>
+
+      <div class="cue" data-t="70.3">
+        <div class="cue-ts">1:10</div>
+        <div class="cue-es">Por ejemplo, en lugar de "¿cómo estás tú?", dicen "¿cómo estás vos?" o simplemente "¿cómo estás?".</div>
+        <div class="cue-zh">比如，他们不说"¿cómo estás tú?"，而是说"¿cómo estás vos?"或干脆"¿cómo estás?"</div>
+      </div>
+
+      <div class="cue" data-t="82.0">
+        <div class="cue-ts">1:22</div>
+        <div class="cue-es">A pesar de estas diferencias, el español argentino es perfectamente comprensible para cualquier hispanohablante.</div>
+        <div class="cue-zh">尽管存在这些差异，阿根廷西班牙语对任何西语母语者来说都完全可以理解。</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Related videos panel -->
+  <div class="related-panel" id="relatedPanel">
+    <div class="related-tab" id="relatedTab" title="相关视频">
+      <span class="tab-arrow">◀</span>
+    </div>
+    <div class="related-header">
+      <span class="related-title">相关视频</span>
+      <button class="pin-toggle" id="pinBtn">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146z"/></svg>
+        固定
+      </button>
+    </div>
+
+    <div class="related-body">
+
+      <div class="video-card">
+        <div class="thumb" style="background: linear-gradient(135deg,#0f172a,#1e3a5f)">
+          <div class="thumb-bg"><div class="thumb-play">▶</div></div>
+          <span class="thumb-level">A1</span>
+          <span class="thumb-dur">12:45</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">Mi Wi-Fi Dejó de Funcionar — Cuento en Español</div>
+          <div class="card-channel">Dreaming Spanish</div>
+          <span class="card-level">超级入门</span>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="thumb" style="background: linear-gradient(135deg,#3b1a1a,#5c2a1a)">
+          <div class="thumb-bg"><div class="thumb-play">▶</div></div>
+          <span class="thumb-level">A1</span>
+          <span class="thumb-dur">9:24</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">Parece que Estoy Embarazada — Historia para Principiantes</div>
+          <div class="card-channel">Dreaming Spanish</div>
+          <span class="card-level">超级入门</span>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="thumb" style="background: linear-gradient(135deg,#1a3b1a,#1a5c2a)">
+          <div class="thumb-bg"><div class="thumb-play">▶</div></div>
+          <span class="thumb-level">A1</span>
+          <span class="thumb-dur">3:11</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">Cosas Rápidas — Español para Principiantes</div>
+          <div class="card-channel">Dreaming Spanish</div>
+          <span class="card-level">超级入门</span>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="thumb" style="background: linear-gradient(135deg,#1a1a3b,#2a1a5c)">
+          <div class="thumb-bg"><div class="thumb-play">▶</div></div>
+          <span class="thumb-level">A2</span>
+          <span class="thumb-dur">1:07:15</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">Historias en Español para Principiantes Completos (Nivel 0)</div>
+          <div class="card-channel">Dreaming Spanish</div>
+          <span class="card-level">入门级</span>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="thumb" style="background: linear-gradient(135deg,#3b3a1a,#5c4a0a)">
+          <div class="thumb-bg"><div class="thumb-play">▶</div></div>
+          <span class="thumb-level">A2</span>
+          <span class="thumb-dur">8:57</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">¿Por Qué los Hispanos Llaman "Americanos" a los Estadounidenses?</div>
+          <div class="card-channel">Dreaming Spanish</div>
+          <span class="card-level">入门级</span>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <div class="thumb" style="background: linear-gradient(135deg,#2d1a3b,#4a1a5c)">
+          <div class="thumb-bg"><div class="thumb-play">▶</div></div>
+          <span class="thumb-level">A2</span>
+          <span class="thumb-dur">42:52</span>
+        </div>
+        <div class="card-meta">
+          <div class="card-title">Todo sobre Cartagena: La Ciudad Más Vibrante de Colombia</div>
+          <div class="card-channel">Dreaming Spanish</div>
+          <span class="card-level">入门级</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Hover trigger zone -->
+  <div class="panel-hover-zone" id="hoverZone"></div>
+</div>
+
+<script>
+  // ── Related panel logic ─────────────────────────────────────
+  const panel = document.getElementById('relatedPanel');
+  const tab   = document.getElementById('relatedTab');
+  const pinBtn = document.getElementById('pinBtn');
+  const hoverZone = document.getElementById('hoverZone');
+  let pinned = false;
+  let showTimer = null;
+  let hideTimer = null;
+
+  function showPanel() {
+    clearTimeout(hideTimer);
+    panel.classList.add('visible');
+  }
+  function hidePanel() {
+    if (!pinned) panel.classList.remove('visible');
+  }
+
+  // Hover zone triggers peek
+  hoverZone.addEventListener('mouseenter', () => {
+    showTimer = setTimeout(showPanel, 100);
+  });
+  hoverZone.addEventListener('mouseleave', () => {
+    clearTimeout(showTimer);
+    hideTimer = setTimeout(hidePanel, 350);
+  });
+
+  // Hovering panel itself keeps it open
+  panel.addEventListener('mouseenter', () => {
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    showPanel();
+  });
+  panel.addEventListener('mouseleave', () => {
+    hideTimer = setTimeout(hidePanel, 350);
+  });
+
+  // Tab / pin toggle
+  function togglePin() {
+    pinned = !pinned;
+    if (pinned) {
+      panel.classList.add('pinned');
+      pinBtn.classList.add('pinned-state');
+      pinBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146z"/></svg> 已固定`;
+      tab.querySelector('.tab-arrow').style.transform = 'rotate(180deg)';
+    } else {
+      panel.classList.remove('pinned');
+      panel.classList.remove('visible');
+      pinBtn.classList.remove('pinned-state');
+      pinBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a5.927 5.927 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707-.195-.195.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a5.922 5.922 0 0 1 1.013.16l3.134-3.133a2.772 2.772 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146z"/></svg> 固定`;
+      tab.querySelector('.tab-arrow').style.transform = '';
+    }
+  }
+  tab.addEventListener('click', togglePin);
+  pinBtn.addEventListener('click', togglePin);
+
+  // ── Transcript cue interaction ───────────────────────────────
+  const cues = document.querySelectorAll('.cue');
+  cues.forEach(cue => {
+    cue.addEventListener('click', () => {
+      cues.forEach(c => c.classList.remove('active'));
+      cue.classList.add('active');
+      // Scroll active cue into view smoothly within the panel
+      cue.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+
+  // ── Lang pill toggle ─────────────────────────────────────────
+  document.querySelectorAll('.lang-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.lang-opt').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

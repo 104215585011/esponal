@@ -1,5 +1,6 @@
 // COURSE-001 change timestamp: 2026-05-13 13:54
 import AudioButton from "@/app/components/audio/AudioButton";
+import { SiteHeader } from "@/app/components/web/SiteHeader";
 import pronunciationContent from "../../../../content/curriculum/pronunciation-rules.json";
 import wordContent from "../../../../content/curriculum/phase1-words.json";
 
@@ -37,6 +38,7 @@ export default function PhaseOnePage() {
       className="min-h-screen bg-[#F9FAFB] text-gray-900"
       style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
     >
+      <SiteHeader />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-8 sm:py-14">
         <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
           阶段一：入门词汇与发音
