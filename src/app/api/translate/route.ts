@@ -17,6 +17,12 @@ type TencentTranslateResponse = {
   };
 };
 
+type TranslateResponsePayload = {
+  translation: string;
+  cached: boolean;
+  degraded?: boolean;
+};
+
 function sha256Hex(data: string): string {
   return createHash("sha256").update(data).digest("hex");
 }
@@ -115,6 +121,23 @@ async function translateWithTencent(text: string): Promise<string> {
   return translation;
 }
 
+async function safeCacheGet(cacheKey: string) {
+  try {
+    return await redis.get(cacheKey);
+  } catch (error) {
+    console.warn("Translate cache read failed", error);
+    return null;
+  }
+}
+
+async function safeCacheSet(cacheKey: string, translation: string) {
+  try {
+    await redis.set(cacheKey, translation, "EX", TRANSLATION_CACHE_TTL);
+  } catch (error) {
+    console.warn("Translate cache write failed", error);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { text?: unknown };
@@ -129,19 +152,31 @@ export async function POST(request: Request) {
     }
 
     const cacheKey = `translate:${sha256Hex(text)}`;
-    const cached = await redis.get(cacheKey);
+    const cached = await safeCacheGet(cacheKey);
 
     if (cached) {
       return NextResponse.json({ translation: cached, cached: true });
     }
 
-    const translation = await translateWithTencent(text);
-    await redis.set(cacheKey, translation, "EX", TRANSLATION_CACHE_TTL);
+    try {
+      const translation = await translateWithTencent(text);
+      const payload: TranslateResponsePayload = { translation, cached: false };
 
-    return NextResponse.json({ translation, cached: false });
+      await safeCacheSet(cacheKey, translation);
+
+      return NextResponse.json(payload);
+    } catch (error) {
+      console.error("Subtitle translation failed, falling back to source text", error);
+
+      return NextResponse.json({
+        translation: text,
+        cached: false,
+        degraded: true
+      } satisfies TranslateResponsePayload);
+    }
   } catch (error) {
-    console.error("Subtitle translation failed", error);
+    console.error("Subtitle translation request failed", error);
 
-    return NextResponse.json({ error: "translation failed" }, { status: 500 });
+    return NextResponse.json({ error: "translation failed" }, { status: 400 });
   }
 }

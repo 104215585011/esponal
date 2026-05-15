@@ -24,6 +24,13 @@ test("EXT-002 translate API route validates input, calls Tencent TMT, and caches
   assert.match(route, /60\s*\*\s*60\s*\*\s*24\s*\*\s*7/);
   assert.match(route, /redis\.get/);
   assert.match(route, /redis\.set/);
+  assert.match(route, /safeCacheGet/);
+  assert.match(route, /safeCacheSet/);
+  assert.match(route, /Translate cache read failed|Subtitle translate cache read failed/);
+  assert.match(route, /Translate cache write failed|Subtitle translate cache write failed/);
+  assert.match(route, /falling back to source text|Falling back to source text/);
+  assert.match(route, /degraded:\s*true/);
+  assert.doesNotMatch(route, /status:\s*500/);
 });
 
 test("EXT-002 environment example documents MiniMax credentials", async () => {
@@ -31,6 +38,8 @@ test("EXT-002 environment example documents MiniMax credentials", async () => {
 
   assert.match(env, /MINIMAX_API_KEY=/);
   assert.match(env, /MINIMAX_GROUP_ID=/);
+  assert.match(env, /TENCENT_SECRET_ID=/);
+  assert.match(env, /TENCENT_SECRET_KEY=/);
 });
 
 test("EXT-002 manifest and popup support persistent Chinese subtitle toggling", async () => {
