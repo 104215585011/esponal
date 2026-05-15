@@ -77,3 +77,35 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 - **保留契约**：LookupCard 浮层、词高亮、tab 切换、props 不变
 
 `feature_list.json` 已记 `WEB-008` backlog；`session-handoff.md` 留了交接说明。Codex1 可以接手了。
+
+---
+
+## Dev Report - Session #54 (2026-05-16) - WEB-008
+
+### Completed
+- Implemented WEB-008 in `src/app/watch/TranscriptPanel.tsx`.
+- Added virtual cue rendering with `renderStart..renderEnd`, `INITIAL_RENDER_COUNT = 30`, and `LOAD_MORE_BATCH = 30`.
+- Added top and bottom `IntersectionObserver` sentinels for bidirectional window expansion.
+- Added upward expansion `scrollTop` compensation to avoid visual jump.
+- Replaced scroll-based browse detection with real user input events: `wheel`, `touchmove`, `pointerdown`, and keyboard navigation.
+- Added `followMode`: playback keeps running in browse mode, and the return-to-current button restores centered follow mode.
+- Preserved WEB-007 contracts: `TranscriptPanel` props unchanged, `LookupCard` fixed overlay retained, word highlight colors retained, tabs retained, cue click still calls `seekTo`.
+- Added `data-cue-index` for QA DOM counting.
+- Added `tests/web008.test.mjs` and updated `tests/web007.test.mjs` to match virtual rendering.
+
+### Files Changed
+- `src/app/watch/TranscriptPanel.tsx`
+- `tests/web007.test.mjs`
+- `tests/web008.test.mjs`
+- `feature_list.json`
+- `session-handoff.md`
+
+### Verification
+- `node --test tests/web007.test.mjs tests/web008.test.mjs`: passed 4/4.
+- `npx tsc --noEmit`: passed.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse` deprecation warnings only.
+- `npm test`: WEB-008 passed, overall 71/72 because of existing unrelated VOCAB-004 assertion expecting `YOUDAO_APP_KEY` while current dictionary implementation uses `DASHSCOPE_API_KEY`.
+
+### Current Status
+- `WEB-008`: `ready_for_qa`.
+- Next: Codex2 should QA WEB-008 with DOM cue count, sentinel expansion, browse/follow behavior, return-to-current, and cue click seek checks.

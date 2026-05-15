@@ -339,7 +339,7 @@
     "area": "web",
     "title": "Transcript 虚拟化滚动 + 用户脱钩浏览",
     "user_visible_behavior": "/watch 页面 transcript 首屏只渲染少量字幕保持流畅；用户向下滚动可预览未来字幕（视频不跳转），点击「回到当前位置」恢复跟随。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "首屏 DOM cue 节点数 ≤ 35",
       "用户滚动到底部时窗口自动扩展加载更多 cue",
@@ -349,7 +349,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
-    "notes": "Ticket: docs/tickets/WEB-008.md。Codex1 可接手实现。核心：renderStart..renderEnd 渲染窗口，初始 30 条；IntersectionObserver 监听上下哨兵自动扩展，每批 30 条；wheel/touchmove 触发浏览模式，视频继续播放但 transcript 不跟随；点击「回到当前位置」恢复跟随；向上扩展必须补正 scrollTop 防跳；不要用 onScroll 判断用户行为；保留 WEB-007 LookupCard 浮层、词高亮、tab 切换和 props 契约。"
+    "evidence": "Codex1 Dev 2026-05-16: implemented TranscriptPanel virtual cue window with INITIAL_RENDER_COUNT=30 and LOAD_MORE_BATCH=30, renderStart/renderEnd state, top/bottom IntersectionObserver sentinels, scrollTop compensation on upward expansion, followMode browse/follow behavior driven by wheel/touchmove/pointer/key events instead of onScroll, return-to-current button, data-cue-index cue rows, and preserved LookupCard, highlight colors, tab modes, seekTo, and props contract. Added tests/web008.test.mjs and updated tests/web007.test.mjs for virtual rendering. Verification: node --test tests/web007.test.mjs tests/web008.test.mjs passed 4/4; npx tsc --noEmit passed; npm run build passed with existing img and url.parse warnings; npm test ran 72 tests with WEB-008 passing but overall 71/72 due pre-existing unrelated VOCAB-004 assertion expecting YOUDAO_APP_KEY while dictionary.ts now uses DASHSCOPE_API_KEY.",
+    "notes": "Ready for Codex2 QA. Ticket: docs/tickets/WEB-008.md. QA should verify DOM cue count <=35 on first screen, sentinel expansion, browse mode not seeking video, return-to-current follow restore, and cue click seek behavior. Known unrelated blocker: VOCAB-004 test still expects YOUDAO_APP_KEY while implementation uses DASHSCOPE_API_KEY."
   }
 ]

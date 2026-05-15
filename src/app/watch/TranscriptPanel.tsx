@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LookupCard } from "./LookupCard";
 
 type SubtitleCue = {
@@ -72,10 +72,9 @@ type TranscriptYouTubeNamespace = {
 const COURSE_HIGHLIGHT = "#86EFAC";
 const SAVED_HIGHLIGHT = "#93C5FD";
 const TRANSLATION_BATCH_SIZE = 5;
-const VISIBLE_INITIAL_CUES = 8;
-const VISIBLE_PREVIOUS_CUES = 4;
-const VISIBLE_UPCOMING_CUES = 4;
-const TRANSLATION_LOOKAHEAD = 10;
+const INITIAL_RENDER_COUNT = 30;
+const LOAD_MORE_BATCH = 30;
+const FOLLOW_EXPAND_THRESHOLD = 5;
 
 function normalizeLookupWord(token: string) {
   return token
@@ -94,21 +93,6 @@ function findActiveCueIndex(cues: SubtitleCue[], currentTime: number) {
   return cues.findIndex(
     (cue) => currentTime >= cue.start && currentTime <= cue.start + cue.dur
   );
-}
-
-function getVisibleCueRange(cues: SubtitleCue[], activeCueIndex: number) {
-  if (cues.length === 0) {
-    return { start: 0, end: 0 };
-  }
-
-  if (activeCueIndex < 0) {
-    return { start: 0, end: Math.min(cues.length, VISIBLE_INITIAL_CUES) };
-  }
-
-  return {
-    start: Math.max(0, activeCueIndex - VISIBLE_PREVIOUS_CUES),
-    end: Math.min(cues.length, activeCueIndex + VISIBLE_UPCOMING_CUES + 1)
-  };
 }
 
 function formatTimestamp(seconds: number) {
@@ -180,8 +164,13 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [highlightMap, setHighlightMap] = useState<Record<string, HighlightStatus>>({});
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
-  const [autoScrollPaused, setAutoScrollPaused] = useState(false);
+  const [followMode, setFollowMode] = useState(true);
+  const [renderStart, setRenderStart] = useState(0);
+  const [renderEnd, setRenderEnd] = useState(INITIAL_RENDER_COUNT);
   const panelRef = useRef<HTMLElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const topSentinelRef = useRef<HTMLDivElement | null>(null);
+  const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
   const cueRefs = useRef<Array<HTMLDivElement | null>>([]);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const subtitleCuesRef = useRef<SubtitleCue[]>([]);
@@ -193,23 +182,158 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     () => findActiveCueIndex(subtitleCues, currentTimeSec),
     [currentTimeSec, subtitleCues]
   );
-  const visibleCueRange = useMemo(() => {
-    const base = getVisibleCueRange(subtitleCues, activeCueIndex);
-    // Extend the translation window beyond the display window
-    return {
-      start: Math.max(0, base.start - (TRANSLATION_LOOKAHEAD - VISIBLE_PREVIOUS_CUES)),
-      end: Math.min(subtitleCues.length, base.end + (TRANSLATION_LOOKAHEAD - VISIBLE_UPCOMING_CUES))
-    };
-  }, [activeCueIndex, subtitleCues]);
-  // visibleCues is used only for translation pre-loading, not for rendering
+  const visibleCueRange = useMemo(
+    () => ({
+      start: Math.max(0, Math.min(renderStart, subtitleCues.length)),
+      end: Math.max(0, Math.min(renderEnd, subtitleCues.length))
+    }),
+    [renderEnd, renderStart, subtitleCues.length]
+  );
   const visibleCues = useMemo(
     () => subtitleCues.slice(visibleCueRange.start, visibleCueRange.end),
     [subtitleCues, visibleCueRange]
   );
+  const renderedCues = visibleCues;
+
+  const expandBottomWindow = useCallback(() => {
+    setRenderEnd((previousEnd) =>
+      Math.min(subtitleCuesRef.current.length, previousEnd + LOAD_MORE_BATCH)
+    );
+  }, []);
+
+  const expandTopWindow = useCallback(() => {
+    const scrollContainer = scrollContainerRef.current;
+    const previousScrollHeight = scrollContainer?.scrollHeight ?? 0;
+    const previousScrollTop = scrollContainer?.scrollTop ?? 0;
+
+    setRenderStart((previousStart) => {
+      const nextStart = Math.max(0, previousStart - LOAD_MORE_BATCH);
+
+      if (nextStart !== previousStart && scrollContainer) {
+        window.requestAnimationFrame(() => {
+          const nextScrollHeight = scrollContainer.scrollHeight;
+          scrollContainer.scrollTop =
+            previousScrollTop + (nextScrollHeight - previousScrollHeight);
+        });
+      }
+
+      return nextStart;
+    });
+  }, []);
+
+  const returnToCurrentCue = useCallback(() => {
+    if (activeCueIndex < 0) {
+      setFollowMode(true);
+      return;
+    }
+
+    setRenderStart((previousStart) =>
+      activeCueIndex < previousStart
+        ? Math.max(0, activeCueIndex - FOLLOW_EXPAND_THRESHOLD)
+        : previousStart
+    );
+    setRenderEnd((previousEnd) =>
+      activeCueIndex >= previousEnd
+        ? Math.min(
+            subtitleCuesRef.current.length,
+            activeCueIndex + FOLLOW_EXPAND_THRESHOLD + 1
+          )
+        : previousEnd
+    );
+    setFollowMode(true);
+
+    window.requestAnimationFrame(() => {
+      cueRefs.current[activeCueIndex]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    });
+  }, [activeCueIndex]);
 
   useEffect(() => {
     subtitleCuesRef.current = subtitleCues;
   }, [subtitleCues]);
+
+  useEffect(() => {
+    if (!scrollContainerRef.current) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            continue;
+          }
+
+          if (entry.target === bottomSentinelRef.current) {
+            expandBottomWindow();
+          }
+
+          if (entry.target === topSentinelRef.current) {
+            expandTopWindow();
+          }
+        }
+      },
+      {
+        root: scrollContainerRef.current,
+        rootMargin: "320px 0px",
+        threshold: 0.01
+      }
+    );
+
+    if (topSentinelRef.current) {
+      observer.observe(topSentinelRef.current);
+    }
+
+    if (bottomSentinelRef.current) {
+      observer.observe(bottomSentinelRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [expandBottomWindow, expandTopWindow, renderEnd, renderStart]);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+
+    if (!scrollContainer) {
+      return undefined;
+    }
+
+    const enterBrowseMode = () => {
+      if (!isProgrammaticScrollRef.current) {
+        setFollowMode(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key === "PageUp" ||
+        event.key === "PageDown" ||
+        event.key === "ArrowUp" ||
+        event.key === "ArrowDown" ||
+        event.key === "Home" ||
+        event.key === "End" ||
+        event.key === " "
+      ) {
+        enterBrowseMode();
+      }
+    };
+
+    scrollContainer.addEventListener("wheel", enterBrowseMode, { passive: true });
+    scrollContainer.addEventListener("touchmove", enterBrowseMode, { passive: true });
+    scrollContainer.addEventListener("pointerdown", enterBrowseMode);
+    scrollContainer.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      scrollContainer.removeEventListener("wheel", enterBrowseMode);
+      scrollContainer.removeEventListener("touchmove", enterBrowseMode);
+      scrollContainer.removeEventListener("pointerdown", enterBrowseMode);
+      scrollContainer.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -226,7 +350,9 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
       setTranslations({});
       setHighlightMap({});
       setActiveLookup(null);
-      setAutoScrollPaused(false);
+      setFollowMode(true);
+      setRenderStart(0);
+      setRenderEnd(INITIAL_RENDER_COUNT);
 
       try {
         const response = await fetch(
@@ -241,7 +367,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         const payload = (await response.json()) as SubtitleCue[];
 
         if (!cancelled) {
-          setSubtitleCues(Array.isArray(payload) ? payload : []);
+          const cues = Array.isArray(payload) ? payload : [];
+          setSubtitleCues(cues);
+          setRenderStart(0);
+          setRenderEnd(Math.min(cues.length, INITIAL_RENDER_COUNT));
         }
       } catch (error) {
         console.error("Transcript subtitle load failed", error);
@@ -522,7 +651,33 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   }, [visibleCues]);
 
   useEffect(() => {
-    if (activeCueIndex < 0 || autoScrollPaused) {
+    if (activeCueIndex < 0 || subtitleCues.length === 0) {
+      return;
+    }
+
+    if (activeCueIndex < renderStart) {
+      setRenderStart(Math.max(0, activeCueIndex - FOLLOW_EXPAND_THRESHOLD));
+      return;
+    }
+
+    if (activeCueIndex >= renderEnd) {
+      setRenderStart(Math.max(0, activeCueIndex - FOLLOW_EXPAND_THRESHOLD));
+      setRenderEnd(Math.min(subtitleCues.length, activeCueIndex + LOAD_MORE_BATCH));
+      return;
+    }
+
+    if (activeCueIndex >= renderEnd - FOLLOW_EXPAND_THRESHOLD) {
+      setRenderEnd((previousEnd) =>
+        Math.min(
+          subtitleCues.length,
+          Math.max(previousEnd, activeCueIndex + FOLLOW_EXPAND_THRESHOLD + 1)
+        )
+      );
+    }
+  }, [activeCueIndex, renderEnd, renderStart, subtitleCues.length]);
+
+  useEffect(() => {
+    if (activeCueIndex < 0 || !followMode) {
       return;
     }
 
@@ -543,7 +698,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
       isProgrammaticScrollRef.current = false;
       scrollUnlockRef.current = null;
     }, 250);
-  }, [activeCueIndex, autoScrollPaused]);
+  }, [activeCueIndex, followMode, renderEnd, renderStart]);
 
   useEffect(() => {
     setActiveLookup(null);
@@ -585,7 +740,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             className={`rounded-full px-3 py-1 transition ${
               displayMode === "bilingual" ? "bg-white text-gray-900 shadow-sm" : ""
             }`}
-            onClick={() => setDisplayMode("bilingual")}
+            onClick={() => {
+              setDisplayMode("bilingual");
+              setFollowMode(true);
+            }}
             type="button"
           >
             ES + 中
@@ -594,7 +752,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             className={`rounded-full px-3 py-1 transition ${
               displayMode === "spanish" ? "bg-white text-gray-900 shadow-sm" : ""
             }`}
-            onClick={() => setDisplayMode("spanish")}
+            onClick={() => {
+              setDisplayMode("spanish");
+              setFollowMode(true);
+            }}
             type="button"
           >
             仅西语
@@ -603,7 +764,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             className={`rounded-full px-3 py-1 transition ${
               displayMode === "chinese" ? "bg-white text-gray-900 shadow-sm" : ""
             }`}
-            onClick={() => setDisplayMode("chinese")}
+            onClick={() => {
+              setDisplayMode("chinese");
+              setFollowMode(true);
+            }}
             type="button"
           >
             仅中文
@@ -614,19 +778,19 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
       <div
         className="relative flex-1 overflow-y-auto"
+        ref={scrollContainerRef}
         style={{ paddingTop: "38vh", paddingBottom: "38vh" }}
-        onScroll={() => {
-          if (!isProgrammaticScrollRef.current) {
-            setAutoScrollPaused(true);
-          }
-        }}
+        tabIndex={0}
       >
         {showEmptyState ? (
           <div className="flex h-full items-center justify-center px-6 text-sm text-gray-400">
             暂无字幕
           </div>
         ) : (
-          subtitleCues.map((cue, index) => {
+          <>
+            <div ref={topSentinelRef} />
+            {renderedCues.map((cue, offset) => {
+            const index = visibleCueRange.start + offset;
             const tokens = splitSubtitleTokens(cue.text);
             const translation = translations[index] ?? "…";
             const isActive = index === activeCueIndex;
@@ -636,6 +800,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                 className={`group border-t border-gray-100 px-5 py-3 first:border-t-0 ${
                   isActive ? "border-l-[3px] border-l-green-600" : "border-l-[3px] border-l-transparent"
                 }`}
+                data-cue-index={index}
                 key={`${cue.start}-${cue.text}`}
                 ref={(element) => { cueRefs.current[index] = element; }}
               >
@@ -645,7 +810,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                     if (activeLookup) { setActiveLookup(null); return; }
                     playerRef.current?.seekTo(cue.start, true);
                     playerRef.current?.playVideo();
-                    setAutoScrollPaused(false);
+                    setFollowMode(true);
                   }}
                   type="button"
                 >
@@ -714,7 +879,9 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                 </button>
               </div>
             );
-          })
+            })}
+            <div ref={bottomSentinelRef} />
+          </>
         )}
 
         {activeLookup ? (() => {
@@ -742,15 +909,11 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
           );
         })() : null}
 
-        {autoScrollPaused && activeCue ? (
+        {!followMode && activeCue ? (
           <button
             className="fixed bottom-8 right-[max(2rem,calc(37vw-7rem))] z-20 rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-medium text-green-700 shadow-sm transition hover:bg-green-50"
             onClick={() => {
-              setAutoScrollPaused(false);
-              cueRefs.current[activeCueIndex]?.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-              });
+              returnToCurrentCue();
             }}
             type="button"
           >

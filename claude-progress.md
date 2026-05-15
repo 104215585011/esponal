@@ -1415,3 +1415,27 @@ feature_list.json 更新：
 ### 当前状态
 - VOCAB-004：Codex1已提交，待Codex2 QA验收
 - 其余功能维持passing
+
+### Session #54 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement WEB-008 transcript virtualization and user-detached browsing.
+
+**Completed**
+- Implemented virtual transcript rendering in `src/app/watch/TranscriptPanel.tsx` with `renderStart..renderEnd`, initial 30 cues, and 30-cue batch expansion.
+- Added top and bottom IntersectionObserver sentinels.
+- Added scrollTop compensation for upward expansion.
+- Added follow vs browse mode using wheel/touchmove/pointer/key user events instead of onScroll.
+- Added return-to-current behavior and retained cue click seek, LookupCard, word highlights, tab switching, and props contract.
+- Added `tests/web008.test.mjs`; updated `tests/web007.test.mjs` for virtual rendering.
+- Updated `feature_list.json`: WEB-008 -> ready_for_qa.
+
+**Verification**
+- `node --test tests/web007.test.mjs tests/web008.test.mjs`: passed 4/4.
+- `npx tsc --noEmit`: passed.
+- `npm run build`: passed with existing warnings.
+- `npm test`: WEB-008 passed; overall 71/72 due existing unrelated VOCAB-004 test expecting YOUDAO_APP_KEY while dictionary implementation uses DASHSCOPE_API_KEY.
+
+**Next**
+- Codex2 QA WEB-008.
