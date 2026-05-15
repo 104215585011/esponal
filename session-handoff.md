@@ -63,3 +63,17 @@
 ### 下一步
 - Codex2：对 VOCAB-004 执行 QA 验收
 - 验收通过后功能全部就绪，可进入用户测试阶段
+
+---
+
+## PM Progress Log — 2026-05-16 23:35
+
+Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
+
+**WEB-008 核心**：
+- **渲染窗口**：`renderStart..renderEnd`，初始 30 条；IntersectionObserver 监听上下哨兵自动扩展，每批 30 条
+- **跟随 vs 浏览模式**：用户 `wheel`/`touchmove` 触发浏览模式（视频继续放、不跟随），点「回到当前位置」恢复跟随
+- **关键陷阱**：向上扩展时要补正 `scrollTop` 防跳；不要用 `onScroll` 判断用户行为（程序化滚动会误触发）
+- **保留契约**：LookupCard 浮层、词高亮、tab 切换、props 不变
+
+`feature_list.json` 已记 `WEB-008` backlog；`session-handoff.md` 留了交接说明。Codex1 可以接手了。
