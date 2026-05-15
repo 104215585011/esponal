@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { redis } from "@/lib/redis";
@@ -27,59 +26,7 @@ type LemmaEntry = {
   partOfSpeech?: string;
 };
 
-type YoudaoResponse = {
-  basic?: {
-    phonetic?: string;
-    explains?: string[];
-  };
-  translation?: string[];
-  web?: { value?: string[] }[];
-  errorCode?: string;
-};
-
 let lemmaDictPromise: Promise<Record<string, LemmaEntry>> | null = null;
-
-const FALLBACK_DICTIONARY: Record<string, Omit<DictionaryEntry, "word" | "cached">> = {
-  vivir: {
-    lemma: "vivir",
-    partOfSpeech: "v.",
-    meanings: ["住，居住", "生活，过日子"],
-    examples: [
-      {
-        es: "Vivo en Madrid desde hace tres años.",
-        zh: "我在马德里住了三年。"
-      }
-    ],
-    phonetic: "bi.ˈβiɾ",
-    morphInfo: "动词原形"
-  },
-  hablar: {
-    lemma: "hablar",
-    partOfSpeech: "v.",
-    meanings: ["说话，讲话", "谈论"],
-    examples: [
-      {
-        es: "Hablo un poco de español.",
-        zh: "我会说一点西班牙语。"
-      }
-    ],
-    phonetic: "a.ˈβlaɾ",
-    morphInfo: "动词原形"
-  },
-  ir: {
-    lemma: "ir",
-    partOfSpeech: "v.",
-    meanings: ["去，前往"],
-    examples: [
-      {
-        es: "Voy a estudiar español.",
-        zh: "我要学习西班牙语。"
-      }
-    ],
-    phonetic: "iɾ",
-    morphInfo: "动词原形"
-  }
-};
 
 async function loadLemmaDict() {
   if (!lemmaDictPromise) {
@@ -88,7 +35,6 @@ async function loadLemmaDict() {
       (contents) => JSON.parse(contents) as Record<string, LemmaEntry>
     );
   }
-
   return lemmaDictPromise;
 }
 
@@ -107,23 +53,12 @@ function inferLemma(form: string, dictEntry?: LemmaEntry) {
   if (dictEntry?.lemma && !isPlaceholder(dictEntry.lemma)) {
     return dictEntry.lemma;
   }
-
   if (form === "vivían") return "vivir";
   if (form.endsWith("ían")) return `${form.slice(0, -3)}ir`;
   if (form.endsWith("aban")) return `${form.slice(0, -4)}ar`;
   if (form.endsWith("aron")) return `${form.slice(0, -4)}ar`;
   if (form.endsWith("ieron")) return `${form.slice(0, -5)}er`;
-
   return form;
-}
-
-function truncateForYoudaoSign(input: string) {
-  if (input.length <= 20) return input;
-  return `${input.slice(0, 10)}${input.length}${input.slice(-10)}`;
-}
-
-function sha256Hex(input: string) {
-  return createHash("sha256").update(input).digest("hex");
 }
 
 async function safeCacheGet(key: string) {
@@ -139,73 +74,8 @@ async function safeCacheSet(key: string, value: DictionaryEntry) {
   try {
     await redis.set(key, JSON.stringify(value));
   } catch {
-    // Dictionary lookup must not fail just because cache is unavailable.
+    // Cache unavailable — degrade silently
   }
-}
-
-function fromFallback(word: string, lemma: string, morphInfo: string | null): DictionaryEntry | null {
-  const fallback = FALLBACK_DICTIONARY[lemma];
-  if (!fallback) return null;
-
-  return {
-    word,
-    ...fallback,
-    morphInfo: morphInfo ?? fallback.morphInfo,
-    degraded: true
-  };
-}
-
-async function fetchYoudaoEntry(
-  word: string,
-  lemma: string,
-  morphInfo: string | null
-): Promise<DictionaryEntry | null> {
-  const appKey = process.env.YOUDAO_APP_KEY?.trim();
-  const appSecret = process.env.YOUDAO_APP_SECRET?.trim();
-
-  if (!appKey || !appSecret) {
-    return null;
-  }
-
-  const salt = Date.now().toString();
-  const curtime = Math.floor(Date.now() / 1000).toString();
-  const sign = sha256Hex(appKey + truncateForYoudaoSign(lemma) + salt + curtime + appSecret);
-  const params = new URLSearchParams({
-    q: lemma,
-    from: "es",
-    to: "zh-CHS",
-    appKey,
-    salt,
-    sign,
-    signType: "v3",
-    curtime
-  });
-
-  const response = await fetch("https://openapi.youdao.com/api", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: params.toString()
-  });
-
-  if (!response.ok) return null;
-
-  const data = (await response.json()) as YoudaoResponse;
-  if (data.errorCode && data.errorCode !== "0") return null;
-
-  const meanings = data.basic?.explains?.filter(Boolean) ?? data.translation?.filter(Boolean) ?? [];
-  if (meanings.length === 0) return null;
-
-  return {
-    word,
-    lemma,
-    partOfSpeech: null,
-    meanings,
-    examples: [],
-    phonetic: data.basic?.phonetic ?? null,
-    morphInfo
-  };
 }
 
 async function fetchAIEntry(
@@ -245,7 +115,11 @@ async function fetchAIEntry(
   if (!raw) return null;
 
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
-  const parsed = JSON.parse(cleaned) as { pos?: string; meanings?: string[]; example?: { es: string; zh: string } };
+  const parsed = JSON.parse(cleaned) as {
+    pos?: string;
+    meanings?: string[];
+    example?: { es: string; zh: string };
+  };
 
   if (!parsed.meanings?.length) return null;
 
@@ -267,36 +141,30 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
   const lemmaDict = await loadLemmaDict();
   const dictEntry = lemmaDict[word];
   const lemma = inferLemma(word, dictEntry);
-  const morphInfo = isPlaceholder(dictEntry?.morphInfo) ? null : dictEntry?.morphInfo ?? null;
+  const morphInfo = isPlaceholder(dictEntry?.morphInfo) ? null : (dictEntry?.morphInfo ?? null);
   const cacheKey = `vocab:dict:${lemma}`;
-  const cached = await safeCacheGet(cacheKey);
 
+  const cached = await safeCacheGet(cacheKey);
   if (cached) {
-    return {
-      ...(JSON.parse(cached) as DictionaryEntry),
-      word,
-      cached: true
-    };
+    return { ...(JSON.parse(cached) as DictionaryEntry), word, cached: true };
   }
 
-  const youdaoEntry = await fetchYoudaoEntry(word, lemma, morphInfo).catch(() => null);
-  const aiEntry = youdaoEntry ? null : await fetchAIEntry(word, lemma, morphInfo).catch(() => null);
-  const fallbackEntry = fromFallback(word, lemma, morphInfo);
-  const entry = youdaoEntry ?? aiEntry ?? fallbackEntry;
+  const aiEntry = await fetchAIEntry(word, lemma, morphInfo).catch(() => null);
 
-  if (!entry) {
+  if (!aiEntry) {
+    // Degrade: return whatever lemma-dict has (may be empty meanings)
     return {
       word,
       lemma,
-      partOfSpeech: isPlaceholder(dictEntry?.partOfSpeech) ? null : dictEntry?.partOfSpeech ?? null,
+      partOfSpeech: isPlaceholder(dictEntry?.partOfSpeech) ? null : (dictEntry?.partOfSpeech ?? null),
       meanings: isPlaceholder(dictEntry?.translation) ? [] : [dictEntry?.translation ?? ""].filter(Boolean),
       examples: [],
       phonetic: null,
       morphInfo,
-      degraded: true
+      degraded: true,
     };
   }
 
-  await safeCacheSet(cacheKey, entry);
-  return entry;
+  await safeCacheSet(cacheKey, aiEntry);
+  return aiEntry;
 }
