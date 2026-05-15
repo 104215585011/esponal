@@ -67,6 +67,8 @@ model Word {
   lemma       String
   translation String
   forms       String[]        @default([])
+  dictData    Json?
+  partOfSpeech String?
   status      WordStatus      @default(NEW)
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   encounters  WordEncounter[]
@@ -82,6 +84,8 @@ model WordEncounter {
   wordId             String
   sourceUrl          String   @db.Text
   timestampSec       Int
+  sourceType         String   @default("video")
+  courseRef          String?
   originalSentence   String   @db.Text
   translatedSentence String   @db.Text
   word               Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)

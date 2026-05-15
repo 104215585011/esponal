@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": "INFRA-001",
     "priority": 0,
@@ -300,7 +300,7 @@
     "area": "vocabulary",
     "title": "生词系统升级：词典查询 + 出处追踪 + 生词本展示",
     "user_visible_behavior": "用户点击视频或课文中的生词，可看到词性、义项、例句；标记后进入生词本，每个词附带所有出处（视频可跳回，课文可跳回单元）。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "GET /api/vocab/lookup?word=vivían 返回完整词典数据",
       "Redis 缓存生效：同一词第二次请求 < 10ms",
@@ -311,7 +311,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-15 22:36: implemented Prisma fields Word.dictData/partOfSpeech and WordEncounter.sourceType/courseRef with migration 20260515185000_add_dict_and_source_tracking; added GET /api/vocab/lookup backed by src/lib/dictionary.ts with Youdao env support, Redis key vocab:dict:${lemma}, and local fallback for vivir/hablar/ir; updated /api/lemmatize to share lookup logic; updated /api/vocab/add to persist dictData, partOfSpeech, sourceType, and courseRef; upgraded LookupCard to call /api/vocab/lookup, render partOfSpeech/meanings/examples/phonetic, and save video/course source metadata; added CourseLookupText to /learn/[slug] vocab/phrases/dialogues; upgraded /vocab display for dictionary summaries and video/course encounters; documented YOUDAO_APP_KEY/YOUDAO_APP_SECRET in .env.example; added tests/vocab004.test.mjs. Verification: npm test passed 70/70; npx prisma generate --no-engine passed after normal generate hit Windows DLL EPERM; npm run build passed with existing <img> lint warnings and Node url.parse deprecation warnings only.",
     "notes": "词典数据源：有道智云 API（需新增 YOUDAO_APP_KEY / YOUDAO_APP_SECRET 到 .env）。降级：有道不可用时用腾讯 TMT。依赖 VOCAB-001/002、WEB-005。课文点词需 COURSE-003 完成后接入。"
   },
   {

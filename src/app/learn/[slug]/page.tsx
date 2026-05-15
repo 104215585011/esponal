@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import AudioButton from "@/app/components/audio/AudioButton";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAllUnits, getUnitPageData } from "@/lib/curriculum";
+import { CourseLookupText } from "./CourseLookupText";
 
 type UnitDetailPageProps = {
   params: {
@@ -118,7 +119,14 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h4 className="text-lg font-semibold text-gray-900">{item.es}</h4>
+                            <h4 className="text-lg font-semibold text-gray-900">
+                              <CourseLookupText
+                                courseRef={`unidad-${unit.number} / ${group.title} / ${item.es}`}
+                                sourceUrl={`/learn/${unit.slug}#vocab`}
+                                text={item.es}
+                                translation={item.zh}
+                              />
+                            </h4>
                             <p className="mt-1 text-sm text-gray-500">{item.zh}</p>
                           </div>
                           <AudioButton label={item.es} src={item.audioSrc} />
@@ -142,7 +150,14 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
                   <div className="mt-4 divide-y divide-gray-100">
                     {group.items.map((item) => (
                       <div className="grid gap-3 py-4 md:grid-cols-[1.1fr_1fr_auto]" key={`${group.category}-${item.es}`}>
-                        <div className="text-base font-medium text-gray-900">{item.es}</div>
+                        <div className="text-base font-medium text-gray-900">
+                          <CourseLookupText
+                            courseRef={`unidad-${unit.number} / ${group.category} / 句型`}
+                            sourceUrl={`/learn/${unit.slug}#phrases`}
+                            text={item.es}
+                            translation={item.zh}
+                          />
+                        </div>
                         <div className="text-sm leading-6 text-gray-600">{item.zh}</div>
                         <div className="md:justify-self-end">
                           <AudioButton label={item.es} src={item.audioSrc} />
@@ -187,7 +202,14 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
                             >
                               {line.speaker}
                             </span>
-                            <p className="mt-3 text-base font-medium text-gray-900">{line.es}</p>
+                            <p className="mt-3 text-base font-medium text-gray-900">
+                              <CourseLookupText
+                                courseRef={`unidad-${unit.number} / ${dialogue.title} / 第${index + 1}行`}
+                                sourceUrl={`/learn/${unit.slug}#dialogues`}
+                                text={line.es}
+                                translation={line.zh}
+                              />
+                            </p>
                             <p className="mt-2 text-sm leading-6 text-gray-600">{line.zh}</p>
                           </div>
                           <AudioButton label={line.es} src={line.audioSrc} />

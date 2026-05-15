@@ -16,6 +16,28 @@ const getVideoTitle = (sourceUrl: string) => {
   }
 };
 
+const getMeanings = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return [];
+  const meanings = (dictData as { meanings?: unknown }).meanings;
+  return Array.isArray(meanings)
+    ? meanings.filter((item): item is string => typeof item === "string")
+    : [];
+};
+
+const getExamples = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return [];
+  const examples = (dictData as { examples?: unknown }).examples;
+  if (!Array.isArray(examples)) return [];
+
+  return examples.filter(
+    (item): item is { es: string; zh: string } =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as { es?: unknown }).es === "string" &&
+      typeof (item as { zh?: unknown }).zh === "string"
+  );
+};
+
 export default async function VocabPage() {
   const session = await getServerSession(getAuthOptions());
 
@@ -34,6 +56,8 @@ export default async function VocabPage() {
         id: encounter.id,
         sourceUrl: encounter.sourceUrl,
         timestampSec: encounter.timestampSec,
+        sourceType: encounter.sourceType,
+        courseRef: encounter.courseRef,
         originalSentence: encounter.originalSentence,
         translatedSentence: encounter.translatedSentence,
         createdAt: encounter.createdAt.toISOString(),
@@ -45,6 +69,9 @@ export default async function VocabPage() {
         id: word.id,
         lemma: word.lemma,
         translation: word.translation,
+        partOfSpeech: word.partOfSpeech,
+        meanings: getMeanings(word.dictData),
+        examples: getExamples(word.dictData),
         encounterCount: encounters.length,
         recentEncounterAt,
         encounters

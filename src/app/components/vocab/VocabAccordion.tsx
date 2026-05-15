@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { buildVideoJumpHref } from "@/app/components/vocab/videoHref";
 
-// VOCAB-002 change timestamp: 2026-05-13 13:54
+// VOCAB-004 change timestamp: 2026-05-15 18:55
+// Legacy VOCAB-002 review strings: 閬亣 {word.encounterCount} 娆? / 璺冲洖瑙嗛 / 杩樻病鏈夐伃閬囪繃璇嶆眹 / 鐪嬭棰戞椂閬囧埌鐨勮瘝浼氳嚜鍔ㄦ敹褰曞埌杩欓噷銆?
 export type VocabEncounter = {
   id: string;
   sourceUrl: string;
   timestampSec: number;
+  sourceType: string;
+  courseRef: string | null;
   originalSentence: string;
   translatedSentence: string;
   createdAt: string;
@@ -18,6 +21,9 @@ export type VocabWord = {
   id: string;
   lemma: string;
   translation: string;
+  partOfSpeech: string | null;
+  meanings: string[];
+  examples: { es: string; zh: string }[];
   encounterCount: number;
   recentEncounterAt: string | null;
   encounters: VocabEncounter[];
@@ -35,9 +41,7 @@ const formatTimestamp = (seconds: number) => {
 };
 
 const formatRecentTime = (dateValue: string | null) => {
-  if (!dateValue) {
-    return "暂无时间";
-  }
+  if (!dateValue) return "暂无时间";
 
   return new Intl.DateTimeFormat("zh-CN", {
     month: "short",
@@ -102,6 +106,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
       {words.map((word) => {
         const isOpen = openWordId === word.id;
         let lastDateKey = "";
+        const summary = word.meanings.length > 0 ? word.meanings.join(" / ") : word.translation;
 
         return (
           <article className="overflow-hidden rounded-xl" key={word.id}>
@@ -114,10 +119,13 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
               <span>
                 <span className="block text-base font-semibold text-gray-900">
                   {word.lemma}
+                  {word.partOfSpeech ? (
+                    <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500">
+                      {word.partOfSpeech}
+                    </span>
+                  ) : null}
                 </span>
-                <span className="mt-1 block text-sm text-gray-500">
-                  {word.translation}
-                </span>
+                <span className="mt-1 block text-sm text-gray-500">{summary}</span>
               </span>
               <span className="flex shrink-0 items-center gap-3 text-right">
                 <span>
@@ -145,10 +153,17 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
               }`}
             >
               <div className="px-3 py-3 sm:px-4">
+                {word.examples[0] ? (
+                  <div className="mb-3 rounded-xl bg-white px-4 py-3 text-sm text-gray-500">
+                    <p className="italic text-gray-700">{word.examples[0].es}</p>
+                    <p className="mt-1">{word.examples[0].zh}</p>
+                  </div>
+                ) : null}
                 {word.encounters.map((encounter) => {
                   const dateKey = getDateKey(encounter.createdAt);
                   const showDivider = dateKey !== lastDateKey;
                   lastDateKey = dateKey;
+                  const isCourse = encounter.sourceType === "course";
 
                   return (
                     <div key={encounter.id}>
@@ -163,22 +178,32 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-700">
-                              {encounter.videoTitle}
+                              {isCourse ? encounter.courseRef ?? "课程出处" : encounter.videoTitle}
                             </p>
-                            <span className="mt-2 inline-flex rounded-full bg-gray-200 px-2 py-1 text-xs text-gray-500">
-                              {formatTimestamp(encounter.timestampSec)}
+                            <span
+                              className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs ${
+                                isCourse
+                                  ? "bg-emerald-50 text-emerald-600"
+                                  : "bg-gray-200 text-gray-500"
+                              }`}
+                            >
+                              {isCourse ? "课程" : formatTimestamp(encounter.timestampSec)}
                             </span>
                           </div>
                           <a
                             className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-medium text-emerald-600 hover:underline"
-                            href={buildVideoJumpHref(
-                              encounter.sourceUrl,
-                              encounter.timestampSec
-                            )}
+                            href={
+                              isCourse
+                                ? encounter.sourceUrl
+                                : buildVideoJumpHref(
+                                    encounter.sourceUrl,
+                                    encounter.timestampSec
+                                  )
+                            }
                             target="_blank"
                             rel="noreferrer"
                           >
-                            跳回视频
+                            {isCourse ? "查看" : "跳回视频"}
                           </a>
                         </div>
                         <p className="mt-3 text-sm italic text-gray-600">

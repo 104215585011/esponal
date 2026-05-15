@@ -3423,3 +3423,29 @@ Codex1 并行执行：
 **部署提示**：
 - 这次 hotfix 会止住 500 和前端报错。
 - 若要恢复真正的中文字幕翻译结果，Vercel 仍需正确配置 `TENCENT_SECRET_ID` 与 `TENCENT_SECRET_KEY`。
+
+## Dev Report: VOCAB-004 生词系统升级
+**时间**: 2026-05-15 22:36
+**执行人**: Codex1
+
+**状态**: ready_for_qa
+
+**本轮实现**
+- 新增 Prisma migration `20260515185000_add_dict_and_source_tracking`，为 `Word` 增加 `dictData`、`partOfSpeech`，为 `WordEncounter` 增加 `sourceType`、`courseRef`。
+- 新增 `src/lib/dictionary.ts` 和 `GET /api/vocab/lookup`，支持有道环境变量、Redis `vocab:dict:${lemma}` 缓存，以及无外部 API 时的静默 fallback。
+- 更新 `/api/lemmatize` 复用新的词典 lookup，保留旧 EXT-003/WEB-005 兼容面。
+- 更新 `/api/vocab/add`，保存 `dictData`、`partOfSpeech`、`sourceType`、`courseRef`。
+- 升级 `LookupCard`，展示词性、义项、例句、音标，并在加入词库时携带视频/课程出处。
+- 新增 `CourseLookupText`，在 `/learn/[slug]` 的词汇、句型、对话中接入课程点词。
+- 升级 `/vocab` 生词本，展示词典义项、例句，以及视频/课程两类出处；视频继续使用 VOCAB-003 跳回逻辑。
+- `.env.example` 新增 `YOUDAO_APP_KEY` / `YOUDAO_APP_SECRET`。
+- 新增 `tests/vocab004.test.mjs`。
+
+**验证**
+- `npm test` -> 70/70 pass
+- `npx prisma generate --no-engine` -> pass（普通 `npx prisma generate` 在 Windows 下因 query engine DLL 被占用出现 EPERM，使用 no-engine 成功刷新类型）
+- `npm run build` -> pass
+
+**已知说明**
+- `npm run build` 仍保留既有 `<img>` lint warning 和 Node `url.parse()` deprecation warning，非本票阻塞。
+- 未提交 `.env` 或任何密钥。

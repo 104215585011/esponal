@@ -1,4 +1,4 @@
-import { WordStatus } from "@prisma/client";
+import { Prisma, WordStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type CreateWordInput = {
@@ -6,6 +6,8 @@ type CreateWordInput = {
   lemma: string;
   translation: string;
   forms?: string[];
+  dictData?: Prisma.InputJsonValue;
+  partOfSpeech?: string | null;
   status?: WordStatus;
 };
 
@@ -13,6 +15,8 @@ type AddEncounterInput = {
   wordId: string;
   sourceUrl: string;
   timestampSec: number;
+  sourceType?: "video" | "course";
+  courseRef?: string | null;
   originalSentence: string;
   translatedSentence: string;
 };
@@ -25,6 +29,8 @@ export async function createWord({
   lemma,
   translation,
   forms = [],
+  dictData,
+  partOfSpeech,
   status = WordStatus.NEW
 }: CreateWordInput) {
   const normalizedLemma = lemma.trim().toLowerCase();
@@ -42,11 +48,15 @@ export async function createWord({
       lemma: normalizedLemma,
       translation: translation.trim(),
       forms: normalizedForms,
+      dictData,
+      partOfSpeech,
       status
     },
     update: {
       translation: translation.trim(),
       forms: normalizedForms,
+      ...(dictData ? { dictData } : {}),
+      ...(partOfSpeech ? { partOfSpeech } : {}),
       status
     }
   });
@@ -56,6 +66,8 @@ export async function addEncounter({
   wordId,
   sourceUrl,
   timestampSec,
+  sourceType = "video",
+  courseRef,
   originalSentence,
   translatedSentence
 }: AddEncounterInput) {
@@ -64,6 +76,8 @@ export async function addEncounter({
       wordId,
       sourceUrl,
       timestampSec,
+      sourceType,
+      courseRef,
       originalSentence,
       translatedSentence
     }
