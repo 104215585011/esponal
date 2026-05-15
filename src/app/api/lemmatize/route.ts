@@ -54,7 +54,7 @@ async function generateDictEntry(word: string): Promise<DictData | null> {
           messages: [
             {
               role: "user",
-              content: `为西班牙语单词"${word}"生成词典条目，只返回JSON，不要任何其他文字，格式：{"pos":"v.","meanings":["居住","生活"],"example":{"es":"Vivo en Madrid.","zh":"我住在马德里。"}}`,
+              content: `你是西班牙语词典助手。请为单词"${word}"生成词典条目，只返回JSON，不要任何解释，格式：{"pos":"词性缩写","meanings":["中文义项1","中文义项2"],"example":{"es":"西语例句","zh":"中文翻译"}}`,
             },
           ],
           temperature: 0.1,
