@@ -20,6 +20,15 @@ test("WEB-007 transcript panel exposes transcript, tabs, and seek contract", asy
   assert.match(transcriptPanel, /\/api\/translate/);
   assert.match(transcriptPanel, /LookupCard/);
   assert.match(transcriptPanel, /seekTo|onSeek/);
+  assert.match(transcriptPanel, /VISIBLE_INITIAL_CUES/);
+  assert.match(transcriptPanel, /VISIBLE_PREVIOUS_CUES\s*=\s*4/);
+  assert.match(transcriptPanel, /VISIBLE_UPCOMING_CUES/);
+  assert.match(transcriptPanel, /VISIBLE_UPCOMING_CUES\s*=\s*4/);
+  assert.match(transcriptPanel, /visibleCueRange/);
+  assert.match(transcriptPanel, /visibleCues/);
+  assert.match(transcriptPanel, /subtitleCues\.slice\(visibleCueRange\.start,\s*visibleCueRange\.end\)/);
+  assert.match(transcriptPanel, /block:\s*"center"/);
+  assert.doesNotMatch(transcriptPanel, /subtitleCues\.map\(\(cue,\s*index\)/);
 });
 
 test("WEB-007 related panel exposes hover and pin behavior contract", async () => {

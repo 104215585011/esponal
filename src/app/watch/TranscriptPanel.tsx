@@ -70,7 +70,9 @@ type TranscriptYouTubeNamespace = {
 const COURSE_HIGHLIGHT = "#86EFAC";
 const SAVED_HIGHLIGHT = "#93C5FD";
 const TRANSLATION_BATCH_SIZE = 5;
-const ABOVE_THE_FOLD_CUES = 8;
+const VISIBLE_INITIAL_CUES = 8;
+const VISIBLE_PREVIOUS_CUES = 4;
+const VISIBLE_UPCOMING_CUES = 4;
 
 function normalizeLookupWord(token: string) {
   return token
@@ -89,6 +91,21 @@ function findActiveCueIndex(cues: SubtitleCue[], currentTime: number) {
   return cues.findIndex(
     (cue) => currentTime >= cue.start && currentTime <= cue.start + cue.dur
   );
+}
+
+function getVisibleCueRange(cues: SubtitleCue[], activeCueIndex: number) {
+  if (cues.length === 0) {
+    return { start: 0, end: 0 };
+  }
+
+  if (activeCueIndex < 0) {
+    return { start: 0, end: Math.min(cues.length, VISIBLE_INITIAL_CUES) };
+  }
+
+  return {
+    start: Math.max(0, activeCueIndex - VISIBLE_PREVIOUS_CUES),
+    end: Math.min(cues.length, activeCueIndex + VISIBLE_UPCOMING_CUES + 1)
+  };
 }
 
 function formatTimestamp(seconds: number) {
@@ -172,6 +189,14 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   const activeCueIndex = useMemo(
     () => findActiveCueIndex(subtitleCues, currentTimeSec),
     [currentTimeSec, subtitleCues]
+  );
+  const visibleCueRange = useMemo(
+    () => getVisibleCueRange(subtitleCues, activeCueIndex),
+    [activeCueIndex, subtitleCues]
+  );
+  const visibleCues = useMemo(
+    () => subtitleCues.slice(visibleCueRange.start, visibleCueRange.end),
+    [subtitleCues, visibleCueRange]
   );
 
   useEffect(() => {
@@ -370,16 +395,13 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     }
 
     async function loadTranslations() {
-      if (subtitleCues.length === 0) {
+      if (visibleCues.length === 0) {
         return;
       }
 
-      const prioritizedIndexes = [
-        ...subtitleCues.slice(0, ABOVE_THE_FOLD_CUES).map((_, index) => index),
-        ...subtitleCues
-          .slice(ABOVE_THE_FOLD_CUES)
-          .map((_, index) => index + ABOVE_THE_FOLD_CUES)
-      ];
+      const prioritizedIndexes = visibleCues.map(
+        (_, index) => index + visibleCueRange.start
+      );
       let cursor = 0;
 
       async function worker() {
@@ -414,7 +436,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [subtitleCues]);
+  }, [subtitleCues, visibleCueRange.start, visibleCues]);
 
   useEffect(() => {
     let cancelled = false;
@@ -422,7 +444,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     async function loadHighlights() {
       const words = Array.from(
         new Set(
-          subtitleCues
+          visibleCues
             .flatMap((cue) => splitSubtitleTokens(cue.text))
             .map((token) => normalizeLookupWord(token))
             .filter(Boolean)
@@ -489,7 +511,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [subtitleCues]);
+  }, [visibleCues]);
 
   useEffect(() => {
     if (activeCueIndex < 0 || autoScrollPaused) {
@@ -503,7 +525,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     }
 
     isProgrammaticScrollRef.current = true;
-    activeCue.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    activeCue.scrollIntoView({ behavior: "smooth", block: "center" });
 
     if (scrollUnlockRef.current !== null) {
       window.clearTimeout(scrollUnlockRef.current);
@@ -587,7 +609,8 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             暂无字幕
           </div>
         ) : (
-          subtitleCues.map((cue, index) => {
+          visibleCues.map((cue, visibleIndex) => {
+            const index = visibleCueRange.start + visibleIndex;
             const tokens = splitSubtitleTokens(cue.text);
             const translation = translations[index] ?? "…";
             const isActive = index === activeCueIndex;
@@ -704,7 +727,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
               setAutoScrollPaused(false);
               cueRefs.current[activeCueIndex]?.scrollIntoView({
                 behavior: "smooth",
-                block: "nearest"
+                block: "center"
               });
             }}
             type="button"
