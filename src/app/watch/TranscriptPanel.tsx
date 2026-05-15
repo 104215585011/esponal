@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LookupCard } from "./LookupCard";
 
 type SubtitleCue = {
@@ -75,6 +75,16 @@ const TRANSLATION_BATCH_SIZE = 5;
 const VISIBLE_INITIAL_CUES = 8;
 const VISIBLE_PREVIOUS_CUES = 4;
 const VISIBLE_UPCOMING_CUES = 4;
+const TRANSLATION_LOOKAHEAD = 10;
+
+function lyricsStyle(distance: number): React.CSSProperties {
+  const abs = Math.abs(distance);
+  if (abs === 0) return { opacity: 1,    fontSize: "15.5px", fontWeight: 600, transition: "opacity 0.35s, font-size 0.35s" };
+  if (abs === 1) return { opacity: 0.52, fontSize: "14px",   fontWeight: 500, transition: "opacity 0.35s, font-size 0.35s" };
+  if (abs === 2) return { opacity: 0.32, fontSize: "13.5px", fontWeight: 400, transition: "opacity 0.35s, font-size 0.35s" };
+  if (abs <= 5)  return { opacity: 0.18, fontSize: "13px",   fontWeight: 400, transition: "opacity 0.35s, font-size 0.35s" };
+  return             { opacity: 0.08, fontSize: "12.5px", fontWeight: 400, transition: "opacity 0.35s, font-size 0.35s" };
+}
 
 function normalizeLookupWord(token: string) {
   return token
@@ -192,10 +202,14 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     () => findActiveCueIndex(subtitleCues, currentTimeSec),
     [currentTimeSec, subtitleCues]
   );
-  const visibleCueRange = useMemo(
-    () => getVisibleCueRange(subtitleCues, activeCueIndex),
-    [activeCueIndex, subtitleCues]
-  );
+  const visibleCueRange = useMemo(() => {
+    const base = getVisibleCueRange(subtitleCues, activeCueIndex);
+    // Extend the translation window beyond the display window
+    return {
+      start: Math.max(0, base.start - (TRANSLATION_LOOKAHEAD - VISIBLE_PREVIOUS_CUES)),
+      end: Math.min(subtitleCues.length, base.end + (TRANSLATION_LOOKAHEAD - VISIBLE_UPCOMING_CUES))
+    };
+  }, [activeCueIndex, subtitleCues]);
   // visibleCues is used only for translation pre-loading, not for rendering
   const visibleCues = useMemo(
     () => subtitleCues.slice(visibleCueRange.start, visibleCueRange.end),
@@ -607,8 +621,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         <span className="ml-auto text-[11.5px] text-gray-400">点击字幕跳转</span>
       </div>
 
+      {/* Lyrics-style scroll area: top/bottom padding lets first/last cue center */}
       <div
-        className="relative flex-1 overflow-y-auto pb-24 pt-2"
+        className="relative flex-1 overflow-y-auto"
+        style={{ paddingTop: "38vh", paddingBottom: "38vh" }}
         onScroll={() => {
           if (!isProgrammaticScrollRef.current) {
             setAutoScrollPaused(true);
@@ -621,28 +637,23 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
           </div>
         ) : (
           subtitleCues.map((cue, index) => {
+            const distance = activeCueIndex >= 0 ? index - activeCueIndex : index;
+            const isActive = distance === 0;
             const tokens = splitSubtitleTokens(cue.text);
-            const translation = translations[index] ?? "…";
-            const isActive = index === activeCueIndex;
+            const translation = translations[index];
+            const rowStyle = lyricsStyle(distance);
 
             return (
               <div
-                className={`group border-t border-gray-100 px-5 py-3 first:border-t-0 ${
-                  isActive ? "border-l-[3px] border-l-green-600" : "border-l-[3px] border-l-transparent"
-                }`}
                 key={`${cue.start}-${cue.text}`}
-                ref={(element) => {
-                  cueRefs.current[index] = element;
-                }}
+                ref={(element) => { cueRefs.current[index] = element; }}
+                className="group px-6"
+                style={rowStyle}
               >
                 <button
-                  className="block w-full text-left"
+                  className="block w-full py-2 text-left"
                   onClick={() => {
-                    // If a lookup card is open, just close it — don't jump the video
-                    if (activeLookup) {
-                      setActiveLookup(null);
-                      return;
-                    }
+                    if (activeLookup) { setActiveLookup(null); return; }
                     playerRef.current?.seekTo(cue.start, true);
                     playerRef.current?.playVideo();
                     setAutoScrollPaused(false);
@@ -650,21 +661,15 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                   type="button"
                 >
                   {displayMode !== "chinese" ? (
-                    <div className="inline">
+                    <div className="flex items-baseline gap-2">
                       <span
-                        className={`mr-2 inline-block text-[10px] font-medium tabular-nums tracking-[0.3px] transition ${
-                          isActive
-                            ? "opacity-100 text-green-700"
-                            : "opacity-0 text-gray-400 group-hover:opacity-100"
+                        className={`shrink-0 text-[10px] tabular-nums text-green-600 transition-opacity duration-200 ${
+                          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
                         }`}
                       >
                         {formatTimestamp(cue.start)}
                       </span>
-                      <span
-                        className={`inline text-[15px] leading-7 tracking-[0.05px] ${
-                          isActive ? "font-bold text-green-700" : "font-medium text-gray-900"
-                        }`}
-                      >
+                      <span className={`leading-relaxed tracking-[0.02px] ${isActive ? "text-green-800" : "text-gray-800"}`}>
                         {tokens.map((token, tokenIndex) => {
                           const normalizedWord = normalizeLookupWord(token);
                           const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
@@ -681,29 +686,19 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
                           return (
                             <span
-                              className="cursor-pointer rounded-sm px-0.5 transition hover:bg-gray-100"
+                              className="cursor-pointer rounded-sm px-0.5 hover:bg-black/5"
                               key={`${token}-${tokenIndex}`}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-                                setActiveLookup({
-                                  cueIndex: index,
-                                  form: normalizedWord,
-                                  anchorX: rect.left,
-                                  anchorY: rect.bottom + 6
-                                });
+                                setActiveLookup({ cueIndex: index, form: normalizedWord, anchorX: rect.left, anchorY: rect.bottom + 6 });
                               }}
                               onKeyDown={(event) => {
                                 if (event.key === "Enter" || event.key === " ") {
                                   event.preventDefault();
                                   event.stopPropagation();
                                   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-                                  setActiveLookup({
-                                    cueIndex: index,
-                                    form: normalizedWord,
-                                    anchorX: rect.left,
-                                    anchorY: rect.bottom + 6
-                                  });
+                                  setActiveLookup({ cueIndex: index, form: normalizedWord, anchorX: rect.left, anchorY: rect.bottom + 6 });
                                 }
                               }}
                               role="button"
@@ -718,13 +713,15 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                     </div>
                   ) : null}
 
-                  {displayMode !== "spanish" ? (
-                    <p className={`mt-1.5 font-['Noto_Sans_SC','PingFang_SC','Microsoft_YaHei',sans-serif] text-[12.5px] leading-6 ${isActive ? "text-gray-600" : "text-gray-500"}`}>
+                  {displayMode !== "spanish" && translation ? (
+                    <p
+                      className="mt-0.5 pl-8 text-[11.5px] leading-5 text-gray-500"
+                      style={{ fontFamily: "'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif" }}
+                    >
                       {translation}
                     </p>
                   ) : null}
                 </button>
-
               </div>
             );
           })
