@@ -208,6 +208,58 @@ async function fetchYoudaoEntry(
   };
 }
 
+async function fetchAIEntry(
+  word: string,
+  lemma: string,
+  morphInfo: string | null
+): Promise<DictionaryEntry | null> {
+  const apiKey = process.env.DASHSCOPE_API_KEY?.trim();
+  const model = process.env.DASHSCOPE_MODEL?.trim() || "glm-5";
+  if (!apiKey) return null;
+
+  const res = await fetch(
+    "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "user",
+            content: `你是西班牙语词典助手。请为单词"${lemma}"生成词典条目，只返回JSON，不要任何解释，格式：{"pos":"词性缩写","meanings":["中文义项1","中文义项2"],"example":{"es":"西语例句","zh":"中文翻译"}}`,
+          },
+        ],
+        temperature: 0.1,
+      }),
+    }
+  );
+
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const raw = data.choices?.[0]?.message?.content;
+  if (!raw) return null;
+
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+  const parsed = JSON.parse(cleaned) as { pos?: string; meanings?: string[]; example?: { es: string; zh: string } };
+
+  if (!parsed.meanings?.length) return null;
+
+  return {
+    word,
+    lemma,
+    partOfSpeech: parsed.pos ?? null,
+    meanings: parsed.meanings,
+    examples: parsed.example ? [parsed.example] : [],
+    phonetic: null,
+    morphInfo,
+  };
+}
+
 export async function lookupDictionary(wordInput: string): Promise<DictionaryEntry | null> {
   const word = normalizeWord(wordInput);
   if (!word) return null;
@@ -228,8 +280,9 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
   }
 
   const youdaoEntry = await fetchYoudaoEntry(word, lemma, morphInfo).catch(() => null);
+  const aiEntry = youdaoEntry ? null : await fetchAIEntry(word, lemma, morphInfo).catch(() => null);
   const fallbackEntry = fromFallback(word, lemma, morphInfo);
-  const entry = youdaoEntry ?? fallbackEntry;
+  const entry = youdaoEntry ?? aiEntry ?? fallbackEntry;
 
   if (!entry) {
     return {
