@@ -11,19 +11,21 @@ test("COURSE-002 grammar content defines homepage order and required groups", as
 
   const content = await readText(contentPath);
   const expectedOrder = [
-    "ser",
-    "estar",
-    "tener",
-    "ir",
-    "querer",
-    "poder",
     "noun-gender",
-    "ser-vs-estar"
+    "ser-vs-estar",
+    "regular-ar",
+    "regular-er-ir",
+    "stem-changing",
+    "reflexive-verbs",
+    "gustar",
+    "articles",
+    "adjective-agreement",
+    "ir-a-infinitive"
   ];
 
   let lastIndex = -1;
   for (const slug of expectedOrder) {
-    const index = content.search(new RegExp(`slug: "${slug}",\\n\\s+group:`));
+    const index = content.search(new RegExp(`\\s+slug: "${slug}",\\r?\\n\\s+group:`));
     assert.ok(index > lastIndex, `${slug} should appear in homepage order`);
     lastIndex = index;
   }
@@ -75,19 +77,31 @@ test("COURSE-002 grammar pages render required responsive layout and semantic ta
   assert.match(selectComponent, /router\.push\(`\/grammar\/\$\{event\.target\.value\}`\)/);
 });
 
-test("COURSE-002 grammar detail content covers conjugations, gender rules, and ser vs estar", async () => {
+test("COURSE-002 grammar detail content keeps rule topics and removes duplicate single-verb pages", async () => {
   const content = await readText("content/grammar/topics.ts");
 
-  for (const form of [
-    "soy",
-    "eres",
-    "estoy",
-    "tienes",
-    "voy",
-    "quiero",
-    "puedo"
+  for (const removedSlug of [
+    "ser",
+    "estar",
+    "tener",
+    "ir",
+    "querer",
+    "poder"
   ]) {
-    assert.match(content, new RegExp(form));
+    assert.doesNotMatch(content, new RegExp(`\\s+slug: "${removedSlug}",\\r?\\n\\s+group:`));
+  }
+
+  for (const retainedSlug of [
+    "regular-ar",
+    "regular-er-ir",
+    "stem-changing",
+    "reflexive-verbs",
+    "gustar",
+    "articles",
+    "adjective-agreement",
+    "ir-a-infinitive"
+  ]) {
+    assert.match(content, new RegExp(`\\s+slug: "${retainedSlug}",\\r?\\n\\s+group:`));
   }
 
   assert.match(content, /阳性/);
