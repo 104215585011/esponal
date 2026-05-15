@@ -16,6 +16,7 @@ type TranscriptPanelProps = {
 
 type TranslateResponse = {
   translation?: string;
+  degraded?: boolean;
 };
 
 type HighlightStatus = "course" | "saved" | "unknown";
@@ -509,7 +510,19 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         }
 
         const payload = (await response.json()) as TranslateResponse;
-        const translation = payload.translation?.trim() || text;
+
+        // Degraded = backend translate failed and returned source text as
+        // fallback. Don't cache or display it as a real translation; leave
+        // the placeholder so the next visible-window refresh retries.
+        if (payload.degraded) {
+          return;
+        }
+
+        const translation = payload.translation?.trim();
+
+        if (!translation) {
+          return;
+        }
 
         translationCacheRef.current.set(text, translation);
 
@@ -522,12 +535,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         }
       } catch (error) {
         console.error("Transcript translate failed", error);
-
-        if (!cancelled) {
-          setTranslations((previous) =>
-            previous[index] === text ? previous : { ...previous, [index]: text }
-          );
-        }
+        // Leave as placeholder ("…"); will retry when visible window changes.
       }
     }
 
