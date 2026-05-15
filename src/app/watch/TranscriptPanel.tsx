@@ -32,6 +32,8 @@ type DisplayMode = "bilingual" | "spanish" | "chinese";
 type ActiveLookup = {
   cueIndex: number;
   form: string;
+  anchorX: number;
+  anchorY: number;
 };
 
 type TranscriptYouTubePlayerStateChangeEvent = {
@@ -194,6 +196,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     () => getVisibleCueRange(subtitleCues, activeCueIndex),
     [activeCueIndex, subtitleCues]
   );
+  // visibleCues is used only for translation pre-loading, not for rendering
   const visibleCues = useMemo(
     () => subtitleCues.slice(visibleCueRange.start, visibleCueRange.end),
     [subtitleCues, visibleCueRange]
@@ -552,9 +555,17 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveLookup(null);
+      }
+    };
+
     document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -609,8 +620,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             暂无字幕
           </div>
         ) : (
-          visibleCues.map((cue, visibleIndex) => {
-            const index = visibleCueRange.start + visibleIndex;
+          subtitleCues.map((cue, index) => {
             const tokens = splitSubtitleTokens(cue.text);
             const translation = translations[index] ?? "…";
             const isActive = index === activeCueIndex;
@@ -628,6 +638,11 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                 <button
                   className="block w-full text-left"
                   onClick={() => {
+                    // If a lookup card is open, just close it — don't jump the video
+                    if (activeLookup) {
+                      setActiveLookup(null);
+                      return;
+                    }
                     playerRef.current?.seekTo(cue.start, true);
                     playerRef.current?.playVideo();
                     setAutoScrollPaused(false);
@@ -670,18 +685,24 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                               key={`${token}-${tokenIndex}`}
                               onClick={(event) => {
                                 event.stopPropagation();
+                                const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
                                 setActiveLookup({
                                   cueIndex: index,
-                                  form: normalizedWord
+                                  form: normalizedWord,
+                                  anchorX: rect.left,
+                                  anchorY: rect.bottom + 6
                                 });
                               }}
                               onKeyDown={(event) => {
                                 if (event.key === "Enter" || event.key === " ") {
                                   event.preventDefault();
                                   event.stopPropagation();
+                                  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
                                   setActiveLookup({
                                     cueIndex: index,
-                                    form: normalizedWord
+                                    form: normalizedWord,
+                                    anchorX: rect.left,
+                                    anchorY: rect.bottom + 6
                                   });
                                 }
                               }}
@@ -704,21 +725,35 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                   ) : null}
                 </button>
 
-                {activeLookup?.cueIndex === index ? (
-                  <div className="relative mt-3">
-                    <LookupCard
-                      currentTimeSec={currentTimeSec}
-                      form={activeLookup.form}
-                      onClose={() => setActiveLookup(null)}
-                      originalSentence={cue.text}
-                      translatedSentence={translation}
-                    />
-                  </div>
-                ) : null}
               </div>
             );
           })
         )}
+
+        {activeLookup ? (() => {
+          const activeLookupCue = subtitleCues[activeLookup.cueIndex];
+          const activeLookupTranslation = translations[activeLookup.cueIndex] ?? "";
+          // Clamp horizontally so card doesn't overflow off-screen
+          const cardLeft = Math.min(activeLookup.anchorX, window.innerWidth - 340);
+          // Flip above the word if too close to bottom
+          const cardTop = activeLookup.anchorY + 260 > window.innerHeight
+            ? activeLookup.anchorY - 280
+            : activeLookup.anchorY;
+          return (
+            <div
+              className="fixed z-50"
+              style={{ left: cardLeft, top: cardTop, width: 320 }}
+            >
+              <LookupCard
+                currentTimeSec={currentTimeSec}
+                form={activeLookup.form}
+                onClose={() => setActiveLookup(null)}
+                originalSentence={activeLookupCue?.text ?? ""}
+                translatedSentence={activeLookupTranslation}
+              />
+            </div>
+          );
+        })() : null}
 
         {autoScrollPaused && activeCue ? (
           <button
