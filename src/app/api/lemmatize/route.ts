@@ -90,6 +90,7 @@ export async function POST(request: Request) {
     const lemmaDict = await loadLemmaDict();
     const entry = lemmaDict[form];
     const lemma = entry?.lemma ?? form;
+    const morphInfo = entry?.morphInfo?.includes("?") ? null : (morphInfo);
 
     // Check Redis cache
     const cacheKey = `lemma:dict:${lemma}`;
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
       const dict = JSON.parse(cached as string) as DictData;
       return NextResponse.json({
         lemma,
-        morphInfo: entry?.morphInfo || null,
+        morphInfo: morphInfo,
         translation: dict.meanings.join("；"),
         partOfSpeech: dict.pos,
         meanings: dict.meanings,
@@ -126,7 +127,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       lemma,
-      morphInfo: entry?.morphInfo || null,
+      morphInfo: morphInfo,
       translation: dict.meanings.join("；"),
       partOfSpeech: dict.pos,
       meanings: dict.meanings,
