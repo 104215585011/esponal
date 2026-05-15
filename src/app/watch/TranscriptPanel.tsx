@@ -72,7 +72,8 @@ type TranscriptYouTubeNamespace = {
 
 const COURSE_HIGHLIGHT = "#86EFAC";
 const SAVED_HIGHLIGHT = "#93C5FD";
-const TRANSLATION_BATCH_SIZE = 5;
+const TRANSLATION_BATCH_SIZE = 2;
+const TRANSLATION_RETRY_DELAYS_MS = [600, 1500, 3500];
 const INITIAL_RENDER_COUNT = 12;
 const LOAD_MORE_BATCH = 15;
 const FOLLOW_EXPAND_THRESHOLD = 5;
@@ -486,6 +487,20 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   useEffect(() => {
     let cancelled = false;
 
+    async function fetchTranslateOnce(text: string): Promise<TranslateResponse | null> {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Translate request failed: ${response.status}`);
+      }
+
+      return (await response.json()) as TranslateResponse;
+    }
+
     async function translateCue(index: number, text: string) {
       const cached = translationCacheRef.current.get(text);
 
@@ -496,46 +511,34 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         return;
       }
 
-      try {
-        const response = await fetch("/api/translate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ text })
-        });
+      // Retry with exponential-ish backoff when backend reports degraded
+      // (Tencent rate limit / quota / transient network) — first burst
+      // commonly trips QPS, so a short wait usually rescues it.
+      for (let attempt = 0; attempt <= TRANSLATION_RETRY_DELAYS_MS.length; attempt += 1) {
+        if (cancelled) return;
 
-        if (!response.ok) {
-          throw new Error(`Translate request failed: ${response.status}`);
+        try {
+          const payload = await fetchTranslateOnce(text);
+          const translation = payload?.translation?.trim();
+
+          if (payload && !payload.degraded && translation) {
+            translationCacheRef.current.set(text, translation);
+            if (!cancelled) {
+              setTranslations((previous) =>
+                previous[index] === translation
+                  ? previous
+                  : { ...previous, [index]: translation }
+              );
+            }
+            return;
+          }
+        } catch (error) {
+          console.error("Transcript translate failed", error);
         }
 
-        const payload = (await response.json()) as TranslateResponse;
-
-        // Degraded = backend translate failed and returned source text as
-        // fallback. Don't cache or display it as a real translation; leave
-        // the placeholder so the next visible-window refresh retries.
-        if (payload.degraded) {
-          return;
-        }
-
-        const translation = payload.translation?.trim();
-
-        if (!translation) {
-          return;
-        }
-
-        translationCacheRef.current.set(text, translation);
-
-        if (!cancelled) {
-          setTranslations((previous) =>
-            previous[index] === translation
-              ? previous
-              : { ...previous, [index]: translation }
-          );
-        }
-      } catch (error) {
-        console.error("Transcript translate failed", error);
-        // Leave as placeholder ("…"); will retry when visible window changes.
+        const delay = TRANSLATION_RETRY_DELAYS_MS[attempt];
+        if (delay === undefined) return;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
