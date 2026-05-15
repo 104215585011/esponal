@@ -15,6 +15,9 @@ test("WEB-008 transcript panel renders a virtual cue window", async () => {
   assert.match(transcriptPanel, /LOAD_MORE_BATCH\s*=\s*\d+/);
   assert.match(transcriptPanel, /renderStart/);
   assert.match(transcriptPanel, /renderEnd/);
+  assert.match(transcriptPanel, /mergeSubtitleCues/);
+  assert.match(transcriptPanel, /MAX_MERGED_CUE_CHARS/);
+  assert.match(transcriptPanel, /MAX_MERGED_CUE_GAP_SEC/);
   assert.match(transcriptPanel, /renderedCues\.map/);
   assert.match(transcriptPanel, /data-cue-index/);
   assert.doesNotMatch(transcriptPanel, /subtitleCues\.map\(\(cue,\s*index\)/);

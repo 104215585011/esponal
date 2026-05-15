@@ -109,3 +109,8 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 ### Current Status
 - `WEB-008`: `ready_for_qa`.
 - Next: Codex2 should QA WEB-008 with DOM cue count, sentinel expansion, browse/follow behavior, return-to-current, and cue click seek checks.
+
+### WEB-008 follow-up - 2026-05-16
+- Optimized transcript readability by merging adjacent short timedtext cues into more continuous display lines in `TranscriptPanel` before render/translate/highlight.
+- Kept original behavior contracts: click still seeks to the merged line start, LookupCard still opens from word spans, virtualization still renders `renderedCues` only.
+- Verification: `node --test tests/web007.test.mjs tests/web008.test.mjs`, `npx tsc --noEmit`, and `npm run build` passed.

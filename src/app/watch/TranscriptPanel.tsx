@@ -77,6 +77,9 @@ const TRANSLATION_RETRY_DELAYS_MS = [600, 1500, 3500];
 const INITIAL_RENDER_COUNT = 12;
 const LOAD_MORE_BATCH = 15;
 const FOLLOW_EXPAND_THRESHOLD = 5;
+const MAX_MERGED_CUE_CHARS = 120;
+const MAX_MERGED_CUE_GAP_SEC = 1.1;
+const MAX_MERGED_CUE_COUNT = 4;
 
 function normalizeLookupWord(token: string) {
   return token
@@ -95,6 +98,59 @@ function findActiveCueIndex(cues: SubtitleCue[], currentTime: number) {
   return cues.findIndex(
     (cue) => currentTime >= cue.start && currentTime <= cue.start + cue.dur
   );
+}
+
+function shouldEndTranscriptLine(text: string) {
+  return /[.!?¡¿。！？]\s*$/.test(text.trim());
+}
+
+function mergeSubtitleCues(cues: SubtitleCue[]) {
+  const mergedCues: SubtitleCue[] = [];
+  let current: SubtitleCue | null = null;
+  let currentCueCount = 0;
+
+  for (const cue of cues) {
+    const text = cue.text.trim();
+
+    if (!text) {
+      continue;
+    }
+
+    if (!current) {
+      current = { ...cue, text };
+      currentCueCount = 1;
+      continue;
+    }
+
+    const currentEnd = current.start + current.dur;
+    const gap = cue.start - currentEnd;
+    const nextText = `${current.text} ${text}`.replace(/\s+/g, " ").trim();
+    const canMerge =
+      gap <= MAX_MERGED_CUE_GAP_SEC &&
+      currentCueCount < MAX_MERGED_CUE_COUNT &&
+      nextText.length <= MAX_MERGED_CUE_CHARS &&
+      !shouldEndTranscriptLine(current.text);
+
+    if (!canMerge) {
+      mergedCues.push(current);
+      current = { ...cue, text };
+      currentCueCount = 1;
+      continue;
+    }
+
+    current = {
+      start: current.start,
+      dur: Math.max(cue.start + cue.dur - current.start, current.dur),
+      text: nextText
+    };
+    currentCueCount += 1;
+  }
+
+  if (current) {
+    mergedCues.push(current);
+  }
+
+  return mergedCues;
 }
 
 function formatTimestamp(seconds: number) {
@@ -180,20 +236,21 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   const intervalRef = useRef<number | null>(null);
   const isProgrammaticScrollRef = useRef(false);
   const scrollUnlockRef = useRef<number | null>(null);
+  const transcriptCues = useMemo(() => mergeSubtitleCues(subtitleCues), [subtitleCues]);
   const activeCueIndex = useMemo(
-    () => findActiveCueIndex(subtitleCues, currentTimeSec),
-    [currentTimeSec, subtitleCues]
+    () => findActiveCueIndex(transcriptCues, currentTimeSec),
+    [currentTimeSec, transcriptCues]
   );
   const visibleCueRange = useMemo(
     () => ({
-      start: Math.max(0, Math.min(renderStart, subtitleCues.length)),
-      end: Math.max(0, Math.min(renderEnd, subtitleCues.length))
+      start: Math.max(0, Math.min(renderStart, transcriptCues.length)),
+      end: Math.max(0, Math.min(renderEnd, transcriptCues.length))
     }),
-    [renderEnd, renderStart, subtitleCues.length]
+    [renderEnd, renderStart, transcriptCues.length]
   );
   const visibleCues = useMemo(
-    () => subtitleCues.slice(visibleCueRange.start, visibleCueRange.end),
-    [subtitleCues, visibleCueRange]
+    () => transcriptCues.slice(visibleCueRange.start, visibleCueRange.end),
+    [transcriptCues, visibleCueRange]
   );
   const renderedCues = visibleCues;
 
@@ -253,8 +310,8 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   }, [activeCueIndex]);
 
   useEffect(() => {
-    subtitleCuesRef.current = subtitleCues;
-  }, [subtitleCues]);
+    subtitleCuesRef.current = transcriptCues;
+  }, [transcriptCues]);
 
   useEffect(() => {
     if (!scrollContainerRef.current) {
@@ -370,9 +427,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
         if (!cancelled) {
           const cues = Array.isArray(payload) ? payload : [];
+          const initialTranscriptCues = mergeSubtitleCues(cues);
           setSubtitleCues(cues);
           setRenderStart(0);
-          setRenderEnd(Math.min(cues.length, INITIAL_RENDER_COUNT));
+          setRenderEnd(Math.min(initialTranscriptCues.length, INITIAL_RENDER_COUNT));
         }
       } catch (error) {
         console.error("Transcript subtitle load failed", error);
@@ -564,7 +622,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             return;
           }
 
-          const cue = subtitleCues[index];
+          const cue = transcriptCues[index];
 
           if (!cue?.text.trim()) {
             continue;
@@ -587,7 +645,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [subtitleCues, visibleCueRange.start, visibleCues]);
+  }, [transcriptCues, visibleCueRange.start, visibleCues]);
 
   useEffect(() => {
     let cancelled = false;
@@ -665,7 +723,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   }, [visibleCues]);
 
   useEffect(() => {
-    if (activeCueIndex < 0 || subtitleCues.length === 0) {
+    if (activeCueIndex < 0 || transcriptCues.length === 0) {
       return;
     }
 
@@ -676,19 +734,19 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
     if (activeCueIndex >= renderEnd) {
       setRenderStart(Math.max(0, activeCueIndex - FOLLOW_EXPAND_THRESHOLD));
-      setRenderEnd(Math.min(subtitleCues.length, activeCueIndex + LOAD_MORE_BATCH));
+      setRenderEnd(Math.min(transcriptCues.length, activeCueIndex + LOAD_MORE_BATCH));
       return;
     }
 
     if (activeCueIndex >= renderEnd - FOLLOW_EXPAND_THRESHOLD) {
       setRenderEnd((previousEnd) =>
         Math.min(
-          subtitleCues.length,
+          transcriptCues.length,
           Math.max(previousEnd, activeCueIndex + FOLLOW_EXPAND_THRESHOLD + 1)
         )
       );
     }
-  }, [activeCueIndex, renderEnd, renderStart, subtitleCues.length]);
+  }, [activeCueIndex, renderEnd, renderStart, transcriptCues.length]);
 
   useEffect(() => {
     if (activeCueIndex < 0 || !followMode) {
@@ -901,7 +959,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         )}
 
         {activeLookup ? (() => {
-          const activeLookupCue = subtitleCues[activeLookup.cueIndex];
+          const activeLookupCue = transcriptCues[activeLookup.cueIndex];
           const activeLookupTranslation = translations[activeLookup.cueIndex] ?? "";
           // Clamp horizontally so card doesn't overflow off-screen
           const cardLeft = Math.min(activeLookup.anchorX, window.innerWidth - 340);
