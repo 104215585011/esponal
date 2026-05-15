@@ -4,6 +4,23 @@
 
 ---
 
+## Dev Report — Session #52（2026-05-16）
+
+### 本轮完成
+- `content/grammar/topics.ts` 新增 8 个语法主题（规则-ar/-er/-ir、词干变音、反身动词、gustar、冠词、形容词性数、ir a + 原形）
+- 新增 GrammarGroup `"句型结构"` 分组
+- TypeScript 类型检查通过，build 通过，已推送 `e37cc4a`
+
+### 当前状态
+- VOCAB-004：Codex1 已提交，待 Codex2 QA 验收
+- 其余功能：全部 passing
+
+### 下一步
+- Codex2：对 VOCAB-004 执行 QA 验收
+- 验收通过后可进入用户测试阶段
+
+---
+
 ## PM Report — Session #43（2026-05-15）
 
 ### 当前已验证（passing）
