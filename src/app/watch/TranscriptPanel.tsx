@@ -655,17 +655,13 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
       return;
     }
 
-    // Active jumped before current window: extend window backward, do NOT
-    // shrink renderEnd — keep already-translated upcoming cues alive.
     if (activeCueIndex < renderStart) {
       setRenderStart(Math.max(0, activeCueIndex - FOLLOW_EXPAND_THRESHOLD));
       return;
     }
 
-    // Active jumped past current window: extend window forward, do NOT
-    // bump renderStart — previously rendered/translated cues stay mounted
-    // so the user can still scroll back and see history + translations.
     if (activeCueIndex >= renderEnd) {
+      setRenderStart(Math.max(0, activeCueIndex - FOLLOW_EXPAND_THRESHOLD));
       setRenderEnd(Math.min(subtitleCues.length, activeCueIndex + LOAD_MORE_BATCH));
       return;
     }
