@@ -3,6 +3,8 @@
 **优先级**：P1 | **负责人**：Codex1 | **日期**：2026-05-15  
 **前置依赖**：VOCAB-001 ✅、VOCAB-002 ✅、WEB-005 ✅、COURSE-003（并行可以，课文点词功能等 COURSE-003 完成后接入）
 
+> **2026-05-15 架构决策**：词典数据源由有道 API 改为 GLM-5（阿里云 DashScope）实时生成，结果永久缓存于 Redis。环境变量：`DASHSCOPE_API_KEY` / `DASHSCOPE_MODEL=glm-5`。有道 API 相关代码已移除。
+
 ---
 
 ## 背景
