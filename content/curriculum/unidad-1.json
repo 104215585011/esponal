@@ -1,0 +1,488 @@
+{
+  "id": "unidad-1",
+  "vocabGroups": [
+    {
+      "title": "打招呼与告别",
+      "items": [
+        {
+          "es": "Hola",
+          "zh": "你好",
+          "note": "任何时候都能用",
+          "audioSrc": "/audio/units/unidad-1/hola.mp3"
+        },
+        {
+          "es": "Buenos dias",
+          "zh": "早上好",
+          "note": "中午前",
+          "audioSrc": "/audio/units/unidad-1/buenos-dias.mp3"
+        },
+        {
+          "es": "Buenas tardes",
+          "zh": "下午好",
+          "note": "中午到傍晚",
+          "audioSrc": "/audio/units/unidad-1/buenas-tardes.mp3"
+        },
+        {
+          "es": "Buenas noches",
+          "zh": "晚上好 / 晚安",
+          "note": "天黑后",
+          "audioSrc": "/audio/units/unidad-1/buenas-noches.mp3"
+        },
+        {
+          "es": "Adios",
+          "zh": "再见",
+          "note": "较正式",
+          "audioSrc": "/audio/units/unidad-1/adios.mp3"
+        },
+        {
+          "es": "Hasta luego",
+          "zh": "待会儿见",
+          "note": "日常告别",
+          "audioSrc": "/audio/units/unidad-1/hasta-luego.mp3"
+        },
+        {
+          "es": "Hasta manana",
+          "zh": "明天见",
+          "note": "知道明天会再见时",
+          "audioSrc": "/audio/units/unidad-1/hasta-manana.mp3"
+        }
+      ]
+    },
+    {
+      "title": "个人信息",
+      "items": [
+        {
+          "es": "el nombre",
+          "zh": "名字",
+          "audioSrc": "/audio/units/unidad-1/el-nombre.mp3"
+        },
+        {
+          "es": "el apellido",
+          "zh": "姓",
+          "audioSrc": "/audio/units/unidad-1/el-apellido.mp3"
+        },
+        {
+          "es": "la edad",
+          "zh": "年龄",
+          "audioSrc": "/audio/units/unidad-1/la-edad.mp3"
+        },
+        {
+          "es": "la nacionalidad",
+          "zh": "国籍",
+          "audioSrc": "/audio/units/unidad-1/la-nacionalidad.mp3"
+        },
+        {
+          "es": "la profesion",
+          "zh": "职业",
+          "audioSrc": "/audio/units/unidad-1/la-profesion.mp3"
+        }
+      ]
+    },
+    {
+      "title": "国籍",
+      "items": [
+        {
+          "es": "chino / china",
+          "zh": "中国人",
+          "note": "男 / 女",
+          "audioSrc": "/audio/units/unidad-1/chino-china.mp3"
+        },
+        {
+          "es": "espanol / espanola",
+          "zh": "西班牙人",
+          "audioSrc": "/audio/units/unidad-1/espanol-espanola.mp3"
+        },
+        {
+          "es": "mexicano / mexicana",
+          "zh": "墨西哥人",
+          "audioSrc": "/audio/units/unidad-1/mexicano-mexicana.mp3"
+        },
+        {
+          "es": "argentino / argentina",
+          "zh": "阿根廷人",
+          "audioSrc": "/audio/units/unidad-1/argentino-argentina.mp3"
+        },
+        {
+          "es": "japones / japonesa",
+          "zh": "日本人",
+          "audioSrc": "/audio/units/unidad-1/japones-japonesa.mp3"
+        },
+        {
+          "es": "estadounidense",
+          "zh": "美国人",
+          "note": "男女同形",
+          "audioSrc": "/audio/units/unidad-1/estadounidense.mp3"
+        }
+      ]
+    },
+    {
+      "title": "常见职业",
+      "items": [
+        {
+          "es": "estudiante",
+          "zh": "学生",
+          "note": "男女同形",
+          "audioSrc": "/audio/units/unidad-1/estudiante.mp3"
+        },
+        {
+          "es": "profesor / profesora",
+          "zh": "老师",
+          "audioSrc": "/audio/units/unidad-1/profesor-profesora.mp3"
+        },
+        {
+          "es": "medico / medica",
+          "zh": "医生",
+          "audioSrc": "/audio/units/unidad-1/medico-medica.mp3"
+        },
+        {
+          "es": "ingeniero / ingeniera",
+          "zh": "工程师",
+          "audioSrc": "/audio/units/unidad-1/ingeniero-ingeniera.mp3"
+        },
+        {
+          "es": "disenador / disenadora",
+          "zh": "设计师",
+          "audioSrc": "/audio/units/unidad-1/disenador-disenadora.mp3"
+        },
+        {
+          "es": "camarero / camarera",
+          "zh": "服务员",
+          "audioSrc": "/audio/units/unidad-1/camarero-camarera.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "介绍自己",
+      "items": [
+        {
+          "es": "Me llamo Wang.",
+          "zh": "我叫 Wang。",
+          "audioSrc": "/audio/units/unidad-1/me-llamo-wang.mp3"
+        },
+        {
+          "es": "Soy chino. / Soy china.",
+          "zh": "我是中国人。",
+          "audioSrc": "/audio/units/unidad-1/soy-chino-soy-china.mp3"
+        },
+        {
+          "es": "Tengo 25 anos.",
+          "zh": "我 25 岁。",
+          "audioSrc": "/audio/units/unidad-1/tengo-25-anos.mp3"
+        },
+        {
+          "es": "Soy estudiante.",
+          "zh": "我是学生。",
+          "audioSrc": "/audio/units/unidad-1/soy-estudiante.mp3"
+        },
+        {
+          "es": "Vivo en Shanghai.",
+          "zh": "我住在上海。",
+          "audioSrc": "/audio/units/unidad-1/vivo-en-shanghai.mp3"
+        }
+      ]
+    },
+    {
+      "category": "询问别人",
+      "items": [
+        {
+          "es": "Como te llamas?",
+          "zh": "你叫什么名字？",
+          "audioSrc": "/audio/units/unidad-1/como-te-llamas.mp3"
+        },
+        {
+          "es": "De donde eres?",
+          "zh": "你是哪里人？",
+          "audioSrc": "/audio/units/unidad-1/de-donde-eres.mp3"
+        },
+        {
+          "es": "Cuantos anos tienes?",
+          "zh": "你多大？",
+          "audioSrc": "/audio/units/unidad-1/cuantos-anos-tienes.mp3"
+        },
+        {
+          "es": "A que te dedicas?",
+          "zh": "你做什么工作？",
+          "audioSrc": "/audio/units/unidad-1/a-que-te-dedicas.mp3"
+        },
+        {
+          "es": "Donde vives?",
+          "zh": "你住在哪里？",
+          "audioSrc": "/audio/units/unidad-1/donde-vives.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 第一次见面",
+      "scene": "Maria 和 Liu 在咖啡馆排队时聊了起来。",
+      "lines": [
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Hola! Como te llamas?",
+          "zh": "你好！你叫什么名字？",
+          "audioSrc": "/audio/units/unidad-1/hola-como-te-llamas.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Hola, me llamo Liu. Y tu?",
+          "zh": "你好，我叫 Liu。你呢？",
+          "audioSrc": "/audio/units/unidad-1/hola-me-llamo-liu-y-tu.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Yo soy Maria. De donde eres?",
+          "zh": "我是 Maria。你是哪里人？",
+          "audioSrc": "/audio/units/unidad-1/yo-soy-maria-de-donde-eres.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Soy de China, de Shanghai. Y tu?",
+          "zh": "我是中国人，从上海来。你呢？",
+          "audioSrc": "/audio/units/unidad-1/soy-de-china-de-shanghai-y-tu.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Soy espanola, de Madrid. A que te dedicas?",
+          "zh": "我是西班牙人，马德里的。你做什么工作？",
+          "audioSrc": "/audio/units/unidad-1/soy-espanola-de-madrid-a-que-te-dedicas.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Soy estudiante. Estudio espanol aqui.",
+          "zh": "我是学生。我在这里学西语。",
+          "audioSrc": "/audio/units/unidad-1/soy-estudiante-estudio-espanol-aqui.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Que bien! Mucho gusto, Liu.",
+          "zh": "太好了！很高兴认识你，Liu。",
+          "audioSrc": "/audio/units/unidad-1/que-bien-mucho-gusto-liu.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Igualmente.",
+          "zh": "我也是。",
+          "audioSrc": "/audio/units/unidad-1/igualmente.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 课堂自我介绍",
+      "scene": "第一节西语课，老师让学生做自我介绍。",
+      "lines": [
+        {
+          "speaker": "Profesora",
+          "speakerVariant": "a",
+          "es": "Hola a todos. Como te llamas tu?",
+          "zh": "大家好。你叫什么名字？",
+          "audioSrc": "/audio/units/unidad-1/hola-a-todos-como-te-llamas-tu.mp3"
+        },
+        {
+          "speaker": "Wang",
+          "speakerVariant": "b",
+          "es": "Me llamo Wang. Soy chino, de Beijing. Tengo 28 anos y soy ingeniero.",
+          "zh": "我叫 Wang。我是中国人，北京的。我 28 岁，是工程师。",
+          "audioSrc": "/audio/units/unidad-1/me-llamo-wang-soy-chino-de-beijing-tengo-28-anos-y-soy-ingeniero.mp3"
+        },
+        {
+          "speaker": "Profesora",
+          "speakerVariant": "a",
+          "es": "Muy bien, Wang. Y tu?",
+          "zh": "很好，Wang。你呢？",
+          "audioSrc": "/audio/units/unidad-1/muy-bien-wang-y-tu.mp3"
+        },
+        {
+          "speaker": "Yuki",
+          "speakerVariant": "b",
+          "es": "Me llamo Yuki, soy japonesa. Tengo 24 anos y soy disenadora.",
+          "zh": "我叫 Yuki，是日本人。我 24 岁，是设计师。",
+          "audioSrc": "/audio/units/unidad-1/me-llamo-yuki-soy-japonesa-tengo-24-anos-y-soy-disenadora.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "ser",
+      "titleZh": "是",
+      "lead": "ser 用来表达身份、国籍、职业等本质属性，是必须先背下来的核心不规则动词。",
+      "tip": "ser 表示相对稳定的属性，后续会和 estar 对比。",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "soy",
+          "example": "Soy chino."
+        },
+        {
+          "pronoun": "tu",
+          "form": "eres",
+          "example": "Eres estudiante?"
+        },
+        {
+          "pronoun": "el / ella / usted",
+          "form": "es",
+          "example": "Maria es espanola."
+        },
+        {
+          "pronoun": "nosotros / nosotras",
+          "form": "somos",
+          "example": "Somos estudiantes."
+        },
+        {
+          "pronoun": "vosotros / vosotras",
+          "form": "sois",
+          "example": "Sois de China?"
+        },
+        {
+          "pronoun": "ellos / ellas / ustedes",
+          "form": "son",
+          "example": "Son medicos."
+        }
+      ]
+    },
+    {
+      "verb": "llamarse",
+      "titleZh": "叫做",
+      "lead": "llamarse 是反身动词，字面意思是“把自己叫做……”。",
+      "tip": null,
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "me llamo",
+          "example": "Me llamo Liu."
+        },
+        {
+          "pronoun": "tu",
+          "form": "te llamas",
+          "example": "Como te llamas?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "se llama",
+          "example": "Se llama Maria."
+        },
+        {
+          "pronoun": "nosotros",
+          "form": "nos llamamos",
+          "example": null
+        },
+        {
+          "pronoun": "vosotros",
+          "form": "os llamais",
+          "example": null
+        },
+        {
+          "pronoun": "ellos / ellas",
+          "form": "se llaman",
+          "example": null
+        }
+      ]
+    },
+    {
+      "verb": "tener",
+      "titleZh": "有，用于年龄",
+      "lead": "西语说年龄用 tener，不用 ser。字面意思是“我有 25 年”。",
+      "tip": "中文说“我 25 岁”，西语说 Tengo 25 anos。",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "tengo",
+          "example": "Tengo 28 anos."
+        },
+        {
+          "pronoun": "tu",
+          "form": "tienes",
+          "example": "Cuantos anos tienes?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "tiene",
+          "example": "Tiene 30 anos."
+        },
+        {
+          "pronoun": "nosotros",
+          "form": "tenemos",
+          "example": null
+        },
+        {
+          "pronoun": "vosotros",
+          "form": "teneis",
+          "example": null
+        },
+        {
+          "pronoun": "ellos / ellas",
+          "form": "tienen",
+          "example": "Tienen 20 anos."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "中文不分性别，西语要分阴阳性",
+      "body": "中文说“中国人”不区分性别；西语要说 <strong>chino</strong> 或 <strong>china</strong>。国籍词和职业词经常有这个区别。"
+    },
+    {
+      "title": "年龄表达用 tener",
+      "body": "<table><tr><th>中文</th><th>西语</th><th>字面意思</th></tr><tr><td>我 25 岁</td><td>Tengo 25 anos.</td><td>我有 25 年</td></tr><tr><td>你多大？</td><td>Cuantos anos tienes?</td><td>你有多少年？</td></tr></table>"
+    },
+    {
+      "title": "姓和名的顺序",
+      "body": "中文通常是姓 + 名，西语通常是名 + 姓，而且西班牙语姓名里常见两个姓。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "用 ser 的正确形式填空",
+      "questions": [
+        "Yo ___ estudiante.",
+        "Maria ___ espanola.",
+        "Nosotros ___ chinos.",
+        "Tu ___ profesor?",
+        "Mis amigos ___ mexicanos."
+      ],
+      "answers": [
+        "soy",
+        "es",
+        "somos",
+        "eres",
+        "son"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译下列句子",
+      "questions": [
+        "你好，我叫李明。",
+        "我是中国人，从北京来。",
+        "我 30 岁，我是医生。",
+        "你叫什么名字？你多大？",
+        "很高兴认识你。"
+      ],
+      "answers": [
+        "Hola, me llamo Li Ming.",
+        "Soy chino, de Beijing.",
+        "Tengo 30 anos. Soy medico.",
+        "Como te llamas? Cuantos anos tienes?",
+        "Mucho gusto."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "MlLWTeApqIM",
+    "title": "De donde eres? - 自我介绍",
+    "description": "在真实西语对话中巩固本单元的自我介绍句型。"
+  }
+}

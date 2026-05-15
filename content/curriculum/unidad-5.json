@@ -1,0 +1,395 @@
+{
+  "id": "unidad-5",
+  "vocabGroups": [
+    {
+      "title": "家庭成员",
+      "items": [
+        {
+          "es": "el padre",
+          "zh": "父亲",
+          "audioSrc": "/audio/units/unidad-5/el-padre.mp3"
+        },
+        {
+          "es": "la madre",
+          "zh": "母亲",
+          "audioSrc": "/audio/units/unidad-5/la-madre.mp3"
+        },
+        {
+          "es": "el hermano / la hermana",
+          "zh": "兄弟 / 姐妹",
+          "audioSrc": "/audio/units/unidad-5/el-hermano-la-hermana.mp3"
+        },
+        {
+          "es": "el abuelo / la abuela",
+          "zh": "祖父 / 祖母",
+          "audioSrc": "/audio/units/unidad-5/el-abuelo-la-abuela.mp3"
+        },
+        {
+          "es": "el hijo / la hija",
+          "zh": "儿子 / 女儿",
+          "audioSrc": "/audio/units/unidad-5/el-hijo-la-hija.mp3"
+        },
+        {
+          "es": "el novio / la novia",
+          "zh": "男友 / 女友",
+          "audioSrc": "/audio/units/unidad-5/el-novio-la-novia.mp3"
+        }
+      ]
+    },
+    {
+      "title": "外貌描述",
+      "items": [
+        {
+          "es": "alto / alta",
+          "zh": "高的",
+          "audioSrc": "/audio/units/unidad-5/alto-alta.mp3"
+        },
+        {
+          "es": "bajo / baja",
+          "zh": "矮的",
+          "audioSrc": "/audio/units/unidad-5/bajo-baja.mp3"
+        },
+        {
+          "es": "delgado / delgada",
+          "zh": "苗条的",
+          "audioSrc": "/audio/units/unidad-5/delgado-delgada.mp3"
+        },
+        {
+          "es": "el pelo rubio",
+          "zh": "金发",
+          "audioSrc": "/audio/units/unidad-5/el-pelo-rubio.mp3"
+        },
+        {
+          "es": "el pelo moreno",
+          "zh": "深色头发",
+          "audioSrc": "/audio/units/unidad-5/el-pelo-moreno.mp3"
+        },
+        {
+          "es": "los ojos azules",
+          "zh": "蓝眼睛",
+          "audioSrc": "/audio/units/unidad-5/los-ojos-azules.mp3"
+        }
+      ]
+    },
+    {
+      "title": "性格特点",
+      "items": [
+        {
+          "es": "simpatico / simpatica",
+          "zh": "友好的，可爱的",
+          "audioSrc": "/audio/units/unidad-5/simpatico-simpatica.mp3"
+        },
+        {
+          "es": "timido / timida",
+          "zh": "害羞的",
+          "audioSrc": "/audio/units/unidad-5/timido-timida.mp3"
+        },
+        {
+          "es": "trabajador / trabajadora",
+          "zh": "勤劳的",
+          "audioSrc": "/audio/units/unidad-5/trabajador-trabajadora.mp3"
+        },
+        {
+          "es": "divertido / divertida",
+          "zh": "有趣的",
+          "audioSrc": "/audio/units/unidad-5/divertido-divertida.mp3"
+        },
+        {
+          "es": "serio / seria",
+          "zh": "严肃的",
+          "audioSrc": "/audio/units/unidad-5/serio-seria.mp3"
+        }
+      ]
+    },
+    {
+      "title": "程度修饰词",
+      "items": [
+        {
+          "es": "muy",
+          "zh": "非常",
+          "audioSrc": "/audio/units/unidad-5/muy.mp3"
+        },
+        {
+          "es": "bastante",
+          "zh": "相当，挺",
+          "audioSrc": "/audio/units/unidad-5/bastante.mp3"
+        },
+        {
+          "es": "un poco",
+          "zh": "有点，一点点",
+          "audioSrc": "/audio/units/unidad-5/un-poco.mp3"
+        },
+        {
+          "es": "demasiado",
+          "zh": "太……了",
+          "audioSrc": "/audio/units/unidad-5/demasiado.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "介绍家人",
+      "items": [
+        {
+          "es": "Mi madre es profesora.",
+          "zh": "我妈妈是老师。",
+          "audioSrc": "/audio/units/unidad-5/mi-madre-es-profesora.mp3"
+        },
+        {
+          "es": "Mi hermano tiene veinte anos.",
+          "zh": "我弟弟二十岁。",
+          "audioSrc": "/audio/units/unidad-5/mi-hermano-tiene-veinte-anos.mp3"
+        },
+        {
+          "es": "Somos tres en mi familia.",
+          "zh": "我家有三口人。",
+          "audioSrc": "/audio/units/unidad-5/somos-tres-en-mi-familia.mp3"
+        },
+        {
+          "es": "Mi padre es muy trabajador.",
+          "zh": "我爸爸非常勤劳。",
+          "audioSrc": "/audio/units/unidad-5/mi-padre-es-muy-trabajador.mp3"
+        }
+      ]
+    },
+    {
+      "category": "描述朋友",
+      "items": [
+        {
+          "es": "Mi amiga es alta y delgada.",
+          "zh": "我朋友又高又苗条。",
+          "audioSrc": "/audio/units/unidad-5/mi-amiga-es-alta-y-delgada.mp3"
+        },
+        {
+          "es": "Es bastante simpatico.",
+          "zh": "他挺友好的。",
+          "audioSrc": "/audio/units/unidad-5/es-bastante-simpatico.mp3"
+        },
+        {
+          "es": "Tiene el pelo moreno y los ojos verdes.",
+          "zh": "她有深色头发和绿眼睛。",
+          "audioSrc": "/audio/units/unidad-5/tiene-el-pelo-moreno-y-los-ojos-verdes.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 看家庭照片",
+      "scene": "同学之间分享手机里的家庭照片。",
+      "lines": [
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Esta es tu familia?",
+          "zh": "这是你的家人吗？",
+          "audioSrc": "/audio/units/unidad-5/esta-es-tu-familia.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Si, somos cuatro: mis padres, mi hermana y yo.",
+          "zh": "是的，我们家有四口：爸妈、姐姐和我。",
+          "audioSrc": "/audio/units/unidad-5/si-somos-cuatro-mis-padres-mi-hermana-y-yo.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Que guapa es tu hermana! Cuantos anos tiene?",
+          "zh": "你姐姐真漂亮！她多大了？",
+          "audioSrc": "/audio/units/unidad-5/que-guapa-es-tu-hermana-cuantos-anos-tiene.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Tiene veinte y dos anos. Es estudiante de medicina.",
+          "zh": "二十二岁。她是医学生。",
+          "audioSrc": "/audio/units/unidad-5/tiene-veinte-y-dos-anos-es-estudiante-de-medicina.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Y tus padres, a que se dedican?",
+          "zh": "你父母是做什么的？",
+          "audioSrc": "/audio/units/unidad-5/y-tus-padres-a-que-se-dedican.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Mi padre es ingeniero y mi madre es profesora. Son muy trabajadores.",
+          "zh": "我爸爸是工程师，我妈妈是老师。他们都很勤劳。",
+          "audioSrc": "/audio/units/unidad-5/mi-padre-es-ingeniero-y-mi-madre-es-profesora-son-muy-trabajadores.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 描述新朋友",
+      "scene": "朋友问起最近认识的新朋友是什么样的人。",
+      "lines": [
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Como es tu nuevo amigo Jorge?",
+          "zh": "你的新朋友豪尔赫是什么样的人？",
+          "audioSrc": "/audio/units/unidad-5/como-es-tu-nuevo-amigo-jorge.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Es muy simpatico y bastante divertido.",
+          "zh": "他非常友好，也挺有趣的。",
+          "audioSrc": "/audio/units/unidad-5/es-muy-simpatico-y-bastante-divertido.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Y como es fisicamente?",
+          "zh": "他外貌怎么样？",
+          "audioSrc": "/audio/units/unidad-5/y-como-es-fisicamente.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Es alto, tiene el pelo rubio y los ojos azules.",
+          "zh": "他很高，金发蓝眼。",
+          "audioSrc": "/audio/units/unidad-5/es-alto-tiene-el-pelo-rubio-y-los-ojos-azules.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Parece interesante. Donde vive?",
+          "zh": "听起来很有意思。他住在哪里？",
+          "audioSrc": "/audio/units/unidad-5/parece-interesante-donde-vive.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Vive cerca de aqui. Trabaja en una empresa espanola.",
+          "zh": "住在附近。他在一家西班牙公司工作。",
+          "audioSrc": "/audio/units/unidad-5/vive-cerca-de-aqui-trabaja-en-una-empresa-espanola.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "ser",
+      "titleZh": "是（本质、身份）",
+      "lead": "ser 描述本质属性：职业、性格、国籍、外貌，这些不随情境变化。",
+      "tip": "性格描述用 ser：Es simpatico（他性格友好）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "soy",
+          "example": "Soy estudiante."
+        },
+        {
+          "pronoun": "tu",
+          "form": "eres",
+          "example": "Eres muy trabajadora."
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "es",
+          "example": "Mi madre es profesora."
+        }
+      ]
+    },
+    {
+      "verb": "tener",
+      "titleZh": "有，拥有",
+      "lead": "tener 除了表示拥有，还用于年龄（tener anos）和外貌特征（tener el pelo...）。",
+      "tip": "年龄不用 ser，要用 tener：Tiene veinte anos",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "tengo",
+          "example": "Tengo dos hermanos."
+        },
+        {
+          "pronoun": "tu",
+          "form": "tienes",
+          "example": "Cuantos anos tienes?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "tiene",
+          "example": "Tiene el pelo rubio."
+        }
+      ]
+    },
+    {
+      "verb": "vivir / trabajar",
+      "titleZh": "住 / 工作",
+      "lead": "vivir（-ir 规则动词）和 trabajar（-ar 规则动词）是描述生活状态的高频动词。",
+      "tip": "vivo / vives / vive；trabajo / trabajas / trabaja",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "vivo / trabajo",
+          "example": "Vivo en Pekín y trabajo en una empresa."
+        },
+        {
+          "pronoun": "tu",
+          "form": "vives / trabajas",
+          "example": "Donde vives? Donde trabajas?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "vive / trabaja",
+          "example": "Vive cerca y trabaja aqui."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "形容词的阴阳性变化",
+      "body": "大部分形容词：阳性 -o 改为阴性 -a（simpatico → simpatica）；以 -e 或辅音结尾的形容词阴阳同形（inteligente / inteligente；azul / azul）。复数加 -s 或 -es。"
+    },
+    {
+      "title": "ser 描述外貌 vs tener",
+      "body": "高矮胖瘦用 ser（Es alto，他个高）；头发眼睛颜色用 tener（Tiene el pelo rubio，他是金发）。这是西语外貌描述的固定搭配，不能互换。"
+    },
+    {
+      "title": "muy / bastante / un poco 的程度",
+      "body": "muy（非常）> bastante（相当）> un poco（有点）。un poco 后接负面形容词时语气会更委婉：Es un poco timido（他有点害羞，暗示这不是优点）。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入 ser / tener",
+      "questions": [
+        "Mi hermano ___ veinte anos.",
+        "Ella ___ muy simpatica.",
+        "El ___ el pelo moreno y los ojos negros."
+      ],
+      "answers": [
+        "tiene",
+        "es",
+        "tiene"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译描述句子",
+      "questions": [
+        "我妈妈是老师，她非常勤劳。",
+        "我朋友又高又苗条，有深色头发。",
+        "我家有四口人：爸妈、弟弟和我。"
+      ],
+      "answers": [
+        "Mi madre es profesora, es muy trabajadora.",
+        "Mi amigo es alto y delgado, tiene el pelo moreno.",
+        "Somos cuatro en mi familia: mis padres, mi hermano y yo."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "Rq4TRpxEjA8",
+    "title": "La familia y los amigos",
+    "description": "在家庭和朋友话题的真实对话中练习人物描述和 ser / tener 的用法。"
+  }
+}

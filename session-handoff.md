@@ -3000,3 +3000,426 @@ npm run build -> pass
 **移交**：
 - `feature_list.json`：`AUTH-001.status` 已更新为 `passing`，QA evidence 已填写。
 - `AUTH-001` Codex2 功能验收通过。
+
+---
+
+## PM Report - Session #42 (2026-05-15)
+
+**执行人**：Claude1（PM）
+
+**本轮工作**：COURSE-003 内容数据补全 + COURSE-004 音频 ticket
+
+### 内容数据状态
+
+9 个单元 JSON 全部就绪，格式合法，内容达标：
+
+| 单元 | 主题 | vocabGroups | dialogues | grammarCards | compareCards | exercises |
+|------|------|-------------|-----------|--------------|--------------|-----------|
+| unidad-1 | 认识彼此 | 4 | 2 | 3 | 3 | 2 |
+| unidad-2 | 想学西语 | 4 | 2 | 4 | 3 | 2 |
+| unidad-3 | 在哪里 | 4 | 2 | 3 | 3 | 2 |
+| unidad-4 | 你更喜欢哪个 | 4 | 2 | 3 | 3 | 2 |
+| unidad-5 | 朋友圈 | 4 | 2 | 3 | 3 | 2 |
+| unidad-6 | 日常作息 | 4 | 2 | 3 | 3 | 2 |
+| unidad-7 | 开吃 | 4 | 2 | 3 | 3 | 2 |
+| unidad-8 | 理想社区 | 4 | 2 | 3 | 3 | 2 |
+| unidad-9 | 你会开车吗 | 4 | 2 | 4 | 3 | 2 |
+
+所有 audioSrc 当前为空字符串（COURSE-003 允许静默降级，COURSE-004 负责补全）。
+
+### 新增 Tickets
+
+**COURSE-003**（已存在 `docs/tickets/COURSE-003.md`）：
+- 路由：`/learn`（总览）+ `/learn/[slug]`（单元详情）
+- 数据源：`content/curriculum/units-manifest.json` + `unidad-N.json`
+- 交给：Codex1 实现
+
+**COURSE-004**（新建 `docs/tickets/COURSE-004.md`）：
+- 批量 TTS 音频生成脚本 `scripts/generate-unit-audio.mjs`
+- 使用 `msedge-tts`（免费，无需 API key）
+- 声音：`es-ES-AlvaroNeural`
+- 输出：`public/audio/units/unidad-N/{slug}.mp3`
+- 完成后自动更新 JSON 的 audioSrc 字段
+- 约 340 条音频，预计 6-12 分钟
+- 交给：Codex1，可与 COURSE-003 并行
+
+### 下一步
+
+Codex1 并行执行：
+1. COURSE-003：页面实现（路由、组件、视频区块、音频按钮）
+2. COURSE-004：音频生成脚本（先装包验证，再批量生成）
+
+验收前需要 COURSE-004 先跑完，才能确认音频按钮可播放。
+
+---
+
+## PM Update - Session #42 续（2026-05-15）
+
+**新增 Ticket：VOCAB-004 词汇库扩充**
+
+- 文件：`docs/tickets/VOCAB-004.md`
+- 脚本：`scripts/expand-vocab.mjs`
+- 数据源：hermitdave/FrequencyWords es_50k（MIT License）
+- 翻译：腾讯 TMT（.env 已有 key）
+- 目标：3000 词，输出到 `content/curriculum/vocab-expanded.json`
+- 不修改现有 `phase1-words.json`，不影响 COURSE-001 测试
+- feature_list.json：VOCAB-004 已加入，status: backlog
+
+**当前 backlog 队列（交 Codex1）**：
+1. COURSE-003 — 9单元课程页面实现
+2. COURSE-004 — TTS 音频批量生成（可与 COURSE-003 并行）
+3. VOCAB-004 — 词汇库扩充脚本
+
+---
+
+## Codex1 Dev Report - COURSE-003 9 unit curriculum pages
+**时间**：2026-05-15 14:31
+**执行人**：Codex1
+
+**状态**：ready_for_qa
+
+**本轮改动文件**
+- `src/lib/curriculum.ts`
+- `src/app/learn/page.tsx`
+- `src/app/learn/[slug]/page.tsx`
+- `src/app/components/web/SiteHeader.tsx`
+- `src/app/components/audio/AudioButton.tsx`
+- `tests/course003.test.mjs`
+- `feature_list.json`
+- `claude-progress.md`
+- `session-handoff.md`
+
+**实现内容**
+1. 新增课程数据读取层 `src/lib/curriculum.ts`
+   - 统一读取 `content/curriculum/units-manifest.json`
+   - 统一读取 `content/curriculum/unidad-N.json`
+   - 当目标单元文件缺失时，回退到 `unidad-1.json`
+   - 暴露 `getAllUnits()` 与 `getUnitPageData()`
+2. 新增 `/learn`
+   - 使用 `SiteHeader`
+   - 渲染 9 个单元卡片
+   - 卡片包含单元编号、中文/西语标题、A1/A2 badge、时长、核心动词和目标摘要
+   - 点击进入 `/learn/[slug]`
+3. 新增 `/learn/[slug]`
+   - `generateStaticParams()` 预生成 9 个 slug
+   - 左侧 sticky 目录锚点
+   - hero、学习目标、词汇、句型、对话、语法、中西对比、练习、推荐视频、上下单元导航
+   - 推荐视频缩略图使用 `https://img.youtube.com/vi/{videoId}/hqdefault.jpg`
+   - “去观看”按钮跳转站内 `/watch?v=...`
+4. UI 兼容修补
+   - `SiteHeader` 的“课程”入口从 `/learn/phase-1` 改为 `/learn`
+   - `AudioButton` 在 `src` 为空时直接返回，静默降级，不抛错
+5. 测试
+   - 重写 `tests/course003.test.mjs` 中 overview 的脆弱文案断言，改为结构断言
+   - 当前 COURSE-003 结构测试覆盖 JSON 合法性、数据读取层、总览页、详情页、Header 链接和音频静默降级
+
+**验证记录**
+- `node tests/course003.test.mjs` -> 6/6 pass
+- `npm test` -> 61/61 pass
+- `npm run build` -> pass
+
+**已知说明**
+- `npm run build` 仍保留既有 warning：`SiteHeader.tsx` 的 `<img>` lint warning，和 Node `url.parse()` deprecation warnings；未阻塞构建。
+- 尝试以临时端口 `3005` 做 dev smoke check，但后台 `npm run dev` 进程在绑定前退出，因此这一步未计入完成证据。
+- `COURSE-003` 已更新为 `ready_for_qa`，等待 Codex2 按 ticket 验收。
+
+**Codex2 建议验收重点**
+1. `/learn` 返回 200，显示 9 个单元卡片
+2. `/learn/unidad-1` ~ `/learn/unidad-9` 页面均存在
+3. 页面源码确认 sticky 目录、推荐视频 `/watch?v=` 跳转、`details/summary` 练习答案
+4. `AudioButton` 空 `audioSrc` 静默降级逻辑仍在
+5. `npm test` 与 `npm run build` 保持通过
+
+---
+
+## PM Update - Session #42 续2（2026-05-15）
+
+**VOCAB-004 方向调整**
+
+原方向（批量抓词频表）已废弃，改为：
+
+**生词系统升级：词典查询 + 出处追踪 + 生词本展示**
+
+核心逻辑：
+- 不预生成词汇表，改为用户点词时实时查有道词典 API
+- Redis 永久缓存，同一词只查一次
+- WordEncounter 新增 sourceType（video/course）和 courseRef 字段
+- LookupCard 升级展示词性 + 义项 + 例句 + 出处
+- /vocab 生词本展示所有出处，视频出处可跳回，课文出处跳回单元页
+
+需要新增环境变量：YOUDAO_APP_KEY / YOUDAO_APP_SECRET
+
+**当前 backlog 队列（优先级顺序）**：
+1. COURSE-003 — 9单元课程页面（ready_for_qa，待 Codex2 验收）
+2. COURSE-004 — TTS 音频批量生成
+3. VOCAB-004 — 生词系统升级（需 COURSE-003 完成后才能接入课文点词）
+
+---
+
+## 测试 Report：COURSE-003 9单元课程系统
+**时间**：2026-05-15 14:43
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 基线自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ COURSE-003 curriculum JSON files are valid and expose unit metadata
+   ✔ COURSE-003 curriculum library reads manifest and falls back to unidad-1 content
+   ✔ COURSE-003 /learn overview renders nine unit cards from the manifest
+   ✔ COURSE-003 /learn/[slug] renders unit details, recommended video, and bottom nav
+   ✔ COURSE-003 SiteHeader sends the course link to /learn
+   ✔ COURSE-003 audio button silently ignores empty audio sources
+   ℹ tests 61
+   ℹ pass 61
+   ℹ fail 0
+   ```
+   结果：✅
+
+2. 生产构建与路由生成
+   命令：`npm run build`
+   输出：
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (34/34)
+   ├ ƒ /learn
+   ├ ● /learn/[slug]
+   ├   ├ /learn/unidad-1
+   ├   ├ /learn/unidad-2
+   ├   ├ /learn/unidad-3
+   ├   └ [+6 more paths]
+   ```
+   结果：✅
+
+3. `/learn` 总览页源码结构核查
+   命令：`rg -n "getAllUnits|/learn/\\$\\{unit\\.slug\\}|coreVerbs|communicativeGoals|9 个单元|unit\\.slug" src/app/learn/page.tsx`
+   输出：
+   ```text
+   3:import { getAllUnits } from "@/lib/curriculum";
+   6:  const units = getAllUnits();
+   18:              <h1 className="text-3xl font-semibold sm:text-4xl">9 个单元，从打招呼一路走到真实交流。</h1>
+   44:              href={`/learn/${unit.slug}`}
+   67:                {unit.coreVerbs.map((verb) => (
+   78:                {unit.communicativeGoals.slice(0, 3).map((goal) => (
+   ```
+   结果：✅，确认总览页存在并按 manifest 渲染 9 单元卡片结构
+
+4. `/learn/unidad-1` ~ `/learn/unidad-9` 生成与详情页结构核查
+   命令：`rg -n "generateStaticParams|sticky|details|summary|/watch\\?v=|img.youtube.com|prevUnit|nextUnit|vocabGroups|phrases|dialogues|grammarCards|compareCards|exercises" src/app/learn/[slug]/page.tsx`
+   输出：
+   ```text
+   23:export function generateStaticParams() {
+   34:  const { unit, content, prevUnit, nextUnit } = getUnitPageData(params.slug);
+   40:        <aside className="sticky top-24 ...
+   110:              {content.vocabGroups.map((group) => (
+   139:              {content.phrases.map((group) => (
+   162:              {content.dialogues.map((dialogue) => (
+   207:              {content.grammarCards.map((card) => (
+   248:              {content.compareCards.map((card) => (
+   267:              {content.exercises.map((exercise) => (
+   268:                <details
+   272:                  <summary className="cursor-pointer ...
+   308:                  src={`https://img.youtube.com/vi/${content.recommendedVideo.videoId}/hqdefault.jpg`}
+   320:                  href={`/watch?v=${content.recommendedVideo.videoId}`}
+   329:            {prevUnit ? (
+   342:            {nextUnit ? (
+   ```
+   结果：✅，确认 9 个单元路由由 `generateStaticParams()` 生成，且 sticky 目录、练习折叠、推荐视频跳转、上下单元导航全部存在
+
+5. 音频按钮静默降级
+   命令：`rg -n "if \\(!src\\)|new Audio\\(|return;|setUnavailable" src/app/components/audio/AudioButton.tsx`
+   输出：
+   ```text
+   27:    if (!src) {
+   28:      return;
+   40:    const audio = new Audio(src);
+   46:        setUnavailable(true);
+   54:      setUnavailable(true);
+   ```
+   结果：✅，空 `audioSrc` 时直接返回，不会抛错
+
+**若失败，失败详情**：
+- 无
+
+**通过后移交**：
+- `feature_list.json` 已更新：`COURSE-003.status = passing`
+- 功能 QA 完成，可继续推进 `COURSE-004` 或 `VOCAB-004`
+
+### Session #48 - 2026-05-15
+
+**本轮目标**：Codex1 实现 `COURSE-004` 9 单元课程音频批量生成。
+**已完成**
+- 安装 `msedge-tts` 依赖，使用项目本地 npm cache 规避 Windows 全局 cache `EPERM`。
+- 新增 `scripts/generate-unit-audio.mjs`：
+  - 支持 `node scripts/generate-unit-audio.mjs --unit=unidad-1`
+  - 扫描 `vocabGroups[].items[].es`、`phrases[].items[].es`、`dialogues[].lines[].es`
+  - 生成稳定 slug 文件名，长文件名自动截断并追加 hash，避免 Windows 路径过长
+  - 为每条音频使用独立 `.tmp-*` 目录，避免 `msedge-tts` 默认 `audio.mp3` 临时文件互相覆盖
+  - 对单条生成增加 3 次重试
+  - 已存在且大于 1KB 的文件直接跳过，支持幂等重跑
+- 新增 `tests/course004.test.mjs`，校验脚本入口、临时目录隔离/重试逻辑，以及全部课程音频产物和 `audioSrc`。
+- 实际生成 `public/audio/units/unidad-1` ~ `unidad-9` 的 MP3 资源，并将所有 `content/curriculum/unidad-*.json` 中词汇、句型、对话的 `audioSrc` 回填为 `/audio/units/unidad-N/*.mp3`。
+- 处理了两类真实执行问题：
+  - 同一个 TTS 实例并发生成会产生 0 字节文件，改为每条任务独立实例
+  - 长句 slug 在 Windows 上触发路径长度问题，改为可读前缀 + hash
+
+**运行过的验证**
+- `node scripts/generate-unit-audio.mjs --unit=unidad-1`
+- `node scripts/generate-unit-audio.mjs --unit=unidad-9`
+- `node scripts/generate-unit-audio.mjs`
+- `node tests/course004.test.mjs`
+- `npm test`
+- `npm run build`
+
+**结果**
+- `node scripts/generate-unit-audio.mjs` 最终重跑成功，全部音频文件进入 skip 路径，确认幂等
+- `node tests/course004.test.mjs`：3/3 通过
+- `npm test`：64/64 通过
+- `npm run build`：通过
+
+**备注**
+- 构建仍保留既有 `SiteHeader.tsx` 与 `src/app/learn/[slug]/page.tsx` 的 `<img>` lint warning，以及既有 Node `url.parse()` deprecation warnings，未阻塞本票。
+- 本轮未修改 `.env`，未提交任何密钥文件。
+- `COURSE-004` 已更新为 `ready_for_qa`，可交给 Codex2 验收课程音频目录、JSON 回填、幂等重跑和前端播放。
+
+## 测试 Report：COURSE-004 9单元课程音频
+**时间**：2026-05-15 17:11
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 基线自动化测试
+   命令：`npm test`
+   输出：
+   ```text
+   ✔ COURSE-004 installs msedge-tts and exposes the generation entrypoint
+   ✔ COURSE-004 script isolates temp output and retries transient failures
+   ✔ COURSE-004 fills all course audioSrc fields with generated mp3 files
+   ℹ tests 64
+   ℹ pass 64
+   ℹ fail 0
+   ```
+   结果：✅
+
+2. 专项课程音频测试
+   命令：`node tests/course004.test.mjs`
+   输出：
+   ```text
+   ✔ COURSE-004 installs msedge-tts and exposes the generation entrypoint
+   ✔ COURSE-004 script isolates temp output and retries transient failures
+   ✔ COURSE-004 fills all course audioSrc fields with generated mp3 files
+   ℹ tests 3
+   ℹ pass 3
+   ℹ fail 0
+   ```
+   结果：✅
+
+3. 生产构建
+   命令：`npm run build`
+   输出：
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (34/34)
+   /learn
+   /learn/[slug]
+   ```
+   结果：✅（保留既有 `<img>` lint warning 与 Node `url.parse()` deprecation warnings，非本票阻塞）
+
+4. 音频目录与文件大小核查
+   命令：Node 脚本遍历 `public/audio/units/unidad-1..9`
+   输出：
+   ```json
+   {
+     "total": 362,
+     "undersizedCount": 0,
+     "units": [
+       { "unit": "unidad-1", "count": 46, "minSize": 8784 },
+       { "unit": "unidad-2", "count": 39, "minSize": 8352 },
+       { "unit": "unidad-3", "count": 40, "minSize": 9072 },
+       { "unit": "unidad-4", "count": 41, "minSize": 9072 },
+       { "unit": "unidad-5", "count": 40, "minSize": 8784 },
+       { "unit": "unidad-6", "count": 40, "minSize": 9504 },
+       { "unit": "unidad-7", "count": 40, "minSize": 9216 },
+       { "unit": "unidad-8", "count": 40, "minSize": 9648 },
+       { "unit": "unidad-9", "count": 36, "minSize": 8640 }
+     ]
+   }
+   ```
+   结果：✅
+
+5. JSON audioSrc 回填核查
+   命令：Node 脚本遍历 `content/curriculum/unidad-*.json`
+   输出：
+   ```json
+   {
+     "total": 361,
+     "missingCount": 0,
+     "invalidCount": 0,
+     "sampleMissing": [],
+     "sampleInvalid": []
+   }
+   ```
+   结果：✅
+
+6. 幂等重跑验证
+   命令：`node scripts/generate-unit-audio.mjs --unit=unidad-9`
+   输出：
+   ```text
+   [unidad-9] conducir.mp3 (skip, exists)
+   [unidad-9] nadar.mp3 (skip, exists)
+   [unidad-9] cocinar.mp3 (skip, exists)
+   ...
+   [unidad-9] a-las-seis-hay-que-traer-algo-de-comer.mp3 (skip, exists)
+   ```
+   结果：✅
+
+7. 前端播放链路近似实测
+   命令：启动 `npm run dev -- -p 3006` 后请求 `/learn/unidad-1` 与 `/audio/units/unidad-1/hola.mp3`
+   输出：
+   ```json
+   {
+     "pageStatus": 200,
+     "pageHasAudioPath": true,
+     "pageHasButtonMarkup": true,
+     "audioStatus": 200,
+     "audioContentType": "audio/mpeg",
+     "audioBytes": 12384
+   }
+   ```
+   结果：✅
+
+**限制说明**：
+- 当前仓库未安装 `playwright`，无法在本轮直接做真实浏览器点击并监听音频播放事件。
+- 作为可执行替代验证，已确认课程页会渲染音频按钮与生成后的 MP3 路径，且对应音频资源能被 Next.js 本地站点以 `audio/mpeg` 成功返回。
+
+**通过后移交**：
+- `feature_list.json` 已更新：`COURSE-004.status = passing`
+- `COURSE-004` Codex2 功能验收通过，可继续推进 `VOCAB-004`
+
+## Hotfix Note：/api/translate 500 降级修复
+**时间**：2026-05-15 17:32
+**执行人**：Codex1
+
+**现象**：生产环境 `/watch` transcript 多次请求 `/api/translate` 返回 500，前端持续输出 `Transcript translate failed Error: Translate request failed: 500`。
+
+**根因**：`src/app/api/translate/route.ts` 对 Redis 读写和腾讯翻译调用缺少降级保护；任一异常都会落入统一 catch 并返回 500。与此同时，`.env.example` 未声明 `TENCENT_SECRET_ID` / `TENCENT_SECRET_KEY`，容易导致线上配置遗漏。
+
+**本轮修复**：
+- 为 `/api/translate` 增加 `safeCacheGet` / `safeCacheSet`，Redis 失败不再中断翻译请求。
+- 腾讯翻译调用失败时，不再返回 500；改为 `200` 并回退 `{ translation: text, cached: false, degraded: true }`。
+- 请求解析失败保留错误响应，但改为 `400`，避免把坏请求伪装成服务端故障。
+- `.env.example` 新增 `TENCENT_SECRET_ID` / `TENCENT_SECRET_KEY`。
+- 更新 `tests/ext002.test.mjs`，增加降级与环境变量文档断言。
+
+**已验证**：
+- `node --test tests/ext002.test.mjs` 4/4 pass
+- `npm test` 64/64 pass
+- `npm run build` pass
+
+**部署提示**：
+- 这次 hotfix 会止住 500 和前端报错。
+- 若要恢复真正的中文字幕翻译结果，Vercel 仍需正确配置 `TENCENT_SECRET_ID` 与 `TENCENT_SECRET_KEY`。

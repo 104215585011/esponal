@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Esponal — Unidad 1: Nosotros y nosotras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:        #16A34A;
+    --green-light:  #F0FDF4;
+    --green-mid:    #DCFCE7;
+    --green-border: #BBF7D0;
+    --green-text:   #15803D;
+    --blue-light:   #EFF6FF;
+    --blue-border:  #BFDBFE;
+    --blue-text:    #1D4ED8;
+    --amber-light:  #FFFBEB;
+    --amber-border: #FDE68A;
+    --amber-text:   #92400E;
+    --gray-50:  #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-400: #9CA3AF;
+    --gray-500: #6B7280;
+    --gray-600: #4B5563;
+    --gray-700: #374151;
+    --gray-800: #1F2937;
+    --gray-900: #111827;
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-zh:   'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  html, body {
+    font-family: var(--font-zh);
+    background: var(--gray-50);
+    color: var(--gray-900);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  body { min-height: 100vh; }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  .site-header {
+    background: #fff;
+    border-bottom: 1px solid var(--gray-100);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .site-header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 16px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--green);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 14px;
+    font-family: var(--font-main);
+  }
+  .brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    font-family: var(--font-main);
+  }
+  .nav-links {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav-links a {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--gray-600);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-links a:hover {
+    background: var(--gray-100);
+    color: var(--gray-900);
+  }
+  .nav-links a.active {
+    color: var(--gray-900);
+    font-weight: 500;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+  }
+
+  /* Side TOC */
+  .toc {
+    position: sticky;
+    top: 88px;
+    height: max-content;
+    border-right: 1px solid var(--gray-100);
+    padding-right: 16px;
+  }
+  .toc-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-family: var(--font-main);
+  }
+  .toc a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: var(--gray-600);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+  }
+  .toc a:hover {
+    color: var(--gray-900);
+    background: var(--gray-50);
+  }
+  .toc a.active {
+    color: var(--green-text);
+    background: var(--green-light);
+    border-left-color: var(--green);
+    font-weight: 500;
+  }
+
+  main { min-width: 0; }
+
+  /* ── Unit Hero ──────────────────────────────────────────── */
+  .unit-hero {
+    background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+    border: 1px solid var(--green-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+  }
+  .unit-badge {
+    display: inline-block;
+    font-family: var(--font-main);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--green-text);
+    background: #fff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .unit-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .unit-title-es {
+    font-family: var(--font-main);
+    font-size: 16px;
+    color: var(--green-text);
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+  .unit-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-size: 13px;
+    color: var(--gray-600);
+  }
+  .unit-meta-item { display: flex; align-items: center; gap: 6px; }
+  .unit-meta-item .ico {
+    width: 14px;
+    height: 14px;
+    color: var(--green);
+  }
+
+  /* Goals card */
+  .goals {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+  .goals-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .goals-title::before {
+    content: '🎯';
+    font-size: 16px;
+  }
+  .goals ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  .goals li {
+    font-size: 13.5px;
+    color: var(--gray-700);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+  .goals li::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--green-border);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── Section ────────────────────────────────────────────── */
+  .section {
+    margin-bottom: 40px;
+    scroll-margin-top: 88px;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .section-num {
+    font-family: var(--font-main);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  .subsection-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 20px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .subsection-title:first-of-type { margin-top: 0; }
+
+  /* ── Vocab Cards ────────────────────────────────────────── */
+  .vocab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .vocab-card {
+    background: #fff;
+    border: 1px solid var(--gray-100);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .vocab-card:hover {
+    border-color: var(--green-border);
+    box-shadow: 0 2px 6px rgba(22,163,74,0.06);
+  }
+  .vocab-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .vocab-es {
+    font-family: var(--font-main);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+  .vocab-zh {
+    font-size: 12.5px;
+    color: var(--gray-500);
+  }
+  .vocab-note {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 2px;
+  }
+  .audio-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green-light);
+    color: var(--green);
+    border: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .audio-btn:hover { background: var(--green-mid); }
+  .audio-btn svg { width: 14px; height: 14px; }
+
+  /* ── Tables (for verb conjugation, etc.) ────────────────── */
+  .grammar-card {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .grammar-card h4 {
+    font-family: var(--font-main);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--green-text);
+    margin-bottom: 4px;
+  }
+  .grammar-card h4 .zh {
+    font-family: var(--font-zh);
+    font-size: 14px;
+    color: var(--gray-500);
+    font-weight: 400;
+    margin-left: 8px;
+  }
+  .grammar-card .lead {
+    font-size: 13.5px;
+    color: var(--gray-600);
+    margin-bottom: 14px;
+  }
+  .conjug-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .conjug-table th {
+    text-align: left;
+    padding: 6px 12px;
+    color: var(--gray-400);
+    font-weight: 500;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .conjug-table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--gray-50);
+  }
+  .conjug-table .pron { color: var(--gray-500); font-style: italic; }
+  .conjug-table .form {
+    font-family: var(--font-main);
+    font-weight: 600;
+    color: var(--green-text);
+  }
+  .conjug-table .ex {
+    color: var(--gray-600);
+    font-family: var(--font-main);
+    font-size: 13px;
+  }
+
+  /* ── Dialogue ───────────────────────────────────────────── */
+  .dialogue {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 22px 24px 18px;
+    margin-bottom: 16px;
+  }
+  .dialogue-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--gray-200);
+  }
+  .dialogue-scene {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.5;
+  }
+  .dialogue-scene strong {
+    color: var(--gray-700);
+    font-weight: 600;
+  }
+  .play-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--green);
+    color: #fff;
+    font-family: var(--font-main);
+    font-size: 12.5px;
+    font-weight: 500;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .play-all:hover { background: var(--green-text); }
+  .play-all svg { width: 11px; height: 11px; }
+
+  .dialogue-line {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-50);
+    align-items: start;
+  }
+  .dialogue-line:last-child { border-bottom: none; }
+  .speaker {
+    font-family: var(--font-main);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--green-text);
+    background: var(--green-light);
+    padding: 3px 9px;
+    border-radius: 999px;
+    text-align: center;
+    height: max-content;
+    margin-top: 2px;
+  }
+  .speaker.a2 { color: var(--blue-text); background: var(--blue-light); }
+  .line-text { min-width: 0; }
+  .line-es {
+    font-family: var(--font-main);
+    font-size: 15px;
+    color: var(--gray-900);
+    line-height: 1.5;
+    margin-bottom: 3px;
+  }
+  .line-zh {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.5;
+  }
+  .line-audio {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--gray-400);
+    border: none;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .line-audio:hover {
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .line-audio svg { width: 13px; height: 13px; }
+
+  /* ── Tip box ────────────────────────────────────────────── */
+  .tip {
+    background: var(--amber-light);
+    border: 1px solid var(--amber-border);
+    border-left: 3px solid #F59E0B;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13.5px;
+    color: var(--gray-700);
+    line-height: 1.6;
+  }
+  .tip strong { color: var(--amber-text); }
+
+  /* ── Compare box (中西对比) ─────────────────────────────── */
+  .compare {
+    background: var(--blue-light);
+    border: 1px solid var(--blue-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+  }
+  .compare-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue-text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .compare-body {
+    font-size: 13.5px;
+    color: var(--gray-700);
+    line-height: 1.65;
+  }
+  .compare-body table {
+    margin-top: 10px;
+    border-collapse: collapse;
+    width: 100%;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .compare-body th {
+    background: #fff;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--gray-500);
+    font-weight: 500;
+    border-bottom: 1px solid var(--gray-100);
+    text-align: left;
+  }
+  .compare-body td {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--gray-50);
+  }
+  .compare-body td:last-child { color: var(--gray-500); font-size: 12.5px; }
+
+  /* ── Phrase table (key sentences) ───────────────────────── */
+  .phrase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .phrase-row {
+    background: #fff;
+    border: 1px solid var(--gray-100);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 14px;
+    align-items: center;
+  }
+  .phrase-es {
+    font-family: var(--font-main);
+    font-size: 14.5px;
+    color: var(--gray-900);
+  }
+  .phrase-zh { font-size: 13px; color: var(--gray-500); }
+
+  /* ── Exercise ───────────────────────────────────────────── */
+  .exercise {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 14px;
+  }
+  .exercise-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .exercise-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-main);
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .exercise-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+  .exercise-list {
+    list-style: none;
+    counter-reset: q;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .exercise-list li {
+    counter-increment: q;
+    font-family: var(--font-main);
+    font-size: 14px;
+    color: var(--gray-700);
+    padding-left: 26px;
+    position: relative;
+    line-height: 1.7;
+  }
+  .exercise-list li::before {
+    content: counter(q) '.';
+    position: absolute;
+    left: 0;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+  .blank {
+    display: inline-block;
+    min-width: 60px;
+    border-bottom: 1.5px solid var(--gray-300);
+    margin: 0 2px;
+  }
+  details.answer {
+    margin-top: 12px;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
+    border-radius: 8px;
+    padding: 8px 14px;
+  }
+  details.answer summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--green-text);
+    font-weight: 500;
+    user-select: none;
+  }
+  details.answer[open] summary { margin-bottom: 8px; }
+  .answer-list {
+    list-style: none;
+    font-family: var(--font-main);
+    font-size: 13.5px;
+    color: var(--gray-700);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    counter-reset: a;
+  }
+  .answer-list li { counter-increment: a; padding-left: 20px; position: relative; }
+  .answer-list li::before {
+    content: counter(a) '.';
+    position: absolute;
+    left: 0;
+    color: var(--gray-400);
+  }
+
+  /* ── Bottom nav ─────────────────────────────────────────── */
+  .unit-nav {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .unit-nav-btn {
+    flex: 1;
+    max-width: 280px;
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .unit-nav-btn:hover {
+    border-color: var(--green-border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .unit-nav-btn .dir {
+    font-family: var(--font-main);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-400);
+    margin-bottom: 4px;
+  }
+  .unit-nav-btn .title {
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--gray-900);
+  }
+  .unit-nav-btn.next { text-align: right; }
+  .unit-nav-btn.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    .page { grid-template-columns: 1fr; }
+    .toc { display: none; }
+    .goals ul { grid-template-columns: 1fr; }
+    .dialogue-line { grid-template-columns: 60px 1fr auto; gap: 10px; }
+    .phrase-row { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="#">
+      <div class="brand-mark">E</div>
+      <div class="brand-name">Esponal</div>
+    </a>
+    <nav class="nav-links">
+      <a href="#">首页</a>
+      <a href="#" class="active">课程</a>
+      <a href="#">语法</a>
+      <a href="#">词库</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── Page ──────────────────────────────────────────────── -->
+<div class="page">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-label">本单元</div>
+    <a href="#sec-vocab" class="active">① 核心词汇</a>
+    <a href="#sec-phrases">② 关键句型</a>
+    <a href="#sec-dialogue">③ 对话练习</a>
+    <a href="#sec-grammar">④ 语法点</a>
+    <a href="#sec-compare">⑤ 中西对比</a>
+    <a href="#sec-exercise">⑥ 巩固练习</a>
+  </aside>
+
+  <!-- Main -->
+  <main>
+
+    <!-- Unit Hero -->
+    <div class="unit-hero">
+      <span class="unit-badge">UNIDAD 1 · A1</span>
+      <h1 class="unit-title">认识彼此</h1>
+      <div class="unit-title-es">Nosotros y nosotras</div>
+      <div class="unit-meta">
+        <span class="unit-meta-item">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/>
+          </svg>
+          约 45 分钟
+        </span>
+        <span class="unit-meta-item">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+          </svg>
+          5 个词组 · 2 段对话
+        </span>
+        <span class="unit-meta-item">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5L6 9H2v6h4l5 4z"/><path d="M19.07 4.93a10 10 0 010 14.14"/>
+          </svg>
+          含西语音频
+        </span>
+      </div>
+    </div>
+
+    <!-- Goals -->
+    <div class="goals">
+      <div class="goals-title">学完本单元，你将能够：</div>
+      <ul>
+        <li>用西语打招呼和告别</li>
+        <li>介绍姓名、国籍、年龄、职业</li>
+        <li>询问别人的基本信息</li>
+        <li>掌握 ser / llamarse / tener 的现在时</li>
+        <li>读出西语字母</li>
+        <li>用国籍的阴阳性形式</li>
+      </ul>
+    </div>
+
+    <!-- ─── 1. Vocab ───────────────────────────────────────── -->
+    <section class="section" id="sec-vocab">
+      <div class="section-head">
+        <span class="section-num">Sección 1</span>
+        <h2 class="section-title">核心词汇</h2>
+      </div>
+
+      <h3 class="subsection-title">1.1 打招呼与告别</h3>
+      <div class="vocab-grid">
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">Hola</span>
+            <span class="vocab-zh">你好</span>
+            <span class="vocab-note">最常用</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">Buenos días</span>
+            <span class="vocab-zh">早上好</span>
+            <span class="vocab-note">中午前</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">Buenas tardes</span>
+            <span class="vocab-zh">下午好</span>
+            <span class="vocab-note">中午到傍晚</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">Buenas noches</span>
+            <span class="vocab-zh">晚上好 / 晚安</span>
+            <span class="vocab-note">天黑后</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">Adiós</span>
+            <span class="vocab-zh">再见</span>
+            <span class="vocab-note">较正式</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">Hasta luego</span>
+            <span class="vocab-zh">待会儿见</span>
+            <span class="vocab-note">日常告别</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="tip"><strong>💡 小贴士：</strong>西语里 "buenos días / buenas tardes" 用复数形式，不是单数。</div>
+
+      <h3 class="subsection-title">1.2 国籍（注意阴阳性）</h3>
+      <div class="vocab-grid">
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">chino · china</span>
+            <span class="vocab-zh">中国人（男 / 女）</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">español · española</span>
+            <span class="vocab-zh">西班牙人（男 / 女）</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">mexicano · mexicana</span>
+            <span class="vocab-zh">墨西哥人</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">japonés · japonesa</span>
+            <span class="vocab-zh">日本人</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">estadounidense</span>
+            <span class="vocab-zh">美国人（男女同形）</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="vocab-card">
+          <div class="vocab-text">
+            <span class="vocab-es">argentino · argentina</span>
+            <span class="vocab-zh">阿根廷人</span>
+          </div>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="tip"><strong>💡 规律：</strong>以 <strong>-o 结尾</strong>的，阴性变 <strong>-a</strong>；以 <strong>-és 结尾</strong>的，阴性变 <strong>-esa</strong>；以 <strong>-e/-ense 结尾</strong>的，男女同形。</div>
+    </section>
+
+    <!-- ─── 2. Phrases ─────────────────────────────────────── -->
+    <section class="section" id="sec-phrases">
+      <div class="section-head">
+        <span class="section-num">Sección 2</span>
+        <h2 class="section-title">关键句型</h2>
+      </div>
+
+      <h3 class="subsection-title">2.1 介绍自己</h3>
+      <div class="phrase-list">
+        <div class="phrase-row">
+          <span class="phrase-es">Me llamo Wang.</span>
+          <span class="phrase-zh">我叫 Wang。</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="phrase-row">
+          <span class="phrase-es">Soy chino. / Soy china.</span>
+          <span class="phrase-zh">我是中国人。</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="phrase-row">
+          <span class="phrase-es">Tengo 25 años.</span>
+          <span class="phrase-zh">我 25 岁。</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="phrase-row">
+          <span class="phrase-es">Soy estudiante.</span>
+          <span class="phrase-zh">我是学生。</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">2.2 询问别人</h3>
+      <div class="phrase-list">
+        <div class="phrase-row">
+          <span class="phrase-es">¿Cómo te llamas?</span>
+          <span class="phrase-zh">你叫什么名字？</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="phrase-row">
+          <span class="phrase-es">¿De dónde eres?</span>
+          <span class="phrase-zh">你是哪里人？</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="phrase-row">
+          <span class="phrase-es">¿Cuántos años tienes?</span>
+          <span class="phrase-zh">你多大？</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="phrase-row">
+          <span class="phrase-es">¿A qué te dedicas?</span>
+          <span class="phrase-zh">你做什么工作？</span>
+          <button class="audio-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 3. Dialogue ────────────────────────────────────── -->
+    <section class="section" id="sec-dialogue">
+      <div class="section-head">
+        <span class="section-num">Sección 3</span>
+        <h2 class="section-title">对话练习</h2>
+      </div>
+
+      <!-- Dialogue 1 -->
+      <div class="dialogue">
+        <div class="dialogue-meta">
+          <div class="dialogue-scene">
+            <strong>对话 1 — 第一次见面（咖啡馆）</strong><br>
+            María（西班牙人）和 Liu（中国留学生）在马德里一家咖啡馆排队时聊起来。
+          </div>
+          <button class="play-all">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            播放全部
+          </button>
+        </div>
+
+        <div class="dialogue-line">
+          <span class="speaker">María</span>
+          <div class="line-text">
+            <div class="line-es">¡Hola! ¿Cómo te llamas?</div>
+            <div class="line-zh">你好！你叫什么名字？</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker a2">Liu</span>
+          <div class="line-text">
+            <div class="line-es">Hola, me llamo Liu. ¿Y tú?</div>
+            <div class="line-zh">你好，我叫 Liu。你呢？</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker">María</span>
+          <div class="line-text">
+            <div class="line-es">Yo soy María. ¿De dónde eres?</div>
+            <div class="line-zh">我是 María。你是哪里人？</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker a2">Liu</span>
+          <div class="line-text">
+            <div class="line-es">Soy de China, de Shanghái. ¿Y tú?</div>
+            <div class="line-zh">我是中国人，从上海来。你呢？</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker">María</span>
+          <div class="line-text">
+            <div class="line-es">Soy española, de Madrid. ¿A qué te dedicas?</div>
+            <div class="line-zh">我是西班牙人，马德里的。你做什么工作？</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker a2">Liu</span>
+          <div class="line-text">
+            <div class="line-es">Soy estudiante. Estudio español aquí.</div>
+            <div class="line-zh">我是学生。我在这里学西语。</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker">María</span>
+          <div class="line-text">
+            <div class="line-es">¡Qué bien! Mucho gusto, Liu.</div>
+            <div class="line-zh">太好了！很高兴认识你，Liu。</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+        <div class="dialogue-line">
+          <span class="speaker a2">Liu</span>
+          <div class="line-text">
+            <div class="line-es">Igualmente.</div>
+            <div class="line-zh">我也是。</div>
+          </div>
+          <button class="line-audio"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 4. Grammar ─────────────────────────────────────── -->
+    <section class="section" id="sec-grammar">
+      <div class="section-head">
+        <span class="section-num">Sección 4</span>
+        <h2 class="section-title">语法点</h2>
+      </div>
+
+      <div class="grammar-card">
+        <h4>ser 现在时变位<span class="zh">"是"</span></h4>
+        <p class="lead">ser 用来表达<strong>身份、国籍、职业</strong>等本质属性，是不规则动词，必须背下来。</p>
+        <table class="conjug-table">
+          <thead>
+            <tr><th>人称</th><th>变位</th><th>例句</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>yo</td><td class="form">soy</td><td class="ex">Soy chino.</td></tr>
+            <tr><td>tú</td><td class="form">eres</td><td class="ex">¿Eres estudiante?</td></tr>
+            <tr><td class="pron">él / ella / usted</td><td class="form">es</td><td class="ex">María es española.</td></tr>
+            <tr><td class="pron">nosotros / nosotras</td><td class="form">somos</td><td class="ex">Somos estudiantes.</td></tr>
+            <tr><td class="pron">vosotros / vosotras</td><td class="form">sois</td><td class="ex">¿Sois de China?</td></tr>
+            <tr><td class="pron">ellos / ellas / ustedes</td><td class="form">son</td><td class="ex">Son médicos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grammar-card">
+        <h4>llamarse<span class="zh">"叫做"，反身动词</span></h4>
+        <p class="lead">字面意思是"把自己叫做……"，所以前面要加反身代词。</p>
+        <table class="conjug-table">
+          <thead><tr><th>人称</th><th>变位</th></tr></thead>
+          <tbody>
+            <tr><td>yo</td><td class="form">me llamo</td></tr>
+            <tr><td>tú</td><td class="form">te llamas</td></tr>
+            <tr><td class="pron">él / ella</td><td class="form">se llama</td></tr>
+            <tr><td class="pron">nosotros</td><td class="form">nos llamamos</td></tr>
+            <tr><td class="pron">vosotros</td><td class="form">os llamáis</td></tr>
+            <tr><td class="pron">ellos / ellas</td><td class="form">se llaman</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grammar-card">
+        <h4>tener 现在时（用于年龄）<span class="zh">"有"</span></h4>
+        <p class="lead">西语说年龄用 <strong>tener</strong>，不用 ser。字面意思是"我<strong>有</strong> 25 年"。</p>
+        <table class="conjug-table">
+          <thead><tr><th>人称</th><th>变位</th><th>例句</th></tr></thead>
+          <tbody>
+            <tr><td>yo</td><td class="form">tengo</td><td class="ex">Tengo 28 años.</td></tr>
+            <tr><td>tú</td><td class="form">tienes</td><td class="ex">¿Cuántos años tienes?</td></tr>
+            <tr><td class="pron">él / ella</td><td class="form">tiene</td><td class="ex">Tiene 30 años.</td></tr>
+            <tr><td class="pron">nosotros</td><td class="form">tenemos</td><td class="ex">—</td></tr>
+            <tr><td class="pron">vosotros</td><td class="form">tenéis</td><td class="ex">—</td></tr>
+            <tr><td class="pron">ellos / ellas</td><td class="form">tienen</td><td class="ex">Tienen 20 años.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─── 5. Compare ─────────────────────────────────────── -->
+    <section class="section" id="sec-compare">
+      <div class="section-head">
+        <span class="section-num">Sección 5</span>
+        <h2 class="section-title">中西对比 🇨🇳🇪🇸</h2>
+      </div>
+
+      <div class="compare">
+        <div class="compare-title">① "我是中国人" vs "Soy chino/china"</div>
+        <div class="compare-body">
+          中文不区分性别，都说"中国人"。西语必须区分：男的说 <strong>chino</strong>，女的说 <strong>china</strong>。
+        </div>
+      </div>
+
+      <div class="compare">
+        <div class="compare-title">② 年龄表达：用"有"而不是"是"</div>
+        <div class="compare-body">
+          <table>
+            <tr><th>中文</th><th>西语</th><th>字面意思</th></tr>
+            <tr><td>我 25 岁</td><td>Tengo 25 años.</td><td>我<strong>有</strong> 25 年</td></tr>
+            <tr><td>你多大？</td><td>¿Cuántos años tienes?</td><td>你<strong>有</strong>多少年？</td></tr>
+          </table>
+          这是初学者最常踩的坑——中文的"是 25 岁"，西语用"有 25 年"。
+        </div>
+      </div>
+
+      <div class="compare">
+        <div class="compare-title">③ 姓和名的顺序</div>
+        <div class="compare-body">
+          中文：<strong>姓 + 名</strong>（王明）<br>
+          西语：<strong>名 + 姓</strong>（María García）<br>
+          而且西班牙人通常有<strong>两个姓</strong>：父姓 + 母姓（María García López）。
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── 6. Exercises ───────────────────────────────────── -->
+    <section class="section" id="sec-exercise">
+      <div class="section-head">
+        <span class="section-num">Sección 6</span>
+        <h2 class="section-title">巩固练习</h2>
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-head">
+          <span class="exercise-num">1</span>
+          <span class="exercise-title">用 ser 的正确形式填空</span>
+        </div>
+        <ol class="exercise-list">
+          <li>Yo <span class="blank"></span> estudiante.</li>
+          <li>María <span class="blank"></span> española.</li>
+          <li>Nosotros <span class="blank"></span> chinos.</li>
+          <li>¿Tú <span class="blank"></span> profesor?</li>
+          <li>Mis amigos <span class="blank"></span> mexicanos.</li>
+        </ol>
+        <details class="answer">
+          <summary>查看答案 ▾</summary>
+          <ol class="answer-list">
+            <li>soy</li>
+            <li>es</li>
+            <li>somos</li>
+            <li>eres</li>
+            <li>son</li>
+          </ol>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-head">
+          <span class="exercise-num">2</span>
+          <span class="exercise-title">翻译下列句子</span>
+        </div>
+        <ol class="exercise-list">
+          <li>你好，我叫李明。</li>
+          <li>我是中国人，从北京来。</li>
+          <li>我 30 岁，我是医生。</li>
+          <li>你叫什么名字？你多大？</li>
+          <li>很高兴认识你。</li>
+        </ol>
+        <details class="answer">
+          <summary>查看参考答案 ▾</summary>
+          <ol class="answer-list">
+            <li>Hola, me llamo Li Ming.</li>
+            <li>Soy chino, de Beijing.</li>
+            <li>Tengo 30 años. Soy médico.</li>
+            <li>¿Cómo te llamas? ¿Cuántos años tienes?</li>
+            <li>Mucho gusto.</li>
+          </ol>
+        </details>
+      </div>
+
+      <div class="exercise">
+        <div class="exercise-head">
+          <span class="exercise-num">3</span>
+          <span class="exercise-title">视频任务（结合 Esponal 视频）</span>
+        </div>
+        <p style="font-size: 13.5px; color: var(--gray-600); line-height: 1.7; font-family: var(--font-zh);">
+          在 Esponal 首页找一段 Dreaming Spanish 的"自我介绍"主题视频，记录视频里讲的人：
+        </p>
+        <ul style="font-size: 13.5px; color: var(--gray-700); line-height: 1.8; margin-top: 8px; padding-left: 20px;">
+          <li>叫什么名字</li>
+          <li>来自哪里</li>
+          <li>多大年龄</li>
+          <li>做什么工作</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Unit Nav -->
+    <div class="unit-nav">
+      <a class="unit-nav-btn disabled" href="#">
+        <div class="dir">← UPCOMING</div>
+        <div class="title">（第一单元为起点）</div>
+      </a>
+      <a class="unit-nav-btn next" href="#">
+        <div class="dir">NEXT →</div>
+        <div class="title">Unidad 2: 想学西语</div>
+      </a>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

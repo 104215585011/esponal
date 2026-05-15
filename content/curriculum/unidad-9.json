@@ -1,0 +1,397 @@
+{
+  "id": "unidad-9",
+  "vocabGroups": [
+    {
+      "title": "能力与技能",
+      "items": [
+        {
+          "es": "conducir",
+          "zh": "开车",
+          "audioSrc": "/audio/units/unidad-9/conducir.mp3"
+        },
+        {
+          "es": "nadar",
+          "zh": "游泳",
+          "audioSrc": "/audio/units/unidad-9/nadar.mp3"
+        },
+        {
+          "es": "cocinar",
+          "zh": "做饭",
+          "audioSrc": "/audio/units/unidad-9/cocinar.mp3"
+        },
+        {
+          "es": "tocar la guitarra",
+          "zh": "弹吉他",
+          "audioSrc": "/audio/units/unidad-9/tocar-la-guitarra.mp3"
+        },
+        {
+          "es": "hablar chino",
+          "zh": "说中文",
+          "audioSrc": "/audio/units/unidad-9/hablar-chino.mp3"
+        },
+        {
+          "es": "programar",
+          "zh": "编程",
+          "audioSrc": "/audio/units/unidad-9/programar.mp3"
+        }
+      ]
+    },
+    {
+      "title": "义务与必要",
+      "items": [
+        {
+          "es": "deber",
+          "zh": "应该，必须",
+          "audioSrc": "/audio/units/unidad-9/deber.mp3"
+        },
+        {
+          "es": "necesitar",
+          "zh": "需要",
+          "audioSrc": "/audio/units/unidad-9/necesitar.mp3"
+        },
+        {
+          "es": "tener que",
+          "zh": "不得不",
+          "audioSrc": "/audio/units/unidad-9/tener-que.mp3"
+        },
+        {
+          "es": "hay que",
+          "zh": "必须（泛指）",
+          "audioSrc": "/audio/units/unidad-9/hay-que.mp3"
+        }
+      ]
+    },
+    {
+      "title": "计划与意图",
+      "items": [
+        {
+          "es": "ir a + infinitivo",
+          "zh": "打算做……",
+          "audioSrc": "/audio/units/unidad-9/ir-a-infinitivo.mp3"
+        },
+        {
+          "es": "pensar + infinitivo",
+          "zh": "考虑做……",
+          "audioSrc": "/audio/units/unidad-9/pensar-infinitivo.mp3"
+        },
+        {
+          "es": "querer + infinitivo",
+          "zh": "想要做……",
+          "audioSrc": "/audio/units/unidad-9/querer-infinitivo.mp3"
+        }
+      ]
+    },
+    {
+      "title": "频率程度",
+      "items": [
+        {
+          "es": "bien",
+          "zh": "很好地",
+          "audioSrc": "/audio/units/unidad-9/bien.mp3"
+        },
+        {
+          "es": "mal",
+          "zh": "很差地",
+          "audioSrc": "/audio/units/unidad-9/mal.mp3"
+        },
+        {
+          "es": "un poco",
+          "zh": "一点点",
+          "audioSrc": "/audio/units/unidad-9/un-poco.mp3"
+        },
+        {
+          "es": "bastante bien",
+          "zh": "相当好",
+          "audioSrc": "/audio/units/unidad-9/bastante-bien.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "表达能力",
+      "items": [
+        {
+          "es": "Se conducir.",
+          "zh": "我会开车。",
+          "audioSrc": "/audio/units/unidad-9/se-conducir.mp3"
+        },
+        {
+          "es": "No se nadar.",
+          "zh": "我不会游泳。",
+          "audioSrc": "/audio/units/unidad-9/no-se-nadar.mp3"
+        },
+        {
+          "es": "Puedo ayudarte.",
+          "zh": "我可以帮你。",
+          "audioSrc": "/audio/units/unidad-9/puedo-ayudarte.mp3"
+        },
+        {
+          "es": "No puedo ir manana.",
+          "zh": "我明天不能去。",
+          "audioSrc": "/audio/units/unidad-9/no-puedo-ir-manana.mp3"
+        }
+      ]
+    },
+    {
+      "category": "表达义务",
+      "items": [
+        {
+          "es": "Debo estudiar mas.",
+          "zh": "我应该多学习。",
+          "audioSrc": "/audio/units/unidad-9/debo-estudiar-mas.mp3"
+        },
+        {
+          "es": "Necesito practicar.",
+          "zh": "我需要练习。",
+          "audioSrc": "/audio/units/unidad-9/necesito-practicar.mp3"
+        },
+        {
+          "es": "Hay que trabajar duro.",
+          "zh": "必须努力工作。",
+          "audioSrc": "/audio/units/unidad-9/hay-que-trabajar-duro.mp3"
+        }
+      ]
+    },
+    {
+      "category": "表达计划",
+      "items": [
+        {
+          "es": "Voy a estudiar espanol.",
+          "zh": "我打算学西班牙语。",
+          "audioSrc": "/audio/units/unidad-9/voy-a-estudiar-espanol.mp3"
+        },
+        {
+          "es": "Manana voy a cocinar.",
+          "zh": "明天我打算做饭。",
+          "audioSrc": "/audio/units/unidad-9/manana-voy-a-cocinar.mp3"
+        },
+        {
+          "es": "Pienso viajar a Espana.",
+          "zh": "我考虑去西班牙旅行。",
+          "audioSrc": "/audio/units/unidad-9/pienso-viajar-a-espana.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 你会什么？",
+      "scene": "两位同事聊各自的技能和爱好。",
+      "lines": [
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Sabes conducir?",
+          "zh": "你会开车吗？",
+          "audioSrc": "/audio/units/unidad-9/sabes-conducir.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Si, se conducir bastante bien. Y tu?",
+          "zh": "会，我开车开得相当好。你呢？",
+          "audioSrc": "/audio/units/unidad-9/si-se-conducir-bastante-bien-y-tu.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Yo no se conducir, pero puedo ir en bicicleta.",
+          "zh": "我不会开车，但我可以骑自行车。",
+          "audioSrc": "/audio/units/unidad-9/yo-no-se-conducir-pero-puedo-ir-en-bicicleta.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Debes aprender. Es muy util.",
+          "zh": "你应该学一下。很有用的。",
+          "audioSrc": "/audio/units/unidad-9/debes-aprender-es-muy-util.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 周末计划",
+      "scene": "朋友们讨论周末打算做什么。",
+      "lines": [
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Que vas a hacer este fin de semana?",
+          "zh": "你这个周末打算做什么？",
+          "audioSrc": "/audio/units/unidad-9/que-vas-a-hacer-este-fin-de-semana.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Voy a estudiar espanol por la manana.",
+          "zh": "上午我打算学西班牙语。",
+          "audioSrc": "/audio/units/unidad-9/voy-a-estudiar-espanol-por-la-manana.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Y por la tarde? Puedes venir a la fiesta?",
+          "zh": "下午呢？你能来派对吗？",
+          "audioSrc": "/audio/units/unidad-9/y-por-la-tarde-puedes-venir-a-la-fiesta.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Si, puedo. A que hora empieza?",
+          "zh": "可以。几点开始？",
+          "audioSrc": "/audio/units/unidad-9/si-puedo-a-que-hora-empieza.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "A las seis. Hay que traer algo de comer.",
+          "zh": "六点。需要带点吃的来。",
+          "audioSrc": "/audio/units/unidad-9/a-las-seis-hay-que-traer-algo-de-comer.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "saber",
+      "titleZh": "知道，会（技能）",
+      "lead": "saber + infinitivo 表示通过学习掌握的技能。",
+      "tip": "Se nadar = 我会游泳（学会的）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "se",
+          "example": "Se cocinar bien."
+        },
+        {
+          "pronoun": "tu",
+          "form": "sabes",
+          "example": "Sabes tocar la guitarra?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "sabe",
+          "example": "Sabe hablar tres idiomas."
+        }
+      ]
+    },
+    {
+      "verb": "poder",
+      "titleZh": "能，可以（可能/许可）",
+      "lead": "poder + infinitivo 表示有条件做某事，或请求许可。",
+      "tip": "Puedo ir = 我能去（条件允许）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "puedo",
+          "example": "No puedo ir hoy."
+        },
+        {
+          "pronoun": "tu",
+          "form": "puedes",
+          "example": "Puedes ayudarme?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "puede",
+          "example": "Puede venir manana."
+        }
+      ]
+    },
+    {
+      "verb": "deber",
+      "titleZh": "应该，必须",
+      "lead": "deber + infinitivo 表示道义上的义务或建议。",
+      "tip": "Debes estudiar = 你应该学习",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "debo",
+          "example": "Debo llamar a mi madre."
+        },
+        {
+          "pronoun": "tu",
+          "form": "debes",
+          "example": "Debes descansar mas."
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "debe",
+          "example": "Debe llegar a las ocho."
+        }
+      ]
+    },
+    {
+      "verb": "ir a",
+      "titleZh": "打算做……（近将来时）",
+      "lead": "ir a + infinitivo 表示近期计划，相当于英语 going to。",
+      "tip": "Voy a estudiar = 我打算学习",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "voy a",
+          "example": "Voy a aprender espanol."
+        },
+        {
+          "pronoun": "tu",
+          "form": "vas a",
+          "example": "Vas a trabajar manana?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "va a",
+          "example": "Va a cocinar esta noche."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "saber vs poder",
+      "body": "saber 表示通过学习掌握的能力（Se nadar = 我会游泳），poder 表示情境允许（Puedo nadar hoy = 今天我可以去游泳）。同一件事，用哪个词取决于强调「会不会」还是「能不能」。"
+    },
+    {
+      "title": "deber vs tener que vs hay que",
+      "body": "deber 偏道义（你应该），tener que 偏迫不得已（不得不），hay que 是无人称表达（大家都得）。例：Debes descansar（你应该休息）/ Tengo que trabajar（我不得不工作）/ Hay que estudiar（必须学习）。"
+    },
+    {
+      "title": "ir a + infinitivo（近将来）",
+      "body": "西语用 ir a + 动词原形表示近期计划，相当于英语 going to。不需要单独背「将来时」变位，这是A2阶段最实用的计划表达：Voy a comer = 我打算吃饭。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入 saber / poder / deber",
+      "questions": [
+        "___ conducir? (你会开车吗？)",
+        "No ___ ir manana. (我明天不能去。)",
+        "___ estudiar mas. (你应该多学习。)"
+      ],
+      "answers": [
+        "Sabes",
+        "puedo",
+        "Debes"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译计划句子",
+      "questions": [
+        "我打算明天学西班牙语。",
+        "她会弹钢琴。",
+        "我们必须努力工作。"
+      ],
+      "answers": [
+        "Voy a estudiar espanol manana.",
+        "Sabe tocar el piano.",
+        "Hay que trabajar duro."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "vlHDpiTU82w",
+    "title": "Las habilidades",
+    "description": "在真实对话中练习 saber 和 poder 的区别，以及用 ir a 表达计划。"
+  }
+}

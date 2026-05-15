@@ -1,0 +1,400 @@
+{
+  "id": "unidad-4",
+  "vocabGroups": [
+    {
+      "title": "服装与配件",
+      "items": [
+        {
+          "es": "la camiseta",
+          "zh": "T 恤",
+          "audioSrc": "/audio/units/unidad-4/la-camiseta.mp3"
+        },
+        {
+          "es": "los pantalones",
+          "zh": "裤子",
+          "audioSrc": "/audio/units/unidad-4/los-pantalones.mp3"
+        },
+        {
+          "es": "el vestido",
+          "zh": "裙子，连衣裙",
+          "audioSrc": "/audio/units/unidad-4/el-vestido.mp3"
+        },
+        {
+          "es": "los zapatos",
+          "zh": "鞋子",
+          "audioSrc": "/audio/units/unidad-4/los-zapatos.mp3"
+        },
+        {
+          "es": "la chaqueta",
+          "zh": "夹克，外套",
+          "audioSrc": "/audio/units/unidad-4/la-chaqueta.mp3"
+        },
+        {
+          "es": "el bolso",
+          "zh": "手提包",
+          "audioSrc": "/audio/units/unidad-4/el-bolso.mp3"
+        }
+      ]
+    },
+    {
+      "title": "颜色",
+      "items": [
+        {
+          "es": "rojo / roja",
+          "zh": "红色",
+          "audioSrc": "/audio/units/unidad-4/rojo-roja.mp3"
+        },
+        {
+          "es": "azul",
+          "zh": "蓝色",
+          "audioSrc": "/audio/units/unidad-4/azul.mp3"
+        },
+        {
+          "es": "verde",
+          "zh": "绿色",
+          "audioSrc": "/audio/units/unidad-4/verde.mp3"
+        },
+        {
+          "es": "negro / negra",
+          "zh": "黑色",
+          "audioSrc": "/audio/units/unidad-4/negro-negra.mp3"
+        },
+        {
+          "es": "blanco / blanca",
+          "zh": "白色",
+          "audioSrc": "/audio/units/unidad-4/blanco-blanca.mp3"
+        },
+        {
+          "es": "amarillo / amarilla",
+          "zh": "黄色",
+          "audioSrc": "/audio/units/unidad-4/amarillo-amarilla.mp3"
+        }
+      ]
+    },
+    {
+      "title": "购物用语",
+      "items": [
+        {
+          "es": "el precio",
+          "zh": "价格",
+          "audioSrc": "/audio/units/unidad-4/el-precio.mp3"
+        },
+        {
+          "es": "la talla",
+          "zh": "尺码",
+          "audioSrc": "/audio/units/unidad-4/la-talla.mp3"
+        },
+        {
+          "es": "el probador",
+          "zh": "试衣间",
+          "audioSrc": "/audio/units/unidad-4/el-probador.mp3"
+        },
+        {
+          "es": "la oferta",
+          "zh": "特价，优惠",
+          "audioSrc": "/audio/units/unidad-4/la-oferta.mp3"
+        },
+        {
+          "es": "la caja",
+          "zh": "收银台",
+          "audioSrc": "/audio/units/unidad-4/la-caja.mp3"
+        }
+      ]
+    },
+    {
+      "title": "数字 21-1000",
+      "items": [
+        {
+          "es": "veinte y uno (21)",
+          "zh": "二十一",
+          "audioSrc": "/audio/units/unidad-4/veinte-y-uno-21.mp3"
+        },
+        {
+          "es": "cincuenta (50)",
+          "zh": "五十",
+          "audioSrc": "/audio/units/unidad-4/cincuenta-50.mp3"
+        },
+        {
+          "es": "cien (100)",
+          "zh": "一百",
+          "audioSrc": "/audio/units/unidad-4/cien-100.mp3"
+        },
+        {
+          "es": "doscientos (200)",
+          "zh": "二百",
+          "audioSrc": "/audio/units/unidad-4/doscientos-200.mp3"
+        },
+        {
+          "es": "mil (1000)",
+          "zh": "一千",
+          "audioSrc": "/audio/units/unidad-4/mil-1000.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "购物对话",
+      "items": [
+        {
+          "es": "Cuanto cuesta esto?",
+          "zh": "这个多少钱？",
+          "audioSrc": "/audio/units/unidad-4/cuanto-cuesta-esto.mp3"
+        },
+        {
+          "es": "Tiene una talla mas grande?",
+          "zh": "有大一码的吗？",
+          "audioSrc": "/audio/units/unidad-4/tiene-una-talla-mas-grande.mp3"
+        },
+        {
+          "es": "Puedo probarmelo?",
+          "zh": "我可以试穿吗？",
+          "audioSrc": "/audio/units/unidad-4/puedo-probarmelo.mp3"
+        },
+        {
+          "es": "Me lo llevo.",
+          "zh": "我要买这个。",
+          "audioSrc": "/audio/units/unidad-4/me-lo-llevo.mp3"
+        }
+      ]
+    },
+    {
+      "category": "表达偏好",
+      "items": [
+        {
+          "es": "Prefiero este.",
+          "zh": "我更喜欢这个。",
+          "audioSrc": "/audio/units/unidad-4/prefiero-este.mp3"
+        },
+        {
+          "es": "Me gusta mas el azul.",
+          "zh": "我更喜欢蓝色的。",
+          "audioSrc": "/audio/units/unidad-4/me-gusta-mas-el-azul.mp3"
+        },
+        {
+          "es": "Este me parece demasiado caro.",
+          "zh": "这个我觉得太贵了。",
+          "audioSrc": "/audio/units/unidad-4/este-me-parece-demasiado-caro.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 服装店购物",
+      "scene": "顾客在服装店询问价格和尺码。",
+      "lines": [
+        {
+          "speaker": "Cliente",
+          "speakerVariant": "b",
+          "es": "Buenas tardes. Cuanto cuesta esta camiseta?",
+          "zh": "下午好。这件T恤多少钱？",
+          "audioSrc": "/audio/units/unidad-4/buenas-tardes-cuanto-cuesta-esta-camiseta.mp3"
+        },
+        {
+          "speaker": "Dependiente",
+          "speakerVariant": "a",
+          "es": "Cuesta veinte y cinco euros.",
+          "zh": "二十五欧元。",
+          "audioSrc": "/audio/units/unidad-4/cuesta-veinte-y-cinco-euros.mp3"
+        },
+        {
+          "speaker": "Cliente",
+          "speakerVariant": "b",
+          "es": "Tiene en azul? Prefiero el azul al negro.",
+          "zh": "有蓝色的吗？比起黑色我更喜欢蓝色。",
+          "audioSrc": "/audio/units/unidad-4/tiene-en-azul-prefiero-el-azul-al-negro.mp3"
+        },
+        {
+          "speaker": "Dependiente",
+          "speakerVariant": "a",
+          "es": "Si, claro. Que talla necesita?",
+          "zh": "当然有。您需要什么尺码？",
+          "audioSrc": "/audio/units/unidad-4/si-claro-que-talla-necesita.mp3"
+        },
+        {
+          "speaker": "Cliente",
+          "speakerVariant": "b",
+          "es": "La mediana, creo. Puedo probarmela?",
+          "zh": "我觉得是中号。我可以试穿吗？",
+          "audioSrc": "/audio/units/unidad-4/la-mediana-creo-puedo-probarmela.mp3"
+        },
+        {
+          "speaker": "Dependiente",
+          "speakerVariant": "a",
+          "es": "Por supuesto. El probador esta al fondo a la derecha.",
+          "zh": "当然可以。试衣间在里面右边。",
+          "audioSrc": "/audio/units/unidad-4/por-supuesto-el-probador-esta-al-fondo-a-la-derecha.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 比较两件商品",
+      "scene": "朋友们一起逛街，讨论要买哪件。",
+      "lines": [
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Cual prefieres, el vestido rojo o el azul?",
+          "zh": "你更喜欢哪件，红色还是蓝色的裙子？",
+          "audioSrc": "/audio/units/unidad-4/cual-prefieres-el-vestido-rojo-o-el-azul.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Me gusta mas el azul. El rojo me parece demasiado llamativo.",
+          "zh": "我更喜欢蓝色的。红色的我觉得太显眼了。",
+          "audioSrc": "/audio/units/unidad-4/me-gusta-mas-el-azul-el-rojo-me-parece-demasiado-llamativo.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Y el precio? El azul cuesta mas.",
+          "zh": "价格呢？蓝色的更贵。",
+          "audioSrc": "/audio/units/unidad-4/y-el-precio-el-azul-cuesta-mas.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Cuanto cuesta el azul?",
+          "zh": "蓝色的多少钱？",
+          "audioSrc": "/audio/units/unidad-4/cuanto-cuesta-el-azul.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Cuesta ochenta euros. Pero esta en oferta, cincuenta.",
+          "zh": "八十欧元。但是在打折，五十欧。",
+          "audioSrc": "/audio/units/unidad-4/cuesta-ochenta-euros-pero-esta-en-oferta-cincuenta.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Entonces me lo llevo!",
+          "zh": "那我就买了！",
+          "audioSrc": "/audio/units/unidad-4/entonces-me-lo-llevo.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "gustar",
+      "titleZh": "喜欢（反向动词）",
+      "lead": "gustar 的结构与中文相反：主语是「喜欢的东西」，人是间接宾语。",
+      "tip": "Me gusta = 它让我喜欢（字面），不是 I like",
+      "conjugation": [
+        {
+          "pronoun": "me / te / le",
+          "form": "gusta",
+          "example": "Me gusta el azul."
+        },
+        {
+          "pronoun": "me / te / le",
+          "form": "gustan",
+          "example": "Me gustan los zapatos."
+        },
+        {
+          "pronoun": "nos / os / les",
+          "form": "gusta / gustan",
+          "example": "Nos gustan las ofertas."
+        }
+      ]
+    },
+    {
+      "verb": "preferir",
+      "titleZh": "更喜欢，偏好",
+      "lead": "preferir 是 e→ie 变干动词，表达在多个选项中选择偏好。",
+      "tip": "Prefiero A a B = 比起B我更喜欢A",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "prefiero",
+          "example": "Prefiero el azul al rojo."
+        },
+        {
+          "pronoun": "tu",
+          "form": "prefieres",
+          "example": "Que prefieres, este o ese?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "prefiere",
+          "example": "Prefiere la talla grande."
+        }
+      ]
+    },
+    {
+      "verb": "costar",
+      "titleZh": "花费，值……钱",
+      "lead": "costar 是 o→ue 变干动词，用于询问和说明价格。",
+      "tip": "Cuanto cuesta? = 多少钱？（单数）/ Cuanto cuestan? = 多少钱？（复数）",
+      "conjugation": [
+        {
+          "pronoun": "（单数）",
+          "form": "cuesta",
+          "example": "Cuanto cuesta esta chaqueta?"
+        },
+        {
+          "pronoun": "（复数）",
+          "form": "cuestan",
+          "example": "Cuanto cuestan estos zapatos?"
+        },
+        {
+          "pronoun": "（yo）",
+          "form": "cuesto",
+          "example": null
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "gustar 的方向",
+      "body": "Me gusta 字面是「它让我喜欢」，不是英语式的 I like。所以单数东西用 gusta，复数东西用 gustan：Me gusta el vestido（我喜欢这条裙子）vs Me gustan los zapatos（我喜欢这双鞋）。"
+    },
+    {
+      "title": "形容词的性数一致",
+      "body": "西语形容词必须与名词的性（阴/阳）和数（单/复）一致。rojo → roja / rojos / rojas；azul → azul / azules（阴阳同形）。颜色形容词一般放在名词后面。"
+    },
+    {
+      "title": "este / ese / aquel（指示代词）",
+      "body": "este（这个，近处）、ese（那个，中距）、aquel（那个，远处）。购物时常用 este / ese：Prefiero este（我更喜欢这个）。同样要与名词性数一致。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入 gusta / gustan / prefiero",
+      "questions": [
+        "Me ___ mucho los pantalones negros.",
+        "___ el vestido azul al rojo.",
+        "Le ___ esta talla?"
+      ],
+      "answers": [
+        "gustan",
+        "Prefiero",
+        "gusta"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译购物句子",
+      "questions": [
+        "这件夹克多少钱？",
+        "有白色的吗？我更喜欢白色。",
+        "我可以试穿吗？"
+      ],
+      "answers": [
+        "Cuanto cuesta esta chaqueta?",
+        "Tiene en blanco? Prefiero el blanco.",
+        "Puedo probarmelo?"
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "Zr6o2J0bRZk",
+    "title": "Las compras",
+    "description": "在购物场景真实对话中练习 gustar、preferir 和价格表达。"
+  }
+}

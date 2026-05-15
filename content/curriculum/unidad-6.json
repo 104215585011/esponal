@@ -1,0 +1,393 @@
+{
+  "id": "unidad-6",
+  "vocabGroups": [
+    {
+      "title": "日常动作（反身动词）",
+      "items": [
+        {
+          "es": "levantarse",
+          "zh": "起床",
+          "audioSrc": "/audio/units/unidad-6/levantarse.mp3"
+        },
+        {
+          "es": "ducharse",
+          "zh": "洗澡",
+          "audioSrc": "/audio/units/unidad-6/ducharse.mp3"
+        },
+        {
+          "es": "desayunar",
+          "zh": "吃早餐",
+          "audioSrc": "/audio/units/unidad-6/desayunar.mp3"
+        },
+        {
+          "es": "vestirse",
+          "zh": "穿衣服",
+          "audioSrc": "/audio/units/unidad-6/vestirse.mp3"
+        },
+        {
+          "es": "acostarse",
+          "zh": "睡觉，上床",
+          "audioSrc": "/audio/units/unidad-6/acostarse.mp3"
+        },
+        {
+          "es": "dormirse",
+          "zh": "入睡",
+          "audioSrc": "/audio/units/unidad-6/dormirse.mp3"
+        }
+      ]
+    },
+    {
+      "title": "时间表达",
+      "items": [
+        {
+          "es": "por la manana",
+          "zh": "上午",
+          "audioSrc": "/audio/units/unidad-6/por-la-manana.mp3"
+        },
+        {
+          "es": "por la tarde",
+          "zh": "下午",
+          "audioSrc": "/audio/units/unidad-6/por-la-tarde.mp3"
+        },
+        {
+          "es": "por la noche",
+          "zh": "晚上",
+          "audioSrc": "/audio/units/unidad-6/por-la-noche.mp3"
+        },
+        {
+          "es": "a las ocho",
+          "zh": "八点",
+          "audioSrc": "/audio/units/unidad-6/a-las-ocho.mp3"
+        },
+        {
+          "es": "a mediodia",
+          "zh": "中午",
+          "audioSrc": "/audio/units/unidad-6/a-mediodia.mp3"
+        },
+        {
+          "es": "a medianoche",
+          "zh": "午夜",
+          "audioSrc": "/audio/units/unidad-6/a-medianoche.mp3"
+        }
+      ]
+    },
+    {
+      "title": "频率副词",
+      "items": [
+        {
+          "es": "siempre",
+          "zh": "总是",
+          "audioSrc": "/audio/units/unidad-6/siempre.mp3"
+        },
+        {
+          "es": "normalmente",
+          "zh": "通常",
+          "audioSrc": "/audio/units/unidad-6/normalmente.mp3"
+        },
+        {
+          "es": "a veces",
+          "zh": "有时",
+          "audioSrc": "/audio/units/unidad-6/a-veces.mp3"
+        },
+        {
+          "es": "casi nunca",
+          "zh": "几乎从不",
+          "audioSrc": "/audio/units/unidad-6/casi-nunca.mp3"
+        },
+        {
+          "es": "nunca",
+          "zh": "从不",
+          "audioSrc": "/audio/units/unidad-6/nunca.mp3"
+        }
+      ]
+    },
+    {
+      "title": "星期",
+      "items": [
+        {
+          "es": "lunes",
+          "zh": "周一",
+          "audioSrc": "/audio/units/unidad-6/lunes.mp3"
+        },
+        {
+          "es": "miercoles",
+          "zh": "周三",
+          "audioSrc": "/audio/units/unidad-6/miercoles.mp3"
+        },
+        {
+          "es": "viernes",
+          "zh": "周五",
+          "audioSrc": "/audio/units/unidad-6/viernes.mp3"
+        },
+        {
+          "es": "sabado",
+          "zh": "周六",
+          "audioSrc": "/audio/units/unidad-6/sabado.mp3"
+        },
+        {
+          "es": "domingo",
+          "zh": "周日",
+          "audioSrc": "/audio/units/unidad-6/domingo.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "描述作息",
+      "items": [
+        {
+          "es": "Me levanto a las siete.",
+          "zh": "我七点起床。",
+          "audioSrc": "/audio/units/unidad-6/me-levanto-a-las-siete.mp3"
+        },
+        {
+          "es": "Normalmente desayuno en casa.",
+          "zh": "我通常在家吃早餐。",
+          "audioSrc": "/audio/units/unidad-6/normalmente-desayuno-en-casa.mp3"
+        },
+        {
+          "es": "Me acuesto tarde los fines de semana.",
+          "zh": "周末我睡得很晚。",
+          "audioSrc": "/audio/units/unidad-6/me-acuesto-tarde-los-fines-de-semana.mp3"
+        },
+        {
+          "es": "A veces trabajo por la noche.",
+          "zh": "我有时晚上工作。",
+          "audioSrc": "/audio/units/unidad-6/a-veces-trabajo-por-la-noche.mp3"
+        }
+      ]
+    },
+    {
+      "category": "询问时间习惯",
+      "items": [
+        {
+          "es": "A que hora te levantas?",
+          "zh": "你几点起床？",
+          "audioSrc": "/audio/units/unidad-6/a-que-hora-te-levantas.mp3"
+        },
+        {
+          "es": "Cuantas horas duermes?",
+          "zh": "你睡几个小时？",
+          "audioSrc": "/audio/units/unidad-6/cuantas-horas-duermes.mp3"
+        },
+        {
+          "es": "Que haces por la manana?",
+          "zh": "你早上做什么？",
+          "audioSrc": "/audio/units/unidad-6/que-haces-por-la-manana.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 描述日常作息",
+      "scene": "两位同学在聊自己平时的生活规律。",
+      "lines": [
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "A que hora te levantas normalmente?",
+          "zh": "你平时几点起床？",
+          "audioSrc": "/audio/units/unidad-6/a-que-hora-te-levantas-normalmente.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Me levanto a las siete. Primero me ducho y luego desayuno.",
+          "zh": "我七点起床。先洗澡，然后吃早餐。",
+          "audioSrc": "/audio/units/unidad-6/me-levanto-a-las-siete-primero-me-ducho-y-luego-desayuno.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Yo me levanto muy tarde, a las nueve. No me gusta madrugar.",
+          "zh": "我起得很晚，九点。我不喜欢早起。",
+          "audioSrc": "/audio/units/unidad-6/yo-me-levanto-muy-tarde-a-las-nueve-no-me-gusta-madrugar.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Y a que hora te acuestas?",
+          "zh": "你几点睡觉？",
+          "audioSrc": "/audio/units/unidad-6/y-a-que-hora-te-acuestas.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Siempre me acuesto despues de las doce.",
+          "zh": "我总是十二点之后才睡。",
+          "audioSrc": "/audio/units/unidad-6/siempre-me-acuesto-despues-de-las-doce.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Yo normalmente me duermo a las once. Cuantas horas duermes?",
+          "zh": "我通常十一点入睡。你睡几个小时？",
+          "audioSrc": "/audio/units/unidad-6/yo-normalmente-me-duermo-a-las-once-cuantas-horas-duermes.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 周末计划",
+      "scene": "朋友们聊周末和平时的作息差异。",
+      "lines": [
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Que haces los fines de semana?",
+          "zh": "你周末做什么？",
+          "audioSrc": "/audio/units/unidad-6/que-haces-los-fines-de-semana.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Los sabados me levanto tarde, a las diez. No trabajo.",
+          "zh": "周六我起得晚，十点。不工作。",
+          "audioSrc": "/audio/units/unidad-6/los-sabados-me-levanto-tarde-a-las-diez-no-trabajo.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Yo tampoco trabajo el sabado. A veces voy al gimnasio por la manana.",
+          "zh": "我周六也不工作。有时上午去健身房。",
+          "audioSrc": "/audio/units/unidad-6/yo-tampoco-trabajo-el-sabado-a-veces-voy-al-gimnasio-por-la-manana.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "El domingo normalmente estudio espanol por la tarde.",
+          "zh": "周日我通常下午学西班牙语。",
+          "audioSrc": "/audio/units/unidad-6/el-domingo-normalmente-estudio-espanol-por-la-tarde.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Que disciplinado! Yo casi nunca estudio el fin de semana.",
+          "zh": "好自律啊！我周末几乎从不学习。",
+          "audioSrc": "/audio/units/unidad-6/que-disciplinado-yo-casi-nunca-estudio-el-fin-de-semana.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "levantarse",
+      "titleZh": "起床（反身动词）",
+      "lead": "反身动词表示动作施于自己，反身代词（me/te/se）必须与主语一致。",
+      "tip": "反身代词放在变位动词前：Me levanto（不是 levanto me）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "me levanto",
+          "example": "Me levanto a las siete."
+        },
+        {
+          "pronoun": "tu",
+          "form": "te levantas",
+          "example": "A que hora te levantas?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "se levanta",
+          "example": "Se levanta muy temprano."
+        }
+      ]
+    },
+    {
+      "verb": "acostarse",
+      "titleZh": "睡觉，上床",
+      "lead": "acostarse 是反身动词，同时也是 o→ue 变干动词，两个规则叠加。",
+      "tip": "me acuesto / te acuestas / se acuesta（注意 ue）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "me acuesto",
+          "example": "Me acuesto a las once."
+        },
+        {
+          "pronoun": "tu",
+          "form": "te acuestas",
+          "example": "A que hora te acuestas?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "se acuesta",
+          "example": "Se acuesta muy tarde."
+        }
+      ]
+    },
+    {
+      "verb": "desayunar / trabajar",
+      "titleZh": "吃早餐 / 工作",
+      "lead": "desayunar 和 trabajar 都是规则 -ar 动词，变位方式与 hablar 完全相同。",
+      "tip": "规则 -ar：-o / -as / -a（yo/tu/el）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "desayuno / trabajo",
+          "example": "Desayuno a las ocho y trabajo desde las nueve."
+        },
+        {
+          "pronoun": "tu",
+          "form": "desayunas / trabajas",
+          "example": "Donde trabajas?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "desayuna / trabaja",
+          "example": "Desayuna en la oficina."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "西班牙的用餐时间",
+      "body": "西班牙的用餐习惯与中国不同：早餐（desayuno）约7-9点，午餐（comida）约14-15点（是正餐），晚餐（cena）约21-22点。午餐是一天中最重要的一餐。"
+    },
+    {
+      "title": "频率副词的位置",
+      "body": "频率副词通常放在变位动词前（Siempre me levanto temprano），或句首（Normalmente desayuno en casa）。否定 nunca 放在动词前时不需要再加 no：Nunca desayuno（不是 No nunca desayuno）。"
+    },
+    {
+      "title": "星期几不加冠词",
+      "body": "西语说「每个周一」用定冠词复数：los lunes（不说 cada lunes）。说「这个周一」则不加冠词：el lunes（特指本周）。例：Los lunes trabajo（每周一我工作）vs El lunes no trabajo（这周一我不工作）。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入正确的反身动词形式",
+      "questions": [
+        "Yo ___ a las siete. (levantarse)",
+        "Tu ___ muy tarde? (acostarse)",
+        "Ella siempre ___ antes de desayunar. (ducharse)"
+      ],
+      "answers": [
+        "me levanto",
+        "te acuestas",
+        "se ducha"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译作息句子",
+      "questions": [
+        "我通常七点起床，先洗澡再吃早餐。",
+        "你几点睡觉？",
+        "周末我总是睡到很晚。"
+      ],
+      "answers": [
+        "Normalmente me levanto a las siete, primero me ducho y luego desayuno.",
+        "A que hora te acuestas?",
+        "Los fines de semana siempre me levanto muy tarde."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "2YMwPbZP6Vo",
+    "title": "Un dia normal",
+    "description": "在真实日常作息描述中练习反身动词和时间表达。"
+  }
+}

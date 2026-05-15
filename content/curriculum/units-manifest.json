@@ -1,0 +1,173 @@
+[
+  {
+    "id": "unidad-1",
+    "number": 1,
+    "slug": "unidad-1",
+    "title": "认识彼此",
+    "titleEs": "Nosotros y nosotras",
+    "level": "A1",
+    "durationMin": 45,
+    "recommendedVideoId": "MlLWTeApqIM",
+    "recommendedVideoTitle": "Dreaming Spanish: ¿De dónde eres? – 简单自我介绍",
+    "coreVerbs": ["ser", "llamarse", "tener"],
+    "communicativeGoals": [
+      "用西语打招呼和告别",
+      "介绍姓名、国籍、年龄、职业",
+      "询问别人的基本信息",
+      "掌握 ser / llamarse / tener 的现在时",
+      "区分国籍词的阴阳性"
+    ]
+  },
+  {
+    "id": "unidad-2",
+    "number": 2,
+    "slug": "unidad-2",
+    "title": "想学西语",
+    "titleEs": "Quiero aprender español",
+    "level": "A1",
+    "durationMin": 45,
+    "recommendedVideoId": "P9pUTeTi0S8",
+    "recommendedVideoTitle": "Dreaming Spanish: Por qué aprender español",
+    "coreVerbs": ["querer", "hablar", "entender", "saber"],
+    "communicativeGoals": [
+      "表达喜好与愿望",
+      "谈论语言能力",
+      "描述学习目的",
+      "掌握 querer + infinitivo 结构",
+      "认识基本副词（bien, mal, mucho, poco）"
+    ]
+  },
+  {
+    "id": "unidad-3",
+    "number": 3,
+    "slug": "unidad-3",
+    "title": "在哪里",
+    "titleEs": "¿Dónde está?",
+    "level": "A1",
+    "durationMin": 50,
+    "recommendedVideoId": "A-4P7rLiqhg",
+    "recommendedVideoTitle": "Dreaming Spanish: La ciudad",
+    "coreVerbs": ["estar", "hay", "ir"],
+    "communicativeGoals": [
+      "描述位置方向（arriba, abajo, a la derecha…）",
+      "区分 ser 和 estar",
+      "使用 hay 和 está/están",
+      "谈论城市里的地点",
+      "简单问路与指路"
+    ]
+  },
+  {
+    "id": "unidad-4",
+    "number": 4,
+    "slug": "unidad-4",
+    "title": "你更喜欢哪个",
+    "titleEs": "¿Cuál prefieres?",
+    "level": "A1",
+    "durationMin": 50,
+    "recommendedVideoId": "Zr6o2J0bRZk",
+    "recommendedVideoTitle": "Dreaming Spanish: Las compras",
+    "coreVerbs": ["preferir", "gustar", "costar"],
+    "communicativeGoals": [
+      "表达偏好（prefiero, me gusta más…）",
+      "描述颜色、形状、尺码",
+      "购物场景用语（¿Cuánto cuesta? ¿Tiene…?）",
+      "掌握 gustar 的用法",
+      "数字 21-1000"
+    ]
+  },
+  {
+    "id": "unidad-5",
+    "number": 5,
+    "slug": "unidad-5",
+    "title": "朋友圈",
+    "titleEs": "Tus amigos son mis amigos",
+    "level": "A1",
+    "durationMin": 50,
+    "recommendedVideoId": "Rq4TRpxEjA8",
+    "recommendedVideoTitle": "Dreaming Spanish: La familia y los amigos",
+    "coreVerbs": ["tener", "ser", "vivir", "trabajar"],
+    "communicativeGoals": [
+      "描述人的外貌和性格",
+      "介绍家庭成员",
+      "描述人际关系",
+      "使用形容词的阴阳性和单复数",
+      "掌握 muy / bastante / un poco"
+    ]
+  },
+  {
+    "id": "unidad-6",
+    "number": 6,
+    "slug": "unidad-6",
+    "title": "日常作息",
+    "titleEs": "Día a día",
+    "level": "A1",
+    "durationMin": 55,
+    "recommendedVideoId": "2YMwPbZP6Vo",
+    "recommendedVideoTitle": "Dreaming Spanish: Un día normal",
+    "coreVerbs": ["levantarse", "desayunar", "trabajar", "acostarse"],
+    "communicativeGoals": [
+      "描述日常作息时间表",
+      "使用时钟表达时间",
+      "掌握反身动词（levantarse, ducharse…）",
+      "频率副词（siempre, normalmente, a veces…）",
+      "星期和月份"
+    ]
+  },
+  {
+    "id": "unidad-7",
+    "number": 7,
+    "slug": "unidad-7",
+    "title": "开吃",
+    "titleEs": "¡A comer!",
+    "level": "A1",
+    "durationMin": 50,
+    "recommendedVideoId": "YzMFWVXKbV8",
+    "recommendedVideoTitle": "Dreaming Spanish: La comida española",
+    "coreVerbs": ["comer", "beber", "pedir", "querer"],
+    "communicativeGoals": [
+      "点餐和结账",
+      "描述食物口味（rico, salado, dulce…）",
+      "谈论饮食习惯",
+      "使用不定冠词和定冠词",
+      "可数与不可数名词在饮食中的用法"
+    ]
+  },
+  {
+    "id": "unidad-8",
+    "number": 8,
+    "slug": "unidad-8",
+    "title": "理想社区",
+    "titleEs": "El barrio ideal",
+    "level": "A2",
+    "durationMin": 55,
+    "recommendedVideoId": "0C5MBGtdFqA",
+    "recommendedVideoTitle": "Dreaming Spanish: Los barrios de Madrid",
+    "coreVerbs": ["vivir", "haber", "parecer", "encontrar"],
+    "communicativeGoals": [
+      "描述居住环境和周边设施",
+      "表达评价和感受（me parece…）",
+      "谈论理想住所",
+      "使用比较级（más… que, menos… que）",
+      "介词搭配（cerca de, lejos de, al lado de…）"
+    ]
+  },
+  {
+    "id": "unidad-9",
+    "number": 9,
+    "slug": "unidad-9",
+    "title": "你会开车吗",
+    "titleEs": "¿Sabes conducir?",
+    "level": "A2",
+    "durationMin": 50,
+    "recommendedVideoId": "vlHDpiTU82w",
+    "recommendedVideoTitle": "Dreaming Spanish: Las habilidades",
+    "coreVerbs": ["saber", "poder", "deber", "necesitar"],
+    "communicativeGoals": [
+      "表达能力（saber + infinitivo）",
+      "表达可能与许可（poder）",
+      "表达义务（deber / necesitar）",
+      "区分 saber 和 poder",
+      "谈论计划与意图（ir a + infinitivo）"
+    ]
+  }
+]

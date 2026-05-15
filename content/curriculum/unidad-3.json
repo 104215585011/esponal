@@ -1,0 +1,393 @@
+{
+  "id": "unidad-3",
+  "vocabGroups": [
+    {
+      "title": "城市地点",
+      "items": [
+        {
+          "es": "la biblioteca",
+          "zh": "图书馆",
+          "audioSrc": "/audio/units/unidad-3/la-biblioteca.mp3"
+        },
+        {
+          "es": "el banco",
+          "zh": "银行",
+          "audioSrc": "/audio/units/unidad-3/el-banco.mp3"
+        },
+        {
+          "es": "el hospital",
+          "zh": "医院",
+          "audioSrc": "/audio/units/unidad-3/el-hospital.mp3"
+        },
+        {
+          "es": "la farmacia",
+          "zh": "药店",
+          "audioSrc": "/audio/units/unidad-3/la-farmacia.mp3"
+        },
+        {
+          "es": "el mercado",
+          "zh": "市场",
+          "audioSrc": "/audio/units/unidad-3/el-mercado.mp3"
+        },
+        {
+          "es": "la estacion de metro",
+          "zh": "地铁站",
+          "audioSrc": "/audio/units/unidad-3/la-estacion-de-metro.mp3"
+        }
+      ]
+    },
+    {
+      "title": "位置方向",
+      "items": [
+        {
+          "es": "a la derecha",
+          "zh": "在右边",
+          "audioSrc": "/audio/units/unidad-3/a-la-derecha.mp3"
+        },
+        {
+          "es": "a la izquierda",
+          "zh": "在左边",
+          "audioSrc": "/audio/units/unidad-3/a-la-izquierda.mp3"
+        },
+        {
+          "es": "todo recto",
+          "zh": "直走",
+          "audioSrc": "/audio/units/unidad-3/todo-recto.mp3"
+        },
+        {
+          "es": "cerca de",
+          "zh": "在……附近",
+          "audioSrc": "/audio/units/unidad-3/cerca-de.mp3"
+        },
+        {
+          "es": "lejos de",
+          "zh": "离……很远",
+          "audioSrc": "/audio/units/unidad-3/lejos-de.mp3"
+        },
+        {
+          "es": "al lado de",
+          "zh": "在……旁边",
+          "audioSrc": "/audio/units/unidad-3/al-lado-de.mp3"
+        }
+      ]
+    },
+    {
+      "title": "交通方式",
+      "items": [
+        {
+          "es": "el autobus",
+          "zh": "公共汽车",
+          "audioSrc": "/audio/units/unidad-3/el-autobus.mp3"
+        },
+        {
+          "es": "el metro",
+          "zh": "地铁",
+          "audioSrc": "/audio/units/unidad-3/el-metro.mp3"
+        },
+        {
+          "es": "el taxi",
+          "zh": "出租车",
+          "audioSrc": "/audio/units/unidad-3/el-taxi.mp3"
+        },
+        {
+          "es": "a pie",
+          "zh": "步行",
+          "audioSrc": "/audio/units/unidad-3/a-pie.mp3"
+        },
+        {
+          "es": "en bicicleta",
+          "zh": "骑自行车",
+          "audioSrc": "/audio/units/unidad-3/en-bicicleta.mp3"
+        }
+      ]
+    },
+    {
+      "title": "问路用语",
+      "items": [
+        {
+          "es": "perdonar",
+          "zh": "打扰，劳驾",
+          "audioSrc": "/audio/units/unidad-3/perdonar.mp3"
+        },
+        {
+          "es": "girar",
+          "zh": "转弯",
+          "audioSrc": "/audio/units/unidad-3/girar.mp3"
+        },
+        {
+          "es": "seguir",
+          "zh": "继续，顺着走",
+          "audioSrc": "/audio/units/unidad-3/seguir.mp3"
+        },
+        {
+          "es": "cruzar",
+          "zh": "穿过",
+          "audioSrc": "/audio/units/unidad-3/cruzar.mp3"
+        },
+        {
+          "es": "el semaforo",
+          "zh": "红绿灯",
+          "audioSrc": "/audio/units/unidad-3/el-semaforo.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "询问位置",
+      "items": [
+        {
+          "es": "Donde esta el banco?",
+          "zh": "银行在哪里？",
+          "audioSrc": "/audio/units/unidad-3/donde-esta-el-banco.mp3"
+        },
+        {
+          "es": "Hay una farmacia cerca?",
+          "zh": "附近有药店吗？",
+          "audioSrc": "/audio/units/unidad-3/hay-una-farmacia-cerca.mp3"
+        },
+        {
+          "es": "Como se va al metro?",
+          "zh": "怎么去地铁站？",
+          "audioSrc": "/audio/units/unidad-3/como-se-va-al-metro.mp3"
+        },
+        {
+          "es": "Esta lejos de aqui?",
+          "zh": "离这里远吗？",
+          "audioSrc": "/audio/units/unidad-3/esta-lejos-de-aqui.mp3"
+        }
+      ]
+    },
+    {
+      "category": "给出指路",
+      "items": [
+        {
+          "es": "Sigue todo recto.",
+          "zh": "一直直走。",
+          "audioSrc": "/audio/units/unidad-3/sigue-todo-recto.mp3"
+        },
+        {
+          "es": "Gira a la derecha en el semaforo.",
+          "zh": "在红绿灯处右转。",
+          "audioSrc": "/audio/units/unidad-3/gira-a-la-derecha-en-el-semaforo.mp3"
+        },
+        {
+          "es": "Esta al lado del supermercado.",
+          "zh": "就在超市旁边。",
+          "audioSrc": "/audio/units/unidad-3/esta-al-lado-del-supermercado.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 街上问路",
+      "scene": "游客在街头向路人问路。",
+      "lines": [
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Perdonar, donde esta la biblioteca?",
+          "zh": "劳驾，图书馆在哪里？",
+          "audioSrc": "/audio/units/unidad-3/perdonar-donde-esta-la-biblioteca.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "La biblioteca? Esta bastante cerca. Sigue todo recto.",
+          "zh": "图书馆？就在附近。一直直走。",
+          "audioSrc": "/audio/units/unidad-3/la-biblioteca-esta-bastante-cerca-sigue-todo-recto.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Y despues?",
+          "zh": "然后呢？",
+          "audioSrc": "/audio/units/unidad-3/y-despues.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Gira a la izquierda en el semaforo. Esta al lado del banco.",
+          "zh": "在红绿灯处左转。就在银行旁边。",
+          "audioSrc": "/audio/units/unidad-3/gira-a-la-izquierda-en-el-semaforo-esta-al-lado-del-banco.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Esta lejos? Puedo ir a pie?",
+          "zh": "远吗？可以步行去吗？",
+          "audioSrc": "/audio/units/unidad-3/esta-lejos-puedo-ir-a-pie.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Son unos diez minutos a pie. No esta lejos.",
+          "zh": "步行大概十分钟。不远的。",
+          "audioSrc": "/audio/units/unidad-3/son-unos-diez-minutos-a-pie-no-esta-lejos.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 谈论城市",
+      "scene": "两位朋友聊各自城市的设施情况。",
+      "lines": [
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Hay metro en tu ciudad?",
+          "zh": "你的城市有地铁吗？",
+          "audioSrc": "/audio/units/unidad-3/hay-metro-en-tu-ciudad.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Si, hay mucho metro. Y tambien hay muchos autobuses.",
+          "zh": "有，地铁很多。而且也有很多公共汽车。",
+          "audioSrc": "/audio/units/unidad-3/si-hay-mucho-metro-y-tambien-hay-muchos-autobuses.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Y el hospital, esta cerca de tu casa?",
+          "zh": "医院离你家近吗？",
+          "audioSrc": "/audio/units/unidad-3/y-el-hospital-esta-cerca-de-tu-casa.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Esta bastante lejos. Voy en taxi normalmente.",
+          "zh": "比较远。我通常坐出租车去。",
+          "audioSrc": "/audio/units/unidad-3/esta-bastante-lejos-voy-en-taxi-normalmente.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Aqui en Madrid, todo esta cerca del metro.",
+          "zh": "这里在马德里，所有东西都在地铁附近。",
+          "audioSrc": "/audio/units/unidad-3/aqui-en-madrid-todo-esta-cerca-del-metro.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "estar",
+      "titleZh": "在（位置）",
+      "lead": "estar 表示位置或临时状态，与 ser 的区别是A1核心语法点。",
+      "tip": "问位置就用 estar：Donde esta...?",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "estoy",
+          "example": "Estoy en casa."
+        },
+        {
+          "pronoun": "tu",
+          "form": "estas",
+          "example": "Donde estas ahora?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "esta",
+          "example": "El banco esta a la derecha."
+        }
+      ]
+    },
+    {
+      "verb": "hay",
+      "titleZh": "有（存在）",
+      "lead": "hay 是 haber 的无人称形式，表示某地存在某物，单复数同形。",
+      "tip": "hay una farmacia（有一家药店）/ hay muchos bares（有很多酒吧）",
+      "conjugation": [
+        {
+          "pronoun": "（无人称）",
+          "form": "hay",
+          "example": "Hay un hospital cerca."
+        },
+        {
+          "pronoun": "（否定）",
+          "form": "no hay",
+          "example": "No hay metro aqui."
+        },
+        {
+          "pronoun": "（疑问）",
+          "form": "hay...?",
+          "example": "Hay una biblioteca?"
+        }
+      ]
+    },
+    {
+      "verb": "ir",
+      "titleZh": "去",
+      "lead": "ir 完全不规则，变位要整体记忆，但在指路中极常用。",
+      "tip": "ir + en + 交通工具（ir en metro）/ ir + a pie（步行）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "voy",
+          "example": "Voy al banco en metro."
+        },
+        {
+          "pronoun": "tu",
+          "form": "vas",
+          "example": "Vas a pie o en autobus?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "va",
+          "example": "Va al hospital en taxi."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "hay vs esta / estan",
+      "body": "hay 表示「有没有」（存在），esta/estan 表示「在哪里」（位置）。例：Hay una farmacia（有一家药店，不知在哪）vs La farmacia esta a la derecha（药店在右边，已知具体位置）。"
+    },
+    {
+      "title": "al 的缩合",
+      "body": "西语中 a + el 必须缩合为 al：Voy al banco（去银行）。但 a + la / los / las 不缩合：Voy a la biblioteca。这是硬规则，没有例外。"
+    },
+    {
+      "title": "ser vs estar（入门）",
+      "body": "ser 描述本质属性（Madrid es una ciudad），estar 描述位置和临时状态（Madrid esta en Espana）。简单记：问「在哪」用 estar，问「是什么」用 ser。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入 hay / esta / estan",
+      "questions": [
+        "___ un banco cerca? (附近有银行吗？)",
+        "Donde ___ la biblioteca? (图书馆在哪里？)",
+        "___ dos hospitales en esta ciudad. (这座城市有两家医院。)"
+      ],
+      "answers": [
+        "Hay",
+        "esta",
+        "Hay"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译问路句子",
+      "questions": [
+        "劳驾，地铁站在哪里？",
+        "一直直走，然后在红绿灯处右转。",
+        "步行大概五分钟，不远。"
+      ],
+      "answers": [
+        "Perdonar, donde esta la estacion de metro?",
+        "Sigue todo recto y gira a la derecha en el semaforo.",
+        "Son unos cinco minutos a pie, no esta lejos."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "A-4P7rLiqhg",
+    "title": "La ciudad",
+    "description": "在真实城市场景中练习问路、位置表达以及 hay / estar 的区别。"
+  }
+}

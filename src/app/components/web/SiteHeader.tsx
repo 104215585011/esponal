@@ -56,7 +56,7 @@ export async function SiteHeader({
         <nav className="hidden items-center gap-1 sm:flex">
           <Link
             className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-            href="/learn/phase-1"
+            href="/learn"
           >
             课程
           </Link>

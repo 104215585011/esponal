@@ -24,6 +24,10 @@ export default function AudioButton({ src, label }: AudioButtonProps) {
   };
 
   const play = () => {
+    if (!src) {
+      return;
+    }
+
     if (unavailable) {
       return;
     }

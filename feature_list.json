@@ -257,6 +257,64 @@
     "notes": "依赖 WEB-004/005/006。mockup-watch.html 为已批准样稿；本票仅交付桌面布局与 mock chapters，不含真实章节后端或移动端适配。"
   },
   {
+    "id": "COURSE-003",
+    "priority": 18,
+    "area": "curriculum",
+    "title": "9单元课程系统：总览页 + 单元详情页",
+    "user_visible_behavior": "用户可在 /learn 查看9个单元卡片，点击进入 /learn/[slug] 查看结构化词汇、对话、语法、练习和推荐视频。",
+    "status": "passing",
+    "verification": [
+      "/learn 显示9个单元卡片",
+      "/learn/unidad-1 ~ /learn/unidad-9 均可访问",
+      "左侧目录 sticky，点击锚点正确跳转",
+      "推荐视频区块显示缩略图，点击跳转 /watch?v=...",
+      "音频按钮：有 audioSrc 时可播放，无 audioSrc 时静默",
+      "折叠练习答案可展开收起",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "Codex2 QA 2026-05-15 14:43: npm test passed 61/61 including COURSE-003 assertions; npm run build passed and prerender output listed /learn plus /learn/unidad-1 through /learn/unidad-9; src/app/learn/page.tsx renders 9-card overview from getAllUnits with href `/learn/${unit.slug}`; src/app/learn/[slug]/page.tsx contains generateStaticParams, sticky TOC, vocab/phrases/dialogues/grammar/compare/exercises sections, <details>/<summary> answers, recommended video thumbnail from img.youtube.com, /watch?v= jump, and prev/next unit nav; src/app/components/audio/AudioButton.tsx returns immediately when src is empty, satisfying silent degrade.",
+    "notes": "数据源：content/curriculum/units-manifest.json + unidad-N.json（已全部就绪）。UI 规范：mockup-unidad-1.html。等待 Codex2 进行页面与结构验收。"
+  },
+  {
+    "id": "COURSE-004",
+    "priority": 19,
+    "area": "curriculum",
+    "title": "批量 TTS 音频生成：9单元课程音频",
+    "user_visible_behavior": "课程单元词汇、句型、对话的音频按钮可正常播放西语 TTS 音频。",
+    "status": "passing",
+    "verification": [
+      "public/audio/units/unidad-N/ 目录下有对应 MP3 文件",
+      "每个 MP3 文件大小 > 1KB",
+      "所有 unidad-*.json 的 audioSrc 字段已填入正确路径",
+      "脚本重复运行结果一致（幂等）",
+      "浏览器中点击音频按钮可正常播放",
+      "npm test 通过"
+    ],
+    "evidence": "Codex2 QA 2026-05-15 17:11: npm test passed 64/64; node tests/course004.test.mjs passed 3/3; npm run build passed; verified 362 MP3 files across public/audio/units/unidad-1 through unidad-9 with minimum size 8352 bytes and zero files <= 1KB; verified 361/361 vocab, phrase, and dialogue audioSrc fields are populated with /audio/units/unidad-N/*.mp3 paths and zero missing/invalid entries; reran node scripts/generate-unit-audio.mjs --unit=unidad-9 and all outputs hit the idempotent skip branch; served /learn/unidad-1 locally on port 3006 and confirmed HTTP 200 for both the lesson page and /audio/units/unidad-1/hola.mp3 with audio/mpeg content type, plus rendered audio button markup referencing generated MP3 assets.",
+    "notes": "使用 msedge-tts，声音 es-ES-AlvaroNeural，约340条音频，脚本路径 scripts/generate-unit-audio.mjs。可与 COURSE-003 并行。"
+  },
+  {
+    "id": "VOCAB-004",
+    "priority": 20,
+    "area": "vocabulary",
+    "title": "生词系统升级：词典查询 + 出处追踪 + 生词本展示",
+    "user_visible_behavior": "用户点击视频或课文中的生词，可看到词性、义项、例句；标记后进入生词本，每个词附带所有出处（视频可跳回，课文可跳回单元）。",
+    "status": "backlog",
+    "verification": [
+      "GET /api/vocab/lookup?word=vivían 返回完整词典数据",
+      "Redis 缓存生效：同一词第二次请求 < 10ms",
+      "LookupCard 显示词性、义项、例句",
+      "视频出处和课文出处都正确存入 WordEncounter",
+      "/vocab 页面展示出处列表，视频出处可跳回",
+      "有道 API 不可用时降级静默，不影响加入词库功能",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "词典数据源：有道智云 API（需新增 YOUDAO_APP_KEY / YOUDAO_APP_SECRET 到 .env）。降级：有道不可用时用腾讯 TMT。依赖 VOCAB-001/002、WEB-005。课文点词需 COURSE-003 完成后接入。"
+  },
+  {
     "id": "AUTH-001",
     "priority": 17,
     "area": "auth",

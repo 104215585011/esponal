@@ -1,0 +1,411 @@
+{
+  "id": "unidad-2",
+  "vocabGroups": [
+    {
+      "title": "语言",
+      "items": [
+        {
+          "es": "el espanol",
+          "zh": "西班牙语",
+          "audioSrc": "/audio/units/unidad-2/el-espanol.mp3"
+        },
+        {
+          "es": "el chino",
+          "zh": "中文",
+          "audioSrc": "/audio/units/unidad-2/el-chino.mp3"
+        },
+        {
+          "es": "el ingles",
+          "zh": "英语",
+          "audioSrc": "/audio/units/unidad-2/el-ingles.mp3"
+        },
+        {
+          "es": "el frances",
+          "zh": "法语",
+          "audioSrc": "/audio/units/unidad-2/el-frances.mp3"
+        },
+        {
+          "es": "el aleman",
+          "zh": "德语",
+          "audioSrc": "/audio/units/unidad-2/el-aleman.mp3"
+        },
+        {
+          "es": "el japones",
+          "zh": "日语",
+          "audioSrc": "/audio/units/unidad-2/el-japones.mp3"
+        }
+      ]
+    },
+    {
+      "title": "学习动机",
+      "items": [
+        {
+          "es": "el trabajo",
+          "zh": "工作",
+          "audioSrc": "/audio/units/unidad-2/el-trabajo.mp3"
+        },
+        {
+          "es": "el viaje",
+          "zh": "旅行",
+          "audioSrc": "/audio/units/unidad-2/el-viaje.mp3"
+        },
+        {
+          "es": "la cultura",
+          "zh": "文化",
+          "audioSrc": "/audio/units/unidad-2/la-cultura.mp3"
+        },
+        {
+          "es": "la familia",
+          "zh": "家庭",
+          "audioSrc": "/audio/units/unidad-2/la-familia.mp3"
+        },
+        {
+          "es": "el interes",
+          "zh": "兴趣",
+          "audioSrc": "/audio/units/unidad-2/el-interes.mp3"
+        }
+      ]
+    },
+    {
+      "title": "程度副词",
+      "items": [
+        {
+          "es": "bien",
+          "zh": "好，很好地",
+          "audioSrc": "/audio/units/unidad-2/bien.mp3"
+        },
+        {
+          "es": "mal",
+          "zh": "差，很差地",
+          "audioSrc": "/audio/units/unidad-2/mal.mp3"
+        },
+        {
+          "es": "mucho",
+          "zh": "很多",
+          "audioSrc": "/audio/units/unidad-2/mucho.mp3"
+        },
+        {
+          "es": "poco",
+          "zh": "一点，很少",
+          "audioSrc": "/audio/units/unidad-2/poco.mp3"
+        },
+        {
+          "es": "bastante",
+          "zh": "相当，足够",
+          "audioSrc": "/audio/units/unidad-2/bastante.mp3"
+        }
+      ]
+    },
+    {
+      "title": "课堂用语",
+      "items": [
+        {
+          "es": "repetir",
+          "zh": "重复",
+          "audioSrc": "/audio/units/unidad-2/repetir.mp3"
+        },
+        {
+          "es": "entender",
+          "zh": "理解，听懂",
+          "audioSrc": "/audio/units/unidad-2/entender.mp3"
+        },
+        {
+          "es": "escuchar",
+          "zh": "听",
+          "audioSrc": "/audio/units/unidad-2/escuchar.mp3"
+        },
+        {
+          "es": "preguntar",
+          "zh": "提问",
+          "audioSrc": "/audio/units/unidad-2/preguntar.mp3"
+        },
+        {
+          "es": "practicar",
+          "zh": "练习",
+          "audioSrc": "/audio/units/unidad-2/practicar.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "表达语言能力",
+      "items": [
+        {
+          "es": "Hablo un poco de espanol.",
+          "zh": "我会说一点西班牙语。",
+          "audioSrc": "/audio/units/unidad-2/hablo-un-poco-de-espanol.mp3"
+        },
+        {
+          "es": "Entiendo pero no hablo bien.",
+          "zh": "我能听懂但说得不好。",
+          "audioSrc": "/audio/units/unidad-2/entiendo-pero-no-hablo-bien.mp3"
+        },
+        {
+          "es": "No entiendo nada.",
+          "zh": "我完全听不懂。",
+          "audioSrc": "/audio/units/unidad-2/no-entiendo-nada.mp3"
+        },
+        {
+          "es": "Quiero aprender espanol.",
+          "zh": "我想学西班牙语。",
+          "audioSrc": "/audio/units/unidad-2/quiero-aprender-espanol.mp3"
+        }
+      ]
+    },
+    {
+      "category": "描述学习目的",
+      "items": [
+        {
+          "es": "Aprendo espanol para el trabajo.",
+          "zh": "我为了工作学西班牙语。",
+          "audioSrc": "/audio/units/unidad-2/aprendo-espanol-para-el-trabajo.mp3"
+        },
+        {
+          "es": "Me gusta la cultura espanola.",
+          "zh": "我喜欢西班牙文化。",
+          "audioSrc": "/audio/units/unidad-2/me-gusta-la-cultura-espanola.mp3"
+        },
+        {
+          "es": "Quiero viajar a Mexico.",
+          "zh": "我想去墨西哥旅行。",
+          "audioSrc": "/audio/units/unidad-2/quiero-viajar-a-mexico.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 为什么学西语",
+      "scene": "两位同学在语言班第一天相互认识。",
+      "lines": [
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Hola, por que quieres aprender espanol?",
+          "zh": "你好，你为什么想学西班牙语？",
+          "audioSrc": "/audio/units/unidad-2/hola-por-que-quieres-aprender-espanol.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Quiero viajar a Espana el ano que viene.",
+          "zh": "我明年想去西班牙旅行。",
+          "audioSrc": "/audio/units/unidad-2/quiero-viajar-a-espana-el-ano-que-viene.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Que interesante! Yo aprendo espanol para el trabajo.",
+          "zh": "真有意思！我是为了工作学的。",
+          "audioSrc": "/audio/units/unidad-2/que-interesante-yo-aprendo-espanol-para-el-trabajo.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Y cuantos idiomas hablas?",
+          "zh": "你会说几种语言？",
+          "audioSrc": "/audio/units/unidad-2/y-cuantos-idiomas-hablas.mp3"
+        },
+        {
+          "speaker": "Maria",
+          "speakerVariant": "a",
+          "es": "Hablo ingles y un poco de frances. Y tu?",
+          "zh": "我会说英语，还有一点法语。你呢？",
+          "audioSrc": "/audio/units/unidad-2/hablo-ingles-y-un-poco-de-frances-y-tu.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Hablo chino e ingles. El espanol es nuevo para mi.",
+          "zh": "我会中文和英语。西班牙语对我来说是新的。",
+          "audioSrc": "/audio/units/unidad-2/hablo-chino-e-ingles-el-espanol-es-nuevo-para-mi.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 在语言学校",
+      "scene": "学生向老师询问课程安排和学习建议。",
+      "lines": [
+        {
+          "speaker": "Profesor",
+          "speakerVariant": "a",
+          "es": "Entiendes cuando hablo despacio?",
+          "zh": "我说慢一点你能听懂吗？",
+          "audioSrc": "/audio/units/unidad-2/entiendes-cuando-hablo-despacio.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Un poco. No entiendo todo.",
+          "zh": "一点点。不是全都听懂。",
+          "audioSrc": "/audio/units/unidad-2/un-poco-no-entiendo-todo.mp3"
+        },
+        {
+          "speaker": "Profesor",
+          "speakerVariant": "a",
+          "es": "Necesitas practicar mucho. Que sabes ya?",
+          "zh": "你需要多练习。你已经会什么了？",
+          "audioSrc": "/audio/units/unidad-2/necesitas-practicar-mucho-que-sabes-ya.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Se los numeros y los colores. Quiero aprender mas vocabulario.",
+          "zh": "我会数字和颜色。我想学更多词汇。",
+          "audioSrc": "/audio/units/unidad-2/se-los-numeros-y-los-colores-quiero-aprender-mas-vocabulario.mp3"
+        },
+        {
+          "speaker": "Profesor",
+          "speakerVariant": "a",
+          "es": "Muy bien. Debes escuchar espanol cada dia.",
+          "zh": "很好。你应该每天听西班牙语。",
+          "audioSrc": "/audio/units/unidad-2/muy-bien-debes-escuchar-espanol-cada-dia.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "querer",
+      "titleZh": "想要",
+      "lead": "querer + infinitivo 表达愿望，是A1最常用句型之一。",
+      "tip": "Quiero + 动词原形 = 我想……",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "quiero",
+          "example": "Quiero aprender espanol."
+        },
+        {
+          "pronoun": "tu",
+          "form": "quieres",
+          "example": "Que quieres estudiar?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "quiere",
+          "example": "Quiere viajar a Peru."
+        }
+      ]
+    },
+    {
+      "verb": "hablar",
+      "titleZh": "说（语言）",
+      "lead": "hablar 是规则 -ar 动词的典型代表，变位规律适用于大量动词。",
+      "tip": "hablo / hablas / habla — 记住这三个就够用",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "hablo",
+          "example": "Hablo chino e ingles."
+        },
+        {
+          "pronoun": "tu",
+          "form": "hablas",
+          "example": "Hablas muy bien el espanol."
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "habla",
+          "example": "Habla tres idiomas."
+        }
+      ]
+    },
+    {
+      "verb": "entender",
+      "titleZh": "理解，听懂",
+      "lead": "entender 是 e→ie 变干动词，主要人称词干元音变化。",
+      "tip": "entiendo / entiendes / entiende（注意 ie）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "entiendo",
+          "example": "Entiendo poco el espanol."
+        },
+        {
+          "pronoun": "tu",
+          "form": "entiendes",
+          "example": "Entiendes cuando habla despacio?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "entiende",
+          "example": "Entiende el chino perfectamente."
+        }
+      ]
+    },
+    {
+      "verb": "saber",
+      "titleZh": "知道，会（知识类）",
+      "lead": "saber 的 yo 形式不规则（se），其余按规律变位。",
+      "tip": "se（yo）是不规则的，要单独记",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "se",
+          "example": "Se los numeros en espanol."
+        },
+        {
+          "pronoun": "tu",
+          "form": "sabes",
+          "example": "Sabes cuantos idiomas hay en el mundo?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "sabe",
+          "example": "Sabe hablar bien el frances."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "saber vs conocer（两种「知道」）",
+      "body": "saber 表示掌握知识或技能（Se cocinar = 我会做饭），conocer 表示认识某人或某地（Conozco Madrid = 我认识马德里）。英语用同一个 know，西语要区分。"
+    },
+    {
+      "title": "动词 + infinitivo 结构",
+      "body": "西语中「想做什么」直接用：querer / necesitar / poder / deber + 动词原形，不需要额外连接词。例：Quiero aprender（想学）、Necesito practicar（需要练习）。"
+    },
+    {
+      "title": "程度副词的位置",
+      "body": "bien、mal、mucho、poco 放在动词之后。例：Hablo bien（我说得好）、Entiendo poco（我理解得少）。注意不能放在动词前面。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入正确动词形式",
+      "questions": [
+        "Yo ___ aprender espanol. (querer)",
+        "Tu ___ chino muy bien. (hablar)",
+        "El no ___ nada. (entender)"
+      ],
+      "answers": [
+        "quiero",
+        "hablas",
+        "entiende"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译句子",
+      "questions": [
+        "我想去西班牙旅行。",
+        "你会说几种语言？",
+        "我会一点西班牙语，但说得不好。"
+      ],
+      "answers": [
+        "Quiero viajar a Espana.",
+        "Cuantos idiomas hablas?",
+        "Hablo un poco de espanol, pero no hablo bien."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "P9pUTeTi0S8",
+    "title": "Por que aprender espanol",
+    "description": "在真实语境中练习表达学习动机和语言能力的句型。"
+  }
+}

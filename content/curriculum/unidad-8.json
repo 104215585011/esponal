@@ -1,0 +1,388 @@
+{
+  "id": "unidad-8",
+  "vocabGroups": [
+    {
+      "title": "住所类型",
+      "items": [
+        {
+          "es": "el piso",
+          "zh": "公寓",
+          "audioSrc": "/audio/units/unidad-8/el-piso.mp3"
+        },
+        {
+          "es": "la casa",
+          "zh": "房子",
+          "audioSrc": "/audio/units/unidad-8/la-casa.mp3"
+        },
+        {
+          "es": "el estudio",
+          "zh": "单间公寓",
+          "audioSrc": "/audio/units/unidad-8/el-estudio.mp3"
+        },
+        {
+          "es": "el barrio",
+          "zh": "街区，社区",
+          "audioSrc": "/audio/units/unidad-8/el-barrio.mp3"
+        },
+        {
+          "es": "el centro",
+          "zh": "市中心",
+          "audioSrc": "/audio/units/unidad-8/el-centro.mp3"
+        },
+        {
+          "es": "las afueras",
+          "zh": "郊区",
+          "audioSrc": "/audio/units/unidad-8/las-afueras.mp3"
+        }
+      ]
+    },
+    {
+      "title": "社区设施",
+      "items": [
+        {
+          "es": "la farmacia",
+          "zh": "药店",
+          "audioSrc": "/audio/units/unidad-8/la-farmacia.mp3"
+        },
+        {
+          "es": "el supermercado",
+          "zh": "超市",
+          "audioSrc": "/audio/units/unidad-8/el-supermercado.mp3"
+        },
+        {
+          "es": "el parque",
+          "zh": "公园",
+          "audioSrc": "/audio/units/unidad-8/el-parque.mp3"
+        },
+        {
+          "es": "el colegio",
+          "zh": "中小学",
+          "audioSrc": "/audio/units/unidad-8/el-colegio.mp3"
+        },
+        {
+          "es": "el transporte publico",
+          "zh": "公共交通",
+          "audioSrc": "/audio/units/unidad-8/el-transporte-publico.mp3"
+        }
+      ]
+    },
+    {
+      "title": "评价形容词",
+      "items": [
+        {
+          "es": "tranquilo / tranquila",
+          "zh": "安静的",
+          "audioSrc": "/audio/units/unidad-8/tranquilo-tranquila.mp3"
+        },
+        {
+          "es": "ruidoso / ruidosa",
+          "zh": "嘈杂的",
+          "audioSrc": "/audio/units/unidad-8/ruidoso-ruidosa.mp3"
+        },
+        {
+          "es": "comodo / comoda",
+          "zh": "方便的，舒适的",
+          "audioSrc": "/audio/units/unidad-8/comodo-comoda.mp3"
+        },
+        {
+          "es": "caro / cara",
+          "zh": "贵的",
+          "audioSrc": "/audio/units/unidad-8/caro-cara.mp3"
+        },
+        {
+          "es": "barato / barata",
+          "zh": "便宜的",
+          "audioSrc": "/audio/units/unidad-8/barato-barata.mp3"
+        }
+      ]
+    },
+    {
+      "title": "介词搭配",
+      "items": [
+        {
+          "es": "cerca de",
+          "zh": "在……附近",
+          "audioSrc": "/audio/units/unidad-8/cerca-de.mp3"
+        },
+        {
+          "es": "lejos de",
+          "zh": "离……远",
+          "audioSrc": "/audio/units/unidad-8/lejos-de.mp3"
+        },
+        {
+          "es": "al lado de",
+          "zh": "在……旁边",
+          "audioSrc": "/audio/units/unidad-8/al-lado-de.mp3"
+        },
+        {
+          "es": "enfrente de",
+          "zh": "在……对面",
+          "audioSrc": "/audio/units/unidad-8/enfrente-de.mp3"
+        },
+        {
+          "es": "detras de",
+          "zh": "在……后面",
+          "audioSrc": "/audio/units/unidad-8/detras-de.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "描述居住环境",
+      "items": [
+        {
+          "es": "Mi barrio es muy tranquilo.",
+          "zh": "我的社区非常安静。",
+          "audioSrc": "/audio/units/unidad-8/mi-barrio-es-muy-tranquilo.mp3"
+        },
+        {
+          "es": "Hay un supermercado cerca de mi casa.",
+          "zh": "我家附近有一家超市。",
+          "audioSrc": "/audio/units/unidad-8/hay-un-supermercado-cerca-de-mi-casa.mp3"
+        },
+        {
+          "es": "Me parece un barrio muy comodo.",
+          "zh": "我觉得这是个很方便的社区。",
+          "audioSrc": "/audio/units/unidad-8/me-parece-un-barrio-muy-comodo.mp3"
+        },
+        {
+          "es": "El alquiler es bastante caro en el centro.",
+          "zh": "市中心的房租相当贵。",
+          "audioSrc": "/audio/units/unidad-8/el-alquiler-es-bastante-caro-en-el-centro.mp3"
+        }
+      ]
+    },
+    {
+      "category": "比较表达",
+      "items": [
+        {
+          "es": "Mi barrio es mas tranquilo que el tuyo.",
+          "zh": "我的社区比你的更安静。",
+          "audioSrc": "/audio/units/unidad-8/mi-barrio-es-mas-tranquilo-que-el-tuyo.mp3"
+        },
+        {
+          "es": "Vivir en el centro es mas caro que en las afueras.",
+          "zh": "住在市中心比住郊区贵。",
+          "audioSrc": "/audio/units/unidad-8/vivir-en-el-centro-es-mas-caro-que-en-las-afueras.mp3"
+        },
+        {
+          "es": "El transporte aqui es menos comodo.",
+          "zh": "这里的交通没那么方便。",
+          "audioSrc": "/audio/units/unidad-8/el-transporte-aqui-es-menos-comodo.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 描述新公寓",
+      "scene": "朋友询问新搬进去的公寓和社区情况。",
+      "lines": [
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Como es tu nuevo piso?",
+          "zh": "你的新公寓怎么样？",
+          "audioSrc": "/audio/units/unidad-8/como-es-tu-nuevo-piso.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Me parece bastante comodo. Esta en el centro, cerca del metro.",
+          "zh": "我觉得挺方便的。在市中心，地铁旁边。",
+          "audioSrc": "/audio/units/unidad-8/me-parece-bastante-comodo-esta-en-el-centro-cerca-del-metro.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Y el barrio, es tranquilo?",
+          "zh": "社区安静吗？",
+          "audioSrc": "/audio/units/unidad-8/y-el-barrio-es-tranquilo.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Un poco ruidoso por la noche, pero hay de todo cerca: supermercado, farmacia, parque.",
+          "zh": "晚上有点吵，但附近什么都有：超市、药店、公园。",
+          "audioSrc": "/audio/units/unidad-8/un-poco-ruidoso-por-la-noche-pero-hay-de-todo-cerca-supermer-61a7b6f4.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "El alquiler es caro en esa zona?",
+          "zh": "那个区域的房租贵吗？",
+          "audioSrc": "/audio/units/unidad-8/el-alquiler-es-caro-en-esa-zona.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Bastante caro, la verdad. Pero prefiero pagar mas y vivir bien comunicado.",
+          "zh": "说实话挺贵的。但我宁愿多花钱住在交通便利的地方。",
+          "audioSrc": "/audio/units/unidad-8/bastante-caro-la-verdad-pero-prefiero-pagar-mas-y-vivir-bien-comunicado.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 比较两个社区",
+      "scene": "两人讨论各自社区的优缺点。",
+      "lines": [
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Tu barrio es mas tranquilo que el mio?",
+          "zh": "你们社区比我这边安静吗？",
+          "audioSrc": "/audio/units/unidad-8/tu-barrio-es-mas-tranquilo-que-el-mio.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Si, mucho mas. El tuyo esta cerca del centro, verdad?",
+          "zh": "是的，安静很多。你那边在市中心附近，对吧？",
+          "audioSrc": "/audio/units/unidad-8/si-mucho-mas-el-tuyo-esta-cerca-del-centro-verdad.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "Si, pero es mas caro y mas ruidoso. Hay muchos bares enfrente.",
+          "zh": "对，但更贵也更吵。对面有很多酒吧。",
+          "audioSrc": "/audio/units/unidad-8/si-pero-es-mas-caro-y-mas-ruidoso-hay-muchos-bares-enfrente.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "El mio es mas barato, pero el transporte es menos comodo.",
+          "zh": "我这边便宜一些，但交通没那么方便。",
+          "audioSrc": "/audio/units/unidad-8/el-mio-es-mas-barato-pero-el-transporte-es-menos-comodo.mp3"
+        },
+        {
+          "speaker": "Carlos",
+          "speakerVariant": "a",
+          "es": "En fin, cada barrio tiene sus ventajas y desventajas.",
+          "zh": "总之，每个社区都有优缺点。",
+          "audioSrc": "/audio/units/unidad-8/en-fin-cada-barrio-tiene-sus-ventajas-y-desventajas.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "parecer",
+      "titleZh": "觉得，显得",
+      "lead": "parecer 用于表达主观看法，me parece 相当于「我觉得……」。",
+      "tip": "Me parece + 形容词 = 我觉得……",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "parezco",
+          "example": null
+        },
+        {
+          "pronoun": "（me）",
+          "form": "me parece",
+          "example": "Me parece un barrio comodo."
+        },
+        {
+          "pronoun": "（te）",
+          "form": "te parece",
+          "example": "Te parece caro el alquiler?"
+        }
+      ]
+    },
+    {
+      "verb": "haber（hay）",
+      "titleZh": "有（存在）",
+      "lead": "hay 用于描述某地有什么设施，是描述社区最常用的结构。",
+      "tip": "Hay + 名词（不定指）：Hay un parque cerca",
+      "conjugation": [
+        {
+          "pronoun": "（肯定）",
+          "form": "hay",
+          "example": "Hay un supermercado al lado."
+        },
+        {
+          "pronoun": "（否定）",
+          "form": "no hay",
+          "example": "No hay farmacia en este barrio."
+        },
+        {
+          "pronoun": "（疑问）",
+          "form": "hay...?",
+          "example": "Hay transporte publico cerca?"
+        }
+      ]
+    },
+    {
+      "verb": "vivir / encontrar",
+      "titleZh": "住 / 找到，认为",
+      "lead": "vivir 描述居住状态；encontrar 在口语中也表示「觉得」（类似 parecer）。",
+      "tip": "Lo encuentro muy comodo = 我觉得很方便（口语常用）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "vivo / encuentro",
+          "example": "Vivo en el centro y lo encuentro perfecto."
+        },
+        {
+          "pronoun": "tu",
+          "form": "vives / encuentras",
+          "example": "Donde vives? Lo encuentras tranquilo?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "vive / encuentra",
+          "example": "Vive en las afueras y lo encuentra muy tranquilo."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "比较级：mas / menos ... que",
+      "body": "西语比较级结构：mas + 形容词 + que（更……）/ menos + 形容词 + que（更不……）。例：El centro es mas caro que las afueras（市中心比郊区贵）。不规则：bueno → mejor，malo → peor。"
+    },
+    {
+      "title": "介词 de 的搭配",
+      "body": "cerca de、lejos de、al lado de、enfrente de 这些介词短语后必须接 de。de + el 缩合为 del：cerca del metro（不是 cerca de el metro）。"
+    },
+    {
+      "title": "me parece vs me gusta",
+      "body": "me parece 表达主观评价（觉得……）：Me parece caro（我觉得贵）；me gusta 表达情感偏好（喜欢）：Me gusta este barrio（我喜欢这个社区）。两者都是间接宾语结构，但语义不同。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入比较级或 hay",
+      "questions": [
+        "Mi barrio es ___ tranquilo ___ el tuyo. (更安静)",
+        "___ un parque grande cerca de mi casa.",
+        "El centro es ___ caro ___ las afueras. (更贵)"
+      ],
+      "answers": [
+        "mas ... que",
+        "Hay",
+        "mas ... que"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译社区描述",
+      "questions": [
+        "我的社区非常安静，附近有一家超市。",
+        "你觉得这个社区方便吗？",
+        "市中心比郊区贵，但交通更方便。"
+      ],
+      "answers": [
+        "Mi barrio es muy tranquilo, hay un supermercado cerca.",
+        "Te parece comodo este barrio?",
+        "El centro es mas caro que las afueras, pero el transporte es mas comodo."
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "0C5MBGtdFqA",
+    "title": "Los barrios de Madrid",
+    "description": "在马德里社区的真实场景中练习比较级、地点描述和评价表达。"
+  }
+}

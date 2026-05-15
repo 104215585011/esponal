@@ -1,0 +1,395 @@
+{
+  "id": "unidad-7",
+  "vocabGroups": [
+    {
+      "title": "食物",
+      "items": [
+        {
+          "es": "el pan",
+          "zh": "面包",
+          "audioSrc": "/audio/units/unidad-7/el-pan.mp3"
+        },
+        {
+          "es": "el arroz",
+          "zh": "米饭",
+          "audioSrc": "/audio/units/unidad-7/el-arroz.mp3"
+        },
+        {
+          "es": "la carne",
+          "zh": "肉",
+          "audioSrc": "/audio/units/unidad-7/la-carne.mp3"
+        },
+        {
+          "es": "el pescado",
+          "zh": "鱼",
+          "audioSrc": "/audio/units/unidad-7/el-pescado.mp3"
+        },
+        {
+          "es": "la verdura",
+          "zh": "蔬菜",
+          "audioSrc": "/audio/units/unidad-7/la-verdura.mp3"
+        },
+        {
+          "es": "la fruta",
+          "zh": "水果",
+          "audioSrc": "/audio/units/unidad-7/la-fruta.mp3"
+        }
+      ]
+    },
+    {
+      "title": "饮料",
+      "items": [
+        {
+          "es": "el agua",
+          "zh": "水",
+          "audioSrc": "/audio/units/unidad-7/el-agua.mp3"
+        },
+        {
+          "es": "el vino",
+          "zh": "葡萄酒",
+          "audioSrc": "/audio/units/unidad-7/el-vino.mp3"
+        },
+        {
+          "es": "la cerveza",
+          "zh": "啤酒",
+          "audioSrc": "/audio/units/unidad-7/la-cerveza.mp3"
+        },
+        {
+          "es": "el cafe",
+          "zh": "咖啡",
+          "audioSrc": "/audio/units/unidad-7/el-cafe.mp3"
+        },
+        {
+          "es": "el zumo",
+          "zh": "果汁",
+          "audioSrc": "/audio/units/unidad-7/el-zumo.mp3"
+        }
+      ]
+    },
+    {
+      "title": "口味形容词",
+      "items": [
+        {
+          "es": "rico / rica",
+          "zh": "好吃的，美味的",
+          "audioSrc": "/audio/units/unidad-7/rico-rica.mp3"
+        },
+        {
+          "es": "salado / salada",
+          "zh": "咸的",
+          "audioSrc": "/audio/units/unidad-7/salado-salada.mp3"
+        },
+        {
+          "es": "dulce",
+          "zh": "甜的",
+          "audioSrc": "/audio/units/unidad-7/dulce.mp3"
+        },
+        {
+          "es": "picante",
+          "zh": "辣的",
+          "audioSrc": "/audio/units/unidad-7/picante.mp3"
+        },
+        {
+          "es": "amargo / amarga",
+          "zh": "苦的",
+          "audioSrc": "/audio/units/unidad-7/amargo-amarga.mp3"
+        }
+      ]
+    },
+    {
+      "title": "餐厅用语",
+      "items": [
+        {
+          "es": "la carta / el menu",
+          "zh": "菜单",
+          "audioSrc": "/audio/units/unidad-7/la-carta-el-menu.mp3"
+        },
+        {
+          "es": "el primer plato",
+          "zh": "第一道菜",
+          "audioSrc": "/audio/units/unidad-7/el-primer-plato.mp3"
+        },
+        {
+          "es": "el segundo plato",
+          "zh": "第二道菜",
+          "audioSrc": "/audio/units/unidad-7/el-segundo-plato.mp3"
+        },
+        {
+          "es": "el postre",
+          "zh": "甜点",
+          "audioSrc": "/audio/units/unidad-7/el-postre.mp3"
+        },
+        {
+          "es": "la cuenta",
+          "zh": "账单",
+          "audioSrc": "/audio/units/unidad-7/la-cuenta.mp3"
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "category": "点餐",
+      "items": [
+        {
+          "es": "Que nos recomienda?",
+          "zh": "您有什么推荐？",
+          "audioSrc": "/audio/units/unidad-7/que-nos-recomienda.mp3"
+        },
+        {
+          "es": "Para mi, la ensalada.",
+          "zh": "我要沙拉。",
+          "audioSrc": "/audio/units/unidad-7/para-mi-la-ensalada.mp3"
+        },
+        {
+          "es": "Quiero pedir el pescado del dia.",
+          "zh": "我想点今日特供的鱼。",
+          "audioSrc": "/audio/units/unidad-7/quiero-pedir-el-pescado-del-dia.mp3"
+        },
+        {
+          "es": "Nos trae la cuenta, por favor?",
+          "zh": "能请您把账单拿来吗？",
+          "audioSrc": "/audio/units/unidad-7/nos-trae-la-cuenta-por-favor.mp3"
+        }
+      ]
+    },
+    {
+      "category": "评价食物",
+      "items": [
+        {
+          "es": "Esta muy rico!",
+          "zh": "真的很好吃！",
+          "audioSrc": "/audio/units/unidad-7/esta-muy-rico.mp3"
+        },
+        {
+          "es": "Esta un poco salado.",
+          "zh": "有点咸。",
+          "audioSrc": "/audio/units/unidad-7/esta-un-poco-salado.mp3"
+        },
+        {
+          "es": "No me gusta nada el picante.",
+          "zh": "我一点都不喜欢辣的。",
+          "audioSrc": "/audio/units/unidad-7/no-me-gusta-nada-el-picante.mp3"
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "title": "对话 1 - 餐厅点菜",
+      "scene": "两位朋友在西班牙餐厅点餐。",
+      "lines": [
+        {
+          "speaker": "Camarero",
+          "speakerVariant": "a",
+          "es": "Buenas tardes. Que van a tomar?",
+          "zh": "下午好。二位想点什么？",
+          "audioSrc": "/audio/units/unidad-7/buenas-tardes-que-van-a-tomar.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Puede traernos la carta, por favor?",
+          "zh": "能给我们拿菜单吗？",
+          "audioSrc": "/audio/units/unidad-7/puede-traernos-la-carta-por-favor.mp3"
+        },
+        {
+          "speaker": "Camarero",
+          "speakerVariant": "a",
+          "es": "Aqui tienen. Que nos recomienda?",
+          "zh": "给您。有什么推荐吗？",
+          "audioSrc": "/audio/units/unidad-7/aqui-tienen-que-nos-recomienda.mp3"
+        },
+        {
+          "speaker": "Camarero",
+          "speakerVariant": "a",
+          "es": "Hoy el pescado del dia esta muy rico. Y la paella es nuestra especialidad.",
+          "zh": "今天的时令鱼非常好吃。海鲜饭是我们的招牌菜。",
+          "audioSrc": "/audio/units/unidad-7/hoy-el-pescado-del-dia-esta-muy-rico-y-la-paella-es-nuestra-especialidad.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Entonces para mi, el pescado. Y de beber, un vino blanco.",
+          "zh": "那我要鱼。饮料要一杯白葡萄酒。",
+          "audioSrc": "/audio/units/unidad-7/entonces-para-mi-el-pescado-y-de-beber-un-vino-blanco.mp3"
+        },
+        {
+          "speaker": "Camarero",
+          "speakerVariant": "a",
+          "es": "Perfecto. Y de postre, tenemos tarta de chocolate.",
+          "zh": "好的。甜点方面，我们有巧克力蛋糕。",
+          "audioSrc": "/audio/units/unidad-7/perfecto-y-de-postre-tenemos-tarta-de-chocolate.mp3"
+        }
+      ]
+    },
+    {
+      "title": "对话 2 - 谈论饮食习惯",
+      "scene": "朋友们分享各自的饮食偏好和文化差异。",
+      "lines": [
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Te gusta la comida espanola?",
+          "zh": "你喜欢西班牙菜吗？",
+          "audioSrc": "/audio/units/unidad-7/te-gusta-la-comida-espanola.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Si, mucho! Pero a veces la encuentro un poco salada.",
+          "zh": "喜欢，非常喜欢！但有时我觉得有点咸。",
+          "audioSrc": "/audio/units/unidad-7/si-mucho-pero-a-veces-la-encuentro-un-poco-salada.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Es verdad. Y la comida china, es muy picante?",
+          "zh": "是的。中国菜很辣吗？",
+          "audioSrc": "/audio/units/unidad-7/es-verdad-y-la-comida-china-es-muy-picante.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Depende de la region. En mi ciudad no comemos mucho picante.",
+          "zh": "看地区。我老家不怎么吃辣的。",
+          "audioSrc": "/audio/units/unidad-7/depende-de-la-region-en-mi-ciudad-no-comemos-mucho-picante.mp3"
+        },
+        {
+          "speaker": "Ana",
+          "speakerVariant": "a",
+          "es": "Que comes normalmente en el desayuno?",
+          "zh": "你早餐通常吃什么？",
+          "audioSrc": "/audio/units/unidad-7/que-comes-normalmente-en-el-desayuno.mp3"
+        },
+        {
+          "speaker": "Liu",
+          "speakerVariant": "b",
+          "es": "Como arroz o fideos. Aqui solo bebo cafe y como pan.",
+          "zh": "我吃米饭或面条。在这里我只喝咖啡吃面包。",
+          "audioSrc": "/audio/units/unidad-7/como-arroz-o-fideos-aqui-solo-bebo-cafe-y-como-pan.mp3"
+        }
+      ]
+    }
+  ],
+  "grammarCards": [
+    {
+      "verb": "pedir",
+      "titleZh": "点（菜），要求",
+      "lead": "pedir 是 e→i 变干动词，餐厅点餐时最常用的动词。",
+      "tip": "pido / pides / pide（注意 e→i，不是 e→ie）",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "pido",
+          "example": "Pido el pescado del dia."
+        },
+        {
+          "pronoun": "tu",
+          "form": "pides",
+          "example": "Que pides de postre?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "pide",
+          "example": "Siempre pide lo mismo."
+        }
+      ]
+    },
+    {
+      "verb": "comer / beber",
+      "titleZh": "吃 / 喝",
+      "lead": "comer 和 beber 都是规则 -er 动词：-o / -es / -e（yo/tu/el）。",
+      "tip": "como（我吃）/ como（像……一样）— 发音相同，语境区分",
+      "conjugation": [
+        {
+          "pronoun": "yo",
+          "form": "como / bebo",
+          "example": "Como mucha verdura y bebo agua."
+        },
+        {
+          "pronoun": "tu",
+          "form": "comes / bebes",
+          "example": "Bebes vino o cerveza?"
+        },
+        {
+          "pronoun": "el / ella",
+          "form": "come / bebe",
+          "example": "Come poco y bebe mucho cafe."
+        }
+      ]
+    },
+    {
+      "verb": "estar（评价食物）",
+      "titleZh": "用 estar 评价食物",
+      "lead": "评价食物的口感和状态用 estar，不用 ser。Esta rico 是临时评价，不是本质属性。",
+      "tip": "Esta rico = 很好吃（此刻品尝的感受）",
+      "conjugation": [
+        {
+          "pronoun": "（单数）",
+          "form": "esta",
+          "example": "El pescado esta muy rico."
+        },
+        {
+          "pronoun": "（复数）",
+          "form": "estan",
+          "example": "Las tapas estan deliciosas."
+        },
+        {
+          "pronoun": "（否定）",
+          "form": "no esta",
+          "example": "No esta muy salado."
+        }
+      ]
+    }
+  ],
+  "compareCards": [
+    {
+      "title": "西班牙三道菜文化",
+      "body": "正式午餐分三道：primer plato（头盘，如沙拉/汤）、segundo plato（主菜，肉或鱼）、postre（甜点）。多人共享的菜叫 tapas，是西班牙社交饮食文化的核心。"
+    },
+    {
+      "title": "estar rico vs ser rico",
+      "body": "Esta rico = 很好吃（用 estar，评价当下口感）；Es rico = 他很有钱（用 ser，描述本质）。注意不要混淆！说食物好吃必须用 estar，用 ser 就变成说「它很富有」了。"
+    },
+    {
+      "title": "el agua 的特殊性",
+      "body": "agua（水）是阴性名词，但单数前用 el 而不是 la：el agua fria（冷水）。这是因为 agua 以重读的 a 开头，为避免连读不顺用 el 代替。复数恢复正常：las aguas。"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "fill-in",
+      "title": "填入正确动词",
+      "questions": [
+        "Yo siempre ___ pescado en los restaurantes. (pedir)",
+        "El cafe ___ muy amargo. (estar)",
+        "Cuanto ___ normalmente en el desayuno? (comer)"
+      ],
+      "answers": [
+        "pido",
+        "esta",
+        "comes"
+      ]
+    },
+    {
+      "type": "translate",
+      "title": "翻译餐厅句子",
+      "questions": [
+        "您有什么推荐？",
+        "这道鱼非常好吃。",
+        "能给我们拿账单吗？"
+      ],
+      "answers": [
+        "Que nos recomienda?",
+        "El pescado esta muy rico.",
+        "Nos trae la cuenta, por favor?"
+      ]
+    }
+  ],
+  "recommendedVideo": {
+    "videoId": "YzMFWVXKbV8",
+    "title": "La comida espanola",
+    "description": "在真实餐厅对话中练习点餐、评价食物和西班牙饮食文化表达。"
+  }
+}
