@@ -520,8 +520,11 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         try {
           const payload = await fetchTranslateOnce(text);
           const translation = payload?.translation?.trim();
+          // Defensive: even if backend forgot to mark degraded, an output
+          // without any Chinese characters is not a real translation.
+          const looksTranslated = !!translation && /[一-鿿]/.test(translation);
 
-          if (payload && !payload.degraded && translation) {
+          if (payload && !payload.degraded && looksTranslated && translation) {
             translationCacheRef.current.set(text, translation);
             if (!cancelled) {
               setTranslations((previous) =>

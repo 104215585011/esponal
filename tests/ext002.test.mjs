@@ -20,7 +20,7 @@ test("EXT-002 translate API route validates input, calls Tencent TMT, and caches
   assert.match(route, /TextTranslate/);
   assert.match(route, /TC3-HMAC-SHA256/);
   assert.match(route, /tmt\.tencentcloudapi\.com/);
-  assert.match(route, /translate:\$\{sha256Hex\(text\)\}/);
+  assert.match(route, /translate:v2:\$\{sha256Hex\(text\)\}/);
   assert.match(route, /60\s*\*\s*60\s*\*\s*24\s*\*\s*7/);
   assert.match(route, /redis\.get/);
   assert.match(route, /redis\.set/);

@@ -68,12 +68,16 @@ function buildAuthorizationHeader(
   return `${algorithm} Credential=${secretId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 }
 
+function containsChinese(text: string): boolean {
+  return /[一-鿿]/.test(text);
+}
+
 async function translateWithTencent(text: string): Promise<string> {
   const secretId = process.env.TENCENT_SECRET_ID?.trim();
   const secretKey = process.env.TENCENT_SECRET_KEY?.trim();
 
   if (!secretId || !secretKey) {
-    return text;
+    throw new Error("Tencent translate credentials not configured");
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
@@ -151,7 +155,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "text is too long" }, { status: 400 });
     }
 
-    const cacheKey = `translate:${sha256Hex(text)}`;
+    // v2 namespace: previous cache may contain bad source-as-translation
+    // entries from before validation existed; bump to start clean.
+    const cacheKey = `translate:v2:${sha256Hex(text)}`;
     const cached = await safeCacheGet(cacheKey);
 
     if (cached) {
@@ -160,6 +166,19 @@ export async function POST(request: Request) {
 
     try {
       const translation = await translateWithTencent(text);
+
+      // Guard against Tencent silently echoing the source (happens with
+      // very short fragments, voseo, or proper-noun-heavy lines). Without
+      // any Chinese characters it's clearly not a usable translation.
+      const sameAsSource = translation.trim().toLowerCase() === text.trim().toLowerCase();
+      if (sameAsSource || !containsChinese(translation)) {
+        return NextResponse.json({
+          translation: text,
+          cached: false,
+          degraded: true
+        } satisfies TranslateResponsePayload);
+      }
+
       const payload: TranslateResponsePayload = { translation, cached: false };
 
       await safeCacheSet(cacheKey, translation);
