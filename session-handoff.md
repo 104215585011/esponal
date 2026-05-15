@@ -4,6 +4,29 @@
 
 ---
 
+## PM Report — Session #53（2026-05-16）
+
+### 本轮完成
+- 排查并定位 transcript 体验问题：之前从「±4 cue 窗口」改成「全量渲染」后，长视频首屏卡顿
+- 写新 ticket `docs/tickets/WEB-008.md`：Transcript 虚拟化滚动 + 用户脱钩浏览
+- `feature_list.json` 新增 `WEB-008`（status: backlog）
+
+### 核心需求（Codex1 实现时务必理解）
+- 首屏只渲染 ≤30 条 cue，避免卡顿
+- IntersectionObserver 监听底/顶哨兵，用户滚动时按 30 条/批扩展窗口
+- 跟随模式 vs 浏览模式：用户主动滚动 → 进入浏览模式（视频继续播放，不跟随）；点「回到当前位置」恢复跟随
+- 不要破坏 WEB-007 的 LookupCard fixed 浮层、查词、高亮契约
+
+### 当前状态
+- VOCAB-004：Codex1 已提交，待 Codex2 QA 验收
+- WEB-008：backlog，等 Codex1 实现
+
+### 下一步
+- Codex1：按 `docs/tickets/WEB-008.md` 实现 transcript 虚拟化
+- Codex2：等 WEB-008 ready_for_qa 后验收（顺手把 VOCAB-004 也清掉）
+
+---
+
 ## Dev Report — Session #52（2026-05-16）
 
 ### 本轮完成

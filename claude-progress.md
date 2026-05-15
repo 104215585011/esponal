@@ -1372,6 +1372,24 @@ feature_list.json 更新：
 
 **下一步最佳动作**：Codex2 验收 VOCAB-004，或 PM 安排下一阶段
 
+### Session #53 - 2026-05-16
+
+**角色**：Claude1（PM）
+
+**本轮目标**：解决 transcript 体验问题——既不能 ±4 窗口（切不动），也不能全量渲染（卡顿）
+
+**已完成**
+- 直接试改了几版 TranscriptPanel（窗口/全量/歌词样式），均不满足真实需求
+- PM 收敛真实需求：虚拟化窗口 + 用户脱钩浏览 + 按需向下/向上加载更多 cue
+- 写新 ticket `docs/tickets/WEB-008.md`，明确：
+  - INITIAL_RENDER_COUNT = 30，LOAD_MORE_BATCH = 30
+  - IntersectionObserver 监听 top/bottom 哨兵
+  - followMode state：用户 wheel/touchmove → 浏览模式（视频继续播放、不跟随）
+  - 点「回到当前位置」 → 恢复跟随并 scrollIntoView center
+- `feature_list.json` 新增 `WEB-008`（status: backlog, priority: 21）
+
+**下一步最佳动作**：交 Codex1 按 ticket 实现 WEB-008
+
 
 ---
 

@@ -332,5 +332,24 @@
     ],
     "evidence": "Codex2 QA 2026-05-15 10:42: npm test passed 55/55; npm run build passed with existing SiteHeader img warning and Node url.parse deprecation warnings only; verified User.password String?, migration 20260515022642_add_user_password SQL adds password TEXT, bcryptjs and @types/bcryptjs dependencies, register route email/password validation + duplicate check + bcrypt.hash(password, 10) + prisma.user.create + status 201, auth CredentialsProvider + bcrypt.compare + Google password-null credentials rejection + jwt session + session.user.id callbacks and no database strategy, sign-in Google/credentials flows + CredentialsSignin error text, sign-up register fetch + credentials sign-in + sign-in link and no Google registration button; dev server smoke on port 3004 returned HTTP 200 for /auth/sign-in and /auth/sign-up.",
     "notes": "Codex2 functional QA passed. Google OAuth provider configuration and real external OAuth consent flow still depend on environment variables and provider setup."
+  },
+  {
+    "id": "WEB-008",
+    "priority": 21,
+    "area": "web",
+    "title": "Transcript 虚拟化滚动 + 用户脱钩浏览",
+    "user_visible_behavior": "/watch 页面 transcript 首屏只渲染少量字幕保持流畅；用户向下滚动可预览未来字幕（视频不跳转），点击「回到当前位置」恢复跟随。",
+    "status": "backlog",
+    "verification": [
+      "首屏 DOM cue 节点数 ≤ 35",
+      "用户滚动到底部时窗口自动扩展加载更多 cue",
+      "浏览模式下视频继续播放，进度不被拉动",
+      "点击「回到当前位置」恢复跟随并居中",
+      "点击 cue 行触发 player.seekTo",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-007。Ticket: docs/tickets/WEB-008.md。前置原因：当前 TranscriptPanel 全量渲染所有 cue 在长视频上首屏卡顿。"
   }
 ]
