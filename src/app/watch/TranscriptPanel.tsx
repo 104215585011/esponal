@@ -72,8 +72,8 @@ type TranscriptYouTubeNamespace = {
 const COURSE_HIGHLIGHT = "#86EFAC";
 const SAVED_HIGHLIGHT = "#93C5FD";
 const TRANSLATION_BATCH_SIZE = 5;
-const INITIAL_RENDER_COUNT = 30;
-const LOAD_MORE_BATCH = 30;
+const INITIAL_RENDER_COUNT = 12;
+const LOAD_MORE_BATCH = 15;
 const FOLLOW_EXPAND_THRESHOLD = 5;
 
 function normalizeLookupWord(token: string) {
@@ -777,9 +777,8 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
       </div>
 
       <div
-        className="relative flex-1 overflow-y-auto"
+        className="relative flex-1 overflow-y-auto pb-12 pt-2"
         ref={scrollContainerRef}
-        style={{ paddingTop: "38vh", paddingBottom: "38vh" }}
         tabIndex={0}
       >
         {showEmptyState ? (

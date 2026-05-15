@@ -93,9 +93,9 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelTitle, videoId);
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB]">
+    <main className="h-screen overflow-hidden bg-[#F9FAFB]">
       <SiteHeader />
-      <div className="relative flex min-h-[calc(100vh-58px)] overflow-hidden pl-7">
+      <div className="relative flex h-[calc(100vh-58px)] overflow-hidden pl-7">
         <section className="flex basis-[63%] flex-col justify-center overflow-y-auto py-8 pr-6">
           <div className="w-full overflow-hidden rounded-[14px] bg-black shadow-[0_1px_3px_rgba(0,0,0,0.07),0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="aspect-video w-full">
