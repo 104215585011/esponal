@@ -351,5 +351,25 @@
     ],
     "evidence": "Codex1 Dev 2026-05-16: implemented TranscriptPanel virtual cue window with INITIAL_RENDER_COUNT=30 and LOAD_MORE_BATCH=30, renderStart/renderEnd state, top/bottom IntersectionObserver sentinels, scrollTop compensation on upward expansion, followMode browse/follow behavior driven by wheel/touchmove/pointer/key events instead of onScroll, return-to-current button, data-cue-index cue rows, and preserved LookupCard, highlight colors, tab modes, seekTo, and props contract. Follow-up UX optimization merged adjacent short timedtext cues into more continuous transcript lines before rendering/translating/highlighting. Added tests/web008.test.mjs and updated tests/web007.test.mjs for virtual rendering. Verification: node --test tests/web007.test.mjs tests/web008.test.mjs passed 4/4; npx tsc --noEmit passed; npm run build passed with existing img and url.parse warnings; npm test ran 72 tests with WEB-008 passing but overall 71/72 due pre-existing unrelated VOCAB-004 assertion expecting YOUDAO_APP_KEY while dictionary.ts now uses DASHSCOPE_API_KEY.",
     "notes": "Ready for Codex2 QA. Ticket: docs/tickets/WEB-008.md. QA should verify DOM cue count <=35 on first screen, sentinel expansion, browse mode not seeking video, return-to-current follow restore, and cue click seek behavior. Known unrelated blocker: VOCAB-004 test still expects YOUDAO_APP_KEY while implementation uses DASHSCOPE_API_KEY."
+  },
+  {
+    "id": "WEB-009",
+    "priority": 22,
+    "area": "web",
+    "title": "设计系统统一 + 首页 Hero + 顶栏导航补全",
+    "user_visible_behavior": "全站颜色/圆角/阴影统一为 brand token；未登录访问 / 看到价值主张 hero 与三个 CTA；顶栏一级导航补全为视频/课程/语法/词库。",
+    "status": "backlog",
+    "verification": [
+      "rg 'green-[0-9]|emerald-[0-9]' src/ 输出 0",
+      "tailwind.config.ts 含 brand 色板、card/surface/hero 圆角、card/elevated/hero 阴影",
+      "SiteHeader 桌面端显示视频/课程/语法/词库 四个一级入口",
+      "未登录访问 / 显示 HomeHero；登录后不显示",
+      "Hero 三个 CTA 可点击并跳转正确 URL",
+      "1280/1024/375 三档宽度首页都不崩",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖：无。Ticket: docs/tickets/WEB-009.md。触发：Claude2 全站 UI 评审 2026-05-16 发现 design system 割裂 + 首页对未登录用户无价值主张。后续相关 ticket：WEB-010（继续学习卡片）、EXT-005（/extension 介绍页）、WEB-011（空/错误态统一组件）。"
   }
 ]
