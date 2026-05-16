@@ -408,5 +408,115 @@
     ],
     "evidence": "Codex2 QA 2026-05-16 15:07: npm test passed 83/83; npm run build passed and listed /extension; node --test tests/ext005.test.mjs passed 3/3; tar -tf public/extension/esponal-extension.zip listed manifest.json, popup.html, lemma-dict.json, dist/background.js, dist/content.js, and dist/popup.js; zip size is 10993 bytes. Local dev smoke on port 3013 returned /extension HTTP 200 with hero and FAQ present, plus /extension/esponal-extension.zip HTTP 200 with 10993 bytes. Source checks confirmed HomeHero CTA href=\"/extension\", page uses WEB-009 brand/radius/shadow tokens, and extension package script exists. Codex1 Dev 2026-05-16 15:00: implemented /extension landing page and dependency-free extension zip packaging.",
     "notes": "依赖 WEB-009（共享 design token + Hero CTA 落地点）。Ticket: docs/tickets/EXT-005.md。新增 extension/scripts/package.mjs 打包脚本。.pem 私钥不入 git。"
+  },
+  {
+    "id": "OPS-002",
+    "priority": 25,
+    "area": "infrastructure",
+    "title": "API 限流（防 Tencent / DashScope 配额烧穿）",
+    "user_visible_behavior": "匿名爬虫或前端 bug 无法在短时间内消耗掉翻译 / 词典 / YouTube API 的配额；超限用户看到「请稍后再试」而不是 500。",
+    "status": "backlog",
+    "verification": [
+      "src/lib/ratelimit.ts 存在并 export 五个 limiter + checkRateLimit + getClientIp",
+      "/api/translate /api/vocab/lookup /api/vocab/add /api/youtube/search /api/youtube/channel 都接入限流",
+      "超阈值返回 429 + Retry-After header",
+      "前端 LookupCard / TranscriptPanel 处理 429（退避或友好提示）",
+      "Upstash 不可达时 fail-open 不报 500",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖：无（复用现有 Upstash Redis）。Ticket: docs/tickets/OPS-002.md。P0 因为可被外部薅垮配额。"
+  },
+  {
+    "id": "INFRA-002",
+    "priority": 26,
+    "area": "infrastructure",
+    "title": "编码规范 lint + 仓库扫雷",
+    "user_visible_behavior": "开发者无法 commit 含乱码 / 非 UTF-8 / CRLF 的文件；仓库内残留乱码全部清掉。",
+    "status": "backlog",
+    "verification": [
+      "scripts/check-encoding.mjs 存在，全仓库跑退出码 0",
+      ".gitattributes 含 eol=lf",
+      "pre-commit hook 拒绝带 mojibake / UTF-16 / CRLF 的文件",
+      "lemma-dict.json 在白名单内（修复见 VOCAB-005）",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖：无。Ticket: docs/tickets/INFRA-002.md。基于历史教训（lemma-dict 全 ?、VocabAccordion 乱码注释）。"
+  },
+  {
+    "id": "WEB-011",
+    "priority": 27,
+    "area": "web",
+    "title": "空态 / 错误态统一组件",
+    "user_visible_behavior": "全站每个「没数据」「加载失败」「不支持」场景的视觉、文案、操作引导一致。",
+    "status": "backlog",
+    "verification": [
+      "src/app/components/ui/EmptyState.tsx 存在",
+      "六个目标页面/组件迁移到共享组件（vocab/watch/transcript/lookup/learn/search）",
+      "原硬编码字串（暂无字幕 / 缺少视频参数 / 暂不支持该词）从源码消失",
+      "桌面 + 移动两个断点都不崩",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-009 ✅。Ticket: docs/tickets/WEB-011.md。Claude2 UI 评审里点名的不一致问题。"
+  },
+  {
+    "id": "OPS-001",
+    "priority": 28,
+    "area": "infrastructure",
+    "title": "错误监控接入（Sentry）",
+    "user_visible_behavior": "PM 能在 Sentry dashboard 看到生产错误趋势、分组、用户路径，不再依赖用户截图反馈。",
+    "status": "backlog",
+    "verification": [
+      "sentry.{client,server,edge}.config.ts 三个文件存在",
+      "src/lib/monitor.ts export reportTranslateFailure / reportLookupFailure / reportSubtitleFailure",
+      "API routes catch 分支调用 monitor helper",
+      "next.config.mjs 包了 withSentryConfig",
+      ".env.example 含 4 个 Sentry 变量",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖：无。Ticket: docs/tickets/OPS-001.md。免费额度 5K errors/month 单人项目足够。"
+  },
+  {
+    "id": "INFRA-003",
+    "priority": 29,
+    "area": "infrastructure",
+    "title": "关键路径 E2E 测试（Playwright）",
+    "user_visible_behavior": "开发者重构 UI 时不再担心打破真实用户路径——三条关键流程（看视频、查词加词库、未登录引导登录）有 E2E 保护。",
+    "status": "backlog",
+    "verification": [
+      "playwright.config.ts 存在",
+      "tests/e2e/ 下三个 spec 全绿",
+      "关键组件加了 data-testid 钩子",
+      "scripts/seed-e2e-user.mjs 能跑",
+      "npm test 仍只跑 node --test（不变）",
+      "npm run test:e2e 单独跑 Playwright"
+    ],
+    "evidence": "",
+    "notes": "依赖：无。Ticket: docs/tickets/INFRA-003.md。E2E 慢且耗 quota，CI 上按 label 触发。"
+  },
+  {
+    "id": "INFRA-004",
+    "priority": 30,
+    "area": "infrastructure",
+    "title": "CI 流水线（GitHub Actions）",
+    "user_visible_behavior": "每个 PR 自动跑测试 + build，红的不能 merge；不再依赖人工本地跑。",
+    "status": "backlog",
+    "verification": [
+      ".github/workflows/ci.yml 存在且 YAML 合法",
+      "workflow 包含 npm test 和 npm run build 步骤",
+      "on: pull_request + push: main",
+      "推 PR 触发 CI，全绿可见",
+      "故意红一个测试，PR 显示 ❌",
+      "package.json 有 ci:local script"
+    ],
+    "evidence": "",
+    "notes": "依赖：无（INFRA-002 / INFRA-003 完成后自动接入）。Ticket: docs/tickets/INFRA-004.md。branch protection 手动开启。"
   }
 ]
