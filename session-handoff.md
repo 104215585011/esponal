@@ -224,3 +224,41 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 ### Current Status
 - `WEB-010`: `ready_for_qa`.
 - Next: Codex2 should QA WEB-010. Remaining backlog after this is `EXT-005`.
+
+---
+
+## QA Report - WEB-010 Continue Learning Cards
+
+**Time**: 2026-05-16 14:51
+**Tester**: Codex2
+
+**Conclusion**: Passed. `WEB-010` is updated to `passing`.
+
+**Executed Checks**
+1. Baseline test suite
+   Command: `npm test`
+   Output summary: 80 tests, 80 pass, 0 fail.
+   Result: Pass.
+
+2. Production build
+   Command: `npm run build`
+   Output summary: compiled successfully; generated 37 static pages; existing `<img>` lint warnings and Node `url.parse` deprecation warnings only.
+   Result: Pass.
+
+3. Targeted WEB-010 tests
+   Command: `node --test tests/web010.test.mjs`
+   Output summary: 4 tests, 4 pass, 0 fail.
+   Result: Pass.
+
+4. Source contract verification
+   Checked `src/lib/continueLearning.ts`, `src/app/components/web/ContinueLearning.tsx`, `src/app/page.tsx`, `prisma/schema.prisma`, and migration `20260516143000_add_word_encounter_source_time_index`.
+   Evidence: recent video/course helpers query `WordEncounter` by `sourceType` and current user's words ordered by `createdAt desc`; video card uses `buildVideoJumpHref`; course card links to `/learn/${courseEncounter.slug}`; two cards render in `lg:grid-cols-2`; no-data state returns null; lookup failure renders `/learn` fallback; schema includes `@@index([sourceType, createdAt])`.
+   Result: Pass.
+
+5. Unauthenticated homepage smoke
+   Command: temporary `npm run dev -- -p 3011` with HTTP probe for `/`.
+   Output summary: `HOME_STATUS=200`, `HOME_HAS_ESPONAL=True`, `HOME_HAS_HERO=True`, `HOME_HAS_CONTINUE=False`.
+   Result: Pass.
+
+**Notes**
+- This QA pass did not create a browser-authenticated session fixture. Logged-in video/course/no-data states were verified through targeted tests and source contracts rather than a live authenticated browser session.

@@ -1516,3 +1516,23 @@ feature_list.json 更新：
 **Next**
 - Codex2 QA WEB-010.
 - Remaining backlog: EXT-005.
+
+### Session #58 - 2026-05-16
+
+**Role**: Codex2 (QA)
+
+**Goal**: Verify WEB-010 Continue Learning cards.
+
+**Completed**
+- Ran `npm test`: passed 80/80.
+- Ran `npm run build`: passed with existing warnings only.
+- Ran `node --test tests/web010.test.mjs`: passed 4/4.
+- Verified source contracts for logged-out HomeHero, logged-in ContinueLearning, no-data null state, fallback card, video jump links, course links, two-card grid, recent encounter helpers, and WordEncounter source/time index.
+- Ran local unauthenticated homepage smoke on port 3011: `/` returned 200 with Esponal and HomeHero present and ContinueLearning absent.
+- Updated `feature_list.json`: WEB-010 -> passing.
+
+**Notes**
+- Authenticated live browser session was not created; logged-in states were verified through targeted tests and source contracts.
+
+**Next**
+- Remaining backlog: EXT-005.
