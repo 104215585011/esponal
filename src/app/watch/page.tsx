@@ -93,11 +93,11 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelTitle, videoId);
 
   return (
-    <main className="bg-[#F9FAFB] lg:h-screen lg:overflow-hidden">
+    <main className="bg-app lg:h-screen lg:overflow-hidden">
       <SiteHeader />
       <div className="relative flex flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:pl-7">
         <section className="flex flex-col px-4 py-4 lg:basis-[63%] lg:justify-center lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
-          <div className="w-full overflow-hidden rounded-[14px] bg-black shadow-[0_1px_3px_rgba(0,0,0,0.07),0_4px_20px_rgba(0,0,0,0.12)]">
+          <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated">
             <div className="aspect-video w-full">
               {videoId ? (
                 <iframe
@@ -117,14 +117,14 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           </div>
 
           <div className="mt-4 px-0.5">
-            <div className="mb-2 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11.5px] font-semibold text-green-700">
+            <div className="mb-2 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11.5px] font-semibold text-brand-700">
               A1 入门级
             </div>
             <h1 className="line-clamp-2 text-[17px] font-semibold leading-7 text-gray-900">
               {videoInfo.title}
             </h1>
             <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-green-600 to-sky-500 text-[10px] font-bold text-white">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-sky-500 text-[10px] font-bold text-white">
                 ES
               </div>
               <span>{videoInfo.channelTitle}</span>
@@ -152,7 +152,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           </div>
         </section>
 
-        <section className="h-[60vh] min-w-0 border-t border-gray-200 bg-white lg:h-auto lg:flex-1 lg:border-l lg:border-t-0">
+        <section className="h-[60vh] min-w-0 border-t border-gray-200 bg-surface lg:h-auto lg:flex-1 lg:border-l lg:border-t-0">
           <TranscriptPanel iframeId={PLAYER_IFRAME_ID} videoId={videoId} />
         </section>
 

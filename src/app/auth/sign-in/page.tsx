@@ -50,13 +50,13 @@ export default function SignInPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6 py-10 text-gray-900">
-      <section className="flex w-full max-w-[400px] flex-col items-center rounded-2xl bg-white px-10 pb-8 pt-10 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.07),0_10px_24px_-4px_rgba(0,0,0,0.09)]">
+      <section className="flex w-full max-w-[400px] flex-col items-center rounded-2xl bg-surface px-10 pb-8 pt-10 shadow-hero">
         <Link href="/" className="mb-6 flex items-center gap-2.5 no-underline">
-          <span className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-green-600 text-base font-extrabold text-white shadow-[0_2px_8px_rgba(22,163,74,0.32)]">
+          <span className="flex h-[34px] w-[34px] items-center justify-center rounded-card bg-brand-600 text-base font-extrabold text-white shadow-card">
             E
           </span>
           <span className="text-xl font-bold tracking-normal text-gray-900">
-            Espo<span className="text-green-600">nal</span>
+            Espo<span className="text-brand-600">nal</span>
           </span>
         </Link>
 
@@ -68,7 +68,7 @@ export default function SignInPage() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl })}
-          className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white px-5 py-2.5 text-[14.5px] font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
+          className="flex w-full items-center justify-center gap-2.5 rounded-card border border-gray-200 bg-surface px-5 py-2.5 text-[14.5px] font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
         >
           <svg className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
             <path
@@ -106,7 +106,7 @@ export default function SignInPage() {
               type="email"
               autoComplete="email"
               placeholder="your@email.com"
-              className="rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-4 focus:ring-green-600/10"
+              className="rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10"
               required
             />
           </label>
@@ -114,7 +114,7 @@ export default function SignInPage() {
           <label className="flex flex-col gap-1.5 text-[13px] font-medium text-gray-700">
             <span className="flex items-baseline justify-between">
               密码
-              <Link href="/auth/sign-in" className="text-xs font-normal text-gray-400 hover:text-green-700">
+              <Link href="/auth/sign-in" className="text-xs font-normal text-gray-400 hover:text-brand-700">
                 忘记密码？
               </Link>
             </span>
@@ -124,7 +124,7 @@ export default function SignInPage() {
               type="password"
               autoComplete="current-password"
               placeholder="••••••••"
-              className="rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-4 focus:ring-green-600/10"
+              className="rounded-lg border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/10"
               required
             />
           </label>
@@ -138,7 +138,7 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-0.5 rounded-[10px] bg-green-600 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-green-700 hover:shadow-[0_2px_10px_rgba(22,163,74,0.28)] disabled:cursor-not-allowed disabled:bg-green-300"
+            className="mt-0.5 rounded-card bg-brand-600 px-4 py-2.5 text-[15px] font-medium text-white transition hover:bg-brand-700 hover:shadow-card disabled:cursor-not-allowed disabled:bg-brand-300"
           >
             {isSubmitting ? "登录中..." : "登录"}
           </button>
@@ -146,18 +146,18 @@ export default function SignInPage() {
 
         <p className="mt-5 text-center text-[12.5px] text-gray-400">
           没有账号？{" "}
-          <Link href="/auth/sign-up" className="font-medium text-green-700 hover:underline">
+          <Link href="/auth/sign-up" className="font-medium text-brand-700 hover:underline">
             创建账号
           </Link>
         </p>
 
         <p className="mt-4 text-center text-[11.5px] leading-6 text-gray-400">
           登录即代表同意
-          <Link href="/" className="mx-1 text-gray-500 underline underline-offset-2 hover:text-green-700">
+          <Link href="/" className="mx-1 text-gray-500 underline underline-offset-2 hover:text-brand-700">
             服务条款
           </Link>
           与
-          <Link href="/" className="ml-1 text-gray-500 underline underline-offset-2 hover:text-green-700">
+          <Link href="/" className="ml-1 text-gray-500 underline underline-offset-2 hover:text-brand-700">
             隐私政策
           </Link>
         </p>

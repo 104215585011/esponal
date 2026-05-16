@@ -66,7 +66,7 @@ test("COURSE-001 page renders the approved no-pressure layout", async () => {
   assert.match(page, /阶段一：入门词汇与发音/);
   assert.match(page, /发音规则/);
   assert.match(page, /高频词汇/);
-  assert.match(page, /bg-\[#F9FAFB\]/);
+  assert.match(page, /bg-app/);
   assert.match(page, /max-w-3xl/);
   assert.match(page, /px-4/);
   assert.match(page, /sm:px-8/);
@@ -91,9 +91,9 @@ test("COURSE-001 audio button is client-side and degrades when audio is absent",
 
   assert.match(source, /"use client"/);
   assert.match(source, /new Audio/);
-  assert.match(source, /bg-emerald-50/);
-  assert.match(source, /bg-emerald-100/);
-  assert.match(source, /text-emerald-600/);
+  assert.match(source, /bg-brand-50/);
+  assert.match(source, /bg-brand-100/);
+  assert.match(source, /text-brand-600/);
   assert.match(source, /w-9 h-9/);
   assert.match(source, /min-w-\[44px\]|min-h-\[44px\]/);
   assert.match(source, /音频暂时不可用/);

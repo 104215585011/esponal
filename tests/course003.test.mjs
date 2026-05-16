@@ -84,9 +84,11 @@ test("COURSE-003 /learn/[slug] renders unit details, recommended video, and bott
 
 test("COURSE-003 SiteHeader sends the course link to /learn", async () => {
   const header = await readText("src/app/components/web/SiteHeader.tsx");
+  const nav = await readText("src/app/components/web/SiteNav.tsx");
+  const source = `${header}\n${nav}`;
 
-  assert.match(header, /href="\/learn"/);
-  assert.doesNotMatch(header, /href="\/learn\/phase-1"/);
+  assert.match(source, /href:\s*"\/learn"|href="\/learn"/);
+  assert.doesNotMatch(source, /href:\s*"\/learn\/phase-1"|href="\/learn\/phase-1"/);
 });
 
 test("COURSE-003 audio button silently ignores empty audio sources", async () => {

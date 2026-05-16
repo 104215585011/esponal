@@ -15,7 +15,7 @@ export function GrammarTopicSelect({ currentSlug = "", topics }: GrammarTopicSel
 
   return (
     <select
-      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm"
+      className="w-full rounded-lg border border-gray-200 bg-surface px-3 py-2 text-sm text-gray-700 shadow-sm"
       defaultValue={currentSlug}
       id="grammar-topic"
       onChange={(event) => {

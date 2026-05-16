@@ -18,7 +18,7 @@ test("VOCAB-004 schema tracks dictionary data and encounter source type", async 
   );
 });
 
-test("VOCAB-004 lookup route uses dictionary helper with Youdao and Redis fallback support", async () => {
+test("VOCAB-004 lookup route uses dictionary helper with DashScope and Redis fallback support", async () => {
   const routePath = "src/app/api/vocab/lookup/route.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
 
@@ -27,10 +27,10 @@ test("VOCAB-004 lookup route uses dictionary helper with Youdao and Redis fallba
 
   assert.match(route, /export async function GET/);
   assert.match(route, /lookupDictionary/);
-  assert.match(helper, /YOUDAO_APP_KEY/);
-  assert.match(helper, /YOUDAO_APP_SECRET/);
+  assert.match(helper, /DASHSCOPE_API_KEY/);
+  assert.match(helper, /DASHSCOPE_MODEL/);
   assert.match(helper, /vocab:dict:/);
-  assert.match(helper, /FALLBACK_DICTIONARY/);
+  assert.match(helper, /degraded:\s*true/);
   assert.match(helper, /vivir/);
 });
 

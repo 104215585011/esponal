@@ -110,7 +110,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
           <article className="overflow-hidden rounded-xl" key={word.id}>
             <button
               type="button"
-              className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-100 bg-white p-4 text-left transition-colors hover:border-gray-200"
+              className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-100 bg-surface p-4 text-left transition-colors hover:border-gray-200"
               onClick={() => setOpenWordId(isOpen ? null : word.id)}
               aria-expanded={isOpen}
             >
@@ -152,7 +152,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
             >
               <div className="px-3 py-3 sm:px-4">
                 {word.examples[0] ? (
-                  <div className="mb-3 rounded-xl bg-white px-4 py-3 text-sm text-gray-500">
+                  <div className="mb-3 rounded-xl bg-surface px-4 py-3 text-sm text-gray-500">
                     <p className="italic text-gray-700">{word.examples[0].es}</p>
                     <p className="mt-1">{word.examples[0].zh}</p>
                   </div>
@@ -181,7 +181,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                             <span
                               className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs ${
                                 isCourse
-                                  ? "bg-emerald-50 text-emerald-600"
+                                  ? "bg-brand-50 text-brand-600"
                                   : "bg-gray-200 text-gray-500"
                               }`}
                             >
@@ -189,7 +189,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                             </span>
                           </div>
                           <a
-                            className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-medium text-emerald-600 hover:underline"
+                            className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-medium text-brand-600 hover:underline"
                             href={
                               isCourse
                                 ? encounter.sourceUrl

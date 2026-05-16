@@ -486,7 +486,7 @@ export function SubtitlePanel({ iframeId, videoId }: SubtitlePanelProps) {
 
               return (
                 <span
-                  className="cursor-pointer rounded-sm px-0.5 text-white/75 transition hover:bg-white/10"
+                  className="cursor-pointer rounded-sm px-0.5 text-white/75 transition hover:bg-surface/10"
                   key={`${token}-${index}`}
                   onClick={() =>
                     setActiveLookup({

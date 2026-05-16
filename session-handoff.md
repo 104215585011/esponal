@@ -114,3 +114,34 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 - Optimized transcript readability by merging adjacent short timedtext cues into more continuous display lines in `TranscriptPanel` before render/translate/highlight.
 - Kept original behavior contracts: click still seeks to the merged line start, LookupCard still opens from word spans, virtualization still renders `renderedCues` only.
 - Verification: `node --test tests/web007.test.mjs tests/web008.test.mjs`, `npx tsc --noEmit`, and `npm run build` passed.
+
+---
+
+## Dev Report - Session #55 (2026-05-16 14:21) - WEB-009
+
+### Completed
+- Implemented unified design tokens in `tailwind.config.ts`: `brand`, `app`, `surface`, `muted`, plus semantic card/surface/hero radius and shadow tokens.
+- Rebuilt the top navigation with `SiteHeader` + `SiteNav`: videos, courses, grammar, and vocab are now first-level entries with active `brand` styling.
+- Added logged-out `HomeHero` on `/` with three CTAs: create account, scroll to videos, and install extension.
+- Replaced source-level `green-*` and `emerald-*` utilities with `brand-*` tokens and aligned page/card surface styling across the app.
+- Added `tests/web009.test.mjs` and updated impacted UI tests for the new token/navigation structure.
+
+### Files Changed
+- `tailwind.config.ts`
+- `src/app/components/web/SiteHeader.tsx`
+- `src/app/components/web/SiteNav.tsx`
+- `src/app/components/web/HomeHero.tsx`
+- `src/app/page.tsx`
+- Multiple app UI files under `src/app/**` for brand/surface token alignment
+- `tests/web009.test.mjs`
+- Updated affected tests: `course001`, `course002`, `course003`, `vocab-ui`, `vocab004`
+
+### Verification
+- `rg -n "green-[0-9]|emerald-[0-9]" src`: zero matches.
+- `node --test tests/web009.test.mjs tests/course001.test.mjs tests/course002.test.mjs`: passed 10/10.
+- `npm test`: passed 76/76.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse` deprecation warnings only.
+
+### Current Status
+- `WEB-009`: `ready_for_qa`.
+- Next: Codex2 should QA WEB-009, plus VOCAB-004 and WEB-008 are also still queued for QA.

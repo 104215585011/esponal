@@ -60,8 +60,8 @@ test("COURSE-002 grammar pages render required responsive layout and semantic ta
   assert.match(detailPage, /w-\[220px\]/);
   assert.match(detailPage, /max-w-2xl/);
   assert.match(`${detailPage}\n${selectComponent}`, /<select/);
-  assert.match(detailPage, /border-l-\[3px\] border-emerald-500/);
-  assert.doesNotMatch(detailPage, /bg-emerald-50[^/]*active/);
+  assert.match(detailPage, /border-l-\[3px\] border-brand-500/);
+  assert.doesNotMatch(detailPage, /bg-brand-50[^/]*active/);
   assert.match(detailPage, /<table/);
   assert.match(detailPage, /<th[\s\S]*?人称代词[\s\S]*?<\/th>/);
   assert.match(detailPage, /<th[\s\S]*?人称说明[\s\S]*?<\/th>/);
@@ -71,7 +71,7 @@ test("COURSE-002 grammar pages render required responsive layout and semantic ta
   assert.match(detailPage, /bg-gray-50/);
   assert.match(detailPage, /border-b border-gray-100/);
   assert.match(detailPage, /中文类比/);
-  assert.match(detailPage, /border-l-\[3px\] border-emerald-200/);
+  assert.match(detailPage, /border-l-\[3px\] border-brand-200/);
   assert.match(selectComponent, /"use client"/);
   assert.match(selectComponent, /useRouter/);
   assert.match(selectComponent, /router\.push\(`\/grammar\/\$\{event\.target\.value\}`\)/);

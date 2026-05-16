@@ -35,7 +35,7 @@ export default function PhaseOnePage() {
 
   return (
     <main
-      className="min-h-screen bg-[#F9FAFB] text-gray-900"
+      className="min-h-screen bg-app text-gray-900"
       style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
     >
       <SiteHeader />
@@ -74,7 +74,7 @@ export default function PhaseOnePage() {
           <div className="mt-5 flex flex-col gap-3">
             {words.map((word) => (
               <article
-                className="rounded-xl shadow-sm border border-gray-100 p-4 bg-white"
+                className="rounded-xl shadow-sm border border-gray-100 p-4 bg-surface"
                 key={word.id}
               >
                 <div className="flex items-start justify-between gap-3">

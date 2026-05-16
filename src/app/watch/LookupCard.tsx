@@ -206,7 +206,7 @@ export function LookupCard({
   const phonetic = isReady ? lookupState.phonetic : null;
 
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] -translate-x-1/2 rounded-xl border border-black/5 bg-white p-4 shadow-[0_4px_16px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.10)]">
+    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -259,7 +259,7 @@ export function LookupCard({
               登录后才能保存到生词本，下次还能查到
             </p>
             <a
-              className="block h-8 w-full rounded-md bg-emerald-500 text-center text-sm font-medium leading-8 text-white transition hover:bg-emerald-600"
+              className="block h-8 w-full rounded-md bg-brand-500 text-center text-sm font-medium leading-8 text-white transition hover:bg-brand-600"
               href={buildSignInHref()}
             >
               登录 / 注册
@@ -269,11 +269,11 @@ export function LookupCard({
           <button
             className={`h-8 w-full rounded-md text-sm font-medium transition ${
               buttonState === "default"
-                ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                ? "bg-brand-50 text-brand-600 hover:bg-brand-100"
                 : buttonState === "loading"
-                  ? "cursor-progress bg-emerald-50 text-emerald-600 opacity-70"
+                  ? "cursor-progress bg-brand-50 text-brand-600 opacity-70"
                   : buttonState === "success"
-                    ? "bg-emerald-50 text-emerald-600"
+                    ? "bg-brand-50 text-brand-600"
                     : "cursor-default bg-gray-100 text-gray-400"
             }`}
             disabled={

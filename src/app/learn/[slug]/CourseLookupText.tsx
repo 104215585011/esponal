@@ -57,7 +57,7 @@ export function CourseLookupText({
         return (
           <span className="relative inline-block" key={`${part.text}-${index}`}>
             <button
-              className="rounded px-0.5 text-inherit underline-offset-4 hover:bg-emerald-50 hover:text-emerald-700 hover:underline"
+              className="rounded px-0.5 text-inherit underline-offset-4 hover:bg-brand-50 hover:text-brand-700 hover:underline"
               onClick={() => setActiveWord(isActive ? null : { form: part.text, index })}
               type="button"
             >

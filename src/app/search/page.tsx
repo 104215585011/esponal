@@ -41,7 +41,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const videos = await fetchSearchVideos(query);
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB]">
+    <main className="min-h-screen bg-app">
       <SiteHeader initialQuery={query} />
       <div className="mx-auto w-full max-w-screen-xl px-4 py-8">
         <div className="mb-6">
@@ -52,7 +52,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
 
         {videos.length === 0 ? (
-          <div className="rounded-xl border border-gray-100 bg-white px-6 py-10 text-center text-sm text-gray-400">
+          <div className="rounded-xl border border-gray-100 bg-surface px-6 py-10 text-center text-sm text-gray-400">
             没有找到匹配的视频
           </div>
         ) : (
@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         )}
 
         <div className="mt-8">
-          <Link className="text-sm text-emerald-600 hover:underline" href="/">
+          <Link className="text-sm text-brand-600 hover:underline" href="/">
             ← 返回首页
           </Link>
         </div>

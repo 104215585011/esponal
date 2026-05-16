@@ -1439,3 +1439,27 @@ feature_list.json 更新：
 
 **Next**
 - Codex2 QA WEB-008.
+
+### Session #55 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement WEB-009 unified design system, logged-out homepage hero, and complete primary navigation.
+
+**Completed**
+- Added unified Tailwind tokens for `brand`, app/surface colors, semantic radius, and semantic shadows.
+- Split the primary nav into `SiteNav` and updated `SiteHeader` to expose Videos, Courses, Grammar, and Vocab with active brand styling.
+- Added `HomeHero` for logged-out homepage users with create-account, video-section, and extension CTAs.
+- Replaced `green-*` and `emerald-*` source utilities with `brand-*` and aligned surface styling across affected app pages/components.
+- Added `tests/web009.test.mjs`; updated tests affected by the new token and nav structure.
+- Updated `feature_list.json`: WEB-009 -> ready_for_qa.
+
+**Verification**
+- `rg -n "green-[0-9]|emerald-[0-9]" src`: zero matches.
+- `node --test tests/web009.test.mjs tests/course001.test.mjs tests/course002.test.mjs`: passed 10/10.
+- `npm test`: passed 76/76.
+- `npm run build`: passed with existing warnings only.
+
+**Next**
+- Codex2 QA WEB-009.
+- VOCAB-004 and WEB-008 remain ready_for_qa and can be batched into the next QA pass.

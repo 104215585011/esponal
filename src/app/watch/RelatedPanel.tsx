@@ -78,14 +78,14 @@ export function RelatedPanel({ relatedVideos }: RelatedPanelProps) {
         onMouseLeave={scheduleClose}
       />
       <aside
-        className={`absolute bottom-0 right-0 top-0 z-30 flex w-[290px] flex-col border-l border-gray-200 bg-white shadow-[-6px_0_24px_rgba(0,0,0,0.09)] transition-transform duration-200 ${
+        className={`absolute bottom-0 right-0 top-0 z-30 flex w-[290px] flex-col border-l border-gray-200 bg-surface shadow-elevated transition-transform duration-200 ${
           visible || pinned ? "translate-x-0" : "translate-x-full"
         }`}
         onMouseEnter={scheduleOpen}
         onMouseLeave={scheduleClose}
       >
         <button
-          className="absolute left-[-24px] top-[40%] flex h-12 w-6 -translate-y-1/2 items-center justify-center rounded-l-lg border border-r-0 border-gray-200 bg-white/80 text-[11px] text-gray-500 backdrop-blur-sm transition hover:bg-white/95"
+          className="absolute left-[-24px] top-[40%] flex h-12 w-6 -translate-y-1/2 items-center justify-center rounded-l-lg border border-r-0 border-gray-200 bg-surface/80 text-[11px] text-gray-500 backdrop-blur-sm transition hover:bg-surface/95"
           onClick={() => {
             clearTimers();
             setPinned((value) => {
@@ -105,8 +105,8 @@ export function RelatedPanel({ relatedVideos }: RelatedPanelProps) {
           <button
             className={`ml-auto flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-medium transition ${
               pinned
-                ? "border-green-200 bg-green-50 text-green-700"
-                : "border-gray-200 text-gray-400 hover:border-green-500 hover:bg-green-50 hover:text-green-600"
+                ? "border-brand-200 bg-brand-50 text-brand-700"
+                : "border-gray-200 text-gray-400 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-600"
             }`}
             onClick={() => {
               clearTimers();
@@ -128,7 +128,7 @@ export function RelatedPanel({ relatedVideos }: RelatedPanelProps) {
           ) : (
             relatedVideos.map((video) => (
               <Link
-                className="flex gap-3 rounded-[10px] px-2 py-2 transition hover:bg-gray-50"
+                className="flex gap-3 rounded-card px-2 py-2 transition hover:bg-gray-50"
                 href={`/watch?v=${video.id}`}
                 key={video.id}
               >

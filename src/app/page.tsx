@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { HomeHero } from "@/app/components/web/HomeHero";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { VideoCard } from "@/app/components/web/VideoCard";
 import { curatedChannels } from "@/lib/channels";
+import { getAuthOptions } from "@/lib/auth";
 import { getSiteUrl } from "@/lib/site-url";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 
@@ -34,49 +37,56 @@ async function fetchChannelVideos(channelId: string) {
 }
 
 export default async function HomePage() {
-  const channelSections = await Promise.all(
-    curatedChannels.map(async (channel) => ({
-      channel,
-      videos: await fetchChannelVideos(channel.id)
-    }))
-  );
+  const [session, channelSections] = await Promise.all([
+    getServerSession(getAuthOptions()),
+    Promise.all(
+      curatedChannels.map(async (channel) => ({
+        channel,
+        videos: await fetchChannelVideos(channel.id)
+      }))
+    )
+  ]);
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB]">
+    <main className="min-h-screen bg-app">
       <SiteHeader />
       <div className="mx-auto w-full max-w-screen-xl px-4 pb-12 pt-6">
-        {channelSections.map(({ channel, videos }) => (
-          <section
-            className="mb-8 border-t border-gray-100 pt-6 first:border-t-0 first:pt-0"
-            key={channel.id}
-          >
-            <div className="mb-4 flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">{channel.title}</h2>
-                <p className="mt-1 text-sm text-gray-400">
-                  {channelDescriptions[channel.title] ?? "策划频道内容。"}
-                </p>
-              </div>
-              <Link
-                className="shrink-0 text-sm text-emerald-600 hover:underline"
-                href={`/search?q=${encodeURIComponent(channel.title)}`}
-              >
-                查看全部 →
-              </Link>
-            </div>
+        {!session?.user ? <HomeHero /> : null}
 
-            <div className="flex gap-4 overflow-x-auto px-4 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {videos.map((video) => (
-                <VideoCard key={video.id} video={video} />
-              ))}
-              {videos.length === 0 ? (
-                <div className="flex h-40 w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-white text-sm text-gray-400">
-                  暂时还没有拉到视频数据
+        <div id="video-sections">
+          {channelSections.map(({ channel, videos }) => (
+            <section
+              className="mb-8 border-t border-gray-100 pt-6 first:border-t-0 first:pt-0"
+              key={channel.id}
+            >
+              <div className="mb-4 flex items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">{channel.title}</h2>
+                  <p className="mt-1 text-sm text-gray-400">
+                    {channelDescriptions[channel.title] ?? "策划频道内容。"}
+                  </p>
                 </div>
-              ) : null}
-            </div>
-          </section>
-        ))}
+                <Link
+                  className="shrink-0 text-sm font-medium text-brand-600 hover:underline"
+                  href={`/search?q=${encodeURIComponent(channel.title)}`}
+                >
+                  查看全部 →
+                </Link>
+              </div>
+
+              <div className="flex gap-4 overflow-x-auto px-4 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {videos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+                {videos.length === 0 ? (
+                  <div className="flex h-40 w-full items-center justify-center rounded-surface border border-dashed border-gray-200 bg-surface text-sm text-gray-400">
+                    暂时还没有拉到视频数据
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     </main>
   );

@@ -60,7 +60,7 @@ export default function AudioButton({ src, label }: AudioButtonProps) {
     <button
       aria-label={`播放 ${label}`}
       className={`flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full transition ${
-        unavailable ? "cursor-not-allowed" : "hover:bg-emerald-50"
+        unavailable ? "cursor-not-allowed" : "hover:bg-brand-50"
       }`}
       onClick={play}
       title={unavailable ? "音频暂时不可用" : `播放 ${label}`}
@@ -71,8 +71,8 @@ export default function AudioButton({ src, label }: AudioButtonProps) {
           unavailable
             ? "bg-gray-50 text-gray-300"
             : isPlaying
-              ? "bg-emerald-100 text-emerald-600"
-              : "bg-emerald-50 text-emerald-600"
+              ? "bg-brand-100 text-brand-600"
+              : "bg-brand-50 text-brand-600"
         }`}
       >
         {isPlaying ? "■" : "▶"}

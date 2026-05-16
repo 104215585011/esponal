@@ -808,12 +808,12 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
 
   return (
-    <section className="flex h-full min-w-0 flex-col bg-white" ref={panelRef}>
+    <section className="flex h-full min-w-0 flex-col bg-surface" ref={panelRef}>
       <div className="flex items-center gap-2 border-b border-gray-100 px-5 py-4">
         <div className="flex rounded-full bg-gray-100 p-0.5 text-[11px] font-semibold text-gray-500">
           <button
             className={`rounded-full px-3 py-1 transition ${
-              displayMode === "bilingual" ? "bg-white text-gray-900 shadow-sm" : ""
+              displayMode === "bilingual" ? "bg-surface text-gray-900 shadow-sm" : ""
             }`}
             onClick={() => {
               setDisplayMode("bilingual");
@@ -825,7 +825,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
           </button>
           <button
             className={`rounded-full px-3 py-1 transition ${
-              displayMode === "spanish" ? "bg-white text-gray-900 shadow-sm" : ""
+              displayMode === "spanish" ? "bg-surface text-gray-900 shadow-sm" : ""
             }`}
             onClick={() => {
               setDisplayMode("spanish");
@@ -837,7 +837,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
           </button>
           <button
             className={`rounded-full px-3 py-1 transition ${
-              displayMode === "chinese" ? "bg-white text-gray-900 shadow-sm" : ""
+              displayMode === "chinese" ? "bg-surface text-gray-900 shadow-sm" : ""
             }`}
             onClick={() => {
               setDisplayMode("chinese");
@@ -872,7 +872,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
             return (
               <div
                 className={`group border-t border-gray-100 px-5 py-3 first:border-t-0 ${
-                  isActive ? "border-l-[3px] border-l-green-600" : "border-l-[3px] border-l-transparent"
+                  isActive ? "border-l-[3px] border-l-brand-600" : "border-l-[3px] border-l-transparent"
                 }`}
                 data-cue-index={index}
                 key={`${cue.start}-${cue.text}`}
@@ -892,14 +892,14 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                     <div className="inline">
                       <span
                         className={`mr-2 inline-block text-[10px] font-medium tabular-nums tracking-[0.3px] transition ${
-                          isActive ? "opacity-100 text-green-700" : "opacity-0 text-gray-400 group-hover:opacity-100"
+                          isActive ? "opacity-100 text-brand-700" : "opacity-0 text-gray-400 group-hover:opacity-100"
                         }`}
                       >
                         {formatTimestamp(cue.start)}
                       </span>
                       <span
                         className={`inline text-[15px] leading-7 tracking-[0.05px] ${
-                          isActive ? "font-bold text-green-700" : "font-medium text-gray-900"
+                          isActive ? "font-bold text-brand-700" : "font-medium text-gray-900"
                         }`}
                       >
                         {tokens.map((token, tokenIndex) => {
@@ -985,7 +985,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
         {!followMode && activeCue ? (
           <button
-            className="fixed bottom-8 right-[max(2rem,calc(37vw-7rem))] z-20 rounded-full border border-green-200 bg-white px-4 py-2 text-xs font-medium text-green-700 shadow-sm transition hover:bg-green-50"
+            className="fixed bottom-8 right-[max(2rem,calc(37vw-7rem))] z-20 rounded-full border border-brand-200 bg-surface px-4 py-2 text-xs font-medium text-brand-700 shadow-sm transition hover:bg-brand-50"
             onClick={() => {
               returnToCurrentCue();
             }}

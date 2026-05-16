@@ -18,7 +18,7 @@ test("/vocab page requires authentication and loads current user's words", async
   assert.match(page, /我的词库/);
   assert.match(page, /按词根归类，记录你遭遇过的词/);
   assert.match(page, /max-w-2xl/);
-  assert.match(page, /bg-\[#F9FAFB\]/);
+  assert.match(page, /bg-app/);
 });
 
 test("/vocab page serializes words by most recent encounter for the client accordion", async () => {
@@ -40,7 +40,7 @@ test("vocab accordion renders reviewed row, encounter, divider, and empty states
   assert.match(component, /"use client"/);
   assert.match(component, /useState/);
   assert.match(component, /遭遇 \{word\.encounterCount\} 次/);
-  assert.match(component, /rounded-xl border border-gray-100 bg-white p-4/);
+  assert.match(component, /rounded-xl border border-gray-100 bg-surface p-4/);
   assert.match(component, /bg-gray-50/);
   assert.match(component, /跳回视频/);
   assert.match(component, /min-h-\[44px\]/);

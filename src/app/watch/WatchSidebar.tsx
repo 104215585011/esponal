@@ -44,7 +44,7 @@ export function WatchSidebar({
           <button
             className={`border-b-2 text-sm transition ${
               activeTab === "related"
-                ? "border-emerald-500 text-gray-900"
+                ? "border-brand-500 text-gray-900"
                 : "border-transparent text-gray-400"
             }`}
             onClick={() => setActiveTab("related")}
@@ -55,7 +55,7 @@ export function WatchSidebar({
           <button
             className={`border-b-2 text-sm transition ${
               activeTab === "vocab"
-                ? "border-emerald-500 text-gray-900"
+                ? "border-brand-500 text-gray-900"
                 : "border-transparent text-gray-400"
             }`}
             onClick={() => setActiveTab("vocab")}
@@ -79,7 +79,7 @@ export function WatchSidebar({
           ) : (
             <ul className="space-y-3 text-left">
               {savedWords.map((word) => (
-                <li className="rounded-lg bg-white px-3 py-2" key={`${word.lemma}-${word.timestampSec}`}>
+                <li className="rounded-lg bg-surface px-3 py-2" key={`${word.lemma}-${word.timestampSec}`}>
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm font-medium text-gray-800">{word.lemma}</span>
                     <span className="text-xs text-gray-300">

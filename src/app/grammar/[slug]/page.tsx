@@ -26,7 +26,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB] text-gray-900">
+    <main className="min-h-screen bg-app text-gray-900">
       <SiteHeader />
       <div className="mx-auto flex w-full max-w-5xl gap-8 px-4 py-8 sm:px-8">
         <aside className="hidden w-[220px] shrink-0 lg:block">
@@ -45,9 +45,9 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
                         <Link
                           aria-current={active ? "page" : undefined}
                           className={[
-                            "block py-1.5 pl-3 text-sm text-gray-700 hover:text-emerald-600",
+                            "block py-1.5 pl-3 text-sm text-gray-700 hover:text-brand-600",
                             active
-                              ? "border-l-[3px] border-emerald-500 font-medium text-gray-900"
+                              ? "border-l-[3px] border-brand-500 font-medium text-gray-900"
                               : "border-l-[3px] border-transparent"
                           ].join(" ")}
                           href={`/grammar/${item.slug}`}
@@ -71,7 +71,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
             <GrammarTopicSelect currentSlug={topic.slug} topics={grammarTopics} />
           </div>
 
-          <Link className="text-sm font-medium text-emerald-600" href="/grammar">
+          <Link className="text-sm font-medium text-brand-600" href="/grammar">
             ← 返回语法话题
           </Link>
 
@@ -81,8 +81,8 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
             <p className="mt-3 text-base leading-7 text-gray-500">{topic.intro}</p>
           </header>
 
-          <section className="mt-6 border-l-[3px] border-emerald-200 bg-emerald-50/40 p-3 rounded-r-lg">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-emerald-700">中文类比</h2>
+          <section className="mt-6 border-l-[3px] border-brand-200 bg-brand-50/40 p-3 rounded-r-lg">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-brand-700">中文类比</h2>
             <p className="mt-2 text-sm leading-7 text-gray-700">{topic.analogy}</p>
           </section>
 
@@ -90,7 +90,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
             <section className="mt-8">
               <h2 className="mb-3 text-xl font-semibold text-gray-800">现在时变位表</h2>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] border-collapse bg-white text-left">
+                <table className="w-full min-w-[560px] border-collapse bg-surface text-left">
                   <thead className="bg-gray-50">
                     <tr className="border-b border-gray-100">
                       <th className="sticky left-0 bg-gray-50 px-3 py-3 text-sm font-medium text-gray-500">
@@ -104,7 +104,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
                   <tbody>
                     {topic.conjugations.map((row) => (
                       <tr className="border-b border-gray-100" key={row.pronoun}>
-                        <td className="sticky left-0 bg-white px-3 py-3 text-sm text-gray-500">
+                        <td className="sticky left-0 bg-surface px-3 py-3 text-sm text-gray-500">
                           {row.pronoun}
                         </td>
                         <td className="px-3 py-3 text-sm text-gray-600">{row.person}</td>
@@ -123,7 +123,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
               <h2 className="mb-3 text-xl font-semibold text-gray-800">判断规则</h2>
               <div className="space-y-3">
                 {topic.rules.map((rule) => (
-                  <p className="rounded-xl border border-gray-100 bg-white p-4 text-sm leading-7 text-gray-700 shadow-sm" key={rule}>
+                  <p className="rounded-xl border border-gray-100 bg-surface p-4 text-sm leading-7 text-gray-700 shadow-sm" key={rule}>
                     {rule}
                   </p>
                 ))}
@@ -146,7 +146,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
               <h2 className="mb-3 text-xl font-semibold text-gray-800">例句</h2>
               <div className="space-y-3">
                 {topic.examples.map((example) => (
-                  <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm" key={example.spanish}>
+                  <div className="rounded-xl border border-gray-100 bg-surface p-4 shadow-sm" key={example.spanish}>
                     <p className="text-base font-semibold text-gray-900">{example.spanish}</p>
                     <p className="mt-1 text-sm text-gray-500">{example.chinese}</p>
                     <p className="mt-2 text-xs text-gray-400">因为：{example.reason}</p>
@@ -160,7 +160,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
             <section className="mt-8 space-y-2">
               {topic.related.map((item) => (
                 <Link
-                  className="block text-xs font-medium text-emerald-600 hover:underline"
+                  className="block text-xs font-medium text-brand-600 hover:underline"
                   href={`/grammar/${item.slug}`}
                   key={item.slug}
                 >
@@ -183,7 +183,7 @@ function ComparisonColumn({
   items: Array<{ spanish: string; chinese: string; reason: string }>;
 }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-gray-100 bg-surface p-4 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
       <div className="mt-4 space-y-4">
         {items.map((item) => (

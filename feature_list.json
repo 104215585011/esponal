@@ -358,7 +358,7 @@
     "area": "web",
     "title": "设计系统统一 + 首页 Hero + 顶栏导航补全",
     "user_visible_behavior": "全站颜色/圆角/阴影统一为 brand token；未登录访问 / 看到价值主张 hero 与三个 CTA；顶栏一级导航补全为视频/课程/语法/词库。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "rg 'green-[0-9]|emerald-[0-9]' src/ 输出 0",
       "tailwind.config.ts 含 brand 色板、card/surface/hero 圆角、card/elevated/hero 阴影",
@@ -369,7 +369,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-16 14:21: added unified Tailwind brand/app/surface/muted design tokens plus card/surface/hero radii and shadows; rebuilt SiteHeader primary navigation through SiteNav with 视频/课程/语法/词库 and active brand styles; added logged-out HomeHero on / with sign-up, video-section scroll, and /extension CTAs; replaced src green and emerald utility classes with brand tokens and aligned page/card surface styling; added tests/web009.test.mjs and updated affected tests. Verification: rg check for green/emerald utilities in src returned zero matches; node --test tests/web009.test.mjs tests/course001.test.mjs tests/course002.test.mjs passed 10/10; npm test passed 76/76; npm run build passed with existing img and Node url.parse warnings only.",
     "notes": "依赖：无。Ticket: docs/tickets/WEB-009.md。触发：Claude2 全站 UI 评审 2026-05-16 发现 design system 割裂 + 首页对未登录用户无价值主张。后续相关 ticket：WEB-010（继续学习卡片）、EXT-005（/extension 介绍页）、WEB-011（空/错误态统一组件）。"
   },
   {

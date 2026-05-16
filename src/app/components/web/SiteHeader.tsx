@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { SiteNav } from "@/app/components/web/SiteNav";
 import { getAuthOptions } from "@/lib/auth";
 
 type SiteHeaderProps = {
@@ -23,20 +24,23 @@ export async function SiteHeader({
   const session = await getServerSession(getAuthOptions());
   const displayName = session?.user?.name?.trim() || "Esponal User";
   const initials = getInitials(displayName) || "ES";
+  const vocabHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-surface shadow-card">
       <div className="mx-auto flex h-16 w-full max-w-screen-xl items-center gap-4 px-4">
         <Link className="flex shrink-0 items-center gap-2" href="/">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-card bg-brand-500 text-sm font-semibold text-white">
             E
           </span>
           <span className="text-xl font-bold text-gray-900">Esponal</span>
         </Link>
 
+        <SiteNav vocabHref={vocabHref} />
+
         <form
           action={searchAction}
-          className="mx-auto flex w-full max-w-md flex-1 items-center rounded-full border border-gray-200 bg-gray-50 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100"
+          className="mx-auto flex w-full max-w-md flex-1 items-center rounded-full border border-gray-200 bg-muted focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100"
         >
           <span aria-hidden="true" className="px-3 text-gray-400">
             <svg className="h-4 w-4 fill-none stroke-current stroke-2" viewBox="0 0 20 20">
@@ -48,25 +52,10 @@ export async function SiteHeader({
             className="h-10 w-full rounded-full border-0 bg-transparent pr-4 text-sm text-gray-700 outline-none placeholder:text-gray-400"
             defaultValue={initialQuery}
             name="q"
-            placeholder="搜索西语视频…"
+            placeholder="搜索西语视频..."
             type="search"
           />
         </form>
-
-        <nav className="hidden items-center gap-1 sm:flex">
-          <Link
-            className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-            href="/learn"
-          >
-            课程
-          </Link>
-          <Link
-            className="rounded-md px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-            href="/grammar"
-          >
-            语法
-          </Link>
-        </nav>
 
         <div className="shrink-0">
           {session?.user ? (
@@ -80,20 +69,20 @@ export async function SiteHeader({
                     src={session.user.image}
                   />
                 ) : (
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
                     {initials}
                   </span>
                 )}
               </summary>
-              <div className="absolute right-0 mt-2 w-40 rounded-lg border border-gray-100 bg-white p-2 shadow-lg">
+              <div className="absolute right-0 mt-2 w-40 rounded-card border border-gray-100 bg-surface p-2 shadow-elevated">
                 <Link
-                  className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  className="block rounded-card px-3 py-2 text-sm text-gray-600 hover:bg-muted hover:text-gray-900"
                   href="/vocab"
                 >
                   我的词库
                 </Link>
                 <Link
-                  className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  className="block rounded-card px-3 py-2 text-sm text-gray-600 hover:bg-muted hover:text-gray-900"
                   href="/api/auth/signout"
                 >
                   退出
@@ -102,7 +91,7 @@ export async function SiteHeader({
             </details>
           ) : (
             <Link
-              className="text-sm text-gray-600 transition hover:text-gray-900"
+              className="text-sm font-medium text-gray-600 transition hover:text-gray-900"
               href="/auth/sign-in"
             >
               登录
