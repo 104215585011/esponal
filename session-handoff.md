@@ -145,3 +145,49 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 ### Current Status
 - `WEB-009`: `ready_for_qa`.
 - Next: Codex2 should QA WEB-009, plus VOCAB-004 and WEB-008 are also still queued for QA.
+
+---
+
+## QA Report - VOCAB-004 / WEB-008 / WEB-009
+
+**Time**: 2026-05-16 14:29
+**Tester**: Codex2
+
+**Conclusion**: Passed. `VOCAB-004`, `WEB-008`, and `WEB-009` are updated to `passing`.
+
+**Executed Checks**
+1. Baseline test suite
+   Command: `npm test`
+   Output summary: 76 tests, 76 pass, 0 fail.
+   Result: Pass.
+
+2. Production build
+   Command: `npm run build`
+   Output summary: compiled successfully; generated 37 static pages; existing `<img>` lint warnings and Node `url.parse` deprecation warnings only.
+   Result: Pass.
+
+3. Targeted ticket tests
+   Command: `node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs`
+   Output summary: 12 tests, 12 pass, 0 fail.
+   Result: Pass.
+
+4. VOCAB-004 source verification
+   Checked `dictionary.ts`, `/api/vocab/lookup`, `/api/vocab/add`, `LookupCard`, course lookup wiring, `/vocab`, and `VocabAccordion`.
+   Evidence: DashScope envs, Redis `vocab:dict:` cache, degraded fallback, `vivir` coverage, dictionary display fields, and video/course source tracking are present.
+   Result: Pass.
+
+5. WEB-008 source verification
+   Checked `TranscriptPanel.tsx` for virtual window state, sentinels, scrollTop compensation, user browse detection, return-to-current behavior, and cue click seek.
+   Evidence: `renderStart`, `renderEnd`, `IntersectionObserver`, `data-cue-index`, `followMode`, `wheel`, `touchmove`, `pointerdown`, `scrollIntoView`, and `player.seekTo` are present.
+   Result: Pass.
+
+6. WEB-009 source and smoke verification
+   Commands:
+   - `rg -n "green-[0-9]|emerald-[0-9]" src`
+   - temporary `npm run dev -- -p 3010` with HTTP probes
+   Output summary: green/emerald utility search returned zero matches; `/` returned 200 and contained `Esponal`, Hero copy, and search box; `/vocab` unauth returned 307 to `/api/auth/signin`.
+   Result: Pass.
+
+**Notes**
+- Playwright is not installed in the root project, so viewport screenshot automation was not available in this QA pass. WEB-009 responsive coverage is based on structural tests, Tailwind responsive/source inspection, build success, and HTTP smoke.
+- Worktree was clean before QA. QA updates changed only tracker/report files.

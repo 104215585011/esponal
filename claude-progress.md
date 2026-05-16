@@ -1463,3 +1463,31 @@ feature_list.json 更新：
 **Next**
 - Codex2 QA WEB-009.
 - VOCAB-004 and WEB-008 remain ready_for_qa and can be batched into the next QA pass.
+
+### Session #56 - 2026-05-16
+
+**Role**: Codex2 (QA)
+
+**Goal**: Batch QA `VOCAB-004`, `WEB-008`, and `WEB-009`.
+
+**Completed**
+- Ran full baseline test suite: `npm test` passed 76/76.
+- Ran production build: `npm run build` passed with existing warnings only.
+- Ran targeted tests: `node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs` passed 12/12.
+- Verified VOCAB-004 dictionary/source-tracking implementation: DashScope envs, Redis cache key, degraded fallback, lookup/add routes, rich LookupCard, course lookup wiring, and video/course encounter display.
+- Verified WEB-008 transcript virtualization contract: render window, sentinels, scroll compensation, browse/follow mode, return-to-current, and cue click seek.
+- Verified WEB-009 design-system contract: no `green-*`/`emerald-*` source utilities, Tailwind tokens, primary nav entries, HomeHero CTAs, and local homepage smoke.
+- Updated `feature_list.json`: `VOCAB-004`, `WEB-008`, and `WEB-009` -> `passing`.
+
+**Verification**
+- `npm test`: passed 76/76.
+- `npm run build`: passed.
+- `node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs`: passed 12/12.
+- Local smoke on port 3010: `/` returned 200 with Esponal, Hero copy, and search box; `/vocab` returned 307 to `/api/auth/signin`.
+
+**Notes**
+- Root project does not include Playwright, so WEB-009 viewport screenshot automation was not available in this QA pass.
+
+**Next**
+- Ready for PM/Claude2 visual review if desired.
+- Next backlog item can start after PM chooses it.

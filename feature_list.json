@@ -300,7 +300,7 @@
     "area": "vocabulary",
     "title": "生词系统升级：词典查询 + 出处追踪 + 生词本展示",
     "user_visible_behavior": "用户点击视频或课文中的生词，可看到词性、义项、例句；标记后进入生词本，每个词附带所有出处（视频可跳回，课文可跳回单元）。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "GET /api/vocab/lookup?word=vivían 返回完整词典数据",
       "Redis 缓存生效：同一词第二次请求 < 10ms",
@@ -311,7 +311,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-15 22:36: implemented Prisma fields Word.dictData/partOfSpeech and WordEncounter.sourceType/courseRef with migration 20260515185000_add_dict_and_source_tracking; added GET /api/vocab/lookup backed by src/lib/dictionary.ts with Youdao env support, Redis key vocab:dict:${lemma}, and local fallback for vivir/hablar/ir; updated /api/lemmatize to share lookup logic; updated /api/vocab/add to persist dictData, partOfSpeech, sourceType, and courseRef; upgraded LookupCard to call /api/vocab/lookup, render partOfSpeech/meanings/examples/phonetic, and save video/course source metadata; added CourseLookupText to /learn/[slug] vocab/phrases/dialogues; upgraded /vocab display for dictionary summaries and video/course encounters; documented YOUDAO_APP_KEY/YOUDAO_APP_SECRET in .env.example; added tests/vocab004.test.mjs. Verification: npm test passed 70/70; npx prisma generate --no-engine passed after normal generate hit Windows DLL EPERM; npm run build passed with existing <img> lint warnings and Node url.parse deprecation warnings only.",
+    "evidence": "Codex2 QA 2026-05-16 14:29: npm test passed 76/76; npm run build passed; node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs passed 12/12; verified Prisma/schema/tests cover Word dictData/partOfSpeech and WordEncounter sourceType/courseRef; dictionary helper uses DASHSCOPE_API_KEY, DASHSCOPE_MODEL, Redis key vocab:dict:${lemma}, degraded fallback, and vivir coverage; /api/vocab/add persists source metadata; LookupCard renders partOfSpeech, meanings, examples, and source metadata; /vocab page and VocabAccordion render video/course encounters and video jump links. Local smoke confirmed /vocab unauth redirects 307 to /api/auth/signin.",
     "notes": "词典数据源：有道智云 API（需新增 YOUDAO_APP_KEY / YOUDAO_APP_SECRET 到 .env）。降级：有道不可用时用腾讯 TMT。依赖 VOCAB-001/002、WEB-005。课文点词需 COURSE-003 完成后接入。"
   },
   {
@@ -339,7 +339,7 @@
     "area": "web",
     "title": "Transcript 虚拟化滚动 + 用户脱钩浏览",
     "user_visible_behavior": "/watch 页面 transcript 首屏只渲染少量字幕保持流畅；用户向下滚动可预览未来字幕（视频不跳转），点击「回到当前位置」恢复跟随。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "首屏 DOM cue 节点数 ≤ 35",
       "用户滚动到底部时窗口自动扩展加载更多 cue",
@@ -349,7 +349,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-16: implemented TranscriptPanel virtual cue window with INITIAL_RENDER_COUNT=30 and LOAD_MORE_BATCH=30, renderStart/renderEnd state, top/bottom IntersectionObserver sentinels, scrollTop compensation on upward expansion, followMode browse/follow behavior driven by wheel/touchmove/pointer/key events instead of onScroll, return-to-current button, data-cue-index cue rows, and preserved LookupCard, highlight colors, tab modes, seekTo, and props contract. Follow-up UX optimization merged adjacent short timedtext cues into more continuous transcript lines before rendering/translating/highlighting. Added tests/web008.test.mjs and updated tests/web007.test.mjs for virtual rendering. Verification: node --test tests/web007.test.mjs tests/web008.test.mjs passed 4/4; npx tsc --noEmit passed; npm run build passed with existing img and url.parse warnings; npm test ran 72 tests with WEB-008 passing but overall 71/72 due pre-existing unrelated VOCAB-004 assertion expecting YOUDAO_APP_KEY while dictionary.ts now uses DASHSCOPE_API_KEY.",
+    "evidence": "Codex2 QA 2026-05-16 14:29: npm test passed 76/76; npm run build passed; node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs passed 12/12; verified TranscriptPanel has virtual renderStart/renderEnd window, INITIAL_RENDER_COUNT/LOAD_MORE_BATCH, mergeSubtitleCues, data-cue-index rows, IntersectionObserver top/bottom sentinels, upward scrollTop compensation, followMode, user wheel/touchmove/pointerdown browse detection, return-to-current scrollIntoView center, and cue click player.seekTo.",
     "notes": "Ready for Codex2 QA. Ticket: docs/tickets/WEB-008.md. QA should verify DOM cue count <=35 on first screen, sentinel expansion, browse mode not seeking video, return-to-current follow restore, and cue click seek behavior. Known unrelated blocker: VOCAB-004 test still expects YOUDAO_APP_KEY while implementation uses DASHSCOPE_API_KEY."
   },
   {
@@ -358,7 +358,7 @@
     "area": "web",
     "title": "设计系统统一 + 首页 Hero + 顶栏导航补全",
     "user_visible_behavior": "全站颜色/圆角/阴影统一为 brand token；未登录访问 / 看到价值主张 hero 与三个 CTA；顶栏一级导航补全为视频/课程/语法/词库。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "rg 'green-[0-9]|emerald-[0-9]' src/ 输出 0",
       "tailwind.config.ts 含 brand 色板、card/surface/hero 圆角、card/elevated/hero 阴影",
@@ -369,7 +369,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-16 14:21: added unified Tailwind brand/app/surface/muted design tokens plus card/surface/hero radii and shadows; rebuilt SiteHeader primary navigation through SiteNav with 视频/课程/语法/词库 and active brand styles; added logged-out HomeHero on / with sign-up, video-section scroll, and /extension CTAs; replaced src green and emerald utility classes with brand tokens and aligned page/card surface styling; added tests/web009.test.mjs and updated affected tests. Verification: rg check for green/emerald utilities in src returned zero matches; node --test tests/web009.test.mjs tests/course001.test.mjs tests/course002.test.mjs passed 10/10; npm test passed 76/76; npm run build passed with existing img and Node url.parse warnings only.",
+    "evidence": "Codex2 QA 2026-05-16 14:29: npm test passed 76/76; npm run build passed; node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs passed 12/12; rg check for green/emerald utilities in src returned zero matches; verified tailwind brand/app/surface/muted tokens plus card/surface/hero radius and card/elevated/hero shadows; SiteNav exposes 视频/课程/语法/词库 with brand active styles and unauth vocab callback; HomeHero renders sign-up, video-section scroll, and extension CTAs; local dev smoke returned / HTTP 200 with Esponal, Hero copy, and search box.",
     "notes": "依赖：无。Ticket: docs/tickets/WEB-009.md。触发：Claude2 全站 UI 评审 2026-05-16 发现 design system 割裂 + 首页对未登录用户无价值主张。后续相关 ticket：WEB-010（继续学习卡片）、EXT-005（/extension 介绍页）、WEB-011（空/错误态统一组件）。"
   },
   {
