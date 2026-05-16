@@ -92,4 +92,5 @@ model WordEncounter {
   createdAt          DateTime @default(now())
 
   @@index([wordId])
+  @@index([sourceType, createdAt])
 }

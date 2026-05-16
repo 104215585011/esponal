@@ -378,7 +378,7 @@
     "area": "web",
     "title": "登录后首页「继续学习」卡片",
     "user_visible_behavior": "登录用户访问首页可看到上次观看的视频和上次学习的课程单元，一键回到原位置（视频按时间戳跳转、课程按 slug 跳转）。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "未登录访问 / 不显示 ContinueLearning（仍显示 HomeHero）",
       "登录无 encounter 不显示 ContinueLearning",
@@ -388,7 +388,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-16 14:42: implemented logged-in ContinueLearning homepage card using existing WordEncounter data. Added src/lib/continueLearning.ts with getLastVideoEncounter/getLastCourseEncounter, YouTube video id parsing, courseRef-to-unidad slug parsing, thumbnail/title fallback, and relative time formatting via src/lib/dates.ts. Added src/app/components/web/ContinueLearning.tsx with video and course cards, internal /watch?v=...&t=... jump via buildVideoJumpHref, /learn/unidad-N course jump, brand token styling, null render when no data, and /learn fallback card when encounter lookup fails. Updated src/app/page.tsx to render HomeHero only when logged out and ContinueLearning only for logged-in users. Added WordEncounter sourceType/createdAt index and migration 20260516143000_add_word_encounter_source_time_index. Added tests/web010.test.mjs. Verification: node --test tests/web010.test.mjs passed 4/4; npx tsc --noEmit passed; npm test passed 80/80; npm run build passed with existing img and Node url.parse warnings only.",
     "notes": "依赖 WEB-009。Ticket: docs/tickets/WEB-010.md。复用 WordEncounter 表，无需新表。注意：可能需要为 WordEncounter 加 (userId, createdAt desc) 复合索引。"
   },
   {

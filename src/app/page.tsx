@@ -1,14 +1,20 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { ContinueLearning } from "@/app/components/web/ContinueLearning";
 import { HomeHero } from "@/app/components/web/HomeHero";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { VideoCard } from "@/app/components/web/VideoCard";
 import { curatedChannels } from "@/lib/channels";
+import { getLastCourseEncounter, getLastVideoEncounter } from "@/lib/continueLearning";
 import { getAuthOptions } from "@/lib/auth";
 import { getSiteUrl } from "@/lib/site-url";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 
 export const dynamic = "force-dynamic";
+
+type SessionUserWithId = {
+  id?: string;
+};
 
 const channelDescriptions: Record<string, string> = {
   "Dreaming Spanish": "推荐入门，语速慢，适合建立可理解输入。",
@@ -37,21 +43,44 @@ async function fetchChannelVideos(channelId: string) {
 }
 
 export default async function HomePage() {
-  const [session, channelSections] = await Promise.all([
-    getServerSession(getAuthOptions()),
-    Promise.all(
-      curatedChannels.map(async (channel) => ({
-        channel,
-        videos: await fetchChannelVideos(channel.id)
-      }))
-    )
-  ]);
+  const session = await getServerSession(getAuthOptions());
+  const userId = (session?.user as SessionUserWithId | undefined)?.id;
+  let continueLearning: readonly [
+    Awaited<ReturnType<typeof getLastVideoEncounter>>,
+    Awaited<ReturnType<typeof getLastCourseEncounter>>
+  ] = [null, null];
+  let continueLearningFallback = false;
+
+  if (userId) {
+    try {
+      continueLearning = await Promise.all([
+        getLastVideoEncounter(userId),
+        getLastCourseEncounter(userId)
+      ]);
+    } catch {
+      continueLearningFallback = true;
+    }
+  }
+  const channelSections = await Promise.all(
+    curatedChannels.map(async (channel) => ({
+      channel,
+      videos: await fetchChannelVideos(channel.id)
+    }))
+  );
+  const [videoEncounter, courseEncounter] = continueLearning;
 
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
       <div className="mx-auto w-full max-w-screen-xl px-4 pb-12 pt-6">
         {!session?.user ? <HomeHero /> : null}
+        {session?.user ? (
+          <ContinueLearning
+            courseEncounter={courseEncounter}
+            fallback={continueLearningFallback}
+            videoEncounter={videoEncounter}
+          />
+        ) : null}
 
         <div id="video-sections">
           {channelSections.map(({ channel, videos }) => (

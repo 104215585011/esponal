@@ -191,3 +191,36 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 **Notes**
 - Playwright is not installed in the root project, so viewport screenshot automation was not available in this QA pass. WEB-009 responsive coverage is based on structural tests, Tailwind responsive/source inspection, build success, and HTTP smoke.
 - Worktree was clean before QA. QA updates changed only tracker/report files.
+
+---
+
+## Dev Report - Session #57 (2026-05-16 14:42) - WEB-010
+
+### Completed
+- Implemented logged-in homepage `ContinueLearning` cards.
+- Added `src/lib/continueLearning.ts` with `getLastVideoEncounter` and `getLastCourseEncounter`, querying recent `WordEncounter` records by `sourceType` and current user's words.
+- Added `src/lib/dates.ts` with `formatRelativeTime`.
+- Added `src/app/components/web/ContinueLearning.tsx` with max two cards: video continue card and course continue card.
+- Updated `src/app/page.tsx`: logged-out users still see `HomeHero`; logged-in users render `ContinueLearning` when recent video/course encounter data exists.
+- Added `@@index([sourceType, createdAt])` to `WordEncounter` and migration `20260516143000_add_word_encounter_source_time_index`.
+- Added `tests/web010.test.mjs`.
+
+### Files Changed
+- `prisma/schema.prisma`
+- `prisma/migrations/20260516143000_add_word_encounter_source_time_index/migration.sql`
+- `src/lib/dates.ts`
+- `src/lib/continueLearning.ts`
+- `src/app/components/web/ContinueLearning.tsx`
+- `src/app/page.tsx`
+- `tests/web010.test.mjs`
+- `feature_list.json`
+
+### Verification
+- `node --test tests/web010.test.mjs`: passed 4/4.
+- `npx tsc --noEmit`: passed.
+- `npm test`: passed 80/80.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse` deprecation warnings only.
+
+### Current Status
+- `WEB-010`: `ready_for_qa`.
+- Next: Codex2 should QA WEB-010. Remaining backlog after this is `EXT-005`.

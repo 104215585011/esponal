@@ -1491,3 +1491,28 @@ feature_list.json 更新：
 **Next**
 - Ready for PM/Claude2 visual review if desired.
 - Next backlog item can start after PM chooses it.
+
+### Session #57 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement WEB-010 logged-in homepage Continue Learning cards.
+
+**Completed**
+- Added `src/lib/continueLearning.ts` with recent video/course encounter queries, YouTube video id parsing, course slug parsing, thumbnail fallback, and relative time payloads.
+- Added `src/lib/dates.ts` with `formatRelativeTime`.
+- Added `src/app/components/web/ContinueLearning.tsx` with video and course cards, `/watch?v=...&t=...` and `/learn/unidad-N` jumps, and WEB-009 brand token styling.
+- Updated `src/app/page.tsx` to keep `HomeHero` for logged-out users and render ContinueLearning for logged-in users.
+- Added `WordEncounter` `@@index([sourceType, createdAt])` plus migration `20260516143000_add_word_encounter_source_time_index`.
+- Added `tests/web010.test.mjs`.
+- Updated `feature_list.json`: WEB-010 -> ready_for_qa.
+
+**Verification**
+- `node --test tests/web010.test.mjs`: passed 4/4.
+- `npx tsc --noEmit`: passed.
+- `npm test`: passed 80/80.
+- `npm run build`: passed with existing warnings only.
+
+**Next**
+- Codex2 QA WEB-010.
+- Remaining backlog: EXT-005.
