@@ -17,6 +17,8 @@ type TranscriptPanelProps = {
 type TranslateResponse = {
   translation?: string;
   degraded?: boolean;
+  rateLimited?: boolean;
+  retryAfterMs?: number;
 };
 
 type HighlightStatus = "course" | "saved" | "unknown";
@@ -552,6 +554,14 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         body: JSON.stringify({ text })
       });
 
+      if (response.status === 429) {
+        const retryAfterSec = Number(response.headers.get("Retry-After") ?? "1");
+        return {
+          rateLimited: true,
+          retryAfterMs: Math.max(1000, retryAfterSec * 1000)
+        };
+      }
+
       if (!response.ok) {
         throw new Error(`Translate request failed: ${response.status}`);
       }
@@ -577,6 +587,13 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
         try {
           const payload = await fetchTranslateOnce(text);
+
+          if (payload?.rateLimited) {
+            const delay = payload.retryAfterMs ?? TRANSLATION_RETRY_DELAYS_MS[attempt] ?? 1000;
+            await new Promise((resolve) => setTimeout(resolve, delay + Math.floor(Math.random() * 300)));
+            continue;
+          }
+
           const translation = payload?.translation?.trim();
           // Defensive: even if backend forgot to mark degraded, an output
           // without any Chinese characters is not a real translation.

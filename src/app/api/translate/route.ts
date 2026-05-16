@@ -1,5 +1,12 @@
 import { createHash, createHmac } from "node:crypto";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { getAuthOptions } from "@/lib/auth";
+import {
+  checkRateLimit,
+  getRetryAfterSec,
+  translateLimiter
+} from "@/lib/ratelimit";
 import { redis } from "@/lib/redis";
 
 const TENCENT_TMT_HOST = "tmt.tencentcloudapi.com";
@@ -143,6 +150,27 @@ async function safeCacheSet(cacheKey: string, translation: string) {
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(getAuthOptions()).catch(() => null);
+  const rateLimit = await checkRateLimit(
+    translateLimiter,
+    request,
+    session?.user && "id" in session.user && typeof session.user.id === "string"
+      ? session.user.id
+      : null
+  );
+
+  if (!rateLimit.allowed) {
+    const retryAfterSec = getRetryAfterSec(rateLimit.reset);
+
+    return NextResponse.json(
+      { error: "rate limited", retryAfterSec },
+      {
+        status: 429,
+        headers: { "Retry-After": String(retryAfterSec) }
+      }
+    );
+  }
+
   try {
     const body = (await request.json()) as { text?: unknown };
     const text = typeof body.text === "string" ? body.text.trim() : "";

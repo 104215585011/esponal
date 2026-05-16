@@ -41,6 +41,7 @@ type ButtonState = "default" | "loading" | "success" | "login" | "disabled";
 type LookupState =
   | { kind: "loading" }
   | { kind: "unsupported" }
+  | { kind: "rateLimited" }
   | {
       kind: "ready";
       lemma: string;
@@ -100,6 +101,12 @@ export function LookupCard({
         const response = await fetch(`/api/vocab/lookup?word=${encodeURIComponent(normalizedForm)}`, {
           signal: controller.signal
         });
+
+        if (response.status === 429) {
+          setLookupState({ kind: "rateLimited" });
+          setButtonState("disabled");
+          return;
+        }
 
         if (!response.ok) throw new Error(`Lookup failed: ${response.status}`);
 
@@ -189,6 +196,12 @@ export function LookupCard({
         return;
       }
 
+      if (response.status === 429) {
+        setShowLoginHint(false);
+        setButtonState("default");
+        return;
+      }
+
       if (!response.ok) throw new Error(`Save failed: ${response.status}`);
 
       setButtonState("success");
@@ -234,6 +247,8 @@ export function LookupCard({
       <div className="mt-3">
         {lookupState.kind === "loading" ? (
           <p className="text-sm text-gray-400">查询中...</p>
+        ) : lookupState.kind === "rateLimited" ? (
+          <p className="text-sm text-gray-400">查询过于频繁，请稍后再试</p>
         ) : lookupState.kind === "unsupported" ? (
           <p className="text-sm text-gray-400">暂不支持该词</p>
         ) : meanings.length > 0 ? (

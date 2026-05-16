@@ -1583,3 +1583,31 @@ feature_list.json 更新：
 
 **Next**
 - All tracked features in `feature_list.json` are passing.
+
+### Session #61 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement `OPS-002` API rate limiting to protect Tencent TMT, DashScope dictionary lookup, vocab writes, and YouTube API calls from quota burn-through.
+
+**Completed**
+- Added `@upstash/ratelimit` dependency.
+- Added `src/lib/ratelimit.ts` with IP extraction, fail-open `checkRateLimit`, `getRetryAfterSec`, and five per-route sliding-window limiters.
+- Wired rate limiting into `/api/translate`, `/api/vocab/lookup`, `/api/vocab/add`, `/api/youtube/search`, and `/api/youtube/channel`.
+- All protected routes now return `429` with `Retry-After` and `retryAfterSec` when the limiter blocks the request.
+- Updated `TranscriptPanel` to respect `Retry-After` for translate 429 responses and retry instead of treating the response as degraded source text.
+- Updated `LookupCard` to show a friendly 429 state for overly frequent lookup requests.
+- Added `tests/ops002.test.mjs`.
+- Updated `feature_list.json`: `OPS-002.status = ready_for_qa`.
+
+**Verification**
+- Baseline before work: `npm test` passed 83/83.
+- Red test: `node --test tests/ops002.test.mjs` failed before implementation for missing limiter module, route wiring, and frontend 429 handling.
+- `node --test tests/ops002.test.mjs`: passed 6/6.
+- `npx tsc --noEmit`: passed.
+- `npm test`: passed 89/89.
+- `npm run build`: passed with existing warnings only.
+
+**Next**
+- Codex2 QA `OPS-002`.
+- Remaining backlog after OPS-002: `INFRA-002`, `WEB-011`, `OPS-001`, `INFRA-003`, `INFRA-004`.

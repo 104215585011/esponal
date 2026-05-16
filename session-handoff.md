@@ -341,3 +341,37 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 **Notes**
 - Browser screenshot/UI visual acceptance was not performed in this QA pass; functional route, source contracts, package contents, and build/test gates all passed.
 - With EXT-005 passing, all tracked features in `feature_list.json` are now passing.
+
+---
+
+## Dev Report - Session #61 (2026-05-16 16:45) - OPS-002
+
+### Completed
+- Implemented API rate limiting for OPS-002.
+- Added `@upstash/ratelimit` dependency and `src/lib/ratelimit.ts`.
+- Exported five limiters: `translateLimiter`, `lookupLimiter`, `addLimiter`, `searchLimiter`, and `channelLimiter`.
+- Added `getClientIp`, `checkRateLimit`, and `getRetryAfterSec`.
+- `checkRateLimit` checks IP first and user id second when available; if the limiter/Upstash path is unavailable, it fails open.
+- Wired rate limiting into:
+  - `src/app/api/translate/route.ts`
+  - `src/app/api/vocab/lookup/route.ts`
+  - `src/app/api/vocab/add/route.ts`
+  - `src/app/api/youtube/search/route.ts`
+  - `src/app/api/youtube/channel/route.ts`
+- Each protected route returns `429` with `Retry-After` and `{ error: "rate limited", retryAfterSec }` when over quota.
+- Updated `TranscriptPanel` so `/api/translate` 429 responses respect `Retry-After` and retry without immediately degrading to source text.
+- Updated `LookupCard` so `/api/vocab/lookup` 429 responses show a friendly "查询过于频繁，请稍后再试" state.
+- Added `tests/ops002.test.mjs`.
+- Updated `feature_list.json`: `OPS-002` -> `ready_for_qa`.
+
+### Verification
+- Baseline before work: `npm test` passed 83/83.
+- Red test: `node --test tests/ops002.test.mjs` failed before implementation because `src/lib/ratelimit.ts`, route 429 handling, and frontend 429 handling were missing.
+- `node --test tests/ops002.test.mjs`: passed 6/6.
+- `npx tsc --noEmit`: passed.
+- `npm test`: passed 89/89.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+
+### Current Status
+- `OPS-002`: `ready_for_qa`.
+- Next: Codex2 should QA OPS-002, ideally including a live local 429 probe and fail-open check with missing/unavailable Upstash REST envs.

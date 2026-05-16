@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
+import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { addEncounter, createWord, getWordWithEncounters } from "@/lib/vocab";
 
 type AddVocabBody = {
@@ -26,6 +27,20 @@ export async function POST(request: Request) {
     typeof session.user.id !== "string"
   ) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const rateLimit = await checkRateLimit(addLimiter, request, session.user.id);
+
+  if (!rateLimit.allowed) {
+    const retryAfterSec = getRetryAfterSec(rateLimit.reset);
+
+    return NextResponse.json(
+      { error: "rate limited", retryAfterSec },
+      {
+        status: 429,
+        headers: { "Retry-After": String(retryAfterSec) }
+      }
+    );
   }
 
   try {

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import {
+  channelLimiter,
+  checkRateLimit,
+  getRetryAfterSec
+} from "@/lib/ratelimit";
+import {
   clampMaxResults,
   fetchYouTubeJson,
   getCachedJson,
@@ -122,6 +127,20 @@ async function fetchChannelVideos(channelId: string, maxResults: number) {
 
 export async function GET(request: Request) {
   try {
+    const rateLimit = await checkRateLimit(channelLimiter, request, null);
+
+    if (!rateLimit.allowed) {
+      const retryAfterSec = getRetryAfterSec(rateLimit.reset);
+
+      return NextResponse.json(
+        { error: "rate limited", retryAfterSec },
+        {
+          status: 429,
+          headers: { "Retry-After": String(retryAfterSec) }
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const channelId = searchParams.get("id")?.trim() ?? "";
     const maxResults = clampMaxResults(searchParams.get("maxResults"), 12);

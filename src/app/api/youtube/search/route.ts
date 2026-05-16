@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import {
+  checkRateLimit,
+  getRetryAfterSec,
+  searchLimiter
+} from "@/lib/ratelimit";
+import {
   clampMaxResults,
   fetchYouTubeJson,
   getCachedJson,
@@ -95,6 +100,20 @@ async function fetchSearchVideos(query: string, maxResults: number) {
 
 export async function GET(request: Request) {
   try {
+    const rateLimit = await checkRateLimit(searchLimiter, request, null);
+
+    if (!rateLimit.allowed) {
+      const retryAfterSec = getRetryAfterSec(rateLimit.reset);
+
+      return NextResponse.json(
+        { error: "rate limited", retryAfterSec },
+        {
+          status: 429,
+          headers: { "Retry-After": String(retryAfterSec) }
+        }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q")?.trim() ?? "";
     const maxResults = clampMaxResults(searchParams.get("maxResults"), 20);

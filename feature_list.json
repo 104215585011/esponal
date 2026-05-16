@@ -415,7 +415,7 @@
     "area": "infrastructure",
     "title": "API 限流（防 Tencent / DashScope 配额烧穿）",
     "user_visible_behavior": "匿名爬虫或前端 bug 无法在短时间内消耗掉翻译 / 词典 / YouTube API 的配额；超限用户看到「请稍后再试」而不是 500。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "src/lib/ratelimit.ts 存在并 export 五个 limiter + checkRateLimit + getClientIp",
       "/api/translate /api/vocab/lookup /api/vocab/add /api/youtube/search /api/youtube/channel 都接入限流",
@@ -425,7 +425,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-16 16:45: added @upstash/ratelimit dependency, src/lib/ratelimit.ts with five route limiters plus checkRateLimit/getClientIp fail-open behavior, wired /api/translate, /api/vocab/lookup, /api/vocab/add, /api/youtube/search, and /api/youtube/channel to return 429 with Retry-After when limited, updated TranscriptPanel 429 retry/backoff handling, updated LookupCard friendly 429 state, and added tests/ops002.test.mjs. Verification: node --test tests/ops002.test.mjs passed 6/6; npx tsc --noEmit passed; npm test passed 89/89; npm run build passed with existing warnings only.",
     "notes": "依赖：无（复用现有 Upstash Redis）。Ticket: docs/tickets/OPS-002.md。P0 因为可被外部薅垮配额。"
   },
   {
