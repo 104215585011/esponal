@@ -371,5 +371,42 @@
     ],
     "evidence": "",
     "notes": "依赖：无。Ticket: docs/tickets/WEB-009.md。触发：Claude2 全站 UI 评审 2026-05-16 发现 design system 割裂 + 首页对未登录用户无价值主张。后续相关 ticket：WEB-010（继续学习卡片）、EXT-005（/extension 介绍页）、WEB-011（空/错误态统一组件）。"
+  },
+  {
+    "id": "WEB-010",
+    "priority": 23,
+    "area": "web",
+    "title": "登录后首页「继续学习」卡片",
+    "user_visible_behavior": "登录用户访问首页可看到上次观看的视频和上次学习的课程单元，一键回到原位置（视频按时间戳跳转、课程按 slug 跳转）。",
+    "status": "backlog",
+    "verification": [
+      "未登录访问 / 不显示 ContinueLearning（仍显示 HomeHero）",
+      "登录无 encounter 不显示 ContinueLearning",
+      "有视频 encounter 显示视频卡，链接含 &t= 跳到正确时间",
+      "有课程 encounter 显示课程卡，链接到 /learn/unidad-N",
+      "两种 encounter 都有时并排显示两张卡",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-009。Ticket: docs/tickets/WEB-010.md。复用 WordEncounter 表，无需新表。注意：可能需要为 WordEncounter 加 (userId, createdAt desc) 复合索引。"
+  },
+  {
+    "id": "EXT-005",
+    "priority": 24,
+    "area": "extension",
+    "title": "Web 端 /extension 插件介绍 + 下载页",
+    "user_visible_behavior": "/extension 页面展示 Chrome 插件的核心特性、安装步骤、FAQ；提供 .zip/.crx 下载，让 Web 用户能发现并安装插件。",
+    "status": "backlog",
+    "verification": [
+      "/extension 页面返回 200，含 hero、三特性、步骤、FAQ",
+      "下载链接指向 /extension/esponal-extension.zip 且文件可下载",
+      "WEB-009 Hero 的「安装 Chrome 插件」CTA 跳到此页",
+      "文案/配色/圆角符合 WEB-009 design token",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-009（共享 design token + Hero CTA 落地点）。Ticket: docs/tickets/EXT-005.md。新增 extension/scripts/package.mjs 打包脚本。.pem 私钥不入 git。"
   }
 ]
