@@ -415,7 +415,7 @@
     "area": "infrastructure",
     "title": "API 限流（防 Tencent / DashScope 配额烧穿）",
     "user_visible_behavior": "匿名爬虫或前端 bug 无法在短时间内消耗掉翻译 / 词典 / YouTube API 的配额；超限用户看到「请稍后再试」而不是 500。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "src/lib/ratelimit.ts 存在并 export 五个 limiter + checkRateLimit + getClientIp",
       "/api/translate /api/vocab/lookup /api/vocab/add /api/youtube/search /api/youtube/channel 都接入限流",
@@ -425,7 +425,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-16 16:45: added @upstash/ratelimit dependency, src/lib/ratelimit.ts with five route limiters plus checkRateLimit/getClientIp fail-open behavior, wired /api/translate, /api/vocab/lookup, /api/vocab/add, /api/youtube/search, and /api/youtube/channel to return 429 with Retry-After when limited, updated TranscriptPanel 429 retry/backoff handling, updated LookupCard friendly 429 state, and added tests/ops002.test.mjs. Verification: node --test tests/ops002.test.mjs passed 6/6; npx tsc --noEmit passed; npm test passed 89/89; npm run build passed with existing warnings only.",
+    "evidence": "Codex2 QA 2026-05-16 21:51: npm test passed 93/93; npm run build passed with existing <img> lint warnings and Node url.parse deprecation warnings only; node --test tests/ops002.test.mjs tests/infra002.test.mjs passed 10/10; source verification confirmed src/lib/ratelimit.ts exports translate/lookup/add/search/channel limiters, getClientIp, checkRateLimit fail-open, and getRetryAfterSec; /api/translate, /api/vocab/lookup, /api/vocab/add, /api/youtube/search, and /api/youtube/channel all call checkRateLimit and return 429 with Retry-After; TranscriptPanel and LookupCard handle response.status === 429 with retry/friendly state.",
     "notes": "依赖：无（复用现有 Upstash Redis）。Ticket: docs/tickets/OPS-002.md。P0 因为可被外部薅垮配额。"
   },
   {
@@ -434,7 +434,7 @@
     "area": "infrastructure",
     "title": "编码规范 lint + 仓库扫雷",
     "user_visible_behavior": "开发者无法 commit 含乱码 / 非 UTF-8 / CRLF 的文件；仓库内残留乱码全部清掉。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "scripts/check-encoding.mjs 存在，全仓库跑退出码 0",
       ".gitattributes 含 eol=lf",
@@ -443,7 +443,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-16 17:10: added scripts/check-encoding.mjs, scripts/install-git-hooks.mjs, .gitattributes, .githooks/pre-commit, package lint:encoding/prepare scripts, tests/infra002.test.mjs, configured core.hooksPath=.githooks, normalized existing CRLF text files to LF, and kept known historical/generated mojibake allowlist for claude-progress.md, docs/tickets/INFRA-002.md, extension/lemma-dict.json, and src/lib/dictionary.ts. Verification: red test failed before implementation; node --test tests/infra002.test.mjs passed 4/4; npm run lint:encoding passed; npm test passed 93/93; npm run build passed with existing warnings only.",
+    "evidence": "Codex2 QA 2026-05-16 21:51: npm test passed 93/93; npm run build passed with existing warnings only; npm run lint:encoding returned Encoding check passed; node --test tests/ops002.test.mjs tests/infra002.test.mjs passed 10/10; INFRA-002 targeted tests verified full repository encoding scan, temporary mojibake/UTF-16/CRLF rejection, .gitattributes eol=lf, .githooks/pre-commit running npm run lint:encoding and npm test, git config core.hooksPath=.githooks, and allowlist entries for claude-progress.md, docs/tickets/INFRA-002.md, extension/lemma-dict.json, and src/lib/dictionary.ts.",
     "notes": "依赖：无。Ticket: docs/tickets/INFRA-002.md。基于历史教训（lemma-dict 全 ?、VocabAccordion 乱码注释）。"
   },
   {
@@ -452,7 +452,7 @@
     "area": "web",
     "title": "空态 / 错误态统一组件",
     "user_visible_behavior": "全站每个「没数据」「加载失败」「不支持」场景的视觉、文案、操作引导一致。",
-    "status": "backlog",
+    "status": "needs_fix",
     "verification": [
       "src/app/components/ui/EmptyState.tsx 存在",
       "六个目标页面/组件迁移到共享组件（vocab/watch/transcript/lookup/learn/search）",
@@ -461,8 +461,8 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
-    "notes": "依赖 WEB-009 ✅。Ticket: docs/tickets/WEB-011.md。Claude2 UI 评审里点名的不一致问题。"
+    "evidence": "Codex1 Dev 2026-05-16 22:00: added shared src/app/components/ui/EmptyState.tsx with empty/error/loading-failed kinds, action href/onClick, and sm/md/lg sizes; migrated VocabAccordion, watch/page, TranscriptPanel, LookupCard, learn/page, and search/page to the shared component; updated vocab-ui expectations and added tests/web011.test.mjs. Verification: red test node --test tests/web011.test.mjs failed before implementation because EmptyState was missing and old hard-coded copy remained; node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs passed 15/15; npm test passed 96/96; npm run build passed with existing <img> and Node url.parse warnings only; npx tsc --noEmit passed after build regenerated .next/types; npm run lint:encoding passed. Codex2 QA 2026-05-16 22:20: functional QA passed; npm test passed 96/96; targeted node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs passed 15/15; npm run build passed with existing <img> and Node url.parse warnings only; source contract check confirmed EmptyState API plus six target imports/renders; rg confirmed old hard-coded strings absent from the six target files; local HTTP smoke on port 3015 returned /watch 200 with empty-state copy, /search 200 with empty-result copy, /learn 200, and /vocab 307 unauth redirect. Because WEB-011 is a UI ticket, status remains ready_for_qa pending Claude2 visual acceptance.",
+    "notes": "依赖 WEB-009 ✅。Ticket: docs/tickets/WEB-011.md。Claude2 UI 评审里点名的不一致问题。 | Claude2 UI 验收 2026-05-16: 结构通过，文案/token/一致性 OK；2 处 P1 视觉问题待修：(1) TranscriptPanel 无字幕场景错用 kind=error 橙色叹号 → 应改 kind=empty 并去掉「暂时」(2) EmptyIcon 三档 strokeWidth 不一致 (3/5/7) → 统一为 3。回修 ticket: docs/tickets/WEB-011-FIX.md。两项 P2 polish 延后。"
   },
   {
     "id": "OPS-001",
