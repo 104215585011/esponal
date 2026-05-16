@@ -4,6 +4,42 @@
 
 ---
 
+## PM Report — Session #55（2026-05-16）
+
+### 本轮完成
+- Claude2 对 WEB-011 走完 UI 视觉验收（先报告 2 处 P1）
+- Codex1 修完 P1，Claude2 终验通过，WEB-011 → `passing`（commit `4d94cc2`，97/97 测试）
+- INFRA-002 的 pre-commit 钩子在两次 commit 中自动跑了 encoding lint + 全套测试，guardrails 生效
+- 派出剩余三个 P2 硬化 ticket 给 Codex1 并行执行
+
+### 派给 Codex1 — 三票并行（完全独立、文件不重叠）
+
+**OPS-001 — Sentry 错误监控**
+- Ticket: `docs/tickets/OPS-001.md`
+- 触动：`next.config.mjs`、`sentry.*.config.ts`（新建）、`src/lib/monitor.ts`（新建）、四个 API route 的 catch、`.env.example`
+- 注意：DSN 通过 Vercel env 注入，本地无 DSN 时 SDK 自动 no-op，不能阻塞开发
+
+**INFRA-003 — Playwright E2E 三条关键路径**
+- Ticket: `docs/tickets/INFRA-003.md`
+- 触动：`playwright.config.ts`、`tests/e2e/*.spec.ts`（新建）、`scripts/seed-e2e-user.mjs`（新建）、给 `VideoCard` / `TranscriptPanel` / `LookupCard` / `VocabAccordion` 加 `data-testid`
+- 注意：`npm test` 仍只跑 node --test；E2E 单独 `npm run test:e2e`
+
+**INFRA-004 — GitHub Actions CI**
+- Ticket: `docs/tickets/INFRA-004.md`
+- 触动：`.github/workflows/ci.yml`（新建）、`package.json` 加 `ci:local`
+- 注意：branch protection 由 PM 手动开启；INFRA-002 / INFRA-003 完成后 workflow 里对应 job 自动接入
+
+### Codex2 任务
+- 等 Codex1 提交三票后依次 QA（顺序无所谓）
+- 重点：OPS-001 验真实事件接收，INFRA-004 验 PR 红/绿
+
+### 下一步
+- Codex1：三票并行开工
+- Codex2：等 ready_for_qa
+- PM：三票全 passing 后开始下一阶段规划（用户灰度 / 学习数据可视化 / SRS）
+
+---
+
 ## PM Report — Session #53（2026-05-16）
 
 ### 本轮完成
