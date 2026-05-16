@@ -1611,3 +1611,34 @@ feature_list.json 更新：
 **Next**
 - Codex2 QA `OPS-002`.
 - Remaining backlog after OPS-002: `INFRA-002`, `WEB-011`, `OPS-001`, `INFRA-003`, `INFRA-004`.
+
+### Session #62 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement `INFRA-002` encoding lint and repository guardrails.
+
+**Completed**
+- Added `scripts/check-encoding.mjs` to scan UTF-8 validity, BOM, CRLF, JSON parseability, and mojibake hints.
+- Added `scripts/install-git-hooks.mjs`.
+- Added `.gitattributes` with LF normalization.
+- Added versioned `.githooks/pre-commit` that runs `npm run lint:encoding` and `npm test`.
+- Added `lint:encoding` and `prepare` scripts to `package.json`.
+- Configured local `core.hooksPath` to `.githooks`.
+- Added `tests/infra002.test.mjs`.
+- Normalized existing CRLF text files to LF.
+- Updated `feature_list.json`: `INFRA-002.status = ready_for_qa`.
+
+**Verification**
+- Red test: `node --test tests/infra002.test.mjs` failed before implementation because the script, attributes file, hook, and git hook config were missing.
+- `node --test tests/infra002.test.mjs`: passed 4/4.
+- `npm run lint:encoding`: passed.
+- `npm test`: passed 93/93.
+- `npm run build`: passed with existing warnings only.
+
+**Notes**
+- The checker allowlists known historical/generated mojibake files for this ticket: `claude-progress.md`, `docs/tickets/INFRA-002.md`, `extension/lemma-dict.json`, and `src/lib/dictionary.ts`. `lemma-dict.json` remains a separate content-quality problem for VOCAB-005.
+
+**Next**
+- Codex2 QA `INFRA-002`.
+- Remaining backlog after INFRA-002: `WEB-011`, `OPS-001`, `INFRA-003`, `INFRA-004`.

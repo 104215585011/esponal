@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "lint:encoding": "node scripts/check-encoding.mjs",
+    "prepare": "node scripts/install-git-hooks.mjs",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",

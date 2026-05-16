@@ -375,3 +375,37 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 ### Current Status
 - `OPS-002`: `ready_for_qa`.
 - Next: Codex2 should QA OPS-002, ideally including a live local 429 probe and fail-open check with missing/unavailable Upstash REST envs.
+
+---
+
+## Dev Report - Session #62 (2026-05-16 17:10) - INFRA-002
+
+### Completed
+- Implemented encoding/lint guardrails for INFRA-002.
+- Added `scripts/check-encoding.mjs`.
+- Added `scripts/install-git-hooks.mjs`.
+- Added `.gitattributes` with `* text=auto eol=lf`.
+- Added versioned `.githooks/pre-commit` that runs `npm run lint:encoding` and `npm test`.
+- Added `package.json` scripts:
+  - `lint:encoding`: `node scripts/check-encoding.mjs`
+  - `prepare`: `node scripts/install-git-hooks.mjs`
+- Configured this workspace with `git config core.hooksPath .githooks`.
+- Added `tests/infra002.test.mjs`.
+- Normalized existing CRLF text files to LF.
+- Encoding checker currently allowlists known historical/generated mojibake surfaces that are not fixed in this ticket:
+  - `claude-progress.md`
+  - `docs/tickets/INFRA-002.md`
+  - `extension/lemma-dict.json`
+  - `src/lib/dictionary.ts`
+- Updated `feature_list.json`: `INFRA-002` -> `ready_for_qa`.
+
+### Verification
+- Red test: `node --test tests/infra002.test.mjs` failed before implementation because `.gitattributes`, `scripts/check-encoding.mjs`, `.githooks/pre-commit`, and `core.hooksPath` were missing.
+- `node --test tests/infra002.test.mjs`: passed 4/4.
+- `npm run lint:encoding`: passed.
+- `npm test`: passed 93/93.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+
+### Current Status
+- `INFRA-002`: `ready_for_qa`.
+- Next: Codex2 should QA INFRA-002, including temporary bad UTF-8/UTF-16/CRLF files and a pre-commit rejection check.

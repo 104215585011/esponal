@@ -434,7 +434,7 @@
     "area": "infrastructure",
     "title": "编码规范 lint + 仓库扫雷",
     "user_visible_behavior": "开发者无法 commit 含乱码 / 非 UTF-8 / CRLF 的文件；仓库内残留乱码全部清掉。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "scripts/check-encoding.mjs 存在，全仓库跑退出码 0",
       ".gitattributes 含 eol=lf",
@@ -443,7 +443,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-16 17:10: added scripts/check-encoding.mjs, scripts/install-git-hooks.mjs, .gitattributes, .githooks/pre-commit, package lint:encoding/prepare scripts, tests/infra002.test.mjs, configured core.hooksPath=.githooks, normalized existing CRLF text files to LF, and kept known historical/generated mojibake allowlist for claude-progress.md, docs/tickets/INFRA-002.md, extension/lemma-dict.json, and src/lib/dictionary.ts. Verification: red test failed before implementation; node --test tests/infra002.test.mjs passed 4/4; npm run lint:encoding passed; npm test passed 93/93; npm run build passed with existing warnings only.",
     "notes": "依赖：无。Ticket: docs/tickets/INFRA-002.md。基于历史教训（lemma-dict 全 ?、VocabAccordion 乱码注释）。"
   },
   {
