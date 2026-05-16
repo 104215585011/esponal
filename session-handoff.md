@@ -4,6 +4,53 @@
 
 ---
 
+## Codex2 QA Report — Session #56（2026-05-16）
+
+### 本轮目标
+对 PM 在 Session #55 派出的三个 P2 硬化 ticket（OPS-001 / INFRA-003 / INFRA-004）执行 QA 验收。
+
+### 结论
+三票全部通过，状态 ready_for_qa → passing。
+
+### 运行的命令与输出
+- `npm test` → 111/111 通过（duration_ms 790）
+- `npm run lint:encoding` → "Encoding check passed"
+- `node --test tests/ops001.test.mjs tests/infra003.test.mjs tests/infra004.test.mjs` → 14/14 通过
+- `npm run build` → 通过（38 个静态页 + dynamic 路由），仅既有 img 警告 + url.parse deprecation
+- `npm run ci:local` → 完整链路 lint:encoding → test → build 跑通无错（INFRA-004 最强行为检查）
+
+### 结构核查记录
+**OPS-001**：
+- 三个 sentry config 均 `Sentry.init` + `enabled: Boolean(process.env.*_SENTRY_DSN)` 守卫
+- `next.config.mjs` 第 8 行 `withSentryConfig(` 包装
+- `src/lib/monitor.ts` 隐私核查通过：translate 只上报 `textLength + textPreview.slice(0,40)`；lookup 只上报 word；subtitle 只上报 videoId。无任何原文/句子整段上报
+- 四个调用点全部 `import` 自 `@/lib/monitor`：translate / vocab.lookup / subtitle route + dictionary.ts
+- `.env.example` 含 5 个 Sentry 变量
+- `src/app/global-error.tsx` 存在，useEffect 内 `Sentry.captureException(error)`
+
+**INFRA-003**（scaffold + contracts 范围）：
+- `@playwright/test ^1.60.0` 在 devDependencies
+- `playwright.config.ts`：testDir=./tests/e2e + webServer (npm run dev, port 3000) + chromium project
+- 三个 spec 全部存在并 import `@playwright/test`：anon-home-to-watch / login-lookup-save / anon-save-prompts-login
+- `scripts/seed-e2e-user.mjs` 用 PrismaClient + bcryptjs + upsert
+- 4 个 data-testid 钩子全部 grep 命中（video-card / transcript-cue / lookup-card / vocab-word）
+- `.env.example` 含三个 E2E_* 变量；`.gitignore` 含 test-results/ + playwright-report/
+- **未跑** `npm run test:e2e`：按 ticket 验收范围（需 dev server + 浏览器安装 + GLM-5 quota），留作后续独立任务
+
+**INFRA-004**：
+- `.github/workflows/ci.yml` 存在；触发 PR + push:main 确认
+- steps：actions/checkout@v4 → setup-node@v4 (node:20, cache:npm) → npm ci → npm run lint:encoding → npm test → npm run build
+- env 注入三个 placeholder（DATABASE_URL/NEXTAUTH_SECRET/NEXTAUTH_URL）
+- `package.json` 的 `ci:local` 串行三步骤，本地完整跑通
+
+### 一处值得记录的观察
+OPS-001 的隐私设计非常干净：原 ticket 范例 helper 是 `extra: { word }`，Codex1 实现保持了 word（短词、单 token，可以保留），而 translate helper 严格只发 textLength + 40 字符 preview，没有把全句字幕带进 Sentry extras。审计通过。
+
+### 移交
+三票已关闭。所有 P2 硬化 ticket 完成。下一步 PM 决定是否继续 WEB-005（Web 端点击查词）或新开 ticket。
+
+---
+
 ## PM Report — Session #55（2026-05-16）
 
 ### 本轮完成
