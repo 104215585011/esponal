@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import EmptyState from "@/app/components/ui/EmptyState";
 
 type LookupSource =
   | {
@@ -248,9 +249,19 @@ export function LookupCard({
         {lookupState.kind === "loading" ? (
           <p className="text-sm text-gray-400">查询中...</p>
         ) : lookupState.kind === "rateLimited" ? (
-          <p className="text-sm text-gray-400">查询过于频繁，请稍后再试</p>
+          <EmptyState
+            description="等一小会儿再点这个词"
+            kind="loading-failed"
+            size="sm"
+            title="查询过于频繁"
+          />
         ) : lookupState.kind === "unsupported" ? (
-          <p className="text-sm text-gray-400">暂不支持该词</p>
+          <EmptyState
+            description="可能是少见词或拼写差异"
+            kind="error"
+            size="sm"
+            title="暂时查不到这个词"
+          />
         ) : meanings.length > 0 ? (
           <ol className="space-y-1 pl-4 text-sm text-gray-700" style={{ listStyleType: "decimal" }}>
             {meanings.map((meaning) => (

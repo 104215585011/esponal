@@ -1642,3 +1642,117 @@ feature_list.json 更新：
 **Next**
 - Codex2 QA `INFRA-002`.
 - Remaining backlog after INFRA-002: `WEB-011`, `OPS-001`, `INFRA-003`, `INFRA-004`.
+
+### Session #63 - 2026-05-16
+
+**Role**: Codex2 (QA)
+
+**Goal**: Batch QA `OPS-002` API rate limiting and `INFRA-002` encoding guardrails.
+
+**Completed**
+- Ran baseline `npm test`: passed 93/93.
+- Ran targeted QA tests: `node --test tests/ops002.test.mjs tests/infra002.test.mjs` passed 10/10.
+- Ran `npm run lint:encoding`: passed with `Encoding check passed`.
+- Ran `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+- Verified OPS-002 source contracts: five shared limiters, IP/user rate-limit dimensions, fail-open behavior, five protected API routes returning `429` with `Retry-After`, and frontend 429 handling in `TranscriptPanel` and `LookupCard`.
+- Verified INFRA-002 source contracts: `.gitattributes` LF normalization, `.githooks/pre-commit` running encoding lint and tests, `core.hooksPath=.githooks`, temporary bad encoding rejection, and known historical/generated mojibake allowlist.
+- Updated `feature_list.json`: `OPS-002` and `INFRA-002` -> `passing`.
+
+**Verification**
+- `npm test`: passed 93/93.
+- `node --test tests/ops002.test.mjs tests/infra002.test.mjs`: passed 10/10.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed with existing warnings only.
+
+**Notes**
+- No live Upstash quota exhaustion probe was run; the 429 path and fail-open behavior are covered by targeted tests and source verification.
+- Pre-commit rejection was verified through the encoding checker and hook wiring rather than making an actual commit.
+
+**Next**
+- Remaining backlog: `WEB-011`, `OPS-001`, `INFRA-003`, `INFRA-004`.
+
+### Session #64 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement `WEB-011` shared EmptyState component and migrate repeated empty/error states.
+
+**Completed**
+- Added shared `src/app/components/ui/EmptyState.tsx` with `empty`, `error`, and `loading-failed` kinds; optional `description`; optional action with `href` or `onClick`; and `sm` / `md` / `lg` sizes.
+- Migrated the six WEB-011 target surfaces to the shared component:
+  - `src/app/components/vocab/VocabAccordion.tsx`
+  - `src/app/watch/page.tsx`
+  - `src/app/watch/TranscriptPanel.tsx`
+  - `src/app/watch/LookupCard.tsx`
+  - `src/app/learn/page.tsx`
+  - `src/app/search/page.tsx`
+- Updated user-facing empty/error copy for vocab, missing video, missing subtitles, lookup failures/rate limits, course loading, and empty search results.
+- Added `tests/web011.test.mjs` and updated `tests/vocab-ui.test.mjs`.
+- Updated `feature_list.json`: `WEB-011` -> `ready_for_qa`.
+
+**Verification**
+- Baseline before work: `npm test` passed 93/93.
+- Red test: `node --test tests/web011.test.mjs` failed before implementation because the shared component was missing and old hard-coded copy remained.
+- `node --test tests/web011.test.mjs`: passed 3/3.
+- `node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs`: passed 15/15.
+- `npm test`: passed 96/96.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+- `npx tsc --noEmit`: passed after build regenerated `.next/types`.
+- `npm run lint:encoding`: passed.
+
+**Next**
+- Codex2 should QA `WEB-011`.
+- Remaining backlog after WEB-011: `OPS-001`, `INFRA-003`, `INFRA-004`.
+
+### Session #65 - 2026-05-16
+
+**Role**: Codex2 (QA)
+
+**Goal**: Functional QA for `WEB-011` shared EmptyState migration.
+
+**Completed**
+- Verified `WEB-011` is the current ready-for-QA feature.
+- Ran full and targeted automated tests.
+- Verified the shared `EmptyState` API contract and all six target imports/renders.
+- Verified old hard-coded empty/error strings are absent from the six target files.
+- Ran local HTTP smoke for `/watch`, `/search`, `/learn`, and `/vocab`.
+- Updated `feature_list.json` evidence and `session-handoff.md` with the QA report.
+
+**Verification**
+- `npm test`: passed 96/96.
+- `node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs`: passed 15/15.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+- Source contract script: passed, checking 10 EmptyState API markers and 6 migrated target files.
+- `rg` old-copy scan across the six target files: no matches.
+- Local HTTP smoke on port 3015: `/watch` 200 with "没有视频可以播放"; `/search` 200 with "没找到相关视频"; `/learn` 200; `/vocab` 307 unauth redirect.
+
+**Notes**
+- Chrome is installed, but headless screenshot automation was not reliable in this desktop session: the first attempt captured `ERR_CONNECTION_REFUSED`, and later detached dev-server launches did not stay available long enough for repeat screenshots.
+- Per the QA role file for UI tasks, this is a functional QA pass. `WEB-011` remains `ready_for_qa` pending Claude2 visual acceptance.
+
+**Next**
+- Claude2 should perform final UI visual acceptance for WEB-011 empty/error states at desktop and mobile widths.
+
+### Session #66 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Fix Claude2 P1 feedback for `WEB-011` EmptyState UI acceptance.
+
+**Completed**
+- Read `docs/tickets/WEB-011-FIX.md` and verified the feedback against the current source.
+- Updated `src/app/watch/TranscriptPanel.tsx`: the no-subtitle empty state now uses `kind="empty"` and title `这个视频没有字幕`.
+- Updated `src/app/components/ui/EmptyState.tsx`: error/loading-failed SVG strokes are unified to `strokeWidth="3"`; the error dot is a filled circle with `r="3"`.
+- Added regression coverage to `tests/web011.test.mjs`.
+- Updated `feature_list.json`: `WEB-011` -> `ready_for_qa` after the P1 fix.
+
+**Verification**
+- Red test before fix: `node --test tests/web011.test.mjs` failed on the new WEB-011 fix assertion.
+- `node --test tests/web011.test.mjs`: passed 4/4 after the fix.
+- `node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web007.test.mjs`: passed 9/9.
+- `npm test`: passed 97/97.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+- `npm run lint:encoding`: passed.
+
+**Next**
+- Codex2/Claude2 should re-check WEB-011 P1 visual acceptance.

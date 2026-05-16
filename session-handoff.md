@@ -409,3 +409,174 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 ### Current Status
 - `INFRA-002`: `ready_for_qa`.
 - Next: Codex2 should QA INFRA-002, including temporary bad UTF-8/UTF-16/CRLF files and a pre-commit rejection check.
+
+---
+
+## QA Report - OPS-002 / INFRA-002
+
+**Time**: 2026-05-16 21:51
+**Tester**: Codex2
+
+**Conclusion**: Passed. `OPS-002` and `INFRA-002` are updated to `passing`.
+
+**Executed Checks**
+1. Baseline test suite
+   Command: `npm test`
+   Output summary: 93 tests, 93 pass, 0 fail.
+   Result: Pass.
+
+2. Targeted ticket tests
+   Command: `node --test tests/ops002.test.mjs tests/infra002.test.mjs`
+   Output summary: 10 tests, 10 pass, 0 fail.
+   Result: Pass.
+
+3. Encoding lint
+   Command: `npm run lint:encoding`
+   Output summary: `Encoding check passed`.
+   Result: Pass.
+
+4. Production build
+   Command: `npm run build`
+   Output summary: compiled successfully and generated 38 static pages; existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+   Result: Pass.
+
+5. OPS-002 source contract verification
+   Checked `src/lib/ratelimit.ts`, five protected API routes, `TranscriptPanel`, and `LookupCard`.
+   Evidence: `translateLimiter`, `lookupLimiter`, `addLimiter`, `searchLimiter`, `channelLimiter`, `getClientIp`, `checkRateLimit`, and `getRetryAfterSec` are present; `/api/translate`, `/api/vocab/lookup`, `/api/vocab/add`, `/api/youtube/search`, and `/api/youtube/channel` call `checkRateLimit` and return `429` with `Retry-After`; frontend handles `response.status === 429`.
+   Result: Pass.
+
+6. INFRA-002 source contract verification
+   Checked `.gitattributes`, `.githooks/pre-commit`, `scripts/check-encoding.mjs`, `package.json`, and git config.
+   Evidence: `.gitattributes` contains `* text=auto eol=lf`; pre-commit runs `npm run lint:encoding` and `npm test`; `git config core.hooksPath` returns `.githooks`; checker allowlists the known historical/generated files and rejects temporary mojibake, UTF-16, and CRLF files through targeted tests.
+   Result: Pass.
+
+**Notes**
+- No live Upstash quota exhaustion probe was run; the 429 and fail-open paths are verified by targeted tests and source contract checks.
+- Pre-commit rejection was verified through hook wiring plus the encoding checker rejection tests, not through an actual commit attempt.
+
+**Next**
+- Remaining backlog: `WEB-011`, `OPS-001`, `INFRA-003`, `INFRA-004`.
+
+---
+
+## Dev Report - Session #64 (2026-05-16 22:07) - WEB-011
+
+### Completed
+- Implemented shared EmptyState component in `src/app/components/ui/EmptyState.tsx`.
+- Supported states: `empty`, `error`, and `loading-failed`.
+- Supported action API: `action.href` renders a link, `action.onClick` renders a button.
+- Supported sizes: `sm`, `md`, and `lg`.
+- Migrated WEB-011 target files:
+  - `src/app/components/vocab/VocabAccordion.tsx`
+  - `src/app/watch/page.tsx`
+  - `src/app/watch/TranscriptPanel.tsx`
+  - `src/app/watch/LookupCard.tsx`
+  - `src/app/learn/page.tsx`
+  - `src/app/search/page.tsx`
+- Removed the old local `EmptyState` helper from `VocabAccordion`.
+- Added coverage in `tests/web011.test.mjs`; updated `tests/vocab-ui.test.mjs`.
+- Updated `feature_list.json`: `WEB-011.status = ready_for_qa`.
+
+### Files Changed
+- `src/app/components/ui/EmptyState.tsx`
+- `src/app/components/vocab/VocabAccordion.tsx`
+- `src/app/watch/page.tsx`
+- `src/app/watch/TranscriptPanel.tsx`
+- `src/app/watch/LookupCard.tsx`
+- `src/app/learn/page.tsx`
+- `src/app/search/page.tsx`
+- `tests/web011.test.mjs`
+- `tests/vocab-ui.test.mjs`
+- `feature_list.json`
+- `claude-progress.md`
+- `session-handoff.md`
+
+### Verification
+- Baseline before production changes: `npm test` passed 93/93.
+- Red test: `node --test tests/web011.test.mjs` failed before implementation because the shared EmptyState file was absent and old hard-coded empty/error copy remained.
+- `node --test tests/web011.test.mjs`: passed 3/3.
+- `node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs`: passed 15/15.
+- `npm test`: passed 96/96.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+- `npx tsc --noEmit`: passed after build regenerated `.next/types`.
+- `npm run lint:encoding`: passed.
+
+### Current Status
+- `WEB-011`: `ready_for_qa`.
+- Next: Codex2 should QA WEB-011 by checking shared component API, all six migrated target files, removal of old duplicate copy in those targets, and no regression in vocab/watch/search/learn empty paths.
+
+---
+
+## QA Report - WEB-011 Shared EmptyState
+
+**Time**: 2026-05-16 22:20
+**Tester**: Codex2
+
+**Conclusion**: Functional QA passed. Because WEB-011 is a UI ticket, final visual acceptance still belongs to Claude2; `feature_list.json` status is intentionally left as `ready_for_qa`.
+
+**Executed Checks**
+1. Baseline test suite
+   Command: `npm test`
+   Output summary: 96 tests, 96 pass, 0 fail.
+   Result: Pass.
+
+2. Targeted regression tests
+   Command: `node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs`
+   Output summary: 15 tests, 15 pass, 0 fail.
+   Result: Pass.
+
+3. Production build
+   Command: `npm run build`
+   Output summary: compiled successfully and generated 38 static pages; existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+   Result: Pass.
+
+4. Shared component API and migration source verification
+   Command: temporary Node source-contract script.
+   Output summary: `{ "ok": true, "targets": 6, "emptyStateApiChecks": 10 }`
+   Evidence: `src/app/components/ui/EmptyState.tsx` exposes the required API markers; all six target files import and render the shared `EmptyState`.
+   Result: Pass.
+
+5. Old hard-coded copy scan
+   Command: `rg -n "暂无字幕|缺少视频参数|暂不支持该词|还没有遭遇过词汇|没有找到匹配的视频" src/app/components/vocab/VocabAccordion.tsx src/app/watch/page.tsx src/app/watch/TranscriptPanel.tsx src/app/watch/LookupCard.tsx src/app/learn/page.tsx src/app/search/page.tsx`
+   Output summary: no matches; `rg` exited 1 because nothing matched.
+   Result: Pass.
+
+6. Local HTTP smoke
+   Command: temporary dev server on port 3015 with HTTP probes.
+   Output summary: `/watch` returned 200 and contained `没有视频可以播放`; `/search` returned 200 and contained `没找到相关视频`; `/learn` returned 200; `/vocab` returned 307 for unauthenticated redirect.
+   Result: Pass.
+
+**Notes**
+- Chrome exists locally, but headless screenshot automation was unreliable in this desktop session: initial screenshots captured `ERR_CONNECTION_REFUSED`, and later detached dev-server attempts did not stay ready long enough for repeat screenshots.
+- Functional QA did not find a regression. Claude2 should still perform the final visual acceptance for desktop/mobile empty-state consistency.
+
+**Next**
+- Claude2 UI acceptance for WEB-011.
+
+---
+
+## Dev Fix Report - WEB-011-FIX EmptyState P1
+
+**Time**: 2026-05-16 22:55
+**Developer**: Codex1
+
+**Completed**
+- Fixed Claude2 P1 feedback from `docs/tickets/WEB-011-FIX.md`.
+- `src/app/watch/TranscriptPanel.tsx`: no-subtitle state now uses `kind="empty"` and title `这个视频没有字幕`.
+- `src/app/components/ui/EmptyState.tsx`: all SVG stroke widths are unified to `strokeWidth="3"`; the error icon dot is now `<circle cx="48" cy="68" r="3" fill="currentColor" />`.
+- `tests/web011.test.mjs`: added regression coverage for the neutral no-subtitle state and consistent icon stroke weights.
+- `feature_list.json`: `WEB-011.status = ready_for_qa`.
+
+**Verification**
+- Red test before fix: `node --test tests/web011.test.mjs` failed on the new WEB-011 fix assertion.
+- `node --test tests/web011.test.mjs`: passed 4/4.
+- `node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web007.test.mjs`: passed 9/9.
+- `rg -n 'strokeWidth="[57]"' src/app/components/ui/EmptyState.tsx`: no matches.
+- `rg -n 'kind="error"|这个视频暂时没有字幕|这个视频没有字幕' src/app/watch/TranscriptPanel.tsx`: only `title="这个视频没有字幕"` matched.
+- `npm test`: passed 97/97.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
+- `npm run lint:encoding`: passed.
+
+**Current Status**
+- `WEB-011`: `ready_for_qa`.
+- Next: Codex2/Claude2 should re-check the two P1 UI acceptance points.

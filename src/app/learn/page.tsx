@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EmptyState from "@/app/components/ui/EmptyState";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAllUnits } from "@/lib/curriculum";
 
@@ -37,13 +38,20 @@ export default function LearnOverviewPage() {
           </div>
         </section>
 
-        <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {units.map((unit) => (
-            <Link
-              className="group rounded-hero border border-brand-100 bg-surface p-5 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-elevated"
-              href={`/learn/${unit.slug}`}
-              key={unit.id}
-            >
+        {units.length === 0 ? (
+          <EmptyState
+            description="请稍后刷新"
+            kind="empty"
+            title="课程内容加载中"
+          />
+        ) : (
+          <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {units.map((unit) => (
+              <Link
+                className="group rounded-hero border border-brand-100 bg-surface p-5 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-elevated"
+                href={`/learn/${unit.slug}`}
+                key={unit.id}
+              >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">
@@ -87,9 +95,10 @@ export default function LearnOverviewPage() {
                 <span>进入单元</span>
                 <span className="transition group-hover:translate-x-0.5">→</span>
               </div>
-            </Link>
-          ))}
-        </section>
+              </Link>
+            ))}
+          </section>
+        )}
       </div>
     </main>
   );

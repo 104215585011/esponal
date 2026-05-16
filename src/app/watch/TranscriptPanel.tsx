@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import EmptyState from "@/app/components/ui/EmptyState";
 import { LookupCard } from "./LookupCard";
 
 type SubtitleCue = {
@@ -874,9 +875,11 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         tabIndex={0}
       >
         {showEmptyState ? (
-          <div className="flex h-full items-center justify-center px-6 text-sm text-gray-400">
-            暂无字幕
-          </div>
+          <EmptyState
+            description="Esponal 只能在有字幕的视频上工作"
+            kind="empty"
+            title="这个视频没有字幕"
+          />
         ) : (
           <>
             <div ref={topSentinelRef} />

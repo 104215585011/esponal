@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import EmptyState from "@/app/components/ui/EmptyState";
 import { buildVideoJumpHref } from "@/app/components/vocab/videoHref";
 
 export type VocabEncounter = {
@@ -56,47 +57,18 @@ const formatDividerDate = (dateValue: string) =>
 
 const getDateKey = (dateValue: string) => dateValue.slice(0, 10);
 
-function EmptyState() {
-  return (
-    <div className="flex min-h-[240px] flex-col items-center justify-center text-center">
-      <div className="mb-6 h-24 w-32 text-gray-200" aria-hidden="true">
-        <svg viewBox="0 0 128 96" fill="none" className="h-full w-full">
-          <path
-            d="M22 72C34 56 45 49 60 51C75 53 83 66 106 50"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <path
-            d="M30 31H98M38 45H78M44 60H68"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <rect
-            x="18"
-            y="18"
-            width="92"
-            height="60"
-            rx="14"
-            stroke="currentColor"
-            strokeWidth="3"
-          />
-        </svg>
-      </div>
-      <p className="text-base text-gray-500">还没有遭遇过词汇</p>
-      <p className="mt-2 text-sm text-gray-400">
-        看视频时遇到的词会自动收录到这里。
-      </p>
-    </div>
-  );
-}
-
 export default function VocabAccordion({ words }: VocabAccordionProps) {
   const [openWordId, setOpenWordId] = useState<string | null>(null);
 
   if (words.length === 0) {
-    return <EmptyState />;
+    return (
+      <EmptyState
+        action={{ href: "/", label: "去看视频" }}
+        description="看视频或学课程时遇到的词会自动收录到这里"
+        kind="empty"
+        title="生词本还空着"
+      />
+    );
   }
 
   return (

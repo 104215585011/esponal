@@ -45,9 +45,10 @@ test("vocab accordion renders reviewed row, encounter, divider, and empty states
   assert.match(component, /跳回视频/);
   assert.match(component, /min-h-\[44px\]/);
   assert.match(component, /italic/);
-  assert.match(component, /还没有遭遇过词汇/);
-  assert.match(component, /看视频时遇到的词会自动收录到这里。/);
-  assert.match(component, /min-h-\[240px\]/);
+  assert.match(component, /@\/app\/components\/ui\/EmptyState/);
+  assert.match(component, /生词本还空着/);
+  assert.match(component, /看视频或学课程时遇到的词会自动收录到这里/);
+  assert.match(component, /去看视频/);
   assert.match(component, /date divider/i);
   assert.doesNotMatch(component, /known|learning|掌握|未掌握/i);
 });

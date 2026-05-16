@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EmptyState from "@/app/components/ui/EmptyState";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { VideoCard } from "@/app/components/web/VideoCard";
 import { getSiteUrl } from "@/lib/site-url";
@@ -52,9 +53,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
 
         {videos.length === 0 ? (
-          <div className="rounded-xl border border-gray-100 bg-surface px-6 py-10 text-center text-sm text-gray-400">
-            没有找到匹配的视频
-          </div>
+          <EmptyState
+            action={{ href: "/", label: "浏览频道" }}
+            description="试试别的关键词或浏览推荐频道"
+            kind="empty"
+            title="没找到相关视频"
+          />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {videos.map((video) => (

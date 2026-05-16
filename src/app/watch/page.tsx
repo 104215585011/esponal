@@ -1,3 +1,4 @@
+import EmptyState from "@/app/components/ui/EmptyState";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getSiteUrl } from "@/lib/site-url";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
@@ -109,8 +110,14 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
                   title={videoInfo.title}
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-white/60">
-                  缺少视频参数
+                <div className="h-full bg-surface">
+                  <EmptyState
+                    action={{ href: "/", label: "回到首页" }}
+                    description="从首页选一个西语视频开始看"
+                    kind="empty"
+                    size="sm"
+                    title="没有视频可以播放"
+                  />
                 </div>
               )}
             </div>
