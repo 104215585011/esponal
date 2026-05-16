@@ -220,7 +220,7 @@ export function LookupCard({
   const phonetic = isReady ? lookupState.phonetic : null;
 
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated">
+    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated" data-testid="lookup-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">

@@ -11,6 +11,7 @@ export function VideoCard({ video, compact = false }: VideoCardProps) {
     return (
       <Link
         className="flex gap-3 rounded-lg p-2 transition hover:bg-gray-50"
+        data-testid="video-card"
         href={`/watch?v=${video.id}`}
       >
         <div className="relative h-[68px] w-[120px] shrink-0 overflow-hidden rounded-md bg-gray-200">
@@ -36,6 +37,7 @@ export function VideoCard({ video, compact = false }: VideoCardProps) {
   return (
     <Link
       className="group block w-60 shrink-0"
+      data-testid="video-card"
       href={`/watch?v=${video.id}`}
     >
       <div className="overflow-hidden rounded-lg bg-gray-100 transition duration-200 ease-out group-hover:-translate-y-[2px]">

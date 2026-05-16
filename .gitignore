@@ -11,3 +11,8 @@ extension/dist/
 *.pem
 *.tsbuildinfo
 .codex-*.log
+
+# Playwright (INFRA-003)
+test-results/
+playwright-report/
+playwright/.cache/

@@ -79,7 +79,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
         const summary = word.meanings.length > 0 ? word.meanings.join(" / ") : word.translation;
 
         return (
-          <article className="overflow-hidden rounded-xl" key={word.id}>
+          <article className="overflow-hidden rounded-xl" data-testid="vocab-word" key={word.id}>
             <button
               type="button"
               className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-100 bg-surface p-4 text-left transition-colors hover:border-gray-200"

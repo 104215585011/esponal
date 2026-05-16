@@ -895,6 +895,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
                   isActive ? "border-l-[3px] border-l-brand-600" : "border-l-[3px] border-l-transparent"
                 }`}
                 data-cue-index={index}
+                data-testid="transcript-cue"
                 key={`${cue.start}-${cue.text}`}
                 ref={(element) => { cueRefs.current[index] = element; }}
               >

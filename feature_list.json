@@ -489,7 +489,7 @@
     "area": "infrastructure",
     "title": "关键路径 E2E 测试（Playwright）",
     "user_visible_behavior": "开发者重构 UI 时不再担心打破真实用户路径——三条关键流程（看视频、查词加词库、未登录引导登录）有 E2E 保护。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "playwright.config.ts 存在",
       "tests/e2e/ 下三个 spec 全绿",
@@ -498,7 +498,7 @@
       "npm test 仍只跑 node --test（不变）",
       "npm run test:e2e 单独跑 Playwright"
     ],
-    "evidence": "",
+    "evidence": "Dev 2026-05-16 (PM 接手): @playwright/test ^1.60 已装为 devDep；playwright.config.ts 启用 chromium project + webServer (npm run dev, port 3000)；3 个 E2E spec 已写：anon-home-to-watch（首页→视频卡片→iframe + transcript-cue 渲染）、login-lookup-save（登录→点词→加入→/vocab 看到）、anon-save-prompts-login（未登录点保存→弹登录 CTA 含 callbackUrl）；scripts/seed-e2e-user.mjs 用 PrismaClient + bcrypt upsert 测试账号，幂等；VideoCard / TranscriptPanel / LookupCard / VocabAccordion 加了 data-testid 钩子；.env.example 含 E2E_USER_EMAIL / E2E_USER_PASSWORD / E2E_TEST_VIDEO_ID；.gitignore 添加 test-results/ + playwright-report/。验证：node --test tests/infra003.test.mjs 5/5；npm test 111/111；npm run build 通过。注意：E2E spec 本身需要 dev server + seed 用户 + playwright install chromium，本地/CI 单独跑 npm run test:e2e；CI 接入留给后续 INFRA-004 升级或独立 ticket。",
     "notes": "依赖：无。Ticket: docs/tickets/INFRA-003.md。E2E 慢且耗 quota，CI 上按 label 触发。"
   },
   {
