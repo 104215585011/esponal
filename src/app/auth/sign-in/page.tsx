@@ -4,16 +4,26 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { FormEvent, useEffect, useState } from "react";
 
+function safeCallbackUrl(raw: string | null): string {
+  if (!raw) return "/";
+  // Only allow same-origin internal paths to avoid open-redirect attacks
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  return "/";
+}
+
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/");
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("error") === "CredentialsSignin") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "CredentialsSignin") {
       setError("邮箱或密码错误");
     }
+    setCallbackUrl(safeCallbackUrl(params.get("callbackUrl")));
   }, []);
 
   async function handleCredentialsSignIn(event: FormEvent<HTMLFormElement>) {
@@ -24,7 +34,7 @@ export default function SignInPage() {
     const result = await signIn("credentials", {
       email,
       password,
-      callbackUrl: "/",
+      callbackUrl,
       redirect: false
     });
 
@@ -35,7 +45,7 @@ export default function SignInPage() {
       return;
     }
 
-    window.location.href = result?.url ?? "/";
+    window.location.href = result?.url ?? callbackUrl;
   }
 
   return (
@@ -57,7 +67,7 @@ export default function SignInPage() {
 
         <button
           type="button"
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={() => signIn("google", { callbackUrl })}
           className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-gray-200 bg-white px-5 py-2.5 text-[14.5px] font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm"
         >
           <svg className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">

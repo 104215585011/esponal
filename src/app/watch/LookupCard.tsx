@@ -59,6 +59,12 @@ function getCurrentUrl() {
   return window.location.href;
 }
 
+function buildSignInHref() {
+  if (typeof window === "undefined") return "/auth/sign-in";
+  const callback = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  return `/auth/sign-in?callbackUrl=${encodeURIComponent(callback)}`;
+}
+
 function getDefaultVideoSource(currentTimeSec: number | undefined, sentence: string): LookupSource {
   return {
     type: "video",
@@ -247,45 +253,46 @@ export function LookupCard({
       ) : null}
 
       <div className="mt-3 border-t border-gray-100 pt-3">
-        <button
-          className={`h-8 w-full rounded-md text-sm font-medium transition ${
-            buttonState === "default"
-              ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-              : buttonState === "loading"
-                ? "cursor-progress bg-emerald-50 text-emerald-600 opacity-70"
-                : buttonState === "success"
-                  ? "bg-emerald-50 text-emerald-600"
-                  : "cursor-default bg-gray-100 text-gray-400"
-          }`}
-          disabled={
-            !isReady ||
-            buttonState === "loading" ||
-            buttonState === "success" ||
-            buttonState === "login"
-          }
-          onClick={handleAddToVocab}
-          type="button"
-        >
-          {buttonState === "loading"
-            ? "保存中..."
-            : buttonState === "success"
-              ? "已加入词库"
-              : buttonState === "login"
-                ? "请先登录"
+        {showLoginHint ? (
+          <>
+            <p className="mb-2 text-xs text-gray-500">
+              登录后才能保存到生词本，下次还能查到
+            </p>
+            <a
+              className="block h-8 w-full rounded-md bg-emerald-500 text-center text-sm font-medium leading-8 text-white transition hover:bg-emerald-600"
+              href={buildSignInHref()}
+            >
+              登录 / 注册
+            </a>
+          </>
+        ) : (
+          <button
+            className={`h-8 w-full rounded-md text-sm font-medium transition ${
+              buttonState === "default"
+                ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                : buttonState === "loading"
+                  ? "cursor-progress bg-emerald-50 text-emerald-600 opacity-70"
+                  : buttonState === "success"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "cursor-default bg-gray-100 text-gray-400"
+            }`}
+            disabled={
+              !isReady ||
+              buttonState === "loading" ||
+              buttonState === "success"
+            }
+            onClick={handleAddToVocab}
+            type="button"
+          >
+            {buttonState === "loading"
+              ? "保存中..."
+              : buttonState === "success"
+                ? "已加入词库"
                 : lookupState.kind === "unsupported"
                   ? "无法查词"
                   : "加入我的词库"}
-        </button>
-        {showLoginHint ? (
-          <a
-            className="mt-2 block text-center text-xs text-gray-400 hover:text-gray-600"
-            href="/api/auth/signin"
-            rel="noreferrer"
-            target="_blank"
-          >
-            前往 Esponal 登录
-          </a>
-        ) : null}
+          </button>
+        )}
       </div>
     </div>
   );

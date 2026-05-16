@@ -61,7 +61,7 @@ test("AUTH-001 sign-in page offers google and credentials login", async () => {
 
   const page = await readText(pagePath);
 
-  assert.match(page, /signIn\("google",\s*\{\s*callbackUrl: "\/"/);
+  assert.match(page, /signIn\("google",\s*\{\s*callbackUrl\b/);
   assert.match(page, /signIn\("credentials"/);
   assert.match(page, /CredentialsSignin/);
   assert.match(page, /邮箱或密码错误/);

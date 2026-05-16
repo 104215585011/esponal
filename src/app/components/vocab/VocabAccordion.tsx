@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { buildVideoJumpHref } from "@/app/components/vocab/videoHref";
 
-// VOCAB-004 change timestamp: 2026-05-15 18:55
-// Legacy VOCAB-002 review strings: 閬亣 {word.encounterCount} 娆? / 璺冲洖瑙嗛 / 杩樻病鏈夐伃閬囪繃璇嶆眹 / 鐪嬭棰戞椂閬囧埌鐨勮瘝浼氳嚜鍔ㄦ敹褰曞埌杩欓噷銆?
 export type VocabEncounter = {
   id: string;
   sourceUrl: string;

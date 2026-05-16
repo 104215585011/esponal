@@ -93,10 +93,10 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelTitle, videoId);
 
   return (
-    <main className="h-screen overflow-hidden bg-[#F9FAFB]">
+    <main className="bg-[#F9FAFB] lg:h-screen lg:overflow-hidden">
       <SiteHeader />
-      <div className="relative flex h-[calc(100vh-58px)] overflow-hidden pl-7">
-        <section className="flex basis-[63%] flex-col justify-center overflow-y-auto py-8 pr-6">
+      <div className="relative flex flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:pl-7">
+        <section className="flex flex-col px-4 py-4 lg:basis-[63%] lg:justify-center lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
           <div className="w-full overflow-hidden rounded-[14px] bg-black shadow-[0_1px_3px_rgba(0,0,0,0.07),0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="aspect-video w-full">
               {videoId ? (
@@ -152,11 +152,13 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           </div>
         </section>
 
-        <section className="min-w-0 flex-1 border-l border-gray-200 bg-white">
+        <section className="h-[60vh] min-w-0 border-t border-gray-200 bg-white lg:h-auto lg:flex-1 lg:border-l lg:border-t-0">
           <TranscriptPanel iframeId={PLAYER_IFRAME_ID} videoId={videoId} />
         </section>
 
-        <RelatedPanel relatedVideos={relatedVideos} />
+        <div className="hidden lg:block">
+          <RelatedPanel relatedVideos={relatedVideos} />
+        </div>
       </div>
     </main>
   );
