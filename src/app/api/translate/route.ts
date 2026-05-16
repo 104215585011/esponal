@@ -2,6 +2,7 @@ import { createHash, createHmac } from "node:crypto";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { getAuthOptions } from "@/lib/auth";
+import { reportTranslateFailure } from "@/lib/monitor";
 import {
   checkRateLimit,
   getRetryAfterSec,
@@ -214,6 +215,7 @@ export async function POST(request: Request) {
       return NextResponse.json(payload);
     } catch (error) {
       console.error("Subtitle translation failed, falling back to source text", error);
+      reportTranslateFailure(text, error);
 
       return NextResponse.json({
         translation: text,
@@ -223,6 +225,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Subtitle translation request failed", error);
+    reportTranslateFailure("", error);
 
     return NextResponse.json({ error: "translation failed" }, { status: 400 });
   }

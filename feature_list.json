@@ -470,7 +470,7 @@
     "area": "infrastructure",
     "title": "错误监控接入（Sentry）",
     "user_visible_behavior": "PM 能在 Sentry dashboard 看到生产错误趋势、分组、用户路径，不再依赖用户截图反馈。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "sentry.{client,server,edge}.config.ts 三个文件存在",
       "src/lib/monitor.ts export reportTranslateFailure / reportLookupFailure / reportSubtitleFailure",
@@ -480,7 +480,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Dev 2026-05-16 (PM 接手 Codex1): @sentry/nextjs ^10 已安装；sentry.client/server/edge.config.ts + src/lib/monitor.ts + src/app/global-error.tsx 已创建；next.config.mjs 包了 withSentryConfig；reportTranslateFailure/reportLookupFailure/reportSubtitleFailure 三个 helper 已接入 src/app/api/translate/route.ts、src/app/api/vocab/lookup/route.ts、src/app/api/subtitle/route.ts、src/lib/dictionary.ts 共四个错误路径；.env.example 含 5 个 Sentry 变量；本地无 DSN 时 SDK 自动 no-op 不阻塞。验证：node --test tests/ops001.test.mjs 4/4 通过；npm test 101/101 通过；npm run build 通过（38 个静态页），仅保留既有 img 警告 + url.parse deprecation。",
     "notes": "依赖：无。Ticket: docs/tickets/OPS-001.md。免费额度 5K errors/month 单人项目足够。"
   },
   {

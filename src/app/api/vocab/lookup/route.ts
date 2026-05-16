@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { getAuthOptions } from "@/lib/auth";
 import { lookupDictionary } from "@/lib/dictionary";
+import { reportLookupFailure } from "@/lib/monitor";
 import {
   checkRateLimit,
   getRetryAfterSec,
@@ -37,11 +38,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "word is required" }, { status: 400 });
   }
 
-  const entry = await lookupDictionary(word);
+  try {
+    const entry = await lookupDictionary(word);
 
-  if (!entry) {
+    if (!entry) {
+      reportLookupFailure(word, new Error("dictionary returned null"));
+      return NextResponse.json({ error: "lookup failed" }, { status: 500 });
+    }
+
+    return NextResponse.json(entry);
+  } catch (error) {
+    reportLookupFailure(word, error);
     return NextResponse.json({ error: "lookup failed" }, { status: 500 });
   }
-
-  return NextResponse.json(entry);
 }

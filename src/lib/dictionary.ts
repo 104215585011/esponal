@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { reportLookupFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 
 export type DictionaryExample = {
@@ -149,7 +150,10 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
     return { ...(JSON.parse(cached) as DictionaryEntry), word, cached: true };
   }
 
-  const aiEntry = await fetchAIEntry(word, lemma, morphInfo).catch(() => null);
+  const aiEntry = await fetchAIEntry(word, lemma, morphInfo).catch((error) => {
+    reportLookupFailure(word, error);
+    return null;
+  });
 
   if (!aiEntry) {
     // Degrade: return whatever lemma-dict has (may be empty meanings)

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportSubtitleFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 
 export const dynamic = "force-dynamic";
@@ -161,6 +162,7 @@ export async function GET(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[subtitle] fetch failed:", message);
+    reportSubtitleFailure(videoId, error);
     return NextResponse.json([], { status: 200 });
   }
 }
