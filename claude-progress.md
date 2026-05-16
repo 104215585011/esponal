@@ -1562,3 +1562,24 @@ feature_list.json 更新：
 
 **Next**
 - Codex2 QA EXT-005.
+
+### Session #60 - 2026-05-16
+
+**Role**: Codex2 (QA)
+
+**Goal**: Verify EXT-005 Web `/extension` landing and download page.
+
+**Completed**
+- Ran `npm test`: passed 83/83.
+- Ran `npm run build`: passed with existing warnings only; build output includes `/extension`.
+- Ran `node --test tests/ext005.test.mjs`: passed 3/3.
+- Verified `public/extension/esponal-extension.zip`: contains `manifest.json`, `popup.html`, `lemma-dict.json`, `dist/background.js`, `dist/content.js`, and `dist/popup.js`; size is 10993 bytes.
+- Ran local smoke on port 3013: `/extension` returned 200 with hero and FAQ present; `/extension/esponal-extension.zip` returned 200 with 10993 bytes.
+- Verified source contracts: HomeHero CTA links to `/extension`, `/extension` page uses WEB-009 design tokens, extension package script exists, and signing keys/build dist are ignored.
+- Updated `feature_list.json`: EXT-005 -> passing.
+
+**Notes**
+- UI visual screenshot review was not performed in this QA pass; functional route, source contracts, package contents, and build/test gates passed.
+
+**Next**
+- All tracked features in `feature_list.json` are passing.

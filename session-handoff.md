@@ -297,3 +297,47 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 ### Current Status
 - `EXT-005`: `ready_for_qa`.
 - Next: Codex2 should QA EXT-005. All tracked features are now either `passing` or `ready_for_qa`.
+
+---
+
+## QA Report - EXT-005 Extension Landing Page
+
+**Time**: 2026-05-16 15:07
+**Tester**: Codex2
+
+**Conclusion**: Passed. `EXT-005` is updated to `passing`.
+
+**Executed Checks**
+1. Baseline test suite
+   Command: `npm test`
+   Output summary: 83 tests, 83 pass, 0 fail.
+   Result: Pass.
+
+2. Production build
+   Command: `npm run build`
+   Output summary: compiled successfully; build output includes `/extension`; existing `<img>` lint warnings and Node `url.parse` deprecation warnings only.
+   Result: Pass.
+
+3. Targeted EXT-005 tests
+   Command: `node --test tests/ext005.test.mjs`
+   Output summary: 3 tests, 3 pass, 0 fail.
+   Result: Pass.
+
+4. Extension package verification
+   Commands: `tar -tf public/extension/esponal-extension.zip`; `Get-Item public/extension/esponal-extension.zip`
+   Output summary: zip contains `manifest.json`, `popup.html`, `lemma-dict.json`, `dist/background.js`, `dist/content.js`, and `dist/popup.js`; zip size is 10993 bytes.
+   Result: Pass.
+
+5. Local HTTP smoke
+   Command: temporary `npm run dev -- -p 3013` with HTTP probes for `/extension` and `/extension/esponal-extension.zip`.
+   Output summary: `PAGE_STATUS=200`, `PAGE_HAS_HERO=True`, `PAGE_HAS_FAQ=True`, `ZIP_STATUS=200`, `ZIP_BYTES=10993`.
+   Result: Pass.
+
+6. Source contract verification
+   Checked `src/app/extension/page.tsx`, `src/app/components/web/HomeHero.tsx`, `extension/package.json`, and `.gitignore`.
+   Evidence: HomeHero CTA links to `/extension`; page uses WEB-009 brand/radius/shadow tokens; package script builds the extension zip; `.pem` signing keys and `extension/dist/` are ignored.
+   Result: Pass.
+
+**Notes**
+- Browser screenshot/UI visual acceptance was not performed in this QA pass; functional route, source contracts, package contents, and build/test gates all passed.
+- With EXT-005 passing, all tracked features in `feature_list.json` are now passing.

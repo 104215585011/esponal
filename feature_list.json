@@ -397,7 +397,7 @@
     "area": "extension",
     "title": "Web 端 /extension 插件介绍 + 下载页",
     "user_visible_behavior": "/extension 页面展示 Chrome 插件的核心特性、安装步骤、FAQ；提供 .zip/.crx 下载，让 Web 用户能发现并安装插件。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "/extension 页面返回 200，含 hero、三特性、步骤、FAQ",
       "下载链接指向 /extension/esponal-extension.zip 且文件可下载",
@@ -406,7 +406,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-16 15:00: implemented /extension landing page with SiteHeader, hero, three feature cards, installation steps, FAQ, WEB-009 brand/radius/shadow tokens, and download CTA to /extension/esponal-extension.zip. Added extension/scripts/package.mjs and extension package script to build dist and create public/extension/esponal-extension.zip without committing any signing key; updated .gitignore for *.pem and extension/dist/. Generated zip includes manifest.json, popup.html, lemma-dict.json, and bundled dist scripts; zip size 10993 bytes. Added tests/ext005.test.mjs. Verification: npm run package in extension passed; tar -tf public/extension/esponal-extension.zip listed expected files; node --test tests/ext005.test.mjs passed 3/3; npm test passed 83/83; npm run build passed and listed /extension; local dev smoke on port 3012 returned /extension 200 with hero/FAQ and zip download 200 with 10993 bytes.",
+    "evidence": "Codex2 QA 2026-05-16 15:07: npm test passed 83/83; npm run build passed and listed /extension; node --test tests/ext005.test.mjs passed 3/3; tar -tf public/extension/esponal-extension.zip listed manifest.json, popup.html, lemma-dict.json, dist/background.js, dist/content.js, and dist/popup.js; zip size is 10993 bytes. Local dev smoke on port 3013 returned /extension HTTP 200 with hero and FAQ present, plus /extension/esponal-extension.zip HTTP 200 with 10993 bytes. Source checks confirmed HomeHero CTA href=\"/extension\", page uses WEB-009 brand/radius/shadow tokens, and extension package script exists. Codex1 Dev 2026-05-16 15:00: implemented /extension landing page and dependency-free extension zip packaging.",
     "notes": "依赖 WEB-009（共享 design token + Hero CTA 落地点）。Ticket: docs/tickets/EXT-005.md。新增 extension/scripts/package.mjs 打包脚本。.pem 私钥不入 git。"
   }
 ]
