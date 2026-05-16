@@ -507,7 +507,7 @@
     "area": "infrastructure",
     "title": "CI 流水线（GitHub Actions）",
     "user_visible_behavior": "每个 PR 自动跑测试 + build，红的不能 merge；不再依赖人工本地跑。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       ".github/workflows/ci.yml 存在且 YAML 合法",
       "workflow 包含 npm test 和 npm run build 步骤",
@@ -516,7 +516,7 @@
       "故意红一个测试，PR 显示 ❌",
       "package.json 有 ci:local script"
     ],
-    "evidence": "",
+    "evidence": "Dev 2026-05-16 (PM 接手): .github/workflows/ci.yml 已创建，触发 PR + push:main，job 步骤 actions/checkout@v4 → setup-node@v4(node:20,cache:npm) → npm ci → npm run lint:encoding → npm test → npm run build；env 注入 placeholder DATABASE_URL/NEXTAUTH_SECRET 避免 Prisma/Next build 报错；concurrency 取消并发同 PR 旧 run。package.json 新增 ci:local 串行跑 lint:encoding + test + build，本地一把过。验证：node --test tests/infra004.test.mjs 5/5 通过；npm test 106/106 通过；workflow YAML 合法（actions/setup-node + npm ci + npm test + npm run build + lint:encoding 全部 grep 到）。branch protection 由 PM 手动开启。",
     "notes": "依赖：无（INFRA-002 / INFRA-003 完成后自动接入）。Ticket: docs/tickets/INFRA-004.md。branch protection 手动开启。"
   }
 ]
