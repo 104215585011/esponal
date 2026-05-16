@@ -262,3 +262,38 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 
 **Notes**
 - This QA pass did not create a browser-authenticated session fixture. Logged-in video/course/no-data states were verified through targeted tests and source contracts rather than a live authenticated browser session.
+
+---
+
+## Dev Report - Session #59 (2026-05-16 15:00) - EXT-005
+
+### Completed
+- Implemented `/extension` landing page in `src/app/extension/page.tsx`.
+- Page includes SiteHeader, hero, three feature cards, installation steps, FAQ, and a download CTA for `/extension/esponal-extension.zip`.
+- Reused WEB-009 design tokens: `brand-*`, `rounded-hero`, `rounded-card`, `shadow-card`, `shadow-hero`, and `bg-surface`.
+- Added `extension/scripts/package.mjs`, a dependency-free zip packager for the extension files.
+- Updated `extension/package.json` with `npm run package`.
+- Generated `public/extension/esponal-extension.zip`.
+- Updated `.gitignore` to ignore `*.pem` and `extension/dist/`.
+- Added `tests/ext005.test.mjs`.
+
+### Files Changed
+- `.gitignore`
+- `extension/package.json`
+- `extension/scripts/package.mjs`
+- `public/extension/esponal-extension.zip`
+- `src/app/extension/page.tsx`
+- `tests/ext005.test.mjs`
+- `feature_list.json`
+
+### Verification
+- `npm run package` in `extension/`: passed.
+- `tar -tf public/extension/esponal-extension.zip`: listed `manifest.json`, `popup.html`, `lemma-dict.json`, and bundled `dist/*.js`.
+- `node --test tests/ext005.test.mjs`: passed 3/3.
+- `npm test`: passed 83/83.
+- `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse` deprecation warnings only; build output includes `/extension`.
+- Local dev smoke on port 3012: `/extension` returned 200 with hero/FAQ; `/extension/esponal-extension.zip` returned 200 with 10993 bytes.
+
+### Current Status
+- `EXT-005`: `ready_for_qa`.
+- Next: Codex2 should QA EXT-005. All tracked features are now either `passing` or `ready_for_qa`.

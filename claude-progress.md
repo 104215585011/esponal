@@ -1536,3 +1536,29 @@ feature_list.json 更新：
 
 **Next**
 - Remaining backlog: EXT-005.
+
+### Session #59 - 2026-05-16
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement EXT-005 Web `/extension` landing and download page.
+
+**Completed**
+- Added `src/app/extension/page.tsx` with SiteHeader, hero, three features, installation steps, FAQ, and zip download CTA.
+- Added `extension/scripts/package.mjs`, a dependency-free zip packager that packages manifest, popup, lemma dictionary, and bundled dist scripts.
+- Added `extension/package.json` `package` script.
+- Generated `public/extension/esponal-extension.zip`.
+- Updated `.gitignore` for `*.pem` and `extension/dist/`.
+- Added `tests/ext005.test.mjs`.
+- Updated `feature_list.json`: EXT-005 -> ready_for_qa.
+
+**Verification**
+- `npm run package` in `extension/`: passed.
+- `tar -tf public/extension/esponal-extension.zip`: listed expected extension files.
+- `node --test tests/ext005.test.mjs`: passed 3/3.
+- `npm test`: passed 83/83.
+- `npm run build`: passed and listed `/extension`.
+- Local smoke on port 3012: `/extension` 200 and zip download 200 with 10993 bytes.
+
+**Next**
+- Codex2 QA EXT-005.
