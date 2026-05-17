@@ -1756,3 +1756,46 @@ feature_list.json 更新：
 
 **Next**
 - Codex2/Claude2 should re-check WEB-011 P1 visual acceptance.
+
+---
+
+## Dev Report - Session #67 (2026-05-17 22:30) - WEB-012
+
+### Completed
+- Investigated the missing-subtitle issue. Root cause: `/api/subtitle` depended entirely on Apify manual/ASR subtitle availability, so empty or sparse source tracks stayed empty/sparse.
+- Verified local Whisper install at `C:\Users\10421\model`:
+  - Python: `C:\Users\10421\model\.venv\Scripts\python.exe`
+  - Whisper package imports successfully.
+  - Model: `C:\Users\10421\model\models\whisper\large-v3-turbo.pt`.
+  - `ffmpeg` and global `yt-dlp` are available locally.
+- Added `scripts/transcribe-whisper.py`, which loads a configured Whisper model and emits JSON cues.
+- Added `src/lib/localWhisper.ts`, which downloads YouTube audio through `yt-dlp`, caches it under `.cache/whisper`, calls local Python Whisper, validates cues, and returns sorted subtitle cues.
+- Updated `/api/subtitle` to prefer Apify, then fall back to local Whisper when cues are empty, too few, or have a large gap; added `forceWhisper=1` for manual testing.
+- Updated `.env.example` with `LOCAL_WHISPER_*` and `YTDLP_PATH`; updated local ignored `.env` to enable this machine's Whisper install.
+- Added `tests/web012-whisper.test.mjs`.
+- Updated `feature_list.json`: `WEB-012.status = ready_for_qa`.
+
+### Files Changed
+- `.env.example`
+- `.gitignore`
+- `scripts/transcribe-whisper.py`
+- `src/lib/localWhisper.ts`
+- `src/app/api/subtitle/route.ts`
+- `tests/web012-whisper.test.mjs`
+- `feature_list.json`
+- `.env` (local ignored file only)
+- `claude-progress.md`
+- `session-handoff.md`
+
+### Verification
+- Red test before implementation: `node --test tests\web012-whisper.test.mjs` failed because the helper, script, env docs, and route fallback were missing.
+- `node --test tests\web012-whisper.test.mjs`: passed 3/3.
+- `node --test tests\web004.test.mjs tests\web007.test.mjs tests\web012-whisper.test.mjs`: passed 7/7.
+- `npm run lint:encoding`: passed.
+- `npm test`: passed 114/114.
+- `npm run build`: passed with existing `<img>` warnings, Sentry migration notices, and local Redis connection warnings only.
+- Local Whisper smoke: `scripts/transcribe-whisper.py` transcribed `public\audio\units\unidad-1\hola.mp3` with `large-v3-turbo.pt` and returned JSON cues.
+
+### Current Status
+- `WEB-012`: `ready_for_qa`.
+- Next: Codex2 should QA the subtitle fallback contract and run a live `/api/subtitle?v=...&lang=es&forceWhisper=1` check on a short YouTube video if network access is available.

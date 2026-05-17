@@ -663,3 +663,36 @@ Ticket 写好推送了：[docs/tickets/WEB-008.md](docs/tickets/WEB-008.md)
 **Current Status**
 - `WEB-011`: `ready_for_qa`.
 - Next: Codex2/Claude2 should re-check the two P1 UI acceptance points.
+## Codex1 Dev Report - WEB-012 (2026-05-17 22:30)
+
+### Goal
+Use the user's local Whisper install at `C:\Users\10421\model` to reduce missing subtitles in the web player.
+
+### Conclusion
+Implemented local Whisper fallback for `/api/subtitle`. Status: `WEB-012` is `ready_for_qa`.
+
+### What Changed
+- Added `scripts/transcribe-whisper.py` to load the configured Whisper model and output JSON cues.
+- Added `src/lib/localWhisper.ts` to call `yt-dlp`, cache downloaded YouTube audio under `.cache/whisper`, call the local Python Whisper script, and validate cue output.
+- Updated `src/app/api/subtitle/route.ts`: Apify manual/ASR still runs first; local Whisper runs when Apify output is empty, very sparse, or has a large cue gap; `forceWhisper=1` bypasses Apify for manual testing; cache key bumped to `subtitle:v4:*`.
+- Added `.env.example` documentation for `LOCAL_WHISPER_ENABLED`, `LOCAL_WHISPER_PYTHON`, `LOCAL_WHISPER_MODEL_PATH`, `LOCAL_WHISPER_CACHE_DIR`, and `YTDLP_PATH`.
+- Updated local ignored `.env` to enable this machine's Whisper install:
+  - `LOCAL_WHISPER_PYTHON=C:\Users\10421\model\.venv\Scripts\python.exe`
+  - `LOCAL_WHISPER_MODEL_PATH=C:\Users\10421\model\models\whisper\large-v3-turbo.pt`
+- Added `tests/web012-whisper.test.mjs`.
+- Updated `feature_list.json` and `claude-progress.md`.
+
+### Verification
+- `node --test tests\web012-whisper.test.mjs` passed 3/3.
+- `node --test tests\web004.test.mjs tests\web007.test.mjs tests\web012-whisper.test.mjs` passed 7/7.
+- `npm run lint:encoding` passed.
+- `npm test` passed 114/114.
+- `npm run build` passed with existing `<img>` warnings, Sentry migration notices, and local Redis connection warnings only.
+- Local Whisper smoke passed: `scripts/transcribe-whisper.py` transcribed `public\audio\units\unidad-1\hola.mp3` with `large-v3-turbo.pt` and returned JSON cues.
+
+### Next
+- Codex2 should QA `WEB-012`.
+- If network access is available, run a live short-video check with `/api/subtitle?v=VIDEO_ID&lang=es&forceWhisper=1`.
+- Do not commit `.env` or `.cache/whisper`.
+
+---

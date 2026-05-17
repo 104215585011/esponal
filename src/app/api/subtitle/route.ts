@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
+import { getLocalWhisperSubtitles } from "@/lib/localWhisper";
 import { reportSubtitleFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const APIFY_ACTOR_URL =
   "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items";
 const SUBTITLE_CACHE_TTL = 86400;
+const MIN_REASONABLE_CUE_COUNT = 6;
+const MAX_REASONABLE_CUE_GAP_SEC = 25;
 
 type SubtitleCue = {
   start: number;
@@ -198,10 +202,65 @@ async function fetchHybridSubtitles(
   return merged;
 }
 
+function getMaxCueGap(cues: SubtitleCue[]): number {
+  const sorted = [...cues].sort((a, b) => a.start - b.start);
+  let maxGap = 0;
+
+  for (let i = 1; i < sorted.length; i += 1) {
+    const previousEnd = sorted[i - 1].start + sorted[i - 1].dur;
+    maxGap = Math.max(maxGap, sorted[i].start - previousEnd);
+  }
+
+  return maxGap;
+}
+
+function shouldUseWhisperFallback(
+  cues: SubtitleCue[],
+  forceWhisper: boolean
+): boolean {
+  if (forceWhisper) return true;
+  if (cues.length === 0) return true;
+  if (cues.length < MIN_REASONABLE_CUE_COUNT) return true;
+
+  return getMaxCueGap(cues) > MAX_REASONABLE_CUE_GAP_SEC;
+}
+
+async function fetchSubtitlesWithFallback(
+  videoId: string,
+  lang: string,
+  forceWhisper: boolean
+): Promise<SubtitleCue[]> {
+  const apifyCues = forceWhisper ? [] : await fetchHybridSubtitles(videoId, lang);
+
+  if (!shouldUseWhisperFallback(apifyCues, forceWhisper)) {
+    return apifyCues;
+  }
+
+  try {
+    const whisperCues = await getLocalWhisperSubtitles(videoId, lang);
+
+    if (whisperCues.length > 0) {
+      console.log(
+        "[subtitle] Whisper fetched",
+        whisperCues.length,
+        "cues for",
+        videoId,
+        lang
+      );
+      return whisperCues;
+    }
+  } catch (error) {
+    console.warn("[subtitle] Whisper fallback failed:", error);
+  }
+
+  return apifyCues;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const videoId = searchParams.get("v")?.trim() ?? "";
   const lang = searchParams.get("lang")?.trim() || "es";
+  const forceWhisper = searchParams.get("forceWhisper") === "1";
 
   if (!videoId) {
     return NextResponse.json([], { status: 200 });
@@ -209,7 +268,7 @@ export async function GET(request: Request) {
 
   // v3: hybrid manual + ASR merge. Bump key so v2 (manual-only) caches
   // are not reused — those entries may have gaps where manual stopped.
-  const cacheKey = `subtitle:v3:${videoId}:${lang}`;
+  const cacheKey = `subtitle:v4:${videoId}:${lang}:${forceWhisper ? "whisper" : "auto"}`;
 
   try {
     const cached = await redis.get(cacheKey);
@@ -224,7 +283,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const cues = await fetchHybridSubtitles(videoId, lang);
+    const cues = await fetchSubtitlesWithFallback(videoId, lang, forceWhisper);
 
     if (cues.length > 0) {
       try {

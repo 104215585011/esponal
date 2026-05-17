@@ -518,5 +518,23 @@
     ],
     "evidence": "Dev 2026-05-16 (PM 接手): .github/workflows/ci.yml 已创建，触发 PR + push:main，job 步骤 actions/checkout@v4 → setup-node@v4(node:20,cache:npm) → npm ci → npm run lint:encoding → npm test → npm run build；env 注入 placeholder DATABASE_URL/NEXTAUTH_SECRET 避免 Prisma/Next build 报错；concurrency 取消并发同 PR 旧 run。package.json 新增 ci:local 串行跑 lint:encoding + test + build，本地一把过。验证：node --test tests/infra004.test.mjs 5/5 通过；npm test 106/106 通过；workflow YAML 合法（actions/setup-node + npm ci + npm test + npm run build + lint:encoding 全部 grep 到）。branch protection 由 PM 手动开启。 | Codex2 QA 2026-05-16: 复验通过。node --test tests/infra004.test.mjs 5/5；npm test 111/111；npm run lint:encoding 通过；npm run ci:local 完整链路（lint:encoding → test → build）跑通无错。结构核对：.github/workflows/ci.yml 存在；on.pull_request.branches=[main] + on.push.branches=[main] 确认；steps 顺序 actions/checkout@v4 → actions/setup-node@v4 (node-version:20, cache:npm) → npm ci → npm run lint:encoding → npm test → npm run build 全部齐全；env 注入 DATABASE_URL/NEXTAUTH_SECRET/NEXTAUTH_URL placeholder；package.json ci:local 脚本 = npm run lint:encoding && npm test && npm run build。未推 PR 触发真实 CI（QA 范围内最强行为检查 = ci:local，已通过）。",
     "notes": "依赖：无（INFRA-002 / INFRA-003 完成后自动接入）。Ticket: docs/tickets/INFRA-004.md。branch protection 手动开启。"
+  },
+  {
+    "id": "WEB-012",
+    "priority": 31,
+    "area": "web",
+    "title": "Local Whisper subtitle fallback",
+    "user_visible_behavior": "When YouTube/Apify subtitles are missing or sparse, the subtitle API can fall back to local Whisper transcription.",
+    "status": "ready_for_qa",
+    "verification": [
+      "src/lib/localWhisper.ts downloads YouTube audio through yt-dlp and calls the configured local Whisper Python",
+      "scripts/transcribe-whisper.py loads the configured Whisper model and returns JSON subtitle cues",
+      "/api/subtitle uses Apify first, then falls back to Whisper for empty or sparse cues, with forceWhisper=1 for manual testing",
+      ".env.example documents LOCAL_WHISPER_* and YTDLP_PATH settings",
+      "npm test passes",
+      "npm run build passes"
+    ],
+    "evidence": "Codex1 Dev 2026-05-17 22:30: added local Whisper fallback for /api/subtitle using C:\\Users\\10421\\model\\.venv\\Scripts\\python.exe and C:\\Users\\10421\\model\\models\\whisper\\large-v3-turbo.pt in local .env; node --test tests\\web012-whisper.test.mjs passed 3/3; node --test tests\\web004.test.mjs tests\\web007.test.mjs tests\\web012-whisper.test.mjs passed 7/7; npm run lint:encoding passed; npm test passed 114/114; npm run build passed with existing img/Sentry/Redis warnings only; local smoke transcribed public\\audio\\units\\unidad-1\\hola.mp3 and returned JSON cues.",
+    "notes": "Local .env enables Whisper on this machine. The .env file is intentionally ignored and not committed."
   }
 ]
