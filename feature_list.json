@@ -529,12 +529,13 @@
     "verification": [
       "src/lib/localWhisper.ts downloads YouTube audio through yt-dlp and calls the configured local Whisper Python",
       "scripts/transcribe-whisper.py loads the configured Whisper model and returns JSON subtitle cues",
+      "scripts/local-whisper-api.py exposes local Whisper as an HTTP API for Vercel via a public tunnel",
       "/api/subtitle uses Apify first, then falls back to Whisper for empty or sparse cues, with forceWhisper=1 for manual testing",
-      ".env.example documents LOCAL_WHISPER_* and YTDLP_PATH settings",
+      ".env.example documents LOCAL_WHISPER_API_*, LOCAL_WHISPER_* and YTDLP_PATH settings",
       "npm test passes",
       "npm run build passes"
     ],
-    "evidence": "Codex1 Dev 2026-05-17 22:30: added local Whisper fallback for /api/subtitle using C:\\Users\\10421\\model\\.venv\\Scripts\\python.exe and C:\\Users\\10421\\model\\models\\whisper\\large-v3-turbo.pt in local .env; node --test tests\\web012-whisper.test.mjs passed 3/3; node --test tests\\web004.test.mjs tests\\web007.test.mjs tests\\web012-whisper.test.mjs passed 7/7; npm run lint:encoding passed; npm test passed 114/114; npm run build passed with existing img/Sentry/Redis warnings only; local smoke transcribed public\\audio\\units\\unidad-1\\hola.mp3 and returned JSON cues.",
-    "notes": "Local .env enables Whisper on this machine. The .env file is intentionally ignored and not committed."
+    "evidence": "Codex1 Dev 2026-05-17 22:30: added local Whisper fallback for /api/subtitle using C:\\Users\\10421\\model\\.venv\\Scripts\\python.exe and C:\\Users\\10421\\model\\models\\whisper\\large-v3-turbo.pt in local .env; node --test tests\\web012-whisper.test.mjs passed 3/3; node --test tests\\web004.test.mjs tests\\web007.test.mjs tests\\web012-whisper.test.mjs passed 7/7; npm run lint:encoding passed; npm test passed 114/114; npm run build passed with existing img/Sentry/Redis warnings only; local smoke transcribed public\\audio\\units\\unidad-1\\hola.mp3 and returned JSON cues. Follow-up 2026-05-17 22:55: added scripts/local-whisper-api.py for Vercel access through LOCAL_WHISPER_API_URL; node --test tests\\web012-whisper.test.mjs passed 3/3; npm test passed 114/114; npm run build passed; npm run lint:encoding passed; local-whisper-api.py --help printed usage.",
+    "notes": "Local .env enables Whisper on this machine. Vercel needs a public tunnel URL pointing to the local Whisper API. The .env file is intentionally ignored and not committed."
   }
 ]

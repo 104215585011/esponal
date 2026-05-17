@@ -1799,3 +1799,13 @@ feature_list.json 更新：
 ### Current Status
 - `WEB-012`: `ready_for_qa`.
 - Next: Codex2 should QA the subtitle fallback contract and run a live `/api/subtitle?v=...&lang=es&forceWhisper=1` check on a short YouTube video if network access is available.
+
+### Follow-up - Remote Vercel Access (2026-05-17 22:55)
+- Added `scripts/local-whisper-api.py`, a dependency-free HTTP server using Python stdlib `HTTPServer`.
+- The local API exposes:
+  - `GET /health`
+  - `POST /transcribe` with JSON `{ "videoId": "...", "lang": "es" }`
+  - optional `Authorization: Bearer <token>` protection.
+- Updated `src/lib/localWhisper.ts` so Vercel can call `LOCAL_WHISPER_API_URL` first; direct local Python spawn remains as the local-dev fallback.
+- Updated `.env.example` with `LOCAL_WHISPER_API_URL`, `LOCAL_WHISPER_API_TOKEN`, and `LOCAL_WHISPER_API_TIMEOUT_MS`.
+- Verification: `node --test tests\web012-whisper.test.mjs` passed 3/3; `npm test` passed 114/114; `npm run build` passed; `npm run lint:encoding` passed; `python scripts\local-whisper-api.py --help` printed CLI usage successfully.

@@ -15,6 +15,22 @@ function isLocalWhisperEnabled() {
   return process.env.LOCAL_WHISPER_ENABLED === "1";
 }
 
+function getLocalWhisperApiConfig() {
+  const apiUrl = process.env.LOCAL_WHISPER_API_URL?.trim();
+  const apiToken = process.env.LOCAL_WHISPER_API_TOKEN?.trim();
+  const timeoutMs = Number(process.env.LOCAL_WHISPER_API_TIMEOUT_MS ?? 900000);
+
+  if (!apiUrl) {
+    return null;
+  }
+
+  return {
+    apiUrl: apiUrl.replace(/\/$/, ""),
+    apiToken,
+    timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : 900000
+  };
+}
+
 function getLocalWhisperConfig() {
   const pythonPath = process.env.LOCAL_WHISPER_PYTHON?.trim();
   const modelPath =
@@ -147,12 +163,69 @@ function parseWhisperOutput(stdout: string): LocalWhisperCue[] {
     .sort((a, b) => a.start - b.start);
 }
 
+function normalizeCueArray(input: unknown): LocalWhisperCue[] {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const cue = item as Partial<LocalWhisperCue>;
+      const start = Number(cue.start);
+      const dur = Number(cue.dur);
+      const text = String(cue.text ?? "").trim();
+
+      if (!Number.isFinite(start) || !Number.isFinite(dur) || !text) {
+        return null;
+      }
+
+      return { start, dur: Math.max(0.01, dur), text };
+    })
+    .filter((cue): cue is LocalWhisperCue => cue !== null)
+    .sort((a, b) => a.start - b.start);
+}
+
+async function fetchRemoteWhisperSubtitles(
+  videoId: string,
+  lang: string
+): Promise<LocalWhisperCue[]> {
+  const config = getLocalWhisperApiConfig();
+  if (!config) {
+    return [];
+  }
+
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (config.apiToken) {
+    headers.Authorization = `Bearer ${config.apiToken}`;
+  }
+
+  const response = await fetch(`${config.apiUrl}/transcribe`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ videoId, lang }),
+    signal: AbortSignal.timeout(config.timeoutMs)
+  });
+
+  if (!response.ok) {
+    throw new Error(`remote Whisper API returned ${response.status}`);
+  }
+
+  const payload = (await response.json()) as { cues?: unknown };
+  return normalizeCueArray(payload.cues);
+}
+
 export async function getLocalWhisperSubtitles(
   videoId: string,
   lang = "es"
 ): Promise<LocalWhisperCue[]> {
   if (!isLocalWhisperEnabled()) {
     return [];
+  }
+
+  const remoteCues = await fetchRemoteWhisperSubtitles(videoId, lang);
+  if (remoteCues.length > 0) {
+    return remoteCues;
   }
 
   const config = getLocalWhisperConfig();

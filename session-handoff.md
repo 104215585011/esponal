@@ -696,3 +696,39 @@ Implemented local Whisper fallback for `/api/subtitle`. Status: `WEB-012` is `re
 - Do not commit `.env` or `.cache/whisper`.
 
 ---
+## Codex1 Dev Report - WEB-012 Remote API Follow-up (2026-05-17 22:55)
+
+### Goal
+Make the local Whisper install usable by the Vercel deployment through a public HTTPS tunnel.
+
+### Completed
+- Added `scripts/local-whisper-api.py`, a Python stdlib `HTTPServer` wrapper around local Whisper.
+- API endpoints:
+  - `GET /health`
+  - `POST /transcribe` with `{ "videoId": "...", "lang": "es" }`
+  - optional `Authorization: Bearer <token>`.
+- Updated `src/lib/localWhisper.ts` so `LOCAL_WHISPER_API_URL` is tried first. Direct local Python spawn remains available for local dev.
+- Updated `.env.example` with `LOCAL_WHISPER_API_URL`, `LOCAL_WHISPER_API_TOKEN`, and `LOCAL_WHISPER_API_TIMEOUT_MS`.
+- Updated `tests/web012-whisper.test.mjs`.
+
+### How To Run For Vercel
+1. Start the API on the user's PC:
+   `C:\Users\10421\model\.venv\Scripts\python.exe scripts\local-whisper-api.py --host 127.0.0.1 --port 8017 --model C:\Users\10421\model\models\whisper\large-v3-turbo.pt --ytdlp C:\Users\10421\AppData\Local\Python\pythoncore-3.14-64\Scripts\yt-dlp.exe --token <token>`
+2. Expose it with a tunnel:
+   `cloudflared tunnel --url http://127.0.0.1:8017`
+   or `ngrok http 8017`.
+3. In Vercel env vars set:
+   `LOCAL_WHISPER_ENABLED=1`
+   `LOCAL_WHISPER_API_URL=https://<tunnel-host>`
+   `LOCAL_WHISPER_API_TOKEN=<token>`
+   `LOCAL_WHISPER_API_TIMEOUT_MS=900000`
+4. Redeploy Vercel.
+
+### Verification
+- `node --test tests\web012-whisper.test.mjs` passed 3/3.
+- `npm test` passed 114/114.
+- `npm run build` passed with existing warnings only.
+- `npm run lint:encoding` passed.
+- `python scripts\local-whisper-api.py --help` printed CLI usage successfully.
+
+---
