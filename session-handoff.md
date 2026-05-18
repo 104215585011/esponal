@@ -767,3 +767,46 @@ Implement the YouTube subtitle harvester plugin path: open a YouTube watch page 
 - Codex2 should QA the route contracts and run the live harvester scenario when a shared token and browser extension test setup are available.
 
 ---
+
+## Codex1 Dev Report - EXT-007 Token Removal + Harvest Automation (2026-05-18 16:28)
+
+### Goal
+Remove the public ingest token from EXT-006 and add a Playwright bootstrap command so PM can batch-open YouTube videos in a persistent Chrome profile and trigger subtitle harvest automatically.
+
+### Completed
+- Removed token auth from `src/app/api/subtitle/ingest/route.ts`.
+- Removed token header from `extension/harvest.js`.
+- Removed token define from `extension/scripts/build.mjs`.
+- Removed `EXT_INGEST_TOKEN` from `.env.example`.
+- Added `scripts/bootstrap-harvest.mjs`.
+- Added root `npm run harvest`.
+- Added `.cache/harvest-chrome-profile/` to `.gitignore`.
+- Updated `tests/ext006.test.mjs` and added `tests/ext007.test.mjs`.
+- Rebuilt/repackaged `public/extension/esponal-extension.zip`.
+- Updated `feature_list.json`: `EXT-007.status = ready_for_qa`.
+
+### Bootstrap Script Behavior
+- Uses `chromium.launchPersistentContext` with `headless: false`.
+- Loads `extension/dist` with `--disable-extensions-except` and `--load-extension`.
+- Stores YouTube cookies in `.cache/harvest-chrome-profile`.
+- Supports `--channels=all`, `--channel=CHANNEL_ID`, `--videos=a,b,c`, and `--videos-from-file=path`.
+- Uses the local app origin `/api/youtube/channel` to resolve channel videos; override with `--app-origin=...` if needed.
+- Writes failed ids to `.cache/harvest-failures.log`.
+
+### Verification
+- Baseline before work: `npm test` passed 119/119.
+- Red test before implementation: `node --test tests\ext006.test.mjs tests\ext007.test.mjs` failed on token remnants and missing script.
+- `node --test tests\ext006.test.mjs tests\ext007.test.mjs`: passed 9/9.
+- `rg -n "EXT_INGEST_TOKEN|X-Esponal-Ingest-Token" src extension tests`: zero matches.
+- `npm run build` in `extension/`: passed.
+- `npm run package` in `extension/`: passed; zip contains `dist/harvest.js`.
+- `node scripts\bootstrap-harvest.mjs`: no-arg guard ran and exited with usage.
+- `npm test`: passed 123/123.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed with existing `<img>` and Sentry migration warnings only.
+
+### Current Status
+- `EXT-007`: `ready_for_qa`.
+- Behavior-layer harvest still needs PM/manual verification with a real YouTube login session.
+
+---

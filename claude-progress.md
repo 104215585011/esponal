@@ -1838,3 +1838,35 @@ feature_list.json 更新：
 
 **Next**
 - Codex2 should QA `EXT-006`, including route security contracts and a live browser harvest smoke when a shared token and extension setup are available.
+
+### Session #69 - 2026-05-18
+
+**Role**: Codex1 (Dev)
+
+**Goal**: Implement `EXT-007`: remove the ingest token and add Playwright bootstrap harvest automation.
+
+**Completed**
+- Removed the shared ingest token from `src/app/api/subtitle/ingest/route.ts`, `extension/harvest.js`, `extension/scripts/build.mjs`, `.env.example`, and generated extension bundle.
+- Kept the real ingest protections: rate limit, payload cap, cue shape/count validation, write-once Redis behavior, and 30-day TTL.
+- Added `scripts/bootstrap-harvest.mjs` with headed Playwright `launchPersistentContext`, persistent `.cache/harvest-chrome-profile`, `extension/dist` loading, first-run YouTube login wait, per-video navigation delay, failure log, and redis-cli verification hint.
+- Added input modes: `--channels=all`, `--channel=...`, `--videos=...`, `--videos-from-file=...`, plus `--recent`, `--delay-ms`, and `--app-origin`.
+- Added root `npm run harvest` and ignored `.cache/harvest-chrome-profile/`.
+- Updated `tests/ext006.test.mjs`; added `tests/ext007.test.mjs`.
+- Rebuilt and repackaged the extension zip.
+- Updated `feature_list.json`: `EXT-007` -> `ready_for_qa`.
+
+**Verification**
+- Baseline before work: `npm test` passed 119/119.
+- Red test: `node --test tests/ext006.test.mjs tests/ext007.test.mjs` failed before implementation on token remnants and missing bootstrap script.
+- `node --test tests/ext006.test.mjs tests/ext007.test.mjs`: passed 9/9.
+- `rg -n "EXT_INGEST_TOKEN|X-Esponal-Ingest-Token" src extension tests`: zero matches.
+- `npm run build` in `extension/`: passed.
+- `npm run package` in `extension/`: passed; zip contains `dist/harvest.js`.
+- `node scripts/bootstrap-harvest.mjs`: no-arg guard ran and exited with usage.
+- `npm test`: passed 123/123.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed with existing `<img>` and Sentry migration warnings only.
+
+**Next**
+- Codex2 should run contract QA for `EXT-007`.
+- PM behavior smoke remains manual: run `npm run harvest -- --videos=0-Y0ayj9F-w`, log into YouTube in the opened Chrome profile on first run, then verify Redis and `/watch`.

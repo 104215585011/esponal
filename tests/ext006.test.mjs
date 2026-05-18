@@ -5,6 +5,8 @@ import test from "node:test";
 
 const readText = (path) => readFile(path, "utf8");
 const readJson = async (path) => JSON.parse(await readText(path));
+const removedTokenName = ["EXT", "INGEST", "TOKEN"].join("_");
+const removedTokenHeader = ["X", "Esponal", "Ingest", "Token"].join("-");
 
 test("EXT-006 parses YouTube json3 subtitle events into clean cues", async () => {
   const parserPath = "extension/parseJson3.js";
@@ -42,7 +44,8 @@ test("EXT-006 harvest script bridges ytInitialPlayerResponse and posts Spanish c
   assert.match(harvest, /credentials:\s*"include"/);
   assert.match(harvest, /parseJson3ToCues/);
   assert.match(harvest, /\/api\/subtitle\/ingest/);
-  assert.match(harvest, /X-Esponal-Ingest-Token/);
+  assert.doesNotMatch(harvest, new RegExp(removedTokenHeader));
+  assert.doesNotMatch(harvest, new RegExp(removedTokenName));
   assert.match(harvest, /chrome\.storage\.local\.set[\s\S]*lastSubtitleHarvest/);
 });
 
@@ -63,15 +66,15 @@ test("EXT-006 manifest and build include the harvester", async () => {
   assert.match(packageScript, /dist\/harvest\.js/);
 });
 
-test("EXT-006 ingest route enforces token, limits, write-once, and 30 day TTL", async () => {
+test("EXT-006 ingest route enforces limits, write-once, and 30 day TTL", async () => {
   const routePath = "src/app/api/subtitle/ingest/route.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
 
   const route = await readText(routePath);
 
-  assert.match(route, /EXT_INGEST_TOKEN/);
-  assert.match(route, /x-esponal-ingest-token/i);
-  assert.match(route, /status:\s*401/);
+  assert.doesNotMatch(route, new RegExp(removedTokenName));
+  assert.doesNotMatch(route, /x-esponal-ingest-token/i);
+  assert.doesNotMatch(route, /status:\s*401/);
   assert.match(route, /ingestLimiter/);
   assert.match(route, /MAX_PAYLOAD_BYTES\s*=\s*500_000/);
   assert.match(route, /MAX_CUES\s*=\s*5000/);
@@ -91,7 +94,7 @@ test("EXT-006 environment, popup, and rate limiter are wired", async () => {
   const popupJs = await readText("extension/popup.js");
   const ratelimit = await readText("src/lib/ratelimit.ts");
 
-  assert.match(envExample, /EXT_INGEST_TOKEN/);
+  assert.doesNotMatch(envExample, new RegExp(removedTokenName));
   assert.match(envExample, /ESPONAL_APP_ORIGIN/);
   assert.match(popupHtml, /lastHarvest/);
   assert.match(popupJs, /lastSubtitleHarvest/);

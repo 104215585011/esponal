@@ -1,7 +1,6 @@
 const { parseJson3ToCues } = require("./parseJson3.js");
 
 const ESPONAL_APP_ORIGIN = process.env.ESPONAL_APP_ORIGIN || "http://localhost:3000";
-const ESPONAL_INGEST_TOKEN = process.env.EXT_INGEST_TOKEN || "";
 const MIN_HARVEST_CUES = 5;
 
 function getVideoId() {
@@ -43,8 +42,7 @@ async function ingestTrack(videoId, track) {
   const ingestResponse = await fetch(`${ESPONAL_APP_ORIGIN}/api/subtitle/ingest`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "X-Esponal-Ingest-Token": ESPONAL_INGEST_TOKEN
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({ videoId, lang, cues })
   });

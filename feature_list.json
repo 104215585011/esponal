@@ -584,7 +584,7 @@
     "area": "extension",
     "title": "砍 ingest token + Playwright 字幕收割自动化脚本",
     "user_visible_behavior": "PM 一行命令 node scripts/bootstrap-harvest.mjs --channels=all 自动用持久化 Chrome profile 批量打开 YouTube 视频触发字幕 harvest 写入 Redis；首次需要手动登录 YouTube 一次。",
-    "status": "ready_for_dev",
+    "status": "ready_for_qa",
     "verification": [
       "grep EXT_INGEST_TOKEN src/ extension/ tests/ 命中 0",
       "/api/subtitle/ingest 路由不再校验 token，五件套防御只剩 4 件（write-once + payload + cue 格式 + ratelimit + TTL）",
@@ -596,7 +596,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-18 16:28: implemented EXT-007. Removed ingest token from backend route, extension harvest request, build-time defines, .env.example, generated extension bundle, and tests. Added scripts/bootstrap-harvest.mjs with Playwright launchPersistentContext, headed Chromium, persistent .cache/harvest-chrome-profile, extension/dist loading, YouTube login wait, --channels=all / --channel / --videos / --videos-from-file input modes, failure log, and redis-cli verification hint. Added npm run harvest and .gitignore entry for the Chrome profile. Verification: baseline npm test passed 119/119; red node --test tests/ext006.test.mjs tests/ext007.test.mjs failed before implementation on token remnants and missing script; node --test tests/ext006.test.mjs tests/ext007.test.mjs passed 9/9; rg EXT_INGEST_TOKEN/X-Esponal-Ingest-Token src extension tests returned zero matches; extension npm run build passed; extension npm run package passed and zip contains dist/harvest.js; node scripts/bootstrap-harvest.mjs no-arg guard ran and exited with usage; npm test passed 123/123; npm run lint:encoding passed; npm run build passed with existing img and Sentry migration warnings only.",
     "notes": "依赖 EXT-006 ✅ 和 INFRA-003 ✅。Ticket: docs/tickets/EXT-007.md。两件事合并：Part A 砍 token（30 行），Part B Playwright bootstrap 自动化脚本（约 100 行）。Codex2 自动 QA 只做合同断言；行为层手验（开 Chrome + 登录 + harvest 真视频）由 PM 完成。"
   }
 ]

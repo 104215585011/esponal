@@ -57,12 +57,6 @@ function cleanCues(cues: IngestBody["cues"]) {
 }
 
 export async function POST(request: Request) {
-  const token = request.headers.get("x-esponal-ingest-token");
-
-  if (!token || token !== process.env.EXT_INGEST_TOKEN) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
   const rateLimit = await checkRateLimit(ingestLimiter, request, null);
 
   if (!rateLimit.allowed) {

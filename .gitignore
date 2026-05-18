@@ -16,6 +16,7 @@ extension/dist/
 test-results/
 playwright-report/
 /.cache/
+.cache/harvest-chrome-profile/
 playwright/.cache/
 
 # Stray npm caches accidentally landed at repo root
