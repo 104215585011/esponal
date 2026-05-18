@@ -537,5 +537,25 @@
     ],
     "evidence": "Codex1 Dev 2026-05-17 22:30: added local Whisper fallback for /api/subtitle using C:\\Users\\10421\\model\\.venv\\Scripts\\python.exe and C:\\Users\\10421\\model\\models\\whisper\\large-v3-turbo.pt in local .env; node --test tests\\web012-whisper.test.mjs passed 3/3; node --test tests\\web004.test.mjs tests\\web007.test.mjs tests\\web012-whisper.test.mjs passed 7/7; npm run lint:encoding passed; npm test passed 114/114; npm run build passed with existing img/Sentry/Redis warnings only; local smoke transcribed public\\audio\\units\\unidad-1\\hola.mp3 and returned JSON cues. Follow-up 2026-05-17 22:55: added scripts/local-whisper-api.py for Vercel access through LOCAL_WHISPER_API_URL; node --test tests\\web012-whisper.test.mjs passed 3/3; npm test passed 114/114; npm run build passed; npm run lint:encoding passed; local-whisper-api.py --help printed usage.",
     "notes": "Local .env enables Whisper on this machine. Vercel needs a public tunnel URL pointing to the local Whisper API. The .env file is intentionally ignored and not committed."
+  },
+  {
+    "id": "CONTENT-001",
+    "priority": 31,
+    "area": "content",
+    "title": "YouTube 视频音频批量离线下载",
+    "user_visible_behavior": "PM 可在本地用 scripts/download-videos.mjs 把策划频道的最近 N 个视频音频批量下到 .cache/whisper/audio，manifest.json 记录状态。",
+    "status": "backlog",
+    "verification": [
+      "scripts/download-videos.mjs 存在",
+      "src/lib/ytdlpDownload.ts 抽出 downloadYoutubeAudio",
+      "src/lib/localWhisper.ts 改为 import 不再自己 spawn yt-dlp",
+      "本地跑 --channel=X --recent=3 → 3 个 m4a + manifest 三条 downloaded",
+      "重跑同命令 skip 不重复下载",
+      "failed 状态写入 failures/ 日志",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖：无（yt-dlp 已在 env）。Ticket: docs/tickets/CONTENT-001.md。Phase「字幕离线缓存」三票之一（CONTENT-001 下载 → CONTENT-002 Whisper 批量转录 → CONTENT-003 推 Redis）。本票核心是把下载从转录里拆开，解决 Whisper 在 Vercel 跑不动的架构问题。"
   }
 ]
