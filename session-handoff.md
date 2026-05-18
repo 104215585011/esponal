@@ -732,3 +732,38 @@ Make the local Whisper install usable by the Vercel deployment through a public 
 - `python scripts\local-whisper-api.py --help` printed CLI usage successfully.
 
 ---
+
+## Codex1 Dev Report - EXT-006 Subtitle Harvester (2026-05-18 16:07)
+
+### Goal
+Implement the YouTube subtitle harvester plugin path: open a YouTube watch page without playback, collect Spanish caption json3 through the user's browser session, and write validated cues into Redis through `/api/subtitle/ingest`.
+
+### Completed
+- Added `extension/parseJson3.js`.
+- Added `extension/harvest.js` with page-script bridge for `ytInitialPlayerResponse`, Spanish track selection, `credentials: "include"` subtitle fetch, ingest POST, and `chrome.storage.local` last-harvest metadata.
+- Added `extension/scripts/build.mjs` and updated `extension/package.json` so package-time env injection works for `EXT_INGEST_TOKEN` and `ESPONAL_APP_ORIGIN`.
+- Updated `extension/manifest.json` to register `dist/harvest.js` on YouTube watch pages.
+- Updated `extension/popup.html` / `extension/popup.js` to show the latest harvest video id and timestamp.
+- Updated `extension/scripts/package.mjs` so the extension zip includes source files plus `dist/harvest.js`.
+- Added `src/app/api/subtitle/ingest/route.ts`: token auth, rate limit, 500KB payload cap, cue count/shape validation, write-once cache behavior, and 30-day Redis TTL.
+- Added `ingestLimiter` to `src/lib/ratelimit.ts`.
+- Updated `.env.example` with `EXT_INGEST_TOKEN` and `ESPONAL_APP_ORIGIN`.
+- Added `tests/ext006.test.mjs`; updated `tests/extension.test.mjs`.
+- Updated `feature_list.json`: `EXT-006.status = ready_for_qa`.
+
+### Verification
+- Baseline before work: `npm test` passed 114/114.
+- Red test before implementation: `node --test tests\ext006.test.mjs` failed 5/5 for missing EXT-006 surfaces.
+- `node --test tests\ext006.test.mjs`: passed 5/5.
+- `node --test tests\extension.test.mjs tests\ext005.test.mjs tests\ext006.test.mjs`: passed 12/12.
+- `npm run build` in `extension/`: passed.
+- `npm run package` in `extension/`: passed after filesystem approval; zip now contains `dist/harvest.js`.
+- `npm test`: passed 119/119.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed; only existing `<img>` warnings and Sentry migration warnings remain.
+
+### Current Status
+- `EXT-006`: `ready_for_qa`.
+- Codex2 should QA the route contracts and run the live harvester scenario when a shared token and browser extension test setup are available.
+
+---

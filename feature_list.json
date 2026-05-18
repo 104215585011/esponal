@@ -564,7 +564,7 @@
     "area": "extension",
     "title": "字幕收割插件（YouTube → Redis）",
     "user_visible_behavior": "PM/用户装上插件、用浏览器打开任何 YouTube 视频页（不需要播放），插件自动用用户 session 抓取字幕并写入 Esponal Redis 缓存，下游 /watch 页面命中。",
-    "status": "ready_for_dev",
+    "status": "ready_for_qa",
     "verification": [
       "extension/harvest.js 存在并通过 page-script 桥接读 ytInitialPlayerResponse.captions",
       "extension/parseJson3.js 单测：示例 json3 → 预期 SubtitleCue[]",
@@ -575,7 +575,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-18 16:07: implemented extension subtitle harvester and ingest backend. Added extension/parseJson3.js, extension/harvest.js, extension/scripts/build.mjs, /api/subtitle/ingest route, ingestLimiter, popup last-harvest status, env docs, updated manifest/package zip, and tests/ext006.test.mjs. Verification: baseline npm test passed 114/114 before changes; red node --test tests/ext006.test.mjs failed 5/5 before implementation; node --test tests/ext006.test.mjs passed 5/5; node --test tests/extension.test.mjs tests/ext005.test.mjs tests/ext006.test.mjs passed 12/12; extension npm run build passed; extension npm run package passed and zip contains dist/harvest.js; npm test passed 119/119; npm run lint:encoding passed; npm run build passed with existing img and Sentry migration warnings only.",
     "notes": "依赖 EXT-001 ✅ 和 OPS-002 ✅（复用 ratelimit）。Ticket: docs/tickets/EXT-006.md。Phase「字幕反爬规避」决定性 ticket：唯一不被 YouTube bot 检测拦的请求来源是用户浏览器；插件天然满足此条件。安全模型：token 共享（公开 .crx 里）+ write-once + 大小/格式校验 + rate limit + 30 天 TTL。承认 token 只是摩擦层，最终保护是 write-once。"
   }
 ]

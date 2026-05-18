@@ -11,10 +11,15 @@ const outputPath = path.join(outputDir, "esponal-extension.zip");
 
 const files = [
   "manifest.json",
+  "background.js",
+  "content.js",
+  "parseJson3.js",
+  "popup.js",
   "popup.html",
   "lemma-dict.json",
   "dist/background.js",
   "dist/content.js",
+  "dist/harvest.js",
   "dist/popup.js"
 ];
 

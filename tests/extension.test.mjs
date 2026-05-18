@@ -56,8 +56,12 @@ test("extension files provide background, content, and popup behavior", async ()
 
 test("extension has an esbuild package scaffold", async () => {
   const pkg = await readJson("extension/package.json");
+  const buildScript = await readText("extension/scripts/build.mjs");
 
   assert.equal(pkg.private, true);
-  assert.equal(pkg.scripts.build, "esbuild background.js content.js popup.js --bundle --outdir=dist --format=iife");
+  assert.equal(pkg.scripts.build, "node scripts/build.mjs");
+  assert.match(buildScript, /from "esbuild"/);
+  assert.match(buildScript, /entryPoints/);
+  assert.match(buildScript, /content\.js/);
   assert.ok(pkg.devDependencies.esbuild);
 });

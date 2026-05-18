@@ -15,6 +15,11 @@
       "matches": ["https://www.youtube.com/watch*"],
       "js": ["content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["dist/harvest.js"],
+      "run_at": "document_idle"
     }
   ],
   "host_permissions": [
