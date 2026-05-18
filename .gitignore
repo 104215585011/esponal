@@ -21,3 +21,4 @@ playwright/.cache/
 # Stray npm caches accidentally landed at repo root
 .npm-cache/
 Userswangesponal.npm-cache/
+.cache/
