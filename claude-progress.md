@@ -1985,3 +1985,27 @@ feature_list.json 更新：
 ### Next
 - Codex2 should QA AUDIO-001 contracts and, if possible, do a browser smoke on `/lectura/la-tortuga-y-la-liebre` plus a LookupCard speech-button check.
 - PM real-device acceptance should include installed-PWA offline playback of a previously visited Lectura audio file.
+
+## Dev Report - Session #75 (2026-05-19 14:03) - AUDIO-002
+
+### Completed
+- Added `src/app/api/tts/route.ts` as a Node route for tokenless server-side TTS.
+- The route uses `ttsLimiter`, validates `text` at 1-200 characters, caches by sha256-derived `tts:${hash}`, stores MP3 bytes as base64 in Redis for 30 days, and returns `audio/mpeg` with public immutable cache headers.
+- Rewrote `src/lib/speak.ts` so LookupCard pronunciation uses `new Audio("/api/tts?text=...")` instead of Web Speech API.
+- Kept `useSpeechAvailable()` as a compatibility shim that always returns `true`, so mobile buttons are no longer hidden by missing local voice packs.
+- Added `ttsLimiter` to `src/lib/ratelimit.ts`.
+- Updated `src/sw.ts` and `public/sw.js` to cache `/api/tts?text=` responses with a cache-first runtime strategy.
+- Added `tests/audio002.test.mjs` and updated the AUDIO-001 test to stop asserting Web Speech internals.
+- Updated `feature_list.json`: `AUDIO-002.status = ready_for_qa`.
+
+### Verification
+- Baseline before work: `npm test` passed 134/134.
+- Red test before implementation: `node --test tests/audio002.test.mjs` failed 5/5.
+- `node --test tests/audio002.test.mjs tests/audio001.test.mjs tests/ops002.test.mjs tests/pwa001.test.mjs`: passed 21/21.
+- `npm test`: passed 139/139.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed and listed `/api/tts`; only existing `<img>` lint warnings and existing Sentry instrumentation warnings remain.
+
+### Next
+- Codex2 should verify AUDIO-002 source contracts.
+- PM should do the key behavior smoke on Android Chrome: open a LookupCard, tap pronunciation, and confirm audio plays without installing a Spanish voice pack.

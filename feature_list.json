@@ -646,7 +646,7 @@
     "area": "audio",
     "title": "词语发音迁移到服务端 TTS（修手机版哑巴问题）",
     "user_visible_behavior": "LookupCard 🔊 按钮在任何设备（含国内 Android Chrome 无西语 voice 包）都能播放，声音和 Lectura 段落同源（Edge es-MX-DaliaNeural）。装到主屏后听过的词永久离线缓存。",
-    "status": "ready_for_dev",
+    "status": "ready_for_qa",
     "verification": [
       "/api/tts 路由存在含 GET + OPTIONS + ttsLimiter + 200 char 限制 + sha256 cacheKey",
       "src/lib/speak.ts 不再引用 window.speechSynthesis，改用 new Audio + /api/tts",
@@ -657,7 +657,7 @@
       "PWA 离线模式听过的词仍能播",
       "npm test / npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-19 14:03: implemented AUDIO-002. Added src/app/api/tts/route.ts as a nodejs route with GET + OPTIONS, ttsLimiter, 200 character validation, sha256 Redis cache key tts:${hash}, 30-day base64 Redis cache, msedge-tts es-MX-DaliaNeural MP3 synthesis, audio/mpeg response headers, and CORS. Rewrote src/lib/speak.ts to remove Web Speech usage and always play new Audio(`/api/tts?text=${encodeURIComponent(text)}`), preserving LookupCard's speak() call shape and making useSpeechAvailable() always return true. Added ttsLimiter to src/lib/ratelimit.ts. Updated src/sw.ts and public/sw.js with CacheFirst handling for /api/tts?text=. Added tests/audio002.test.mjs and adjusted AUDIO-001 test so AUDIO-002 can supersede Web Speech internals. Verification: baseline npm test passed 134/134; red node --test tests/audio002.test.mjs failed 5/5 before implementation; targeted node --test tests/audio002.test.mjs tests/audio001.test.mjs tests/ops002.test.mjs tests/pwa001.test.mjs passed 21/21; npm test passed 139/139; npm run lint:encoding passed; npm run build passed and listed /api/tts with only existing <img> and Sentry warnings.",
     "notes": "依赖 AUDIO-001 ✅。Ticket: docs/tickets/AUDIO-002.md。触发：PM 真机测试 2026-05-19 — Android Chrome 国内默认无西语 voice 包，AUDIO-001 的 Web Speech 方案 useSpeechAvailable 检测失败导致按钮全部隐藏。本票把词语发音从客户端 Web Speech 迁到服务端 msedge-tts，设备一致性 100%。Lectura 段落不动（已是预生成 MP3）。"
   }
 ]

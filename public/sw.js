@@ -2,6 +2,7 @@ const STATIC_CACHE = "esponal-static-v1";
 const PAGE_CACHE = "esponal-page-v1";
 const SUBTITLE_CACHE = "esponal-subtitle-v1";
 const LECTURA_AUDIO_CACHE = "esponal-lectura-audio-v1";
+const TTS_AUDIO_CACHE = "esponal-tts-audio-v1";
 const OFFLINE_URL = "/offline";
 const PRECACHE_URLS = [
   "/",
@@ -27,6 +28,10 @@ function isLecturaAudio(pathname) {
   return pathname.startsWith("/audio/lectura/") && pathname.endsWith(".mp3");
 }
 
+function isTtsAudio(pathname, search) {
+  return pathname === "/api/tts" && search.includes("text=");
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
@@ -39,7 +44,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => ![STATIC_CACHE, PAGE_CACHE, SUBTITLE_CACHE, LECTURA_AUDIO_CACHE].includes(key))
+            .filter((key) => ![STATIC_CACHE, PAGE_CACHE, SUBTITLE_CACHE, LECTURA_AUDIO_CACHE, TTS_AUDIO_CACHE].includes(key))
             .map((key) => caches.delete(key))
         )
       )
@@ -112,6 +117,22 @@ self.addEventListener("fetch", (event) => {
   if (isLecturaAudio(url.pathname)) {
     event.respondWith(
       caches.open(LECTURA_AUDIO_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) {
+          return cached;
+        }
+
+        const response = await fetch(request);
+        cache.put(request, response.clone());
+        return response;
+      })
+    );
+    return;
+  }
+
+  if (isTtsAudio(url.pathname, url.search)) {
+    event.respondWith(
+      caches.open(TTS_AUDIO_CACHE).then(async (cache) => {
         const cached = await cache.match(request);
         if (cached) {
           return cached;

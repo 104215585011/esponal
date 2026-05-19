@@ -57,8 +57,6 @@ test("AUDIO-001 lookup card uses the browser speech helper for lemma and example
 
   assert.match(helper, /export function speak/);
   assert.match(helper, /export function useSpeechAvailable/);
-  assert.match(helper, /SpeechSynthesisUtterance/);
-  assert.match(helper, /voiceschanged/);
   assert.match(card, /useSpeechAvailable/);
   assert.match(card, /speak\(lemma/);
   assert.match(card, /speak\(example\.es/);

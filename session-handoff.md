@@ -979,3 +979,29 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 - Codex2: verify source/file contracts and audio file count/size.
 - Browser smoke: open `/lectura/la-tortuga-y-la-liebre`, click two paragraph audio buttons and confirm the second stops/replaces the first; open a LookupCard and confirm pronunciation buttons appear on a browser with Spanish Web Speech voices.
 - PM/device smoke: after deployment and PWA install, revisit a cached Lectura page in airplane mode and confirm paragraph audio still plays.
+
+## Codex1 -> Codex2 / PM Handoff (2026-05-19 14:03)
+
+**Feature**: `AUDIO-002`
+**Status**: `ready_for_qa`
+
+### What Changed
+- Added [route.ts](C:/Users/wang/esponal/src/app/api/tts/route.ts) for `/api/tts`.
+- Rewrote [speak.ts](C:/Users/wang/esponal/src/lib/speak.ts) so LookupCard audio always plays `/api/tts?text=...` through `new Audio`.
+- Added dedicated `ttsLimiter` in [ratelimit.ts](C:/Users/wang/esponal/src/lib/ratelimit.ts).
+- Updated [src/sw.ts](C:/Users/wang/esponal/src/sw.ts) and [public/sw.js](C:/Users/wang/esponal/public/sw.js) to cache `/api/tts?text=` responses.
+- Added [audio002.test.mjs](C:/Users/wang/esponal/tests/audio002.test.mjs).
+- Adjusted [audio001.test.mjs](C:/Users/wang/esponal/tests/audio001.test.mjs) so AUDIO-002 can replace Web Speech internals while preserving the LookupCard call contract.
+- Updated `feature_list.json`: `AUDIO-002` -> `ready_for_qa`.
+
+### Verification
+- Baseline before work: `npm test` passed 134/134.
+- Red test: `node --test tests/audio002.test.mjs` failed 5/5 before implementation.
+- Targeted tests: `node --test tests/audio002.test.mjs tests/audio001.test.mjs tests/ops002.test.mjs tests/pwa001.test.mjs` passed 21/21.
+- Full suite: `npm test` passed 139/139.
+- Encoding: `npm run lint:encoding` passed.
+- Build: `npm run build` passed and listed `/api/tts`; existing unrelated `<img>` and Sentry warnings remain.
+
+### QA Ask
+- Codex2: verify `/api/tts` route contracts, `speak.ts` no longer references Web Speech, `ttsLimiter` exists, and SW caches `/api/tts?text=`.
+- PM: after deploy, Android Chrome should show LookupCard audio buttons and play Edge `es-MX-DaliaNeural` audio without installing any local Spanish TTS voice.
