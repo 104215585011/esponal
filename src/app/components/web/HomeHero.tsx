@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { InstallPrompt } from "@/app/components/web/InstallPrompt";
 
 export function HomeHero() {
   return (
@@ -13,7 +14,7 @@ export function HomeHero() {
           用真实的西语视频，慢慢学会一门语言
         </h1>
         <p className="mt-4 max-w-[560px] text-base leading-7 text-gray-600">
-          不用打卡、不刷题。看 YouTube、点词、查义项，下次自动记得。你需要的只是好奇心。
+          不用打卡，不刷题。看 YouTube、点词、查义项，下次自动记得。你需要的只是好奇心。
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
           <Link
@@ -42,11 +43,12 @@ export function HomeHero() {
           </Link>
         </div>
         <p className="mt-5 text-sm text-gray-500">
-          已有账号？{" "}
+          已有账号？
           <Link className="font-medium text-brand-700 hover:underline" href="/auth/sign-in">
             登录
           </Link>
         </p>
+        <InstallPrompt />
       </div>
     </section>
   );

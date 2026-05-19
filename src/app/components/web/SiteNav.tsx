@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MobileNav } from "@/app/components/web/MobileNav";
 
 type SiteNavProps = {
   vocabHref: string;
@@ -36,24 +37,29 @@ export function SiteNav({ vocabHref }: SiteNavProps) {
   ];
 
   return (
-    <nav className="hidden items-center gap-1 lg:flex">
-      {allItems.map((item) => {
-        const active = isActivePath(pathname, item.activeHref ?? item.href);
+    <>
+      <nav className="hidden lg:flex items-center gap-1">
+        {allItems.map((item) => {
+          const active = isActivePath(pathname, item.activeHref ?? item.href);
 
-        return (
-          <Link
-            className={`border-b-2 px-3 py-5 text-sm transition ${
-              active
-                ? "border-brand-500 font-semibold text-brand-600"
-                : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
-            href={item.href}
-            key={item.label}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+          return (
+            <Link
+              className={`border-b-2 px-3 py-5 text-sm transition ${
+                active
+                  ? "border-brand-500 font-semibold text-brand-600"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+              href={item.href}
+              key={item.label}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="lg:hidden">
+        <MobileNav vocabHref={vocabHref} />
+      </div>
+    </>
   );
 }

@@ -837,3 +837,116 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 ### QA Ask
 - Codex2: verify the regression contract and confirm the two Lectura pages stay `force-dynamic`.
 - PM: on Vercel, log in and open `/lectura`; expected result is avatar at top-right and vocab nav going directly to `/vocab` instead of the sign-in redirect.
+
+### PM Update
+- PM has completed the Vercel acceptance check and approved `READ-001-FIX`.
+- Codex2 can use that acceptance result to finish QA and flip the ticket to `passing` after updating project records.
+
+## Codex1 -> Codex2 / PM Handoff (2026-05-19 11:02)
+
+**Feature**: `WEB-013`
+**Status**: `ready_for_qa`
+
+### What Changed
+- Added [MobileNav.tsx](C:/Users/wang/esponal/src/app/components/web/MobileNav.tsx) for small-screen navigation.
+- Updated [SiteNav.tsx](C:/Users/wang/esponal/src/app/components/web/SiteNav.tsx) to render desktop nav as `hidden lg:flex` and a `lg:hidden` mobile branch.
+- Updated [SiteHeader.tsx](C:/Users/wang/esponal/src/app/components/web/SiteHeader.tsx) so the desktop search form is hidden below `lg`.
+- Added [tests/web013.test.mjs](C:/Users/wang/esponal/tests/web013.test.mjs).
+- Updated `feature_list.json` and `claude-progress.md`.
+
+### Behavior
+- On `< lg`, the header now exposes a hamburger button instead of relying on the desktop nav.
+- Opening the drawer locks body scroll, clicking the overlay closes it, pressing `Escape` closes it, and clicking a nav link closes it.
+- Active menu items still use `text-brand-600`.
+- Desktop nav behavior remains unchanged.
+
+### Verification
+- Red test: `node --test tests/web013.test.mjs` failed 3/3 before implementation.
+- Green tests: `node --test tests/web013.test.mjs tests/web009.test.mjs` passed 7/7.
+- Full suite: `npm test` passed 124/124.
+- Build: `npm run build` passed; only existing `<img>` warnings and existing Sentry instrumentation warnings remain.
+
+### QA Ask
+- Codex2: verify the contract and, if possible, do a quick viewport smoke at 1280px / 768px / 375px.
+- PM: after QA, the next ticket on this mobile line is `PWA-001`.
+
+## Codex1 -> Codex2 / PM Handoff (2026-05-19 11:34)
+
+**Feature**: `PWA-001`
+**Status**: `ready_for_qa`
+
+### What Changed
+- Added [public/manifest.webmanifest](C:/Users/wang/esponal/public/manifest.webmanifest).
+- Added four generated app icons in [public/icons](C:/Users/wang/esponal/public/icons).
+- Added [src/app/components/web/ServiceWorkerRegister.tsx](C:/Users/wang/esponal/src/app/components/web/ServiceWorkerRegister.tsx) and [public/sw.js](C:/Users/wang/esponal/public/sw.js), with [src/sw.ts](C:/Users/wang/esponal/src/sw.ts) as the source copy.
+- Added [src/app/components/web/InstallPrompt.tsx](C:/Users/wang/esponal/src/app/components/web/InstallPrompt.tsx) and mounted it from [HomeHero.tsx](C:/Users/wang/esponal/src/app/components/web/HomeHero.tsx).
+- Added [src/app/offline/page.tsx](C:/Users/wang/esponal/src/app/offline/page.tsx).
+- Added [scripts/generate-icons.mjs](C:/Users/wang/esponal/scripts/generate-icons.mjs).
+- Updated [src/app/layout.tsx](C:/Users/wang/esponal/src/app/layout.tsx) with manifest metadata, Apple web app metadata, and `viewport.themeColor`.
+- Updated `feature_list.json` and `claude-progress.md`.
+
+### Behavior
+- Supported mobile browsers can now see install metadata and an in-app install entry point when `beforeinstallprompt` is available.
+- The service worker precaches the shell, caches visited navigations for offline reopen, serves a dedicated `/offline` fallback when navigation misses the cache, and keeps auth/vocab APIs network-only.
+- The temporary icon set is green-square + white `E`, generated locally and ready to be replaced by final brand assets later.
+
+### Verification
+- Red test: `node --test tests/pwa001.test.mjs` failed 5/5 before implementation.
+- Green tests: `node --test tests/pwa001.test.mjs` passed 5/5; `node --test tests/pwa001.test.mjs tests/web013.test.mjs tests/web009.test.mjs` passed 12/12.
+- Full suite: `npm test` passed 129/129.
+- Encoding: `npm run lint:encoding` passed.
+- Build: `npm run build` passed and now includes `/offline`.
+- Existing unrelated warnings remain: `<img>` lint warnings and Sentry instrumentation migration warnings.
+
+### QA Ask
+- Codex2: verify manifest/service-worker/install-prompt contracts from source and file outputs.
+- PM: mobile acceptance should cover installability, standalone launch, icon appearance, and offline reopening of a previously visited Lectura page.
+
+---
+
+## Codex2 QA Report - WEB-013 / PWA-001
+
+**Time**: 2026-05-19 12:10
+**Tester**: Codex2
+
+**Conclusion**: Passed. `WEB-013` and `PWA-001` are updated to `passing` in `feature_list.json`.
+
+### Executed Checks
+1. Targeted ticket tests
+   Command: `node --test tests/web013.test.mjs tests/pwa001.test.mjs tests/web009.test.mjs`
+   Output summary: 12 tests, 12 pass, 0 fail.
+   Result: Pass.
+
+2. Full baseline suite
+   Command: `npm test`
+   Output summary: 129 tests, 129 pass, 0 fail.
+   Result: Pass.
+
+3. Encoding guard
+   Command: `npm run lint:encoding`
+   Output summary: `Encoding check passed`.
+   Result: Pass.
+
+4. Production build
+   Command: `npm run build`
+   Output summary: compiled successfully; generated 45 static pages and listed `/offline`; only existing `<img>` warnings and existing Sentry instrumentation migration warnings.
+   Result: Pass.
+
+5. WEB-013 source contract verification
+   Method: source review plus Node REPL contract script.
+   Evidence: `MobileNav.tsx` starts with `"use client"`; contains five entries (`/`, `/learn`, `/lectura`, `/grammar`, auth-aware vocab); Escape closes via `document.addEventListener("keydown")`; body scroll locks with `document.body.style.overflow = "hidden"` and restores on cleanup; overlay/link close paths call `setOpen(false)`; `SiteNav.tsx` contains desktop `hidden lg:flex` and mobile `lg:hidden`; `SiteHeader.tsx` search form is `hidden lg:flex`.
+   Result: Pass.
+
+6. PWA-001 source/file contract verification
+   Method: source/file review plus Node REPL contract script.
+   Evidence: `public/manifest.webmanifest` parses as JSON and includes required install fields; four manifest icons exist and are all >1KB (`1129`, `4792`, `1039`, `5133` bytes); `ServiceWorkerRegister.tsx` registers `/sw.js`; `public/sw.js` and `src/sw.ts` exist; `/offline` page exists; `InstallPrompt.tsx` listens for `beforeinstallprompt`, calls `preventDefault()`, and invokes `event.prompt()`; `HomeHero.tsx` mounts `InstallPrompt`; `layout.tsx` exports manifest, viewport `themeColor`, Apple web app metadata, and mounts `ServiceWorkerRegister`.
+   Result: Pass.
+
+### Warnings / Risk Notes
+- Build warnings are not introduced by this round: existing `<img>` lint warnings remain in `SiteHeader` and `learn/[slug]`; existing Sentry instrumentation migration warnings remain.
+- `npm test` still prints existing Node `MODULE_TYPELESS_PACKAGE_JSON` warnings for TS/ESM test imports; not related to WEB-013/PWA-001.
+- PM real-device acceptance remains valuable for PWA behavior that cannot be fully proven by contract tests: Android installability, Lighthouse PWA score, standalone launch, icon appearance, and offline reopening of a previously visited Lectura page.
+
+### Handoff
+- No blockers found for contract QA.
+- Next best action: PM mobile device acceptance for install/offline behavior.

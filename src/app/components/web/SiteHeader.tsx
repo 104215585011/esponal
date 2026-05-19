@@ -40,7 +40,7 @@ export async function SiteHeader({
 
         <form
           action={searchAction}
-          className="mx-auto flex w-full max-w-md flex-1 items-center rounded-full border border-gray-200 bg-muted focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100"
+          className="hidden lg:flex mx-auto w-full max-w-md flex-1 items-center rounded-full border border-gray-200 bg-muted focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100"
         >
           <span aria-hidden="true" className="px-3 text-gray-400">
             <svg className="h-4 w-4 fill-none stroke-current stroke-2" viewBox="0 0 20 20">
