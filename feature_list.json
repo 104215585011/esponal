@@ -659,5 +659,26 @@
     ],
     "evidence": "Codex1 Dev 2026-05-19 14:03: implemented AUDIO-002. Added src/app/api/tts/route.ts as a nodejs route with GET + OPTIONS, ttsLimiter, 200 character validation, sha256 Redis cache key tts:${hash}, 30-day base64 Redis cache, msedge-tts es-MX-DaliaNeural MP3 synthesis, audio/mpeg response headers, and CORS. Rewrote src/lib/speak.ts to remove Web Speech usage and always play new Audio(`/api/tts?text=${encodeURIComponent(text)}`), preserving LookupCard's speak() call shape and making useSpeechAvailable() always return true. Added ttsLimiter to src/lib/ratelimit.ts. Updated src/sw.ts and public/sw.js with CacheFirst handling for /api/tts?text=. Added tests/audio002.test.mjs and adjusted AUDIO-001 test so AUDIO-002 can supersede Web Speech internals. Verification: baseline npm test passed 134/134; red node --test tests/audio002.test.mjs failed 5/5 before implementation; targeted node --test tests/audio002.test.mjs tests/audio001.test.mjs tests/ops002.test.mjs tests/pwa001.test.mjs passed 21/21; npm test passed 139/139; npm run lint:encoding passed; npm run build passed and listed /api/tts with only existing <img> and Sentry warnings.",
     "notes": "依赖 AUDIO-001 ✅。Ticket: docs/tickets/AUDIO-002.md。触发：PM 真机测试 2026-05-19 — Android Chrome 国内默认无西语 voice 包，AUDIO-001 的 Web Speech 方案 useSpeechAvailable 检测失败导致按钮全部隐藏。本票把词语发音从客户端 Web Speech 迁到服务端 msedge-tts，设备一致性 100%。Lectura 段落不动（已是预生成 MP3）。"
+  },
+  {
+    "id": "VOCAB-005",
+    "priority": 39,
+    "area": "vocabulary",
+    "title": "词库变位增强（动词全时态 + 名词/形容词性数）",
+    "user_visible_behavior": "/vocab 词条展开时：动词显示 7 个时态 tab + 6 人称变位表（确定性 spanish-verbs 库，不规则动词也准）；名词显示「单/复」inline；形容词显示「阳单/阴单/阳复/阴复」inline。",
+    "status": "ready_for_dev",
+    "verification": [
+      "package.json 含 spanish-verbs 依赖",
+      "src/lib/conjugate.ts 的 tryConjugateVerb 返回 ser/vivir 正确变位",
+      "生僻词返回 null 不崩",
+      "缓存 key 升级到 vocab:dict:v2:",
+      "GLM-5 prompt 扩展含名词/形容词 forms + 校验逻辑",
+      "VocabAccordion 渲染 ConjugationTable + 名词/形容词 inline forms",
+      "LookupCard 浮层不动（保持精简）",
+      "新查询的动词词条带完整变位；老缓存优雅降级",
+      "npm test / npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖：无（GLM-5 已在用）。Ticket: docs/tickets/VOCAB-005.md。触发：PM 反馈 2026-05-19 — 西语动词变位是核心难点。架构决定：变位用 spanish-verbs（MIT,~12k verbs）确定性输出，避免 AI 在不规则动词上翻车；名词/形容词形态依然走 GLM-5 但加校验。老缓存自然过渡（v2 namespace + 30 天 TTL）。"
   }
 ]
