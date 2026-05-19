@@ -618,5 +618,26 @@
     ],
     "evidence": "Codex1 Dev 2026-05-19 11:34: implemented PWA install surface and offline shell without introducing extra runtime dependencies. Added public/manifest.webmanifest, public/sw.js, src/sw.ts, src/app/offline/page.tsx, src/app/components/web/ServiceWorkerRegister.tsx, src/app/components/web/InstallPrompt.tsx, and scripts/generate-icons.mjs. Generated four PNG icons under public/icons/: icon-192.png, icon-512.png, icon-maskable-192.png, and icon-maskable-512.png. Updated src/app/layout.tsx with manifest metadata, Apple web app metadata, viewport themeColor, and service worker registration; updated src/app/components/web/HomeHero.tsx to render InstallPrompt. TDD: node --test tests/pwa001.test.mjs failed 5/5 before implementation; after implementation node --test tests/pwa001.test.mjs passed 5/5. Full verification: node --test tests/pwa001.test.mjs tests/web013.test.mjs tests/web009.test.mjs passed 12/12; npm test passed 129/129; npm run lint:encoding passed; npm run build passed and prerender output now includes /offline. Remaining warnings are the existing <img> lint warning and existing Sentry instrumentation warnings. | Codex2 QA 2026-05-19 12:10: passed against the current PWA-001 contract. Targeted node --test tests/web013.test.mjs tests/pwa001.test.mjs tests/web009.test.mjs passed 12/12; npm test passed 129/129; npm run lint:encoding passed; npm run build passed and listed /offline. Source/file contract verified manifest valid JSON with required install fields, four icons exist and are >1KB, ServiceWorkerRegister registers /sw.js, public/sw.js and src/sw.ts exist, /offline exists, InstallPrompt listens for beforeinstallprompt and calls prompt(), HomeHero mounts InstallPrompt, and layout exports manifest, viewport themeColor, Apple web app metadata, and ServiceWorkerRegister. | PM Dev+QA 2026-05-19: public/manifest.webmanifest + 4 个 icon (192/512 + maskable) + src/sw.ts (serwist) + scripts/generate-icons.mjs + src/app/offline/page.tsx + InstallPrompt.tsx + ServiceWorkerRegister.tsx 全到位。layout.tsx 注入 manifest + appleWebApp meta。tests/pwa001.test.mjs 通过。npm test 129/129; npm run build 通过（45 静态页 = 旧 44 + /offline）。Lighthouse PWA + Android Chrome 真装验证留 PM 部署后做。",
     "notes": "依赖 WEB-013。Ticket: docs/tickets/PWA-001.md。Phase 1 移动端方案，等本票上线 + PM 真用 3 天后决定是否做 PWA-002（TWA + Play Store）。"
+  },
+  {
+    "id": "AUDIO-001",
+    "priority": 37,
+    "area": "audio",
+    "title": "Lectura 段落朗读 + LookupCard 单词发音",
+    "user_visible_behavior": "/lectura/[slug] 每段左侧显示 ▶ 按钮，点击播放该段 Edge 合成西语女声（预生成 MP3）。LookupCard 头部和例句旁显示 🔊，点击用浏览器原生 Web Speech API 朗读单词/句子。",
+    "status": "ready_for_dev",
+    "verification": [
+      "scripts/generate-lectura-audio.mjs 存在且使用 msedge-tts",
+      "public/audio/lectura/*/p0.mp3 至少 5 个文件存在",
+      "src/lib/speak.ts export speak + useSpeechAvailable",
+      "LecturaReader 段落 ▶ 按钮可播且互斥（点新段停旧段）",
+      "LookupCard lemma 旁 🔊 调用 speak()",
+      "不支持 TTS 设备按钮自动隐藏不报错",
+      "PWA 离线模式下 Lectura 段落音频仍可播放（sw.ts 缓存 /audio/lectura）",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 READ-001 ✅ + COURSE-004 ✅。Ticket: docs/tickets/AUDIO-001.md。两层方案：Lectura 预生成 MP3 = 质量稳定 + 可离线；词语 Web Speech API = 零后端成本 + 动态。35 个 MP3 约 3MB，入 git 合理。Service Worker 需要把 /audio/lectura/** 加进 cache 策略。"
   }
 ]
