@@ -625,7 +625,7 @@
     "area": "audio",
     "title": "Lectura 段落朗读 + LookupCard 单词发音",
     "user_visible_behavior": "/lectura/[slug] 每段左侧显示 ▶ 按钮，点击播放该段 Edge 合成西语女声（预生成 MP3）。LookupCard 头部和例句旁显示 🔊，点击用浏览器原生 Web Speech API 朗读单词/句子。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "scripts/generate-lectura-audio.mjs 存在且使用 msedge-tts",
       "public/audio/lectura/*/p0.mp3 至少 5 个文件存在",
@@ -637,7 +637,27 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-19 11:33: implemented AUDIO-001. Added scripts/generate-lectura-audio.mjs using msedge-tts es-MX-DaliaNeural with sequential temp-file generation and size guard; generated 35 committed MP3 files under public/audio/lectura with min size 23040 bytes. Added src/lib/speak.ts with speak() and useSpeechAvailable() for browser Web Speech. Updated LecturaReader with one-at-a-time paragraph playback via new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`) and active paragraph border; updated LookupCard with lemma and example speech buttons hidden when Spanish speech voices are unavailable. Updated src/sw.ts and public/sw.js with cache-first /audio/lectura/*.mp3 handling. Verification: red node --test tests/audio001.test.mjs failed 5/5 before implementation; npm run audio:lectura generated 35 MP3s; node --test tests/audio001.test.mjs tests/read001.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/pwa001.test.mjs passed 25/25; npm test passed 134/134; npm run lint:encoding passed; npm run build passed with only existing <img> and Sentry warnings.",
+    "evidence": "Codex1 Dev 2026-05-19 11:33: implemented AUDIO-001. Added scripts/generate-lectura-audio.mjs using msedge-tts es-MX-DaliaNeural with sequential temp-file generation and size guard; generated 35 committed MP3 files under public/audio/lectura with min size 23040 bytes. Added src/lib/speak.ts with speak() and useSpeechAvailable() for browser Web Speech. Updated LecturaReader with one-at-a-time paragraph playback via new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`) and active paragraph border; updated LookupCard with lemma and example speech buttons hidden when Spanish speech voices are unavailable. Updated src/sw.ts and public/sw.js with cache-first /audio/lectura/*.mp3 handling. Verification: red node --test tests/audio001.test.mjs failed 5/5 before implementation; npm run audio:lectura generated 35 MP3s; node --test tests/audio001.test.mjs tests/read001.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/pwa001.test.mjs passed 25/25; npm test passed 134/134; npm run lint:encoding passed; npm run build passed with only existing <img> and Sentry warnings. | PM 结构 QA 2026-05-19: 35 个 lectura MP3 全生成（5 篇 × 平均 7 段）; src/lib/speak.ts + useSpeechAvailable 到位; LecturaReader 段落 ▶ 按钮 + 互斥播放; LookupCard lemma + example 旁 🔊; audio001 测试 5/5。但 PM 真机测试发现手机版 Android Chrome 无西语 voice 时词语按钮全部隐藏 — 这是 Web Speech API 方案的固有缺陷，不是本票实现 bug，由 AUDIO-002 通过迁移到服务端 msedge-tts 修。",
     "notes": "依赖 READ-001 ✅ + COURSE-004 ✅。Ticket: docs/tickets/AUDIO-001.md。两层方案：Lectura 预生成 MP3 = 质量稳定 + 可离线；词语 Web Speech API = 零后端成本 + 动态。35 个 MP3 约 3MB，入 git 合理。Service Worker 需要把 /audio/lectura/** 加进 cache 策略。"
+  },
+  {
+    "id": "AUDIO-002",
+    "priority": 38,
+    "area": "audio",
+    "title": "词语发音迁移到服务端 TTS（修手机版哑巴问题）",
+    "user_visible_behavior": "LookupCard 🔊 按钮在任何设备（含国内 Android Chrome 无西语 voice 包）都能播放，声音和 Lectura 段落同源（Edge es-MX-DaliaNeural）。装到主屏后听过的词永久离线缓存。",
+    "status": "ready_for_dev",
+    "verification": [
+      "/api/tts 路由存在含 GET + OPTIONS + ttsLimiter + 200 char 限制 + sha256 cacheKey",
+      "src/lib/speak.ts 不再引用 window.speechSynthesis，改用 new Audio + /api/tts",
+      "useSpeechAvailable 永真",
+      "src/lib/ratelimit.ts export ttsLimiter",
+      "src/sw.ts 含 /api/tts CacheFirst 规则",
+      "PM 真机：手机 Chrome 点 LookupCard 🔊 听到声音（与桌面同质）",
+      "PWA 离线模式听过的词仍能播",
+      "npm test / npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 AUDIO-001 ✅。Ticket: docs/tickets/AUDIO-002.md。触发：PM 真机测试 2026-05-19 — Android Chrome 国内默认无西语 voice 包，AUDIO-001 的 Web Speech 方案 useSpeechAvailable 检测失败导致按钮全部隐藏。本票把词语发音从客户端 Web Speech 迁到服务端 msedge-tts，设备一致性 100%。Lectura 段落不动（已是预生成 MP3）。"
   }
 ]
