@@ -564,7 +564,7 @@
     "area": "reading",
     "title": "西语分级短文阅读 Lectura（工位友好）",
     "user_visible_behavior": "/lectura 列表展示分级 A1/A2/B1 短文卡片；点入阅读页用 serif 字体 + 720px 居中布局展现纯西语段落，点任意单词唤起 LookupCard 查义、加入词库。无音频、不依赖反爬。",
-    "status": "needs_fix",
+    "status": "ready_for_qa",
     "verification": [
       "content/lectura/index.ts 含 5 篇短文且每篇 paragraphs.length >= 1",
       "/lectura 桌面/手机均能渲染 5 张分级卡片",
@@ -576,8 +576,8 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "PM Dev+QA 2026-05-19: 实现 /lectura 列表页（响应式 grid，level badge 配色 brand/sky/purple）+ /lectura/[slug] 阅读页（max-w-3xl + font-serif + 段落 mb-6 + level/时长/source meta）+ LecturaReader 客户端组件（tokenize + 点词唤 LookupCard 浮层 + Escape 关 + 外击关）。SiteNav 加「阅读」一级入口。LookupCard.LookupSource 扩展 lectura 变体（storySlug + paragraphIndex），handleAddToVocab 把 sourceUrl 拼成 /lectura/<slug>#p<i>、courseRef 拼成 lectura:<slug>/p<i>。VocabAccordion 处理 sourceType=lectura（紫色 badge「阅读」+ sourceUrl 直跳）。tests/read001.test.mjs 7/7 通过；全套 npm test 121/121 通过；npm run build 通过（44 静态页 = 旧 38 + /lectura + 5 个 /lectura/[slug]）；npx tsc --noEmit 通过；encoding lint 通过。",
-    "notes": "依赖：无（复用 LookupCard / WEB-009 token / SiteHeader）。Ticket: docs/tickets/READ-001.md。触发：PM 自用反馈 2026-05-19 — Aula 太重 + 上班不便开。本票是 Esponal 第二条腿（视频之外）的基础。PM 需在 dev 开工前把 5 篇短文 TS 写好放 content/lectura/。 | 2026-05-19 线上 bug: /lectura 和 /lectura/[slug] 用了 force-static, SiteHeader 内 getServerSession 在 build 时永远拿不到 session, 登录用户线上被当游客显示。Fix ticket: docs/tickets/READ-001-FIX.md."
+    "evidence": "PM Dev+QA 2026-05-19: 实现 /lectura 列表页（响应式 grid，level badge 配色 brand/sky/purple）+ /lectura/[slug] 阅读页（max-w-3xl + font-serif + 段落 mb-6 + level/时长/source meta）+ LecturaReader 客户端组件（tokenize + 点词唤 LookupCard 浮层 + Escape 关 + 外击关）。SiteNav 加「阅读」一级入口。LookupCard.LookupSource 扩展 lectura 变体（storySlug + paragraphIndex），handleAddToVocab 把 sourceUrl 拼成 /lectura/<slug>#p<i>、courseRef 拼成 lectura:<slug>/p<i>。VocabAccordion 处理 sourceType=lectura（紫色 badge「阅读」+ sourceUrl 直跳）。tests/read001.test.mjs 7/7 通过；全套 npm test 121/121 通过；npm run build 通过（44 静态页 = 旧 38 + /lectura + 5 个 /lectura/[slug]）；npx tsc --noEmit 通过；encoding lint 通过。 | Codex1 Dev 2026-05-19 10:28: READ-001-FIX ? src/app/lectura/page.tsx ? src/app/lectura/[slug]/page.tsx ? dynamic ? force-static ?? force-dynamic??? tests/read001.test.mjs ?? 4 ? dynamic ??????TDD ????? node --test tests/read001.test.mjs??????? 2/7????? force-static???? 7/7 ????????npm test 121/121 ???npm run build ???????? /lectura ? /lectura/[slug] ?? ? (Dynamic)????? <img> lint warning ? Sentry instrumentation warning???????",
+    "notes": "依赖：无（复用 LookupCard / WEB-009 token / SiteHeader）。Ticket: docs/tickets/READ-001.md。触发：PM 自用反馈 2026-05-19 — Aula 太重 + 上班不便开。本票是 Esponal 第二条腿（视频之外）的基础。PM 需在 dev 开工前把 5 篇短文 TS 写好放 content/lectura/。 | 2026-05-19 线上 bug: /lectura 和 /lectura/[slug] 用了 force-static, SiteHeader 内 getServerSession 在 build 时永远拿不到 session, 登录用户线上被当游客显示。Fix ticket: docs/tickets/READ-001-FIX.md. | 2026-05-19 10:28 Codex1 ?? READ-001-FIX ?????? Codex2 ???? + PM ? Vercel ??????"
   },
   {
     "id": "WEB-013",

@@ -810,3 +810,30 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 - Behavior-layer harvest still needs PM/manual verification with a real YouTube login session.
 
 ---
+
+## Codex1 -> Codex2 / PM Handoff (2026-05-19 10:28)
+
+**Feature**: `READ-001-FIX`
+**Status**: `ready_for_qa`
+
+### What Changed
+- Updated [src/app/lectura/page.tsx](C:/Users/wang/esponal/src/app/lectura/page.tsx) to `export const dynamic = "force-dynamic"`.
+- Updated [src/app/lectura/[slug]/page.tsx](C:/Users/wang/esponal/src/app/lectura/[slug]/page.tsx) to `export const dynamic = "force-dynamic"`.
+- Added four regression assertions in [tests/read001.test.mjs](C:/Users/wang/esponal/tests/read001.test.mjs) to require `force-dynamic` and reject `force-static` on both Lectura pages.
+- Updated `feature_list.json` and `claude-progress.md` with fix evidence.
+
+### Why
+- `SiteHeader` calls `getServerSession(getAuthOptions())`.
+- With `force-static`, the Lectura pages were pre-rendered at build time and never had request cookies, so logged-in users on Vercel were rendered as guests.
+- `force-dynamic` restores per-request session reading while keeping the rest of the page logic unchanged.
+
+### Verification
+- Red test: `node --test tests/read001.test.mjs` failed 2/7 before the code fix because both pages still declared `force-static`.
+- Green test: `node --test tests/read001.test.mjs` passed 7/7 after the fix.
+- Full suite: `npm test` passed 121/121.
+- Production build: `npm run build` passed; Next build output now shows both `/lectura` and `/lectura/[slug]` as `? (Dynamic)`.
+- Existing unrelated warnings remain: `<img>` lint warnings and Sentry instrumentation migration warnings.
+
+### QA Ask
+- Codex2: verify the regression contract and confirm the two Lectura pages stay `force-dynamic`.
+- PM: on Vercel, log in and open `/lectura`; expected result is avatar at top-right and vocab nav going directly to `/vocab` instead of the sign-in redirect.

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { lecturaStories, type LecturaLevel } from "@/../content/lectura";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 const levelStyle: Record<LecturaLevel, string> = {
   A1: "bg-brand-100 text-brand-700",

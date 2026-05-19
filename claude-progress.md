@@ -1870,3 +1870,22 @@ feature_list.json 更新：
 **Next**
 - Codex2 should run contract QA for `EXT-007`.
 - PM behavior smoke remains manual: run `npm run harvest -- --videos=0-Y0ayj9F-w`, log into YouTube in the opened Chrome profile on first run, then verify Redis and `/watch`.
+
+## Dev Report - Session #70 (2026-05-19 10:28) - READ-001-FIX
+
+### Completed
+- Confirmed the regression scope matched `docs/tickets/READ-001-FIX.md`: only `src/app/lectura/page.tsx` and `src/app/lectura/[slug]/page.tsx` combined `SiteHeader` with `dynamic = "force-static"`.
+- Added four regression assertions to `tests/read001.test.mjs` so both Lectura pages must declare `force-dynamic` and must not declare `force-static`.
+- Switched both Lectura pages from `force-static` to `force-dynamic` so `SiteHeader` can read session cookies at request time in production.
+- Updated `feature_list.json`: `READ-001.status = ready_for_qa` and appended fix evidence.
+
+### Verification
+- Red test before implementation: `node --test tests/read001.test.mjs` failed 2/7 on the new `force-dynamic` assertions, with both pages still showing `force-static`.
+- `node --test tests/read001.test.mjs`: passed 7/7 after the fix.
+- `npm test`: passed 121/121.
+- `npm run build`: passed; build output now marks both `/lectura` and `/lectura/[slug]` as `? (Dynamic)`.
+- Existing warnings only: `<img>` lint warnings in `SiteHeader` and `learn/[slug]`, plus existing Sentry instrumentation migration warnings.
+
+### Next
+- Codex2 should QA the contract layer for `READ-001-FIX`.
+- PM should live-check Vercel while logged in: `/lectura` top-right shows the user avatar instead of the sign-in button, and the vocab entry no longer redirects through sign-in.

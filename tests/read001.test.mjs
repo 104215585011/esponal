@@ -38,6 +38,8 @@ test("READ-001 /lectura list page imports stories and renders cards", async () =
   assert.equal(existsSync(path), true, `${path} missing`);
   const page = await readText(path);
 
+  assert.match(page, /dynamic\s*=\s*"force-dynamic"/);
+  assert.doesNotMatch(page, /dynamic\s*=\s*"force-static"/);
   assert.match(page, /lecturaStories/);
   assert.match(page, /lecturaStories\.map/);
   assert.match(page, /\/lectura\/\$\{story\.slug\}/);
@@ -50,6 +52,8 @@ test("READ-001 /lectura/[slug] static params and reader mount", async () => {
   assert.equal(existsSync(path), true, `${path} missing`);
   const page = await readText(path);
 
+  assert.match(page, /dynamic\s*=\s*"force-dynamic"/);
+  assert.doesNotMatch(page, /dynamic\s*=\s*"force-static"/);
   assert.match(page, /generateStaticParams/);
   assert.match(page, /getLecturaStory/);
   assert.match(page, /notFound/);
