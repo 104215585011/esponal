@@ -71,9 +71,19 @@ export async function GET(request: Request) {
     const { audioStream } = tts.toStream(text);
     const chunks: Buffer[] = [];
 
-    for await (const chunk of audioStream) {
-      chunks.push(Buffer.from(chunk));
-    }
+    // Hard cap so a broken WebSocket can never keep the function alive
+    // until Vercel's 300s default timeout.
+    const SYNTH_TIMEOUT_MS = 10000;
+    const collected = (async () => {
+      for await (const chunk of audioStream) {
+        chunks.push(Buffer.from(chunk));
+      }
+    })();
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("TTS stream timed out")), SYNTH_TIMEOUT_MS);
+    });
+
+    await Promise.race([collected, timeout]);
 
     const buffer = Buffer.concat(chunks);
 
@@ -87,6 +97,10 @@ export async function GET(request: Request) {
     console.error("TTS synth failed", error);
     return NextResponse.json({ error: "synth failed" }, { status: 500, headers: CORS_HEADERS });
   } finally {
-    tts.close();
+    try {
+      tts.close();
+    } catch {
+      // Swallow close errors so we always return cleanly.
+    }
   }
 }
