@@ -578,5 +578,45 @@
     ],
     "evidence": "PM Dev+QA 2026-05-19: 实现 /lectura 列表页（响应式 grid，level badge 配色 brand/sky/purple）+ /lectura/[slug] 阅读页（max-w-3xl + font-serif + 段落 mb-6 + level/时长/source meta）+ LecturaReader 客户端组件（tokenize + 点词唤 LookupCard 浮层 + Escape 关 + 外击关）。SiteNav 加「阅读」一级入口。LookupCard.LookupSource 扩展 lectura 变体（storySlug + paragraphIndex），handleAddToVocab 把 sourceUrl 拼成 /lectura/<slug>#p<i>、courseRef 拼成 lectura:<slug>/p<i>。VocabAccordion 处理 sourceType=lectura（紫色 badge「阅读」+ sourceUrl 直跳）。tests/read001.test.mjs 7/7 通过；全套 npm test 121/121 通过；npm run build 通过（44 静态页 = 旧 38 + /lectura + 5 个 /lectura/[slug]）；npx tsc --noEmit 通过；encoding lint 通过。",
     "notes": "依赖：无（复用 LookupCard / WEB-009 token / SiteHeader）。Ticket: docs/tickets/READ-001.md。触发：PM 自用反馈 2026-05-19 — Aula 太重 + 上班不便开。本票是 Esponal 第二条腿（视频之外）的基础。PM 需在 dev 开工前把 5 篇短文 TS 写好放 content/lectura/。 | 2026-05-19 线上 bug: /lectura 和 /lectura/[slug] 用了 force-static, SiteHeader 内 getServerSession 在 build 时永远拿不到 session, 登录用户线上被当游客显示。Fix ticket: docs/tickets/READ-001-FIX.md."
+  },
+  {
+    "id": "WEB-013",
+    "priority": 35,
+    "area": "web",
+    "title": "移动端导航（汉堡菜单）",
+    "user_visible_behavior": "手机/平板（< 1024px）顶栏显示汉堡按钮，点击后从右滑出全屏抽屉，含 5 个一级入口（视频/课程/阅读/语法/词库）。ESC 或点外部关闭，抽屉打开时锁 body 滚动。",
+    "status": "ready_for_dev",
+    "verification": [
+      "src/app/components/web/MobileNav.tsx 存在并 use client",
+      "5 个 nav item 都在抽屉里",
+      "Escape 关闭逻辑就位",
+      "SiteHeader 在 < lg 渲染 MobileNav",
+      "桌面 1280px / 平板 768px / 手机 375px 三档都不崩",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-009 brand token。Ticket: docs/tickets/WEB-013.md。PWA-001 的前置——手机没顶栏菜单装成 PWA 也没用。"
+  },
+  {
+    "id": "PWA-001",
+    "priority": 36,
+    "area": "web",
+    "title": "Esponal PWA 化（添加到主屏 + 离线 Lectura）",
+    "user_visible_behavior": "Android Chrome 用户访问站点能添加到主屏；启动后是全屏 standalone 模式、有桌面图标、能离线读已访问过的 Lectura 文章；首页可见不打扰的「添加到主屏」入口。",
+    "status": "ready_for_dev",
+    "verification": [
+      "public/manifest.webmanifest 合法 JSON 含所有必填字段",
+      "4 个 icon 文件存在且 > 1KB",
+      "src/sw.ts 用 serwist；next.config.mjs 包 withSerwist",
+      "layout.tsx 注入 manifest link + theme-color meta",
+      "InstallPrompt 组件捕获 beforeinstallprompt 事件",
+      "/offline fallback 页存在",
+      "Lighthouse PWA 分 >= 90（PM 真机验）",
+      "Android Chrome 能装，装完离线访问已缓存页面成功",
+      "npm test / npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 WEB-013。Ticket: docs/tickets/PWA-001.md。Phase 1 移动端方案，等本票上线 + PM 真用 3 天后决定是否做 PWA-002（TWA + Play Store）。"
   }
 ]
