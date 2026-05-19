@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "package": "npm run build && node scripts/package.mjs"
+    "build": "esbuild background.js content.js popup.js --bundle --outdir=dist --format=iife",
+    "package": "node scripts/package.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.24.2"

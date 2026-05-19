@@ -1,6 +1,5 @@
 const showChineseKey = "showChineseSubtitles";
 const toggleButton = document.getElementById("toggleChinese");
-const lastHarvest = document.getElementById("lastHarvest");
 
 function updateBadge(showChineseSubtitles) {
   chrome.action.setBadgeText({
@@ -20,27 +19,6 @@ function updateToggleLabel(showChineseSubtitles) {
 chrome.storage.local.get({ [showChineseKey]: true }, (values) => {
   updateToggleLabel(values[showChineseKey]);
   updateBadge(values[showChineseKey]);
-});
-
-chrome.storage.local.get({ lastSubtitleHarvest: null }, (values) => {
-  const harvest = values.lastSubtitleHarvest;
-
-  if (!lastHarvest || !harvest?.videoId || !harvest?.harvestedAt) {
-    return;
-  }
-
-  const harvestedAt = new Date(harvest.harvestedAt);
-  const label = Number.isNaN(harvestedAt.getTime())
-    ? harvest.harvestedAt
-    : harvestedAt.toLocaleString("zh-CN", {
-        hour12: false,
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
-  lastHarvest.textContent = `最近收割：${label}, videoId=${harvest.videoId}`;
 });
 
 toggleButton?.addEventListener("click", () => {
