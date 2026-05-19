@@ -16,6 +16,7 @@ type SiteNavItem = {
 const navItems: SiteNavItem[] = [
   { label: "视频", href: "/" },
   { label: "课程", href: "/learn" },
+  { label: "阅读", href: "/lectura" },
   { label: "语法", href: "/grammar" }
 ];
 

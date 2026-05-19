@@ -15,6 +15,12 @@ type LookupSource =
       url: string;
       courseRef: string;
       sentence: string;
+    }
+  | {
+      type: "lectura";
+      storySlug: string;
+      paragraphIndex: number;
+      sentence: string;
     };
 
 type LookupCardProps = {
@@ -180,12 +186,22 @@ export function LookupCard({
           },
           partOfSpeech: lookupState.partOfSpeech,
           sourceType: resolvedSource.type,
-          sourceUrl: resolvedSource.type === "course" ? resolvedSource.url : resolvedSource.url ?? getCurrentUrl(),
+          sourceUrl:
+            resolvedSource.type === "lectura"
+              ? `/lectura/${resolvedSource.storySlug}#p${resolvedSource.paragraphIndex}`
+              : resolvedSource.type === "course"
+                ? resolvedSource.url
+                : resolvedSource.url ?? getCurrentUrl(),
           timestampSec:
             resolvedSource.type === "video"
               ? Math.max(0, Math.floor(resolvedSource.timestampSec ?? currentTimeSec ?? 0))
               : 0,
-          courseRef: resolvedSource.type === "course" ? resolvedSource.courseRef : null,
+          courseRef:
+            resolvedSource.type === "course"
+              ? resolvedSource.courseRef
+              : resolvedSource.type === "lectura"
+                ? `lectura:${resolvedSource.storySlug}/p${resolvedSource.paragraphIndex}`
+                : null,
           originalSentence: sourceSentence,
           translatedSentence: translatedSentence || lookupState.translation
         })

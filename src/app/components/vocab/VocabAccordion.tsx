@@ -134,6 +134,24 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                   const showDivider = dateKey !== lastDateKey;
                   lastDateKey = dateKey;
                   const isCourse = encounter.sourceType === "course";
+                  const isLectura = encounter.sourceType === "lectura";
+                  const isStatic = isCourse || isLectura;
+                  const badgeLabel = isCourse
+                    ? "课程"
+                    : isLectura
+                      ? "阅读"
+                      : formatTimestamp(encounter.timestampSec);
+                  const badgeClass = isCourse
+                    ? "bg-brand-50 text-brand-600"
+                    : isLectura
+                      ? "bg-purple-50 text-purple-600"
+                      : "bg-gray-200 text-gray-500";
+                  const titleLabel = isLectura
+                    ? encounter.courseRef ?? "阅读出处"
+                    : isCourse
+                      ? encounter.courseRef ?? "课程出处"
+                      : encounter.videoTitle;
+                  const linkLabel = isStatic ? "查看" : "跳回视频";
 
                   return (
                     <div key={encounter.id}>
@@ -147,23 +165,17 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                       <div className="border-b border-gray-100 py-3 last:border-b-0">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-700">
-                              {isCourse ? encounter.courseRef ?? "课程出处" : encounter.videoTitle}
-                            </p>
+                            <p className="text-sm font-medium text-gray-700">{titleLabel}</p>
                             <span
-                              className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs ${
-                                isCourse
-                                  ? "bg-brand-50 text-brand-600"
-                                  : "bg-gray-200 text-gray-500"
-                              }`}
+                              className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs ${badgeClass}`}
                             >
-                              {isCourse ? "课程" : formatTimestamp(encounter.timestampSec)}
+                              {badgeLabel}
                             </span>
                           </div>
                           <a
                             className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-medium text-brand-600 hover:underline"
                             href={
-                              isCourse
+                              isStatic
                                 ? encounter.sourceUrl
                                 : buildVideoJumpHref(
                                     encounter.sourceUrl,
@@ -173,7 +185,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                             target="_blank"
                             rel="noreferrer"
                           >
-                            {isCourse ? "查看" : "跳回视频"}
+                            {linkLabel}
                           </a>
                         </div>
                         <p className="mt-3 text-sm italic text-gray-600">
