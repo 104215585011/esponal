@@ -41,6 +41,9 @@ type LookupResponse = {
   meanings: string[];
   examples: { es: string; zh: string }[];
   phonetic: string | null;
+  conjugations?: unknown;
+  nounForms?: unknown;
+  adjectiveForms?: unknown;
   degraded?: boolean;
 };
 
@@ -59,6 +62,9 @@ type LookupState =
       meanings: string[];
       examples: { es: string; zh: string }[];
       phonetic: string | null;
+      conjugations?: LookupResponse["conjugations"];
+      nounForms?: LookupResponse["nounForms"];
+      adjectiveForms?: LookupResponse["adjectiveForms"];
     };
 
 const LEGACY_LEMMATIZE_ROUTE = "/api/lemmatize";
@@ -138,7 +144,10 @@ export function LookupCard({
           partOfSpeech: payload.partOfSpeech ?? "",
           meanings: payload.meanings,
           examples: payload.examples ?? [],
-          phonetic: payload.phonetic
+          phonetic: payload.phonetic,
+          conjugations: payload.conjugations,
+          nounForms: payload.nounForms,
+          adjectiveForms: payload.adjectiveForms
         });
         setButtonState("default");
       } catch (error) {
@@ -185,7 +194,10 @@ export function LookupCard({
           dictData: {
             meanings: lookupState.meanings,
             examples: lookupState.examples,
-            phonetic: lookupState.phonetic
+            phonetic: lookupState.phonetic,
+            conjugations: lookupState.conjugations,
+            nounForms: lookupState.nounForms,
+            adjectiveForms: lookupState.adjectiveForms
           },
           partOfSpeech: lookupState.partOfSpeech,
           sourceType: resolvedSource.type,

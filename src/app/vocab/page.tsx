@@ -6,6 +6,7 @@ import VocabAccordion, {
 } from "@/app/components/vocab/VocabAccordion";
 import { getAuthOptions } from "@/lib/auth";
 import { getWordsByUser } from "@/lib/vocab";
+import type { VerbConjugations } from "@/lib/conjugate";
 
 // VOCAB-002 change timestamp: 2026-05-13 13:54
 const getVideoTitle = (sourceUrl: string) => {
@@ -37,6 +38,63 @@ const getExamples = (dictData: unknown) => {
       typeof (item as { es?: unknown }).es === "string" &&
       typeof (item as { zh?: unknown }).zh === "string"
   );
+};
+
+const getConjugations = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return undefined;
+  const conjugations = (dictData as { conjugations?: unknown }).conjugations;
+  return conjugations && typeof conjugations === "object"
+    ? (conjugations as VerbConjugations)
+    : undefined;
+};
+
+const getNounForms = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return undefined;
+  const nounForms = (dictData as { nounForms?: unknown }).nounForms;
+  if (!nounForms || typeof nounForms !== "object") return undefined;
+
+  const singular = (nounForms as { singular?: unknown }).singular;
+  const plural = (nounForms as { plural?: unknown }).plural;
+  const gender = (nounForms as { gender?: unknown }).gender;
+  if (
+    typeof singular !== "string" ||
+    typeof plural !== "string" ||
+    (gender !== "m" && gender !== "f" && gender !== "mf")
+  ) {
+    return undefined;
+  }
+
+  return {
+    singular,
+    plural,
+    gender
+  } as { singular: string; plural: string; gender: "m" | "f" | "mf" };
+};
+
+const getAdjectiveForms = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return undefined;
+  const adjectiveForms = (dictData as { adjectiveForms?: unknown }).adjectiveForms;
+  if (!adjectiveForms || typeof adjectiveForms !== "object") return undefined;
+
+  const ms = (adjectiveForms as { ms?: unknown }).ms;
+  const fs = (adjectiveForms as { fs?: unknown }).fs;
+  const mp = (adjectiveForms as { mp?: unknown }).mp;
+  const fp = (adjectiveForms as { fp?: unknown }).fp;
+  if (
+    typeof ms !== "string" ||
+    typeof fs !== "string" ||
+    typeof mp !== "string" ||
+    typeof fp !== "string"
+  ) {
+    return undefined;
+  }
+
+  return { ms, fs, mp, fp } as {
+    ms: string;
+    fs: string;
+    mp: string;
+    fp: string;
+  };
 };
 
 export default async function VocabPage() {
@@ -73,6 +131,9 @@ export default async function VocabPage() {
         partOfSpeech: word.partOfSpeech,
         meanings: getMeanings(word.dictData),
         examples: getExamples(word.dictData),
+        conjugations: getConjugations(word.dictData),
+        nounForms: getNounForms(word.dictData),
+        adjectiveForms: getAdjectiveForms(word.dictData),
         encounterCount: encounters.length,
         recentEncounterAt,
         encounters

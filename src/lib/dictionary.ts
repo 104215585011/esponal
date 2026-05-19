@@ -1,5 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  tryConjugateVerb,
+  type VerbConjugations
+} from "@/lib/conjugate";
 import { reportLookupFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 
@@ -16,6 +20,18 @@ export type DictionaryEntry = {
   examples: DictionaryExample[];
   phonetic: string | null;
   morphInfo: string | null;
+  conjugations?: VerbConjugations;
+  nounForms?: {
+    singular: string;
+    plural: string;
+    gender: "m" | "f" | "mf";
+  };
+  adjectiveForms?: {
+    ms: string;
+    fs: string;
+    mp: string;
+    fp: string;
+  };
   cached?: boolean;
   degraded?: boolean;
 };
@@ -25,6 +41,13 @@ type LemmaEntry = {
   morphInfo: string;
   translation: string;
   partOfSpeech?: string;
+};
+
+type RawAIEntry = {
+  pos?: string;
+  meanings?: string[];
+  example?: { es?: string; zh?: string };
+  forms?: unknown;
 };
 
 let lemmaDictPromise: Promise<Record<string, LemmaEntry>> | null = null;
@@ -62,6 +85,106 @@ function inferLemma(form: string, dictEntry?: LemmaEntry) {
   return form;
 }
 
+function normalizePartOfSpeech(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizeMeanings(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function normalizeExample(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  const es = typeof (value as { es?: unknown }).es === "string"
+    ? (value as { es: string }).es.trim()
+    : "";
+  const zh = typeof (value as { zh?: unknown }).zh === "string"
+    ? (value as { zh: string }).zh.trim()
+    : "";
+
+  return es && zh ? [{ es, zh }] : [];
+}
+
+function normalizeFormValue(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 && trimmed.length < 50 ? trimmed : null;
+}
+
+function getNounGender(partOfSpeech: string | null) {
+  if (!partOfSpeech) return null;
+
+  const normalized = partOfSpeech.toLowerCase();
+  if (normalized.includes("n.mf")) return "mf";
+  if (normalized.includes("n.m")) return "m";
+  if (normalized.includes("n.f")) return "f";
+  return null;
+}
+
+function isVerbPos(partOfSpeech: string | null) {
+  return Boolean(partOfSpeech?.toLowerCase().startsWith("v"));
+}
+
+function validateNounForms(
+  lemma: string,
+  partOfSpeech: string | null,
+  forms: unknown
+): DictionaryEntry["nounForms"] | undefined {
+  const gender = getNounGender(partOfSpeech);
+  if (!gender || !forms || typeof forms !== "object") {
+    return undefined;
+  }
+
+  const singular = normalizeFormValue((forms as { singular?: unknown }).singular);
+  const plural = normalizeFormValue((forms as { plural?: unknown }).plural);
+  if (!singular || !plural) {
+    return undefined;
+  }
+
+  const normalizedLemma = lemma.toLowerCase();
+  const normalizedSingular = singular.toLowerCase();
+  const normalizedPlural = plural.toLowerCase();
+  if (
+    normalizedSingular !== normalizedLemma &&
+    normalizedSingular !== `${normalizedLemma}s` &&
+    normalizedSingular !== `${normalizedLemma}es`
+  ) {
+    return undefined;
+  }
+
+  if (
+    normalizedPlural !== `${normalizedSingular}s` &&
+    normalizedPlural !== `${normalizedSingular}es` &&
+    normalizedPlural !== normalizedSingular
+  ) {
+    return undefined;
+  }
+
+  return { singular, plural, gender };
+}
+
+function validateAdjectiveForms(forms: unknown): DictionaryEntry["adjectiveForms"] | undefined {
+  if (!forms || typeof forms !== "object") {
+    return undefined;
+  }
+
+  const ms = normalizeFormValue((forms as { ms?: unknown }).ms);
+  const fs = normalizeFormValue((forms as { fs?: unknown }).fs);
+  const mp = normalizeFormValue((forms as { mp?: unknown }).mp);
+  const fp = normalizeFormValue((forms as { fp?: unknown }).fp);
+
+  if (!ms || !fs || !mp || !fp) {
+    return undefined;
+  }
+
+  return { ms, fs, mp, fp };
+}
+
 async function safeCacheGet(key: string) {
   try {
     const cached = await redis.get(key);
@@ -73,9 +196,9 @@ async function safeCacheGet(key: string) {
 
 async function safeCacheSet(key: string, value: DictionaryEntry) {
   try {
-    await redis.set(key, JSON.stringify(value));
+    await redis.set(key, JSON.stringify(value), "EX", 60 * 60 * 24 * 30);
   } catch {
-    // Cache unavailable — degrade silently
+    // Cache unavailable, degrade silently.
   }
 }
 
@@ -94,18 +217,30 @@ async function fetchAIEntry(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model,
         messages: [
           {
             role: "user",
-            content: `你是西班牙语词典助手。请为单词"${lemma}"生成词典条目，只返回JSON，不要任何解释，格式：{"pos":"词性缩写","meanings":["中文义项1","中文义项2"],"example":{"es":"西语例句","zh":"中文翻译"}}`,
-          },
+            content: [
+              "You are a Spanish dictionary assistant.",
+              `Generate a JSON dictionary entry for the lemma "${lemma}".`,
+              "Return JSON only.",
+              'Verb shape: {"pos":"v.","meanings":["..."],"example":{"es":"...","zh":"..."}}',
+              'Noun shape: {"pos":"n.m." or "n.f.","meanings":["..."],"example":{"es":"...","zh":"..."},"forms":{"singular":"libro","plural":"libros"}}',
+              'Adjective shape: {"pos":"adj.","meanings":["..."],"example":{"es":"...","zh":"..."},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}',
+              "Use concise Chinese meanings.",
+              morphInfo ? `Morphology hint: ${morphInfo}` : "",
+              `Observed surface form: ${word}`
+            ]
+              .filter(Boolean)
+              .join("\n")
+          }
         ],
-        temperature: 0.1,
-      }),
+        temperature: 0.1
+      })
     }
   );
 
@@ -116,22 +251,26 @@ async function fetchAIEntry(
   if (!raw) return null;
 
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
-  const parsed = JSON.parse(cleaned) as {
-    pos?: string;
-    meanings?: string[];
-    example?: { es: string; zh: string };
-  };
-
-  if (!parsed.meanings?.length) return null;
+  const parsed = JSON.parse(cleaned) as RawAIEntry;
+  const partOfSpeech = normalizePartOfSpeech(parsed.pos);
+  const meanings = normalizeMeanings(parsed.meanings);
+  if (meanings.length === 0) {
+    return null;
+  }
 
   return {
     word,
     lemma,
-    partOfSpeech: parsed.pos ?? null,
-    meanings: parsed.meanings,
-    examples: parsed.example ? [parsed.example] : [],
+    partOfSpeech,
+    meanings,
+    examples: normalizeExample(parsed.example),
     phonetic: null,
     morphInfo,
+    nounForms: validateNounForms(lemma, partOfSpeech, parsed.forms),
+    adjectiveForms:
+      partOfSpeech?.toLowerCase().startsWith("adj")
+        ? validateAdjectiveForms(parsed.forms)
+        : undefined
   };
 }
 
@@ -143,7 +282,7 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
   const dictEntry = lemmaDict[word];
   const lemma = inferLemma(word, dictEntry);
   const morphInfo = isPlaceholder(dictEntry?.morphInfo) ? null : (dictEntry?.morphInfo ?? null);
-  const cacheKey = `vocab:dict:${lemma}`;
+  const cacheKey = `vocab:dict:v2:${lemma}`;
 
   const cached = await safeCacheGet(cacheKey);
   if (cached) {
@@ -156,17 +295,27 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
   });
 
   if (!aiEntry) {
-    // Degrade: return whatever lemma-dict has (may be empty meanings)
+    const partOfSpeech = isPlaceholder(dictEntry?.partOfSpeech)
+      ? null
+      : (dictEntry?.partOfSpeech ?? null);
+
     return {
       word,
       lemma,
-      partOfSpeech: isPlaceholder(dictEntry?.partOfSpeech) ? null : (dictEntry?.partOfSpeech ?? null),
-      meanings: isPlaceholder(dictEntry?.translation) ? [] : [dictEntry?.translation ?? ""].filter(Boolean),
+      partOfSpeech,
+      meanings: isPlaceholder(dictEntry?.translation)
+        ? []
+        : [dictEntry?.translation ?? ""].filter(Boolean),
       examples: [],
       phonetic: null,
       morphInfo,
-      degraded: true,
+      conjugations: isVerbPos(partOfSpeech) ? (tryConjugateVerb(lemma) ?? undefined) : undefined,
+      degraded: true
     };
+  }
+
+  if (isVerbPos(aiEntry.partOfSpeech)) {
+    aiEntry.conjugations = tryConjugateVerb(lemma) ?? undefined;
   }
 
   await safeCacheSet(cacheKey, aiEntry);

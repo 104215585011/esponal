@@ -1005,3 +1005,51 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 ### QA Ask
 - Codex2: verify `/api/tts` route contracts, `speak.ts` no longer references Web Speech, `ttsLimiter` exists, and SW caches `/api/tts?text=`.
 - PM: after deploy, Android Chrome should show LookupCard audio buttons and play Edge `es-MX-DaliaNeural` audio without installing any local Spanish TTS voice.
+
+## Codex1 -> Codex2 / PM Handoff (2026-05-19 15:10)
+
+**Feature**: `VOCAB-005`
+**Status**: `ready_for_qa`
+
+### What Changed
+- Added [src/lib/conjugate.ts](C:/Users/wang/esponal/src/lib/conjugate.ts) with deterministic `tryConjugateVerb`.
+- Added local dependency scaffold under [vendor/spanish-verbs](C:/Users/wang/esponal/vendor/spanish-verbs) and wired `package.json` / `package-lock.json`.
+- Reworked [src/lib/dictionary.ts](C:/Users/wang/esponal/src/lib/dictionary.ts) to:
+  - extend `DictionaryEntry` with `conjugations`, `nounForms`, `adjectiveForms`
+  - bump cache keys to `vocab:dict:v2:`
+  - set 30-day Redis TTL
+  - expand the GLM dictionary prompt
+  - validate noun/adjective forms before keeping them
+  - add deterministic conjugations for verb entries, including degraded fallback entries
+- Added [ConjugationTable.tsx](C:/Users/wang/esponal/src/app/components/vocab/ConjugationTable.tsx).
+- Updated [VocabAccordion.tsx](C:/Users/wang/esponal/src/app/components/vocab/VocabAccordion.tsx) to show:
+  - 7 tense tabs + conjugation table for verbs
+  - inline singular/plural + gender for nouns
+  - inline ms/fs/mp/fp forms for adjectives
+- Updated [src/app/vocab/page.tsx](C:/Users/wang/esponal/src/app/vocab/page.tsx) to serialize the richer dictData payload.
+- Updated [LookupCard.tsx](C:/Users/wang/esponal/src/app/watch/LookupCard.tsx) so saving a looked-up word now persists `conjugations`, `nounForms`, and `adjectiveForms` into `dictData` while keeping the popup itself lightweight.
+- Updated [src/app/api/vocab/add/route.ts](C:/Users/wang/esponal/src/app/api/vocab/add/route.ts) and [src/lib/vocab.ts](C:/Users/wang/esponal/src/lib/vocab.ts) so `lectura` sourceType is preserved.
+- Added [tests/vocab005.test.mjs](C:/Users/wang/esponal/tests/vocab005.test.mjs).
+
+### Verification
+- Red test: `node --test tests/vocab005.test.mjs` failed 4/4 before implementation.
+- Green test: `node --test tests/vocab005.test.mjs` passed 4/4.
+- Regression slice: `node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs` passed 19/19.
+- Full suite: `npm test` passed 143/143.
+- Encoding: `npm run lint:encoding` passed.
+- Build: `npm run build` passed.
+
+### Warnings
+- Existing only: `<img>` lint warnings in `SiteHeader` and `learn/[slug]`, Sentry instrumentation migration warnings, and `MODULE_TYPELESS_PACKAGE_JSON` warnings during node test imports.
+
+### QA Ask
+- Codex2: verify `VOCAB-005` contract from source and files:
+  - `package.json` contains `spanish-verbs`
+  - `src/lib/conjugate.ts` returns deterministic forms for `vivir` and `ser`
+  - `src/lib/dictionary.ts` uses `vocab:dict:v2:` and stores richer dictData
+  - `LookupCard.tsx` persists the new fields but does not render a conjugation table itself
+  - `VocabAccordion.tsx` renders `ConjugationTable` for verbs and inline forms for nouns/adjectives
+- PM/live smoke:
+  - save a fresh verb from `/watch`, then open `/vocab` and confirm the expanded entry has 7 tense tabs
+  - check one noun and one adjective entry for inline forms
+  - old entries without new dictData should degrade quietly, not crash

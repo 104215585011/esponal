@@ -2009,3 +2009,32 @@ feature_list.json 更新：
 ### Next
 - Codex2 should verify AUDIO-002 source contracts.
 - PM should do the key behavior smoke on Android Chrome: open a LookupCard, tap pronunciation, and confirm audio plays without installing a Spanish voice pack.
+
+## Dev Report - Session #76 (2026-05-19 15:10) - VOCAB-005
+
+### Completed
+- Added `spanish-verbs` as a local file dependency backed by `vendor/spanish-verbs/`.
+- Added `src/lib/conjugate.ts` with `tryConjugateVerb`, covering the seven required tense buckets and deterministic fallback to `null`.
+- Extended `src/lib/dictionary.ts` with `conjugations`, `nounForms`, `adjectiveForms`, `vocab:dict:v2:` cache keys, 30-day TTL cache writes, GLM prompt expansion, and noun/adjective form validation.
+- Added `src/app/components/vocab/ConjugationTable.tsx`.
+- Updated `src/app/components/vocab/VocabAccordion.tsx` to render the conjugation tabs/table for verbs and inline forms for nouns/adjectives.
+- Updated `src/app/vocab/page.tsx` to serialize the richer dictData payload for the client accordion.
+- Updated `src/app/watch/LookupCard.tsx` to persist `conjugations`, `nounForms`, and `adjectiveForms` into `dictData` without changing the lightweight card UI.
+- Updated `src/app/api/vocab/add/route.ts` and `src/lib/vocab.ts` so `lectura` sourceType is preserved instead of being collapsed to `video`.
+- Added `tests/vocab005.test.mjs`.
+- Updated `feature_list.json`: `VOCAB-005.status = ready_for_qa`.
+
+### Verification
+- Red test before implementation: `node --test tests/vocab005.test.mjs` failed 4/4.
+- `node --test tests/vocab005.test.mjs`: passed 4/4.
+- `node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs`: passed 19/19.
+- `npm test`: passed 143/143.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed.
+
+### Notes
+- Build warnings remain unchanged from earlier sessions: existing `<img>` lint warnings in `SiteHeader` and `learn/[slug]`, plus existing Sentry instrumentation migration warnings.
+- `node --test` still emits the existing `MODULE_TYPELESS_PACKAGE_JSON` warnings for direct TS imports.
+
+### Next
+- Codex2 should QA `VOCAB-005`, especially the source contract for conjugation/forms serialization plus any live `/vocab` expand-state smoke on a saved verb, noun, and adjective.

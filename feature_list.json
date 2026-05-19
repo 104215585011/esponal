@@ -666,7 +666,7 @@
     "area": "vocabulary",
     "title": "词库变位增强（动词全时态 + 名词/形容词性数）",
     "user_visible_behavior": "/vocab 词条展开时：动词显示 7 个时态 tab + 6 人称变位表（确定性 spanish-verbs 库，不规则动词也准）；名词显示「单/复」inline；形容词显示「阳单/阴单/阳复/阴复」inline。",
-    "status": "ready_for_dev",
+    "status": "ready_for_qa",
     "verification": [
       "package.json 含 spanish-verbs 依赖",
       "src/lib/conjugate.ts 的 tryConjugateVerb 返回 ser/vivir 正确变位",
@@ -678,7 +678,7 @@
       "新查询的动词词条带完整变位；老缓存优雅降级",
       "npm test / npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-19 15:10: implemented deterministic vocab conjugation/forms for /vocab. Added local spanish-verbs package dependency plus vendor shim and src/lib/conjugate.ts with tryConjugateVerb covering regular verbs and irregular ser/ir. Extended src/lib/dictionary.ts with conjugations, nounForms, adjectiveForms, v2 cache namespace, 30-day TTL, GLM prompt expansion, and noun/adjective form validation. Added src/app/components/vocab/ConjugationTable.tsx and updated VocabAccordion plus src/app/vocab/page.tsx to render 7 tense tabs for verbs and inline forms for nouns/adjectives. Updated LookupCard to persist conjugations/nounForms/adjectiveForms into dictData and preserved lightweight card UI. Also fixed sourceType passthrough for lectura encounters in /api/vocab/add and src/lib/vocab.ts. TDD: node --test tests/vocab005.test.mjs failed 4/4 before implementation, then passed 4/4. Related regressions: node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs passed 19/19. Full verification: npm test passed 143/143; npm run lint:encoding passed; npm run build passed. Remaining warnings only: existing <img> lint warnings in SiteHeader and learn/[slug], existing Sentry instrumentation migration warnings, and existing Node MODULE_TYPELESS_PACKAGE_JSON warnings during node --test imports.",
     "notes": "依赖：无（GLM-5 已在用）。Ticket: docs/tickets/VOCAB-005.md。触发：PM 反馈 2026-05-19 — 西语动词变位是核心难点。架构决定：变位用 spanish-verbs（MIT,~12k verbs）确定性输出，避免 AI 在不规则动词上翻车；名词/形容词形态依然走 GLM-5 但加校验。老缓存自然过渡（v2 namespace + 30 天 TTL）。"
   }
 ]

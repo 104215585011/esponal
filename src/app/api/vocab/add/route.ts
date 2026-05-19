@@ -53,7 +53,10 @@ export async function POST(request: Request) {
       body.dictData && typeof body.dictData === "object" ? body.dictData : undefined;
     const partOfSpeech =
       typeof body.partOfSpeech === "string" ? body.partOfSpeech.trim() : null;
-    const sourceType = body.sourceType === "course" ? "course" : "video";
+    const sourceType =
+      body.sourceType === "course" || body.sourceType === "lectura"
+        ? body.sourceType
+        : "video";
     const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "";
     const courseRef = typeof body.courseRef === "string" ? body.courseRef.trim() : null;
     const originalSentence =

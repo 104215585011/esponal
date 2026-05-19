@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { VerbConjugations } from "@/lib/conjugate";
 import EmptyState from "@/app/components/ui/EmptyState";
+import ConjugationTable from "@/app/components/vocab/ConjugationTable";
 import { buildVideoJumpHref } from "@/app/components/vocab/videoHref";
 
 export type VocabEncounter = {
@@ -23,6 +25,9 @@ export type VocabWord = {
   partOfSpeech: string | null;
   meanings: string[];
   examples: { es: string; zh: string }[];
+  conjugations?: VerbConjugations;
+  nounForms?: { singular: string; plural: string; gender: "m" | "f" | "mf" };
+  adjectiveForms?: { ms: string; fs: string; mp: string; fp: string };
   encounterCount: number;
   recentEncounterAt: string | null;
   encounters: VocabEncounter[];
@@ -77,6 +82,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
         const isOpen = openWordId === word.id;
         let lastDateKey = "";
         const summary = word.meanings.length > 0 ? word.meanings.join(" / ") : word.translation;
+        const hasForms = Boolean(word.conjugations || word.nounForms || word.adjectiveForms);
 
         return (
           <article className="overflow-hidden rounded-xl" data-testid="vocab-word" key={word.id}>
@@ -127,6 +133,32 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                   <div className="mb-3 rounded-xl bg-surface px-4 py-3 text-sm text-gray-500">
                     <p className="italic text-gray-700">{word.examples[0].es}</p>
                     <p className="mt-1">{word.examples[0].zh}</p>
+                  </div>
+                ) : null}
+                {hasForms ? (
+                  <div className="mb-3 rounded-xl bg-surface px-4 py-3">
+                    {word.nounForms ? (
+                      <p className="text-sm text-gray-600">
+                        单/复{" "}
+                        <span className="font-medium text-gray-900">
+                          {word.nounForms.singular} / {word.nounForms.plural}
+                        </span>
+                        {" · "}
+                        {word.nounForms.gender}
+                      </p>
+                    ) : null}
+                    {word.adjectiveForms ? (
+                      <p className="text-sm text-gray-600">
+                        阳单/阴单/阳复/阴复{" "}
+                        <span className="font-medium text-gray-900">
+                          {word.adjectiveForms.ms} / {word.adjectiveForms.fs} /{" "}
+                          {word.adjectiveForms.mp} / {word.adjectiveForms.fp}
+                        </span>
+                      </p>
+                    ) : null}
+                    {word.conjugations ? (
+                      <ConjugationTable conjugations={word.conjugations} />
+                    ) : null}
                   </div>
                 ) : null}
                 {word.encounters.map((encounter) => {
