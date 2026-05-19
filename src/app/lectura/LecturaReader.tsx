@@ -16,27 +16,79 @@ type ActiveLookup = {
 };
 
 function splitParagraphTokens(text: string) {
-  // Keep word-runs and whitespace/punctuation runs as separate tokens so we
-  // can wrap only the word-like ones in clickable spans while preserving the
-  // original spacing and punctuation around them.
   return text.match(/\S+|\s+/g) ?? [];
 }
 
 function normalizeLookupWord(token: string) {
   return token
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(
-      /^[^a-záéíóúñü]+|[^a-záéíóúñü]+$/gi,
-      ""
-    )
+    .replace(/^[^a-záéíóúñü]+|[^a-záéíóúñü]+$/gi, "")
     .trim();
 }
 
 export function LecturaReader({ story }: LecturaReaderProps) {
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
+  const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopCurrentAudio = () => {
+    if (!currentAudioRef.current) {
+      return;
+    }
+
+    currentAudioRef.current.pause();
+    currentAudioRef.current.currentTime = 0;
+    currentAudioRef.current = null;
+    setPlayingParagraphIndex(null);
+  };
+
+  const openLookup = (target: HTMLElement, paragraphIndex: number, form: string) => {
+    const rect = target.getBoundingClientRect();
+    setActiveLookup({
+      paragraphIndex,
+      form,
+      anchorX: rect.left,
+      anchorY: rect.bottom + 6
+    });
+  };
+
+  const toggleParagraphAudio = (paragraphIndex: number) => {
+    if (playingParagraphIndex === paragraphIndex) {
+      stopCurrentAudio();
+      return;
+    }
+
+    stopCurrentAudio();
+
+    const audio = new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`);
+    currentAudioRef.current = audio;
+    setPlayingParagraphIndex(paragraphIndex);
+
+    audio.addEventListener(
+      "ended",
+      () => {
+        currentAudioRef.current = null;
+        setPlayingParagraphIndex(null);
+      },
+      { once: true }
+    );
+    audio.addEventListener(
+      "error",
+      () => {
+        currentAudioRef.current = null;
+        setPlayingParagraphIndex(null);
+      },
+      { once: true }
+    );
+
+    audio.play().catch(() => {
+      currentAudioRef.current = null;
+      setPlayingParagraphIndex(null);
+    });
+  };
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -44,7 +96,6 @@ export function LecturaReader({ story }: LecturaReaderProps) {
       const target = event.target as Node | null;
       if (!target) return;
       if (containerRef.current.contains(target)) return;
-      // Allow clicks inside the LookupCard (rendered outside the article body)
       const lookupEl = document.querySelector("[data-testid='lookup-card']");
       if (lookupEl && lookupEl.contains(target)) return;
       setActiveLookup(null);
@@ -59,6 +110,7 @@ export function LecturaReader({ story }: LecturaReaderProps) {
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
+      stopCurrentAudio();
     };
   }, []);
 
@@ -71,57 +123,60 @@ export function LecturaReader({ story }: LecturaReaderProps) {
       >
         {story.paragraphs.map((paragraph, paragraphIndex) => {
           const tokens = splitParagraphTokens(paragraph);
+          const isPlaying = playingParagraphIndex === paragraphIndex;
+
           return (
-            <p
-              className="mb-6"
+            <div
+              className={`group mb-6 flex gap-3 border-l-2 pl-3 transition ${
+                isPlaying ? "border-brand-500" : "border-transparent"
+              }`}
               data-testid="lectura-paragraph"
               id={`p${paragraphIndex}`}
               key={paragraphIndex}
             >
-              {tokens.map((token, tokenIndex) => {
-                const normalized = normalizeLookupWord(token);
-                if (!normalized) {
-                  return <span key={tokenIndex}>{token}</span>;
-                }
-                return (
-                  <span
-                    className="cursor-pointer rounded-sm transition hover:bg-brand-50"
-                    key={tokenIndex}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      const rect = (
-                        event.currentTarget as HTMLElement
-                      ).getBoundingClientRect();
-                      setActiveLookup({
-                        paragraphIndex,
-                        form: normalized,
-                        anchorX: rect.left,
-                        anchorY: rect.bottom + 6
-                      });
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
+              <button
+                aria-label={isPlaying ? "Stop paragraph audio" : "Play paragraph audio"}
+                className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition sm:opacity-0 sm:group-hover:opacity-100 ${
+                  isPlaying
+                    ? "border-brand-500 bg-brand-50 text-brand-600 opacity-100"
+                    : "border-gray-200 bg-white text-gray-400 hover:border-brand-500 hover:text-brand-600"
+                }`}
+                onClick={() => toggleParagraphAudio(paragraphIndex)}
+                type="button"
+              >
+                {isPlaying ? "||" : ">"}
+              </button>
+              <p className="min-w-0 flex-1">
+                {tokens.map((token, tokenIndex) => {
+                  const normalized = normalizeLookupWord(token);
+                  if (!normalized) {
+                    return <span key={tokenIndex}>{token}</span>;
+                  }
+
+                  return (
+                    <span
+                      className="cursor-pointer rounded-sm transition hover:bg-brand-50"
+                      key={tokenIndex}
+                      onClick={(event) => {
                         event.stopPropagation();
-                        const rect = (
-                          event.currentTarget as HTMLElement
-                        ).getBoundingClientRect();
-                        setActiveLookup({
-                          paragraphIndex,
-                          form: normalized,
-                          anchorX: rect.left,
-                          anchorY: rect.bottom + 6
-                        });
-                      }
-                    }}
-                  >
-                    {token}
-                  </span>
-                );
-              })}
-            </p>
+                        openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
+                        }
+                      }}
+                    >
+                      {token}
+                    </span>
+                  );
+                })}
+              </p>
+            </div>
           );
         })}
       </div>
@@ -129,7 +184,6 @@ export function LecturaReader({ story }: LecturaReaderProps) {
       {activeLookup
         ? (() => {
             const paragraph = story.paragraphs[activeLookup.paragraphIndex] ?? "";
-            // Clamp so the 300px card stays on-screen
             const left =
               typeof window !== "undefined"
                 ? Math.min(activeLookup.anchorX, window.innerWidth - 340)

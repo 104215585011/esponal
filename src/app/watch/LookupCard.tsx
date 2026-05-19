@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import EmptyState from "@/app/components/ui/EmptyState";
+import { speak, useSpeechAvailable } from "@/lib/speak";
 
 type LookupSource =
   | {
@@ -93,7 +94,9 @@ export function LookupCard({
   const [lookupState, setLookupState] = useState<LookupState>({ kind: "loading" });
   const [buttonState, setButtonState] = useState<ButtonState>("disabled");
   const [showLoginHint, setShowLoginHint] = useState(false);
+  const [speakingText, setSpeakingText] = useState<string | null>(null);
   const normalizedForm = useMemo(() => form.trim().toLowerCase(), [form]);
+  const speechAvailable = useSpeechAvailable();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -235,6 +238,34 @@ export function LookupCard({
   const example = isReady ? lookupState.examples[0] : null;
   const phonetic = isReady ? lookupState.phonetic : null;
 
+  const handleSpeakLemma = () => {
+    const didSpeak = speak(lemma, {
+      rate: 0.9,
+      onStart: () => setSpeakingText(lemma),
+      onEnd: () => setSpeakingText(null)
+    });
+
+    if (didSpeak) {
+      setSpeakingText(lemma);
+    }
+  };
+
+  const handleSpeakExample = () => {
+    if (!example) {
+      return;
+    }
+
+    const didSpeak = speak(example.es, {
+      rate: 0.85,
+      onStart: () => setSpeakingText(example.es),
+      onEnd: () => setSpeakingText(null)
+    });
+
+    if (didSpeak) {
+      setSpeakingText(example.es);
+    }
+  };
+
   return (
     <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated" data-testid="lookup-card">
       <div className="flex items-start justify-between gap-3">
@@ -245,6 +276,20 @@ export function LookupCard({
               <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500">
                 {partOfSpeech}
               </span>
+            ) : null}
+            {isReady && speechAvailable ? (
+              <button
+                aria-label={`Play pronunciation for ${lemma}`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
+                  speakingText === lemma
+                    ? "animate-pulse border-brand-500 bg-brand-50 text-brand-600"
+                    : "border-gray-200 text-gray-400 hover:border-brand-500 hover:text-brand-600"
+                }`}
+                onClick={handleSpeakLemma}
+                type="button"
+              >
+                {">"}
+              </button>
             ) : null}
           </div>
           {phonetic ? <p className="mt-1 text-xs text-gray-400">/{phonetic}/</p> : null}
@@ -289,7 +334,23 @@ export function LookupCard({
 
       {example ? (
         <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2">
-          <p className="text-xs italic text-gray-600">{example.es}</p>
+          <div className="flex items-start gap-2">
+            <p className="min-w-0 flex-1 text-xs italic text-gray-600">{example.es}</p>
+            {speechAvailable ? (
+              <button
+                aria-label="Play example sentence"
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] transition ${
+                  speakingText === example.es
+                    ? "animate-pulse border-brand-500 bg-brand-50 text-brand-600"
+                    : "border-gray-200 text-gray-400 hover:border-brand-500 hover:text-brand-600"
+                }`}
+                onClick={handleSpeakExample}
+                type="button"
+              >
+                {">"}
+              </button>
+            ) : null}
+          </div>
           <p className="mt-0.5 text-xs text-gray-400">{example.zh}</p>
         </div>
       ) : null}

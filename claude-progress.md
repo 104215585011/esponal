@@ -1961,3 +1961,27 @@ feature_list.json 更新：
 ### Conclusion
 - `WEB-013`: passing.
 - `PWA-001`: passing for contract QA; PM real-device acceptance still recommended for install/offline behavior.
+
+## Dev Report - Session #74 (2026-05-19 11:33) - AUDIO-001
+
+### Completed
+- Added `scripts/generate-lectura-audio.mjs` for sequential `msedge-tts` generation with `es-MX-DaliaNeural`, temp-file output, retries, and >1KB size guard.
+- Generated 35 paragraph MP3 files under `public/audio/lectura/**/p*.mp3`; minimum generated file size is 23040 bytes.
+- Added `src/lib/speak.ts` with browser Web Speech `speak()` and `useSpeechAvailable()`.
+- Updated `src/app/lectura/LecturaReader.tsx` so each paragraph has a compact audio button, only one paragraph plays at once, and the active paragraph gets a brand border.
+- Updated `src/app/watch/LookupCard.tsx` with lemma and example-sentence speech buttons, hidden unless Spanish speech voices are available.
+- Updated `src/sw.ts` and `public/sw.js` to cache `/audio/lectura/*.mp3` with a cache-first runtime strategy.
+- Added `tests/audio001.test.mjs` and updated `feature_list.json`: `AUDIO-001.status = ready_for_qa`.
+
+### Verification
+- Baseline before work: `npm test` passed 129/129.
+- Red test before implementation: `node --test tests/audio001.test.mjs` failed 5/5 for the missing AUDIO-001 surfaces.
+- `npm run audio:lectura`: generated 35 MP3 files.
+- `node --test tests/audio001.test.mjs tests/read001.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/pwa001.test.mjs`: passed 25/25.
+- `npm test`: passed 134/134.
+- `npm run lint:encoding`: passed.
+- `npm run build`: passed; only existing `<img>` lint warnings and existing Sentry instrumentation warnings remain.
+
+### Next
+- Codex2 should QA AUDIO-001 contracts and, if possible, do a browser smoke on `/lectura/la-tortuga-y-la-liebre` plus a LookupCard speech-button check.
+- PM real-device acceptance should include installed-PWA offline playback of a previously visited Lectura audio file.

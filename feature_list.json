@@ -625,7 +625,7 @@
     "area": "audio",
     "title": "Lectura 段落朗读 + LookupCard 单词发音",
     "user_visible_behavior": "/lectura/[slug] 每段左侧显示 ▶ 按钮，点击播放该段 Edge 合成西语女声（预生成 MP3）。LookupCard 头部和例句旁显示 🔊，点击用浏览器原生 Web Speech API 朗读单词/句子。",
-    "status": "ready_for_dev",
+    "status": "ready_for_qa",
     "verification": [
       "scripts/generate-lectura-audio.mjs 存在且使用 msedge-tts",
       "public/audio/lectura/*/p0.mp3 至少 5 个文件存在",
@@ -637,7 +637,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-19 11:33: implemented AUDIO-001. Added scripts/generate-lectura-audio.mjs using msedge-tts es-MX-DaliaNeural with sequential temp-file generation and size guard; generated 35 committed MP3 files under public/audio/lectura with min size 23040 bytes. Added src/lib/speak.ts with speak() and useSpeechAvailable() for browser Web Speech. Updated LecturaReader with one-at-a-time paragraph playback via new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`) and active paragraph border; updated LookupCard with lemma and example speech buttons hidden when Spanish speech voices are unavailable. Updated src/sw.ts and public/sw.js with cache-first /audio/lectura/*.mp3 handling. Verification: red node --test tests/audio001.test.mjs failed 5/5 before implementation; npm run audio:lectura generated 35 MP3s; node --test tests/audio001.test.mjs tests/read001.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/pwa001.test.mjs passed 25/25; npm test passed 134/134; npm run lint:encoding passed; npm run build passed with only existing <img> and Sentry warnings.",
     "notes": "依赖 READ-001 ✅ + COURSE-004 ✅。Ticket: docs/tickets/AUDIO-001.md。两层方案：Lectura 预生成 MP3 = 质量稳定 + 可离线；词语 Web Speech API = 零后端成本 + 动态。35 个 MP3 约 3MB，入 git 合理。Service Worker 需要把 /audio/lectura/** 加进 cache 策略。"
   }
 ]

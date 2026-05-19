@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "lint:encoding": "node scripts/check-encoding.mjs",
+    "audio:lectura": "node scripts/generate-lectura-audio.mjs",
     "prepare": "node scripts/install-git-hooks.mjs",
     "postinstall": "prisma generate",
     "start": "next start",

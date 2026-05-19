@@ -5,6 +5,7 @@ declare const self: ServiceWorkerGlobalScope;
 const STATIC_CACHE = "esponal-static-v1";
 const PAGE_CACHE = "esponal-page-v1";
 const SUBTITLE_CACHE = "esponal-subtitle-v1";
+const LECTURA_AUDIO_CACHE = "esponal-lectura-audio-v1";
 const OFFLINE_URL = "/offline";
 const PRECACHE_URLS = [
   "/",
@@ -26,6 +27,10 @@ function isStaticAsset(pathname: string) {
   );
 }
 
+function isLecturaAudio(pathname: string) {
+  return pathname.startsWith("/audio/lectura/") && pathname.endsWith(".mp3");
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
@@ -38,7 +43,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => ![STATIC_CACHE, PAGE_CACHE, SUBTITLE_CACHE].includes(key))
+            .filter((key) => ![STATIC_CACHE, PAGE_CACHE, SUBTITLE_CACHE, LECTURA_AUDIO_CACHE].includes(key))
             .map((key) => caches.delete(key))
         )
       )
@@ -103,6 +108,22 @@ self.addEventListener("fetch", (event) => {
         } catch {
           return Response.error();
         }
+      })
+    );
+    return;
+  }
+
+  if (isLecturaAudio(url.pathname)) {
+    event.respondWith(
+      caches.open(LECTURA_AUDIO_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) {
+          return cached;
+        }
+
+        const response = await fetch(request);
+        cache.put(request, response.clone());
+        return response;
       })
     );
     return;

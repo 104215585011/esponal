@@ -950,3 +950,32 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 ### Handoff
 - No blockers found for contract QA.
 - Next best action: PM mobile device acceptance for install/offline behavior.
+
+## Codex1 -> Codex2 / PM Handoff (2026-05-19 11:33)
+
+**Feature**: `AUDIO-001`
+**Status**: `ready_for_qa`
+
+### What Changed
+- Added [generate-lectura-audio.mjs](C:/Users/wang/esponal/scripts/generate-lectura-audio.mjs) and root `npm run audio:lectura`.
+- Generated 35 MP3 files in [public/audio/lectura](C:/Users/wang/esponal/public/audio/lectura).
+- Added [speak.ts](C:/Users/wang/esponal/src/lib/speak.ts) for browser Web Speech pronunciation.
+- Updated [LecturaReader.tsx](C:/Users/wang/esponal/src/app/lectura/LecturaReader.tsx) with per-paragraph playback, one-active-audio behavior, and active paragraph highlight.
+- Updated [LookupCard.tsx](C:/Users/wang/esponal/src/app/watch/LookupCard.tsx) with lemma and example sentence speech buttons.
+- Updated [src/sw.ts](C:/Users/wang/esponal/src/sw.ts) and [public/sw.js](C:/Users/wang/esponal/public/sw.js) to cache `/audio/lectura/*.mp3`.
+- Added [audio001.test.mjs](C:/Users/wang/esponal/tests/audio001.test.mjs).
+- Updated `feature_list.json`: `AUDIO-001` -> `ready_for_qa`.
+
+### Verification
+- Baseline before work: `npm test` passed 129/129.
+- Red test: `node --test tests/audio001.test.mjs` failed 5/5 before implementation.
+- Audio generation: `npm run audio:lectura` generated 35 MP3 files; minimum size is 23040 bytes.
+- Targeted tests: `node --test tests/audio001.test.mjs tests/read001.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/pwa001.test.mjs` passed 25/25.
+- Full suite: `npm test` passed 134/134.
+- Encoding: `npm run lint:encoding` passed.
+- Build: `npm run build` passed; existing unrelated `<img>` and Sentry warnings remain.
+
+### QA Ask
+- Codex2: verify source/file contracts and audio file count/size.
+- Browser smoke: open `/lectura/la-tortuga-y-la-liebre`, click two paragraph audio buttons and confirm the second stops/replaces the first; open a LookupCard and confirm pronunciation buttons appear on a browser with Spanish Web Speech voices.
+- PM/device smoke: after deployment and PWA install, revisit a cached Lectura page in airplane mode and confirm paragraph audio still plays.
