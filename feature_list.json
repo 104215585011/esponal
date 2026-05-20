@@ -687,7 +687,7 @@
     "area": "vocabulary",
     "title": "SRS 词库复习（FSRS 变位卡）",
     "user_visible_behavior": "用户访问 /vocab/review 按 FSRS 算法复习今日到期词；每张卡正面显示西语 lemma + 🔊，翻牌显示中文义项/例句/变位；四档评分后系统智能安排下次复习时间；/vocab 页显示「N 词待复习」徽章。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "ts-fsrs 在 package.json 中",
       "Prisma migration add_srs_fields 成功，Word 含 8 个 SRS 字段",
@@ -755,7 +755,30 @@
       "BackLink 含 data-testid back-link，min-h-44px，text-gray-600，aria-label 含返回",
       "npm test 通过，npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-20 16:16: implemented shared BackLink for detail pages. Added src/app/components/web/BackLink.tsx with href/label props, data-testid=back-link, min-h-[44px], text-gray-600, hover:text-gray-900, aria-label 返回${label}, and focus-visible ring. Wired BackLink into /lectura/[slug] -> /lectura label 阅读, /learn/[slug] -> /learn label 课程, /watch -> / label 视频, /vocab/review -> /vocab label 词库, and /grammar/[slug] -> /grammar label 语法. Removed legacy Lectura 返回 Lectura link and legacy grammar 返回语法话题 link. Added tests/web014.test.mjs. TDD: node --test tests/web014.test.mjs failed 5/6 before implementation, then passed 6/6. Verification: npm run lint:encoding returned Encoding check passed; npm test passed 165/165; npm run build passed with only existing img and Sentry warnings. Source contract verified list pages /vocab /learn /lectura /grammar do not import BackLink and /watch uses 视频, not 首页 or 搜索.",
+    "evidence": "Codex1 Dev 2026-05-20 16:16: implemented shared BackLink for detail pages. Added src/app/components/web/BackLink.tsx with href/label props, data-testid=back-link, min-h-[44px], text-gray-600, hover:text-gray-900, aria-label 返回${label}, and focus-visible ring. Wired BackLink into /lectura/[slug] -> /lectura label 阅读, /learn/[slug] -> /learn label 课程, /watch -> / label 视频, /vocab/review -> /vocab label 词库, and /grammar/[slug] -> /grammar label 语法. Removed legacy Lectura 返回 Lectura link and legacy grammar 返回语法话题 link. Added tests/web014.test.mjs. TDD: node --test tests/web014.test.mjs failed 5/6 before implementation, then passed 6/6. Codex2 QA 2026-05-20 16:31: npm run lint:encoding passed; node --test tests/web014.test.mjs passed 6/6; node --test tests/web014.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/read001.test.mjs passed 20/20; npm test passed 165/165; npm run build passed with existing <img> and Sentry warnings only. Accessibility check: aria-label present true, aria-hidden present true. Source contract verified BackLink class/focus/aria/testid requirements, five detail-page mappings, legacy Lectura/Grammar return copy removed, and list pages /vocab /learn /lectura /grammar have no BackLink import.",
     "notes": "Ticket: docs/tickets/WEB-014.md。触发：用户反馈 PWA standalone 模式下点进详情页出不来。设计决定：固定回上级（方案 X），不依赖 history.back，首次直开链接也能用。Claude2 UI 评审通过（2 处 P1 已修：/watch 文案改 视频 与 SiteNav 对齐；Lectura 旧链接需删除替换；text-gray-500 → 600；加 aria-label 与 focus-visible ring）。"
+  },
+  {
+    "id": "EXT-008",
+    "priority": 44,
+    "area": "extension",
+    "title": "Chrome 扩展字幕采集（EXT-006 复活精简版）",
+    "user_visible_behavior": "用户装 Esponal Chrome 扩展后，正常浏览 YouTube 时扩展全程透明采集西语字幕回 Esponal DB；之后用户在 Esponal /watch 看同 ID 视频时直接命中高质量字幕（与西语助手等价）；未采集过的视频静默走 Apify 兜底，连兜底也失败时提示\"在 YouTube 看一遍即可自动归档\"。",
+    "status": "backlog",
+    "verification": [
+      "extension/harvest.js + parseJson3.js 存在，使用 ytInitialPlayerResponse bridge + credentials include fetch + POST /api/subtitle/ingest",
+      "extension/manifest.json 注册第二条 content_script 跑 dist/harvest.js 在 youtube.com/watch*",
+      "extension/scripts/build.mjs esbuild 打包 + --define 注入 EXT_INGEST_TOKEN 和 ESPONAL_APP_ORIGIN",
+      "extension/popup 显示最近采集区块",
+      "src/app/api/subtitle/ingest/route.ts 含 token 校验 + ingestLimiter + payload 校验 + 已有 key 不覆盖",
+      "src/lib/ratelimit.ts 导出 ingestLimiter",
+      "src/app/api/subtitle/route.ts 在空字幕时返回 hint 字段",
+      "src/app/watch/TranscriptPanel.tsx 渲染引导提示卡 + 在 YouTube 打开按钮",
+      ".env.example 含 EXT_INGEST_TOKEN 和 ESPONAL_APP_ORIGIN",
+      "npm run package 生成包含 dist/harvest.js 的 zip",
+      "npm test + npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/EXT-008.md。背景：HAR 分析确认 Eudic 西语助手字幕质量好的本质是浏览器内带 PO Token 抓 timedtext；服务器端 PO Token spike 测试证明对教学类视频普遍返回 LOGIN_REQUIRED 不可行；用户安装扩展 + 浏览 YouTube 时自动采集是唯一稳定路径。三个 PM 决策：(1) 保留 ingest token 视作垃圾流量过滤；(2) /watch 三段式 fallback Redis → Apify → 提示；(3) 扩展在任意 youtube.com/watch* 自动触发只采集 es-* 轨道。不复活 EXT-007 Playwright 批量预采集（Chrome 138+ 限制依然存在）。流程：先过 Claude2 UI 评审再给 Codex1。"
   }
 ]
