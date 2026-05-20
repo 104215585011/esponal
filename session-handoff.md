@@ -1,3 +1,52 @@
+## QA Report: VOCAB-007 AI lemmatizer
+**Time**: 2026-05-20 13:33
+**Tester**: Codex2
+
+**Conclusion**: Passed. `VOCAB-007` is verified and marked `passing`.
+
+**Verification executed**:
+1. Encoding check
+   Command: `npm run lint:encoding`
+   Output: `Encoding check passed`
+   Result: pass
+2. VOCAB-007 focused tests
+   Command: `node --test tests/vocab007.test.mjs`
+   Output: `tests 5`, `pass 5`, `fail 0`
+   Result: pass
+3. Regression chain
+   Command: `node --test tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs`
+   Output: `tests 15`, `pass 15`, `fail 0`
+   Result: pass
+4. Full suite
+   Command: `npm test`
+   Output: `tests 153`, `pass 153`, `fail 0`
+   Result: pass
+5. Production build
+   Command: `npm run build`
+   Output: compiled successfully, generated 48 static pages, route table emitted
+   Result: pass; warnings are existing `<img>` lint warnings and Sentry instrumentation warnings
+6. TypeScript follow-up
+   Command: `npx tsc --noEmit`
+   Output: exit 0 after `npm run build` generated `.next/types`
+   Result: pass
+
+**Source contract checks**:
+- Prompt contains `saw the word` and `Identify its lemma`, using the surface `word`.
+- `RawAIEntry` contains `lemma?: string` and `morphInfo?: string`.
+- AI lemma extraction uses `parsed.lemma`, a `typeof parsed.lemma === "string"` guard, and `hintLemma` fallback.
+- Dictionary implementation uses `vocab:dict:v3:`; no implementation `v2` cache key remains.
+- `lookupDictionary` has two `safeCacheGet` calls: one for `hintLemma`, one for `aiLemma`.
+- Degraded path still uses lemma-dict translation and returns `degraded: true`.
+
+**Behavior sampling**:
+- Skipped live DashScope lookup because `DASHSCOPE_API_KEY` was not present in the shell environment. This is not counted as a failure because the ticket's required contract and regression checks passed.
+
+**Handoff**:
+- Updated `feature_list.json`: `VOCAB-007.status = passing` with evidence.
+- No push performed; PM decides push timing.
+
+---
+
 # Session Handoff — Esponal
 
 ---

@@ -2156,3 +2156,28 @@ feature_list.json 更新：
 
 **涓嬩竴姝ユ渶浣冲姩浣?*
 - 浜ょ粰 Codex2 楠屾敹 `VOCAB-007`锛屽閫氳繃鍒欐爣璁颁负 `passing`
+### QA Session - 2026-05-20 13:33 - VOCAB-007
+
+**Goal**: Codex2 QA for `VOCAB-007` AI lemmatizer.
+
+**Result**: Passed. `feature_list.json` now marks `VOCAB-007` as `passing`.
+
+**Verification run**:
+- `npm run lint:encoding`: Encoding check passed.
+- `node --test tests/vocab007.test.mjs`: 5/5 passed.
+- `node --test tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs`: 15/15 passed.
+- `npm test`: 153/153 passed.
+- `npm run build`: passed with only existing `<img>` and Sentry warnings.
+- `npx tsc --noEmit`: passed after build generated `.next/types`.
+
+**Source contract**:
+- Prompt uses the surface `word` and asks to `Identify its lemma`.
+- `RawAIEntry` includes `lemma?: string` and `morphInfo?: string`.
+- `parsed.lemma` has a string guard and `hintLemma` fallback.
+- Implementation cache keys are `vocab:dict:v3:` with no `v2` in dictionary code.
+- `lookupDictionary` has both hint and AI lemma cache reads.
+- Degraded fallback still returns lemma-dict translation with `degraded: true`.
+
+**Notes**:
+- Live DashScope behavior sampling was skipped because `DASHSCOPE_API_KEY` was not present in the shell environment.
+- No push performed.
