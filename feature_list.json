@@ -701,5 +701,20 @@
     ],
     "evidence": "Codex1 Dev 2026-05-20: implemented VOCAB-006 SRS review flow and moved it to ready_for_qa. Installed ts-fsrs, added prisma migration add_srs_fields with 9 SRS columns plus @@index([userId, srsDue]), regenerated Prisma Client with npx prisma generate, and added src/lib/srs.ts helpers (initCard/toFsrsCard/scheduleCard). Extended src/lib/vocab.ts with getDueReviewCount/getDueReviewWords, added GET /api/vocab/review and POST /api/vocab/review/[wordId], built /vocab/review with ReviewClient flashcard flow (fetch queue, showBack flip, speak(), four rating buttons, completion state), and added the due-review badge to /vocab. Verification: node --test tests/vocab006.test.mjs passed 5/5; node --test tests/vocab006.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs passed 17/17; npm test passed 148/148; npm run build passed. Remaining warnings are unchanged existing <img> and Sentry instrumentation warnings, plus existing MODULE_TYPELESS_PACKAGE_JSON warnings during node --test.",
     "notes": "依赖 VOCAB-005 ✅。Ticket: docs/tickets/VOCAB-006.md。触发：PM 规划 2026-05-20 — 词库只收集不复习，遗忘率极高；FSRS 是当前最优 SRS 算法（ts-fsrs MIT 许可）。设计原则：复习可选触发，不强制提醒；首日上限 10 新词防压垮。不含统计图/推送/参数设置（后续票）。"
+  },
+  {
+    "id": "VOCAB-007",
+    "priority": 40,
+    "area": "vocabulary",
+    "title": "AI 璇嶅舰杩樺師",
+    "user_visible_behavior": "鐢ㄦ埛鐐瑰嚮浠绘剰瑗跨彮鐗欒鍙樹綅璇嶏紙濡?tengo/fue/vamos/hablaron锛夋椂锛屾煡璇嶅崱姝ｇ‘鏄剧ず鍘熷舰锛坱ener/ser路ir/ir/hablar锛夊強瀵瑰簲閲婁箟锛屼笉鍐嶆煡璇㈠彉浣嶅舰寮忔湰韬€?",
+    "status": "ready_for_qa",
+    "verification": [
+      "node --test tests/vocab007.test.mjs 閫氳繃 5/5",
+      "npm test 閫氳繃 153/153",
+      "npm run build 閫氳繃"
+    ],
+    "evidence": "Codex1 Dev 2026-05-20 15:52: implemented VOCAB-007 AI lemmatizer in src/lib/dictionary.ts and added tests/vocab007.test.mjs. Expanded RawAIEntry with lemma/morphInfo, rewrote fetchAIEntry so the AI identifies lemma from the surface form and returns dictionary data in one response, and upgraded lookupDictionary to use vocab:dict:v3 cache keys with a second safeCacheGet on the AI-returned lemma before writing. Also updated tests/vocab005.test.mjs cache namespace assertion from v2 to v3 so the existing contract matches current dictionary behavior. TDD: node --test tests/vocab007.test.mjs failed 5/5 before implementation, then passed 5/5 after implementation. Full verification: npm test passed 153/153; npm run build passed. npx tsc --noEmit was attempted but still fails because tsconfig includes stale .next/types references not present in the workspace; no VOCAB-007-specific TypeScript error remained. Lookup examples covered by prompt/contract: tengo->tener, fue->ser/ir, vamos->ir, hablaron->hablar.",
+    "notes": "Ticket: docs/superpowers/specs/2026-05-20-ai-lemmatizer-design.md 銆?docs/superpowers/plans/2026-05-20-ai-lemmatizer.md銆傛敼鍔ㄨ寖鍥达細src/lib/dictionary.ts銆乼ests/vocab007.test.mjs锛堝強涓€澶勫繀瑕佺殑鏃ф祴璇曟柇瑷€鍚屾锛歵ests/vocab005.test.mjs 灏?v2 鏀逛负 v3锛夈€備緷璧栫幇鏈?VOCAB-004/005 璇嶅吀绠＄嚎锛屽墠绔笉闇€鏇存敼鍗冲彲鍙楃泭銆?"
   }
 ]

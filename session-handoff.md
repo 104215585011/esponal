@@ -1216,3 +1216,29 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 3. `/vocab/review` 的 flashcard 流程源码契约
 4. `/vocab` 顶部 due badge 契约
 5. `npm test` 与 `npm run build`
+## Dev Report бк Session #64 (2026-05-20 15:52)
+
+### 本轮完成
+- 实现 `VOCAB-007` AI 词形还原：修改 `src/lib/dictionary.ts`，让 AI 在查词时先识别变位词的原形，再返回词典条目。
+- `RawAIEntry` 新增 `lemma?: string` 和 `morphInfo?: string`，解析 AI 响应时可以带回原形和词形说明。
+- 重写 `fetchAIEntry(word, hintLemma, morphInfo)` prompt：不再假设 lemma 已知，而是要求 AI 先做 morphological analysis，再返回 JSON。
+- `lookupDictionary` 升级到 `vocab:dict:v3:` cache namespace，先查 `hintLemma`，AI 返回 `aiLemma` 后再查一次对应 cache，避免不同变位形重复写入。
+- 新增 `tests/vocab007.test.mjs` 5 条源合同测试，并将既有 `tests/vocab005.test.mjs` 的 cache key 断言从 `v2` 同步到 `v3`。
+
+### 验证
+- `node --test tests/vocab007.test.mjs`：先红 5/5 failing，实装后 5/5 passing
+- `npm test`：153/153 passing
+- `npm run build`：通过（仅有既有 `<img>` lint 警告和 Sentry instrumentation warning）
+- `npx tsc --noEmit`：已尝试，但仍因 `tsconfig` 包含缺失的 `.next/types/**/*.ts` 而失败，属于已有环境/配置噪音，不是 `VOCAB-007` 回归。
+
+### 当前状态
+- `VOCAB-007` 已更新为 `ready_for_qa`
+- 已更新 `feature_list.json`
+- 等 Codex2 执行 QA 验收
+
+### Codex2 验收建议
+- 合同层：检查 `src/lib/dictionary.ts` 是否包含 `Identify its lemma` prompt、`parsed.lemma` fallback、`aiLemma` 和 `vocab:dict:v3:`
+- 测试层：运行 `node --test tests/vocab007.test.mjs` 和 `npm test`
+- 行为层（可选）：在 lookup flow 里点击 `tengo` / `fue` / `vamos` / `hablaron`，确认 lemma 不再是变位形本身
+
+---

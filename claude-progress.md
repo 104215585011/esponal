@@ -2136,3 +2136,23 @@ feature_list.json 更新：
   - auth + rating validation on the two review routes
   - `/vocab/review` flashcard flow and `/vocab` due badge contract
   - full-suite and build regression
+### 浼氳瘽 #64 锟?2026-05-20
+
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `VOCAB-007` AI 璇嶅舰杩樺師锛岃鍙樹綅璇嶆煡璇嶈繑鍥炴纭?lemma
+
+**宸插畬鎴?*
+- 鏂板缓 `tests/vocab007.test.mjs`锛?5 鏉℃簮鍚堝悓娴嬭瘯锛岀孩娴?5/5 确璁ゅ悗鎻愪氦 `e68d2a4`
+- 鏇存柊 `src/lib/dictionary.ts`锛歊awAIEntry 鏂板 `lemma/morphInfo`锛岄噸鍐?`fetchAIEntry` prompt锛岃 AI 鍏堣瘑鍒?lemma锛屽啀杩斿洖璇嶅吀鏉＄洰
+- `lookupDictionary` 鍒囨崲鍒?`vocab:dict:v3:`锛屽姞鍏ョ浜屾 `safeCacheGet`锛屽熀浜?AI 杩斿洖鐨?`aiLemma` 閬垮厤閲嶅鍐欏叆
+- 鍚屾鏇存柊 `tests/vocab005.test.mjs` 锛屽皢鏃?cache namespace 鏂█浠?`v2` 鏀逛负 `v3`
+- 鏇存柊 `feature_list.json`锛歚VOCAB-007` 鏍囦负 `ready_for_qa`
+- 鏇存柊 `session-handoff.md`锛屼氦鎺?Codex2 QA
+
+**杩愯杩囩殑楠岃瘉**
+- `node --test tests/vocab007.test.mjs`锛氬厛 5/5 failing锛屽悗 5/5 passing
+- `npm test`锛?53/153 閫氳繃
+- `npm run build`锛氶€氳繃
+- `npx tsc --noEmit`锛氬け璐ワ紝鍘熷洜涓?tsconfig 鍖呭惈缂哄け鐨?`.next/types/**/*.ts`锛屼负宸叉湁閰嶇疆鍣煶锛岄潪鏈疆鍙樻洿寮曞叆
+
+**涓嬩竴姝ユ渶浣冲姩浣?*
+- 浜ょ粰 Codex2 楠屾敹 `VOCAB-007`锛屽閫氳繃鍒欐爣璁颁负 `passing`
