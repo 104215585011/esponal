@@ -2099,3 +2099,40 @@ feature_list.json 更新：
   - Write `tests/vocab006.test.mjs` (TDD)
 - **Codex2**: QA VOCAB-006 after Codex1 submits
 - **PM**: after VOCAB-006 is passing, plan next feature (candidates: learning stats dashboard, more Lectura content, grammar exercises)
+
+## Codex1 Dev Report - Session #64 (2026-05-20)
+
+### Completed
+- Re-read `AGENTS.md`, `roles/ROLE-DEV.md`, `claude-progress.md`, `feature_list.json`, and `session-handoff.md` before implementation.
+- Followed TDD for `VOCAB-006`: added `tests/vocab006.test.mjs`, confirmed red first, then implemented the feature until green.
+- Installed `ts-fsrs` and added SRS persistence fields to `Word` in [schema.prisma](/C:/Users/wang/esponal/prisma/schema.prisma) plus migration [migration.sql](/C:/Users/wang/esponal/prisma/migrations/20260520094000_add_srs_fields/migration.sql).
+- Added [srs.ts](/C:/Users/wang/esponal/src/lib/srs.ts) with `initCard`, `toFsrsCard`, and `scheduleCard`.
+- Extended [vocab.ts](/C:/Users/wang/esponal/src/lib/vocab.ts) with `getDueReviewCount` and `getDueReviewWords`.
+- Added review APIs:
+  - [route.ts](/C:/Users/wang/esponal/src/app/api/vocab/review/route.ts)
+  - [route.ts](/C:/Users/wang/esponal/src/app/api/vocab/review/[wordId]/route.ts)
+- Added review UI:
+  - [page.tsx](/C:/Users/wang/esponal/src/app/vocab/review/page.tsx)
+  - [ReviewClient.tsx](/C:/Users/wang/esponal/src/app/vocab/review/ReviewClient.tsx)
+- Updated [page.tsx](/C:/Users/wang/esponal/src/app/vocab/page.tsx) to show the due-review badge linking to `/vocab/review`.
+- Ran `npx prisma generate` so Prisma Client reflects the new SRS fields.
+- Updated `feature_list.json`: `VOCAB-006.status = ready_for_qa`.
+
+### Verification
+- Red test before implementation: `node --test tests/vocab006.test.mjs` failed 5/5.
+- `node --test tests/vocab006.test.mjs`: passed 5/5.
+- `node --test tests/vocab006.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs`: passed 17/17.
+- `npm test`: passed 148/148.
+- `npm run build`: passed.
+
+### Notes
+- Build warnings remain unchanged from earlier sessions: existing `<img>` lint warnings in `SiteHeader.tsx` and `learn/[slug]/page.tsx`, plus existing Sentry instrumentation migration warnings.
+- `node --test` still emits the existing `MODULE_TYPELESS_PACKAGE_JSON` warnings for direct TS imports.
+- Verification in this session did not include a live browser smoke of `/vocab/review`; Codex2 can treat that as useful follow-up if QA wants behavior-level confidence in addition to source-contract checks.
+
+### Next
+- Codex2 should QA `VOCAB-006`, focusing on:
+  - SRS schema/helper contract
+  - auth + rating validation on the two review routes
+  - `/vocab/review` flashcard flow and `/vocab` due badge contract
+  - full-suite and build regression

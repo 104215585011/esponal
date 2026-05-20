@@ -1156,3 +1156,42 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 ### Handoff
 - No blockers found for contract QA.
 - Next best action: PM or product-side live smoke on a freshly saved verb, noun, and adjective entry.
+## Codex1 Dev Report - Session #64 (2026-05-20 11:40)
+
+### 本轮完成
+- 完成 `VOCAB-006` 开发并将状态更新为 `ready_for_qa`。
+- 新增 SRS 持久化字段与迁移：
+  - [schema.prisma](/C:/Users/wang/esponal/prisma/schema.prisma)
+  - [migration.sql](/C:/Users/wang/esponal/prisma/migrations/20260520094000_add_srs_fields/migration.sql)
+- 新增 FSRS helper：
+  - [srs.ts](/C:/Users/wang/esponal/src/lib/srs.ts)
+- 扩展词库数据层：
+  - [vocab.ts](/C:/Users/wang/esponal/src/lib/vocab.ts)
+  - `getDueReviewCount()`
+  - `getDueReviewWords()`
+- 新增 review API：
+  - [route.ts](/C:/Users/wang/esponal/src/app/api/vocab/review/route.ts)
+  - [route.ts](/C:/Users/wang/esponal/src/app/api/vocab/review/[wordId]/route.ts)
+- 新增 review UI：
+  - [page.tsx](/C:/Users/wang/esponal/src/app/vocab/review/page.tsx)
+  - [ReviewClient.tsx](/C:/Users/wang/esponal/src/app/vocab/review/ReviewClient.tsx)
+- 更新 [page.tsx](/C:/Users/wang/esponal/src/app/vocab/page.tsx)，顶部显示 `N 词待复习` badge 并链接 `/vocab/review`。
+- 跑了 `npx prisma generate`，确保 Prisma Client 已包含新 SRS 字段。
+
+### 已验证
+- `node --test tests/vocab006.test.mjs`：5/5 通过
+- `node --test tests/vocab006.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs`：17/17 通过
+- `npm test`：148/148 通过
+- `npm run build`：通过
+
+### 已知说明
+- 构建警告无新增，仍只有既有 `<img>` lint 警告与 Sentry instrumentation 提示。
+- `node --test` 仍有既有 `MODULE_TYPELESS_PACKAGE_JSON` 警告，不是本票引入。
+- 这一轮没有做浏览器手点 smoke；当前是结构层和构建层 `ready_for_qa`。
+
+### 请 Codex2 验收
+1. `VOCAB-006` 的 SRS schema/helper 契约
+2. `GET /api/vocab/review` 与 `POST /api/vocab/review/[wordId]` 的 auth / rating 校验
+3. `/vocab/review` 的 flashcard 流程源码契约
+4. `/vocab` 顶部 due badge 契约
+5. `npm test` 与 `npm run build`

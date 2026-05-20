@@ -1,187 +1,263 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import ConjugationTable from "@/app/components/vocab/ConjugationTable";
+import type { VerbConjugations } from "@/lib/conjugate";
 import { speak } from "@/lib/speak";
 
-type DueWord = {
+type ReviewRating = "Again" | "Hard" | "Good" | "Easy";
+
+type ReviewWord = {
   id: string;
   lemma: string;
   translation: string;
   partOfSpeech: string | null;
   dictData: unknown;
-  srsDue: string | null;
   srsState: string | null;
+  srsDue: string | null;
 };
 
-type ReviewClientProps = {
-  initialWords: DueWord[];
+type ReviewResponse = {
   totalDue: number;
+  dueWords: ReviewWord[];
 };
 
-type Rating = "Again" | "Hard" | "Good" | "Easy";
+const ratings: ReviewRating[] = ["Again", "Hard", "Good", "Easy"];
 
-function getMeanings(dictData: unknown): string[] {
+const getMeanings = (dictData: unknown) => {
   if (!dictData || typeof dictData !== "object") return [];
-  const m = (dictData as { meanings?: unknown }).meanings;
-  return Array.isArray(m) ? (m.filter((x): x is string => typeof x === "string")) : [];
-}
+  const meanings = (dictData as { meanings?: unknown }).meanings;
+  return Array.isArray(meanings)
+    ? meanings.filter((item): item is string => typeof item === "string")
+    : [];
+};
 
-function getExample(dictData: unknown): { es: string; zh: string } | null {
-  if (!dictData || typeof dictData !== "object") return null;
+const getExamples = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return [];
   const examples = (dictData as { examples?: unknown }).examples;
-  if (!Array.isArray(examples) || examples.length === 0) return null;
-  const first = examples[0] as { es?: string; zh?: string };
-  if (typeof first?.es === "string" && typeof first?.zh === "string") {
-    return { es: first.es, zh: first.zh };
-  }
-  return null;
-}
+  if (!Array.isArray(examples)) return [];
 
-const RATING_CONFIG: { rating: Rating; label: string; color: string }[] = [
-  { rating: "Again", label: "又忘了", color: "text-red-600 hover:bg-red-50 border-red-200" },
-  { rating: "Hard", label: "难", color: "text-orange-500 hover:bg-orange-50 border-orange-200" },
-  { rating: "Good", label: "记得", color: "text-brand-600 hover:bg-brand-50 border-brand-200" },
-  { rating: "Easy", label: "很熟", color: "text-green-600 hover:bg-green-50 border-green-200" }
-];
+  return examples.filter(
+    (item): item is { es: string; zh: string } =>
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as { es?: unknown }).es === "string" &&
+      typeof (item as { zh?: unknown }).zh === "string"
+  );
+};
 
-export function ReviewClient({ initialWords, totalDue }: ReviewClientProps) {
-  const [queue, setQueue] = useState<DueWord[]>(initialWords);
-  const [currentIndex, setCurrentIndex] = useState(0);
+const getConjugations = (dictData: unknown) => {
+  if (!dictData || typeof dictData !== "object") return undefined;
+  const conjugations = (dictData as { conjugations?: unknown }).conjugations;
+  return conjugations && typeof conjugations === "object"
+    ? (conjugations as VerbConjugations)
+    : undefined;
+};
+
+export default function ReviewClient() {
+  const [words, setWords] = useState<ReviewWord[]>([]);
+  const [totalDue, setTotalDue] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [index, setIndex] = useState(0);
   const [showBack, setShowBack] = useState(false);
-  const [doneCount, setDoneCount] = useState(0);
-  const [speaking, setSpeaking] = useState(false);
-
-  const current = queue[currentIndex];
-  const isDone = currentIndex >= queue.length;
-
-  const handleSpeak = useCallback(() => {
-    if (!current) return;
-    speak(current.lemma, {
-      rate: 0.9,
-      onStart: () => setSpeaking(true),
-      onEnd: () => setSpeaking(false)
-    });
-  }, [current]);
 
   useEffect(() => {
-    setSpeaking(false);
-    setShowBack(false);
-  }, [currentIndex]);
+    let cancelled = false;
 
-  async function handleRate(rating: Rating) {
-    if (!current) return;
+    async function loadReviewWords() {
+      try {
+        const response = await fetch("/api/vocab/review", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("load failed");
+        }
 
-    try {
-      await fetch(`/api/vocab/review/${current.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating })
-      });
-    } catch {
-      // Best-effort; don't block the user
+        const data = (await response.json()) as ReviewResponse;
+        if (cancelled) return;
+        setWords(data.dueWords);
+        setTotalDue(data.totalDue);
+      } catch {
+        if (!cancelled) {
+          setError("复习列表加载失败，请稍后再试。");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
     }
 
-    setDoneCount((n) => n + 1);
-    setCurrentIndex((i) => i + 1);
+    void loadReviewWords();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const currentWord = words[index] ?? null;
+  const reviewedCount = Math.min(index, words.length);
+  const meanings = currentWord ? getMeanings(currentWord.dictData) : [];
+  const examples = currentWord ? getExamples(currentWord.dictData) : [];
+  const conjugations = currentWord ? getConjugations(currentWord.dictData) : undefined;
+
+  async function submitRating(rating: ReviewRating) {
+    if (!currentWord || submitting) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/vocab/review/${currentWord.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ rating })
+      });
+
+      if (!response.ok) {
+        throw new Error("save failed");
+      }
+
+      setIndex((value) => value + 1);
+      setShowBack(false);
+    } catch {
+      setError("评分保存失败，请重试。");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  if (isDone) {
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
-        <div className="text-5xl">🎉</div>
-        <h2 className="text-2xl font-bold text-gray-900">完成！</h2>
-        <p className="text-sm text-gray-500">
-          今日复习 {doneCount} 词
-        </p>
-        <a
-          href="/vocab"
-          className="mt-2 inline-block rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
-        >
-          回到词库 →
-        </a>
+      <div className="rounded-2xl border border-gray-100 bg-surface p-6 text-sm text-gray-500">
+        正在加载复习卡片...
       </div>
     );
   }
 
-  const meanings = getMeanings(current.dictData);
-  const example = getExample(current.dictData);
+  if (error && words.length === 0) {
+    return (
+      <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-sm text-red-700">
+        {error}
+      </div>
+    );
+  }
+
+  if (!currentWord) {
+    return (
+      <div className="rounded-2xl border border-gray-100 bg-surface p-8 text-center shadow-card">
+        <p className="text-lg font-semibold text-gray-900">完成</p>
+        <p className="mt-2 text-sm text-gray-500">今天这一轮复习已经清空，可以回词库继续积累。</p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white"
+            href="/vocab"
+          >
+            回到词库
+          </Link>
+          <Link
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 px-5 text-sm font-semibold text-gray-700"
+            href="/vocab/review"
+          >
+            再看一轮
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-md">
-      {/* Progress */}
-      <div className="mb-6 flex items-center justify-between text-sm text-gray-400">
-        <span>今日复习 {currentIndex + 1}/{queue.length}</span>
-        <span>共 {totalDue} 词到期</span>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between text-sm text-gray-500">
+        <span>待复习 {totalDue} 词</span>
+        <span>
+          {reviewedCount + 1}/{Math.max(words.length, 1)}
+        </span>
       </div>
 
-      {/* Card */}
-      <div className="rounded-2xl border border-black/5 bg-surface p-8 shadow-card">
-        {/* Front */}
-        <div className="flex items-center gap-3">
-          <p className="text-3xl font-bold text-gray-900 font-serif">{current.lemma}</p>
-          {current.partOfSpeech ? (
-            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500">
-              {current.partOfSpeech}
-            </span>
-          ) : null}
+      <article className="rounded-3xl border border-gray-100 bg-surface p-6 shadow-card">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-3xl font-semibold text-gray-900">{currentWord.lemma}</p>
+            {currentWord.partOfSpeech ? (
+              <p className="mt-2 text-sm text-gray-500">{currentWord.partOfSpeech}</p>
+            ) : null}
+          </div>
           <button
-            aria-label={`Play pronunciation for ${current.lemma}`}
-            className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
-              speaking
-                ? "animate-pulse border-brand-500 bg-brand-50 text-brand-600"
-                : "border-gray-200 text-gray-400 hover:border-brand-500 hover:text-brand-600"
-            }`}
-            onClick={handleSpeak}
             type="button"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 px-4 text-sm font-medium text-gray-700"
+            onClick={() => speak(currentWord.lemma)}
           >
-            {">"}
+            朗读
           </button>
         </div>
 
-        {/* Back */}
-        {showBack ? (
-          <div className="mt-6 space-y-4">
-            {meanings.length > 0 ? (
-              <ol className="space-y-1 pl-4 text-sm text-gray-700" style={{ listStyleType: "decimal" }}>
-                {meanings.map((m) => (
-                  <li key={m}>{m}</li>
-                ))}
-              </ol>
-            ) : (
-              <p className="text-sm text-gray-700">{current.translation}</p>
-            )}
-
-            {example ? (
-              <div className="rounded-lg bg-gray-50 px-3 py-2">
-                <p className="text-xs italic text-gray-600">{example.es}</p>
-                <p className="mt-0.5 text-xs text-gray-400">{example.zh}</p>
+        <div className="mt-6 rounded-2xl bg-gray-50 p-5">
+          {showBack ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-400">释义</p>
+                <p className="mt-2 text-lg font-medium text-gray-900">
+                  {meanings[0] ?? currentWord.translation}
+                </p>
+                {meanings.length > 1 ? (
+                  <p className="mt-2 text-sm text-gray-500">{meanings.slice(1).join(" / ")}</p>
+                ) : null}
               </div>
-            ) : null}
 
-            {/* Rating buttons */}
-            <div className="mt-6 grid grid-cols-4 gap-2">
-              {RATING_CONFIG.map(({ rating, label, color }) => (
-                <button
-                  key={rating}
-                  className={`rounded-lg border py-2 text-xs font-medium transition ${color}`}
-                  onClick={() => void handleRate(rating)}
-                  type="button"
-                >
-                  {label}
-                </button>
-              ))}
+              {examples[0] ? (
+                <div className="rounded-2xl bg-surface p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm italic text-gray-700">{examples[0].es}</p>
+                      <p className="mt-2 text-sm text-gray-500">{examples[0].zh}</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-full border border-gray-200 px-4 text-sm font-medium text-gray-700"
+                      onClick={() => speak(examples[0].es)}
+                    >
+                      例句朗读
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {conjugations ? <ConjugationTable conjugations={conjugations} /> : null}
             </div>
-          </div>
-        ) : (
+          ) : (
+            <div className="py-10 text-center text-sm text-gray-500">
+              先回忆这个词的意思，再翻面确认答案。
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
           <button
-            className="mt-8 w-full rounded-lg bg-gray-100 py-2.5 text-sm text-gray-600 hover:bg-gray-200"
-            onClick={() => setShowBack(true)}
             type="button"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 px-5 text-sm font-semibold text-gray-700"
+            onClick={() => setShowBack((value) => !value)}
           >
-            显示答案
+            {showBack ? "收起答案" : "翻面"}
           </button>
-        )}
-      </div>
+          {ratings.map((rating) => (
+            <button
+              key={rating}
+              type="button"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white disabled:opacity-60"
+              disabled={!showBack || submitting}
+              onClick={() => void submitRating(rating)}
+            >
+              {rating}
+            </button>
+          ))}
+        </div>
+
+        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      </article>
     </div>
   );
 }

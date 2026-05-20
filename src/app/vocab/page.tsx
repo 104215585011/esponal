@@ -5,7 +5,7 @@ import VocabAccordion, {
   type VocabWord
 } from "@/app/components/vocab/VocabAccordion";
 import { getAuthOptions } from "@/lib/auth";
-import { getWordsByUser, getDueReviewCount } from "@/lib/vocab";
+import { getDueReviewCount, getWordsByUser } from "@/lib/vocab";
 import type { VerbConjugations } from "@/lib/conjugate";
 
 // VOCAB-002 change timestamp: 2026-05-13 13:54
@@ -112,6 +112,7 @@ export default async function VocabPage() {
     getWordsByUser(session.user.id),
     getDueReviewCount(session.user.id)
   ]);
+
   const serializedWords: VocabWord[] = words
     .map((word) => {
       const encounters = word.encounters.map((encounter) => ({
@@ -167,7 +168,7 @@ export default async function VocabPage() {
                 className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-600 hover:bg-brand-100"
               >
                 <span>{dueCount} 词待复习</span>
-                <span aria-hidden>→</span>
+                <span aria-hidden>{"->"}</span>
               </a>
             ) : null}
           </div>
