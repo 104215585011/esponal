@@ -666,7 +666,7 @@
     "area": "vocabulary",
     "title": "词库变位增强（动词全时态 + 名词/形容词性数）",
     "user_visible_behavior": "/vocab 词条展开时：动词显示 7 个时态 tab + 6 人称变位表（确定性 spanish-verbs 库，不规则动词也准）；名词显示「单/复」inline；形容词显示「阳单/阴单/阳复/阴复」inline。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "package.json 含 spanish-verbs 依赖",
       "src/lib/conjugate.ts 的 tryConjugateVerb 返回 ser/vivir 正确变位",
