@@ -28,5 +28,5 @@
     "https://*.vercel.app/*",
     "https://www.youtube.com/*"
   ],
-  "permissions": ["activeTab", "storage"]
+  "permissions": ["activeTab", "scripting", "storage"]
 }

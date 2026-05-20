@@ -16,17 +16,34 @@ function normalizeLang(languageCode) {
   return languageCode?.startsWith("es-") ? languageCode : "es";
 }
 
-function postPlayerResponseBridge() {
-  const script = document.createElement("script");
-  script.textContent = `
-    window.postMessage({
-      type: "esponal-player-response",
-      data: window.ytInitialPlayerResponse?.captions
-        ?.playerCaptionsTracklistRenderer?.captionTracks ?? []
-    }, "*");
-  `;
-  (document.head || document.documentElement).appendChild(script);
-  script.remove();
+async function getPlayerCaptionTracks() {
+  // The classic bridge pattern (injecting an inline <script> tag and using
+  // window.postMessage to hop back to the isolated world) is dead on
+  // youtube.com — their CSP refuses 'unsafe-inline' and Trusted Types
+  // blocks string-to-script assignment. Delegate to the service worker,
+  // which can run a function in the MAIN world via chrome.scripting.
+  return new Promise((resolve) => {
+    let settled = false;
+
+    chrome.runtime.sendMessage({ type: "esponal-get-player-tracks" }, (response) => {
+      if (settled) return;
+      settled = true;
+      if (chrome.runtime.lastError) {
+        resolve([]);
+        return;
+      }
+      const tracks = response?.tracks;
+      resolve(Array.isArray(tracks) ? tracks : []);
+    });
+
+    // Defensive timeout — if the service worker is asleep and never
+    // responds, don't leave harvest hanging forever.
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve([]);
+    }, 5000);
+  });
 }
 
 function showHarvestBadge() {
@@ -80,7 +97,7 @@ async function ingestTrack(videoId, track) {
   showHarvestBadge();
 }
 
-function startHarvest() {
+async function startHarvest() {
   const videoId = getVideoId();
 
   if (!videoId || window.__esponalHarvested === videoId) {
@@ -88,34 +105,21 @@ function startHarvest() {
   }
 
   window.__esponalHarvested = videoId;
-  window.addEventListener(
-    "message",
-    (event) => {
-      if (event.source !== window || event.data?.type !== "esponal-player-response") {
-        return;
-      }
 
-      const tracks = Array.isArray(event.data.data) ? event.data.data : [];
-      const spanishTracks = tracks.filter((track) => track?.languageCode?.startsWith("es"));
+  const tracks = await getPlayerCaptionTracks();
+  const spanishTracks = tracks.filter((track) => track?.languageCode?.startsWith("es"));
 
-      for (const track of spanishTracks) {
-        if (typeof track?.baseUrl !== "string") {
-          continue;
-        }
+  for (const track of spanishTracks) {
+    if (typeof track?.baseUrl !== "string") {
+      continue;
+    }
 
-        ingestTrack(videoId, track).catch((error) => {
-          console.warn("[esponal harvest]", error);
-        });
-      }
-    },
-    { once: true }
-  );
-
-  postPlayerResponseBridge();
+    ingestTrack(videoId, track).catch((error) => {
+      console.warn("[esponal harvest]", error);
+    });
+  }
 }
 
-try {
-  startHarvest();
-} catch (error) {
+startHarvest().catch((error) => {
   console.warn("[esponal harvest]", error);
-}
+});

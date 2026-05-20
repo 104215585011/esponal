@@ -8,15 +8,23 @@ const readText = (path) => readFile(path, "utf8");
 test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge", async () => {
   const harvestPath = "extension/harvest.js";
   const parserPath = "extension/parseJson3.js";
+  const backgroundPath = "extension/background.js";
 
   assert.ok(existsSync(harvestPath), `${harvestPath} should exist`);
   assert.ok(existsSync(parserPath), `${parserPath} should exist`);
+  assert.ok(existsSync(backgroundPath), `${backgroundPath} should exist`);
 
   const harvest = await readText(harvestPath);
+  const background = await readText(backgroundPath);
   const parser = await import(`../${parserPath}`);
 
-  assert.match(harvest, /ytInitialPlayerResponse/);
-  assert.match(harvest, /postMessage/);
+  // Content script must NOT inject inline <script> tags — YouTube's CSP +
+  // Trusted Types block that. It should ask the service worker to read the
+  // player response via chrome.scripting.executeScript in the MAIN world.
+  assert.doesNotMatch(harvest, /createElement\(\s*["']script["']\s*\)/);
+  assert.doesNotMatch(harvest, /script\.textContent/);
+  assert.match(harvest, /chrome\.runtime\.sendMessage/);
+  assert.match(harvest, /esponal-get-player-tracks/);
   assert.match(harvest, /fmt=json3/);
   assert.match(harvest, /credentials:\s*["']include["']/);
   assert.match(harvest, /\/api\/subtitle\/ingest/);
@@ -24,6 +32,13 @@ test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge
   assert.match(harvest, /document\.title\.replace\(\s*\/ - YouTube\$\/,\s*["']["']\s*\)/);
   assert.match(harvest, /durationSec/);
   assert.doesNotMatch(harvest, /cueCount/);
+
+  // Service worker owns reading window.ytInitialPlayerResponse via the
+  // scripting API with world: "MAIN".
+  assert.match(background, /esponal-get-player-tracks/);
+  assert.match(background, /chrome\.scripting\s*\.\s*executeScript/);
+  assert.match(background, /world:\s*["']MAIN["']/);
+  assert.match(background, /ytInitialPlayerResponse/);
 
   assert.equal(typeof parser.parseJson3ToCues, "function");
   const cues = parser.parseJson3ToCues({
