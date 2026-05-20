@@ -746,16 +746,16 @@
     "status": "backlog",
     "verification": [
       "src/app/components/web/BackLink.tsx 存在并导出 BackLink({ href, label })",
-      "/lectura/[slug] 顶部有 ← 阅读，跳 /lectura",
+      "/lectura/[slug] 顶部有 ← 阅读，跳 /lectura，旧 返回 Lectura 链接被删除",
       "/learn/[slug] 顶部有 ← 课程，跳 /learn",
-      "/watch 顶部有 ← 首页，跳 /",
+      "/watch 顶部有 ← 视频，跳 /",
       "/vocab/review 顶部有 ← 词库，跳 /vocab",
       "语法详情页（如存在）有 ← 语法",
       "列表页 /vocab /learn /lectura /grammar 没有 BackLink",
-      "BackLink 含 data-testid back-link，min-h-44px，text-gray-500",
+      "BackLink 含 data-testid back-link，min-h-44px，text-gray-600，aria-label 含返回",
       "npm test 通过，npm run build 通过"
     ],
     "evidence": "",
-    "notes": "Ticket: docs/tickets/WEB-014.md。触发：用户反馈 PWA standalone 模式下点进详情页出不来。设计决定：固定回上级（方案 X），不依赖 history.back，首次直开链接也能用。视觉规格：text-gray-500 + hover text-gray-900，不用 brand 色（返回是次要动作）。流程：先过 Claude2 UI 设计评审再给 Codex1。"
+    "notes": "Ticket: docs/tickets/WEB-014.md。触发：用户反馈 PWA standalone 模式下点进详情页出不来。设计决定：固定回上级（方案 X），不依赖 history.back，首次直开链接也能用。Claude2 UI 评审通过（2 处 P1 已修：/watch 文案改 视频 与 SiteNav 对齐；Lectura 旧链接需删除替换；text-gray-500 → 600；加 aria-label 与 focus-visible ring）。"
   }
 ]
