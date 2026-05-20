@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE "Word" ADD COLUMN "srsState" TEXT;
+ALTER TABLE "Word" ADD COLUMN "srsDue" TIMESTAMP(3);
+ALTER TABLE "Word" ADD COLUMN "srsStability" DOUBLE PRECISION;
+ALTER TABLE "Word" ADD COLUMN "srsDifficulty" DOUBLE PRECISION;
+ALTER TABLE "Word" ADD COLUMN "srsElapsedDays" INTEGER;
+ALTER TABLE "Word" ADD COLUMN "srsScheduledDays" INTEGER;
+ALTER TABLE "Word" ADD COLUMN "srsReps" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Word" ADD COLUMN "srsLapses" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Word" ADD COLUMN "srsLastReview" TIMESTAMP(3);
+
+-- CreateIndex
+CREATE INDEX "Word_userId_srsDue_idx" ON "Word"("userId", "srsDue");

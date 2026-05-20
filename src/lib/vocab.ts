@@ -102,6 +102,60 @@ export async function getWordsByUser(userId: string) {
   });
 }
 
+export async function getDueReviewCount(userId: string, now = new Date()) {
+  const dueCount = await prisma.word.count({
+    where: {
+      userId,
+      srsState: {
+        not: null
+      },
+      srsDue: {
+        lte: now
+      }
+    }
+  });
+  const newCount = await prisma.word.count({
+    where: {
+      userId,
+      srsState: null
+    }
+  });
+
+  return dueCount + Math.min(newCount, 10);
+}
+
+export async function getDueReviewWords(userId: string, now = new Date()) {
+  const dueWords = await prisma.word.findMany({
+    where: {
+      userId,
+      srsState: {
+        not: null
+      },
+      srsDue: {
+        lte: now
+      }
+    },
+    orderBy: [{ srsDue: "asc" }, { createdAt: "asc" }],
+    take: 20
+  });
+
+  const slotsForNew = Math.max(0, Math.min(10, 20 - dueWords.length));
+  const newWords = slotsForNew
+    ? await prisma.word.findMany({
+        where: {
+          userId,
+          srsState: null
+        },
+        orderBy: {
+          createdAt: "asc"
+        },
+        take: slotsForNew
+      })
+    : [];
+
+  return [...dueWords, ...newWords];
+}
+
 export async function getWordWithEncounters(userId: string, lemma: string) {
   return prisma.word.findUnique({
     where: {

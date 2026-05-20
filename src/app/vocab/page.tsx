@@ -5,7 +5,7 @@ import VocabAccordion, {
   type VocabWord
 } from "@/app/components/vocab/VocabAccordion";
 import { getAuthOptions } from "@/lib/auth";
-import { getWordsByUser } from "@/lib/vocab";
+import { getWordsByUser, getDueReviewCount } from "@/lib/vocab";
 import type { VerbConjugations } from "@/lib/conjugate";
 
 // VOCAB-002 change timestamp: 2026-05-13 13:54
@@ -108,7 +108,10 @@ export default async function VocabPage() {
     redirect("/api/auth/signin");
   }
 
-  const words = await getWordsByUser(session.user.id);
+  const [words, dueCount] = await Promise.all([
+    getWordsByUser(session.user.id),
+    getDueReviewCount(session.user.id)
+  ]);
   const serializedWords: VocabWord[] = words
     .map((word) => {
       const encounters = word.encounters.map((encounter) => ({
@@ -151,10 +154,23 @@ export default async function VocabPage() {
       <SiteHeader />
       <section className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">我的词库</h1>
-          <p className="mt-2 text-sm text-gray-400">
-            按词根归类，记录你遭遇过的词
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">我的词库</h1>
+              <p className="mt-2 text-sm text-gray-400">
+                按词根归类，记录你遭遇过的词
+              </p>
+            </div>
+            {dueCount > 0 ? (
+              <a
+                href="/vocab/review"
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-600 hover:bg-brand-100"
+              >
+                <span>{dueCount} 词待复习</span>
+                <span aria-hidden>→</span>
+              </a>
+            ) : null}
+          </div>
         </header>
         <VocabAccordion words={serializedWords} />
       </section>

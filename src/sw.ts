@@ -3,7 +3,7 @@
 declare const self: ServiceWorkerGlobalScope;
 
 const STATIC_CACHE = "esponal-static-v1";
-const PAGE_CACHE = "esponal-page-v1";
+const PAGE_CACHE = "esponal-page-v2";
 const SUBTITLE_CACHE = "esponal-subtitle-v1";
 const LECTURA_AUDIO_CACHE = "esponal-lectura-audio-v1";
 const TTS_AUDIO_CACHE = "esponal-tts-audio-v1";
@@ -78,13 +78,24 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const response = await fetch(request);
-          const cache = await caches.open(PAGE_CACHE);
-          cache.put(request, response.clone());
+          // Only cache successful HTML responses (not redirects or error pages)
+          if (response.ok) {
+            const cache = await caches.open(PAGE_CACHE);
+            cache.put(request, response.clone());
+          }
           return response;
         } catch {
+          // Try a previously cached version of this exact URL first
           const cached = await caches.match(request);
-          const offline = await caches.match(OFFLINE_URL);
-          return cached || offline || Response.error();
+          if (cached) return cached;
+          // Only show the offline page when the browser is genuinely offline.
+          // If online but the server failed/timed out, let the browser show its
+          // native error rather than misleading the user with the offline screen.
+          if (!self.navigator.onLine) {
+            const offline = await caches.match(OFFLINE_URL);
+            if (offline) return offline;
+          }
+          return Response.error();
         }
       })()
     );

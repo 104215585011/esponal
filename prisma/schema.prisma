@@ -70,6 +70,15 @@ model Word {
   dictData    Json?
   partOfSpeech String?
   status      WordStatus      @default(NEW)
+  srsState      String?
+  srsDue        DateTime?
+  srsStability  Float?
+  srsDifficulty Float?
+  srsElapsedDays Int?
+  srsScheduledDays Int?
+  srsReps       Int       @default(0)
+  srsLapses     Int       @default(0)
+  srsLastReview DateTime?
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   encounters  WordEncounter[]
   createdAt   DateTime        @default(now())
@@ -77,6 +86,7 @@ model Word {
 
   @@unique([userId, lemma])
   @@index([userId])
+  @@index([userId, srsDue])
 }
 
 model WordEncounter {
