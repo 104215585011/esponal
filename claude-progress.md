@@ -2038,3 +2038,35 @@ feature_list.json 更新：
 
 ### Next
 - Codex2 should QA `VOCAB-005`, especially the source contract for conjugation/forms serialization plus any live `/vocab` expand-state smoke on a saved verb, noun, and adjective.
+
+## QA Report - Session #77 (2026-05-19 16:01) - VOCAB-005
+
+### Completed
+- Re-read `AGENTS.md`, `roles/ROLE-QA.md`, `claude-progress.md`, `feature_list.json`, and `session-handoff.md` before QA.
+- Confirmed `VOCAB-005` was `ready_for_qa`.
+- Ran the required verification commands:
+  - `node --test tests/vocab005.test.mjs`
+  - `npm test`
+  - `npm run build`
+- Verified the source contract for:
+  - `package.json` local `spanish-verbs` dependency
+  - `src/lib/conjugate.ts` and real outputs for `vivir`, `ser`, and a fake lemma
+  - `src/lib/dictionary.ts` richer dictData shape and `vocab:dict:v2:` cache namespace
+  - `LookupCard.tsx` persisting new fields without rendering `ConjugationTable`
+  - `VocabAccordion.tsx` rendering `ConjugationTable` plus noun/adjective inline forms
+  - `src/app/vocab/page.tsx` serializing the richer dictData payload
+- Updated `feature_list.json`: `VOCAB-005.status = passing`.
+- Updated `session-handoff.md` with the QA report.
+
+### Verification
+- `node --test tests/vocab005.test.mjs`: passed 4/4.
+- `npm test`: passed 143/143.
+- `npm run build`: passed; only existing `<img>` lint warnings and existing Sentry instrumentation migration warnings remain.
+- Inline module smoke:
+  - `tryConjugateVerb("vivir")` -> `vivo`, `vivimos`
+  - `tryConjugateVerb("ser")` -> `soy`, `fui`
+  - `tryConjugateVerb("xyzfake123")` -> `null`
+
+### Conclusion
+- `VOCAB-005`: passing.
+- Remaining non-blocking follow-up is PM live smoke on fresh verb/noun/adjective saves in `/vocab`.

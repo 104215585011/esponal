@@ -1053,3 +1053,77 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
   - save a fresh verb from `/watch`, then open `/vocab` and confirm the expanded entry has 7 tense tabs
   - check one noun and one adjective entry for inline forms
   - old entries without new dictData should degrade quietly, not crash
+
+## Codex2 QA Report - VOCAB-005
+
+**Time**: 2026-05-19 16:01
+**Tester**: Codex2
+
+**Conclusion**: Passed. `VOCAB-005` is updated to `passing` in `feature_list.json`.
+
+### Executed Checks
+1. Targeted ticket test
+   Command: `node --test tests/vocab005.test.mjs`
+   Output summary:
+   - `pass 4`
+   - `fail 0`
+   - Includes `VOCAB-005 conjugates regular and irregular verbs deterministically`
+   Result: Pass.
+
+2. Full baseline suite
+   Command: `npm test`
+   Output summary:
+   - `pass 143`
+   - `fail 0`
+   - Includes the four `VOCAB-005` assertions inside the full suite
+   Result: Pass.
+
+3. Production build
+   Command: `npm run build`
+   Output summary:
+   - Next.js build completed successfully
+   - `/vocab` remained in the route output
+   - Existing warnings only: `<img>` lint warnings in `SiteHeader.tsx` and `learn/[slug]/page.tsx`, plus existing Sentry instrumentation migration warnings
+   Result: Pass.
+
+4. Dependency and conjugation contract
+   Commands:
+   - `rg -n 'spanish-verbs|vendor/spanish-verbs' package.json package-lock.json`
+   - inline Node module check for `tryConjugateVerb("vivir")`, `tryConjugateVerb("ser")`, and `tryConjugateVerb("xyzfake123")`
+   Output summary:
+   - `package.json:33:    "spanish-verbs": "file:vendor/spanish-verbs"`
+   - `vivir` returned `presente.yo = "vivo"` and `presente.nosotros = "vivimos"`
+   - `ser` returned `presente.yo = "soy"` and `preteritoIndefinido.yo = "fui"`
+   - fake lemma returned `null`
+   Result: Pass.
+
+5. Dictionary pipeline and cache contract
+   Method: source review of `src/lib/dictionary.ts`
+   Evidence:
+   - `DictionaryEntry` now includes `conjugations`, `nounForms`, and `adjectiveForms`
+   - cache key is `vocab:dict:v2:${lemma}`
+   - cache writes use 30-day TTL
+   - GLM prompt includes noun/adjective `forms` JSON shape
+   - noun/adjective forms are validated before being kept
+   - degraded fallback still adds deterministic verb conjugations for verb POS
+   Result: Pass.
+
+6. UI contract verification
+   Method: source review of `LookupCard.tsx`, `VocabAccordion.tsx`, `ConjugationTable.tsx`, `src/app/vocab/page.tsx`, and `src/app/api/vocab/add/route.ts`
+   Evidence:
+   - `LookupCard.tsx` persists `conjugations`, `nounForms`, and `adjectiveForms` into `dictData`
+   - `LookupCard.tsx` does not import or render `ConjugationTable`
+   - `VocabAccordion.tsx` imports `ConjugationTable` and renders it only for `word.conjugations`
+   - `VocabAccordion.tsx` renders inline noun `singular / plural / gender` and adjective `ms / fs / mp / fp`
+   - `src/app/vocab/page.tsx` serializes richer dictData back into `VocabWord`
+   - `src/app/api/vocab/add/route.ts` accepts object `dictData` unchanged, so the richer fields are persisted
+   Result: Pass.
+
+### Warnings / Notes
+- `git status --short --branch` before QA showed `## main...origin/main [ahead 1]`, which matches the existing local dev commit for `VOCAB-005`; QA did not treat that as a blocker.
+- `node --test` still emits the existing `MODULE_TYPELESS_PACKAGE_JSON` warning for direct TS imports; not caused by this ticket.
+- This QA pass was contract-focused. PM live smoke is still useful for one saved verb, noun, and adjective entry inside `/vocab`.
+
+### Handoff
+- No blockers found for contract QA.
+- Next best action: PM or product-side live smoke on a freshly saved verb, noun, and adjective entry.
