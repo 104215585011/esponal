@@ -38,6 +38,75 @@ function buildDefaultStatuses(words: string[]) {
   }));
 }
 
+function getSessionUserId(session: unknown) {
+  if (!session || typeof session !== "object" || !("user" in session)) {
+    return null;
+  }
+
+  const user = (session as { user?: { id?: unknown } }).user;
+  return typeof user?.id === "string" ? user.id : null;
+}
+
+function buildSavedForms(words: { lemma: string; forms: string[] }[]) {
+  const savedForms = new Set<string>();
+
+  for (const word of words) {
+    savedForms.add(word.lemma.trim().toLowerCase());
+
+    for (const form of word.forms) {
+      const normalized = form.trim().toLowerCase();
+      if (normalized) savedForms.add(normalized);
+    }
+  }
+
+  return Array.from(savedForms).sort();
+}
+
+function savedFormsResponse(savedForms: string[]) {
+  return NextResponse.json(
+    { savedForms },
+    {
+      headers: {
+        "Cache-Control": "private, max-age=60"
+      }
+    }
+  );
+}
+
+export async function GET() {
+  const session = await getServerSession(getAuthOptions());
+  const userId = getSessionUserId(session);
+
+  if (!userId) {
+    return NextResponse.json(
+      { savedForms: [] },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=60"
+        }
+      }
+    );
+  }
+
+  try {
+    const words = await prisma.word.findMany({
+      where: {
+        userId
+      },
+      select: {
+        lemma: true,
+        forms: true
+      }
+    });
+
+    return savedFormsResponse(buildSavedForms(words));
+  } catch (error) {
+    console.error("Highlight saved forms failed", error);
+
+    return NextResponse.json({ error: "highlight lookup failed" }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(getAuthOptions());
 
@@ -51,17 +120,15 @@ export async function POST(request: Request) {
 
     const items = buildDefaultStatuses(words);
 
-    if (
-      !session?.user ||
-      !("id" in session.user) ||
-      typeof session.user.id !== "string"
-    ) {
+    const userId = getSessionUserId(session);
+
+    if (!userId) {
       return NextResponse.json({ items });
     }
 
     const savedWords = await prisma.word.findMany({
       where: {
-        userId: session.user.id,
+        userId,
         OR: [
           {
             lemma: {
@@ -84,10 +151,10 @@ export async function POST(request: Request) {
     const savedWordSet = new Set<string>();
 
     for (const word of savedWords) {
-      savedWordSet.add(word.lemma);
+      savedWordSet.add(word.lemma.trim().toLowerCase());
 
       for (const form of word.forms) {
-        savedWordSet.add(form);
+        savedWordSet.add(form.trim().toLowerCase());
       }
     }
 

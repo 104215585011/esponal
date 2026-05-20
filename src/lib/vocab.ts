@@ -1,4 +1,5 @@
 import { Prisma, WordStatus } from "@prisma/client";
+import { tryConjugateVerb } from "@/lib/conjugate";
 import { prisma } from "@/lib/prisma";
 
 type CreateWordInput = {
@@ -22,7 +23,20 @@ type AddEncounterInput = {
 };
 
 const normalizeForms = (forms: string[] = []) =>
-  Array.from(new Set(forms.map((form) => form.trim()).filter(Boolean)));
+  Array.from(new Set(forms.map((form) => form.trim().toLowerCase()).filter(Boolean)));
+
+function isVerbPos(partOfSpeech?: string | null) {
+  return Boolean(partOfSpeech?.trim().toLowerCase().startsWith("v"));
+}
+
+function getVerbForms(lemma: string) {
+  const conjugations = tryConjugateVerb(lemma);
+  if (!conjugations) return [];
+
+  return Object.values(conjugations)
+    .flatMap((tense) => Object.values(tense ?? {}))
+    .filter((form): form is string => typeof form === "string" && form.trim().length > 0);
+}
 
 export async function createWord({
   userId,
@@ -34,7 +48,10 @@ export async function createWord({
   status = WordStatus.NEW
 }: CreateWordInput) {
   const normalizedLemma = lemma.trim().toLowerCase();
-  const normalizedForms = normalizeForms([normalizedLemma, ...forms]);
+  const normalizedVerbForms = isVerbPos(partOfSpeech)
+    ? getVerbForms(normalizedLemma)
+    : [];
+  const normalizedForms = normalizeForms([normalizedLemma, ...forms, ...normalizedVerbForms]);
 
   return prisma.word.upsert({
     where: {

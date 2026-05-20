@@ -31,6 +31,7 @@ function normalizeLookupWord(token: string) {
 export function LecturaReader({ story }: LecturaReaderProps) {
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
+  const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -91,6 +92,25 @@ export function LecturaReader({ story }: LecturaReaderProps) {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/vocab/highlight")
+      .then((response) => (response.ok ? response.json() : { savedForms: [] }))
+      .then((data: { savedForms?: unknown }) => {
+        if (cancelled || !Array.isArray(data.savedForms)) return;
+        setSavedSet(
+          new Set(
+            data.savedForms
+              .filter((form): form is string => typeof form === "string")
+              .map((form) => normalizeLookupWord(form))
+              .filter(Boolean)
+          )
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setSavedSet(new Set());
+      });
+
     function handlePointerDown(event: PointerEvent) {
       if (!containerRef.current) return;
       const target = event.target as Node | null;
@@ -108,6 +128,7 @@ export function LecturaReader({ story }: LecturaReaderProps) {
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
     return () => {
+      cancelled = true;
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
       stopCurrentAudio();
@@ -155,7 +176,9 @@ export function LecturaReader({ story }: LecturaReaderProps) {
 
                   return (
                     <span
-                      className="cursor-pointer rounded-sm transition hover:bg-brand-50"
+                      className={`cursor-pointer rounded-sm transition hover:bg-brand-50 ${
+                        savedSet.has(normalized) ? "saved-word" : ""
+                      }`}
                       key={tokenIndex}
                       onClick={(event) => {
                         event.stopPropagation();

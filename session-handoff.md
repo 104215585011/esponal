@@ -1,3 +1,42 @@
+## Dev Report: VOCAB-008 saved-word underline
+**Time**: 2026-05-20 15:14
+**Developer**: Codex1
+
+**Status**: Ready for QA. Implemented saved-word underline marking on Lectura and course pages.
+
+**Changed files**:
+- src/lib/vocab.ts
+- src/app/api/vocab/highlight/route.ts
+- src/app/lectura/LecturaReader.tsx
+- src/app/learn/[slug]/CourseLookupText.tsx
+- src/app/globals.css
+- scripts/backfill-verb-forms.mjs
+- package.json
+- tests/vocab008.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Verb saves now merge lemma, incoming forms, and all tryConjugateVerb forms into Word.forms after lowercase normalization.
+- GET /api/vocab/highlight returns { savedForms } for the current user and an empty list for guests, with private max-age=60 caching.
+- LecturaReader and CourseLookupText load savedForms into a normalized savedSet and apply the shared .saved-word class while preserving LookupCard click behavior.
+- Added an idempotent backfill script for existing verb entries plus npm run backfill:verb-forms.
+
+**Verification executed**:
+1. TDD red check: node --test tests/vocab008.test.mjs failed 6/6 before implementation.
+2. Focused VOCAB-008 test: node --test tests/vocab008.test.mjs -> tests 6, pass 6, fail 0.
+3. Regression chain: node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/ext004.test.mjs tests/read001.test.mjs -> tests 19, pass 19, fail 0.
+4. Encoding: npm run lint:encoding -> Encoding check passed.
+5. Full suite: npm test -> tests 159, pass 159, fail 0.
+6. Build: npm run build -> compiled successfully; only existing <img> and Sentry warnings.
+7. Script syntax: node --check scripts/backfill-verb-forms.mjs -> pass.
+
+**Remaining QA note**:
+- npm run backfill:verb-forms starts correctly, but this local machine cannot open the Prisma DB TLS connection: 安全包中没有可用的凭证. Re-run the backfill in an environment with a working DATABASE_URL before production rollout.
+
+---
+
 ## QA Report: VOCAB-007 AI lemmatizer
 **Time**: 2026-05-20 13:33
 **Tester**: Codex2

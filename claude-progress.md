@@ -2181,3 +2181,26 @@ feature_list.json 更新：
 **Notes**:
 - Live DashScope behavior sampling was skipped because `DASHSCOPE_API_KEY` was not present in the shell environment.
 - No push performed.
+
+### Session Update - 2026-05-20 15:14 - VOCAB-008 Codex1 Dev
+
+**Goal**: Implement VOCAB-008 saved-word underline marking for Lectura and course pages.
+
+**Done**:
+- Added TDD coverage in tests/vocab008.test.mjs.
+- Stored verb conjugation forms into Word.forms during createWord for verb POS entries.
+- Added scripts/backfill-verb-forms.mjs and npm run backfill:verb-forms for existing vocabulary.
+- Extended /api/vocab/highlight GET to return savedForms for logged-in users and [] for guests.
+- Loaded savedForms in LecturaReader and CourseLookupText and applied shared .saved-word styling without changing lookup clicks.
+- Moved VOCAB-008 to ready_for_qa in feature_list.json.
+
+**Verification**:
+- node --test tests/vocab008.test.mjs -> 6/6 pass.
+- node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/ext004.test.mjs tests/read001.test.mjs -> 19/19 pass.
+- npm run lint:encoding -> pass.
+- npm test -> 159/159 pass.
+- npm run build -> pass with existing img and Sentry warnings.
+- node --check scripts/backfill-verb-forms.mjs -> pass.
+- npm run backfill:verb-forms blocked locally by Prisma TLS credential error; rerun with working DATABASE_URL.
+
+**Next**: Codex2 QA for VOCAB-008.
