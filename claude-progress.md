@@ -2239,6 +2239,28 @@ feature_list.json 更新：
 - npm run build -> pass with existing img and Sentry warnings.
 
 **Next**: Codex2 QA for WEB-014.
+### QA Session - 2026-05-20 21:07 - EXT-008
+
+**Goal**: Codex2 QA for EXT-008 subtitle harvester extension.
+
+**Result**: Failed. `feature_list.json` remains `ready_for_qa`.
+
+**Blocking finding**:
+- `extension/manifest.json` only runs `dist/esponal-site.js` on `http://localhost:3000/*`. The ticket requires the site marker on the Esponal production domain too, otherwise deployed `/watch` cannot detect the installed extension via `document.documentElement.dataset.esponalExt === "1"` and will show the not-installed guidance branch even after the user installs the extension.
+
+**Verification run**:
+- `npm run lint:encoding`: passed, `Encoding check passed`.
+- `node --test tests/ext008.test.mjs`: 8/8 passed.
+- `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`: 24/24 passed.
+- `npm run build` in `extension/`: passed.
+- `npm run package` in `extension/`: passed; zip includes `dist/harvest.js` and `dist/esponal-site.js`.
+- `npm test`: 173/173 passed.
+- `npm run build`: passed; existing `<img>` warnings, Sentry warnings, and local Redis ECONNREFUSED noise remain.
+
+**Source contract notes**:
+- Harvester bridge, JSON3 parser, credentials include fetch, ingest POST, recent harvest storage, native badge feedback, ingest token/rate-limit/payload validation/write-once key, subtitle `no_subtitle` hint, EmptyState external/secondary actions, and TranscriptPanel dual guidance branches are all present.
+- Fix needed before passing: production-domain manifest registration for the Esponal site marker script.
+
 ### Session Update - 2026-05-20 18:05 - EXT-008 Codex1 Dev
 
 **Goal**: revive the subtitle harvester extension and wire `/watch` fallback guidance.

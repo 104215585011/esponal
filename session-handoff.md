@@ -1,3 +1,55 @@
+## QA Report: EXT-008 subtitle harvester extension
+**Time**: 2026-05-20 21:07
+**Tester**: Codex2
+
+**Conclusion**: Failed. Return to Codex1 for one functional blocker before EXT-008 can move to `passing`.
+
+**Blocking finding**:
+- `extension/manifest.json` registers `dist/esponal-site.js` only on `http://localhost:3000/*`. EXT-008 requires the site marker script to run on the Esponal production domain as well, so deployed `/watch` pages can read `document.documentElement.dataset.esponalExt === "1"`. With the current manifest, the harvester can ingest subtitles from YouTube, but production `/watch` cannot detect that the extension is installed and will keep showing the not-installed guidance branch.
+
+**Verification executed**:
+1. Encoding check
+   Command: `npm run lint:encoding`
+   Output: `Encoding check passed`
+   Result: pass
+2. Focused EXT-008 tests
+   Command: `node --test tests/ext008.test.mjs`
+   Output: `tests 8`, `pass 8`, `fail 0`
+   Result: pass
+3. Extension/subtitle regression slice
+   Command: `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`
+   Output: `tests 24`, `pass 24`, `fail 0`
+   Result: pass
+4. Extension build
+   Command: `npm run build` in `extension/`
+   Output: build completed with no errors
+   Result: pass
+5. Extension package
+   Command: `npm run package` in `extension/`
+   Output: `Packaged public\extension\esponal-extension.zip (1 file(s) in output dir)`
+   Result: pass; zip contents verified include `dist/harvest.js` and `dist/esponal-site.js`
+6. Full suite
+   Command: `npm test`
+   Output: `tests 173`, `pass 173`, `fail 0`
+   Result: pass
+7. Production build
+   Command: `npm run build`
+   Output: compiled successfully and route table includes `/api/subtitle/ingest`
+   Result: pass; existing warnings remain `<img>` lint warnings, Sentry instrumentation warnings, and local Redis `ECONNREFUSED` noise
+
+**Source contract checks**:
+- `extension/harvest.js` uses the `ytInitialPlayerResponse` page bridge, `postMessage`, `fmt=json3`, `credentials: "include"`, POST `/api/subtitle/ingest`, and writes `lastSubtitleHarvest` with title/duration/time rather than video ID/cue count.
+- `extension/parseJson3.js` exports `parseJson3ToCues` and parses JSON3 events into `{ start, dur, text }`.
+- `extension/background.js` uses native `chrome.action.setBadgeText` success feedback and does not draw UI into YouTube.
+- `extension/popup.js` uses `Intl.RelativeTimeFormat("zh-CN")`, duration minutes, and hides `videoId`, `lang`, and `cueCount`.
+- `src/app/api/subtitle/ingest/route.ts` validates `X-Esponal-Ingest-Token`, uses `ingestLimiter`, enforces payload/cue limits, and preserves existing `subtitle:v4:${videoId}:${lang}:auto` keys with `written: false`.
+- `src/app/api/subtitle/route.ts` returns `{ cues, hint: { reason: "no_subtitle" } }` on empty fallback while remaining compatible with array-style payload handling in `TranscriptPanel`.
+- `EmptyState` supports `action.external` and `secondaryAction`; `TranscriptPanel` branches installed vs not-installed guidance from `dataset.esponalExt`.
+
+**Handoff**:
+- Keep `feature_list.json` status as `ready_for_qa`.
+- Codex1 should add the production Esponal URL content-script match and host permission for `dist/esponal-site.js`, ideally sourced from the same deployment origin contract used to build the extension, then resubmit EXT-008 for QA.
+
 ## Dev Report: WEB-014 detail-page BackLink
 **Time**: 2026-05-20 16:16
 **Developer**: Codex1
