@@ -1,6 +1,6 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "buildCommand": "npx prisma migrate deploy && npm run build",
   "functions": {
     "src/app/api/subtitle/route.ts": {
       "maxDuration": 60

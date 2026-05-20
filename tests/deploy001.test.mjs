@@ -47,7 +47,12 @@ test("DEPLOY-001 vercel config builds only the web app from the repo root", asyn
   const vercelConfig = JSON.parse(await readText(vercelConfigPath));
 
   assert.equal(vercelConfig.installCommand, "npm install");
-  assert.equal(vercelConfig.buildCommand, "npm run build");
+  // build command must run prisma migrate deploy before next build
+  assert.ok(
+    vercelConfig.buildCommand.includes("prisma migrate deploy") &&
+      vercelConfig.buildCommand.includes("npm run build"),
+    `buildCommand should run prisma migrate deploy then npm run build, got: ${vercelConfig.buildCommand}`
+  );
   assert.doesNotMatch(JSON.stringify(vercelConfig), /extension|esbuild/);
 });
 
