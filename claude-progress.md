@@ -2204,3 +2204,20 @@ feature_list.json 更新：
 - npm run backfill:verb-forms blocked locally by Prisma TLS credential error; rerun with working DATABASE_URL.
 
 **Next**: Codex2 QA for VOCAB-008.
+
+### Session Update - 2026-05-20 15:20 - VOCAB-008 Codex2 QA
+
+**Goal**: QA VOCAB-008 saved-word underline marking.
+
+**Result**: Passed and marked passing.
+
+**Verification**:
+- npm run lint:encoding -> pass.
+- node --test tests/vocab008.test.mjs -> 6/6 pass.
+- node --test tests/vocab008.test.mjs tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/read001.test.mjs -> 28/28 pass.
+- npm test -> 159/159 pass.
+- npm run build -> pass with existing img and Sentry warnings.
+- node --check scripts/backfill-verb-forms.mjs -> pass.
+- npm run backfill:verb-forms attempted; local DB TLS credential error blocks runtime backfill.
+
+**Important rollout note**: Run npm run backfill:verb-forms in production or a QA environment with working DATABASE_URL before rollout so historical verb entries receive conjugation forms. New saved verbs already receive forms at save time.

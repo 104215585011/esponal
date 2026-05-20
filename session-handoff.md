@@ -1,3 +1,59 @@
+## QA Report: VOCAB-008 saved-word underline
+**Time**: 2026-05-20 15:20
+**Tester**: Codex2
+
+**Conclusion**: Passed. VOCAB-008 is verified and marked passing.
+
+**Verification executed**:
+1. Encoding check
+   Command: npm run lint:encoding
+   Output: Encoding check passed
+   Result: pass
+2. Focused VOCAB-008 test
+   Command: node --test tests/vocab008.test.mjs
+   Output: tests 6, pass 6, fail 0
+   Result: pass
+3. Regression chain
+   Command: node --test tests/vocab008.test.mjs tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/read001.test.mjs
+   Output: tests 28, pass 28, fail 0
+   Result: pass
+4. Full suite
+   Command: npm test
+   Output: tests 159, pass 159, fail 0
+   Result: pass
+5. Production build
+   Command: npm run build
+   Output: compiled successfully, generated 48 static pages, route table emitted
+   Result: pass; warnings are existing <img> lint warnings and Sentry instrumentation warnings
+6. Backfill script syntax
+   Command: node --check scripts/backfill-verb-forms.mjs
+   Output: no syntax errors
+   Result: pass
+7. Backfill runtime attempt
+   Command: npm run backfill:verb-forms
+   Output: PrismaClientInitializationError, Error opening a TLS connection: 安全包中没有可用的凭证
+   Result: environment blocked; not a code-contract failure
+
+**Source contract checks**:
+- src/lib/vocab.ts createWord has isVerbPos, calls tryConjugateVerb, and merges normalizedVerbForms into normalizedForms.
+- scripts/backfill-verb-forms.mjs exists, is idempotent by comparing forms before update, and package.json exposes backfill:verb-forms.
+- GET /api/vocab/highlight returns { savedForms } for logged-in users, lowercases and dedupes with Set, and returns { savedForms: [] } for guests.
+- LecturaReader fetches /api/vocab/highlight and applies saved-word while preserving openLookup.
+- CourseLookupText fetches /api/vocab/highlight and applies saved-word while preserving setActiveWord and LookupCard.
+- .saved-word uses underline, #4b5563, 1.5px thickness, and 3px underline offset.
+- Click behavior is source-verified: marked tokens remain the same clickable span/button path that opens LookupCard.
+
+**Backfill risk note**:
+- Code contract QA passes and VOCAB-008 can be passing.
+- Historical verb entries will not show conjugated-form underlines until npm run backfill:verb-forms is run against a working database.
+- PM/ops must run the backfill in production or another environment with a valid DATABASE_URL before rollout; new saved verbs already get all forms immediately.
+
+**Handoff**:
+- Updated feature_list.json: VOCAB-008.status = passing with QA evidence.
+- No push performed.
+
+---
+
 ## Dev Report: VOCAB-008 saved-word underline
 **Time**: 2026-05-20 15:14
 **Developer**: Codex1
