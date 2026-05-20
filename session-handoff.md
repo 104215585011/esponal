@@ -1156,6 +1156,27 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 ### Handoff
 - No blockers found for contract QA.
 - Next best action: PM or product-side live smoke on a freshly saved verb, noun, and adjective entry.
+## Codex1 Hotfix Report - Session #65 (2026-05-20 12:15)
+
+### 背景
+部署 VOCAB-006 后生产环境 `/vocab` 页报 Server Component crash。根因：`getDueReviewCount` / `getDueReviewWords` 直接查询 `srsState` / `srsDue` 列，但 Vercel 生产 PostgreSQL 尚未跑 migration（`20260520094000_add_srs_fields`），Prisma 抛错，整个 Server Component 挂掉。
+
+### 修复内容（commit `327c791`）
+1. **`src/lib/vocab.ts`**：`getDueReviewCount` 和 `getDueReviewWords` 各加 `try/catch`，SRS 列不存在时静默返回 `0` / `[]`，避免 /vocab 崩溃。
+2. **`vercel.json`**：`buildCommand` 改为 `npx prisma migrate deploy && npm run build`，确保今后每次 Vercel 部署自动应用 Prisma migration。
+3. **`tests/deploy001.test.mjs`**：更新 DEPLOY-001 对 `buildCommand` 的断言，验证含 `prisma migrate deploy` 且含 `npm run build`。
+
+### 验证
+- `npm test`：148/148 通过（pre-commit hook 通过）
+- 修复本身：`try/catch` 确保生产 DB 无 SRS 列时不报错，待复习徽章不显示（返回 0）
+
+### 下一步
+- **Vercel 侧**：重新部署后 `prisma migrate deploy` 将自动把 SRS migration 应用到生产库；之后 `getDueReviewCount` 的 try/catch 就走正常路径（不再兜底）
+- **Codex2**：待 VOCAB-006 生产 migration 就位后，执行完整 QA（SRS schema 契约、API auth/rating 校验、flashcard 流程、/vocab badge）
+- **PM**：若有必要可先在 Vercel Dashboard 手动触发一次 redeploy 以应用 migration
+
+---
+
 ## Codex1 Dev Report - Session #64 (2026-05-20 11:40)
 
 ### 本轮完成
