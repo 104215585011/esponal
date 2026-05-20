@@ -37,8 +37,8 @@ test("VOCAB-005 upgrades dictionary pipeline and save payload for richer forms",
   const lookupCard = await readText("src/app/watch/LookupCard.tsx");
   const vocabPage = await readText("src/app/vocab/page.tsx");
 
-  assert.match(dictionary, /vocab:dict:v2:/);
-  assert.match(dictionary, /tryConjugateVerb\(lemma\)/);
+  assert.match(dictionary, /vocab:dict:v3:/);
+  assert.match(dictionary, /tryConjugateVerb\((aiLemma|hintLemma)\)/);
   assert.match(dictionary, /nounForms/);
   assert.match(dictionary, /adjectiveForms/);
   assert.match(lookupCard, /conjugations/);

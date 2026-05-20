@@ -44,6 +44,8 @@ type LemmaEntry = {
 };
 
 type RawAIEntry = {
+  lemma?: string;
+  morphInfo?: string;
   pos?: string;
   meanings?: string[];
   example?: { es?: string; zh?: string };
@@ -204,12 +206,27 @@ async function safeCacheSet(key: string, value: DictionaryEntry) {
 
 async function fetchAIEntry(
   word: string,
-  lemma: string,
+  hintLemma: string,
   morphInfo: string | null
 ): Promise<DictionaryEntry | null> {
   const apiKey = process.env.DASHSCOPE_API_KEY?.trim();
   const model = process.env.DASHSCOPE_MODEL?.trim() || "glm-5";
   if (!apiKey) return null;
+
+  const promptLines = [
+    "You are a Spanish morphological analyzer and dictionary assistant.",
+    `The learner saw the word "${word}" in a Spanish text.`,
+    "Step 1: Identify its lemma (infinitive for verbs; singular nominative for nouns/adjectives).",
+    "Step 2: Generate a concise dictionary entry for that lemma in Chinese.",
+    "Return JSON only, no markdown fences.",
+    "",
+    'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}',
+    'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}',
+    'Adjective example: {"lemma":"rojo","pos":"adj.","meanings":["红色的"],"example":{"es":"La rosa es roja.","zh":"玫瑰是红色的。"},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}',
+    morphInfo ? `Morphology context: ${morphInfo}` : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const res = await fetch(
     "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -221,24 +238,7 @@ async function fetchAIEntry(
       },
       body: JSON.stringify({
         model,
-        messages: [
-          {
-            role: "user",
-            content: [
-              "You are a Spanish dictionary assistant.",
-              `Generate a JSON dictionary entry for the lemma "${lemma}".`,
-              "Return JSON only.",
-              'Verb shape: {"pos":"v.","meanings":["..."],"example":{"es":"...","zh":"..."}}',
-              'Noun shape: {"pos":"n.m." or "n.f.","meanings":["..."],"example":{"es":"...","zh":"..."},"forms":{"singular":"libro","plural":"libros"}}',
-              'Adjective shape: {"pos":"adj.","meanings":["..."],"example":{"es":"...","zh":"..."},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}',
-              "Use concise Chinese meanings.",
-              morphInfo ? `Morphology hint: ${morphInfo}` : "",
-              `Observed surface form: ${word}`
-            ]
-              .filter(Boolean)
-              .join("\n")
-          }
-        ],
+        messages: [{ role: "user", content: promptLines }],
         temperature: 0.1
       })
     }
@@ -252,21 +252,32 @@ async function fetchAIEntry(
 
   const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
   const parsed = JSON.parse(cleaned) as RawAIEntry;
+
+  const aiLemma =
+    typeof parsed.lemma === "string" && parsed.lemma.trim().length > 0
+      ? parsed.lemma.trim().toLowerCase()
+      : hintLemma;
+
   const partOfSpeech = normalizePartOfSpeech(parsed.pos);
   const meanings = normalizeMeanings(parsed.meanings);
   if (meanings.length === 0) {
     return null;
   }
 
+  const aiMorphInfo =
+    typeof parsed.morphInfo === "string" && parsed.morphInfo.trim().length > 0
+      ? parsed.morphInfo.trim()
+      : morphInfo;
+
   return {
     word,
-    lemma,
+    lemma: aiLemma,
     partOfSpeech,
     meanings,
     examples: normalizeExample(parsed.example),
     phonetic: null,
-    morphInfo,
-    nounForms: validateNounForms(lemma, partOfSpeech, parsed.forms),
+    morphInfo: aiMorphInfo,
+    nounForms: validateNounForms(aiLemma, partOfSpeech, parsed.forms),
     adjectiveForms:
       partOfSpeech?.toLowerCase().startsWith("adj")
         ? validateAdjectiveForms(parsed.forms)
@@ -280,44 +291,53 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
 
   const lemmaDict = await loadLemmaDict();
   const dictEntry = lemmaDict[word];
-  const lemma = inferLemma(word, dictEntry);
+  const hintLemma = inferLemma(word, dictEntry);
   const morphInfo = isPlaceholder(dictEntry?.morphInfo) ? null : (dictEntry?.morphInfo ?? null);
-  const cacheKey = `vocab:dict:v2:${lemma}`;
+  const hintCacheKey = `vocab:dict:v3:${hintLemma}`;
 
-  const cached = await safeCacheGet(cacheKey);
-  if (cached) {
-    return { ...(JSON.parse(cached) as DictionaryEntry), word, cached: true };
+  const hintCached = await safeCacheGet(hintCacheKey);
+  if (hintCached) {
+    return { ...(JSON.parse(hintCached) as DictionaryEntry), word, cached: true };
   }
 
-  const aiEntry = await fetchAIEntry(word, lemma, morphInfo).catch((error) => {
+  const aiEntry = await fetchAIEntry(word, hintLemma, morphInfo).catch((error) => {
     reportLookupFailure(word, error);
     return null;
   });
 
-  if (!aiEntry) {
-    const partOfSpeech = isPlaceholder(dictEntry?.partOfSpeech)
-      ? null
-      : (dictEntry?.partOfSpeech ?? null);
+  if (aiEntry) {
+    const aiLemma = aiEntry.lemma;
+    const aiCacheKey = `vocab:dict:v3:${aiLemma}`;
 
-    return {
-      word,
-      lemma,
-      partOfSpeech,
-      meanings: isPlaceholder(dictEntry?.translation)
-        ? []
-        : [dictEntry?.translation ?? ""].filter(Boolean),
-      examples: [],
-      phonetic: null,
-      morphInfo,
-      conjugations: isVerbPos(partOfSpeech) ? (tryConjugateVerb(lemma) ?? undefined) : undefined,
-      degraded: true
-    };
+    const aiCached = await safeCacheGet(aiCacheKey);
+    if (aiCached) {
+      return { ...(JSON.parse(aiCached) as DictionaryEntry), word, cached: true };
+    }
+
+    if (isVerbPos(aiEntry.partOfSpeech)) {
+      aiEntry.conjugations = tryConjugateVerb(aiLemma) ?? undefined;
+    }
+    await safeCacheSet(aiCacheKey, aiEntry);
+    return aiEntry;
   }
 
-  if (isVerbPos(aiEntry.partOfSpeech)) {
-    aiEntry.conjugations = tryConjugateVerb(lemma) ?? undefined;
-  }
+  const partOfSpeech = isPlaceholder(dictEntry?.partOfSpeech)
+    ? null
+    : (dictEntry?.partOfSpeech ?? null);
 
-  await safeCacheSet(cacheKey, aiEntry);
-  return aiEntry;
+  return {
+    word,
+    lemma: hintLemma,
+    partOfSpeech,
+    meanings: isPlaceholder(dictEntry?.translation)
+      ? []
+      : [dictEntry?.translation ?? ""].filter(Boolean),
+    examples: [],
+    phonetic: null,
+    morphInfo,
+    conjugations: isVerbPos(partOfSpeech)
+      ? (tryConjugateVerb(hintLemma) ?? undefined)
+      : undefined,
+    degraded: true
+  };
 }
