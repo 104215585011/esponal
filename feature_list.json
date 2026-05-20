@@ -716,5 +716,25 @@
     ],
     "evidence": "Codex1 Dev 2026-05-20 15:52: implemented VOCAB-007 AI lemmatizer in src/lib/dictionary.ts and added tests/vocab007.test.mjs. Expanded RawAIEntry with lemma/morphInfo, rewrote fetchAIEntry so the AI identifies lemma from the surface form and returns dictionary data in one response, and upgraded lookupDictionary to use vocab:dict:v3 cache keys with a second safeCacheGet on the AI-returned lemma before writing. Also updated tests/vocab005.test.mjs cache namespace assertion from v2 to v3 so the existing contract matches current dictionary behavior. TDD: node --test tests/vocab007.test.mjs failed 5/5 before implementation, then passed 5/5 after implementation. Codex2 QA 2026-05-20 13:33: passed. npm run lint:encoding returned Encoding check passed; node --test tests/vocab007.test.mjs passed 5/5; node --test tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs passed 15/15; npm test passed 153/153; npm run build passed with only existing img and Sentry warnings; npx tsc --noEmit passed after build generated .next/types. Source contract verified prompt uses surface word and Identify its lemma, RawAIEntry has lemma/morphInfo, parsed.lemma has string guard and hintLemma fallback, dictionary cache keys are v3 with no v2 in implementation, lookupDictionary has hint and ai safeCacheGet calls, and degraded fallback still uses lemma-dict translation with degraded: true. Live DashScope behavior sampling skipped because DASHSCOPE_API_KEY was not present in the shell environment.",
     "notes": "Ticket: docs/superpowers/specs/2026-05-20-ai-lemmatizer-design.md 銆?docs/superpowers/plans/2026-05-20-ai-lemmatizer.md銆傛敼鍔ㄨ寖鍥达細src/lib/dictionary.ts銆乼ests/vocab007.test.mjs锛堝強涓€澶勫繀瑕佺殑鏃ф祴璇曟柇瑷€鍚屾锛歵ests/vocab005.test.mjs 灏?v2 鏀逛负 v3锛夈€備緷璧栫幇鏈?VOCAB-004/005 璇嶅吀绠＄嚎锛屽墠绔笉闇€鏇存敼鍗冲彲鍙楃泭銆?"
+  },
+  {
+    "id": "VOCAB-008",
+    "priority": 42,
+    "area": "vocabulary",
+    "title": "Lectura/课程页已学词下划线标记",
+    "user_visible_behavior": "用户保存到词库的词在 Lectura 阅读页和课程页西语文本中以深灰色细下划线标记；动词的所有变位形式（如保存 tener 后的 tengo/tienes/tuvimos）也会被识别并标记；下划线不影响点击查词。",
+    "status": "backlog",
+    "verification": [
+      "createWord 在 verb POS 时把 tryConjugateVerb 全部变位写入 forms",
+      "scripts/backfill-verb-forms.mjs 存在且 npm run backfill:verb-forms 可执行",
+      "GET /api/vocab/highlight 已登录返回 savedForms 数组，未登录返回空数组",
+      "LecturaReader 加载 savedSet，已保存词带 saved-word 类",
+      "课程页同样标记，复用 .saved-word",
+      ".saved-word CSS 含 text-decoration: underline 与 #4b5563",
+      "点击已标记词仍正常弹 LookupCard",
+      "npm test 通过，npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/VOCAB-008.md。依赖 VOCAB-005（变位数据）、VOCAB-007（AI 词形还原）。设计决定：方案 Y - 保存动词时把全部变位灌入 Word.forms，运行时高亮就是 set 查表，不需要运行时 AI 调用。需要一次性 backfill 现有 verb 词条。颜色用 #4b5563（深灰）而非绿色，白底下更醒目。不在范围：SRS 状态颜色梯度、字幕样式调整、名词/形容词复数性数自动灌入、hover tooltip。"
   }
 ]
