@@ -9,7 +9,13 @@ type EmptyStateProps = {
   action?: {
     label: string;
     href?: string;
+    external?: boolean;
     onClick?: () => void;
+  };
+  secondaryAction?: {
+    label: string;
+    href: string;
+    external?: boolean;
   };
   size?: "sm" | "md" | "lg";
 };
@@ -71,6 +77,7 @@ export default function EmptyState({
   action,
   description,
   kind,
+  secondaryAction,
   size = "md",
   title
 }: EmptyStateProps) {
@@ -88,6 +95,8 @@ export default function EmptyState({
           <a
             className="mt-4 rounded-card bg-brand-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-600"
             href={action.href}
+            rel={action.external ? "noopener noreferrer" : undefined}
+            target={action.external ? "_blank" : undefined}
           >
             {action.label}
           </a>
@@ -100,6 +109,16 @@ export default function EmptyState({
             {action.label}
           </button>
         )
+      ) : null}
+      {secondaryAction ? (
+        <a
+          className="mt-3 rounded-card border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:text-gray-900"
+          href={secondaryAction.href}
+          rel={secondaryAction.external ? "noopener noreferrer" : undefined}
+          target={secondaryAction.external ? "_blank" : undefined}
+        >
+          {secondaryAction.label}
+        </a>
       ) : null}
     </div>
   );

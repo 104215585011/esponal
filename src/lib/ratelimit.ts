@@ -46,6 +46,7 @@ export const addLimiter = createLimiter(20, "rl:vocab:add");
 export const searchLimiter = createLimiter(20, "rl:youtube:search");
 export const channelLimiter = createLimiter(30, "rl:youtube:channel");
 export const ttsLimiter = createLimiter(60, "rl:tts");
+export const ingestLimiter = createLimiter(30, "rl:subtitle:ingest");
 
 export function getClientIp(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");

@@ -764,7 +764,7 @@
     "area": "extension",
     "title": "Chrome 扩展字幕采集（EXT-006 复活精简版）",
     "user_visible_behavior": "用户装 Esponal Chrome 扩展后，正常浏览 YouTube 时扩展全程透明采集西语字幕回 Esponal DB；之后用户在 Esponal /watch 看同 ID 视频时直接命中高质量字幕（与西语助手等价）；未采集过的视频静默走 Apify 兜底，连兜底也失败时提示\"在 YouTube 看一遍即可自动归档\"。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "extension/harvest.js + parseJson3.js 存在，使用 ytInitialPlayerResponse bridge + credentials include fetch + POST /api/subtitle/ingest",
       "extension/manifest.json 注册第二条 content_script 跑 dist/harvest.js 在 youtube.com/watch*",
@@ -778,7 +778,7 @@
       "npm run package 生成包含 dist/harvest.js 的 zip",
       "npm test + npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-20: implemented EXT-008 subtitle harvester revival. Added extension/harvest.js, extension/parseJson3.js, extension/esponal-site.js, and extension/scripts/build.mjs; updated manifest/background/popup/package flow; added /api/subtitle/ingest with ingestLimiter and non-overwrite writes to subtitle:v4:${videoId}:${lang}:auto; updated /api/subtitle to return { cues, hint } with no_subtitle guidance; enhanced EmptyState with external and secondaryAction; updated TranscriptPanel to detect document.documentElement.dataset.esponalExt and render install/open-YouTube guidance. Verification: node --test tests/ext008.test.mjs passed 8/8; node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs passed 24/24; npm run build in extension passed; npm run package in extension regenerated public/extension/esponal-extension.zip; npm run lint:encoding passed; npm test passed 173/173; npm run build passed. Existing warnings only: Next <img> lint warnings in SiteHeader.tsx and learn/[slug]/page.tsx, existing Sentry instrumentation warnings, and ioredis ECONNREFUSED noise during build when local Redis is absent.",
     "notes": "Ticket: docs/tickets/EXT-008.md。背景：HAR 分析确认 Eudic 西语助手字幕质量好的本质是浏览器内带 PO Token 抓 timedtext；服务器端 PO Token spike 测试证明对教学类视频普遍返回 LOGIN_REQUIRED 不可行；用户安装扩展 + 浏览 YouTube 时自动采集是唯一稳定路径。三个 PM 决策：(1) 保留 ingest token 视作垃圾流量过滤；(2) /watch 三段式 fallback Redis → Apify → 提示；(3) 扩展在任意 youtube.com/watch* 自动触发只采集 es-* 轨道。不复活 EXT-007 Playwright 批量预采集（Chrome 138+ 限制依然存在）。流程：先过 Claude2 UI 评审再给 Codex1。"
   }
 ]

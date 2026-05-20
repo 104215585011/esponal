@@ -41,11 +41,36 @@
         margin-top: 8px;
         background: #2f8f6f;
       }
+
+      .recent-harvest {
+        margin: 0 0 14px;
+        padding: 10px 12px;
+        background: #f5f4f2;
+        border-radius: 6px;
+      }
+
+      .recent-harvest-label {
+        font-size: 12px;
+        color: #52616f;
+      }
+
+      .recent-harvest-meta {
+        margin-top: 4px;
+        font-size: 13px;
+        color: #1f2933;
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
     <h1>Esponal</h1>
     <p>西语沉浸学习插件已准备好。</p>
+    <div class="recent-harvest" id="recentHarvest">
+      <div class="recent-harvest-label">刚刚采集了一段字幕</div>
+      <div class="recent-harvest-meta" id="recentHarvestMeta">
+        尚未采集任何字幕，去 YouTube 看几个西语视频试试。
+      </div>
+    </div>
     <button id="toggleChinese" type="button">隐藏中文翻译</button>
     <button id="openApp" type="button">打开 Web App</button>
     <script src="popup.js"></script>

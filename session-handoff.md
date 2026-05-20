@@ -1423,3 +1423,65 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 - 行为层（可选）：在 lookup flow 里点击 `tengo` / `fue` / `vamos` / `hablaron`，确认 lemma 不再是变位形本身
 
 ---
+## Dev Report: EXT-008 subtitle harvester revival
+**Time**: 2026-05-20 18:05
+**Developer**: Codex1
+
+**Status**: Ready for QA. Reintroduced extension-driven subtitle harvesting and `/watch` fallback guidance.
+
+**Changed files**:
+- extension/harvest.js
+- extension/parseJson3.js
+- extension/esponal-site.js
+- extension/scripts/build.mjs
+- extension/scripts/package.mjs
+- extension/manifest.json
+- extension/background.js
+- extension/popup.html
+- extension/popup.js
+- extension/package.json
+- src/app/api/subtitle/ingest/route.ts
+- src/app/api/subtitle/route.ts
+- src/lib/ratelimit.ts
+- src/app/components/ui/EmptyState.tsx
+- src/app/watch/TranscriptPanel.tsx
+- tests/ext008.test.mjs
+- tests/extension.test.mjs
+- .env.example
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Re-added the YouTube JSON3 bridge harvester with `ytInitialPlayerResponse`, `postMessage`, `fmt=json3`, `credentials: "include"`, and POST ingest to `/api/subtitle/ingest`.
+- Added a lightweight Esponal-site content script that sets `document.documentElement.dataset.esponalExt = "1"` so `/watch` can detect whether the extension is installed.
+- Added `chrome.action.setBadgeText({ text: "✓" })` success feedback in the background worker instead of drawing any UI on YouTube pages.
+- Upgraded popup UI with a compact recent-harvest card based on `lastSubtitleHarvest`, `Intl.RelativeTimeFormat("zh-CN")`, and duration text instead of video ID / cue count.
+- Added `/api/subtitle/ingest` with token validation, `ingestLimiter`, payload validation, and write-once semantics for `subtitle:v4:${videoId}:${lang}:auto`.
+- Updated `/api/subtitle` to return `{ cues, hint }`; empty fallback now emits `hint.reason = "no_subtitle"`.
+- Extended `EmptyState` with `action.external` and `secondaryAction`, then used that in `TranscriptPanel` so installed and not-installed extension states get different guidance.
+- Updated extension package/build flow so `npm run build` emits `dist/harvest.js` and `dist/esponal-site.js`, and `npm run package` includes them in `/public/extension/esponal-extension.zip`.
+
+**Verification executed**:
+1. TDD red check: `node --test tests/ext008.test.mjs` failed 8/8 before implementation.
+2. Focused EXT-008 test: `node --test tests/ext008.test.mjs` -> tests 8, pass 8, fail 0.
+3. Extension/subtitle regression slice:
+   `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`
+   -> tests 24, pass 24, fail 0.
+4. Extension package:
+   `npm run build` in `extension/` -> pass.
+   `npm run package` in `extension/` -> regenerated `public/extension/esponal-extension.zip`.
+5. Encoding: `npm run lint:encoding` -> Encoding check passed.
+6. Full suite: `npm test` -> tests 173, pass 173, fail 0.
+7. Production build: `npm run build` -> pass; `/api/subtitle/ingest` is in route output.
+
+**Notes / known noise**:
+- `npm run build` still prints existing `<img>` lint warnings in `SiteHeader.tsx` and `learn/[slug]/page.tsx`.
+- Sentry instrumentation migration warnings are existing and unchanged.
+- Root build also prints `ioredis ECONNREFUSED` noise if local Redis is not running, but the build succeeds and this ticket does not depend on Redis being available during compile.
+
+**QA ask**:
+- Codex2 should verify the new extension contract and the `/watch` empty-state guidance for both extension-installed and extension-missing branches.
+- PM/Claude2 can focus UI review on popup compactness and the two-button EmptyState behavior when no subtitle is available.
+
+---

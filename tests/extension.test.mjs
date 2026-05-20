@@ -21,13 +21,16 @@ test("extension declares a Manifest V3 Chrome extension", async () => {
   assert.deepEqual(manifest.permissions, ["activeTab", "storage"]);
 });
 
-test("extension content script injects only on YouTube watch pages", async () => {
+test("extension content scripts cover YouTube harvesting and Esponal site detection", async () => {
   const manifest = await readJson("extension/manifest.json");
-  const [contentScript] = manifest.content_scripts;
+  const [youtubeScript, siteScript] = manifest.content_scripts;
 
-  assert.deepEqual(contentScript.matches, ["https://www.youtube.com/watch*"]);
-  assert.deepEqual(contentScript.js, ["content.js"]);
-  assert.equal(contentScript.run_at, "document_idle");
+  assert.deepEqual(youtubeScript.matches, ["https://www.youtube.com/watch*"]);
+  assert.deepEqual(youtubeScript.js, ["content.js", "dist/harvest.js"]);
+  assert.equal(youtubeScript.run_at, "document_idle");
+  assert.deepEqual(siteScript.matches, ["http://localhost:3000/*"]);
+  assert.deepEqual(siteScript.js, ["dist/esponal-site.js"]);
+  assert.equal(siteScript.run_at, "document_idle");
 });
 
 test("extension files provide background, content, and popup behavior", async () => {
@@ -56,9 +59,11 @@ test("extension files provide background, content, and popup behavior", async ()
 
 test("extension has an esbuild package scaffold", async () => {
   const pkg = await readJson("extension/package.json");
+  const buildScript = await readText("extension/scripts/build.mjs");
 
   assert.equal(pkg.private, true);
-  assert.match(pkg.scripts.build, /esbuild/);
-  assert.match(pkg.scripts.build, /content\.js/);
+  assert.match(pkg.scripts.build, /scripts\/build\.mjs/);
+  assert.match(buildScript, /esbuild/);
+  assert.match(buildScript, /harvest\.js/);
   assert.ok(pkg.devDependencies.esbuild);
 });

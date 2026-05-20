@@ -10,6 +10,15 @@ type SubtitleCue = {
   text: string;
 };
 
+type SubtitleHint = {
+  reason?: "no_subtitle";
+};
+
+type SubtitleResponse = {
+  cues?: SubtitleCue[];
+  hint?: SubtitleHint;
+};
+
 type TranscriptPanelProps = {
   iframeId: string;
   videoId: string;
@@ -220,11 +229,13 @@ function chunkWords(words: string[]) {
 export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [subtitleHint, setSubtitleHint] = useState<SubtitleHint | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [hasLoadedSubtitles, setHasLoadedSubtitles] = useState(false);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [highlightMap, setHighlightMap] = useState<Record<string, HighlightStatus>>({});
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
+  const [extensionInstalled, setExtensionInstalled] = useState(false);
   const [followMode, setFollowMode] = useState(true);
   const [renderStart, setRenderStart] = useState(0);
   const [renderEnd, setRenderEnd] = useState(INITIAL_RENDER_COUNT);
@@ -311,6 +322,10 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
       });
     });
   }, [activeCueIndex]);
+
+  useEffect(() => {
+    setExtensionInstalled(document.documentElement.dataset.esponalExt === "1");
+  }, []);
 
   useEffect(() => {
     subtitleCuesRef.current = transcriptCues;
@@ -403,12 +418,14 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
     async function loadSubtitles() {
       if (!videoId) {
         setSubtitleCues([]);
+        setSubtitleHint(null);
         setTranslations({});
         setHasLoadedSubtitles(true);
         return;
       }
 
       setHasLoadedSubtitles(false);
+      setSubtitleHint(null);
       setTranslations({});
       setHighlightMap({});
       setActiveLookup(null);
@@ -426,12 +443,14 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
           throw new Error(`Subtitle request failed: ${response.status}`);
         }
 
-        const payload = (await response.json()) as SubtitleCue[];
+        const payload = (await response.json()) as SubtitleCue[] | SubtitleResponse;
 
         if (!cancelled) {
-          const cues = Array.isArray(payload) ? payload : [];
+          const cues = Array.isArray(payload) ? payload : payload.cues ?? [];
           const initialTranscriptCues = mergeSubtitleCues(cues);
+          const hint = Array.isArray(payload) ? null : payload.hint ?? null;
           setSubtitleCues(cues);
+          setSubtitleHint(hint);
           setRenderStart(0);
           setRenderEnd(Math.min(initialTranscriptCues.length, INITIAL_RENDER_COUNT));
         }
@@ -440,6 +459,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
         if (!cancelled) {
           setSubtitleCues([]);
+          setSubtitleHint({ reason: "no_subtitle" });
         }
       } finally {
         if (!cancelled) {
@@ -824,6 +844,7 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
 
   const activeCue = activeCueIndex >= 0 ? subtitleCues[activeCueIndex] : null;
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
+  const showHarvestHint = showEmptyState && subtitleHint?.reason === "no_subtitle";
 
   return (
     <section className="flex h-full min-w-0 flex-col bg-surface" ref={panelRef}>
@@ -874,7 +895,35 @@ export function TranscriptPanel({ iframeId, videoId }: TranscriptPanelProps) {
         ref={scrollContainerRef}
         tabIndex={0}
       >
-        {showEmptyState ? (
+        {showEmptyState && showHarvestHint ? (
+          <EmptyState
+            action={
+              extensionInstalled
+                ? {
+                    label: "在 YouTube 打开",
+                    href: `https://www.youtube.com/watch?v=${videoId}`,
+                    external: true
+                  }
+                : { label: "安装扩展", href: "/extension" }
+            }
+            description={
+              extensionInstalled
+                ? "去 YouTube 看一遍，扩展会自动采集回来"
+                : "装上 Esponal 扩展后，在 YouTube 看一遍即可自动归档"
+            }
+            kind="empty"
+            secondaryAction={
+              extensionInstalled
+                ? undefined
+                : {
+                    label: "先去 YouTube 看",
+                    href: `https://www.youtube.com/watch?v=${videoId}`,
+                    external: true
+                  }
+            }
+            title="这个视频暂时没有高质量字幕"
+          />
+        ) : showEmptyState ? (
           <EmptyState
             description="Esponal 只能在有字幕的视频上工作"
             kind="empty"

@@ -18,6 +18,15 @@ type SubtitleCue = {
   text: string;
 };
 
+type SubtitleHint = {
+  reason: "no_subtitle";
+};
+
+type SubtitleResponse = {
+  cues: SubtitleCue[];
+  hint?: SubtitleHint;
+};
+
 type ApifySubtitleTrack = {
   srtUrl?: string | null;
   type?: string;
@@ -263,7 +272,7 @@ export async function GET(request: Request) {
   const forceWhisper = searchParams.get("forceWhisper") === "1";
 
   if (!videoId) {
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json({ cues: [] satisfies SubtitleCue[] }, { status: 200 });
   }
 
   // v3: hybrid manual + ASR merge. Bump key so v2 (manual-only) caches
@@ -274,9 +283,12 @@ export async function GET(request: Request) {
     const cached = await redis.get(cacheKey);
 
     if (cached) {
-      return NextResponse.json(JSON.parse(cached) as SubtitleCue[], {
+      return NextResponse.json(
+        { cues: JSON.parse(cached) as SubtitleCue[] } satisfies SubtitleResponse,
+        {
         headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600" }
-      });
+        }
+      );
     }
   } catch {
     // Redis unavailable, fall through to Apify
@@ -293,13 +305,19 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json(cues, {
+    const payload: SubtitleResponse =
+      cues.length > 0 ? { cues } : { cues: [], hint: { reason: "no_subtitle" } };
+
+    return NextResponse.json(payload, {
       headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600" }
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[subtitle] fetch failed:", message);
     reportSubtitleFailure(videoId, error);
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json(
+      { cues: [], hint: { reason: "no_subtitle" } } satisfies SubtitleResponse,
+      { status: 200 }
+    );
   }
 }

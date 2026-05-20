@@ -2239,3 +2239,27 @@ feature_list.json 更新：
 - npm run build -> pass with existing img and Sentry warnings.
 
 **Next**: Codex2 QA for WEB-014.
+### Session Update - 2026-05-20 18:05 - EXT-008 Codex1 Dev
+
+**Goal**: revive the subtitle harvester extension and wire `/watch` fallback guidance.
+
+**Done**:
+- Added `tests/ext008.test.mjs` and drove implementation red-to-green.
+- Added `extension/harvest.js`, `extension/parseJson3.js`, and `extension/esponal-site.js`.
+- Added `extension/scripts/build.mjs`; updated `extension/package.json`, `manifest.json`, `background.js`, `popup.html`, `popup.js`, and `scripts/package.mjs`.
+- Added `src/app/api/subtitle/ingest/route.ts` and `ingestLimiter` in `src/lib/ratelimit.ts`.
+- Updated `src/app/api/subtitle/route.ts` to return `{ cues, hint }` and emit `hint.reason = "no_subtitle"` on empty fallback.
+- Extended `src/app/components/ui/EmptyState.tsx` with `external` and `secondaryAction`.
+- Updated `src/app/watch/TranscriptPanel.tsx` to detect `document.documentElement.dataset.esponalExt` and render install/open-YouTube guidance.
+- Updated `tests/extension.test.mjs` to reflect the new extension contract.
+- Regenerated `public/extension/esponal-extension.zip`.
+- Moved `EXT-008` to `ready_for_qa` in `feature_list.json`.
+
+**Verification**:
+- `node --test tests/ext008.test.mjs` -> 8/8 pass after red start.
+- `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs` -> 24/24 pass.
+- `npm run build` in `extension/` -> pass.
+- `npm run package` in `extension/` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 173/173 pass.
+- `npm run build` -> pass; existing `<img>` warnings, existing Sentry warnings, and Redis connection noise remain unchanged.
