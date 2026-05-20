@@ -56,9 +56,11 @@ test("EXT-008 manifest and build package the harvester without page UI feedback"
     manifest.content_scripts.some(
       (script) =>
         script.matches?.includes("http://localhost:3000/*") &&
+        script.matches?.includes("https://*.vercel.app/*") &&
         script.js?.some((file) => /esponal/i.test(file))
     )
   );
+  assert.ok(manifest.host_permissions.includes("https://*.vercel.app/*"));
   assert.match(JSON.stringify(manifest), /data-esponal-ext|esponal-site/);
 
   assert.match(build, /esbuild/);

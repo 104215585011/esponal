@@ -16,6 +16,7 @@ test("extension declares a Manifest V3 Chrome extension", async () => {
   assert.deepEqual(manifest.host_permissions, [
     "http://localhost:3000/*",
     "https://localhost:3000/*",
+    "https://*.vercel.app/*",
     "https://www.youtube.com/*"
   ]);
   assert.deepEqual(manifest.permissions, ["activeTab", "storage"]);
@@ -28,7 +29,10 @@ test("extension content scripts cover YouTube harvesting and Esponal site detect
   assert.deepEqual(youtubeScript.matches, ["https://www.youtube.com/watch*"]);
   assert.deepEqual(youtubeScript.js, ["content.js", "dist/harvest.js"]);
   assert.equal(youtubeScript.run_at, "document_idle");
-  assert.deepEqual(siteScript.matches, ["http://localhost:3000/*"]);
+  assert.deepEqual(siteScript.matches, [
+    "http://localhost:3000/*",
+    "https://*.vercel.app/*"
+  ]);
   assert.deepEqual(siteScript.js, ["dist/esponal-site.js"]);
   assert.equal(siteScript.run_at, "document_idle");
 });

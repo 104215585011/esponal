@@ -17,7 +17,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["http://localhost:3000/*"],
+      "matches": ["http://localhost:3000/*", "https://*.vercel.app/*"],
       "js": ["dist/esponal-site.js"],
       "run_at": "document_idle"
     }
@@ -25,6 +25,7 @@
   "host_permissions": [
     "http://localhost:3000/*",
     "https://localhost:3000/*",
+    "https://*.vercel.app/*",
     "https://www.youtube.com/*"
   ],
   "permissions": ["activeTab", "storage"]

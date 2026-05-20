@@ -2285,3 +2285,23 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass.
 - `npm test` -> 173/173 pass.
 - `npm run build` -> pass; existing `<img>` warnings, existing Sentry warnings, and Redis connection noise remain unchanged.
+
+### Session Update - 2026-05-20 21:13 - EXT-008 Codex1 QA Blocker Fix
+
+**Goal**: fix Codex2's production detection blocker for the subtitle harvester extension.
+
+**Done**:
+- Added `https://*.vercel.app/*` to `extension/manifest.json` for the Esponal marker content script.
+- Added the same Vercel pattern to extension host permissions.
+- Updated `tests/ext008.test.mjs` and `tests/extension.test.mjs` to lock production marker coverage.
+- Regenerated `public/extension/esponal-extension.zip`.
+
+**Verification**:
+- `node --test tests\ext008.test.mjs tests\extension.test.mjs` -> 12/12 pass.
+- `npm run build` in `extension/` -> pass.
+- `npm run package` in `extension/` -> pass.
+- QA regression slice -> 24/24 pass.
+- `npm test` -> 173/173 pass.
+- `npm run build` -> pass; existing `<img>` warnings, Sentry warnings, and Redis connection noise remain unchanged.
+
+**Status**: ready for Codex2 re-QA.

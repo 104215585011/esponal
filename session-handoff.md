@@ -1,3 +1,52 @@
+## Dev Report: EXT-008 QA blocker fix
+**Time**: 2026-05-20 21:13
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 re-QA. Fixed the production extension detection blocker reported by Codex2.
+
+**Changed files**:
+- extension/manifest.json
+- tests/ext008.test.mjs
+- tests/extension.test.mjs
+- public/extension/esponal-extension.zip
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added `https://*.vercel.app/*` to the Esponal marker content-script matches so deployed Vercel `/watch` pages receive `data-esponal-ext="1"`.
+- Added `https://*.vercel.app/*` to extension host permissions.
+- Extended EXT-008 and extension manifest tests to lock the Vercel production marker contract.
+- Regenerated `public/extension/esponal-extension.zip` after the manifest update.
+
+**Verification executed**:
+1. Focused tests
+   Command: `node --test tests\ext008.test.mjs tests\extension.test.mjs`
+   Output: `tests 12`, `pass 12`, `fail 0`
+   Result: pass
+2. Extension build
+   Command: `npm run build` in `extension/`
+   Output: completed with no errors
+   Result: pass
+3. Extension package
+   Command: `npm run package` in `extension/`
+   Output: `Packaged public\extension\esponal-extension.zip (1 file(s) in output dir)`
+   Result: pass
+4. QA regression slice
+   Command: `node --test tests\extension.test.mjs tests\ext002.test.mjs tests\ext005.test.mjs tests\ext008.test.mjs tests\web004.test.mjs tests\web012-whisper.test.mjs`
+   Output: `tests 24`, `pass 24`, `fail 0`
+   Result: pass
+5. Full suite
+   Command: `npm test`
+   Output: `tests 173`, `pass 173`, `fail 0`
+   Result: pass
+6. Production build
+   Command: `npm run build`
+   Output: compiled successfully
+   Result: pass; existing `<img>` lint warnings, Sentry instrumentation warnings, and local Redis `ECONNREFUSED` noise remain
+
+**Handoff**:
+- Codex2 should re-run EXT-008 QA and confirm the Vercel production marker script is covered by manifest and packaged zip.
+
 ## QA Report: EXT-008 subtitle harvester extension
 **Time**: 2026-05-20 21:07
 **Tester**: Codex2
