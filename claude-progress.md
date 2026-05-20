@@ -2070,3 +2070,32 @@ feature_list.json 更新：
 ### Conclusion
 - `VOCAB-005`: passing.
 - Remaining non-blocking follow-up is PM live smoke on fresh verb/noun/adjective saves in `/vocab`.
+
+---
+
+## PM Report — Session #63 (2026-05-20)
+
+### Current State
+- **38 features passing**, 1 blocked (CONTENT-001 — YouTube yt-dlp blocked by YouTube bot detection).
+- All P2 hardening tickets (OPS-001, INFRA-003, INFRA-004) and feature tickets through VOCAB-005 are passing.
+- `npm test` 143/143 green; `npm run build` passes; `npm run lint:encoding` passes.
+
+### This Session
+- Confirmed VOCAB-005 status was `ready_for_qa` in feature_list.json despite Codex2 QA having passed it.
+- Fixed: flipped VOCAB-005 to `passing` (commit `577b990`).
+- Wrote next ticket: **VOCAB-006** — SRS 词库复习（FSRS 变位卡）, priority 40, status `backlog`.
+  - Ticket: `docs/tickets/VOCAB-006.md`
+  - Uses `ts-fsrs` library (MIT) for FSRS algorithm
+  - Adds 8 SRS fields to Word model
+  - New routes: `GET/POST /api/vocab/review` + `/api/vocab/review/[wordId]`
+  - New page: `/vocab/review` (flashcard flip + 4-rating buttons)
+  - `/vocab` gets a "N words due" badge
+
+### Next Steps
+- **Codex1**: implement VOCAB-006 per `docs/tickets/VOCAB-006.md`
+  - Install `ts-fsrs`, run `prisma migrate dev --name add_srs_fields`
+  - Add `src/lib/srs.ts`, two API routes, `/vocab/review` page
+  - Add "due badge" to `/vocab` page header
+  - Write `tests/vocab006.test.mjs` (TDD)
+- **Codex2**: QA VOCAB-006 after Codex1 submits
+- **PM**: after VOCAB-006 is passing, plan next feature (candidates: learning stats dashboard, more Lectura content, grammar exercises)

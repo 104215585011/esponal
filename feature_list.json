@@ -680,5 +680,26 @@
     ],
     "evidence": "Codex1 Dev 2026-05-19 15:10: implemented deterministic vocab conjugation/forms for /vocab. Added local spanish-verbs package dependency plus vendor shim and src/lib/conjugate.ts with tryConjugateVerb covering regular verbs and irregular ser/ir. Extended src/lib/dictionary.ts with conjugations, nounForms, adjectiveForms, v2 cache namespace, 30-day TTL, GLM prompt expansion, and noun/adjective form validation. Added src/app/components/vocab/ConjugationTable.tsx and updated VocabAccordion plus src/app/vocab/page.tsx to render 7 tense tabs for verbs and inline forms for nouns/adjectives. Updated LookupCard to persist conjugations/nounForms/adjectiveForms into dictData and preserved lightweight card UI. Also fixed sourceType passthrough for lectura encounters in /api/vocab/add and src/lib/vocab.ts. TDD: node --test tests/vocab005.test.mjs failed 4/4 before implementation, then passed 4/4. Related regressions: node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs passed 19/19. Full verification: npm test passed 143/143; npm run lint:encoding passed; npm run build passed. Remaining warnings only: existing <img> lint warnings in SiteHeader and learn/[slug], existing Sentry instrumentation migration warnings, and existing Node MODULE_TYPELESS_PACKAGE_JSON warnings during node --test imports. | Codex2 QA 2026-05-19 16:01: passed. node --test tests/vocab005.test.mjs passed 4/4; npm test passed 143/143; npm run build passed. Source contract verified package.json includes spanish-verbs file dependency, tryConjugateVerb(\"vivir\") -> vivo/vivimos, tryConjugateVerb(\"ser\") -> soy/fui, tryConjugateVerb(\"xyzfake123\") -> null, dictionary cache key uses vocab:dict:v2:, LookupCard persists conjugations/nounForms/adjectiveForms without importing ConjugationTable, VocabAccordion imports ConjugationTable and renders noun/adjective inline forms, and /vocab serialization preserves richer dictData fields.",
     "notes": "依赖：无（GLM-5 已在用）。Ticket: docs/tickets/VOCAB-005.md。触发：PM 反馈 2026-05-19 — 西语动词变位是核心难点。架构决定：变位用 spanish-verbs（MIT,~12k verbs）确定性输出，避免 AI 在不规则动词上翻车；名词/形容词形态依然走 GLM-5 但加校验。老缓存自然过渡（v2 namespace + 30 天 TTL）。"
+  },
+  {
+    "id": "VOCAB-006",
+    "priority": 40,
+    "area": "vocabulary",
+    "title": "SRS 词库复习（FSRS 变位卡）",
+    "user_visible_behavior": "用户访问 /vocab/review 按 FSRS 算法复习今日到期词；每张卡正面显示西语 lemma + 🔊，翻牌显示中文义项/例句/变位；四档评分后系统智能安排下次复习时间；/vocab 页显示「N 词待复习」徽章。",
+    "status": "backlog",
+    "verification": [
+      "ts-fsrs 在 package.json 中",
+      "Prisma migration add_srs_fields 成功，Word 含 8 个 SRS 字段",
+      "src/lib/srs.ts 导出 initCard / scheduleCard",
+      "GET /api/vocab/review 返回 dueWords + totalDue，未登录 401",
+      "POST /api/vocab/review/:wordId { rating } 更新 SRS 字段",
+      "/vocab/review 页正面/背面/评分/完成屏全流程",
+      "/vocab 页顶部显示待复习徽章",
+      "npm test 通过",
+      "npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "依赖 VOCAB-005 ✅。Ticket: docs/tickets/VOCAB-006.md。触发：PM 规划 2026-05-20 — 词库只收集不复习，遗忘率极高；FSRS 是当前最优 SRS 算法（ts-fsrs MIT 许可）。设计原则：复习可选触发，不强制提醒；首日上限 10 新词防压垮。不含统计图/推送/参数设置（后续票）。"
   }
 ]

@@ -1,5 +1,34 @@
 # Session Handoff — Esponal
 
+---
+
+## PM Report — Session #63 (2026-05-20 09:30)
+
+### 本轮完成
+- 确认 VOCAB-005 状态残留 `ready_for_qa`（Codex2 QA 已于 2026-05-19 通过，但 feature_list.json 未更新）
+- 修正：将 VOCAB-005 → `passing`（commit `577b990`）
+- 总状态：**38 个功能全部 passing**，1 个 blocked（CONTENT-001）；`npm test` 143/143
+- 写好下一阶段 ticket：**VOCAB-006 — SRS 词库复习（FSRS 变位卡）**
+
+### VOCAB-006 核心要点（Codex1 开工必读）
+- Ticket: `docs/tickets/VOCAB-006.md`
+- 安装 `ts-fsrs`（MIT）：`npm install ts-fsrs`
+- Prisma：Word 模型新增 8 个 SRS 字段（srsState/srsDue/srsStability/srsDifficulty/srsElapsedDays/srsScheduledDays/srsReps/srsLapses/srsLastReview）
+- 新建 `src/lib/srs.ts`（initCard / scheduleCard 封装 ts-fsrs）
+- 新建 `GET /api/vocab/review`（返回今日到期词，max 20）
+- 新建 `POST /api/vocab/review/[wordId]`（提交评分，更新 SRS 字段）
+- 新建 `/vocab/review/page.tsx`（翻牌式复习页：正面 lemma + 🔊，背面义项/例句/变位，四档评分，完成屏）
+- 更新 `/vocab/page.tsx`：顶部加「N 词待复习」徽章（N=0 时不显示）
+- TDD：先写 `tests/vocab006.test.mjs` 失败，再实现
+- 不在本票范围：统计图、推送、参数设置
+
+### 下一步
+- **Codex1**：按 `docs/tickets/VOCAB-006.md` 实现 VOCAB-006
+- **Codex2**：等 Codex1 提交 ready_for_qa 后验收
+- **PM**：VOCAB-006 通过后考虑（a）学习数据看板 (b）更多 Lectura 故事 (c）语法练习
+
+---
+
 > 每轮会话结束时填写，下一轮开始时先读。
 
 ---
