@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { LecturaReader } from "../LecturaReader";
 import { getLecturaStory, lecturaStories, type LecturaLevel } from "@/../content/lectura";
@@ -31,12 +31,7 @@ export default function LecturaReadPage({ params }: LecturaReadPageProps) {
     <main className="min-h-screen bg-app">
       <SiteHeader />
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-10">
-        <Link
-          className="mb-8 inline-flex items-center gap-1 text-sm text-gray-500 transition hover:text-brand-600"
-          href="/lectura"
-        >
-          ← 返回 Lectura
-        </Link>
+        <BackLink href="/lectura" label="阅读" />
 
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
           {story.title}

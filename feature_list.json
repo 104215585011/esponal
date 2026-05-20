@@ -743,7 +743,7 @@
     "area": "web",
     "title": "详情页返回按钮",
     "user_visible_behavior": "所有详情页（Lectura 故事、课程单元、视频、SRS 复习、语法详情）顶部增加 ← 返回链接，点击固定回上级列表；PWA standalone 模式下不再被困在详情页。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "src/app/components/web/BackLink.tsx 存在并导出 BackLink({ href, label })",
       "/lectura/[slug] 顶部有 ← 阅读，跳 /lectura，旧 返回 Lectura 链接被删除",
@@ -755,7 +755,7 @@
       "BackLink 含 data-testid back-link，min-h-44px，text-gray-600，aria-label 含返回",
       "npm test 通过，npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-20 16:16: implemented shared BackLink for detail pages. Added src/app/components/web/BackLink.tsx with href/label props, data-testid=back-link, min-h-[44px], text-gray-600, hover:text-gray-900, aria-label 返回${label}, and focus-visible ring. Wired BackLink into /lectura/[slug] -> /lectura label 阅读, /learn/[slug] -> /learn label 课程, /watch -> / label 视频, /vocab/review -> /vocab label 词库, and /grammar/[slug] -> /grammar label 语法. Removed legacy Lectura 返回 Lectura link and legacy grammar 返回语法话题 link. Added tests/web014.test.mjs. TDD: node --test tests/web014.test.mjs failed 5/6 before implementation, then passed 6/6. Verification: npm run lint:encoding returned Encoding check passed; npm test passed 165/165; npm run build passed with only existing img and Sentry warnings. Source contract verified list pages /vocab /learn /lectura /grammar do not import BackLink and /watch uses 视频, not 首页 or 搜索.",
     "notes": "Ticket: docs/tickets/WEB-014.md。触发：用户反馈 PWA standalone 模式下点进详情页出不来。设计决定：固定回上级（方案 X），不依赖 history.back，首次直开链接也能用。Claude2 UI 评审通过（2 处 P1 已修：/watch 文案改 视频 与 SiteNav 对齐；Lectura 旧链接需删除替换；text-gray-500 → 600；加 aria-label 与 focus-visible ring）。"
   }
 ]

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AudioButton from "@/app/components/audio/AudioButton";
+import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAllUnits, getUnitPageData } from "@/lib/curriculum";
 import { CourseLookupText } from "./CourseLookupText";
@@ -56,6 +57,8 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
         </aside>
 
         <div className="min-w-0 flex-1">
+          <BackLink href="/learn" label="课程" />
+
           <section className="overflow-hidden rounded-hero bg-gradient-to-br from-brand-600 via-brand-500 to-lime-400 px-6 py-8 text-white shadow-hero sm:px-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-2xl">

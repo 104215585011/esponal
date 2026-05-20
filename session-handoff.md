@@ -1,3 +1,40 @@
+## Dev Report: WEB-014 detail-page BackLink
+**Time**: 2026-05-20 16:16
+**Developer**: Codex1
+
+**Status**: Ready for QA. Implemented fixed parent-return links for detail pages.
+
+**Changed files**:
+- src/app/components/web/BackLink.tsx
+- src/app/lectura/[slug]/page.tsx
+- src/app/learn/[slug]/page.tsx
+- src/app/watch/page.tsx
+- src/app/vocab/review/page.tsx
+- src/app/grammar/[slug]/page.tsx
+- tests/web014.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added shared BackLink with fixed href/label props, 44px touch target, gray secondary styling, aria-label 返回${label}, focus-visible ring, and data-testid=back-link.
+- Added BackLink to Lectura, course, watch, vocab review, and grammar detail pages with labels 阅读/课程/视频/词库/语法.
+- Removed the old Lectura 返回 Lectura link and the old grammar 返回语法话题 link.
+- Kept top-level list pages unchanged.
+
+**Verification executed**:
+1. TDD red check: node --test tests/web014.test.mjs failed 5/6 before implementation.
+2. Focused WEB-014 test: node --test tests/web014.test.mjs -> tests 6, pass 6, fail 0.
+3. Encoding: npm run lint:encoding -> Encoding check passed.
+4. Full suite: npm test -> tests 165, pass 165, fail 0.
+5. Production build: npm run build -> compiled successfully; only existing <img> and Sentry warnings.
+
+**Handoff**:
+- Updated feature_list.json: WEB-014.status = ready_for_qa with evidence.
+- No push performed.
+
+---
+
 ## QA Report: VOCAB-008 saved-word underline
 **Time**: 2026-05-20 15:20
 **Tester**: Codex2

@@ -2221,3 +2221,21 @@ feature_list.json 更新：
 - npm run backfill:verb-forms attempted; local DB TLS credential error blocks runtime backfill.
 
 **Important rollout note**: Run npm run backfill:verb-forms in production or a QA environment with working DATABASE_URL before rollout so historical verb entries receive conjugation forms. New saved verbs already receive forms at save time.
+
+### Session Update - 2026-05-20 16:16 - WEB-014 Codex1 Dev
+
+**Goal**: Add fixed parent BackLink to detail pages for PWA standalone navigation.
+
+**Done**:
+- Added shared src/app/components/web/BackLink.tsx.
+- Wired BackLink into /lectura/[slug], /learn/[slug], /watch, /vocab/review, and /grammar/[slug].
+- Removed old Lectura and grammar return links.
+- Added tests/web014.test.mjs and moved WEB-014 to ready_for_qa.
+
+**Verification**:
+- node --test tests/web014.test.mjs -> 6/6 pass after initial red 5/6.
+- npm run lint:encoding -> pass.
+- npm test -> 165/165 pass.
+- npm run build -> pass with existing img and Sentry warnings.
+
+**Next**: Codex2 QA for WEB-014.

@@ -1,4 +1,5 @@
 import EmptyState from "@/app/components/ui/EmptyState";
+import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getSiteUrl } from "@/lib/site-url";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
@@ -98,6 +99,8 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
       <SiteHeader />
       <div className="relative flex flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:pl-7">
         <section className="flex flex-col px-4 py-4 lg:basis-[63%] lg:justify-center lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
+          <BackLink href="/" label="视频" />
+
           <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated">
             <div className="aspect-video w-full">
               {videoId ? (

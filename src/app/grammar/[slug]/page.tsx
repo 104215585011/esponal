@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import {
   getGrammarTopic,
@@ -71,9 +72,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
             <GrammarTopicSelect currentSlug={topic.slug} topics={grammarTopics} />
           </div>
 
-          <Link className="text-sm font-medium text-brand-600" href="/grammar">
-            ← 返回语法话题
-          </Link>
+          <BackLink href="/grammar" label="语法" />
 
           <header className="mt-5">
             <p className="text-sm font-medium text-gray-400">{topic.group}</p>
