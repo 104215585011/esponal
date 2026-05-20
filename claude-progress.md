@@ -2305,3 +2305,24 @@ feature_list.json 更新：
 - `npm run build` -> pass; existing `<img>` warnings, Sentry warnings, and Redis connection noise remain unchanged.
 
 **Status**: ready for Codex2 re-QA.
+
+### QA Session - 2026-05-20 21:20 - EXT-008 Second Pass
+
+**Goal**: Codex2 re-QA after Codex1 fixed the production extension marker blocker in commit `0743892`.
+
+**Result**: Passed. `feature_list.json` moved EXT-008 to `passing`.
+
+**Blocker closure**:
+- `extension/manifest.json` now runs `dist/esponal-site.js` on both `http://localhost:3000/*` and `https://*.vercel.app/*`.
+- `host_permissions` include `https://*.vercel.app/*`.
+- `tests/ext008.test.mjs` and `tests/extension.test.mjs` assert the Vercel production marker contract.
+- Rebuilt `public/extension/esponal-extension.zip` contents include `dist/harvest.js` and `dist/esponal-site.js`.
+
+**Verification run**:
+- `npm run lint:encoding` -> pass.
+- `node --test tests/ext008.test.mjs tests/extension.test.mjs` -> 12/12 pass.
+- `npm run build` in `extension/` -> pass.
+- `npm run package` in `extension/` -> pass.
+- `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs` -> 24/24 pass.
+- `npm test` -> 173/173 pass.
+- `npm run build` -> pass; existing `<img>` warnings, Sentry warnings, and local Redis `ECONNREFUSED` noise remain unchanged.

@@ -1,3 +1,43 @@
+## QA Report: EXT-008 second-pass subtitle harvester extension
+**Time**: 2026-05-20 21:20
+**Tester**: Codex2
+
+**Conclusion**: Passed. EXT-008 can move to `passing`; the production marker blocker from the first QA pass is closed.
+
+**Blocker re-check**:
+- `extension/manifest.json` now registers `dist/esponal-site.js` on both `http://localhost:3000/*` and `https://*.vercel.app/*`.
+- `host_permissions` also include `https://*.vercel.app/*`.
+- `tests/ext008.test.mjs` and `tests/extension.test.mjs` lock the Vercel production marker contract.
+- Rebuilt package contents verified include `dist/harvest.js` and `dist/esponal-site.js`.
+
+**Verification executed**:
+1. Encoding check
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+2. Focused marker tests
+   Command: `node --test tests/ext008.test.mjs tests/extension.test.mjs`
+   Result: pass, `tests 12`, `pass 12`, `fail 0`
+3. Extension build
+   Command: `npm run build` in `extension/`
+   Result: pass
+4. Extension package
+   Command: `npm run package` in `extension/`
+   Result: pass, regenerated `public/extension/esponal-extension.zip`
+5. QA regression slice
+   Command: `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`
+   Result: pass, `tests 24`, `pass 24`, `fail 0`
+6. Full suite
+   Command: `npm test`
+   Result: pass, `tests 173`, `pass 173`, `fail 0`
+7. Production build
+   Command: `npm run build`
+   Result: pass; existing `<img>` warnings, Sentry instrumentation warnings, and local Redis `ECONNREFUSED` noise remain unchanged
+
+**Status updates**:
+- `feature_list.json`: EXT-008 moved from `ready_for_qa` to `passing` with QA evidence.
+- `claude-progress.md`: second-pass QA entry recorded.
+- No push performed.
+
 ## Dev Report: EXT-008 QA blocker fix
 **Time**: 2026-05-20 21:13
 **Developer**: Codex1
