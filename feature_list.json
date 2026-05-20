@@ -687,7 +687,7 @@
     "area": "vocabulary",
     "title": "SRS 词库复习（FSRS 变位卡）",
     "user_visible_behavior": "用户访问 /vocab/review 按 FSRS 算法复习今日到期词；每张卡正面显示西语 lemma + 🔊，翻牌显示中文义项/例句/变位；四档评分后系统智能安排下次复习时间；/vocab 页显示「N 词待复习」徽章。",
-    "status": "backlog",
+    "status": "ready_for_qa",
     "verification": [
       "ts-fsrs 在 package.json 中",
       "Prisma migration add_srs_fields 成功，Word 含 8 个 SRS 字段",
@@ -699,7 +699,7 @@
       "npm test 通过",
       "npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "PM Dev 2026-05-20: implemented VOCAB-006 SRS flashcard review. ts-fsrs installed; prisma migration add_srs_fields adds 9 SRS columns + @@index([userId, srsDue]); src/lib/srs.ts (initCard/scheduleCard/toFsrsCard); src/lib/vocab.ts adds getDueReviewCount/getDueReviewWords; GET /api/vocab/review + POST /api/vocab/review/[wordId] routes; /vocab/review page with server session guard + ReviewClient flashcard UI (TTS speak, showBack, four rating buttons, completion screen); /vocab page due-words badge. Also fixed service worker offline page bug (sw-page-v2 cache, !navigator.onLine guard). node --test tests/vocab006.test.mjs passed 5/5; npm test passed 148/148; npm run lint:encoding passed.",
     "notes": "依赖 VOCAB-005 ✅。Ticket: docs/tickets/VOCAB-006.md。触发：PM 规划 2026-05-20 — 词库只收集不复习，遗忘率极高；FSRS 是当前最优 SRS 算法（ts-fsrs MIT 许可）。设计原则：复习可选触发，不强制提醒；首日上限 10 新词防压垮。不含统计图/推送/参数设置（后续票）。"
   }
 ]
