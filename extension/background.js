@@ -22,6 +22,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  if (message?.type === "esponal-install-hook") {
+    const tabId = sender.tab?.id;
+
+    if (typeof tabId !== "number") {
+      sendResponse({ ok: false });
+      return;
+    }
+
+    chrome.scripting
+      .executeScript({
+        target: { tabId },
+        world: "MAIN",
+        files: ["dist/hook-timedtext.js"]
+      })
+      .then(() => sendResponse({ ok: true }))
+      .catch((error) => {
+        console.warn("[esponal harvest] install hook failed", error);
+        sendResponse({ ok: false });
+      });
+
+    return true;
+  }
+
   if (message?.type === "esponal-get-player-tracks") {
     const tabId = sender.tab?.id;
 

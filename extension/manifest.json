@@ -22,6 +22,12 @@
       "run_at": "document_idle"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/hook-timedtext.js"],
+      "matches": ["https://www.youtube.com/*"]
+    }
+  ],
   "host_permissions": [
     "http://localhost:3000/*",
     "https://localhost:3000/*",

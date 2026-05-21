@@ -1,3 +1,59 @@
+## Dev Report: EXT-008-FIX YouTube PO Token timedtext hook
+**Time**: 2026-05-21 09:45
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. EXT-008 no longer tries to fetch caption track `baseUrl` directly from the isolated content script; it now hooks the YouTube page's own timedtext responses in MAIN world so YouTube supplies the PO Token/cookies on its normal player request path.
+
+**Changed files**:
+- extension/hook-timedtext.js
+- extension/harvest.js
+- extension/background.js
+- extension/manifest.json
+- extension/scripts/build.mjs
+- extension/scripts/package.mjs
+- public/extension/esponal-extension.zip
+- tests/ext008.test.mjs
+- tests/extension.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added `extension/hook-timedtext.js`, injected into the page MAIN world, wrapping `window.fetch` and `XMLHttpRequest` to capture successful `/api/timedtext?` response bodies after YouTube has made the authenticated player request.
+- Updated `extension/background.js` to handle `esponal-install-hook` and call `chrome.scripting.executeScript` with `world: "MAIN"` and `files: ["dist/hook-timedtext.js"]`.
+- Updated `extension/harvest.js` to install the hook, listen for `esponal-captured-timedtext` `window.postMessage` events, parse JSON3 bodies locally, dedupe per `videoId:url`, and reuse the existing `/api/subtitle/ingest` POST flow.
+- Updated manifest/build/package wiring so `dist/hook-timedtext.js` is exposed, built, packaged, and included in `public/extension/esponal-extension.zip`.
+- Expanded EXT-008 tests to lock the no-direct-YouTube-fetch contract, hook injection contract, manifest resource contract, and package contents contract.
+
+**Verification executed**:
+1. Focused red/green
+   Command: `node --test tests/ext008.test.mjs tests/extension.test.mjs`
+   Result after implementation: pass, `tests 12`, `pass 12`, `fail 0`
+2. Extension build
+   Command: `npm run build` in `extension/`
+   Result: pass
+3. Extension package
+   Command: `npm run package` in `extension/`
+   Result: pass; zip contents verified include `dist/hook-timedtext.js`
+4. Extension/subtitle regression slice
+   Command: `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`
+   Result: pass, `tests 24`, `pass 24`, `fail 0`
+5. Encoding check
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+6. Full suite
+   Command: `npm test`
+   Result: pass, `tests 173`, `pass 173`, `fail 0`
+7. Production build
+   Command: `npm run build`
+   Result: pass; existing `<img>` warnings, Sentry instrumentation warnings, and local Redis `ECONNREFUSED` noise remain unchanged
+
+**Not verified by Codex1**:
+- Real Chrome/YouTube E2E was not run in this dev pass. Local shell env did not expose `EXT_INGEST_TOKEN` / `ESPONAL_APP_ORIGIN`, and this pass did not interactively install the extension into Chrome. Codex2/PM should install the rebuilt zip/crx and verify a YouTube watch page captures PO Token-backed timedtext, then confirm Redis/site transcript behavior.
+
+**Next action**:
+- Codex2 should QA `EXT-008` against `docs/tickets/EXT-008-FIX.md`, including a real Chrome install if credentials/environment are available.
+
 ## QA Report: EXT-008 second-pass subtitle harvester extension
 **Time**: 2026-05-20 21:20
 **Tester**: Codex2

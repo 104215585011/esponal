@@ -27,6 +27,31 @@
 
 ## 会话记录
 
+### 会话 #EXT-008-FIX — 2026-05-21
+
+**本轮目标**：修复 EXT-008 真机失败：content script 直接 fetch YouTube 字幕缺 PO Token，导致只拿到空壳 JSON。
+
+**已完成**：
+- 新增 `extension/hook-timedtext.js`，在 YouTube 页面 MAIN world hook `window.fetch` 和 `XMLHttpRequest`，捕获 YouTube player 自己请求到的 `/api/timedtext?` 响应体。
+- 更新 `extension/background.js`，新增 `esponal-install-hook` 消息处理，用 `chrome.scripting.executeScript({ world: "MAIN", files: ["dist/hook-timedtext.js"] })` 注入 hook。
+- 更新 `extension/harvest.js`，移除直接 `fetch(track.baseUrl + "&fmt=json3")` 路径，改为监听 `esponal-captured-timedtext`、解析 JSON3、去重并沿用既有 `/api/subtitle/ingest`。
+- 更新 `extension/manifest.json`、`extension/scripts/build.mjs`、`extension/scripts/package.mjs`，确保 `dist/hook-timedtext.js` 可访问、可构建、可打包。
+- 扩展 `tests/ext008.test.mjs` 和 `tests/extension.test.mjs`，覆盖 hook 文件、MAIN world 注入、manifest web_accessible_resources、package contents，以及“不再直接 fetch YouTube track baseUrl”的回归契约。
+- 重新生成 `public/extension/esponal-extension.zip`。
+- `feature_list.json` 中 `EXT-008` 改为 `ready_for_qa`，等待 Codex2 真机 QA。
+
+**验证记录**：
+- `node --test tests/ext008.test.mjs tests/extension.test.mjs`：12/12 通过。
+- `npm run build` in `extension/`：通过。
+- `npm run package` in `extension/`：通过，zip 内含 `dist/hook-timedtext.js`。
+- `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`：24/24 通过。
+- `npm run lint:encoding`：通过。
+- `npm test`：173/173 通过。
+- `npm run build`：通过；仅既有 `<img>`、Sentry、local Redis `ECONNREFUSED` 噪声。
+
+**未覆盖风险**：
+- 本轮 Codex1 未做真实 Chrome/YouTube E2E。原因：本地 shell 未暴露扩展构建所需 `EXT_INGEST_TOKEN` / `ESPONAL_APP_ORIGIN`，且未交互式安装扩展到 Chrome。Codex2/PM 需要按 `docs/tickets/EXT-008-FIX.md` 真机验证 PO Token-backed timedtext capture。
+
 ### 会话 #1 �?2026-05-13
 
 **本轮目标**：产品设�?+ 项目规范建立

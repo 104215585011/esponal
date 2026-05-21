@@ -50,21 +50,11 @@ function showHarvestBadge() {
   chrome.runtime.sendMessage({ type: "subtitle-harvested" }).catch(() => {});
 }
 
-async function ingestTrack(videoId, track) {
-  const subtitleUrl = `${track.baseUrl}${track.baseUrl.includes("?") ? "&" : "?"}fmt=json3`;
-  const subtitleResponse = await fetch(subtitleUrl, { credentials: "include" });
-
-  if (!subtitleResponse.ok) {
-    return;
-  }
-
-  const cues = parseJson3ToCues(await subtitleResponse.json());
-
+async function ingestCues(videoId, lang, cues) {
   if (cues.length < MIN_HARVEST_CUES) {
     return;
   }
 
-  const lang = normalizeLang(track.languageCode);
   const ingestResponse = await fetch(`${ESPONAL_APP_ORIGIN}/api/subtitle/ingest`, {
     method: "POST",
     headers: {
@@ -97,6 +87,59 @@ async function ingestTrack(videoId, track) {
   showHarvestBadge();
 }
 
+async function installTimedtextHook() {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "esponal-install-hook" }, () => {
+      resolve(!chrome.runtime.lastError);
+    });
+  });
+}
+
+async function handleCapturedTimedtext(url, body) {
+  const videoId = getVideoId();
+  if (!videoId || typeof url !== "string" || typeof body !== "string") {
+    return;
+  }
+
+  const captureKey = `${videoId}:${url}`;
+  window.__esponalCapturedTimedtext ||= new Set();
+  if (window.__esponalCapturedTimedtext.has(captureKey)) {
+    return;
+  }
+  window.__esponalCapturedTimedtext.add(captureKey);
+
+  const params = new URL(url, location.origin).searchParams;
+  const lang = normalizeLang(params.get("lang") ?? "");
+  if (!lang.startsWith("es")) {
+    return;
+  }
+
+  let cues;
+  try {
+    cues = parseJson3ToCues(JSON.parse(body));
+  } catch {
+    return;
+  }
+
+  await ingestCues(videoId, lang, cues);
+}
+
+function listenForTimedtextCaptures() {
+  if (window.__esponalTimedtextListenerInstalled) {
+    return;
+  }
+  window.__esponalTimedtextListenerInstalled = true;
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window) return;
+    if (event.data?.type !== "esponal-captured-timedtext") return;
+
+    handleCapturedTimedtext(event.data.url, event.data.body).catch((error) => {
+      console.warn("[esponal harvest]", error);
+    });
+  });
+}
+
 async function startHarvest() {
   const videoId = getVideoId();
 
@@ -109,15 +152,12 @@ async function startHarvest() {
   const tracks = await getPlayerCaptionTracks();
   const spanishTracks = tracks.filter((track) => track?.languageCode?.startsWith("es"));
 
-  for (const track of spanishTracks) {
-    if (typeof track?.baseUrl !== "string") {
-      continue;
-    }
-
-    ingestTrack(videoId, track).catch((error) => {
-      console.warn("[esponal harvest]", error);
-    });
+  if (spanishTracks.length === 0) {
+    return;
   }
+
+  listenForTimedtextCaptures();
+  await installTimedtextHook();
 }
 
 startHarvest().catch((error) => {

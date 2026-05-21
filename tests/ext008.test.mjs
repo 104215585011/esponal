@@ -7,14 +7,17 @@ const readText = (path) => readFile(path, "utf8");
 
 test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge", async () => {
   const harvestPath = "extension/harvest.js";
+  const hookPath = "extension/hook-timedtext.js";
   const parserPath = "extension/parseJson3.js";
   const backgroundPath = "extension/background.js";
 
   assert.ok(existsSync(harvestPath), `${harvestPath} should exist`);
+  assert.ok(existsSync(hookPath), `${hookPath} should exist`);
   assert.ok(existsSync(parserPath), `${parserPath} should exist`);
   assert.ok(existsSync(backgroundPath), `${backgroundPath} should exist`);
 
   const harvest = await readText(harvestPath);
+  const hook = await readText(hookPath);
   const background = await readText(backgroundPath);
   const parser = await import(`../${parserPath}`);
 
@@ -23,10 +26,14 @@ test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge
   // player response via chrome.scripting.executeScript in the MAIN world.
   assert.doesNotMatch(harvest, /createElement\(\s*["']script["']\s*\)/);
   assert.doesNotMatch(harvest, /script\.textContent/);
+  assert.doesNotMatch(harvest, /fetch\(\s*subtitleUrl/);
+  assert.doesNotMatch(harvest, /track\.baseUrl.*fmt=json3/s);
   assert.match(harvest, /chrome\.runtime\.sendMessage/);
   assert.match(harvest, /esponal-get-player-tracks/);
-  assert.match(harvest, /fmt=json3/);
-  assert.match(harvest, /credentials:\s*["']include["']/);
+  assert.match(harvest, /esponal-install-hook/);
+  assert.match(harvest, /esponal-captured-timedtext/);
+  assert.match(harvest, /handleCapturedTimedtext/);
+  assert.match(harvest, /JSON\.parse\(body\)/);
   assert.match(harvest, /\/api\/subtitle\/ingest/);
   assert.match(harvest, /chrome\.storage\.local\.set/);
   assert.match(harvest, /document\.title\.replace\(\s*\/ - YouTube\$\/,\s*["']["']\s*\)/);
@@ -36,9 +43,20 @@ test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge
   // Service worker owns reading window.ytInitialPlayerResponse via the
   // scripting API with world: "MAIN".
   assert.match(background, /esponal-get-player-tracks/);
+  assert.match(background, /esponal-install-hook/);
   assert.match(background, /chrome\.scripting\s*\.\s*executeScript/);
   assert.match(background, /world:\s*["']MAIN["']/);
+  assert.match(background, /files:\s*\[\s*["']dist\/hook-timedtext\.js["']\s*\]/);
   assert.match(background, /ytInitialPlayerResponse/);
+
+  assert.match(hook, /__esponalHookInstalled/);
+  assert.match(hook, /timedtext\\\?/);
+  assert.match(hook, /window\.fetch/);
+  assert.match(hook, /response\.clone\(\)\.text\(\)/);
+  assert.match(hook, /XMLHttpRequest\.prototype\.open/);
+  assert.match(hook, /XMLHttpRequest\.prototype\.send/);
+  assert.match(hook, /esponal-captured-timedtext/);
+  assert.match(hook, /body\.length > 200/);
 
   assert.equal(typeof parser.parseJson3ToCues, "function");
   const cues = parser.parseJson3ToCues({
@@ -77,15 +95,24 @@ test("EXT-008 manifest and build package the harvester without page UI feedback"
   );
   assert.ok(manifest.host_permissions.includes("https://*.vercel.app/*"));
   assert.match(JSON.stringify(manifest), /data-esponal-ext|esponal-site/);
+  assert.ok(
+    manifest.web_accessible_resources?.some(
+      (entry) =>
+        entry.resources?.includes("dist/hook-timedtext.js") &&
+        entry.matches?.includes("https://www.youtube.com/*")
+    )
+  );
 
   assert.match(build, /esbuild/);
   assert.match(build, /EXT_INGEST_TOKEN/);
   assert.match(build, /ESPONAL_APP_ORIGIN/);
   assert.match(build, /harvest\.js/);
+  assert.match(build, /hook-timedtext\.js/);
   assert.match(build, /parseJson3\.js/);
 
   assert.match(packageScript, /dist\/harvest\.js/);
   assert.match(packageScript, /dist\/esponal-site\.js/);
+  assert.match(packageScript, /dist\/hook-timedtext\.js/);
   assert.match(background, /chrome\.action\.setBadgeText\(\{\s*text:\s*["']✓["']/);
   assert.match(background, /setTimeout\(\(\)\s*=>\s*chrome\.action\.setBadgeText\(\{\s*text:\s*["']["']/);
 });

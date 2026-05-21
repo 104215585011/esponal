@@ -35,6 +35,13 @@ test("extension content scripts cover YouTube harvesting and Esponal site detect
   ]);
   assert.deepEqual(siteScript.js, ["dist/esponal-site.js"]);
   assert.equal(siteScript.run_at, "document_idle");
+  assert.ok(
+    manifest.web_accessible_resources?.some(
+      (entry) =>
+        entry.resources?.includes("dist/hook-timedtext.js") &&
+        entry.matches?.includes("https://www.youtube.com/*")
+    )
+  );
 });
 
 test("extension files provide background, content, and popup behavior", async () => {
@@ -69,5 +76,6 @@ test("extension has an esbuild package scaffold", async () => {
   assert.match(pkg.scripts.build, /scripts\/build\.mjs/);
   assert.match(buildScript, /esbuild/);
   assert.match(buildScript, /harvest\.js/);
+  assert.match(buildScript, /hook-timedtext\.js/);
   assert.ok(pkg.devDependencies.esbuild);
 });

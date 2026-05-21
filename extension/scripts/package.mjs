@@ -17,7 +17,8 @@ const files = [
   "popup.html",
   "lemma-dict.json",
   "dist/harvest.js",
-  "dist/esponal-site.js"
+  "dist/esponal-site.js",
+  "dist/hook-timedtext.js"
 ];
 
 const crcTable = new Uint32Array(256).map((_, index) => {
