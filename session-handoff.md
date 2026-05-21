@@ -1,3 +1,36 @@
+## Dev Report: COURSE-005 Phase 2 sentence dissector
+**Time**: 2026-05-22 10:15
+**Developer**: Codex1
+
+**Status**: Phase 2 complete. Full COURSE-005 remains `in_progress`; Phase 3 seven-day course (`/learn/foundation`) not started.
+
+**Changed files**:
+- src/lib/functionWords.ts
+- src/app/dissect/page.tsx
+- src/app/dissect/DissectorClient.tsx
+- src/app/dissect/tokenize.ts
+- tests/course005.test.mjs
+
+**Implementation notes**:
+- Added `/dissect` tool page with SiteHeader, `max-w-3xl` reading width, textarea input, default placeholder sentence, and live dissection on first paint.
+- Aggregation colors follow PM QC briefing: pronoun blue (`subject_pronoun`, `reflexive`, `indefinite_pronoun`), object pronoun indigo, limiter amber (`articles`, `demonstrative`, `possessive`, `quantifier`), preposition/conjunction emerald with 介/连 badges, relative/interrogative violet, adverb_function slate with 副 badge.
+- Skeleton tokens render underline + Chinese superscript badge; content words stay default `text-gray-900`.
+- Click popover shows category label, English gloss, Chinese gloss, `esEnContrast`, and `→ 详见 Day N` link to `/learn/foundation/day-N` (routes land in Phase 3).
+- Bottom summary shows `{total} 词 · {skeleton} 个骨架词 · {percent}%`.
+
+**Verification executed**:
+1. TDD red check: `node --test tests/course005.test.mjs` failed Phase 2 contract tests before implementation.
+2. Focused COURSE-005 tests: `node --test tests/course005.test.mjs` → tests 8, pass 8, fail 0.
+3. Encoding: `npm run lint:encoding` → Encoding check passed.
+4. Full suite: `npm test` → tests 185, pass 185, fail 0.
+5. Production build: `npm run build` → compiled successfully; route `/dissect` listed; existing `<img>` and Sentry warnings only.
+
+**Next step**:
+- Codex2 QA Phase 2 `/dissect` contract + sample sentence behavior.
+- Codex1 Phase 3: `/learn/foundation` overview + day-1..day-7 content + `/learn` amber banner.
+
+---
+
 ## Dev Report: COURSE-005 Phase 1 function-word dictionary
 **Time**: 2026-05-21 15:24
 **Developer**: Codex1

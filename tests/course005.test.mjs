@@ -59,7 +59,10 @@ test("COURSE-005 Phase 1 dictionary covers required categories and PM-anchored w
     "conjunction",
     "demonstrative",
     "possessive",
-    "relative_interrogative"
+    "relative_interrogative",
+    "indefinite_pronoun",
+    "quantifier",
+    "adverb_function"
   ];
   const requiredWords = [
     "el",
@@ -111,4 +114,49 @@ test("COURSE-005 Phase 1 exposes an npm validator command", async () => {
     packageJson.scripts["validate:function-words"],
     "node scripts/validate-function-words.mjs"
   );
+});
+
+const readSource = async (relativePath) => readFile(relativePath, "utf8");
+
+test("COURSE-005 Phase 2 dissect route and client contract exist", async () => {
+  const pageSource = await readSource("src/app/dissect/page.tsx");
+  const clientSource = await readSource("src/app/dissect/DissectorClient.tsx");
+  const tokenizeSource = await readSource("src/app/dissect/tokenize.ts");
+  const libSource = await readSource("src/lib/functionWords.ts");
+
+  assert.match(pageSource, /DissectorClient/);
+  assert.match(pageSource, /SiteHeader/);
+  assert.match(clientSource, /textarea/);
+  assert.match(clientSource, /max-w-3xl/);
+  assert.match(clientSource, /data-testid="dissect-input"/);
+  assert.match(clientSource, /data-testid="dissect-output"/);
+  assert.match(clientSource, /DEFAULT_DISSECT_SENTENCE/);
+  assert.match(clientSource, /border-b-2/);
+  assert.match(clientSource, /<sup/);
+  assert.match(clientSource, /esEnContrast/);
+  assert.match(clientSource, /getFoundationDayHref/);
+  assert.match(libSource, /\/learn\/foundation\/day-\$\{day\}/);
+  assert.match(tokenizeSource, /tokenizeSentence/);
+  assert.match(libSource, /lookupFunctionWord/);
+  assert.match(libSource, /getAggregationStyle/);
+});
+
+test("COURSE-005 Phase 2 aggregation covers PM QC categories and object_pronoun indigo", async () => {
+  const libSource = await readSource("src/lib/functionWords.ts");
+
+  assert.match(libSource, /indefinite_pronoun/);
+  assert.match(libSource, /quantifier/);
+  assert.match(libSource, /adverb_function/);
+  assert.match(libSource, /border-blue-400/);
+  assert.match(libSource, /border-indigo-400/);
+  assert.match(libSource, /border-slate-400/);
+  assert.match(libSource, /object_pronoun[\s\S]*indigo/);
+});
+
+test("COURSE-005 Phase 2 sample sentence lemmas exist in dictionary", async () => {
+  const dictionary = await readDictionary();
+
+  for (const lemma of ["yo", "me", "con", "las", "los"]) {
+    assert.ok(dictionary.entries[lemma], `missing skeleton lemma ${lemma}`);
+  }
 });
