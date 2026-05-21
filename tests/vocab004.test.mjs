@@ -59,16 +59,16 @@ test("VOCAB-004 lookup card renders rich dictionary content and sends source met
 });
 
 test("VOCAB-004 course page wires text lookup into lesson content", async () => {
-  const componentPath = "src/app/learn/[slug]/CourseLookupText.tsx";
+  const componentPath = "src/app/components/vocab/SpanishText.tsx";
   assert.ok(existsSync(componentPath), `${componentPath} should exist`);
 
   const component = await readText(componentPath);
   const page = await readText("src/app/learn/[slug]/page.tsx");
 
   assert.match(component, /LookupCard/);
-  assert.match(component, /type: "course"/);
-  assert.match(component, /courseRef/);
-  assert.match(page, /CourseLookupText/);
+  assert.match(page, /type:\s*"course"/);
+  assert.match(page, /courseRef/);
+  assert.match(page, /SpanishText/);
   assert.match(page, /#vocab/);
   assert.match(page, /#dialogues/);
 });

@@ -54,7 +54,10 @@ export async function POST(request: Request) {
     const partOfSpeech =
       typeof body.partOfSpeech === "string" ? body.partOfSpeech.trim() : null;
     const sourceType =
-      body.sourceType === "course" || body.sourceType === "lectura"
+      body.sourceType === "course" ||
+      body.sourceType === "lectura" ||
+      body.sourceType === "dissect" ||
+      body.sourceType === "grammar"
         ? body.sourceType
         : "video";
     const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "";

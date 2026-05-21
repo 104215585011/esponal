@@ -808,7 +808,7 @@
     "area": "vocabulary",
     "title": "全站西语文本统一可点查词",
     "user_visible_behavior": "所有页面（语法、骨架词课、拆解器、未来新页面）显示的西语词都可点击触发查词卡，行为和 Lectura 阅读页一致；已学词带深灰虚线下划线（VOCAB-008）。",
-    "status": "backlog",
+    "status": "in_progress",
     "verification": [
       "src/app/components/vocab/SpanishText.tsx 新建并被多处调用",
       "LookupCard LookupSource 类型扩展含 dissect 与 grammar",
@@ -820,7 +820,7 @@
       "UI 视觉过 Claude2 评审",
       "npm test + npm run build 通过"
     ],
-    "evidence": "",
-    "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。Claude2 UI review 2026-05-21: PASS WITH CHANGES，已并入 ticket。分 3 阶段：Phase A 收窄为只抽 CourseLookupText -> SpanishText，并只迁移 /learn/[slug] 与 /learn/foundation/[day] 已有调用；不动 /lectura、/watch、DissectorClient。Phase B 接入 grammar 明确西语字段。Phase C 改 foundation contrastBlocks 数据结构，需 PM content readthrough。"
+    "evidence": "2026-05-21 23:02 Codex1 Phase A complete only: extracted SpanishText shared component, deleted CourseLookupText, migrated existing /learn/[slug] and /learn/foundation/[day] lookup call sites, extended LookupSource and /api/vocab/add sourceType for dissect/grammar, added LookupCard viewport max width, and added savedForms cache invalidation after save. Verification: TDD red node --test tests/vocab009.test.mjs failed 4/4 before implementation; node --test tests/vocab009.test.mjs -> 4/4 pass; node --test tests/vocab009.test.mjs tests/vocab008.test.mjs tests/vocab004.test.mjs tests/course005.test.mjs -> 28/28 pass; npm run lint:encoding -> pass; npm test -> 193/193 pass; npm run build -> pass with existing img and Sentry warnings only.",
+    "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。Claude2 UI review 2026-05-21: PASS WITH CHANGES，已并入 ticket。分 3 阶段：Phase A 收窄为只抽 CourseLookupText -> SpanishText，并只迁移 /learn/[slug] 与 /learn/foundation/[day] 已有调用；不动 /lectura、/watch、DissectorClient。Phase A 2026-05-21 complete. Phase B 接入 grammar 明确西语字段。Phase C 改 foundation contrastBlocks 数据结构，需 PM content readthrough。"
   }
 ]

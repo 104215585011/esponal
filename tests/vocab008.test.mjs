@@ -49,8 +49,8 @@ test("VOCAB-008 Lectura reader fetches saved forms and marks saved words", async
   assert.match(reader, /openLookup/);
 });
 
-test("VOCAB-008 course lookup text fetches saved forms and preserves lookup", async () => {
-  const courseLookup = await readText("src/app/learn/[slug]/CourseLookupText.tsx");
+test("VOCAB-008 SpanishText fetches saved forms and preserves course lookup", async () => {
+  const courseLookup = await readText("src/app/components/vocab/SpanishText.tsx");
 
   assert.match(courseLookup, /\/api\/vocab\/highlight/);
   assert.match(courseLookup, /savedSet/);

@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LookupCard } from "@/app/watch/LookupCard";
+import { LookupCard, type LookupSource } from "@/app/watch/LookupCard";
 
-type CourseLookupTextProps = {
+type SpanishTextProps = {
   text: string;
-  translation: string;
-  courseRef: string;
-  sourceUrl: string;
+  translation?: string;
+  source?: LookupSource;
   className?: string;
+  wordClassName?: string;
+  interactionDensity?: "inline" | "dense" | "readOnly";
+  enableKeyboard?: boolean;
 };
 
 type ActiveWord = {
@@ -18,6 +20,8 @@ type ActiveWord = {
 
 const wordPattern = /([\p{L}áéíóúüñÁÉÍÓÚÜÑ]+)/gu;
 let savedFormsPromise: Promise<Set<string>> | null = null;
+
+// TODO: Replace opt-in per-word tab stops with roving tabindex when long-form keyboard lookup is needed.
 
 function splitText(text: string) {
   const parts: { text: string; isWord: boolean }[] = [];
@@ -44,8 +48,12 @@ function normalizeLookupWord(token: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/^[^a-záéíóúñü]+|[^a-záéíóúñü]+$/gi, "")
+    .replace(/^[^a-záéíóúüñ]+|[^a-záéíóúüñ]+$/gi, "")
     .trim();
+}
+
+function invalidateSavedForms() {
+  savedFormsPromise = null;
 }
 
 function loadSavedForms() {
@@ -67,16 +75,44 @@ function loadSavedForms() {
   return savedFormsPromise;
 }
 
-export function CourseLookupText({
+function getWordClassName({
+  isSaved,
+  interactionDensity,
+  wordClassName
+}: {
+  isSaved: boolean;
+  interactionDensity: Exclude<SpanishTextProps["interactionDensity"], undefined>;
+  wordClassName?: string;
+}) {
+  const densityClass =
+    interactionDensity === "dense"
+      ? "rounded px-1 py-0.5"
+      : "rounded px-0.5";
+
+  return [
+    "spanish-text-word text-inherit transition-colors hover:bg-brand-50 hover:text-brand-700 active:bg-brand-100",
+    densityClass,
+    isSaved ? "saved-word" : "",
+    wordClassName ?? ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function SpanishText({
   text,
-  translation,
-  courseRef,
-  sourceUrl,
-  className
-}: CourseLookupTextProps) {
+  translation = "",
+  source,
+  className,
+  wordClassName,
+  interactionDensity = "inline",
+  enableKeyboard = false
+}: SpanishTextProps) {
   const [activeWord, setActiveWord] = useState<ActiveWord | null>(null);
   const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
+  const [savedVersion, setSavedVersion] = useState(0);
   const parts = splitText(text);
+  const isReadOnly = interactionDensity === "readOnly";
 
   useEffect(() => {
     let cancelled = false;
@@ -88,23 +124,54 @@ export function CourseLookupText({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [savedVersion]);
+
+  const handleSaved = () => {
+    invalidateSavedForms();
+    setSavedVersion((version) => version + 1);
+  };
 
   return (
     <span className={className}>
+      <style jsx>{`
+        @media (hover: none) {
+          .spanish-text-word {
+            /* bg-brand-50/40 */
+            background-color: rgb(236 253 245 / 0.4);
+          }
+
+          .spanish-text-word:active {
+            background-color: rgb(209 250 229);
+          }
+        }
+      `}</style>
       {parts.map((part, index) => {
         if (!part.isWord) return <span key={`${part.text}-${index}`}>{part.text}</span>;
 
-        const isActive = activeWord?.index === index;
         const normalized = normalizeLookupWord(part.text);
         const isSaved = savedSet.has(normalized);
+        const isActive = activeWord?.index === index;
+
+        if (isReadOnly) {
+          return (
+            <span
+              className={isSaved ? `saved-word ${wordClassName ?? ""}` : wordClassName}
+              key={`${part.text}-${index}`}
+            >
+              {part.text}
+            </span>
+          );
+        }
+
         return (
-          <span className="relative inline-block" key={`${part.text}-${index}`}>
+          <span
+            className="relative inline-block max-w-[min(20rem,calc(100vw-2rem))]"
+            key={`${part.text}-${index}`}
+          >
             <button
-              className={`rounded px-0.5 text-inherit underline-offset-4 hover:bg-brand-50 hover:text-brand-700 hover:underline ${
-                isSaved ? "saved-word" : ""
-              }`}
+              className={getWordClassName({ isSaved, interactionDensity, wordClassName })}
               onClick={() => setActiveWord(isActive ? null : { form: part.text, index })}
+              tabIndex={enableKeyboard ? 0 : -1}
               type="button"
             >
               {part.text}
@@ -113,14 +180,10 @@ export function CourseLookupText({
               <LookupCard
                 form={activeWord.form}
                 onClose={() => setActiveWord(null)}
+                onSaved={handleSaved}
                 originalSentence={text}
                 translatedSentence={translation}
-                source={{
-                  type: "course",
-                  url: sourceUrl,
-                  courseRef,
-                  sentence: text
-                }}
+                source={source}
               />
             ) : null}
           </span>

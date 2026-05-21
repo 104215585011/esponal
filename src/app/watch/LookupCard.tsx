@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import EmptyState from "@/app/components/ui/EmptyState";
 import { speak, useSpeechAvailable } from "@/lib/speak";
 
-type LookupSource =
+export type LookupSource =
   | {
       type: "video";
       url?: string;
@@ -22,12 +22,24 @@ type LookupSource =
       storySlug: string;
       paragraphIndex: number;
       sentence: string;
+    }
+  | {
+      type: "dissect";
+      url: "/dissect";
+      sentence: string;
+    }
+  | {
+      type: "grammar";
+      url: string;
+      topicSlug: string;
+      sentence: string;
     };
 
 type LookupCardProps = {
   currentTimeSec?: number;
   form: string;
   onClose: () => void;
+  onSaved?: () => void;
   originalSentence: string;
   translatedSentence: string;
   source?: LookupSource;
@@ -93,6 +105,7 @@ export function LookupCard({
   currentTimeSec,
   form,
   onClose,
+  onSaved,
   originalSentence,
   translatedSentence,
   source
@@ -204,9 +217,9 @@ export function LookupCard({
           sourceUrl:
             resolvedSource.type === "lectura"
               ? `/lectura/${resolvedSource.storySlug}#p${resolvedSource.paragraphIndex}`
-              : resolvedSource.type === "course"
-                ? resolvedSource.url
-                : resolvedSource.url ?? getCurrentUrl(),
+              : resolvedSource.type === "video"
+                ? resolvedSource.url ?? getCurrentUrl()
+                : resolvedSource.url,
           timestampSec:
             resolvedSource.type === "video"
               ? Math.max(0, Math.floor(resolvedSource.timestampSec ?? currentTimeSec ?? 0))
@@ -216,7 +229,11 @@ export function LookupCard({
               ? resolvedSource.courseRef
               : resolvedSource.type === "lectura"
                 ? `lectura:${resolvedSource.storySlug}/p${resolvedSource.paragraphIndex}`
-                : null,
+                : resolvedSource.type === "grammar"
+                  ? `grammar:${resolvedSource.topicSlug}`
+                  : resolvedSource.type === "dissect"
+                    ? "dissect"
+                    : null,
           originalSentence: sourceSentence,
           translatedSentence: translatedSentence || lookupState.translation
         })
@@ -237,6 +254,7 @@ export function LookupCard({
       if (!response.ok) throw new Error(`Save failed: ${response.status}`);
 
       setButtonState("success");
+      onSaved?.();
     } catch (error) {
       console.error("Save vocab failed", error);
       setButtonState("default");
@@ -279,7 +297,7 @@ export function LookupCard({
   };
 
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated" data-testid="lookup-card">
+    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated" data-testid="lookup-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">

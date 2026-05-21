@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AudioButton from "@/app/components/audio/AudioButton";
+import { SpanishText } from "@/app/components/vocab/SpanishText";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAllUnits, getUnitPageData } from "@/lib/curriculum";
-import { CourseLookupText } from "./CourseLookupText";
 
 type UnitDetailPageProps = {
   params: {
@@ -123,9 +123,13 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <h4 className="text-lg font-semibold text-gray-900">
-                              <CourseLookupText
-                                courseRef={`unidad-${unit.number} / ${group.title} / ${item.es}`}
-                                sourceUrl={`/learn/${unit.slug}#vocab`}
+                              <SpanishText
+                                source={{
+                                  type: "course",
+                                  url: `/learn/${unit.slug}#vocab`,
+                                  courseRef: `unidad-${unit.number} / ${group.title} / ${item.es}`,
+                                  sentence: item.es
+                                }}
                                 text={item.es}
                                 translation={item.zh}
                               />
@@ -154,9 +158,13 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
                     {group.items.map((item) => (
                       <div className="grid gap-3 py-4 md:grid-cols-[1.1fr_1fr_auto]" key={`${group.category}-${item.es}`}>
                         <div className="text-base font-medium text-gray-900">
-                          <CourseLookupText
-                            courseRef={`unidad-${unit.number} / ${group.category} / 句型`}
-                            sourceUrl={`/learn/${unit.slug}#phrases`}
+                          <SpanishText
+                            source={{
+                              type: "course",
+                              url: `/learn/${unit.slug}#phrases`,
+                              courseRef: `unidad-${unit.number} / ${group.category} / 句型`,
+                              sentence: item.es
+                            }}
                             text={item.es}
                             translation={item.zh}
                           />
@@ -206,9 +214,13 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
                               {line.speaker}
                             </span>
                             <p className="mt-3 text-base font-medium text-gray-900">
-                              <CourseLookupText
-                                courseRef={`unidad-${unit.number} / ${dialogue.title} / 第${index + 1}行`}
-                                sourceUrl={`/learn/${unit.slug}#dialogues`}
+                              <SpanishText
+                                source={{
+                                  type: "course",
+                                  url: `/learn/${unit.slug}#dialogues`,
+                                  courseRef: `unidad-${unit.number} / ${dialogue.title} / 第${index + 1}行`,
+                                  sentence: line.es
+                                }}
                                 text={line.es}
                                 translation={line.zh}
                               />

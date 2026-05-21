@@ -27,6 +27,33 @@
 
 ## 会话记录
 
+### Session #VOCAB-009 Phase A - 2026-05-21
+
+**Goal**: Extract the existing course lookup behavior into a shared `SpanishText` component without expanding the Phase A blast radius.
+
+**Completed**:
+- Added `src/app/components/vocab/SpanishText.tsx` with `interactionDensity` (`inline`, `dense`, `readOnly`), mobile `bg-brand-50/40` discoverability, saved-word underline reuse, optional keyboard tab stops, and a roving-tabindex TODO.
+- Added savedForms cache invalidation after a successful `LookupCard` save.
+- Added `LookupCard` viewport max width `max-w-[min(20rem,calc(100vw-2rem))]`.
+- Exported and extended `LookupSource` with `dissect` and `grammar` variants.
+- Extended `/api/vocab/add` and `src/lib/vocab.ts` sourceType handling to accept `dissect` and `grammar`.
+- Deleted `src/app/learn/[slug]/CourseLookupText.tsx`.
+- Migrated only `/learn/[slug]` and `/learn/foundation/[day]` existing lookup call sites to `SpanishText`.
+- Left `/lectura`, `/watch`, and `DissectorClient` unmigrated per Phase A scope.
+- Kept VOCAB-009 `in_progress` because Phase B and Phase C remain.
+
+**Verification**:
+- TDD red: `node --test tests/vocab009.test.mjs` failed 4/4 before implementation.
+- `node --test tests/vocab009.test.mjs`: 4/4 pass.
+- `node --test tests/vocab009.test.mjs tests/vocab008.test.mjs tests/vocab004.test.mjs tests/course005.test.mjs`: 28/28 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 193/193 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Next**:
+- VOCAB-009 Phase B: integrate `/grammar/[slug]` according to the ticket's field allowlist.
+- VOCAB-009 Phase C: migrate foundation contrastBlocks after PM content readthrough, or split to VOCAB-009-C.
+
 ### Session #COURSE-005 Phase 3 - 2026-05-21
 
 **Goal**: Implement the seven-day `/learn/foundation` Chinese reading course according to the COURSE-005 ticket and handoff logs.

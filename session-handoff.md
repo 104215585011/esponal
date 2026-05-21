@@ -1,3 +1,46 @@
+## Dev Report: VOCAB-009 Phase A SpanishText extraction
+**Time**: 2026-05-21 23:02
+**Developer**: Codex1
+
+**Status**: Phase A implementation complete. Full VOCAB-009 remains `in_progress`; Phase B grammar integration and Phase C foundation contrastBlocks data migration are not started.
+
+**Changed files**:
+- src/app/components/vocab/SpanishText.tsx
+- src/app/watch/LookupCard.tsx
+- src/app/api/vocab/add/route.ts
+- src/lib/vocab.ts
+- src/app/learn/[slug]/page.tsx
+- src/app/learn/foundation/[day]/page.tsx
+- src/app/learn/[slug]/CourseLookupText.tsx (deleted)
+- tests/vocab009.test.mjs
+- tests/vocab008.test.mjs
+- tests/vocab004.test.mjs
+- feature_list.json
+- session-handoff.md
+- claude-progress.md
+
+**Implementation notes**:
+- Added shared `SpanishText` client component with `interactionDensity` (`inline`, `dense`, `readOnly`), mobile discoverability background, saved-word styling reuse, optional keyboard tab stops, and a roving-tabindex TODO.
+- Added savedForms cache invalidation after `LookupCard` saves a word so newly saved forms can underline without a hard refresh.
+- Added `LookupCard` viewport boundary class `max-w-[min(20rem,calc(100vw-2rem))]` and exported `LookupSource`.
+- Extended `LookupSource`, `/api/vocab/add`, and `src/lib/vocab.ts` to accept `dissect` and `grammar` source types for later phases.
+- Deleted `CourseLookupText` and migrated only the existing course call sites in `/learn/[slug]` and `/learn/foundation/[day]` to `SpanishText`.
+- Per Phase A scope, did not migrate `/lectura`, `/watch`, or `DissectorClient`.
+
+**Verification executed**:
+1. TDD red check: `node --test tests/vocab009.test.mjs` failed 4/4 before implementation because `SpanishText` and the new contracts did not exist.
+2. Focused VOCAB-009 tests: `node --test tests/vocab009.test.mjs` -> tests 4, pass 4, fail 0.
+3. Related regression set: `node --test tests/vocab009.test.mjs tests/vocab008.test.mjs tests/vocab004.test.mjs tests/course005.test.mjs` -> tests 28, pass 28, fail 0.
+4. Encoding: `npm run lint:encoding` -> Encoding check passed.
+5. Full suite: `npm test` -> tests 193, pass 193, fail 0.
+6. Production build: `npm run build` -> compiled successfully; existing `<img>` and Sentry warnings only.
+
+**Next step**:
+- Phase B: integrate `SpanishText` into `/grammar/[slug]` using the exact field allowlist from `docs/tickets/VOCAB-009.md`.
+- Phase C: migrate foundation `contrastBlocks` to structured data after PM content readthrough; this may become a separate VOCAB-009-C ticket if scope needs to stay tight.
+
+---
+
 ## Dev Report: COURSE-005 Phase 3 foundation course
 **Time**: 2026-05-21 20:46
 **Developer**: Codex1

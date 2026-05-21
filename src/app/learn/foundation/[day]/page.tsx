@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SpanishText } from "@/app/components/vocab/SpanishText";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
-import { CourseLookupText } from "@/app/learn/[slug]/CourseLookupText";
 import { foundationLessons, getFoundationLesson } from "@/content/foundation";
 
 type FoundationDayPageProps = {
@@ -58,10 +58,15 @@ export default function FoundationDayPage({ params }: FoundationDayPageProps) {
               >
                 <div>
                   <p className="text-base font-semibold text-gray-950">{row.spanish}</p>
-                  <CourseLookupText
+                  <SpanishText
                     className="mt-2 block text-sm italic text-gray-600"
-                    courseRef={courseRef}
-                    sourceUrl={sourceUrl}
+                    enableKeyboard={true}
+                    source={{
+                      type: "course",
+                      url: sourceUrl,
+                      courseRef,
+                      sentence: row.example.es
+                    }}
                     text={row.example.es}
                     translation={row.example.zh}
                   />
@@ -111,10 +116,15 @@ export default function FoundationDayPage({ params }: FoundationDayPageProps) {
                 className="border-l-2 border-brand-200 pl-3 text-sm leading-7 text-gray-700"
                 key={example.es}
               >
-                <CourseLookupText
+                <SpanishText
                   className="block font-medium text-gray-900"
-                  courseRef={courseRef}
-                  sourceUrl={sourceUrl}
+                  enableKeyboard={true}
+                  source={{
+                    type: "course",
+                    url: sourceUrl,
+                    courseRef,
+                    sentence: example.es
+                  }}
                   text={example.es}
                   translation={example.zh}
                 />
