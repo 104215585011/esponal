@@ -109,6 +109,11 @@ async function handleCapturedTimedtext(url, body) {
   window.__esponalCapturedTimedtext.add(captureKey);
 
   const params = new URL(url, location.origin).searchParams;
+  const capturedVideoId = params.get("v") ?? "";
+  if (capturedVideoId !== videoId) {
+    return;
+  }
+
   const langParam = params.get("lang") ?? "";
   if (!isSpanishLang(langParam)) {
     return;

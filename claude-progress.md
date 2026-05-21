@@ -33,6 +33,7 @@
 
 **已完成**：
 - `extension/harvest.js` 删除 `normalizeLang`，改为严格 `isSpanishLang(code)`，只允许 `es` / `es-*`。
+- `handleCapturedTimedtext` 新增 `capturedVideoId` 校验，要求 captured timedtext URL 的 `v` 参数等于当前页面视频 ID，避免广告/预热视频字幕污染页面视频缓存。
 - `handleCapturedTimedtext` 直接使用 URL 中的 `langParam`，非西语立即 return，不再把 `en` 等语言强转为 `es`。
 - `src/app/api/subtitle/ingest/route.ts` 删除 `redis.get` / `written:false` write-once 分支；带有效 token 的 ingest 始终覆盖缓存，让污染 key 可被下一次正确 harvest 修复。
 - `tests/ext008.test.mjs` 新增契约：必须有 `isSpanishLang` / `langParam`，不得有 `normalizeLang`，ingest 路由不得再走 `redis.get` / `written:false`。
@@ -41,6 +42,7 @@
 **验证记录**：
 - TDD 红灯：`node --test tests/ext008.test.mjs` 在实现前因缺 `isSpanishLang` 和仍有 `redis.get` 路径失败。
 - 实现后：`node --test tests/ext008.test.mjs` 8/8 通过。
+- 追加视频 ID guard 红灯：`node --test tests/ext008.test.mjs` 因缺 `capturedVideoId` 失败；实现后 8/8 通过。
 - `tar -tf public/extension/esponal-extension.zip`：包含 `dist/harvest.js`、`dist/esponal-site.js`、`dist/hook-timedtext.js`。
 - `npm run lint:encoding`：通过。
 - `npm test`：173/173 通过。

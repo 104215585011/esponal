@@ -34,6 +34,8 @@ test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge
   assert.match(harvest, /esponal-captured-timedtext/);
   assert.match(harvest, /handleCapturedTimedtext/);
   assert.match(harvest, /isSpanishLang/);
+  assert.match(harvest, /capturedVideoId/);
+  assert.match(harvest, /params\.get\(["']v["']\)/);
   assert.match(harvest, /langParam/);
   assert.match(harvest, /const\s+lang\s*=\s*langParam/);
   assert.doesNotMatch(harvest, /function\s+normalizeLang/);

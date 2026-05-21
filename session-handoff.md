@@ -19,6 +19,7 @@
 
 **Implementation notes**:
 - Replaced `normalizeLang` with strict `isSpanishLang(code)`, accepting only `es` or `es-*`.
+- Added `capturedVideoId` guard: the captured timedtext URL `v` parameter must equal the current page `videoId`, so ad/promo timedtext cannot be stored under the page video's Redis key.
 - `handleCapturedTimedtext` now reads `langParam` directly from the timedtext URL, rejects non-Spanish before parsing/ingesting, and stores the original `langParam`.
 - `POST /api/subtitle/ingest` now treats valid token requests as authoritative and always writes `subtitle:v4:${videoId}:${lang}:auto`, replacing polluted cached subtitles.
 - Removed the `redis.get` / `written:false` branch from ingest.
@@ -31,19 +32,22 @@
 2. Focused EXT-008 test
    Command: `node --test tests/ext008.test.mjs`
    Result after implementation: pass, `tests 8`, `pass 8`, `fail 0`
-3. Extension build/package
+3. Video ID guard red/green
+   Command: `node --test tests/ext008.test.mjs`
+   Result before guard: failed on missing `capturedVideoId`; after guard: pass, `tests 8`, `pass 8`, `fail 0`
+4. Extension build/package
    Command: production-env `npm run build` and `npm run package` in `extension/`
    Result: pass; regenerated `public/extension/esponal-extension.zip`
-4. Zip contents
+5. Zip contents
    Command: `tar -tf public/extension/esponal-extension.zip`
    Result: contains `dist/harvest.js`, `dist/esponal-site.js`, `dist/hook-timedtext.js`
-5. Encoding check
+6. Encoding check
    Command: `npm run lint:encoding`
    Result: pass, `Encoding check passed`
-6. Full suite
+7. Full suite
    Command: `npm test`
    Result: pass, `tests 173`, `pass 173`, `fail 0`
-7. Production build
+8. Production build
    Command: `npm run build`
    Result: pass; existing `<img>` and Sentry warnings remain unchanged
 
