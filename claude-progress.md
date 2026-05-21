@@ -2401,3 +2401,30 @@ feature_list.json 更新：
 - `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs` -> 24/24 pass.
 - `npm test` -> 173/173 pass.
 - `npm run build` -> pass; existing `<img>` warnings, Sentry warnings, and local Redis `ECONNREFUSED` noise remain unchanged.
+
+### QA Session - 2026-05-21 14:11 - EXT-008 Final QA
+
+**Goal**: Codex2 final QA signoff for `EXT-008` plus FIX/FIX2/FIX3.
+
+**Result**: Passed. `feature_list.json` now marks `EXT-008` as `passing`.
+
+**Verification run**:
+- `npm run lint:encoding`: passed, `Encoding check passed`.
+- `node --test tests/ext008.test.mjs tests/extension.test.mjs`: 12/12 passed.
+- `node --test tests/ext008.test.mjs tests/extension.test.mjs tests/web004.test.mjs`: 14/14 passed.
+- `npm test`: 173/173 passed.
+- `npm run build`: passed with only existing `<img>` warnings and Sentry instrumentation migration notices.
+
+**Source contract**:
+- `extension/hook-timedtext.js` hooks `window.fetch` and `XMLHttpRequest` and matches `/api/timedtext?`.
+- `extension/background.js` injects `dist/hook-timedtext.js` via `chrome.scripting.executeScript` with `world: "MAIN"`.
+- `extension/harvest.js` no longer uses `fetch(track.baseUrl)`, uses strict `isSpanishLang` and `langParam`, has no `normalizeLang` non-Spanish coercion, and verifies captured timedtext `v` equals current `videoId`.
+- `src/app/api/subtitle/ingest/route.ts` has `OPTIONS`, four CORS headers, CORS on JSON responses, token-authoritative overwrite, and no `redis.get` / `written:false` write-once path.
+
+**Production probes**:
+- OPTIONS preflight to `https://esponalsssssss.vercel.app/api/subtitle/ingest` from YouTube origin returned 204 with `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, OPTIONS`, `Access-Control-Allow-Headers: Content-Type, X-Esponal-Ingest-Token`, and `Access-Control-Max-Age: 86400`.
+- GET `https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es` returned 200; first 300 chars include `¿Cómo cambió tu vida aprender español?`.
+
+**Notes**:
+- PM production E2E evidence from b0e5c28 was accepted: non-target en/ar timedtext did not ingest; matching Spanish timedtext ingested with `cueCount:808`; polluted cache was overwritten with Spanish cues.
+- No push performed.

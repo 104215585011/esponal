@@ -1,3 +1,45 @@
+## QA Report: EXT-008 final subtitle harvest flow
+**Time**: 2026-05-21 14:11
+**Tester**: Codex2
+
+**Conclusion**: Passed. EXT-008 + FIX/FIX2/FIX3 meet the final QA gate and can move to `passing`.
+
+**Source contract checks**:
+- `extension/hook-timedtext.js` exists, hooks both `window.fetch` and `XMLHttpRequest`, and matches `/api/timedtext?`.
+- `extension/background.js` injects `dist/hook-timedtext.js` with `chrome.scripting.executeScript({ world: "MAIN" })`.
+- `extension/harvest.js` no longer contains `fetch(track.baseUrl)`, contains strict `isSpanishLang(code)` for only `es` / `es-*`, has no `normalizeLang` non-Spanish-to-`es` coercion, uses `langParam`, and checks `capturedVideoId === videoId` before ingest.
+- `src/app/api/subtitle/ingest/route.ts` exports `OPTIONS`, defines the four CORS headers, applies CORS headers through the shared JSON response helper, and no longer has the `redis.get` / `written:false` write-once path.
+
+**Verification executed**:
+1. Encoding check
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+2. Focused EXT-008 + extension tests
+   Command: `node --test tests/ext008.test.mjs tests/extension.test.mjs`
+   Result: pass, `tests 12`, `pass 12`, `fail 0`
+3. Focused regression slice
+   Command: `node --test tests/ext008.test.mjs tests/extension.test.mjs tests/web004.test.mjs`
+   Result: pass, `tests 14`, `pass 14`, `fail 0`
+4. Full suite
+   Command: `npm test`
+   Result: pass, `tests 173`, `pass 173`, `fail 0`
+5. Production build
+   Command: `npm run build`
+   Result: pass; existing warnings only: two `<img>` warnings and Sentry instrumentation migration notices.
+
+**Production probes**:
+1. OPTIONS preflight
+   Command: Node `fetch` to `https://esponalsssssss.vercel.app/api/subtitle/ingest` with `Origin: https://www.youtube.com`, `Access-Control-Request-Method: POST`, and `Access-Control-Request-Headers: x-esponal-ingest-token,content-type`
+   Result: pass, status `204`, headers include `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, OPTIONS`, `Access-Control-Allow-Headers: Content-Type, X-Esponal-Ingest-Token`, and `Access-Control-Max-Age: 86400`.
+2. Subtitle cache probe
+   Command: Node `fetch` to `https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es`
+   Result: pass, status `200`; first 300 chars include Spanish cue text `¿Cómo cambió tu vida aprender español?`.
+
+**Evidence summary**:
+- Reviewed the three fix rounds and PM production E2E evidence: FIX switched to MAIN-world timedtext capture, FIX2 added deployed CORS support, FIX3 added strict Spanish/video ID guards and token-authoritative overwrite. PM production E2E recorded non-target `en`/`ar` timedtext rejected, target `v=1A9kpjdYJUg lang=es` ingested with `cueCount:808`, and polluted cache overwritten with Spanish cues.
+- Updated `feature_list.json`: `EXT-008.status = passing`.
+- No production code changes were made in this QA pass.
+
 ## Dev Report: EXT-008-FIX3 strict Spanish harvest + overwrite ingest
 **Time**: 2026-05-21 13:54
 **Developer**: Codex1
