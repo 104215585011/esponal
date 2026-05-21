@@ -1,3 +1,58 @@
+## Dev Report: EXT-008-FIX3 strict Spanish harvest + overwrite ingest
+**Time**: 2026-05-21 13:54
+**Developer**: Codex1
+
+**Status**: Ready for production deploy/E2E. EXT-008 remains `ready_for_qa` until deployed behavior confirms polluted cache self-heals.
+
+**Root cause confirmed**:
+- `extension/harvest.js` used `normalizeLang(languageCode)` that returned `"es"` for any non-`es-*` value.
+- A captured non-Spanish timedtext response, such as `lang=en`, could therefore be posted as `lang=es`.
+- `/api/subtitle/ingest` used write-once behavior (`redis.get` then `written:false`), so once a polluted `subtitle:v4:<videoId>:es:auto` key existed, later correct harvests could not overwrite it.
+
+**Changed files**:
+- extension/harvest.js
+- src/app/api/subtitle/ingest/route.ts
+- tests/ext008.test.mjs
+- public/extension/esponal-extension.zip
+- feature_list.json
+- session-handoff.md
+
+**Implementation notes**:
+- Replaced `normalizeLang` with strict `isSpanishLang(code)`, accepting only `es` or `es-*`.
+- `handleCapturedTimedtext` now reads `langParam` directly from the timedtext URL, rejects non-Spanish before parsing/ingesting, and stores the original `langParam`.
+- `POST /api/subtitle/ingest` now treats valid token requests as authoritative and always writes `subtitle:v4:${videoId}:${lang}:auto`, replacing polluted cached subtitles.
+- Removed the `redis.get` / `written:false` branch from ingest.
+- Rebuilt and packaged the extension with production build env; zip contents include `dist/harvest.js`, `dist/esponal-site.js`, and `dist/hook-timedtext.js`.
+
+**Verification executed**:
+1. TDD red check
+   Command: `node --test tests/ext008.test.mjs`
+   Result before implementation: failed on missing `isSpanishLang` and existing `redis.get` write-once path
+2. Focused EXT-008 test
+   Command: `node --test tests/ext008.test.mjs`
+   Result after implementation: pass, `tests 8`, `pass 8`, `fail 0`
+3. Extension build/package
+   Command: production-env `npm run build` and `npm run package` in `extension/`
+   Result: pass; regenerated `public/extension/esponal-extension.zip`
+4. Zip contents
+   Command: `tar -tf public/extension/esponal-extension.zip`
+   Result: contains `dist/harvest.js`, `dist/esponal-site.js`, `dist/hook-timedtext.js`
+5. Encoding check
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+6. Full suite
+   Command: `npm test`
+   Result: pass, `tests 173`, `pass 173`, `fail 0`
+7. Production build
+   Command: `npm run build`
+   Result: pass; existing `<img>` and Sentry warnings remain unchanged
+
+**Still required after push/deploy**:
+- Deploy `EXT-008-FIX3`.
+- Reload/reinstall the rebuilt extension.
+- Reopen the target YouTube video and verify the next valid Spanish harvest overwrites the polluted Redis key.
+- Confirm `/watch?v=1A9kpjdYJUg` no longer serves Firebase English promo subtitles.
+
 ## Dev Report: EXT-008-FIX2 ingest CORS headers
 **Time**: 2026-05-21 11:13
 **Developer**: Codex1

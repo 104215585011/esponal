@@ -12,8 +12,8 @@ function getVideoId() {
   return new URLSearchParams(location.search).get("v")?.trim() || "";
 }
 
-function normalizeLang(languageCode) {
-  return languageCode?.startsWith("es-") ? languageCode : "es";
+function isSpanishLang(code) {
+  return code === "es" || (typeof code === "string" && code.startsWith("es-"));
 }
 
 async function getPlayerCaptionTracks() {
@@ -109,10 +109,11 @@ async function handleCapturedTimedtext(url, body) {
   window.__esponalCapturedTimedtext.add(captureKey);
 
   const params = new URL(url, location.origin).searchParams;
-  const lang = normalizeLang(params.get("lang") ?? "");
-  if (!lang.startsWith("es")) {
+  const langParam = params.get("lang") ?? "";
+  if (!isSpanishLang(langParam)) {
     return;
   }
+  const lang = langParam;
 
   let cues;
   try {

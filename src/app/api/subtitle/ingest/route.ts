@@ -138,16 +138,6 @@ export async function POST(request: Request) {
   }
 
   const cacheKey = `subtitle:v4:${body.videoId}:${body.lang}:auto`;
-  const existing = await redis.get(cacheKey);
-
-  if (existing) {
-    return jsonResponse({
-      success: true,
-      cueCount: cues.length,
-      written: false
-    });
-  }
-
   await redis.set(cacheKey, JSON.stringify(cues), "EX", SUBTITLE_CACHE_TTL);
 
   return jsonResponse({

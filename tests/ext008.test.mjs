@@ -33,6 +33,10 @@ test("EXT-008 extension harvests YouTube json3 subtitles through the page bridge
   assert.match(harvest, /esponal-install-hook/);
   assert.match(harvest, /esponal-captured-timedtext/);
   assert.match(harvest, /handleCapturedTimedtext/);
+  assert.match(harvest, /isSpanishLang/);
+  assert.match(harvest, /langParam/);
+  assert.match(harvest, /const\s+lang\s*=\s*langParam/);
+  assert.doesNotMatch(harvest, /function\s+normalizeLang/);
   assert.match(harvest, /JSON\.parse\(body\)/);
   assert.match(harvest, /\/api\/subtitle\/ingest/);
   assert.match(harvest, /chrome\.storage\.local\.set/);
@@ -154,8 +158,8 @@ test("EXT-008 server ingest route validates token, limits, payload, and preserve
   assert.match(route, /MAX_CUES\s*=\s*5000/);
   assert.match(route, /MIN_CUES\s*=\s*5/);
   assert.match(route, /subtitle:v4:\$\{.*videoId.*\}:\$\{.*lang.*\}:auto/);
-  assert.match(route, /redis\.get/);
-  assert.match(route, /written:\s*false/);
+  assert.doesNotMatch(route, /redis\.get/);
+  assert.doesNotMatch(route, /written:\s*false/);
   assert.match(route, /written:\s*true/);
   assert.match(route, /cueCount/);
   assert.match(ratelimit, /ingestLimiter/);
