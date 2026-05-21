@@ -1,3 +1,37 @@
+## Dev Report: VOCAB-009 Phase B grammar detail lookup
+**Time**: 2026-05-21 23:18
+**Developer**: Codex1
+
+**Status**: Phase B implementation complete. Full VOCAB-009 remains `in_progress`; Phase C foundation contrastBlocks data migration is not started.
+
+**Changed files**:
+- src/app/grammar/[slug]/page.tsx
+- tests/vocab009.test.mjs
+- feature_list.json
+- session-handoff.md
+- claude-progress.md
+
+**Implementation notes**:
+- Added `SpanishText` to `/grammar/[slug]` only.
+- Wrapped the ticket allowlist fields: `row.pronoun`, `row.form`, `example.spanish`, and ser/estar comparison `item.spanish`.
+- Used `source={{ type: "grammar", url: \`/grammar/${topic.slug}\`, topicSlug: topic.slug, sentence }}` so saved encounters record grammar sourceType.
+- Used `interactionDensity="dense"` and `enableKeyboard={true}` for conjugation table cells.
+- Kept topic title, intro, analogy, rules, Chinese text, reasons, sidebar links, and `/grammar` list page as plain text per Claude2 second review.
+
+**Verification executed**:
+1. Baseline: `npm test` -> tests 193, pass 193, fail 0 before Phase B edits.
+2. TDD red check: `node --test tests/vocab009.test.mjs` failed 1/6 before implementation because `/grammar/[slug]` did not import or use `SpanishText`.
+3. Focused VOCAB-009 tests: `node --test tests/vocab009.test.mjs` -> tests 6, pass 6, fail 0.
+4. Related regression set: `node --test tests/vocab009.test.mjs tests/course002.test.mjs tests/web014.test.mjs tests/web015.test.mjs` -> tests 19, pass 19, fail 0.
+5. Encoding: `npm run lint:encoding` -> Encoding check passed.
+6. Full suite: `npm test` -> tests 195, pass 195, fail 0.
+7. Production build: `npm run build` -> compiled successfully; existing `<img>` and Sentry warnings only.
+
+**Next step**:
+- Phase C: migrate foundation `contrastBlocks` from mixed strings to structured `{ es, en, zh, note }[]`, then render only `es` with `SpanishText`. This should wait for PM content readthrough or be split into VOCAB-009-C if scope needs to stay tight.
+
+---
+
 ## Dev Report: VOCAB-009 Phase A SpanishText extraction
 **Time**: 2026-05-21 23:02
 **Developer**: Codex1

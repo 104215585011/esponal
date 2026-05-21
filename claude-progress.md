@@ -27,6 +27,31 @@
 
 ## 会话记录
 
+### Session #VOCAB-009 Phase B - 2026-05-21
+
+**Goal**: Integrate `SpanishText` into `/grammar/[slug]` using only the explicit Spanish field allowlist from the VOCAB-009 ticket.
+
+**Completed**:
+- Added `SpanishText` import to `src/app/grammar/[slug]/page.tsx`.
+- Wrapped conjugation table `row.pronoun` and `row.form` with `interactionDensity="dense"` and `enableKeyboard={true}`.
+- Wrapped grammar examples `example.spanish`.
+- Wrapped ser/estar comparison `item.spanish`.
+- Set grammar source metadata with `type: "grammar"`, the topic URL, `topicSlug`, and the clicked sentence.
+- Kept topic intro, analogy, rules, Chinese text, reasons, sidebar navigation, and `/grammar` list page out of `SpanishText` per Claude2 second review.
+- Kept VOCAB-009 `in_progress` because Phase C remains.
+
+**Verification**:
+- Baseline `npm test`: 193/193 pass before Phase B edits.
+- TDD red: `node --test tests/vocab009.test.mjs` failed 1/6 before implementation.
+- `node --test tests/vocab009.test.mjs`: 6/6 pass.
+- `node --test tests/vocab009.test.mjs tests/course002.test.mjs tests/web014.test.mjs tests/web015.test.mjs`: 19/19 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 195/195 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Next**:
+- VOCAB-009 Phase C: migrate foundation contrastBlocks to structured data after PM content readthrough, or split to VOCAB-009-C.
+
 ### Session #VOCAB-009 Phase A - 2026-05-21
 
 **Goal**: Extract the existing course lookup behavior into a shared `SpanishText` component without expanding the Phase A blast radius.

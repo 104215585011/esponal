@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SpanishText } from "@/app/components/vocab/SpanishText";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import {
@@ -104,10 +105,34 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
                     {topic.conjugations.map((row) => (
                       <tr className="border-b border-gray-100" key={row.pronoun}>
                         <td className="sticky left-0 bg-surface px-3 py-3 text-sm text-gray-500">
-                          {row.pronoun}
+                          <SpanishText
+                            enableKeyboard={true}
+                            interactionDensity="dense"
+                            source={{
+                              type: "grammar",
+                              url: `/grammar/${topic.slug}`,
+                              topicSlug: topic.slug,
+                              sentence: row.pronoun
+                            }}
+                            text={row.pronoun}
+                            translation={row.person}
+                          />
                         </td>
                         <td className="px-3 py-3 text-sm text-gray-600">{row.person}</td>
-                        <td className="px-3 py-3 text-base font-medium text-gray-900">{row.form}</td>
+                        <td className="px-3 py-3 text-base font-medium text-gray-900">
+                          <SpanishText
+                            enableKeyboard={true}
+                            interactionDensity="dense"
+                            source={{
+                              type: "grammar",
+                              url: `/grammar/${topic.slug}`,
+                              topicSlug: topic.slug,
+                              sentence: row.form
+                            }}
+                            text={row.form}
+                            translation={row.person}
+                          />
+                        </td>
                         <td className="px-3 py-3 text-sm text-gray-400">{row.audioLabel ?? "—"}</td>
                       </tr>
                     ))}
@@ -134,8 +159,16 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
             <section className="mt-8">
               <h2 className="mb-3 text-xl font-semibold text-gray-800">ser / estar 对比</h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                <ComparisonColumn title="ser：身份、本质、来源" items={topic.comparison.ser} />
-                <ComparisonColumn title="estar：状态、位置、结果" items={topic.comparison.estar} />
+                <ComparisonColumn
+                  items={topic.comparison.ser}
+                  title="ser：身份、本质、来源"
+                  topicSlug={topic.slug}
+                />
+                <ComparisonColumn
+                  items={topic.comparison.estar}
+                  title="estar：状态、位置、结果"
+                  topicSlug={topic.slug}
+                />
               </div>
             </section>
           ) : null}
@@ -146,7 +179,18 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
               <div className="space-y-3">
                 {topic.examples.map((example) => (
                   <div className="rounded-xl border border-gray-100 bg-surface p-4 shadow-sm" key={example.spanish}>
-                    <p className="text-base font-semibold text-gray-900">{example.spanish}</p>
+                    <SpanishText
+                      className="text-base font-semibold text-gray-900"
+                      enableKeyboard={true}
+                      source={{
+                        type: "grammar",
+                        url: `/grammar/${topic.slug}`,
+                        topicSlug: topic.slug,
+                        sentence: example.spanish
+                      }}
+                      text={example.spanish}
+                      translation={example.chinese}
+                    />
                     <p className="mt-1 text-sm text-gray-500">{example.chinese}</p>
                     <p className="mt-2 text-xs text-gray-400">因为：{example.reason}</p>
                   </div>
@@ -176,10 +220,12 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
 
 function ComparisonColumn({
   title,
-  items
+  items,
+  topicSlug
 }: {
   title: string;
   items: Array<{ spanish: string; chinese: string; reason: string }>;
+  topicSlug: string;
 }) {
   return (
     <div className="rounded-xl border border-gray-100 bg-surface p-4 shadow-sm">
@@ -187,7 +233,18 @@ function ComparisonColumn({
       <div className="mt-4 space-y-4">
         {items.map((item) => (
           <div className="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0" key={item.spanish}>
-            <p className="text-base font-semibold text-gray-900">{item.spanish}</p>
+            <SpanishText
+              className="text-base font-semibold text-gray-900"
+              enableKeyboard={true}
+              source={{
+                type: "grammar",
+                url: `/grammar/${topicSlug}`,
+                topicSlug,
+                sentence: item.spanish
+              }}
+              text={item.spanish}
+              translation={item.chinese}
+            />
             <p className="mt-1 text-sm text-gray-500">{item.chinese}</p>
             <p className="mt-2 text-xs leading-5 text-gray-400">因为：{item.reason}</p>
           </div>

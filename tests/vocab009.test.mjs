@@ -64,3 +64,31 @@ test("VOCAB-009 Phase A leaves high-risk already validated readers untouched", a
   assert.match(dissect, /activePopover/);
   assert.match(dissect, /activeContent/);
 });
+
+test("VOCAB-009 Phase B wires SpanishText into only explicit grammar detail Spanish fields", async () => {
+  const detail = await readText("src/app/grammar/[slug]/page.tsx");
+
+  assert.match(detail, /import \{ SpanishText \} from "@\/app\/components\/vocab\/SpanishText"/);
+  assert.match(detail, /source=\{\{\s*type:\s*"grammar"/);
+  assert.match(detail, /topicSlug:\s*topic\.slug/);
+  assert.match(detail, /url:\s*`\/grammar\/\$\{topic\.slug\}`/);
+
+  assert.match(detail, /text=\{row\.pronoun\}/);
+  assert.match(detail, /text=\{row\.form\}/);
+  assert.match(detail, /text=\{example\.spanish\}/);
+  assert.match(detail, /text=\{item\.spanish\}/);
+  assert.match(detail, /interactionDensity="dense"/);
+  assert.match(detail, /enableKeyboard=\{true\}/);
+
+  assert.match(detail, /<p className="mt-3 text-base leading-7 text-gray-500">\{topic\.intro\}<\/p>/);
+  assert.match(detail, /<p className="mt-2 text-sm leading-7 text-gray-700">\{topic\.analogy\}<\/p>/);
+  assert.match(detail, /\{rule\}/);
+  assert.match(detail, /\{example\.chinese\}/);
+  assert.match(detail, /\{example\.reason\}/);
+});
+
+test("VOCAB-009 Phase B keeps the grammar list page out of SpanishText", async () => {
+  const list = await readText("src/app/grammar/page.tsx");
+
+  assert.doesNotMatch(list, /SpanishText/);
+});
