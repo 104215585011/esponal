@@ -129,23 +129,31 @@ relative_interrogative 关系/疑问词     que / quien / donde / cuando / cómo
 
 ```
 ┌──────────────────────────────────────────┐
-│ 第 N 天：[主题]                            │
+│ ← 返回 7 天总览                          │
+│ Day 3 / 7（极轻位置感小字 text-gray-400）│
+│ 第 3 天：[主题]                            │
 │                                          │
 │ ┌─ 引入（200-300 字） ────────────────┐  │
 │ │ 为什么这类词重要？英语里你已经认识的"对  │  │
 │ │ 应物"是什么？西语和英语的关键差异。    │  │
 │ └──────────────────────────────────────┘  │
 │                                          │
-│ ┌─ 对照表 ──────────────────────────────┐ │
-│ │ 西语 │ 英语 │ 中文 │ 一句例句         │ │
-│ │ ─────┼──────┼──────┼─────────────── │ │
-│ │ con  │ with │ 和   │ Café con leche  │ │
-│ │ ...  │ ...  │ ...  │ ...             │ │
+│ ┌─ 对照表（3 列 + 例句下挂） ────────┐  │
+│ │ 西语    │ 英语 │ 中文              │  │
+│ │ ───────┼──────┼─────────────────  │  │
+│ │ con    │ with │ 和                 │  │
+│ │   例句：Café con leche / 加奶咖啡   │  │
+│ │ ───────┼──────┼─────────────────  │  │
+│ │ a      │ to   │ 向/到/给           │  │
+│ │   例句：Voy a Madrid / 我去马德里   │  │
 │ └──────────────────────────────────────┘  │
+│ 移动端（<640px）：整张表改为卡片堆叠      │
 │                                          │
 │ ┌─ 西英差异详解（400-800 字） ────────┐  │
 │ │ por vs para / personal a 等特别要点  │  │
-│ │ 配 5-10 个对照例句                   │  │
+│ │ 配 5-10 个对照例句，用引用块样式：    │  │
+│ │   border-l-2 border-brand-200 pl-3   │  │
+│ │   3 行垂直堆叠（es/en/zh），不要表格 │  │
 │ └──────────────────────────────────────┘  │
 │                                          │
 │ ┌─ 真实使用（200-400 字） ────────────┐  │
@@ -153,11 +161,21 @@ relative_interrogative 关系/疑问词     que / quien / donde / cuando / cómo
 │ │ 真语料里的密度                       │  │
 │ └──────────────────────────────────────┘  │
 │                                          │
-│ [← 上一天]              [下一天 →]      │
+│ [← 上一天]   [↑ 返回总览]   [下一天 →]    │
+│ 三联导航（pill 按钮）                     │
+│ Day 1 无"上一天"占位；Day 7 无"下一天"占位│
 └──────────────────────────────────────────┘
 ```
 
+**对照表字号建议**：西语 `text-base font-semibold text-gray-900`、英语 `text-sm text-gray-500`、中文 `text-sm text-gray-700`（中文比英语稍重，照顾母语者）、例句 `text-sm italic text-gray-600`。
+
 **静态阅读为主**，无翻牌、无测验、无音频。本次故意保持简洁。
+
+### 详情页底部三联导航
+
+- 左：`← 返回总览`（href=`/learn/foundation`，复用 BackLink 组件）
+- 中：`上一天`（href=`/learn/foundation/day-{n-1}`，pill 按钮，灰底）；Day 1 时渲染占位 `<span>` 保布局对称
+- 右：`下一天`（href=`/learn/foundation/day-{n+1}`，pill 按钮，brand 底）；Day 7 时渲染占位
 
 ### 七天大纲
 
@@ -177,6 +195,40 @@ relative_interrogative 关系/疑问词     que / quien / donde / cuando / cómo
 
 简短引言（200 字）+ 7 天卡片网格（每张：第 N 天、主题、预计阅读时长 5-8 分钟）。点卡片进入详情。
 
+**网格布局**：`grid gap-4 sm:grid-cols-2 lg:grid-cols-3`。**Day 1 用 `lg:col-span-2`** 变成首图大卡，破解 7=3+3+1 的孤儿尴尬 + 强化"先从 Day 1 开始"的视觉序列。
+
+**卡片视觉**（纯文字，不用 emoji 图标 —— 易拉胯）：
+```jsx
+<Link className="group rounded-surface border border-gray-100 bg-surface p-6 shadow-card hover:border-brand-300 hover:shadow-elevated transition">
+  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">DAY {n}</p>
+  <h3 className="mt-2 text-xl font-semibold text-gray-900">主语代词与 ser/estar</h3>
+  <p className="mt-3 text-sm text-gray-500">涵盖 yo / tú / él... 8 个主语代词</p>
+  <p className="mt-4 text-xs text-gray-400">阅读约 6 分钟</p>
+</Link>
+```
+
+Day 1 大卡额外加 `<span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">推荐先读</span>` 标签。
+
+### `/learn` 入口 banner（不与已有 hero 打架）
+
+`/learn` 顶部已有 brand→lime gradient hero，不能再加 brand 色 banner（双 hero 冲突）。banner 放在 hero **下方**，用 **琥珀色温和卡片** 区分（琥珀暗示"基础/入门"）：
+
+```jsx
+<Link href="/learn/foundation"
+  className="mt-6 flex items-center gap-4 rounded-hero border border-amber-200 bg-amber-50/60 p-5 hover:border-amber-300 hover:shadow-card transition">
+  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-2xl">📖</span>
+  <div className="flex-1">
+    <p className="text-base font-semibold text-gray-900">新手起步 · 7 天讲透西语骨架词</p>
+    <p className="mt-0.5 text-sm text-gray-600">先认识 70 个高频功能词，再啃单元。每天 5-8 分钟。</p>
+  </div>
+  <span className="text-amber-700 font-medium">开始 →</span>
+</Link>
+```
+
+**移动端**：图标 + 标题一行，副标题换行到下方，"开始 →"沉到右下。
+
+**不做**："已读 0/7" 这种进度——违反"减少压迫感"，本票也明确不做进度跟踪。
+
 ---
 
 ## 3. 句子拆解器：`/dissect`
@@ -190,32 +242,52 @@ relative_interrogative 关系/疑问词     que / quien / donde / cuando / cómo
 
 ### 拆解输出形式
 
-```
-原句：
-  Yo me lavo las manos con agua fría todos los días.
+骨架词**不用整词背景色**（视觉太花），改用 **下划线 + 中文角标**：
 
-带标注的句子（颜色按 category 区分）：
-  [Yo]ᵖʳᵒⁿ [me]ʳᵉᶠˡ lavo [las]ᵃʳᵗ manos [con]ᵖʳᵉᵖ agua fría [todos]ᵈᵉᵐ [los]ᵃʳᵗ días.
-
-骨架词汇总：
-  Yo     | 主语代词 | I
-  me     | 反身代词 | myself
-  las    | 定冠词   | the
-  con    | 介词     | with
-  todos  | 指示/数量 | every
-  los    | 定冠词   | the
-
-真正的内容词（你需要认识的）：
-  lavo   | (动词，原形 lavar)
-  manos  | (名词)
-  agua   | (名词)
-  fría   | (形容词)
-  días   | (名词)
-
-统计：12 个词中 6 个是骨架词（50%），6 个是内容词
+```jsx
+<span className="border-b-2 border-blue-400 pb-0.5 cursor-pointer hover:bg-blue-50">
+  Yo<sup className="ml-0.5 text-[10px] text-blue-600 font-medium">代</sup>
+</span>
 ```
 
-每个骨架词可**点击展开**显示完整解释（来自 function-words.json 的 esEnContrast 字段）+ 跳转到对应天的课程链接。
+8 类降维到 **4 个聚合配色**（按语法功能聚合）：
+
+| 聚合类 | 含原始 category | 下划线色 | 角标文字 |
+|---|---|---|---|
+| **代词类** | subject_pronoun + reflexive + object_pronoun | `border-blue-400 text-blue-600` | 代 |
+| **限定类** | article_definite + article_indefinite + demonstrative + possessive | `border-amber-400 text-amber-600` | 限 |
+| **关系类** | preposition + conjunction | `border-emerald-400 text-emerald-600` | 介/连 |
+| **疑问/关系词** | relative_interrogative | `border-violet-400 text-violet-600` | 疑 |
+
+细分类信息保留在点击展开的 popover 顶部（如"反身代词"中文标签 + esEnContrast）。
+
+**内容词不灰化**——保持 `text-gray-900` 默认色。骨架词应该轻、内容词应该重，灰化内容词会反着传达"它不重要"。
+
+### 渲染示例
+
+```
+原句：Yo me lavo las manos con agua fría todos los días.
+
+渲染：Yo代 me代 lavo las限 manos con介 agua fría todos限 los限 días.
+     (下划线分别为蓝/蓝/_/琥珀/_/绿/_/_/琥珀/琥珀/_)
+
+底部统计：12 词 · 6 个骨架词 · 50%
+
+点击 Yo 弹 popover：
+┌────────────────────────┐
+│ Yo  主语代词           │
+│ ≈ English "I"          │
+│ 第一人称单数主格         │
+│ 西语经常省略，强调时才用  │
+│ → 详见 Day 1 课程       │
+└────────────────────────┘
+```
+
+每个骨架词 popover 必含 `→ 详见 Day N` 跳转链接（拆解器和七天课的关键桥梁，**不要漏**）。
+
+### 默认占位拆解
+
+页面首次打开时，输入框已填占位例句（"Yo me lavo las manos con agua fría todos los días."），下方**直接渲染拆解结果**——用户一进来就看到"拆解长什么样"，不需要等点按钮。
 
 ### 实现
 
@@ -223,6 +295,9 @@ relative_interrogative 关系/疑问词     que / quien / donde / cuando / cómo
 - 解析：纯前端 JS，`tokenize(text)` → `for each token: lookup in dict` → 渲染
 - 不需要 AI、不需要 API 调用、不需要服务端
 - 标点处理：保留但不参与拆解；引号/破折号等 normalize
+- **输入框**：`<textarea>` 多行（min-h-[96px]，2-4 行），`rounded-2xl border bg-surface`；不要用单行 rounded-full 搜索框样式（长句子会横向滚动）
+- **拆解按钮**：主按钮 brand 色 `bg-brand-600 hover:bg-brand-700 text-white rounded-full px-6 py-2.5`
+- **容器宽度**：`max-w-3xl mx-auto`（约 768px），与 `/grammar/[slug]` 阅读型工具一致。**不要用 `max-w-app-shell`**（1536px），那么宽下文字行长 200+ 字符无法阅读
 
 ### 性能
 
@@ -230,22 +305,15 @@ relative_interrogative 关系/疑问词     que / quien / donde / cuando / cómo
 
 ---
 
-## 4. 视觉设计参考
+## 4. 视觉设计参考（已过 Claude2 评审 2026-05-21）
 
-`/dissect` 沿用现有设计令牌：
-- 容器：`max-w-app-shell`（WEB-015）
-- 输入框：参考 SiteHeader 搜索框风格（`rounded-full border border-gray-200 focus:ring-brand`）
-- 类别颜色（建议）：
-  - 主语代词 `bg-blue-50 text-blue-700`
-  - 反身 `bg-purple-50 text-purple-700`
-  - 冠词 `bg-amber-50 text-amber-700`
-  - 介词 `bg-emerald-50 text-emerald-700`
-  - 连词 `bg-rose-50 text-rose-700`
-  - 指示词 `bg-cyan-50 text-cyan-700`
-  - 所有词 `bg-fuchsia-50 text-fuchsia-700`
-  - 关系/疑问 `bg-violet-50 text-violet-700`
+详细视觉规格已分别写入第 2 节（课程页）和第 3 节（拆解器）。
 
-**必须先过 Claude2 评审** UI 部分（拆解器视觉 + 课程页排版）。
+核心要点：
+- `/dissect` 用 `max-w-3xl`（不是 app-shell），输入框是 textarea，骨架词用下划线+中文角标（不用整词背景色），8 类聚合为 4 个聚合色
+- 七天课用 3 列对照表 + 例句下挂（不是 4 列），西英差异详解用引用块（不用第二张表）
+- `/learn` banner 用琥珀色卡片放在 hero 下方（不与现有 brand hero 打架）
+- 总览页 Day 1 用 col-span-2 大卡 + "推荐先读" 标签
 
 七天课页面参考现有 `/grammar/[slug]` 风格（`max-w-3xl` 阅读宽度 + 中文长文 + 内嵌对照表）。
 
@@ -286,14 +354,20 @@ Phase 2 和 Phase 3 可并行（共享 Phase 1 数据），但发版时打包发
 | 2 | 每条 entry 必含 6 字段：category（枚举内）/ english / chinese（数组）/ examples（≥2 条）/ esEnContrast / frequencyRank |
 | 3 | `scripts/validate-function-words.mjs` 存在，验证数据完整性，作为 npm test 的一部分 |
 | 4 | `/dissect` 页面存在，输入框 + 拆解按钮 + 输出区 + 占位例句 |
-| 5 | 拆解器正确识别"Yo me lavo las manos con agua fría"中的 4 个骨架词 |
-| 6 | 每个骨架词带 category 颜色 + 可点击展开显示 esEnContrast |
-| 7 | 拆解器输出底部含统计："X 个词中 Y 个骨架词（Y/X%）" |
+| 5 | 拆解器正确识别"Yo me lavo las manos con agua fría"中的 ≥4 个骨架词 |
+| 6 | 每个骨架词带聚合类下划线+中文角标（**不是**整词背景色），可点击弹 popover 显示 esEnContrast + "→ 详见 Day N" 跳转链接 |
+| 7 | 拆解器输出底部含统计 `12 词 · 6 个骨架词 · 50%` 这种轻量摘要（不要 progress bar / 大数字） |
+| 7b | 拆解器页面首次打开**默认显示占位例句的拆解结果**（用户无需点按钮就能看到效果） |
+| 7c | 拆解器容器 `max-w-3xl mx-auto`，**不是** `max-w-app-shell` |
+| 7d | 拆解器输入框是 `<textarea>`，**不是**单行 input |
 | 8 | `/learn/foundation` 总览页存在，7 张卡片含天/主题/时长 |
 | 9 | `/learn/foundation/[day]` 1-7 全部存在，每页含引入 / 对照表 / 西英差异 / 真实使用四部分 |
-| 10 | 每天内容 ≥800 中文字（不含表格和例句），单元间有上/下天导航 |
-| 11 | `/learn` 顶部含"新手起步 7 天"banner，点击跳转 `/learn/foundation` |
-| 12 | UI 视觉过 Claude2 评审（拆解器 + 课程页） |
+| 10 | 每天内容 ≥800 中文字（不含表格和例句），底部含**三联导航**（返回总览 + 上一天 + 下一天，首尾天有占位） |
+| 10b | 对照表 3 列（西/英/中）+ 例句下挂；西英差异详解用引用块（border-l-2 border-brand-200 pl-3），不再用表格 |
+| 10c | 详情页顶部含"Day N / 7" 极轻位置感小字（text-sm text-gray-400），不要 progress bar |
+| 11 | `/learn` 顶部 hero **下方**含琥珀色 banner（border-amber-200 bg-amber-50/60，不与 brand hero 冲突），点击跳转 `/learn/foundation` |
+| 11b | `/learn/foundation` 总览页 Day 1 用 `lg:col-span-2` 大卡 + "推荐先读" 琥珀色 pill 标签 |
+| 12 | UI 视觉评审已通过（本 ticket 第 4 节有评审记录） |
 | 13 | `npm test` 通过，`npm run build` 通过 |
 
 ---
