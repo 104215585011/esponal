@@ -801,5 +801,26 @@
     ],
     "evidence": "Codex1 Dev 2026-05-21 15:24: Phase 1 dictionary (83 entries). PM QC 2026-05-22 (e5ad0a4): 95 entries, 3 new categories (indefinite_pronoun/quantifier/adverb_function), validator synced. Codex1 Dev 2026-05-22 10:15: Phase 2 /dissect complete. Added src/lib/functionWords.ts with 6-group aggregation (blue pronoun, indigo object_pronoun, amber limiter, emerald prep/conj, violet relative, slate adverb_function), src/app/dissect/page.tsx + DissectorClient.tsx + tokenize.ts with textarea, default live dissection, underline+badge rendering, popover with esEnContrast and Day N links, and summary stats. TDD: course005 Phase 2 tests failed before implementation; after: node --test tests/course005.test.mjs 8/8; npm test 185/185; npm run lint:encoding passed; npm run build passed with /dissect route. Phase 3 (/learn/foundation) not started. COURSE-005 remains in_progress. Codex1 Dev 2026-05-21 20:46: Phase 3 /learn/foundation complete. Added src/content/foundation.ts with 7 Chinese reading lessons, overview route /learn/foundation, day route /learn/foundation/day-1..day-7 with intro/comparison/contrast/usage sections and tri-link nav, plus amber /learn banner below hero. TDD: Phase 3 tests failed before implementation on missing content/routes/banner; after: node --test tests/course005.test.mjs 12/12; npm run lint:encoding passed; npm test 189/189; npm run build passed with existing <img> and Sentry warnings. COURSE-005 remains in_progress pending PM readthrough of 7-day content before ready_for_qa.",
     "notes": "Ticket: docs/tickets/COURSE-005.md。PM 教学洞察：从英语过来学西语的人无需被当成完全零基础对待，先把\"功能词\"骨架剥离讲清楚，用英语对照打底，效率比直接当词汇硬记高数倍。设计决定：(1) C+D 组合 - 七天课建立认知 + 拆解器即时验证；(2) 共享 function-words.json 词典数据源用 Wiktionary (CC-BY-SA)，不用 AI 自由生成防杜撰；(3) 课程纯静态阅读不加测验/翻牌/音频；(4) 中文长文讲解 800-1500 字/节。分 3 期 - 词典 → 拆解器 → 七天课。Codex1 不熟西语就保留 TODO 等 PM 校对。 Phase 1 contains TODO markers for por/para, aunque/subjunctive, and qu?/cu?l where PM grammar wording should be checked before publishing. Phase 3 content is implemented but should be read by PM before moving COURSE-005 to ready_for_qa, per ticket requirement."
+  },
+  {
+    "id": "VOCAB-009",
+    "priority": 46,
+    "area": "vocabulary",
+    "title": "全站西语文本统一可点查词",
+    "user_visible_behavior": "所有页面（语法、骨架词课、拆解器、未来新页面）显示的西语词都可点击触发查词卡，行为和 Lectura 阅读页一致；已学词带深灰虚线下划线（VOCAB-008）。",
+    "status": "backlog",
+    "verification": [
+      "src/app/components/vocab/SpanishText.tsx 新建并被多处调用",
+      "LookupCard LookupSource 类型扩展含 dissect 与 grammar",
+      "CourseLookupText.tsx 删除，所有调用方迁移到 SpanishText",
+      "/grammar/[slug] 与 /grammar 列表的西语示例可点查词",
+      "/learn/foundation/[day] contrastBlocks 改对象数组并渲染时用 SpanishText",
+      "/api/vocab/add 接受 dissect 和 grammar sourceType",
+      "已学词 .saved-word 下划线在所有接入点正确显示",
+      "UI 视觉过 Claude2 评审",
+      "npm test + npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。分 3 阶段 - Phase A 基础抽取 + 迁移现有 3 调用方 / Phase B 接入 grammar / Phase C 改 foundation contrastBlocks 数据结构。先过 Claude2 UI 评审再派 Codex1。"
   }
 ]
