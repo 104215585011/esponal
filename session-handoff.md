@@ -139,6 +139,52 @@
 - Keep `feature_list.json` status as `ready_for_qa`.
 - Codex1 should add the production Esponal URL content-script match and host permission for `dist/esponal-site.js`, ideally sourced from the same deployment origin contract used to build the extension, then resubmit EXT-008 for QA.
 
+---
+
+## QA Report: WEB-014 detail-page BackLink
+**Time**: 2026-05-20 16:31
+**Tester**: Codex2
+
+**Conclusion**: Passed. WEB-014 is verified and marked passing.
+
+**Verification executed**:
+1. Encoding check
+   Command: npm run lint:encoding
+   Output: Encoding check passed
+   Result: pass
+2. Focused WEB-014 test
+   Command: node --test tests/web014.test.mjs
+   Output: tests 6, pass 6, fail 0
+   Result: pass
+3. Regression chain
+   Command: node --test tests/web014.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/read001.test.mjs
+   Output: tests 20, pass 20, fail 0
+   Result: pass
+4. Full suite
+   Command: npm test
+   Output: tests 165, pass 165, fail 0
+   Result: pass
+5. Production build
+   Command: npm run build
+   Output: compiled successfully, generated 48 static pages, route table emitted
+   Result: pass; warnings are existing <img> lint warnings and Sentry instrumentation warnings
+6. Accessibility check
+   Command: node -e "const fs=require('fs'); const src=fs.readFileSync('src/app/components/web/BackLink.tsx','utf8'); console.log('aria-label present:', /aria-label/.test(src)); console.log('aria-hidden present:', /aria-hidden/.test(src));"
+   Output: aria-label present: true; aria-hidden present: true
+   Result: pass
+
+**Source contract checks**:
+- `src/app/components/web/BackLink.tsx` exports `BackLink({ href, label })` and contains `text-gray-600`, `hover:text-gray-900`, `min-h-[44px]`, `aria-label`, `focus-visible:ring-2`, `mb-2`, and `data-testid="back-link"`.
+- Detail pages map correctly: `/lectura/[slug] -> /lectura 阅读`, `/learn/[slug] -> /learn 课程`, `/watch -> / 视频`, `/vocab/review -> /vocab 词库`, `/grammar/[slug] -> /grammar 语法`.
+- Legacy return links are removed: no `返回 Lectura` in `src/app/lectura/[slug]/page.tsx`; no old return string in `src/app/grammar/[slug]/page.tsx`.
+- List pages do not import BackLink: `src/app/vocab/page.tsx`, `src/app/learn/page.tsx`, `src/app/lectura/page.tsx`, and `src/app/grammar/page.tsx`.
+
+**Handoff**:
+- Updated `feature_list.json`: `WEB-014.status = passing` with QA evidence.
+- No push performed.
+
+---
+
 ## Dev Report: WEB-014 detail-page BackLink
 **Time**: 2026-05-20 16:16
 **Developer**: Codex1
