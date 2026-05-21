@@ -9,7 +9,7 @@ export default function LearnOverviewPage() {
   return (
     <main className="min-h-screen bg-app text-gray-900">
       <SiteHeader />
-      <div className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-app-shell px-4 py-10 sm:px-6 lg:px-8">
         <section className="rounded-hero bg-gradient-to-br from-brand-600 via-brand-500 to-lime-400 px-6 py-8 text-white shadow-hero sm:px-8">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-100">
             Esponal Curriculum

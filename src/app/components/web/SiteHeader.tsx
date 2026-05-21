@@ -28,7 +28,7 @@ export async function SiteHeader({
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-surface shadow-card">
-      <div className="mx-auto flex h-16 w-full max-w-screen-xl items-center gap-4 px-4">
+      <div className="mx-auto flex h-16 w-full max-w-app-shell items-center gap-4 px-4">
         <Link className="flex shrink-0 items-center gap-2" href="/">
           <span className="flex h-8 w-8 items-center justify-center rounded-card bg-brand-500 text-sm font-semibold text-white">
             E

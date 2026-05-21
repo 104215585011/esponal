@@ -38,7 +38,7 @@ export default function UnitDetailPage({ params }: UnitDetailPageProps) {
   return (
     <main className="min-h-screen bg-app text-gray-900">
       <SiteHeader />
-      <div className="mx-auto flex max-w-screen-xl gap-8 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-app-shell gap-8 px-4 py-8 sm:px-6 lg:px-8">
         <aside className="sticky top-24 hidden h-fit w-56 shrink-0 rounded-hero border border-brand-100 bg-surface p-5 shadow-card lg:block">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-600">
             Unidad {unit.number}

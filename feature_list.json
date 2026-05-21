@@ -760,5 +760,25 @@
     ],
     "evidence": "Codex1 Dev + PM production E2E summary: base EXT-008 delivered extension harvester and /watch fallback; FIX commit bcf5b0a switched from direct track.baseUrl fetch to MAIN-world hook-timedtext capture of YouTube /api/timedtext via fetch/XHR; FIX2 commit 85093a2 added ingest OPTIONS/CORS headers and production preflight + YouTube ingest E2E; FIX3 commits 2c7c6a8/fbd3583 added strict isSpanishLang, capturedVideoId guard, removed normalizeLang non-es coercion, and made token ingest overwrite polluted cache; production E2E recorded in b0e5c28 observed non-target en/ar timedtext rejected, target v=1A9kpjdYJUg lang=es ingest 200 with cueCount 808 written true, and /api/subtitle returned Spanish cues beginning ¿Cómo cambió tu vida aprender español?. Codex2 final QA 2026-05-21 14:11: source contract verified hook-timedtext.js hooks fetch + XHR and matches /api/timedtext; background.js injects dist/hook-timedtext.js with chrome.scripting.executeScript world MAIN; harvest.js has no fetch(track.baseUrl), has strict isSpanishLang/langParam and capturedVideoId=current video guard, and no normalizeLang coercion; ingest route has OPTIONS, four CORS headers, all JSON responses via CORS helper, no redis.get/write-once written:false path. Commands passed: npm run lint:encoding (Encoding check passed); node --test tests/ext008.test.mjs tests/extension.test.mjs (12/12); node --test tests/ext008.test.mjs tests/extension.test.mjs tests/web004.test.mjs (14/14); npm test (173/173); npm run build (compiled successfully, only existing <img> and Sentry warnings). Production probes passed: OPTIONS https://esponalsssssss.vercel.app/api/subtitle/ingest from Origin https://www.youtube.com returned 204 with Access-Control-Allow-Origin *, Allow-Methods POST, OPTIONS, Allow-Headers Content-Type, X-Esponal-Ingest-Token, Max-Age 86400; GET https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es returned 200 and first 300 chars include Spanish text ¿Cómo cambió tu vida aprender español?.",
     "notes": "Ticket: docs/tickets/EXT-008.md。背景：HAR 分析确认 Eudic 西语助手字幕质量好的本质是浏览器内带 PO Token 抓 timedtext；服务器端 PO Token spike 测试证明对教学类视频普遍返回 LOGIN_REQUIRED 不可行；用户安装扩展 + 浏览 YouTube 时自动采集是唯一稳定路径。三个 PM 决策：(1) 保留 ingest token 视作垃圾流量过滤；(2) /watch 三段式 fallback Redis → Apify → 提示；(3) 扩展在任意 youtube.com/watch* 自动触发只采集 es-* 轨道。不复活 EXT-007 Playwright 批量预采集（Chrome 138+ 限制依然存在）。流程：先过 Claude2 UI 评审再给 Codex1。"
+  },
+  {
+    "id": "WEB-015",
+    "priority": 45,
+    "area": "web",
+    "title": "App shell width token and 1920px alignment",
+    "user_visible_behavior": "On wide desktop screens, SiteHeader and primary app pages share the same 96rem app-shell width so header and content align without breaking the immersive /watch layout.",
+    "status": "ready_for_qa",
+    "verification": [
+      "tailwind.config.ts exposes maxWidth app-shell = 96rem",
+      "SiteHeader, home, learn, learn detail, lectura list, extension, and watch inner shell use max-w-app-shell instead of max-w-screen-xl",
+      "/watch keeps the outer main full-screen and constrains only the inner lg:flex-row shell",
+      "/grammar, /grammar/[slug], /lectura/[slug], and /learn/phase-1 keep their intentional narrow reading widths",
+      "node --test tests/web015.test.mjs passes",
+      "npm test passes",
+      "npm run build passes",
+      "1920px regression checked for /, /watch, /extension, /learn, and /lectura"
+    ],
+    "evidence": "Codex1 Dev 2026-05-21 14:31: implemented WEB-015 app shell width token. Added Tailwind maxWidth token app-shell=96rem, migrated SiteHeader and target app shells to max-w-app-shell, and constrained /watch only on the inner lg:flex-row shell while keeping the outer main bg-app lg:h-screen lg:overflow-hidden. Added tests/web015.test.mjs with TDD red/green coverage for the token, target shell pages, /watch inner/outer contract, and narrow reading-page regressions. TDD red: node --test tests/web015.test.mjs failed 3/4 before implementation. Verification passed: npm run lint:encoding (Encoding check passed); node --test tests/web015.test.mjs (4/4); npm test (177/177); npm run build (compiled successfully; existing <img> and Sentry warnings only). 1920px regression via Playwright on dev server port 3001: /, /watch?v=1A9kpjdYJUg, /extension, /learn, and /lectura all had header/content bounds left 192 right 1728 width 1536, scrollWidth=clientWidth=1920, and no horizontal scroll; card grids remained multi-column and non-collapsed.",
+    "notes": "Ticket: docs/tickets/WEB-015.md. Claude2 UI review approved semantic token app-shell, /watch inner-shell-only handling, and preserving narrow reading pages. /search retains max-w-screen-xl because it is outside the WEB-015 target file list."
   }
 ]

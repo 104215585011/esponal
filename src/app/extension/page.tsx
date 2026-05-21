@@ -50,7 +50,7 @@ export default function ExtensionPage() {
     <main className="min-h-screen bg-app">
       <SiteHeader />
       <section className="bg-surface">
-        <div className="mx-auto w-full max-w-screen-xl px-4 py-10 sm:py-14">
+        <div className="mx-auto w-full max-w-app-shell px-4 py-10 sm:py-14">
           <div className="overflow-hidden rounded-hero bg-gradient-to-br from-brand-50 via-white to-surface px-6 py-10 shadow-hero sm:px-10 sm:py-16">
             <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
               <div>
@@ -107,7 +107,7 @@ export default function ExtensionPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-screen-xl px-4 py-10">
+      <section className="mx-auto w-full max-w-app-shell px-4 py-10">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {features.map((feature) => (
             <div className="rounded-card bg-surface p-6 shadow-card" key={feature.title}>
@@ -119,7 +119,7 @@ export default function ExtensionPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-screen-xl px-4 py-8">
+      <section className="mx-auto w-full max-w-app-shell px-4 py-8">
         <div className="rounded-hero bg-surface px-6 py-8 shadow-card sm:px-8">
           <h2 className="text-2xl font-bold text-gray-950">安装步骤</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -135,7 +135,7 @@ export default function ExtensionPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-screen-xl px-4 py-10">
+      <section className="mx-auto w-full max-w-app-shell px-4 py-10">
         <div className="rounded-hero bg-surface px-6 py-8 shadow-card sm:px-8">
           <h2 className="text-2xl font-bold text-gray-950">FAQ</h2>
           <div className="mt-5 divide-y divide-gray-100">

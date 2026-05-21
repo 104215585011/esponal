@@ -27,6 +27,30 @@
 
 ## 会话记录
 
+### Session #WEB-015 - 2026-05-21
+
+**Goal**: Fix the 1920px visual width discontinuity between SiteHeader and primary app content by introducing a semantic app-shell max-width token.
+
+**Completed**:
+- Added Tailwind `maxWidth["app-shell"] = "96rem"`.
+- Migrated SiteHeader, home, learn overview, learn detail, lectura list, and extension app-shell containers to `max-w-app-shell`.
+- Updated `/watch` only on the inner two-column `lg:flex-row` shell with `mx-auto w-full max-w-app-shell`; the outer `main` keeps `bg-app lg:h-screen lg:overflow-hidden`.
+- Preserved narrow reading layouts: grammar pages keep `max-w-5xl`, lectura detail and phase-1 keep `max-w-3xl`.
+- Added `tests/web015.test.mjs` covering the token, target page contracts, `/watch` inner/outer handling, and narrow-page regressions.
+- Added WEB-015 to `feature_list.json` as `ready_for_qa`.
+
+**Verification**:
+- Baseline `npm test`: 173/173 pass.
+- TDD red: `node --test tests/web015.test.mjs` failed 3/4 before implementation for the expected missing token/classes.
+- `npm run lint:encoding`: pass.
+- `node --test tests/web015.test.mjs`: 4/4 pass.
+- `npm test`: 177/177 pass.
+- `npm run build`: pass; existing `<img>` and Sentry warnings only.
+- 1920px Playwright regression on `/`, `/watch?v=1A9kpjdYJUg`, `/extension`, `/learn`, and `/lectura`: all target pages measured header/content left 192, right 1728, width 1536; no horizontal scroll; grids remained non-collapsed.
+
+**Next**:
+- Codex2 QA should verify WEB-015, then hand to Claude2 for final UI acceptance.
+
 ### 会话 #EXT-008-FIX3 — 2026-05-21
 
 **本轮目标**：修复 EXT-008 字幕缓存污染：非西语 timedtext 被强制归到 `es`，且 write-once 导致污染缓存无法自愈。

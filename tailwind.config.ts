@@ -33,6 +33,9 @@ const config: Config = {
         card: "0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.06)",
         elevated: "0 4px 12px rgba(0,0,0,0.07), 0 8px 24px rgba(0,0,0,0.08)",
         hero: "0 4px 6px -1px rgba(0,0,0,0.07), 0 24px 60px -8px rgba(0,0,0,0.12)"
+      },
+      maxWidth: {
+        "app-shell": "96rem"
       }
     }
   },

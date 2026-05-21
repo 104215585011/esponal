@@ -1,3 +1,64 @@
+## Dev Report: WEB-015 app-shell width alignment
+**Time**: 2026-05-21 14:31
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA and Claude2 UI review. WEB-015 is `ready_for_qa`; Codex1 does not mark UI work `passing`.
+
+**Changed files**:
+- tailwind.config.ts
+- src/app/components/web/SiteHeader.tsx
+- src/app/page.tsx
+- src/app/learn/page.tsx
+- src/app/learn/[slug]/page.tsx
+- src/app/lectura/page.tsx
+- src/app/extension/page.tsx
+- src/app/watch/page.tsx
+- tests/web015.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added Tailwind design token `maxWidth["app-shell"] = "96rem"`.
+- Replaced target app-shell containers from `max-w-screen-xl` to `max-w-app-shell` in SiteHeader, homepage, learn overview, learn detail, lectura list, and extension landing sections.
+- Updated `/watch` only on the inner `lg:flex-row` two-column shell with `mx-auto w-full max-w-app-shell`; the outer `<main className="bg-app lg:h-screen lg:overflow-hidden">` remains unconstrained.
+- Preserved intentional reading widths: `/grammar` and `/grammar/[slug]` keep `max-w-5xl`; `/lectura/[slug]` and `/learn/phase-1` keep `max-w-3xl`.
+- `/search` still has `max-w-screen-xl`; it is outside the WEB-015 ticket file list.
+
+**Verification executed**:
+1. Baseline full suite before changes
+   Command: `npm test`
+   Result: pass, `tests 173`, `pass 173`, `fail 0`
+2. TDD red check
+   Command: `node --test tests/web015.test.mjs`
+   Result before implementation: failed 3/4 on missing `app-shell` token, target containers still using `max-w-screen-xl`, and `/watch` inner shell missing `mx-auto w-full max-w-app-shell`
+3. Focused WEB-015 test
+   Command: `node --test tests/web015.test.mjs`
+   Result after implementation: pass, `tests 4`, `pass 4`, `fail 0`
+4. Encoding check
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+5. Full suite
+   Command: `npm test`
+   Result: pass, `tests 177`, `pass 177`, `fail 0`
+6. Production build
+   Command: `npm run build`
+   Result: pass; existing warnings only: two `<img>` warnings and Sentry instrumentation migration notices
+7. Local dev server
+   Command: `npm run dev -- -p 3001` with `NODE_OPTIONS=--use-env-proxy`
+   Result: `/api/health` returned `{"ok":true,"service":"espanol-learning-platform"}`
+
+**1920px visual regression**:
+- Screenshots/metrics were generated under ignored `.qa/web015/`.
+- `/`: header/content left `192`, right `1728`, width `1536`; no horizontal scroll; video card rail remained stable.
+- `/watch?v=1A9kpjdYJUg`: header/inner shell left `192`, right `1728`, width `1536`; outer main still full-screen; no horizontal scroll.
+- `/extension`: header/content left `192`, right `1728`, width `1536`; hero/features grids remained multi-column.
+- `/learn`: header/content left `192`, right `1728`, width `1536`; unit cards remained a 3-column desktop grid.
+- `/lectura`: header/content left `192`, right `1728`, width `1536`; story cards remained a 3-column desktop grid.
+
+**Next step**:
+- Codex2 should run the WEB-015 QA commands and source contract checks, then hand to Claude2 for final UI review because this is a UI ticket.
+
 ## QA Report: EXT-008 final subtitle harvest flow
 **Time**: 2026-05-21 14:11
 **Tester**: Codex2

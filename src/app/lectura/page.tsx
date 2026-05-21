@@ -14,7 +14,7 @@ export default function LecturaIndexPage() {
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
-      <section className="mx-auto max-w-screen-xl px-4 py-10">
+      <section className="mx-auto max-w-app-shell px-4 py-10">
         <header className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
             Lectura · 西语短文阅读

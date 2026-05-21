@@ -72,7 +72,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
-      <div className="mx-auto w-full max-w-screen-xl px-4 pb-12 pt-6">
+      <div className="mx-auto w-full max-w-app-shell px-4 pb-12 pt-6">
         {!session?.user ? <HomeHero /> : null}
         {session?.user ? (
           <ContinueLearning
