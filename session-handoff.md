@@ -38,11 +38,16 @@
 5. Production build
    Command: `npm run build`
    Result: pass; existing `<img>` and Sentry warnings remain unchanged
+6. Production OPTIONS probe after push
+   Command: Node fetch to `https://esponalsssssss.vercel.app/api/subtitle/ingest` with YouTube preflight headers
+   Result: pass, status 204, `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, OPTIONS`, `Access-Control-Allow-Headers: Content-Type, X-Esponal-Ingest-Token`, `Access-Control-Max-Age: 86400`
+7. Chrome/YouTube E2E after push
+   Setup: Chrome launched with remote debugging and local extension loaded from `C:\Users\wang\esponal\extension`
+   Result: pass. YouTube `/api/timedtext` returned 200; `/api/subtitle/ingest` returned 200 with `Access-Control-Allow-Origin: *` and body `{"success":true,"cueCount":19,"written":true}`. No ingest request failures observed.
 
-**Still required after push/deploy**:
-- Push to `origin/main` so Vercel deploys the CORS route.
-- Rebuild/repackage the extension with production `EXT_INGEST_TOKEN` and `ESPONAL_APP_ORIGIN`.
-- Install/reload in Chrome, open `https://www.youtube.com/watch?v=1A9kpjdYJUg`, enable CC, play briefly, and verify Network `ingest` shows POST 200 with response containing `cueCount`.
+**Notes**:
+- Console still showed unrelated legacy EXT-002 localhost CORS warnings for `http://localhost:3000/api/translate` and `/api/vocab/highlight` from `content.js`; those are not `/api/subtitle/ingest` and did not block EXT-008 harvesting.
+- EXT-008 remains `ready_for_qa`; PM/Codex2 can decide whether to move it to `passing`.
 
 ## Dev Report: EXT-008-FIX YouTube PO Token timedtext hook
 **Time**: 2026-05-21 09:45

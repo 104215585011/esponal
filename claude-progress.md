@@ -46,7 +46,9 @@
 - `npm run build`：通过；仅既有 `<img>`、Sentry 警告。
 
 **后续必须验证**：
-- push 到 `origin/main` 后等 Vercel 部署，重新真机打开 YouTube 验证 Network `POST /api/subtitle/ingest` 为 200 且 response 含 `cueCount`。
+- 已 push 到 `origin/main`，生产 OPTIONS preflight 验证通过：204 + CORS headers。
+- Chrome remote debugging + 本地扩展真机验证通过：YouTube `/api/timedtext` 200，`/api/subtitle/ingest` POST 200，response `{"success":true,"cueCount":19,"written":true}`。
+- 仍可见旧 EXT-002 content.js 对 localhost translate/highlight 的 CORS warning，但不影响 EXT-008 ingest。
 
 ### 会话 #EXT-008-FIX — 2026-05-21
 
