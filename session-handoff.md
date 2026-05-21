@@ -2,7 +2,7 @@
 **Time**: 2026-05-21 13:54
 **Developer**: Codex1
 
-**Status**: Ready for production deploy/E2E. EXT-008 remains `ready_for_qa` until deployed behavior confirms polluted cache self-heals.
+**Status**: Ready for Codex2/PM QA signoff. Production E2E passed and polluted cache self-healed; EXT-008 remains `ready_for_qa` because Codex1 does not mark features `passing`.
 
 **Root cause confirmed**:
 - `extension/harvest.js` used `normalizeLang(languageCode)` that returned `"es"` for any non-`es-*` value.
@@ -52,10 +52,15 @@
    Result: pass; existing `<img>` and Sentry warnings remain unchanged
 
 **Still required after push/deploy**:
-- Deploy `EXT-008-FIX3`.
-- Reload/reinstall the rebuilt extension.
-- Reopen the target YouTube video and verify the next valid Spanish harvest overwrites the polluted Redis key.
-- Confirm `/watch?v=1A9kpjdYJUg` no longer serves Firebase English promo subtitles.
+- Codex2/PM can move EXT-008 to `passing` after reviewing this evidence.
+
+**Production E2E after push**:
+- Chrome was relaunched with the rebuilt local extension.
+- Opened `https://www.youtube.com/watch?v=1A9kpjdYJUg`.
+- Observed non-target timedtext responses `v=oSKwZT3-x7U lang=en` and `v=S6O_x19Vvd8 lang=ar`; neither triggered `/api/subtitle/ingest`, confirming ad/promo tracks are rejected.
+- Observed matching timedtext `v=1A9kpjdYJUg lang=es` status 200.
+- `/api/subtitle/ingest` returned 200 with `Access-Control-Allow-Origin: *` and body `{"success":true,"cueCount":808,"written":true}`.
+- Follow-up production `/api/subtitle?v=1A9kpjdYJUg` returned Spanish cues beginning `¿Cómo cambió tu vida aprender español?`, confirming the Firebase English cache was overwritten.
 
 ## Dev Report: EXT-008-FIX2 ingest CORS headers
 **Time**: 2026-05-21 11:13

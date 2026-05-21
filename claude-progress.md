@@ -49,8 +49,10 @@
 - `npm run build`：通过；仅既有 `<img>`、Sentry 警告。
 
 **后续必须验证**：
-- push/deploy 后重新装载扩展，让正确西语字幕覆盖被污染的 Redis key。
-- 验证 `/watch?v=1A9kpjdYJUg` 不再返回 Firebase 英语 promo 字幕。
+- 已 push/deploy 后重新装载扩展完成生产 E2E。
+- 非目标 timedtext `v=oSKwZT3-x7U lang=en`、`v=S6O_x19Vvd8 lang=ar` 没有触发 ingest。
+- 目标 timedtext `v=1A9kpjdYJUg lang=es` 触发 `/api/subtitle/ingest` 200，response `{"success":true,"cueCount":808,"written":true}`。
+- `/api/subtitle?v=1A9kpjdYJUg` 返回西语 cues，开头为 `¿Cómo cambió tu vida aprender español?`，污染缓存已覆盖。
 
 ### 会话 #EXT-008-FIX2 — 2026-05-21
 
