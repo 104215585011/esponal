@@ -2,92 +2,2068 @@
   "_meta": {
     "source": "Wiktionary (https://en.wiktionary.org)",
     "license": "CC-BY-SA 3.0",
-    "lastUpdated": "2026-05-21",
-    "notes": "Phase 1 hand-curated Spanish function-word starter dictionary for COURSE-005. Definitions and part-of-speech categories are checked against Wiktionary-style public lexical descriptions; examples and Chinese explanations are original Esponal teaching text for PM review."
+    "lastUpdated": "2026-05-22",
+    "notes": "Phase 1 hand-curated Spanish function-word starter dictionary for COURSE-005. Definitions and part-of-speech categories are checked against Wiktionary-style public lexical descriptions; examples and Chinese explanations are original Esponal teaching text reviewed by PM. v2 (2026-05-22): PM QC pass — fixed 9 translations, expanded por/para/cuál contrasts, added 12 entries across 3 new categories (indefinite_pronoun, quantifier, adverb_function)."
   },
   "entries": {
-    "yo": {"category":"subject_pronoun","english":"I","chinese":["我"],"examples":[{"es":"Yo estudio español.","en":"I study Spanish.","zh":"我学习西班牙语。"},{"es":"Yo vivo en China.","en":"I live in China.","zh":"我住在中国。"}],"esEnContrast":"英语通常必须说 I；西语动词变位已经带人称，yo 常可省略，用出来时多半是强调“我”。","frequencyRank":1},
-    "tú": {"category":"subject_pronoun","english":"you, informal singular","chinese":["你"],"examples":[{"es":"Tú hablas muy bien.","en":"You speak very well.","zh":"你说得很好。"},{"es":"¿Tú eres Ana?","en":"Are you Ana?","zh":"你是 Ana 吗？"}],"esEnContrast":"tú 是熟人、同辈、孩子之间的 you；英语没有正式/非正式 you 的区别。","frequencyRank":2},
-    "él": {"category":"subject_pronoun","english":"he","chinese":["他"],"examples":[{"es":"Él trabaja hoy.","en":"He works today.","zh":"他今天工作。"},{"es":"Él es mi amigo.","en":"He is my friend.","zh":"他是我的朋友。"}],"esEnContrast":"él 带重音，和冠词 el 区分；英语 he 不需要靠重音和冠词区分。","frequencyRank":3},
-    "ella": {"category":"subject_pronoun","english":"she","chinese":["她"],"examples":[{"es":"Ella aprende rápido.","en":"She learns fast.","zh":"她学得很快。"},{"es":"Ella está en casa.","en":"She is at home.","zh":"她在家。"}],"esEnContrast":"ella 是 feminine subject pronoun；西语常省略主语，只有需要明确“她”时才说出来。","frequencyRank":4},
-    "usted": {"category":"subject_pronoun","english":"you, formal singular","chinese":["您"],"examples":[{"es":"Usted tiene razón.","en":"You are right.","zh":"您是对的。"},{"es":"¿Usted habla inglés?","en":"Do you speak English?","zh":"您会说英语吗？"}],"esEnContrast":"usted 表示礼貌的 you，但动词用第三人称形式；英语只有一个 you。","frequencyRank":5},
-    "nosotros": {"category":"subject_pronoun","english":"we, masculine or mixed","chinese":["我们"],"examples":[{"es":"Nosotros somos estudiantes.","en":"We are students.","zh":"我们是学生。"},{"es":"Nosotros vamos mañana.","en":"We are going tomorrow.","zh":"我们明天去。"}],"esEnContrast":"nosotros 可指全男性或混合群体；英语 we 不区分性别。","frequencyRank":6},
-    "nosotras": {"category":"subject_pronoun","english":"we, feminine","chinese":["我们（全女性）"],"examples":[{"es":"Nosotras somos amigas.","en":"We are friends.","zh":"我们是朋友。"},{"es":"Nosotras estudiamos juntas.","en":"We study together.","zh":"我们一起学习。"}],"esEnContrast":"nosotras 只用于说话者群体全为女性；英语 we 没有这个变化。","frequencyRank":7},
-    "vosotros": {"category":"subject_pronoun","english":"you all, informal masculine or mixed Spain","chinese":["你们"],"examples":[{"es":"Vosotros vivís aquí.","en":"You all live here.","zh":"你们住在这里。"},{"es":"Vosotros tenéis tiempo.","en":"You all have time.","zh":"你们有时间。"}],"esEnContrast":"vosotros 主要在西班牙使用，拉美常用 ustedes；英语 you all 不进入动词变位。","frequencyRank":8},
-    "vosotras": {"category":"subject_pronoun","english":"you all, informal feminine Spain","chinese":["你们（全女性）"],"examples":[{"es":"Vosotras sois hermanas.","en":"You all are sisters.","zh":"你们是姐妹。"},{"es":"Vosotras habláis rápido.","en":"You all speak fast.","zh":"你们说得快。"}],"esEnContrast":"vosotras 是全女性复数 you，且主要限于西班牙；英语不区分。","frequencyRank":9},
-    "ellos": {"category":"subject_pronoun","english":"they, masculine or mixed","chinese":["他们","他们/她们混合"],"examples":[{"es":"Ellos comen tarde.","en":"They eat late.","zh":"他们吃得晚。"},{"es":"Ellos están listos.","en":"They are ready.","zh":"他们准备好了。"}],"esEnContrast":"ellos 可指男性或混合群体；英语 they 不显示性别。","frequencyRank":10},
-    "ellas": {"category":"subject_pronoun","english":"they, feminine","chinese":["她们"],"examples":[{"es":"Ellas trabajan juntas.","en":"They work together.","zh":"她们一起工作。"},{"es":"Ellas son profesoras.","en":"They are teachers.","zh":"她们是老师。"}],"esEnContrast":"ellas 只用于全女性群体；英语 they 不区分性别。","frequencyRank":11},
-    "me": {"category":"reflexive","english":"me, myself","chinese":["我自己","我"],"examples":[{"es":"Me llamo Luis.","en":"My name is Luis.","zh":"我叫 Luis。"},{"es":"Me levanto temprano.","en":"I get up early.","zh":"我早起。"}],"esEnContrast":"me 常表示反身或间接受事。英语会说 myself 或直接改动词结构；西语把 me 放在动词前。","frequencyRank":12},
-    "te": {"category":"reflexive","english":"you, yourself","chinese":["你自己","你"],"examples":[{"es":"¿Te llamas Ana?","en":"Is your name Ana?","zh":"你叫 Ana 吗？"},{"es":"Te veo mañana.","en":"I will see you tomorrow.","zh":"我明天见你。"}],"esEnContrast":"te 可作反身或宾语；英语通常靠 word order 表示 you，西语用小代词贴在动词前。","frequencyRank":13},
-    "se": {"category":"reflexive","english":"himself, herself, itself, themselves; se marker","chinese":["自己","被动/泛指标记"],"examples":[{"es":"Se llama Ana.","en":"She is called Ana.","zh":"她叫 Ana。"},{"es":"Se vende pan aquí.","en":"Bread is sold here.","zh":"这里卖面包。"}],"esEnContrast":"se 是西语骨架词核心：可反身、互相、被动、无主句。英语往往换成 passive 或 different verb pattern。","frequencyRank":14},
-    "nos": {"category":"reflexive","english":"us, ourselves","chinese":["我们自己","我们"],"examples":[{"es":"Nos vemos mañana.","en":"We will see each other tomorrow.","zh":"我们明天见。"},{"es":"Nos lavamos las manos.","en":"We wash our hands.","zh":"我们洗手。"}],"esEnContrast":"nos 可表示 us 或 ourselves，也可表示彼此；英语需要根据语义换 us / ourselves / each other。","frequencyRank":15},
-    "os": {"category":"reflexive","english":"you all, yourselves Spain","chinese":["你们自己","你们"],"examples":[{"es":"Os veo en clase.","en":"I see you all in class.","zh":"我在课上见你们。"},{"es":"Os levantáis temprano.","en":"You all get up early.","zh":"你们早起。"}],"esEnContrast":"os 对应 vosotros/vosotras，主要在西班牙；拉美常用 los/las/les/se 等结构。","frequencyRank":16},
-    "lo": {"category":"object_pronoun","english":"him, it, masculine direct object","chinese":["他","它","这件事"],"examples":[{"es":"Lo veo.","en":"I see him/it.","zh":"我看见他/它。"},{"es":"No lo sé.","en":"I do not know it.","zh":"我不知道这件事。"}],"esEnContrast":"lo 可以指男性人、阳性名词或整件事；英语要按对象换 him / it / that。","frequencyRank":17},
-    "le": {"category":"object_pronoun","english":"to him, to her, to you formal","chinese":["给他/她/您"],"examples":[{"es":"Le escribo a María.","en":"I write to María.","zh":"我给 María 写信。"},{"es":"Le doy el libro.","en":"I give him/her the book.","zh":"我把书给他/她。"}],"esEnContrast":"le 是间接宾语，常和 a + 人一起出现作强调或澄清；英语通常靠 to 表示。","frequencyRank":18},
-    "les": {"category":"object_pronoun","english":"to them, to you all formal","chinese":["给他们/她们/您们"],"examples":[{"es":"Les mando un mensaje.","en":"I send them a message.","zh":"我给他们发消息。"},{"es":"Les gusta el café.","en":"They like coffee.","zh":"他们喜欢咖啡。"}],"esEnContrast":"les 表示复数间接宾语。gustar 类句子里，英语主语和西语逻辑受事位置相反。","frequencyRank":19},
-    "el": {"category":"article_definite","english":"the, masculine singular","chinese":["这个","该","定冠词"],"examples":[{"es":"El libro está aquí.","en":"The book is here.","zh":"这本书在这里。"},{"es":"El español es útil.","en":"Spanish is useful.","zh":"西班牙语很有用。"}],"esEnContrast":"el 是无重音阳性定冠词；西语抽象名词和语言名前常用定冠词，英语常不用 the。","frequencyRank":20},
-    "la": {"category":"article_definite","english":"the, feminine singular","chinese":["这个","该","定冠词"],"examples":[{"es":"La casa es grande.","en":"The house is big.","zh":"这所房子很大。"},{"es":"La verdad importa.","en":"Truth matters.","zh":"真相很重要。"}],"esEnContrast":"la 既可作阴性定冠词，也可作阴性宾语代词；本词典优先标为冠词，拆解时需提醒有歧义。","frequencyRank":21},
-    "los": {"category":"article_definite","english":"the, masculine plural","chinese":["这些","那些","定冠词复数"],"examples":[{"es":"Los niños juegan.","en":"The children play.","zh":"孩子们在玩。"},{"es":"Los días pasan rápido.","en":"The days pass quickly.","zh":"日子过得很快。"}],"esEnContrast":"los 可指阳性复数或混合复数，也可作宾语代词；英语 the 不随数量和性别变化。","frequencyRank":22},
-    "las": {"category":"article_definite","english":"the, feminine plural","chinese":["这些","那些","定冠词复数"],"examples":[{"es":"Las manos están limpias.","en":"The hands are clean.","zh":"手是干净的。"},{"es":"Las ideas son buenas.","en":"The ideas are good.","zh":"这些想法很好。"}],"esEnContrast":"las 是阴性复数定冠词，也可作宾语代词；英语 the 不变。","frequencyRank":23},
-    "un": {"category":"article_indefinite","english":"a, an, one masculine","chinese":["一个","某个"],"examples":[{"es":"Quiero un café.","en":"I want a coffee.","zh":"我想要一杯咖啡。"},{"es":"Es un problema.","en":"It is a problem.","zh":"这是一个问题。"}],"esEnContrast":"un 既像 a/an，也保留 one 的来源；必须和阳性单数名词一致。","frequencyRank":24},
-    "una": {"category":"article_indefinite","english":"a, an, one feminine","chinese":["一个","某个"],"examples":[{"es":"Tengo una pregunta.","en":"I have a question.","zh":"我有一个问题。"},{"es":"Es una amiga.","en":"She is a friend.","zh":"她是一位朋友。"}],"esEnContrast":"una 对应阴性单数名词；英语 a/an 不显示名词性别。","frequencyRank":25},
-    "unos": {"category":"article_indefinite","english":"some, a few masculine","chinese":["一些","几个"],"examples":[{"es":"Tengo unos libros.","en":"I have some books.","zh":"我有几本书。"},{"es":"Unos amigos vienen hoy.","en":"Some friends are coming today.","zh":"几个朋友今天来。"}],"esEnContrast":"unos 不只是 one 的复数，常表示 some/a few；英语通常另用 some。","frequencyRank":26},
-    "unas": {"category":"article_indefinite","english":"some, a few feminine","chinese":["一些","几个"],"examples":[{"es":"Compro unas flores.","en":"I buy some flowers.","zh":"我买一些花。"},{"es":"Unas personas esperan.","en":"Some people are waiting.","zh":"有些人在等。"}],"esEnContrast":"unas 是阴性复数不定冠词，常表示数量不精确的 some。","frequencyRank":27},
-    "a": {"category":"preposition","english":"to, at; personal a","chinese":["到","向","对"],"examples":[{"es":"Voy a Madrid.","en":"I go to Madrid.","zh":"我去马德里。"},{"es":"Veo a María.","en":"I see María.","zh":"我看见 María。"}],"esEnContrast":"a 常对应 to/at，但 personal a 是英语没有的：直接宾语是具体人时常加 a。","frequencyRank":28},
-    "de": {"category":"preposition","english":"of, from","chinese":["的","从","关于"],"examples":[{"es":"La casa de Ana.","en":"Ana's house.","zh":"Ana 的房子。"},{"es":"Soy de México.","en":"I am from Mexico.","zh":"我来自墨西哥。"}],"esEnContrast":"de 覆盖 of/from/about 等关系；英语所有格 's 在西语常用 de 短语表达。","frequencyRank":29},
-    "en": {"category":"preposition","english":"in, on, at","chinese":["在","于"],"examples":[{"es":"Estoy en casa.","en":"I am at home.","zh":"我在家。"},{"es":"Vivo en Madrid.","en":"I live in Madrid.","zh":"我住在马德里。"}],"esEnContrast":"en 同时覆盖 in/on/at 的许多场景；英语需要更细分介词。","frequencyRank":30},
-    "con": {"category":"preposition","english":"with","chinese":["和","带着","用"],"examples":[{"es":"Café con leche.","en":"Coffee with milk.","zh":"加奶咖啡。"},{"es":"Hablo con mi madre.","en":"I talk with my mother.","zh":"我和妈妈说话。"}],"esEnContrast":"con 大多对应 with；注意 con + mí/ti 变成 conmigo/contigo。","frequencyRank":31},
-    "por": {"category":"preposition","english":"for, by, through, because of","chinese":["因为","经过","按","替"],"examples":[{"es":"Gracias por tu ayuda.","en":"Thanks for your help.","zh":"谢谢你的帮助。"},{"es":"Camino por el parque.","en":"I walk through the park.","zh":"我穿过公园散步。"}],"esEnContrast":"por 强调原因、路径、交换、手段；英语常用 for/by/through/because of 分散表达。TODO: PM 校对 por/para 边界。","frequencyRank":32},
-    "para": {"category":"preposition","english":"for, in order to, toward","chinese":["为了","给","面向"],"examples":[{"es":"Este regalo es para ti.","en":"This gift is for you.","zh":"这份礼物是给你的。"},{"es":"Estudio para aprender.","en":"I study in order to learn.","zh":"我为了学习而学习。"}],"esEnContrast":"para 强调目的、接收者、期限或方向；por 更像原因/路径/交换。TODO: PM 校对 por/para 教学表述。","frequencyRank":33},
-    "sin": {"category":"preposition","english":"without","chinese":["没有","不带"],"examples":[{"es":"Café sin azúcar.","en":"Coffee without sugar.","zh":"不加糖的咖啡。"},{"es":"Vivo sin coche.","en":"I live without a car.","zh":"我没有车也生活。"}],"esEnContrast":"sin 基本对应 without，后面可接名词或 infinitive。","frequencyRank":34},
-    "sobre": {"category":"preposition","english":"on, over, about","chinese":["在……上","关于"],"examples":[{"es":"El libro está sobre la mesa.","en":"The book is on the table.","zh":"书在桌子上。"},{"es":"Hablamos sobre música.","en":"We talk about music.","zh":"我们谈论音乐。"}],"esEnContrast":"sobre 可表示物理位置 on/over，也可表示话题 about；英语通常区分。","frequencyRank":35},
-    "hasta": {"category":"preposition","english":"until, up to","chinese":["直到","到……为止"],"examples":[{"es":"Trabajo hasta las seis.","en":"I work until six.","zh":"我工作到六点。"},{"es":"Camino hasta la plaza.","en":"I walk up to the square.","zh":"我走到广场。"}],"esEnContrast":"hasta 表示时间或空间的终点；英语用 until/up to/to。","frequencyRank":36},
-    "desde": {"category":"preposition","english":"from, since","chinese":["从","自从"],"examples":[{"es":"Desde Madrid hasta Sevilla.","en":"From Madrid to Seville.","zh":"从马德里到塞维利亚。"},{"es":"Vivo aquí desde 2020.","en":"I have lived here since 2020.","zh":"我从 2020 年起住在这里。"}],"esEnContrast":"desde 是起点，常和 hasta 成对；英语按时间用 since，按空间用 from。","frequencyRank":37},
-    "hacia": {"category":"preposition","english":"toward, around","chinese":["朝向","大约"],"examples":[{"es":"Camino hacia el norte.","en":"I walk toward the north.","zh":"我朝北走。"},{"es":"Llego hacia las ocho.","en":"I arrive around eight.","zh":"我大约八点到。"}],"esEnContrast":"hacia 可表示方向 toward，也可表示时间近似 around。","frequencyRank":38},
-    "entre": {"category":"preposition","english":"between, among","chinese":["在……之间","在……之中"],"examples":[{"es":"Estoy entre dos opciones.","en":"I am between two options.","zh":"我在两个选择之间。"},{"es":"Entre amigos hablamos claro.","en":"Among friends we speak clearly.","zh":"朋友之间说话直接。"}],"esEnContrast":"entre 同时覆盖 between 和 among；英语会按数量/关系拆分。","frequencyRank":39},
-    "y": {"category":"conjunction","english":"and","chinese":["和","并且"],"examples":[{"es":"Pan y queso.","en":"Bread and cheese.","zh":"面包和奶酪。"},{"es":"Estudio y trabajo.","en":"I study and work.","zh":"我学习也工作。"}],"esEnContrast":"y 对应 and；在以 i/hi 音开头的词前常变 e，如 padre e hijo。","frequencyRank":40},
-    "o": {"category":"conjunction","english":"or","chinese":["或者"],"examples":[{"es":"Café o té.","en":"Coffee or tea.","zh":"咖啡或茶。"},{"es":"Hoy o mañana.","en":"Today or tomorrow.","zh":"今天或明天。"}],"esEnContrast":"o 对应 or；在以 o/ho 音开头的词前常变 u，如 siete u ocho。","frequencyRank":41},
-    "pero": {"category":"conjunction","english":"but","chinese":["但是"],"examples":[{"es":"Quiero ir, pero no puedo.","en":"I want to go, but I cannot.","zh":"我想去，但不能去。"},{"es":"Es caro pero bueno.","en":"It is expensive but good.","zh":"它贵但是好。"}],"esEnContrast":"pero 是一般转折 but；否定后纠正“不是 A 而是 B”常用 sino。","frequencyRank":42},
-    "sino": {"category":"conjunction","english":"but rather, but instead","chinese":["而是"],"examples":[{"es":"No es té, sino café.","en":"It is not tea, but coffee.","zh":"不是茶，而是咖啡。"},{"es":"No vivo aquí, sino allí.","en":"I do not live here, but there.","zh":"我不住这里，而住那里。"}],"esEnContrast":"sino 用在前面是否定、后面纠正的结构；英语仍常写 but，中文更像“而是”。","frequencyRank":43},
-    "aunque": {"category":"conjunction","english":"although, even though","chinese":["虽然","即使"],"examples":[{"es":"Aunque llueve, salgo.","en":"Although it rains, I go out.","zh":"虽然下雨，我还是出门。"},{"es":"Voy aunque estoy cansado.","en":"I go even though I am tired.","zh":"即使累，我也去。"}],"esEnContrast":"aunque 对应 although/even though；后接虚拟式时语气会变。TODO: Phase 3 只讲基础直陈式。","frequencyRank":44},
-    "porque": {"category":"conjunction","english":"because","chinese":["因为"],"examples":[{"es":"Me quedo porque llueve.","en":"I stay because it rains.","zh":"我留下，因为下雨。"},{"es":"Estudio porque quiero hablar.","en":"I study because I want to speak.","zh":"我学习，因为我想说。"}],"esEnContrast":"porque 是回答原因的 because；不要和疑问 por qué（why）混淆。","frequencyRank":45},
-    "si": {"category":"conjunction","english":"if","chinese":["如果"],"examples":[{"es":"Si quieres, vamos.","en":"If you want, we go.","zh":"如果你想，我们就去。"},{"es":"No sé si viene.","en":"I do not know if he/she is coming.","zh":"我不知道他/她是否来。"}],"esEnContrast":"si 无重音是 if/whether；sí 有重音是 yes/itself，初学要分开。","frequencyRank":46},
-    "cuando": {"category":"conjunction","english":"when","chinese":["当……时候"],"examples":[{"es":"Cuando llego, te llamo.","en":"When I arrive, I call you.","zh":"我到的时候给你打电话。"},{"es":"Trabajo cuando puedo.","en":"I work when I can.","zh":"我能工作时就工作。"}],"esEnContrast":"cuando 无重音常作连接词 when；cuándo 有重音用于疑问。","frequencyRank":47},
-    "mientras": {"category":"conjunction","english":"while","chinese":["当……期间","与此同时"],"examples":[{"es":"Leo mientras espero.","en":"I read while I wait.","zh":"我等的时候读书。"},{"es":"Cocino mientras escucho música.","en":"I cook while I listen to music.","zh":"我一边做饭一边听音乐。"}],"esEnContrast":"mientras 表示两个动作同时发生，对应 while；也可引出对比。","frequencyRank":48},
-    "este": {"category":"demonstrative","english":"this masculine","chinese":["这个"],"examples":[{"es":"Este libro es mío.","en":"This book is mine.","zh":"这本书是我的。"},{"es":"Este café está frío.","en":"This coffee is cold.","zh":"这杯咖啡凉了。"}],"esEnContrast":"este 是近处阳性 this；西语 demonstratives 有近/中/远三档。","frequencyRank":49},
-    "esta": {"category":"demonstrative","english":"this feminine","chinese":["这个","这位"],"examples":[{"es":"Esta casa es bonita.","en":"This house is pretty.","zh":"这所房子很漂亮。"},{"es":"Esta idea me gusta.","en":"I like this idea.","zh":"我喜欢这个想法。"}],"esEnContrast":"esta 对应阴性单数名词；英语 this 不随名词性别变化。","frequencyRank":50},
-    "estos": {"category":"demonstrative","english":"these masculine or mixed","chinese":["这些"],"examples":[{"es":"Estos libros son nuevos.","en":"These books are new.","zh":"这些书是新的。"},{"es":"Estos días trabajo mucho.","en":"These days I work a lot.","zh":"这些天我工作很多。"}],"esEnContrast":"estos 是 este 的阳性/混合复数；英语 these 不显示性别。","frequencyRank":51},
-    "estas": {"category":"demonstrative","english":"these feminine","chinese":["这些"],"examples":[{"es":"Estas flores son rojas.","en":"These flowers are red.","zh":"这些花是红色的。"},{"es":"Estas preguntas son fáciles.","en":"These questions are easy.","zh":"这些问题很简单。"}],"esEnContrast":"estas 用于阴性复数名词；英语 these 不变。","frequencyRank":52},
-    "ese": {"category":"demonstrative","english":"that masculine","chinese":["那个"],"examples":[{"es":"Ese coche es rápido.","en":"That car is fast.","zh":"那辆车很快。"},{"es":"Ese hombre es mi tío.","en":"That man is my uncle.","zh":"那个男人是我叔叔。"}],"esEnContrast":"ese 通常指离听者近或中等距离的 that；英语只有 this/that 两档。","frequencyRank":53},
-    "esa": {"category":"demonstrative","english":"that feminine","chinese":["那个"],"examples":[{"es":"Esa mesa es grande.","en":"That table is big.","zh":"那张桌子很大。"},{"es":"Esa mujer canta bien.","en":"That woman sings well.","zh":"那个女人唱得好。"}],"esEnContrast":"esa 是阴性中距 that；和 esta/aquella 构成三档距离系统。","frequencyRank":54},
-    "esos": {"category":"demonstrative","english":"those masculine or mixed","chinese":["那些"],"examples":[{"es":"Esos perros corren.","en":"Those dogs run.","zh":"那些狗在跑。"},{"es":"Esos problemas son reales.","en":"Those problems are real.","zh":"那些问题是真实的。"}],"esEnContrast":"esos 是 ese 的复数，常指那些靠近听者或刚提到的对象。","frequencyRank":55},
-    "esas": {"category":"demonstrative","english":"those feminine","chinese":["那些"],"examples":[{"es":"Esas sillas están libres.","en":"Those chairs are free.","zh":"那些椅子空着。"},{"es":"Esas palabras importan.","en":"Those words matter.","zh":"那些话很重要。"}],"esEnContrast":"esas 用于阴性复数；英语 those 不显示性别。","frequencyRank":56},
-    "aquel": {"category":"demonstrative","english":"that over there masculine","chinese":["远处那个"],"examples":[{"es":"Aquel edificio es antiguo.","en":"That building over there is old.","zh":"远处那栋楼很旧。"},{"es":"Aquel día fue especial.","en":"That day was special.","zh":"那一天很特别。"}],"esEnContrast":"aquel 表示远离说话者和听者，英语通常还是 that，需要靠语境补出“远”。","frequencyRank":57},
-    "aquella": {"category":"demonstrative","english":"that over there feminine","chinese":["远处那个"],"examples":[{"es":"Aquella ciudad es famosa.","en":"That city over there is famous.","zh":"远处那座城市很有名。"},{"es":"Aquella noche llovió.","en":"That night it rained.","zh":"那天夜里下雨了。"}],"esEnContrast":"aquella 是远指阴性单数；西语三档距离比英语更细。","frequencyRank":58},
-    "aquellos": {"category":"demonstrative","english":"those over there masculine or mixed","chinese":["远处那些"],"examples":[{"es":"Aquellos árboles son altos.","en":"Those trees over there are tall.","zh":"远处那些树很高。"},{"es":"Aquellos años fueron difíciles.","en":"Those years were difficult.","zh":"那些年很难。"}],"esEnContrast":"aquellos 是远指复数；英语 those 不显示“远离双方”的程度。","frequencyRank":59},
-    "aquellas": {"category":"demonstrative","english":"those over there feminine","chinese":["远处那些"],"examples":[{"es":"Aquellas montañas son azules.","en":"Those mountains over there are blue.","zh":"远处那些山发蓝。"},{"es":"Aquellas cartas son viejas.","en":"Those letters are old.","zh":"那些信很旧。"}],"esEnContrast":"aquellas 用于远指阴性复数，和 esas 形成距离差别。","frequencyRank":60},
-    "esto": {"category":"demonstrative","english":"this thing, this idea","chinese":["这件事","这个"],"examples":[{"es":"Esto es importante.","en":"This is important.","zh":"这很重要。"},{"es":"No entiendo esto.","en":"I do not understand this.","zh":"我不懂这个。"}],"esEnContrast":"esto 是中性指示词，不直接修饰名词；英语 this 可同时作限定词和代词。","frequencyRank":61},
-    "eso": {"category":"demonstrative","english":"that thing, that idea","chinese":["那件事","那个"],"examples":[{"es":"Eso no es verdad.","en":"That is not true.","zh":"那不是真的。"},{"es":"Quiero hablar de eso.","en":"I want to talk about that.","zh":"我想谈谈那件事。"}],"esEnContrast":"eso 指一件事、想法或前文内容；英语 that 用法更宽，但没有性别系统。","frequencyRank":62},
-    "aquello": {"category":"demonstrative","english":"that thing over there or back then","chinese":["远处/过去那件事"],"examples":[{"es":"Aquello fue extraño.","en":"That was strange.","zh":"那件事很奇怪。"},{"es":"No recuerdo aquello.","en":"I do not remember that.","zh":"我不记得那件事。"}],"esEnContrast":"aquello 是远指中性，常指远处、过去或心理距离远的事。","frequencyRank":63},
-    "mi": {"category":"possessive","english":"my","chinese":["我的"],"examples":[{"es":"Mi casa es pequeña.","en":"My house is small.","zh":"我的房子很小。"},{"es":"Mi madre trabaja.","en":"My mother works.","zh":"我妈妈工作。"}],"esEnContrast":"mi 放在名词前，不带重音；mí 带重音是介词后的 me。","frequencyRank":64},
-    "tu": {"category":"possessive","english":"your informal singular","chinese":["你的"],"examples":[{"es":"Tu libro está aquí.","en":"Your book is here.","zh":"你的书在这里。"},{"es":"Tu idea es buena.","en":"Your idea is good.","zh":"你的想法很好。"}],"esEnContrast":"tu 是物主词 your；tú 带重音是主语 you。英语靠拼写 your/you 区分。","frequencyRank":65},
-    "su": {"category":"possessive","english":"his, her, its, your formal, their","chinese":["他/她/它/您/他们的"],"examples":[{"es":"Su casa es grande.","en":"His/her/your/their house is big.","zh":"他/她/您/他们的房子很大。"},{"es":"Su nombre es Ana.","en":"Her name is Ana.","zh":"她的名字是 Ana。"}],"esEnContrast":"su 高度歧义，可表示 his/her/its/your/their；英语必须选具体物主。西语常用 de él/de ella 澄清。","frequencyRank":66},
-    "nuestro": {"category":"possessive","english":"our masculine singular","chinese":["我们的"],"examples":[{"es":"Nuestro profesor es amable.","en":"Our teacher is kind.","zh":"我们的老师很友善。"},{"es":"Nuestro plan cambia.","en":"Our plan changes.","zh":"我们的计划改变了。"}],"esEnContrast":"nuestro 会和被拥有的名词性数一致；英语 our 不变化。","frequencyRank":67},
-    "nuestra": {"category":"possessive","english":"our feminine singular","chinese":["我们的"],"examples":[{"es":"Nuestra clase empieza.","en":"Our class starts.","zh":"我们的课开始了。"},{"es":"Nuestra amiga viene.","en":"Our friend is coming.","zh":"我们的朋友来了。"}],"esEnContrast":"nuestra 是 nuestro 的阴性单数形式，由后面的名词决定，不由拥有者性别决定。","frequencyRank":68},
-    "vuestro": {"category":"possessive","english":"your plural masculine Spain","chinese":["你们的"],"examples":[{"es":"Vuestro coche está fuera.","en":"Your car is outside.","zh":"你们的车在外面。"},{"es":"Vuestro grupo gana.","en":"Your group wins.","zh":"你们的小组赢了。"}],"esEnContrast":"vuestro 对应 vosotros，主要在西班牙；拉美常用 su。","frequencyRank":69},
-    "vuestra": {"category":"possessive","english":"your plural feminine Spain","chinese":["你们的"],"examples":[{"es":"Vuestra casa es bonita.","en":"Your house is pretty.","zh":"你们的房子很漂亮。"},{"es":"Vuestra idea ayuda.","en":"Your idea helps.","zh":"你们的想法有帮助。"}],"esEnContrast":"vuestra 随被拥有的阴性名词变化；英语 your 不变。","frequencyRank":70},
-    "mío": {"category":"possessive","english":"mine masculine","chinese":["我的（名词性）"],"examples":[{"es":"El libro es mío.","en":"The book is mine.","zh":"这本书是我的。"},{"es":"Un amigo mío vive aquí.","en":"A friend of mine lives here.","zh":"我的一个朋友住在这里。"}],"esEnContrast":"mío 常在名词后或单独作 mine；mi 放在名词前。英语 my/mine 也分位置。","frequencyRank":71},
-    "tuyo": {"category":"possessive","english":"yours masculine informal","chinese":["你的（名词性）"],"examples":[{"es":"Este cuaderno es tuyo.","en":"This notebook is yours.","zh":"这个本子是你的。"},{"es":"Un primo tuyo llamó.","en":"A cousin of yours called.","zh":"你的一个表亲打电话了。"}],"esEnContrast":"tuyo 是名词性或后置物主词；tu 是前置物主词。","frequencyRank":72},
-    "suyo": {"category":"possessive","english":"his, hers, yours formal, theirs","chinese":["他/她/您/他们的（名词性）"],"examples":[{"es":"La decisión es suya.","en":"The decision is his/hers/yours/theirs.","zh":"这个决定是他/她/您/他们的。"},{"es":"Un amigo suyo viene.","en":"A friend of his/hers/yours/theirs is coming.","zh":"他/她/您/他们的一个朋友要来。"}],"esEnContrast":"suyo 和 su 一样歧义高，需要上下文或 de él/de ella 澄清。","frequencyRank":73},
-    "que": {"category":"relative_interrogative","english":"that, which, who; unstressed what/that","chinese":["关系词","连接词","那/什么"],"examples":[{"es":"El libro que leo es bueno.","en":"The book that I read is good.","zh":"我读的那本书很好。"},{"es":"Creo que sí.","en":"I think that yes.","zh":"我觉得是的。"}],"esEnContrast":"que 无重音可作关系词或 that 从句连接词；qué 有重音才是疑问 what。","frequencyRank":74},
-    "quien": {"category":"relative_interrogative","english":"who, whom unstressed","chinese":["谁","……的人"],"examples":[{"es":"La persona con quien hablo es Ana.","en":"The person with whom I speak is Ana.","zh":"和我说话的人是 Ana。"},{"es":"Quien estudia aprende.","en":"Whoever studies learns.","zh":"学习的人就会学会。"}],"esEnContrast":"quien 无重音多用于关系结构；疑问 who 写 quién。英语 who/whom 的区分在口语里弱，西语靠重音区分疑问。","frequencyRank":75},
-    "donde": {"category":"relative_interrogative","english":"where unstressed","chinese":["……的地方"],"examples":[{"es":"La ciudad donde vivo es grande.","en":"The city where I live is big.","zh":"我住的城市很大。"},{"es":"Voy donde tú vas.","en":"I go where you go.","zh":"你去哪儿我就去哪儿。"}],"esEnContrast":"donde 无重音用于关系从句；dónde 有重音用于问地点。","frequencyRank":76},
-    "como": {"category":"relative_interrogative","english":"as, like, how unstressed","chinese":["像","如同","怎样"],"examples":[{"es":"Hazlo como quieras.","en":"Do it as you want.","zh":"按你想的方式做。"},{"es":"Como no tengo tiempo, salgo.","en":"As I do not have time, I leave.","zh":"因为我没时间，所以走了。"}],"esEnContrast":"como 无重音常是 as/like/because-like connector；cómo 有重音才是 how。","frequencyRank":77},
-    "qué": {"category":"relative_interrogative","english":"what, which stressed","chinese":["什么","哪一个"],"examples":[{"es":"¿Qué quieres?","en":"What do you want?","zh":"你想要什么？"},{"es":"No sé qué hacer.","en":"I do not know what to do.","zh":"我不知道该做什么。"}],"esEnContrast":"qué 带重音，表示直接或间接疑问；que 无重音是关系词/连接词。","frequencyRank":78},
-    "quién": {"category":"relative_interrogative","english":"who stressed","chinese":["谁"],"examples":[{"es":"¿Quién viene?","en":"Who is coming?","zh":"谁要来？"},{"es":"No sé quién llamó.","en":"I do not know who called.","zh":"我不知道谁打了电话。"}],"esEnContrast":"quién 带重音，用于疑问；quien 无重音用于关系结构。","frequencyRank":79},
-    "dónde": {"category":"relative_interrogative","english":"where stressed","chinese":["哪里"],"examples":[{"es":"¿Dónde vives?","en":"Where do you live?","zh":"你住在哪里？"},{"es":"No sé dónde está.","en":"I do not know where it is.","zh":"我不知道它在哪里。"}],"esEnContrast":"dónde 是疑问 where；donde 是关系 where。重音符号直接改变句法角色。","frequencyRank":80},
-    "cuándo": {"category":"relative_interrogative","english":"when stressed","chinese":["什么时候"],"examples":[{"es":"¿Cuándo empieza la clase?","en":"When does class start?","zh":"课什么时候开始？"},{"es":"Dime cuándo llegas.","en":"Tell me when you arrive.","zh":"告诉我你什么时候到。"}],"esEnContrast":"cuándo 带重音用于疑问；cuando 无重音连接从句。","frequencyRank":81},
-    "cómo": {"category":"relative_interrogative","english":"how stressed","chinese":["怎么","如何"],"examples":[{"es":"¿Cómo estás?","en":"How are you?","zh":"你好吗？"},{"es":"No sé cómo decirlo.","en":"I do not know how to say it.","zh":"我不知道怎么说。"}],"esEnContrast":"cómo 是疑问 how；como 无重音是 as/like 等连接词。","frequencyRank":82},
-    "cuál": {"category":"relative_interrogative","english":"which one, what one stressed","chinese":["哪一个"],"examples":[{"es":"¿Cuál prefieres?","en":"Which one do you prefer?","zh":"你更喜欢哪一个？"},{"es":"No sé cuál elegir.","en":"I do not know which one to choose.","zh":"我不知道选哪一个。"}],"esEnContrast":"cuál 常问在一组里选哪一个；英语 what/which 的边界和西语 qué/cuál 不完全重合。TODO: PM 校对 qué/cuál 说明。","frequencyRank":83}
+    "yo": {
+      "category": "subject_pronoun",
+      "english": "I",
+      "chinese": [
+        "我"
+      ],
+      "examples": [
+        {
+          "es": "Yo estudio español.",
+          "en": "I study Spanish.",
+          "zh": "我学习西班牙语。"
+        },
+        {
+          "es": "Yo vivo en China.",
+          "en": "I live in China.",
+          "zh": "我住在中国。"
+        }
+      ],
+      "esEnContrast": "英语通常必须说 I；西语动词变位已经带人称，yo 常可省略，用出来时多半是强调“我”。",
+      "frequencyRank": 1
+    },
+    "tú": {
+      "category": "subject_pronoun",
+      "english": "you, informal singular",
+      "chinese": [
+        "你"
+      ],
+      "examples": [
+        {
+          "es": "Tú hablas muy bien.",
+          "en": "You speak very well.",
+          "zh": "你说得很好。"
+        },
+        {
+          "es": "¿Tú eres Ana?",
+          "en": "Are you Ana?",
+          "zh": "你是 Ana 吗？"
+        }
+      ],
+      "esEnContrast": "tú 是熟人、同辈、孩子之间的 you；英语没有正式/非正式 you 的区别。",
+      "frequencyRank": 2
+    },
+    "él": {
+      "category": "subject_pronoun",
+      "english": "he",
+      "chinese": [
+        "他"
+      ],
+      "examples": [
+        {
+          "es": "Él trabaja hoy.",
+          "en": "He works today.",
+          "zh": "他今天工作。"
+        },
+        {
+          "es": "Él es mi amigo.",
+          "en": "He is my friend.",
+          "zh": "他是我的朋友。"
+        }
+      ],
+      "esEnContrast": "él 带重音，和冠词 el 区分；英语 he 不需要靠重音和冠词区分。",
+      "frequencyRank": 3
+    },
+    "ella": {
+      "category": "subject_pronoun",
+      "english": "she",
+      "chinese": [
+        "她"
+      ],
+      "examples": [
+        {
+          "es": "Ella aprende rápido.",
+          "en": "She learns fast.",
+          "zh": "她学得很快。"
+        },
+        {
+          "es": "Ella está en casa.",
+          "en": "She is at home.",
+          "zh": "她在家。"
+        }
+      ],
+      "esEnContrast": "ella 是 feminine subject pronoun；西语常省略主语，只有需要明确“她”时才说出来。",
+      "frequencyRank": 4
+    },
+    "usted": {
+      "category": "subject_pronoun",
+      "english": "you, formal singular",
+      "chinese": [
+        "您"
+      ],
+      "examples": [
+        {
+          "es": "Usted tiene razón.",
+          "en": "You are right.",
+          "zh": "您是对的。"
+        },
+        {
+          "es": "¿Usted habla inglés?",
+          "en": "Do you speak English?",
+          "zh": "您会说英语吗？"
+        }
+      ],
+      "esEnContrast": "usted 表示礼貌的 you，但动词用第三人称形式；英语只有一个 you。",
+      "frequencyRank": 5
+    },
+    "nosotros": {
+      "category": "subject_pronoun",
+      "english": "we, masculine or mixed",
+      "chinese": [
+        "我们"
+      ],
+      "examples": [
+        {
+          "es": "Nosotros somos estudiantes.",
+          "en": "We are students.",
+          "zh": "我们是学生。"
+        },
+        {
+          "es": "Nosotros vamos mañana.",
+          "en": "We are going tomorrow.",
+          "zh": "我们明天去。"
+        }
+      ],
+      "esEnContrast": "nosotros 可指全男性或混合群体；英语 we 不区分性别。",
+      "frequencyRank": 6
+    },
+    "nosotras": {
+      "category": "subject_pronoun",
+      "english": "we, feminine",
+      "chinese": [
+        "我们（全女性）"
+      ],
+      "examples": [
+        {
+          "es": "Nosotras somos amigas.",
+          "en": "We are friends.",
+          "zh": "我们是朋友。"
+        },
+        {
+          "es": "Nosotras estudiamos juntas.",
+          "en": "We study together.",
+          "zh": "我们一起学习。"
+        }
+      ],
+      "esEnContrast": "nosotras 只用于说话者群体全为女性；英语 we 没有这个变化。",
+      "frequencyRank": 7
+    },
+    "vosotros": {
+      "category": "subject_pronoun",
+      "english": "you all, informal masculine or mixed Spain",
+      "chinese": [
+        "你们"
+      ],
+      "examples": [
+        {
+          "es": "Vosotros vivís aquí.",
+          "en": "You all live here.",
+          "zh": "你们住在这里。"
+        },
+        {
+          "es": "Vosotros tenéis tiempo.",
+          "en": "You all have time.",
+          "zh": "你们有时间。"
+        }
+      ],
+      "esEnContrast": "vosotros 主要在西班牙使用，拉美常用 ustedes；英语 you all 不进入动词变位。",
+      "frequencyRank": 8
+    },
+    "vosotras": {
+      "category": "subject_pronoun",
+      "english": "you all, informal feminine Spain",
+      "chinese": [
+        "你们（全女性）"
+      ],
+      "examples": [
+        {
+          "es": "Vosotras sois hermanas.",
+          "en": "You all are sisters.",
+          "zh": "你们是姐妹。"
+        },
+        {
+          "es": "Vosotras habláis rápido.",
+          "en": "You all speak fast.",
+          "zh": "你们说得快。"
+        }
+      ],
+      "esEnContrast": "vosotras 是全女性复数 you，且主要限于西班牙；英语不区分。",
+      "frequencyRank": 9
+    },
+    "ellos": {
+      "category": "subject_pronoun",
+      "english": "they, masculine or mixed",
+      "chinese": [
+        "他们",
+        "他们/她们混合"
+      ],
+      "examples": [
+        {
+          "es": "Ellos comen tarde.",
+          "en": "They eat late.",
+          "zh": "他们吃得晚。"
+        },
+        {
+          "es": "Ellos están listos.",
+          "en": "They are ready.",
+          "zh": "他们准备好了。"
+        }
+      ],
+      "esEnContrast": "ellos 可指男性或混合群体；英语 they 不显示性别。",
+      "frequencyRank": 10
+    },
+    "ellas": {
+      "category": "subject_pronoun",
+      "english": "they, feminine",
+      "chinese": [
+        "她们"
+      ],
+      "examples": [
+        {
+          "es": "Ellas trabajan juntas.",
+          "en": "They work together.",
+          "zh": "她们一起工作。"
+        },
+        {
+          "es": "Ellas son profesoras.",
+          "en": "They are teachers.",
+          "zh": "她们是老师。"
+        }
+      ],
+      "esEnContrast": "ellas 只用于全女性群体；英语 they 不区分性别。",
+      "frequencyRank": 11
+    },
+    "me": {
+      "category": "reflexive",
+      "english": "me, myself",
+      "chinese": [
+        "我自己",
+        "我"
+      ],
+      "examples": [
+        {
+          "es": "Me llamo Luis.",
+          "en": "My name is Luis.",
+          "zh": "我叫 Luis。"
+        },
+        {
+          "es": "Me levanto temprano.",
+          "en": "I get up early.",
+          "zh": "我早起。"
+        }
+      ],
+      "esEnContrast": "me 常表示反身或间接受事。英语会说 myself 或直接改动词结构；西语把 me 放在动词前。",
+      "frequencyRank": 12
+    },
+    "te": {
+      "category": "reflexive",
+      "english": "you, yourself",
+      "chinese": [
+        "你自己",
+        "你"
+      ],
+      "examples": [
+        {
+          "es": "¿Te llamas Ana?",
+          "en": "Is your name Ana?",
+          "zh": "你叫 Ana 吗？"
+        },
+        {
+          "es": "Te veo mañana.",
+          "en": "I will see you tomorrow.",
+          "zh": "我明天见你。"
+        }
+      ],
+      "esEnContrast": "te 可作反身或宾语；英语通常靠 word order 表示 you，西语用小代词贴在动词前。",
+      "frequencyRank": 13
+    },
+    "se": {
+      "category": "reflexive",
+      "english": "himself, herself, itself, themselves; se marker",
+      "chinese": [
+        "自己",
+        "被动/泛指标记"
+      ],
+      "examples": [
+        {
+          "es": "Se llama Ana.",
+          "en": "Her name is Ana.",
+          "zh": "她叫 Ana。"
+        },
+        {
+          "es": "Se vende pan aquí.",
+          "en": "Bread is sold here.",
+          "zh": "这里卖面包。"
+        }
+      ],
+      "esEnContrast": "se 是西语骨架词核心：可反身、互相、被动、无主句。英语往往换成 passive 或 different verb pattern。",
+      "frequencyRank": 14
+    },
+    "nos": {
+      "category": "reflexive",
+      "english": "us, ourselves",
+      "chinese": [
+        "我们自己",
+        "我们"
+      ],
+      "examples": [
+        {
+          "es": "Nos vemos mañana.",
+          "en": "We will see each other tomorrow.",
+          "zh": "我们明天见。"
+        },
+        {
+          "es": "Nos lavamos las manos.",
+          "en": "We wash our hands.",
+          "zh": "我们洗手。"
+        }
+      ],
+      "esEnContrast": "nos 可表示 us 或 ourselves，也可表示彼此；英语需要根据语义换 us / ourselves / each other。",
+      "frequencyRank": 15
+    },
+    "os": {
+      "category": "reflexive",
+      "english": "you all, yourselves Spain",
+      "chinese": [
+        "你们自己",
+        "你们"
+      ],
+      "examples": [
+        {
+          "es": "Os veo en clase.",
+          "en": "I see you all in class.",
+          "zh": "我在课上见你们。"
+        },
+        {
+          "es": "Os levantáis temprano.",
+          "en": "You all get up early.",
+          "zh": "你们早起。"
+        }
+      ],
+      "esEnContrast": "os 对应 vosotros/vosotras，主要在西班牙；拉美常用 los/las/les/se 等结构。",
+      "frequencyRank": 16
+    },
+    "lo": {
+      "category": "object_pronoun",
+      "english": "him, it, masculine direct object",
+      "chinese": [
+        "他",
+        "它",
+        "这件事"
+      ],
+      "examples": [
+        {
+          "es": "Lo veo.",
+          "en": "I see him/it.",
+          "zh": "我看见他/它。"
+        },
+        {
+          "es": "No lo sé.",
+          "en": "I do not know it.",
+          "zh": "我不知道这件事。"
+        }
+      ],
+      "esEnContrast": "lo 可以指男性人、阳性名词或整件事；英语要按对象换 him / it / that。",
+      "frequencyRank": 17
+    },
+    "le": {
+      "category": "object_pronoun",
+      "english": "to him, to her, to you formal",
+      "chinese": [
+        "给他/她/您"
+      ],
+      "examples": [
+        {
+          "es": "Le escribo a María.",
+          "en": "I write to María.",
+          "zh": "我给 María 写信。"
+        },
+        {
+          "es": "Le doy el libro.",
+          "en": "I give him/her the book.",
+          "zh": "我把书给他/她。"
+        }
+      ],
+      "esEnContrast": "le 是间接宾语，常和 a + 人一起出现作强调或澄清；英语通常靠 to 表示。",
+      "frequencyRank": 18
+    },
+    "les": {
+      "category": "object_pronoun",
+      "english": "to them, to you all formal",
+      "chinese": [
+        "给他们/她们/您们"
+      ],
+      "examples": [
+        {
+          "es": "Les mando un mensaje.",
+          "en": "I send them a message.",
+          "zh": "我给他们发消息。"
+        },
+        {
+          "es": "Les gusta el café.",
+          "en": "They like coffee.",
+          "zh": "他们喜欢咖啡。"
+        }
+      ],
+      "esEnContrast": "les 表示复数间接宾语。gustar 类句子里，英语主语和西语逻辑受事位置相反。",
+      "frequencyRank": 19
+    },
+    "el": {
+      "category": "article_definite",
+      "english": "the, masculine singular",
+      "chinese": [
+        "这个",
+        "该",
+        "定冠词"
+      ],
+      "examples": [
+        {
+          "es": "El libro está aquí.",
+          "en": "The book is here.",
+          "zh": "这本书在这里。"
+        },
+        {
+          "es": "El español es útil.",
+          "en": "Spanish is useful.",
+          "zh": "西班牙语很有用。"
+        }
+      ],
+      "esEnContrast": "el 是无重音阳性定冠词；西语抽象名词和语言名前常用定冠词，英语常不用 the。",
+      "frequencyRank": 20
+    },
+    "la": {
+      "category": "article_definite",
+      "english": "the, feminine singular",
+      "chinese": [
+        "这个",
+        "该",
+        "定冠词"
+      ],
+      "examples": [
+        {
+          "es": "La casa es grande.",
+          "en": "The house is big.",
+          "zh": "这所房子很大。"
+        },
+        {
+          "es": "La verdad importa.",
+          "en": "Truth matters.",
+          "zh": "真相很重要。"
+        }
+      ],
+      "esEnContrast": "la 既可作阴性定冠词，也可作阴性宾语代词；本词典优先标为冠词，拆解时需提醒有歧义。",
+      "frequencyRank": 21
+    },
+    "los": {
+      "category": "article_definite",
+      "english": "the, masculine plural",
+      "chinese": [
+        "这些",
+        "那些",
+        "定冠词复数"
+      ],
+      "examples": [
+        {
+          "es": "Los niños juegan.",
+          "en": "The children play.",
+          "zh": "孩子们在玩。"
+        },
+        {
+          "es": "Los días pasan rápido.",
+          "en": "The days pass quickly.",
+          "zh": "日子过得很快。"
+        }
+      ],
+      "esEnContrast": "los 可指阳性复数或混合复数，也可作宾语代词；英语 the 不随数量和性别变化。",
+      "frequencyRank": 22
+    },
+    "las": {
+      "category": "article_definite",
+      "english": "the, feminine plural",
+      "chinese": [
+        "这些",
+        "那些",
+        "定冠词复数"
+      ],
+      "examples": [
+        {
+          "es": "Las manos están limpias.",
+          "en": "The hands are clean.",
+          "zh": "手是干净的。"
+        },
+        {
+          "es": "Las ideas son buenas.",
+          "en": "The ideas are good.",
+          "zh": "这些想法很好。"
+        }
+      ],
+      "esEnContrast": "las 是阴性复数定冠词，也可作宾语代词；英语 the 不变。",
+      "frequencyRank": 23
+    },
+    "un": {
+      "category": "article_indefinite",
+      "english": "a, an, one masculine",
+      "chinese": [
+        "一个",
+        "某个"
+      ],
+      "examples": [
+        {
+          "es": "Quiero un café.",
+          "en": "I want a coffee.",
+          "zh": "我想要一杯咖啡。"
+        },
+        {
+          "es": "Es un problema.",
+          "en": "It is a problem.",
+          "zh": "这是一个问题。"
+        }
+      ],
+      "esEnContrast": "un 既像 a/an，也保留 one 的来源；必须和阳性单数名词一致。",
+      "frequencyRank": 24
+    },
+    "una": {
+      "category": "article_indefinite",
+      "english": "a, an, one feminine",
+      "chinese": [
+        "一个",
+        "某个"
+      ],
+      "examples": [
+        {
+          "es": "Tengo una pregunta.",
+          "en": "I have a question.",
+          "zh": "我有一个问题。"
+        },
+        {
+          "es": "Es una amiga.",
+          "en": "She is a friend.",
+          "zh": "她是一位朋友。"
+        }
+      ],
+      "esEnContrast": "una 对应阴性单数名词；英语 a/an 不显示名词性别。",
+      "frequencyRank": 25
+    },
+    "unos": {
+      "category": "article_indefinite",
+      "english": "some, a few masculine",
+      "chinese": [
+        "一些",
+        "几个"
+      ],
+      "examples": [
+        {
+          "es": "Tengo unos libros.",
+          "en": "I have some books.",
+          "zh": "我有几本书。"
+        },
+        {
+          "es": "Unos amigos vienen hoy.",
+          "en": "Some friends are coming today.",
+          "zh": "几个朋友今天来。"
+        }
+      ],
+      "esEnContrast": "unos 不只是 one 的复数，常表示 some/a few；英语通常另用 some。",
+      "frequencyRank": 26
+    },
+    "unas": {
+      "category": "article_indefinite",
+      "english": "some, a few feminine",
+      "chinese": [
+        "一些",
+        "几个"
+      ],
+      "examples": [
+        {
+          "es": "Compro unas flores.",
+          "en": "I buy some flowers.",
+          "zh": "我买一些花。"
+        },
+        {
+          "es": "Unas personas esperan.",
+          "en": "Some people are waiting.",
+          "zh": "有些人在等。"
+        }
+      ],
+      "esEnContrast": "unas 是阴性复数不定冠词，常表示数量不精确的 some。",
+      "frequencyRank": 27
+    },
+    "a": {
+      "category": "preposition",
+      "english": "to, at; personal a",
+      "chinese": [
+        "到",
+        "向",
+        "对"
+      ],
+      "examples": [
+        {
+          "es": "Voy a Madrid.",
+          "en": "I go to Madrid.",
+          "zh": "我去马德里。"
+        },
+        {
+          "es": "Veo a María.",
+          "en": "I see María.",
+          "zh": "我看见 María。"
+        }
+      ],
+      "esEnContrast": "a 常对应 to/at，但 personal a 是英语没有的：直接宾语是具体人时常加 a。",
+      "frequencyRank": 28
+    },
+    "de": {
+      "category": "preposition",
+      "english": "of, from",
+      "chinese": [
+        "的",
+        "从",
+        "关于"
+      ],
+      "examples": [
+        {
+          "es": "La casa de Ana.",
+          "en": "Ana's house.",
+          "zh": "Ana 的房子。"
+        },
+        {
+          "es": "Soy de México.",
+          "en": "I am from Mexico.",
+          "zh": "我来自墨西哥。"
+        }
+      ],
+      "esEnContrast": "de 覆盖 of/from/about 等关系；英语所有格 's 在西语常用 de 短语表达。",
+      "frequencyRank": 29
+    },
+    "en": {
+      "category": "preposition",
+      "english": "in, on, at",
+      "chinese": [
+        "在",
+        "于"
+      ],
+      "examples": [
+        {
+          "es": "Estoy en casa.",
+          "en": "I am at home.",
+          "zh": "我在家。"
+        },
+        {
+          "es": "Vivo en Madrid.",
+          "en": "I live in Madrid.",
+          "zh": "我住在马德里。"
+        }
+      ],
+      "esEnContrast": "en 同时覆盖 in/on/at 的许多场景；英语需要更细分介词。",
+      "frequencyRank": 30
+    },
+    "con": {
+      "category": "preposition",
+      "english": "with",
+      "chinese": [
+        "和",
+        "带着",
+        "用"
+      ],
+      "examples": [
+        {
+          "es": "Café con leche.",
+          "en": "Coffee with milk.",
+          "zh": "加奶咖啡。"
+        },
+        {
+          "es": "Hablo con mi madre.",
+          "en": "I talk with my mother.",
+          "zh": "我和妈妈说话。"
+        }
+      ],
+      "esEnContrast": "con 大多对应 with；注意 con + mí/ti 变成 conmigo/contigo。",
+      "frequencyRank": 31
+    },
+    "por": {
+      "category": "preposition",
+      "english": "for, by, through, because of",
+      "chinese": [
+        "因为",
+        "经过",
+        "按",
+        "替"
+      ],
+      "examples": [
+        {
+          "es": "Gracias por tu ayuda.",
+          "en": "Thanks for your help.",
+          "zh": "谢谢你的帮助。"
+        },
+        {
+          "es": "Hablo por teléfono.",
+          "en": "I talk on the phone.",
+          "zh": "我通过电话讲话。"
+        }
+      ],
+      "esEnContrast": "por 强调来源/原因/路径/手段/时段/交换；常见用法对照：\n• 原因: por amor (out of love)\n• 路径: por el parque (through the park)\n• 手段: por teléfono (by phone)\n• 时段: por la mañana (in the morning)\n• 交换: 10€ por el libro ($10 for the book)\n记忆口诀：cau-via-med-tem-tra（原因/路径/手段/时段/交换）。",
+      "frequencyRank": 32
+    },
+    "para": {
+      "category": "preposition",
+      "english": "for, in order to, toward",
+      "chinese": [
+        "为了",
+        "给",
+        "面向"
+      ],
+      "examples": [
+        {
+          "es": "Este regalo es para ti.",
+          "en": "This gift is for you.",
+          "zh": "这份礼物是给你的。"
+        },
+        {
+          "es": "Estudio para aprobar el examen.",
+          "en": "I study to pass the exam.",
+          "zh": "我学西语是为了通过考试。"
+        }
+      ],
+      "esEnContrast": "para 强调目的/接收者/期限/方向/观点；常见用法对照：\n• 目的: para aprender (in order to learn)\n• 接收者: para ti (for you)\n• 期限: para el lunes (by Monday)\n• 方向: salir para Madrid (leave for Madrid)\n• 观点: Para mí, ... (In my opinion, ...)\n记忆口诀：目的优先想 para，原因路径想 por。",
+      "frequencyRank": 33
+    },
+    "sin": {
+      "category": "preposition",
+      "english": "without",
+      "chinese": [
+        "没有",
+        "不带"
+      ],
+      "examples": [
+        {
+          "es": "Café sin azúcar.",
+          "en": "Coffee without sugar.",
+          "zh": "不加糖的咖啡。"
+        },
+        {
+          "es": "Vivo sin coche.",
+          "en": "I live without a car.",
+          "zh": "我没有车也生活。"
+        }
+      ],
+      "esEnContrast": "sin 基本对应 without，后面可接名词或 infinitive。",
+      "frequencyRank": 34
+    },
+    "sobre": {
+      "category": "preposition",
+      "english": "on, over, about",
+      "chinese": [
+        "在……上",
+        "关于"
+      ],
+      "examples": [
+        {
+          "es": "El libro está sobre la mesa.",
+          "en": "The book is on the table.",
+          "zh": "书在桌子上。"
+        },
+        {
+          "es": "Hablamos sobre música.",
+          "en": "We talk about music.",
+          "zh": "我们谈论音乐。"
+        }
+      ],
+      "esEnContrast": "sobre 可表示物理位置 on/over，也可表示话题 about；英语通常区分。",
+      "frequencyRank": 35
+    },
+    "hasta": {
+      "category": "preposition",
+      "english": "until, up to",
+      "chinese": [
+        "直到",
+        "到……为止"
+      ],
+      "examples": [
+        {
+          "es": "Trabajo hasta las seis.",
+          "en": "I work until six.",
+          "zh": "我工作到六点。"
+        },
+        {
+          "es": "Camino hasta la plaza.",
+          "en": "I walk up to the square.",
+          "zh": "我走到广场。"
+        }
+      ],
+      "esEnContrast": "hasta 表示时间或空间的终点；英语用 until/up to/to。",
+      "frequencyRank": 36
+    },
+    "desde": {
+      "category": "preposition",
+      "english": "from, since",
+      "chinese": [
+        "从",
+        "自从"
+      ],
+      "examples": [
+        {
+          "es": "Desde Madrid hasta Sevilla.",
+          "en": "From Madrid to Seville.",
+          "zh": "从马德里到塞维利亚。"
+        },
+        {
+          "es": "Vivo aquí desde 2020.",
+          "en": "I have lived here since 2020.",
+          "zh": "我从 2020 年起住在这里。"
+        }
+      ],
+      "esEnContrast": "desde 是起点，常和 hasta 成对；英语按时间用 since，按空间用 from。",
+      "frequencyRank": 37
+    },
+    "hacia": {
+      "category": "preposition",
+      "english": "toward, around",
+      "chinese": [
+        "朝向",
+        "大约"
+      ],
+      "examples": [
+        {
+          "es": "Camino hacia el norte.",
+          "en": "I walk toward the north.",
+          "zh": "我朝北走。"
+        },
+        {
+          "es": "Llego hacia las ocho.",
+          "en": "I arrive around eight.",
+          "zh": "我大约八点到。"
+        }
+      ],
+      "esEnContrast": "hacia 可表示方向 toward，也可表示时间近似 around。",
+      "frequencyRank": 38
+    },
+    "entre": {
+      "category": "preposition",
+      "english": "between, among",
+      "chinese": [
+        "在……之间",
+        "在……之中"
+      ],
+      "examples": [
+        {
+          "es": "Estoy entre dos opciones.",
+          "en": "I am between two options.",
+          "zh": "我在两个选择之间。"
+        },
+        {
+          "es": "Entre amigos hablamos claro.",
+          "en": "Among friends we speak clearly.",
+          "zh": "朋友之间说话直接。"
+        }
+      ],
+      "esEnContrast": "entre 同时覆盖 between 和 among；英语会按数量/关系拆分。",
+      "frequencyRank": 39
+    },
+    "y": {
+      "category": "conjunction",
+      "english": "and",
+      "chinese": [
+        "和",
+        "并且"
+      ],
+      "examples": [
+        {
+          "es": "Pan y queso.",
+          "en": "Bread and cheese.",
+          "zh": "面包和奶酪。"
+        },
+        {
+          "es": "Estudio y trabajo.",
+          "en": "I study and work.",
+          "zh": "我学习也工作。"
+        }
+      ],
+      "esEnContrast": "y 对应 and；在以 i/hi 音开头的词前常变 e，如 padre e hijo。",
+      "frequencyRank": 40
+    },
+    "o": {
+      "category": "conjunction",
+      "english": "or",
+      "chinese": [
+        "或者"
+      ],
+      "examples": [
+        {
+          "es": "Café o té.",
+          "en": "Coffee or tea.",
+          "zh": "咖啡或茶。"
+        },
+        {
+          "es": "Hoy o mañana.",
+          "en": "Today or tomorrow.",
+          "zh": "今天或明天。"
+        }
+      ],
+      "esEnContrast": "o 对应 or；在以 o/ho 音开头的词前常变 u，如 siete u ocho。",
+      "frequencyRank": 41
+    },
+    "pero": {
+      "category": "conjunction",
+      "english": "but",
+      "chinese": [
+        "但是"
+      ],
+      "examples": [
+        {
+          "es": "Quiero ir, pero no puedo.",
+          "en": "I want to go, but I cannot.",
+          "zh": "我想去，但不能去。"
+        },
+        {
+          "es": "Es caro pero bueno.",
+          "en": "It is expensive but good.",
+          "zh": "它虽然贵，但很好。"
+        }
+      ],
+      "esEnContrast": "pero 是一般转折 but；否定后纠正“不是 A 而是 B”常用 sino。",
+      "frequencyRank": 42
+    },
+    "sino": {
+      "category": "conjunction",
+      "english": "but rather, but instead",
+      "chinese": [
+        "而是"
+      ],
+      "examples": [
+        {
+          "es": "No es té, sino café.",
+          "en": "It is not tea, but coffee.",
+          "zh": "不是茶，而是咖啡。"
+        },
+        {
+          "es": "No vivo aquí, sino allí.",
+          "en": "I do not live here, but there.",
+          "zh": "我不住这儿，而是住那儿。"
+        }
+      ],
+      "esEnContrast": "sino 用在前面是否定、后面纠正的结构；英语仍常写 but，中文更像“而是”。",
+      "frequencyRank": 43
+    },
+    "aunque": {
+      "category": "conjunction",
+      "english": "although, even though",
+      "chinese": [
+        "虽然",
+        "即使"
+      ],
+      "examples": [
+        {
+          "es": "Aunque llueve, salgo.",
+          "en": "Although it rains, I go out.",
+          "zh": "虽然下雨，我还是出门。"
+        },
+        {
+          "es": "Voy aunque estoy cansado.",
+          "en": "I go even though I am tired.",
+          "zh": "即使累，我也去。"
+        }
+      ],
+      "esEnContrast": "aunque 对应 although/even though；后接虚拟式时语气会变。TODO: Phase 3 只讲基础直陈式。",
+      "frequencyRank": 44
+    },
+    "porque": {
+      "category": "conjunction",
+      "english": "because",
+      "chinese": [
+        "因为"
+      ],
+      "examples": [
+        {
+          "es": "Me quedo porque llueve.",
+          "en": "I stay because it rains.",
+          "zh": "我留下，因为下雨。"
+        },
+        {
+          "es": "Estudio porque quiero hablar.",
+          "en": "I study because I want to speak.",
+          "zh": "我学习，因为我想说。"
+        }
+      ],
+      "esEnContrast": "porque 是回答原因的 because；不要和疑问 por qué（why）混淆。",
+      "frequencyRank": 45
+    },
+    "si": {
+      "category": "conjunction",
+      "english": "if",
+      "chinese": [
+        "如果"
+      ],
+      "examples": [
+        {
+          "es": "Si quieres, vamos.",
+          "en": "If you want, we'll go.",
+          "zh": "如果你想，我们就去。"
+        },
+        {
+          "es": "No sé si viene.",
+          "en": "I do not know if he/she is coming.",
+          "zh": "我不知道他/她是否来。"
+        }
+      ],
+      "esEnContrast": "si 无重音是 if/whether；sí 有重音是 yes/itself，初学要分开。",
+      "frequencyRank": 46
+    },
+    "cuando": {
+      "category": "conjunction",
+      "english": "when",
+      "chinese": [
+        "当……时候"
+      ],
+      "examples": [
+        {
+          "es": "Cuando llego, te llamo.",
+          "en": "When I arrive, I'll call you.",
+          "zh": "我到的时候给你打电话。"
+        },
+        {
+          "es": "Trabajo cuando puedo.",
+          "en": "I work when I can.",
+          "zh": "我能工作时就工作。"
+        }
+      ],
+      "esEnContrast": "cuando 无重音常作连接词 when；cuándo 有重音用于疑问。",
+      "frequencyRank": 47
+    },
+    "mientras": {
+      "category": "conjunction",
+      "english": "while",
+      "chinese": [
+        "当……期间",
+        "与此同时"
+      ],
+      "examples": [
+        {
+          "es": "Leo mientras espero.",
+          "en": "I read while I wait.",
+          "zh": "我等的时候读书。"
+        },
+        {
+          "es": "Cocino mientras escucho música.",
+          "en": "I cook while I listen to music.",
+          "zh": "我一边做饭一边听音乐。"
+        }
+      ],
+      "esEnContrast": "mientras 表示两个动作同时发生，对应 while；也可引出对比。",
+      "frequencyRank": 48
+    },
+    "este": {
+      "category": "demonstrative",
+      "english": "this masculine",
+      "chinese": [
+        "这个"
+      ],
+      "examples": [
+        {
+          "es": "Este libro es mío.",
+          "en": "This book is mine.",
+          "zh": "这本书是我的。"
+        },
+        {
+          "es": "Este café está frío.",
+          "en": "This coffee is cold.",
+          "zh": "这杯咖啡凉了。"
+        }
+      ],
+      "esEnContrast": "este 是近处阳性 this；西语 demonstratives 有近/中/远三档。",
+      "frequencyRank": 49
+    },
+    "esta": {
+      "category": "demonstrative",
+      "english": "this feminine",
+      "chinese": [
+        "这个",
+        "这位"
+      ],
+      "examples": [
+        {
+          "es": "Esta casa es bonita.",
+          "en": "This house is pretty.",
+          "zh": "这所房子很漂亮。"
+        },
+        {
+          "es": "Esta idea me gusta.",
+          "en": "I like this idea.",
+          "zh": "我喜欢这个想法。"
+        }
+      ],
+      "esEnContrast": "esta 对应阴性单数名词；英语 this 不随名词性别变化。",
+      "frequencyRank": 50
+    },
+    "estos": {
+      "category": "demonstrative",
+      "english": "these masculine or mixed",
+      "chinese": [
+        "这些"
+      ],
+      "examples": [
+        {
+          "es": "Estos libros son nuevos.",
+          "en": "These books are new.",
+          "zh": "这些书是新的。"
+        },
+        {
+          "es": "Estos días trabajo mucho.",
+          "en": "These days I work a lot.",
+          "zh": "这些天我工作很多。"
+        }
+      ],
+      "esEnContrast": "estos 是 este 的阳性/混合复数；英语 these 不显示性别。",
+      "frequencyRank": 51
+    },
+    "estas": {
+      "category": "demonstrative",
+      "english": "these feminine",
+      "chinese": [
+        "这些"
+      ],
+      "examples": [
+        {
+          "es": "Estas flores son rojas.",
+          "en": "These flowers are red.",
+          "zh": "这些花是红色的。"
+        },
+        {
+          "es": "Estas preguntas son fáciles.",
+          "en": "These questions are easy.",
+          "zh": "这些问题很简单。"
+        }
+      ],
+      "esEnContrast": "estas 用于阴性复数名词；英语 these 不变。",
+      "frequencyRank": 52
+    },
+    "ese": {
+      "category": "demonstrative",
+      "english": "that masculine",
+      "chinese": [
+        "那个"
+      ],
+      "examples": [
+        {
+          "es": "Ese coche es rápido.",
+          "en": "That car is fast.",
+          "zh": "那辆车很快。"
+        },
+        {
+          "es": "Ese hombre es mi tío.",
+          "en": "That man is my uncle.",
+          "zh": "那个男人是我叔叔。"
+        }
+      ],
+      "esEnContrast": "ese 通常指离听者近或中等距离的 that；英语只有 this/that 两档。",
+      "frequencyRank": 53
+    },
+    "esa": {
+      "category": "demonstrative",
+      "english": "that feminine",
+      "chinese": [
+        "那个"
+      ],
+      "examples": [
+        {
+          "es": "Esa mesa es grande.",
+          "en": "That table is big.",
+          "zh": "那张桌子很大。"
+        },
+        {
+          "es": "Esa mujer canta bien.",
+          "en": "That woman sings well.",
+          "zh": "那个女人唱得好。"
+        }
+      ],
+      "esEnContrast": "esa 是阴性中距 that；和 esta/aquella 构成三档距离系统。",
+      "frequencyRank": 54
+    },
+    "esos": {
+      "category": "demonstrative",
+      "english": "those masculine or mixed",
+      "chinese": [
+        "那些"
+      ],
+      "examples": [
+        {
+          "es": "Esos perros corren.",
+          "en": "Those dogs run.",
+          "zh": "那些狗在跑。"
+        },
+        {
+          "es": "Esos problemas son reales.",
+          "en": "Those problems are real.",
+          "zh": "那些问题是真实的。"
+        }
+      ],
+      "esEnContrast": "esos 是 ese 的复数，常指那些靠近听者或刚提到的对象。",
+      "frequencyRank": 55
+    },
+    "esas": {
+      "category": "demonstrative",
+      "english": "those feminine",
+      "chinese": [
+        "那些"
+      ],
+      "examples": [
+        {
+          "es": "Esas sillas están libres.",
+          "en": "Those chairs are free.",
+          "zh": "那些椅子空着。"
+        },
+        {
+          "es": "Esas palabras importan.",
+          "en": "Those words matter.",
+          "zh": "那些话很重要。"
+        }
+      ],
+      "esEnContrast": "esas 用于阴性复数；英语 those 不显示性别。",
+      "frequencyRank": 56
+    },
+    "aquel": {
+      "category": "demonstrative",
+      "english": "that over there masculine",
+      "chinese": [
+        "远处那个"
+      ],
+      "examples": [
+        {
+          "es": "Aquel edificio es antiguo.",
+          "en": "That building over there is old.",
+          "zh": "远处那栋楼很旧。"
+        },
+        {
+          "es": "Aquel día fue especial.",
+          "en": "That day was special.",
+          "zh": "那一天很特别。"
+        }
+      ],
+      "esEnContrast": "aquel 表示远离说话者和听者，英语通常还是 that，需要靠语境补出“远”。",
+      "frequencyRank": 57
+    },
+    "aquella": {
+      "category": "demonstrative",
+      "english": "that over there feminine",
+      "chinese": [
+        "远处那个"
+      ],
+      "examples": [
+        {
+          "es": "Aquella ciudad es famosa.",
+          "en": "That city over there is famous.",
+          "zh": "远处那座城市很有名。"
+        },
+        {
+          "es": "Aquella noche llovió.",
+          "en": "That night it rained.",
+          "zh": "那天夜里下雨了。"
+        }
+      ],
+      "esEnContrast": "aquella 是远指阴性单数；西语三档距离比英语更细。",
+      "frequencyRank": 58
+    },
+    "aquellos": {
+      "category": "demonstrative",
+      "english": "those over there masculine or mixed",
+      "chinese": [
+        "远处那些"
+      ],
+      "examples": [
+        {
+          "es": "Aquellos árboles son altos.",
+          "en": "Those trees over there are tall.",
+          "zh": "远处那些树很高。"
+        },
+        {
+          "es": "Aquellos años fueron difíciles.",
+          "en": "Those years were difficult.",
+          "zh": "那些年很难。"
+        }
+      ],
+      "esEnContrast": "aquellos 是远指复数；英语 those 不显示“远离双方”的程度。",
+      "frequencyRank": 59
+    },
+    "aquellas": {
+      "category": "demonstrative",
+      "english": "those over there feminine",
+      "chinese": [
+        "远处那些"
+      ],
+      "examples": [
+        {
+          "es": "Aquellas montañas son azules.",
+          "en": "Those mountains over there are blue.",
+          "zh": "远处那些山发蓝。"
+        },
+        {
+          "es": "Aquellas cartas son viejas.",
+          "en": "Those letters are old.",
+          "zh": "那些信很旧。"
+        }
+      ],
+      "esEnContrast": "aquellas 用于远指阴性复数，和 esas 形成距离差别。",
+      "frequencyRank": 60
+    },
+    "esto": {
+      "category": "demonstrative",
+      "english": "this thing, this idea",
+      "chinese": [
+        "这件事",
+        "这个"
+      ],
+      "examples": [
+        {
+          "es": "Esto es importante.",
+          "en": "This is important.",
+          "zh": "这很重要。"
+        },
+        {
+          "es": "No entiendo esto.",
+          "en": "I do not understand this.",
+          "zh": "我不懂这个。"
+        }
+      ],
+      "esEnContrast": "esto 是中性指示词，不直接修饰名词；英语 this 可同时作限定词和代词。",
+      "frequencyRank": 61
+    },
+    "eso": {
+      "category": "demonstrative",
+      "english": "that thing, that idea",
+      "chinese": [
+        "那件事",
+        "那个"
+      ],
+      "examples": [
+        {
+          "es": "Eso no es verdad.",
+          "en": "That is not true.",
+          "zh": "那不是真的。"
+        },
+        {
+          "es": "Quiero hablar de eso.",
+          "en": "I want to talk about that.",
+          "zh": "我想谈谈那件事。"
+        }
+      ],
+      "esEnContrast": "eso 指一件事、想法或前文内容；英语 that 用法更宽，但没有性别系统。",
+      "frequencyRank": 62
+    },
+    "aquello": {
+      "category": "demonstrative",
+      "english": "that thing over there or back then",
+      "chinese": [
+        "远处/过去那件事"
+      ],
+      "examples": [
+        {
+          "es": "Aquello fue extraño.",
+          "en": "That was strange.",
+          "zh": "那件事很奇怪。"
+        },
+        {
+          "es": "No recuerdo aquello.",
+          "en": "I do not remember that.",
+          "zh": "我不记得那件事。"
+        }
+      ],
+      "esEnContrast": "aquello 是远指中性，常指远处、过去或心理距离远的事。",
+      "frequencyRank": 63
+    },
+    "mi": {
+      "category": "possessive",
+      "english": "my",
+      "chinese": [
+        "我的"
+      ],
+      "examples": [
+        {
+          "es": "Mi casa es pequeña.",
+          "en": "My house is small.",
+          "zh": "我的房子很小。"
+        },
+        {
+          "es": "Mi madre trabaja.",
+          "en": "My mother works.",
+          "zh": "我妈妈工作。"
+        }
+      ],
+      "esEnContrast": "mi 放在名词前，不带重音；mí 带重音是介词后的 me。",
+      "frequencyRank": 64
+    },
+    "tu": {
+      "category": "possessive",
+      "english": "your informal singular",
+      "chinese": [
+        "你的"
+      ],
+      "examples": [
+        {
+          "es": "Tu libro está aquí.",
+          "en": "Your book is here.",
+          "zh": "你的书在这里。"
+        },
+        {
+          "es": "Tu idea es buena.",
+          "en": "Your idea is good.",
+          "zh": "你的想法很好。"
+        }
+      ],
+      "esEnContrast": "tu 是物主词 your；tú 带重音是主语 you。英语靠拼写 your/you 区分。",
+      "frequencyRank": 65
+    },
+    "su": {
+      "category": "possessive",
+      "english": "his, her, its, your formal, their",
+      "chinese": [
+        "他/她/它/您/他们的"
+      ],
+      "examples": [
+        {
+          "es": "Su casa es grande.",
+          "en": "His/her/your/their house is big.",
+          "zh": "他/她/您/他们的房子很大。"
+        },
+        {
+          "es": "Su nombre es Ana.",
+          "en": "Her name is Ana.",
+          "zh": "她的名字是 Ana。"
+        }
+      ],
+      "esEnContrast": "su 高度歧义，可表示 his/her/its/your/their；英语必须选具体物主。西语常用 de él/de ella 澄清。",
+      "frequencyRank": 66
+    },
+    "nuestro": {
+      "category": "possessive",
+      "english": "our masculine singular",
+      "chinese": [
+        "我们的"
+      ],
+      "examples": [
+        {
+          "es": "Nuestro profesor es amable.",
+          "en": "Our teacher is kind.",
+          "zh": "我们的老师很友善。"
+        },
+        {
+          "es": "Nuestro plan cambia.",
+          "en": "Our plan changes.",
+          "zh": "我们的计划改变了。"
+        }
+      ],
+      "esEnContrast": "nuestro 会和被拥有的名词性数一致；英语 our 不变化。",
+      "frequencyRank": 67
+    },
+    "nuestra": {
+      "category": "possessive",
+      "english": "our feminine singular",
+      "chinese": [
+        "我们的"
+      ],
+      "examples": [
+        {
+          "es": "Nuestra clase empieza.",
+          "en": "Our class starts.",
+          "zh": "我们的课开始了。"
+        },
+        {
+          "es": "Nuestra amiga viene.",
+          "en": "Our friend is coming.",
+          "zh": "我们的朋友来了。"
+        }
+      ],
+      "esEnContrast": "nuestra 是 nuestro 的阴性单数形式，由后面的名词决定，不由拥有者性别决定。",
+      "frequencyRank": 68
+    },
+    "vuestro": {
+      "category": "possessive",
+      "english": "your plural masculine Spain",
+      "chinese": [
+        "你们的"
+      ],
+      "examples": [
+        {
+          "es": "Vuestro coche está fuera.",
+          "en": "Your car is outside.",
+          "zh": "你们的车在外面。"
+        },
+        {
+          "es": "Vuestro grupo gana.",
+          "en": "Your group wins.",
+          "zh": "你们的小组赢了。"
+        }
+      ],
+      "esEnContrast": "vuestro 对应 vosotros，主要在西班牙；拉美常用 su。",
+      "frequencyRank": 69
+    },
+    "vuestra": {
+      "category": "possessive",
+      "english": "your plural feminine Spain",
+      "chinese": [
+        "你们的"
+      ],
+      "examples": [
+        {
+          "es": "Vuestra casa es bonita.",
+          "en": "Your house is pretty.",
+          "zh": "你们的房子很漂亮。"
+        },
+        {
+          "es": "Vuestra idea ayuda.",
+          "en": "Your idea helps.",
+          "zh": "你们的想法有帮助。"
+        }
+      ],
+      "esEnContrast": "vuestra 随被拥有的阴性名词变化；英语 your 不变。",
+      "frequencyRank": 70
+    },
+    "mío": {
+      "category": "possessive",
+      "english": "mine masculine",
+      "chinese": [
+        "我的（名词性）"
+      ],
+      "examples": [
+        {
+          "es": "El libro es mío.",
+          "en": "The book is mine.",
+          "zh": "这本书是我的。"
+        },
+        {
+          "es": "Un amigo mío vive aquí.",
+          "en": "A friend of mine lives here.",
+          "zh": "我的一个朋友住在这里。"
+        }
+      ],
+      "esEnContrast": "mío 常在名词后或单独作 mine；mi 放在名词前。英语 my/mine 也分位置。",
+      "frequencyRank": 71
+    },
+    "tuyo": {
+      "category": "possessive",
+      "english": "yours masculine informal",
+      "chinese": [
+        "你的（名词性）"
+      ],
+      "examples": [
+        {
+          "es": "Este cuaderno es tuyo.",
+          "en": "This notebook is yours.",
+          "zh": "这个本子是你的。"
+        },
+        {
+          "es": "Un primo tuyo llamó.",
+          "en": "A cousin of yours called.",
+          "zh": "你的一个表亲打电话了。"
+        }
+      ],
+      "esEnContrast": "tuyo 是名词性或后置物主词；tu 是前置物主词。",
+      "frequencyRank": 72
+    },
+    "suyo": {
+      "category": "possessive",
+      "english": "his, hers, yours formal, theirs",
+      "chinese": [
+        "他/她/您/他们的（名词性）"
+      ],
+      "examples": [
+        {
+          "es": "La decisión es suya.",
+          "en": "The decision is his/hers/yours/theirs.",
+          "zh": "这个决定是他/她/您/他们的。"
+        },
+        {
+          "es": "Un amigo suyo viene.",
+          "en": "A friend of his/hers/yours/theirs is coming.",
+          "zh": "他/她/您/他们的一个朋友要来。"
+        }
+      ],
+      "esEnContrast": "suyo 和 su 一样歧义高，需要上下文或 de él/de ella 澄清。",
+      "frequencyRank": 73
+    },
+    "que": {
+      "category": "relative_interrogative",
+      "english": "that, which, who; unstressed what/that",
+      "chinese": [
+        "关系词",
+        "连接词",
+        "那/什么"
+      ],
+      "examples": [
+        {
+          "es": "El libro que leo es bueno.",
+          "en": "The book that I read is good.",
+          "zh": "我读的那本书很好。"
+        },
+        {
+          "es": "Creo que sí.",
+          "en": "I think so.",
+          "zh": "我觉得是的。"
+        }
+      ],
+      "esEnContrast": "que 无重音可作关系词或 that 从句连接词；qué 有重音才是疑问 what。",
+      "frequencyRank": 74
+    },
+    "quien": {
+      "category": "relative_interrogative",
+      "english": "who, whom unstressed",
+      "chinese": [
+        "谁",
+        "……的人"
+      ],
+      "examples": [
+        {
+          "es": "La persona con quien hablo es Ana.",
+          "en": "The person with whom I speak is Ana.",
+          "zh": "和我说话的人是 Ana。"
+        },
+        {
+          "es": "Quien estudia aprende.",
+          "en": "Whoever studies learns.",
+          "zh": "学习的人就会学会。"
+        }
+      ],
+      "esEnContrast": "quien 无重音多用于关系结构；疑问 who 写 quién。英语 who/whom 的区分在口语里弱，西语靠重音区分疑问。",
+      "frequencyRank": 75
+    },
+    "donde": {
+      "category": "relative_interrogative",
+      "english": "where unstressed",
+      "chinese": [
+        "……的地方"
+      ],
+      "examples": [
+        {
+          "es": "La ciudad donde vivo es grande.",
+          "en": "The city where I live is big.",
+          "zh": "我住的城市很大。"
+        },
+        {
+          "es": "Voy donde tú vas.",
+          "en": "I go where you go.",
+          "zh": "你去哪儿我就去哪儿。"
+        }
+      ],
+      "esEnContrast": "donde 无重音用于关系从句；dónde 有重音用于问地点。",
+      "frequencyRank": 76
+    },
+    "como": {
+      "category": "relative_interrogative",
+      "english": "as, like, how unstressed",
+      "chinese": [
+        "像",
+        "如同",
+        "怎样"
+      ],
+      "examples": [
+        {
+          "es": "Hazlo como quieras.",
+          "en": "Do it as you want.",
+          "zh": "按你想的方式做。"
+        },
+        {
+          "es": "Como no tengo tiempo, salgo.",
+          "en": "As I do not have time, I leave.",
+          "zh": "因为我没时间，所以我得走。"
+        }
+      ],
+      "esEnContrast": "como 无重音常是 as/like/because-like connector；cómo 有重音才是 how。",
+      "frequencyRank": 77
+    },
+    "qué": {
+      "category": "relative_interrogative",
+      "english": "what, which stressed",
+      "chinese": [
+        "什么",
+        "哪一个"
+      ],
+      "examples": [
+        {
+          "es": "¿Qué quieres?",
+          "en": "What do you want?",
+          "zh": "你想要什么？"
+        },
+        {
+          "es": "No sé qué hacer.",
+          "en": "I do not know what to do.",
+          "zh": "我不知道该做什么。"
+        }
+      ],
+      "esEnContrast": "qué 带重音，表示直接或间接疑问；que 无重音是关系词/连接词。",
+      "frequencyRank": 78
+    },
+    "quién": {
+      "category": "relative_interrogative",
+      "english": "who stressed",
+      "chinese": [
+        "谁"
+      ],
+      "examples": [
+        {
+          "es": "¿Quién viene?",
+          "en": "Who is coming?",
+          "zh": "谁要来？"
+        },
+        {
+          "es": "No sé quién llamó.",
+          "en": "I do not know who called.",
+          "zh": "我不知道谁打了电话。"
+        }
+      ],
+      "esEnContrast": "quién 带重音，用于疑问；quien 无重音用于关系结构。",
+      "frequencyRank": 79
+    },
+    "dónde": {
+      "category": "relative_interrogative",
+      "english": "where stressed",
+      "chinese": [
+        "哪里"
+      ],
+      "examples": [
+        {
+          "es": "¿Dónde vives?",
+          "en": "Where do you live?",
+          "zh": "你住在哪里？"
+        },
+        {
+          "es": "No sé dónde está.",
+          "en": "I do not know where it is.",
+          "zh": "我不知道它在哪里。"
+        }
+      ],
+      "esEnContrast": "dónde 是疑问 where；donde 是关系 where。重音符号直接改变句法角色。",
+      "frequencyRank": 80
+    },
+    "cuándo": {
+      "category": "relative_interrogative",
+      "english": "when stressed",
+      "chinese": [
+        "什么时候"
+      ],
+      "examples": [
+        {
+          "es": "¿Cuándo empieza la clase?",
+          "en": "When does class start?",
+          "zh": "课什么时候开始？"
+        },
+        {
+          "es": "Dime cuándo llegas.",
+          "en": "Tell me when you arrive.",
+          "zh": "告诉我你什么时候到。"
+        }
+      ],
+      "esEnContrast": "cuándo 带重音用于疑问；cuando 无重音连接从句。",
+      "frequencyRank": 81
+    },
+    "cómo": {
+      "category": "relative_interrogative",
+      "english": "how stressed",
+      "chinese": [
+        "怎么",
+        "如何"
+      ],
+      "examples": [
+        {
+          "es": "¿Cómo estás?",
+          "en": "How are you?",
+          "zh": "你好吗？"
+        },
+        {
+          "es": "No sé cómo decirlo.",
+          "en": "I do not know how to say it.",
+          "zh": "我不知道怎么说。"
+        }
+      ],
+      "esEnContrast": "cómo 是疑问 how；como 无重音是 as/like 等连接词。",
+      "frequencyRank": 82
+    },
+    "cuál": {
+      "category": "relative_interrogative",
+      "english": "which one, what one stressed",
+      "chinese": [
+        "哪一个"
+      ],
+      "examples": [
+        {
+          "es": "¿Cuál prefieres?",
+          "en": "Which one do you prefer?",
+          "zh": "你更喜欢哪一个？"
+        },
+        {
+          "es": "No sé cuál elegir.",
+          "en": "I do not know which one to choose.",
+          "zh": "我不知道选哪一个。"
+        }
+      ],
+      "esEnContrast": "cuál 用于在一组里选哪一个，对应 English which (one)。\nqué + 名词 也合法，但语义略不同：\n• ¿Qué película? = What/which movie? (开放问，更像分类)\n• ¿Cuál película? / ¿Cuál? = Which one? (具体在选项中选)\n• ¿Qué hora es? (固定搭配，不能换 cuál)\n口语里 cuál 单用代名词最常见。",
+      "frequencyRank": 83
+    },
+    "algo": {
+      "category": "indefinite_pronoun",
+      "english": "something, anything",
+      "chinese": [
+        "一些东西",
+        "什么"
+      ],
+      "examples": [
+        {
+          "es": "Quiero algo de comer.",
+          "en": "I want something to eat.",
+          "zh": "我想吃点东西。"
+        },
+        {
+          "es": "¿Hay algo nuevo?",
+          "en": "Is there anything new?",
+          "zh": "有什么新东西吗？"
+        }
+      ],
+      "esEnContrast": "algo 同时覆盖肯定句的 something 和疑问句的 anything；英语必须按句式切换两个词。",
+      "frequencyRank": 60
+    },
+    "nada": {
+      "category": "indefinite_pronoun",
+      "english": "nothing, anything (in negation)",
+      "chinese": [
+        "什么也没有",
+        "丝毫"
+      ],
+      "examples": [
+        {
+          "es": "No tengo nada.",
+          "en": "I don't have anything.",
+          "zh": "我什么都没有。"
+        },
+        {
+          "es": "No quiero nada más.",
+          "en": "I don't want anything else.",
+          "zh": "我什么都不想要了。"
+        }
+      ],
+      "esEnContrast": "nada 必须配 no 形成双重否定（西语正常语法）；英语只允许一个 not/nothing。",
+      "frequencyRank": 65
+    },
+    "alguien": {
+      "category": "indefinite_pronoun",
+      "english": "someone, somebody, anyone",
+      "chinese": [
+        "某人",
+        "有人"
+      ],
+      "examples": [
+        {
+          "es": "Alguien llama a la puerta.",
+          "en": "Someone is knocking on the door.",
+          "zh": "有人敲门。"
+        },
+        {
+          "es": "¿Conoces a alguien aquí?",
+          "en": "Do you know anyone here?",
+          "zh": "你这儿认识人吗？"
+        }
+      ],
+      "esEnContrast": "alguien 单一不变；英语 someone/somebody/anyone 多种说法。注意作直接宾语时要加 personal a：Veo a alguien。",
+      "frequencyRank": 80
+    },
+    "nadie": {
+      "category": "indefinite_pronoun",
+      "english": "nobody, no one, anyone (in negation)",
+      "chinese": [
+        "没有人",
+        "谁也不"
+      ],
+      "examples": [
+        {
+          "es": "No hay nadie en casa.",
+          "en": "There's nobody home.",
+          "zh": "家里没人。"
+        },
+        {
+          "es": "Nadie sabe la respuesta.",
+          "en": "Nobody knows the answer.",
+          "zh": "没有人知道答案。"
+        }
+      ],
+      "esEnContrast": "nadie 在动词后必须配 no；放动词前则不要 no。英语只能用一个否定词。",
+      "frequencyRank": 90
+    },
+    "todo": {
+      "category": "quantifier",
+      "english": "all, every, everything (masculine)",
+      "chinese": [
+        "全部",
+        "所有",
+        "每个"
+      ],
+      "examples": [
+        {
+          "es": "Todo el día.",
+          "en": "All day long.",
+          "zh": "一整天。"
+        },
+        {
+          "es": "Lo sé todo.",
+          "en": "I know everything.",
+          "zh": "我什么都知道。"
+        }
+      ],
+      "esEnContrast": "todo 既可作形容词修饰名词（todo el libro 整本书），也可作代词（lo sé todo 我都知道）。英语需要 all/every/everything 切换。",
+      "frequencyRank": 25
+    },
+    "toda": {
+      "category": "quantifier",
+      "english": "all, every (feminine)",
+      "chinese": [
+        "全部",
+        "整个"
+      ],
+      "examples": [
+        {
+          "es": "Toda la noche.",
+          "en": "All night.",
+          "zh": "整夜。"
+        },
+        {
+          "es": "Toda mi familia viene.",
+          "en": "My whole family is coming.",
+          "zh": "我全家都来。"
+        }
+      ],
+      "esEnContrast": "toda 是 todo 的阴性单数；英语 all/whole 不变化性别。",
+      "frequencyRank": 35
+    },
+    "mucho": {
+      "category": "quantifier",
+      "english": "much, a lot (adjective or adverb)",
+      "chinese": [
+        "很多",
+        "非常"
+      ],
+      "examples": [
+        {
+          "es": "Tengo mucho tiempo.",
+          "en": "I have a lot of time.",
+          "zh": "我有很多时间。"
+        },
+        {
+          "es": "Te quiero mucho.",
+          "en": "I love you a lot.",
+          "zh": "我很爱你。"
+        }
+      ],
+      "esEnContrast": "mucho 修饰名词时随性数变化（mucho/mucha/muchos/muchas）；作副词修饰动词时永远写 mucho（不变）。英语 much/many/a lot 切换更复杂。",
+      "frequencyRank": 22
+    },
+    "muy": {
+      "category": "adverb_function",
+      "english": "very",
+      "chinese": [
+        "很",
+        "非常"
+      ],
+      "examples": [
+        {
+          "es": "Es muy interesante.",
+          "en": "It's very interesting.",
+          "zh": "很有意思。"
+        },
+        {
+          "es": "Hablo muy poco francés.",
+          "en": "I speak very little French.",
+          "zh": "我法语说得很少。"
+        }
+      ],
+      "esEnContrast": "muy 修饰形容词和副词，对应 very；muy 不能修饰动词（那个位置用 mucho）。常见错误：*muy quiero → 应为 quiero mucho。",
+      "frequencyRank": 20
+    },
+    "también": {
+      "category": "adverb_function",
+      "english": "also, too, as well",
+      "chinese": [
+        "也",
+        "同样"
+      ],
+      "examples": [
+        {
+          "es": "Yo también voy.",
+          "en": "I'm going too.",
+          "zh": "我也去。"
+        },
+        {
+          "es": "Ella habla inglés y también español.",
+          "en": "She speaks English and also Spanish.",
+          "zh": "她说英语，也说西班牙语。"
+        }
+      ],
+      "esEnContrast": "también 是肯定句的 also/too；否定句对应词是 tampoco。位置灵活（句首/中/末都可）。",
+      "frequencyRank": 50
+    },
+    "tampoco": {
+      "category": "adverb_function",
+      "english": "neither, not either",
+      "chinese": [
+        "也不",
+        "也没有"
+      ],
+      "examples": [
+        {
+          "es": "Yo tampoco lo sé.",
+          "en": "I don't know either.",
+          "zh": "我也不知道。"
+        },
+        {
+          "es": "Ella no fue y yo tampoco.",
+          "en": "She didn't go and neither did I.",
+          "zh": "她没去，我也没去。"
+        }
+      ],
+      "esEnContrast": "tampoco = 否定版的 también；英语用 not... either 或 neither 重组语序。西语只需替换词。",
+      "frequencyRank": 95
+    },
+    "más": {
+      "category": "adverb_function",
+      "english": "more, most",
+      "chinese": [
+        "更多",
+        "更"
+      ],
+      "examples": [
+        {
+          "es": "Quiero más café.",
+          "en": "I want more coffee.",
+          "zh": "我还要咖啡。"
+        },
+        {
+          "es": "Es más fácil de lo que parece.",
+          "en": "It's easier than it seems.",
+          "zh": "比看起来容易。"
+        }
+      ],
+      "esEnContrast": "más + 形容词/副词 = comparative（more/-er）；最高级是 el/la más X = the most/-est X。比较对象用 que：más alto que tú。",
+      "frequencyRank": 18
+    },
+    "menos": {
+      "category": "adverb_function",
+      "english": "less, fewer, least",
+      "chinese": [
+        "更少",
+        "较少"
+      ],
+      "examples": [
+        {
+          "es": "Tengo menos tiempo hoy.",
+          "en": "I have less time today.",
+          "zh": "我今天时间少一些。"
+        },
+        {
+          "es": "Es menos caro que el otro.",
+          "en": "It's less expensive than the other one.",
+          "zh": "比另一个便宜。"
+        }
+      ],
+      "esEnContrast": "menos 是 más 的反义；英语区分 less（不可数）/ fewer（可数），西语统一用 menos。",
+      "frequencyRank": 70
+    }
   }
 }

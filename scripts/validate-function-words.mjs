@@ -12,7 +12,10 @@ const VALID_CATEGORIES = new Set([
   "conjunction",
   "demonstrative",
   "possessive",
-  "relative_interrogative"
+  "relative_interrogative",
+  "indefinite_pronoun",
+  "quantifier",
+  "adverb_function"
 ]);
 
 function assertString(value, label, errors) {
