@@ -27,6 +27,28 @@
 
 ## 会话记录
 
+### Session #COURSE-005 Phase 3 - 2026-05-21
+
+**Goal**: Implement the seven-day `/learn/foundation` Chinese reading course according to the COURSE-005 ticket and handoff logs.
+
+**Completed**:
+- Added `src/content/foundation.ts` with 7 static Chinese lessons and structured comparison/contrast/usage data.
+- Added `/learn/foundation` overview with 7 day cards, Day 1 `lg:col-span-2`, and amber "推荐先读" pill.
+- Added `/learn/foundation/[day]` detail route with static params, BackLink, four required content sections, 3-column comparison rows, contrast quote blocks, usage examples, and tri-link navigation.
+- Added amber foundation banner under the existing `/learn` hero.
+- Extended `tests/course005.test.mjs` with Phase 3 contracts.
+- Kept COURSE-005 `in_progress` because PM must read the 7-day course content before `ready_for_qa`.
+
+**Verification**:
+- TDD red: `node --test tests/course005.test.mjs` failed 4 Phase 3 tests before implementation.
+- `node --test tests/course005.test.mjs`: 12/12 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 189/189 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Next**:
+- PM content readthrough for all 7 days. After approval, move COURSE-005 toward final QA.
+
 ### Session #COURSE-005 Phase 1 - 2026-05-21
 
 **Goal**: Start COURSE-005 with the independent Phase 1 function-word dictionary while Claude2 reviews Phase 2/3 UI.

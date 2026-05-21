@@ -160,3 +160,63 @@ test("COURSE-005 Phase 2 sample sentence lemmas exist in dictionary", async () =
     assert.ok(dictionary.entries[lemma], `missing skeleton lemma ${lemma}`);
   }
 });
+
+test("COURSE-005 Phase 3 foundation content defines seven complete lessons", async () => {
+  const contentSource = await readSource("src/content/foundation.ts");
+
+  assert.match(contentSource, /foundationLessons/);
+  assert.match(contentSource, /day:\s*1/);
+  assert.match(contentSource, /day:\s*7/);
+  assert.match(contentSource, /sections/);
+  assert.match(contentSource, /comparisonRows/);
+  assert.match(contentSource, /contrastBlocks/);
+  assert.match(contentSource, /usageExamples/);
+
+  const dayMatches = contentSource.match(/day:\s*\d/g) ?? [];
+  assert.equal(dayMatches.length, 7, "foundationLessons should contain exactly 7 day entries");
+
+  const sectionNames = ["引入", "对照表", "西英差异", "真实使用"];
+  for (const name of sectionNames) {
+    assert.match(contentSource, new RegExp(name), `missing ${name} section marker`);
+  }
+
+  const chineseCharCount = (contentSource.match(/[\u4e00-\u9fff]/g) ?? []).length;
+  assert.ok(chineseCharCount >= 5600, `expected at least 5600 Chinese chars, got ${chineseCharCount}`);
+});
+
+test("COURSE-005 Phase 3 foundation overview route lists seven day cards", async () => {
+  const pageSource = await readSource("src/app/learn/foundation/page.tsx");
+
+  assert.match(pageSource, /SiteHeader/);
+  assert.match(pageSource, /foundationLessons/);
+  assert.match(pageSource, /grid gap-4 sm:grid-cols-2 lg:grid-cols-3/);
+  assert.match(pageSource, /lg:col-span-2/);
+  assert.match(pageSource, /推荐先读/);
+  assert.match(pageSource, /\/learn\/foundation\/day-\$\{lesson\.day\}/);
+});
+
+test("COURSE-005 Phase 3 foundation day route renders all lesson sections and tri-link navigation", async () => {
+  const pageSource = await readSource("src/app/learn/foundation/[day]/page.tsx");
+
+  assert.match(pageSource, /generateStaticParams/);
+  assert.match(pageSource, /foundationLessons/);
+  assert.match(pageSource, /Day \{lesson\.day\} \/ 7/);
+  assert.match(pageSource, /BackLink/);
+  assert.match(pageSource, /comparisonRows/);
+  assert.match(pageSource, /contrastBlocks/);
+  assert.match(pageSource, /usageExamples/);
+  assert.match(pageSource, /border-l-2 border-brand-200 pl-3/);
+  assert.match(pageSource, /上一天/);
+  assert.match(pageSource, /下一天/);
+  assert.match(pageSource, /visibility: "hidden"/);
+});
+
+test("COURSE-005 Phase 3 learn overview exposes amber foundation banner under the hero", async () => {
+  const learnSource = await readSource("src/app/learn/page.tsx");
+
+  assert.match(learnSource, /href="\/learn\/foundation"/);
+  assert.match(learnSource, /border-amber-200/);
+  assert.match(learnSource, /bg-amber-50\/60/);
+  assert.match(learnSource, /新手起步/);
+  assert.match(learnSource, /7 天/);
+});

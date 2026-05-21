@@ -1,3 +1,39 @@
+## Dev Report: COURSE-005 Phase 3 foundation course
+**Time**: 2026-05-21 20:46
+**Developer**: Codex1
+
+**Status**: Phase 3 implementation complete. Full COURSE-005 remains `in_progress` because the ticket requires PM to read through the 7-day Chinese course before moving it to `ready_for_qa`.
+
+**Changed files**:
+- src/content/foundation.ts
+- src/app/learn/foundation/page.tsx
+- src/app/learn/foundation/[day]/page.tsx
+- src/app/learn/page.tsx
+- tests/course005.test.mjs
+- feature_list.json
+- session-handoff.md
+- claude-progress.md
+
+**Implementation notes**:
+- Added 7 static Chinese foundation lessons in `src/content/foundation.ts`, covering subject pronouns, articles, reflexive/object pronouns, prepositions, demonstratives/possessives, conjunctions, and relative/interrogative words.
+- Added `/learn/foundation` overview with 7 cards, `lg:col-span-2` Day 1 hero card, and amber "推荐先读" pill.
+- Added `/learn/foundation/day-1` through `/learn/foundation/day-7` via static params; each day renders intro, 3-column comparison rows, contrast blocks, real usage blocks, BackLink, and previous/overview/next navigation with hidden placeholders on edges.
+- Added amber `/learn` banner below the existing brand hero, linking to `/learn/foundation`.
+- Kept the course static reading only: no quiz, progress tracking, flip cards, audio, AI, or nav changes.
+
+**Verification executed**:
+1. TDD red check: `node --test tests/course005.test.mjs` failed 4 Phase 3 tests before implementation because content/routes/banner did not exist.
+2. Focused COURSE-005 tests: `node --test tests/course005.test.mjs` -> tests 12, pass 12, fail 0.
+3. Encoding: `npm run lint:encoding` -> Encoding check passed.
+4. Full suite: `npm test` -> tests 189, pass 189, fail 0.
+5. Production build: `npm run build` -> compiled successfully; `/learn/foundation` and `/learn/foundation/[day]` listed; existing `<img>` and Sentry warnings only.
+
+**Next step**:
+- PM should read the 7-day course content in `src/content/foundation.ts` or through `/learn/foundation/day-1..day-7`.
+- After PM content approval, Codex1 can mark COURSE-005 `ready_for_qa` or Codex2 can run final structure QA, depending on PM handoff.
+
+---
+
 ## Dev Report: COURSE-005 Phase 2 sentence dissector
 **Time**: 2026-05-22 10:15
 **Developer**: Codex1

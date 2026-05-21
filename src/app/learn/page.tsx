@@ -38,6 +38,26 @@ export default function LearnOverviewPage() {
           </div>
         </section>
 
+        <Link
+          className="mt-6 flex flex-col gap-4 rounded-hero border border-amber-200 bg-amber-50/60 p-5 transition hover:border-amber-300 hover:shadow-card sm:flex-row sm:items-center"
+          href="/learn/foundation"
+        >
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 text-lg font-semibold text-amber-800">
+            7
+          </span>
+          <div className="flex-1">
+            <p className="text-base font-semibold text-gray-950">
+              新手起步 · 7 天讲透西语骨架词
+            </p>
+            <p className="mt-1 text-sm leading-6 text-gray-600">
+              先认清代词、冠词、介词、连词这些高频小词，再进入单元内容。每天 5-8 分钟。
+            </p>
+          </div>
+          <span className="self-end text-sm font-semibold text-amber-700 sm:self-auto">
+            开始 →
+          </span>
+        </Link>
+
         {units.length === 0 ? (
           <EmptyState
             description="请稍后刷新"
