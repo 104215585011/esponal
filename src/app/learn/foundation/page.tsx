@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { foundationLessons } from "@/content/foundation";
 
@@ -7,7 +8,8 @@ export default function FoundationOverviewPage() {
     <main className="min-h-screen bg-app text-gray-900">
       <SiteHeader />
       <div className="mx-auto max-w-app-shell px-4 py-10 sm:px-6 lg:px-8">
-        <section className="max-w-3xl">
+        <BackLink href="/learn" label="课程" />
+        <section className="mt-4 max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">
             Spanish Skeleton Words
           </p>
@@ -44,6 +46,24 @@ export default function FoundationOverviewPage() {
             </Link>
           ))}
         </section>
+
+        <Link
+          href="/dissect"
+          className="mt-8 flex flex-col gap-4 rounded-hero border border-slate-200 bg-slate-50/60 p-5 transition hover:border-slate-300 hover:shadow-card sm:flex-row sm:items-center"
+        >
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-2xl">
+            📐
+          </span>
+          <div className="flex-1">
+            <p className="text-base font-semibold text-gray-900">句子拆解器</p>
+            <p className="mt-0.5 text-sm text-gray-600">
+              粘任意西语句子，自动按词性高亮骨架词。学完一天后立刻试一段，看是不是真的看穿了句子。
+            </p>
+          </div>
+          <span className="self-end text-sm font-semibold text-slate-700 sm:self-auto">
+            打开 →
+          </span>
+        </Link>
       </div>
     </main>
   );
