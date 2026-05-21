@@ -787,7 +787,7 @@
     "area": "course",
     "title": "西语骨架词系统（7 天起步课 + 句子拆解器）",
     "user_visible_behavior": "初学者打开 /learn 看到\"新手起步 7 天\"入口，进入后阅读 7 节中文讲解课（每节 800-1500 字 + 对照表 + 例句），系统讲解代词/冠词/介词/连词/指示词/反身/关系词这些\"骨架词\"，每条都用英语对照辅助理解；另有独立工具 /dissect，粘贴任意西语句子可看到骨架词按词性高亮拆解，每个骨架词可点击查看详解。",
-    "status": "backlog",
+    "status": "in_progress",
     "verification": [
       "data/function-words.json 存在，含至少 60 条骨架词，每条含 category/english/chinese/examples/esEnContrast/frequencyRank 6 字段",
       "scripts/validate-function-words.mjs 验证数据完整性",
@@ -799,7 +799,7 @@
       "UI 视觉过 Claude2 评审",
       "npm test 通过，npm run build 通过"
     ],
-    "evidence": "",
-    "notes": "Ticket: docs/tickets/COURSE-005.md。PM 教学洞察：从英语过来学西语的人无需被当成完全零基础对待，先把\"功能词\"骨架剥离讲清楚，用英语对照打底，效率比直接当词汇硬记高数倍。设计决定：(1) C+D 组合 - 七天课建立认知 + 拆解器即时验证；(2) 共享 function-words.json 词典数据源用 Wiktionary (CC-BY-SA)，不用 AI 自由生成防杜撰；(3) 课程纯静态阅读不加测验/翻牌/音频；(4) 中文长文讲解 800-1500 字/节。分 3 期 - 词典 → 拆解器 → 七天课。Codex1 不熟西语就保留 TODO 等 PM 校对。"
+    "evidence": "Codex1 Dev 2026-05-21 15:24: completed COURSE-005 Phase 1 dictionary data only. Added data/function-words.json with Wiktionary attribution metadata, CC-BY-SA 3.0 license note, lastUpdated 2026-05-21, and 83 hand-curated entries across all 10 required categories. Each entry includes category, english, chinese array, at least two examples with es/en/zh, esEnContrast, and frequencyRank. Added scripts/validate-function-words.mjs and npm run validate:function-words. Added tests/course005.test.mjs with TDD red/green coverage: before implementation failed 4/4 due missing dictionary/validator; after implementation node --test tests/course005.test.mjs passed 5/5 and npm run validate:function-words reported Function-word dictionary valid: 83 entries. Claude2 UI review 2026-05-21 returned PASS for Phase 2/3 direction with no P1 blockers and required object_pronoun color coverage for later implementation. Full COURSE-005 remains in_progress pending PM review of Phase 1 data before Phase 2/3.",
+    "notes": "Ticket: docs/tickets/COURSE-005.md。PM 教学洞察：从英语过来学西语的人无需被当成完全零基础对待，先把\"功能词\"骨架剥离讲清楚，用英语对照打底，效率比直接当词汇硬记高数倍。设计决定：(1) C+D 组合 - 七天课建立认知 + 拆解器即时验证；(2) 共享 function-words.json 词典数据源用 Wiktionary (CC-BY-SA)，不用 AI 自由生成防杜撰；(3) 课程纯静态阅读不加测验/翻牌/音频；(4) 中文长文讲解 800-1500 字/节。分 3 期 - 词典 → 拆解器 → 七天课。Codex1 不熟西语就保留 TODO 等 PM 校对。 Phase 1 contains TODO markers for por/para, aunque/subjunctive, and qu?/cu?l where PM grammar wording should be checked before publishing."
   }
 ]

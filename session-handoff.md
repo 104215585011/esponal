@@ -1,3 +1,41 @@
+## Dev Report: COURSE-005 Phase 1 function-word dictionary
+**Time**: 2026-05-21 15:24
+**Developer**: Codex1
+
+**Status**: Phase 1 complete for PM dictionary review. Full COURSE-005 remains `in_progress`; Phase 2 `/dissect` and Phase 3 seven-day course are not implemented yet.
+
+**Changed files**:
+- data/function-words.json
+- scripts/validate-function-words.mjs
+- tests/course005.test.mjs
+- package.json
+- feature_list.json
+- session-handoff.md
+- claude-progress.md
+
+**Implementation notes**:
+- Added `data/function-words.json` with `_meta.source = Wiktionary (https://en.wiktionary.org)`, `_meta.license = CC-BY-SA 3.0`, `_meta.lastUpdated = 2026-05-21`.
+- Added 83 hand-curated starter entries across the required categories: subject pronouns, reflexives, object pronouns, definite/indefinite articles, prepositions, conjunctions, demonstratives, possessives, and relative/interrogative words.
+- Every entry has `category`, `english`, `chinese`, `examples` with es/en/zh pairs, `esEnContrast`, and `frequencyRank`.
+- Added `scripts/validate-function-words.mjs` and `npm run validate:function-words`.
+- Kept TODO markers inside the data for grammar points that should be checked by PM before publishing: por/para, aunque with subjunctive, and qué/cuál.
+- Claude2 UI review for later Phase 2/3 returned PASS. No P1 blockers; later `/dissect` must give `object_pronoun` its own color (`bg-indigo-50 text-indigo-700` recommended).
+
+**Verification executed**:
+1. TDD red check
+   Command: `node --test tests/course005.test.mjs`
+   Result before implementation: failed 4/4 because `data/function-words.json` and `scripts/validate-function-words.mjs` did not exist
+2. Validator command
+   Command: `npm run validate:function-words`
+   Result: pass, `Function-word dictionary valid: 83 entries`
+3. Focused COURSE-005 Phase 1 test
+   Command: `node --test tests/course005.test.mjs`
+   Result: pass, `tests 5`, `pass 5`, `fail 0`
+
+**Next step**:
+- PM should review `data/function-words.json` before Codex1 starts Phase 2/3.
+- After PM approves the dictionary, Codex1 can implement `/dissect` and `/learn/foundation` using the Claude2 constraints recorded in the ticket/handoff.
+
 ## Dev Report: WEB-015 app-shell width alignment
 **Time**: 2026-05-21 14:31
 **Developer**: Codex1

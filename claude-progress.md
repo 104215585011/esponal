@@ -27,6 +27,27 @@
 
 ## 会话记录
 
+### Session #COURSE-005 Phase 1 - 2026-05-21
+
+**Goal**: Start COURSE-005 with the independent Phase 1 function-word dictionary while Claude2 reviews Phase 2/3 UI.
+
+**Completed**:
+- Added `data/function-words.json` with Wiktionary attribution metadata, CC-BY-SA 3.0 license note, and 83 Spanish function-word entries.
+- Covered all required categories: subject pronoun, reflexive, object pronoun, definite article, indefinite article, preposition, conjunction, demonstrative, possessive, and relative/interrogative.
+- Added `scripts/validate-function-words.mjs`.
+- Added `npm run validate:function-words`.
+- Added `tests/course005.test.mjs` for Phase 1 data integrity.
+- Updated COURSE-005 in `feature_list.json` to `in_progress`, with Phase 1 evidence and a note that Phase 2/3 wait for PM dictionary review.
+- Claude2 UI review returned PASS for `/dissect` and `/learn/foundation`; later implementation must give `object_pronoun` a distinct color and keep foundation day pages reading-first.
+
+**Verification**:
+- TDD red: `node --test tests/course005.test.mjs` failed 4/4 before dictionary/validator existed.
+- `npm run validate:function-words`: valid, 83 entries.
+- `node --test tests/course005.test.mjs`: 5/5 pass.
+
+**Next**:
+- PM should review `data/function-words.json`. After approval, Codex1 can continue with Phase 2 `/dissect` and Phase 3 seven-day course.
+
 ### Session #WEB-015 - 2026-05-21
 
 **Goal**: Fix the 1920px visual width discontinuity between SiteHeader and primary app content by introducing a semantic app-shell max-width token.
