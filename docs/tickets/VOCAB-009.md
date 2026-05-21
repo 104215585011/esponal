@@ -67,14 +67,12 @@ type SpanishTextProps = {
     sentence?: string;
   };
   className?: string;
-  /** 内嵌单词的额外 className（默认无装饰，hover 加亮） */
+  /** 内嵌单词的额外 className */
   wordClassName?: string;
-  /** 控制交互密度：inline 用于短例句，dense 用于表格，readOnly 只显示文本 */
+  /** 交互密度：inline 短例句 / dense 表格 cell / readOnly 只渲染 span 不渲染 button */
   interactionDensity?: "inline" | "dense" | "readOnly";
-  /** 是否允许每个词进入 Tab 顺序；长正文和密集表格默认关闭，避免超长 Tab 链 */
+  /** 词是否进入 Tab 顺序。短例句和变位表 cell 设 true，长正文设 false */
   enableKeyboard?: boolean;
-  /** 是否禁用查词（仅显示文本，无交互）—— 通常为 false */
-  readOnly?: boolean;
 };
 
 export function SpanishText({
@@ -84,17 +82,38 @@ export function SpanishText({
   className,
   wordClassName,
   interactionDensity = "inline",
-  enableKeyboard = false,
-  readOnly = false
+  enableKeyboard = false
 }: SpanishTextProps) { /* ... */ }
 ```
 
-### 1b. 视觉与可达性约束（Claude2 P1）
+### 1b. 视觉与可达性约束（Claude2 二审吸收）
 
-- **默认无装饰**：默认状态不得有下划线、底色、文字颜色变化，也不得加额外 padding 导致行内文本重排。
-- **hover/active 轻提示**：hover 只允许轻量 `bg-brand-50` + `text-brand-700`；移动端 active/pressed 需要有反馈，但不得撑高行高。
-- **已学词标记**：`.saved-word` 只保留 VOCAB-008 的深灰虚线/下划线，不加底色，不改原有阅读节奏。
-- **键盘策略**：逐词 `<button>` 可以支持键盘，但默认不要让长正文每个词都进入 Tab 顺序。`enableKeyboard` 只在短例句、关键表格 cell 或明确需要键盘逐词操作的区域开启。长篇正文后续如需要完整键盘浏览，应另做 roving tabindex，不在本票范围。
+**桌面端**：
+- 默认零装饰：不下划线、不底色、不变文字色、不改 padding（避免行内重排）
+- cursor `pointer`（唯一可发现性提示）
+- hover：`bg-brand-50` + `text-brand-700`；**绝不再加 `hover:underline`** —— 已学词有 `.saved-word` 虚线，hover 实线会"换线"很闹
+
+**移动端（`@media (hover: none)`）必须破例**：
+- 给词加**极轻**底纹 `bg-brand-50/40`，**不加下划线、不改字色、不撑行高**
+- 这是"默认就有微弱可发现性"，不是装饰
+- active/pressed 反馈强一档 `bg-brand-100`，但仍不撑行高
+
+**已学词**：
+- 复用 VOCAB-008 `.saved-word`（深灰虚线下划线 `#4b5563`）
+- 桌面 hover 时只改背景和文字色，**不动**下划线
+- 移动端 `.saved-word` + `bg-brand-50/40` 叠加（虚线在 baseline 下方、底色在 box 背景，不冲突）
+
+**interactionDensity 三档语义**（必须写死，否则 Codex1 跑偏）：
+- `inline`（默认）：词间无额外间距，按钮 padding `px-0.5`，纯依赖父级 leading
+- `dense`：表格 cell / 变位表用，按钮 padding `px-1 py-0.5`，自带 `rounded`，hover 命中区更大
+- `readOnly`：**只渲染 `<span>`，不渲染 button**（不是 disabled button）。语义=只要文本不要交互
+
+**砍掉冗余 `readOnly` prop** —— 顶层 `readOnly` 和 `interactionDensity="readOnly"` 重复，只保留后者。
+
+**键盘策略**（必须由 component user 显式声明，不要黑盒判断）：
+- **短例句（< 12 词）和变位表 cell 必须 `enableKeyboard={true}`**
+- **长正文段落、对照表整段必须 `enableKeyboard={false}`**（默认）
+- 组件源码顶部留 TODO：未来用 roving tabindex 统一处理
 
 ### 2. 词识别策略
 
@@ -124,23 +143,56 @@ type LookupSource =
 - **Phase A 明确不动**：`/lectura`、`/watch`、`src/app/dissect/DissectorClient.tsx`。它们都已经通过各自 QA 或 P0 验证，暂时保持稳定。
 - Dissector 后续如要迁移，只迁移"内容词查词"部分；骨架词 popover 继续保留 COURSE-005 P0 的视觉和逻辑。
 
-### 5. 接入新页面
+### 5. 接入新页面（字段死清单）
 
-- **`src/app/grammar/page.tsx`**：只包明确的西语示例字段；如果 `topic.intro` 是中文混排，不要整段包 `SpanishText`
-- **`src/app/grammar/[slug]/page.tsx`**：只包明确西语字段，例如 `row.pronoun`、`row.form`、`example.spanish`、comparison `item.spanish` 等；不要包中文说明、导航标题或中西混排段落
-- **`/learn/foundation/[day]/page.tsx` contrastBlocks**：当前是混合字符串（"Veo a Ana. / I see Ana. / 我看见 Ana..."），需要做轻量解析：
-  - 选项 A：调整数据结构，把 contrastBlocks 改成 `{ es, en, zh, note }` 对象数组
-  - 选项 B：在渲染时按 `/` 分割，识别第一段为西语
-  - 推荐 A（更可靠，但要改 `src/content/foundation.ts` 数据 + 渲染器）
-- **`/learn/foundation` 总览页**：subtitle 字段是西语词列表，可作为低优先级接入；不要优先把卡片列表变成密集交互区
+#### `/grammar/[slug]` 字段决策（Codex1 照搬，不要犹豫）
 
-### 6. 设计原则
+**包**：
+- `row.pronoun`、`row.form`（变位表的代词列和变位列，用 `interactionDensity="dense"` + `enableKeyboard={true}`）
+- `example.spanish`（例句西语行，用 `interactionDensity="inline"` + `enableKeyboard={true}`）
+- comparison `item.spanish`
 
-- **默认无装饰**：词不加 hover 前不显示下划线、底色或颜色变化（不要污染阅读节奏）
-- **hover 高亮**：hover 时词变 `bg-brand-50` + `text-brand-700`
-- **已学词标记**：复用 VOCAB-008 `.saved-word` 类（深灰虚线/下划线），不加底色
-- **键盘可达**：短例句/关键 cell 可启用逐词 Tab；长正文和密集表格默认避免超长 Tab 链
-- **触摸优化**：移动端 active 状态高亮（点击有反馈），但不得破坏行高
+**不包**：
+- `topic.title`（含"现在时变位"等中文）
+- `topic.intro`、`topic.analogy`（中文为主，可能含 inline 西语词如"el 表示 the"，混排不抽取）
+- `row.person`、`row.chinese`、`example.chinese`、`example.reason`、`rule`（纯中文）
+- 侧栏导航 title 链接（纯中文）
+
+#### `/grammar/page.tsx`（列表）
+
+**Phase B 不接入**。所有字段（`group` / `title` / `intro`）都是中文为主，硬抽 inline 西语词破坏阅读流。如未来数据加 `inlineSpanishTokens` 标记再考虑。验收标准 #10 已写明。
+
+#### `/learn/foundation/[day]/page.tsx` contrastBlocks
+
+当前是混合字符串如 `"Veo a Ana. / I see Ana. / 我看见 Ana。a 不翻成..."`。Phase C 改数据结构为 `{ es, en, zh, note }[]`。
+
+**运行时 split 已否决**（中文也用 "/"，note 可能被切断，容错性差）。
+
+#### 视口边界处理（必做）
+
+`CourseLookupText` 现有 `<LookupCard>` 用 `absolute left-0 top-full`——长正文里靠左词贴左屏边、靠右词溢出右屏。SpanishText 还要在窄表格 cell 里用，**必须**给 LookupCard wrapper 加：
+
+```
+max-w-[min(20rem,calc(100vw-2rem))]
+```
+
+或视口边界检测调整 `left`。Phase A 必须包含这一处修复，否则手机端变位表 cell 弹卡会溢出。
+
+#### savedForms 缓存失效（必做）
+
+`CourseLookupText` 现有 `savedFormsPromise` 是模块单例——用户"加入词库"成功后，同页其他词的 `.saved-word` 状态**不更新**。SpanishText 抽出后必须解决：
+- 最小方案：LookupCard onSuccess 后 invalidate savedFormsPromise + 触发 SpanishText 重新加载
+- 更稳方案：用 React Context + 订阅机制
+
+Phase A 至少加 TODO 注释 + 最小 invalidate 方案。
+
+#### `/learn/foundation` 总览页
+
+subtitle 字段是西语词列表，**Phase A 不接入**——不要优先把卡片列表变成密集交互区。验收标准 #7 删除。
+
+### 6. 设计原则（完整版见 1b 节）
+
+简要：桌面默认零装饰 + hover 改色不改下划线；移动端默认极轻 `bg-brand-50/40` 提供可发现性；已学词只靠 VOCAB-008 `.saved-word` 虚线；键盘策略由 component user 显式声明。
 
 ---
 
@@ -154,15 +206,17 @@ type LookupSource =
 | 4 | `CourseLookupText.tsx` 删除，所有调用方迁移到 `SpanishText` |
 | 5 | Phase A 不动 `/lectura`、`/watch`、DissectorClient；若后续迁移 Dissector，只迁移内容词查词部分，保留骨架词 popover |
 | 6 | `/learn/foundation/[day]` 例句使用 `SpanishText`（替换 P0 的 CourseLookupText 临时方案） |
-| 7 | `/learn/foundation` 总览页卡片 subtitle 用 `SpanishText` 为低优先级可选项，不强制 Phase A 做 |
+| 7 | `/learn/foundation` 总览页 subtitle **Phase A 不接入**（已删原计划） |
 | 8 | `/learn/foundation/[day]` contrastBlocks 数据结构改为对象数组（选 A），渲染器使用 `SpanishText` 渲染西语部分；Phase C 做，且需要 PM content readthrough |
 | 9 | `/grammar/[slug]` 明确西语字段（例句、对照表、词条、变位 cell）可点；不包中文说明或混排正文 |
-| 10 | `/grammar` 列表卡片里如有独立西语示例可点；中文混排 intro 不整段包 |
+| 10 | `/grammar` 列表页 Phase B **不接入**（中文为主，混排不抽取） |
 | 11 | 已学词在所有接入点都正确显示 `.saved-word` 下划线 |
 | 12 | 点击后弹 LookupCard，可"加入词库"，保存时 sourceType 字段正确 |
 | 13 | 移动端：不得破坏行高；active/pressed 有反馈；LookupCard 可关闭且不遮挡当前词 |
 | 14 | `npm test` 通过，`npm run build` 通过 |
-| 15 | UI 视觉过 Claude2 评审（2026-05-21：PASS WITH CHANGES，本票已吸收 P1/P2 修改） |
+| 15 | UI 视觉过 Claude2 评审（2026-05-21 二审：PASS WITH CHANGES，全部 7 个 P1 已吸收） |
+| 16 | Phase A 必含：LookupCard 视口边界处理 + savedForms 缓存失效（最小 invalidate 方案 + TODO） |
+| 17 | 移动端 SpanishText 词带极轻 `bg-brand-50/40` 默认可发现性；桌面 hover 不再加 `hover:underline` |
 
 ---
 
@@ -203,14 +257,17 @@ type LookupSource =
 
 `tests/vocab009.test.mjs`：
 
-1. `SpanishText` 组件存在，props 含 `text` / `translation?` / `source?` / `className?` / `readOnly?` / `interactionDensity?` / `enableKeyboard?`
+1. `SpanishText` 组件存在，props 含 `text` / `translation?` / `source?` / `className?` / `wordClassName?` / `interactionDensity?` / `enableKeyboard?`（注：**砍掉了顶层 `readOnly`**，由 `interactionDensity="readOnly"` 取代）
 2. `LookupCard` `LookupSource` 类型源码含 `"dissect"` 和 `"grammar"` 字符串
 3. `CourseLookupText.tsx` 不存在（已删）
 4. `/learn/[slug]/page.tsx`、`/learn/foundation/[day]/page.tsx` 都 import `SpanishText`
 5. `/grammar/[slug]/page.tsx` import `SpanishText`，且测试要约束只包明确西语字段
 6. `src/content/foundation.ts` 的 contrastBlocks 是对象数组（含 es/en/zh 字段），不是字符串数组
 7. `/api/vocab/add/route.ts` 和 `src/lib/vocab.ts` 含 `dissect` 和 `grammar` 字符串
-8. `/learn/foundation/page.tsx` 卡片 subtitle 区域用 SpanishText（低优先级，可推迟；若接入必须保持无装饰）
+8. SpanishText 包含 `max-w-[min(20rem,calc(100vw-2rem))]` 视口边界处理（grep 验证）
+9. SpanishText 实现包含已学词缓存 invalidate 路径（grep `savedFormsPromise = null` 或类似）
+10. SpanishText 含 `@media (hover: none)` 移动端 `bg-brand-50/40` 样式
+11. SpanishText 源码**不含** `hover:underline`（避免和 `.saved-word` 冲突）
 
 ---
 
