@@ -107,9 +107,16 @@ function splitSubtitleTokens(text: string) {
 }
 
 function findActiveCueIndex(cues: SubtitleCue[], currentTime: number) {
-  return cues.findIndex(
-    (cue) => currentTime >= cue.start && currentTime <= cue.start + cue.dur
-  );
+  // YouTube ASR cues 经常重叠（一句未结束、下一句已开始显示模拟 rolling 效果）。
+  // 当多条 cue 同时"活着"时，选最近 start 的那条——也就是说话人当前真正在说的句子。
+  // cues 按 start 升序，从尾扫即可命中最晚 start 的活动 cue。
+  for (let i = cues.length - 1; i >= 0; i -= 1) {
+    const cue = cues[i];
+    if (currentTime >= cue.start && currentTime <= cue.start + cue.dur) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 function shouldEndTranscriptLine(text: string) {
