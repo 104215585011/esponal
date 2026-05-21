@@ -821,6 +821,6 @@
       "npm test + npm run build 通过"
     ],
     "evidence": "",
-    "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。分 3 阶段 - Phase A 基础抽取 + 迁移现有 3 调用方 / Phase B 接入 grammar / Phase C 改 foundation contrastBlocks 数据结构。先过 Claude2 UI 评审再派 Codex1。"
+    "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。Claude2 UI review 2026-05-21: PASS WITH CHANGES，已并入 ticket。分 3 阶段：Phase A 收窄为只抽 CourseLookupText -> SpanishText，并只迁移 /learn/[slug] 与 /learn/foundation/[day] 已有调用；不动 /lectura、/watch、DissectorClient。Phase B 接入 grammar 明确西语字段。Phase C 改 foundation contrastBlocks 数据结构，需 PM content readthrough。"
   }
 ]
