@@ -122,10 +122,28 @@ export const foundationLessons: FoundationLesson[] = [
         example: { es: "La casa es grande.", en: "The house is big.", zh: "那座房子很大。" }
       },
       {
+        spanish: "los",
+        english: "the",
+        chinese: "定冠词，阳性或混合复数",
+        example: { es: "Los niños juegan.", en: "The children play.", zh: "孩子们在玩。" }
+      },
+      {
+        spanish: "las",
+        english: "the",
+        chinese: "定冠词，阴性复数",
+        example: { es: "Las flores son rojas.", en: "The flowers are red.", zh: "这些花是红的。" }
+      },
+      {
         spanish: "un",
         english: "a / an",
         chinese: "不定冠词，阳性单数",
         example: { es: "Veo un perro.", en: "I see a dog.", zh: "我看见一只狗。" }
+      },
+      {
+        spanish: "una",
+        english: "a / an",
+        chinese: "不定冠词，阴性单数",
+        example: { es: "Tengo una idea.", en: "I have an idea.", zh: "我有一个想法。" }
       },
       {
         spanish: "unas",
@@ -240,6 +258,18 @@ export const foundationLessons: FoundationLesson[] = [
         example: { es: "Soy de China.", en: "I am from China.", zh: "我来自中国。" }
       },
       {
+        spanish: "en",
+        english: "in / on / at",
+        chinese: "在……里/上/某处",
+        example: { es: "Estoy en casa.", en: "I am at home.", zh: "我在家。" }
+      },
+      {
+        spanish: "con",
+        english: "with",
+        chinese: "和、用、带着",
+        example: { es: "Café con leche.", en: "Coffee with milk.", zh: "加奶咖啡。" }
+      },
+      {
         spanish: "por",
         english: "for / by / through",
         chinese: "因为、经过、交换",
@@ -254,7 +284,7 @@ export const foundationLessons: FoundationLesson[] = [
     ],
     contrastBlocks: [
       "Veo a Ana. / I see Ana. / 我看见 Ana。a 不翻成“到”，它标记具体的人。",
-      "Trabajo por la mañana. / I work in the morning. / 我上午工作。por 可表示大致时间段。",
+      "Trabajo por la mañana. / I work in the morning. / 我上午工作。por 用于一天中的时段（上午/下午/晚上）。",
       "Este libro es para ti. / This book is for you. / 这本书是给你的。para 指向接收者。"
     ],
     usageExamples: [
@@ -308,13 +338,13 @@ export const foundationLessons: FoundationLesson[] = [
         spanish: "su",
         english: "his / her / your / their",
         chinese: "他/她/您/他们的",
-        example: { es: "Su casa está cerca.", en: "His house is nearby.", zh: "他家在附近。" }
+        example: { es: "Su casa está cerca.", en: "His/Her house is nearby.", zh: "他/她家在附近。" }
       }
     ],
     contrastBlocks: [
       "Esto es importante. / This is important. / 这很重要。esto 指一件事，不直接修饰名词。",
       "Este problema es simple. / This problem is simple. / 这个问题很简单。este 修饰阳性单数名词 problema。",
-      "Su nombre es Ana. / Her name is Ana. / 她的名字是 Ana。su 的具体主人靠上下文。"
+      "Su nombre es Ana. / His/Her name is Ana. / 他/她的名字是 Ana。su 的具体主人靠上下文。"
     ],
     usageExamples: [
       { es: "No entiendo esa palabra.", en: "I do not understand that word.", zh: "我不懂那个词。" },
@@ -376,8 +406,8 @@ export const foundationLessons: FoundationLesson[] = [
       "Aunque estoy cansado, sigo leyendo. / Although I am tired, I keep reading. / 虽然我累了，我继续读。"
     ],
     usageExamples: [
-      { es: "Si tienes tiempo, hablamos.", en: "If you have time, we talk.", zh: "如果你有时间，我们聊。" },
-      { es: "Cuando llego a casa, leo.", en: "When I get home, I read.", zh: "我到家后读书。" },
+      { es: "Si tienes tiempo, hablamos.", en: "If you have time, we'll talk.", zh: "如果你有时间，我们聊。" },
+      { es: "Cuando llego a casa, leo.", en: "When I get home, I'll read.", zh: "我到家后读书。" },
       { es: "Padre e hijo caminan juntos.", en: "Father and son walk together.", zh: "父亲和儿子一起走。" }
     ]
   },
