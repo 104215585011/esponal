@@ -8,6 +8,12 @@ const SUBTITLE_CACHE_TTL = 86400 * 30;
 const MAX_CUES = 5000;
 const MIN_CUES = 5;
 const MAX_PAYLOAD_BYTES = 500_000;
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, X-Esponal-Ingest-Token",
+  "Access-Control-Max-Age": "86400"
+} as const;
 
 type SubtitleCue = {
   start: number;
@@ -20,6 +26,20 @@ type IngestBody = {
   lang: string;
   cues: SubtitleCue[];
 };
+
+function withCorsHeaders(init?: ResponseInit): ResponseInit {
+  const headers = new Headers(init?.headers);
+
+  for (const [key, value] of Object.entries(CORS_HEADERS)) {
+    headers.set(key, value);
+  }
+
+  return { ...init, headers };
+}
+
+function jsonResponse(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, withCorsHeaders(init));
+}
 
 function isValidVideoId(videoId: unknown): videoId is string {
   return (
@@ -62,11 +82,15 @@ function cleanCues(cues: SubtitleCue[]) {
     .sort((a, b) => a.start - b.start);
 }
 
+export async function OPTIONS() {
+  return new NextResponse(null, withCorsHeaders({ status: 204 }));
+}
+
 export async function POST(request: Request) {
   const token = request.headers.get("x-esponal-ingest-token");
 
   if (!token || token !== process.env.EXT_INGEST_TOKEN) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return jsonResponse({ error: "unauthorized" }, { status: 401 });
   }
 
   const rateLimit = await checkRateLimit(ingestLimiter, request, null);
@@ -74,7 +98,7 @@ export async function POST(request: Request) {
   if (!rateLimit.allowed) {
     const retryAfterSec = getRetryAfterSec(rateLimit.reset);
 
-    return NextResponse.json(
+    return jsonResponse(
       { error: "rate limited", retryAfterSec },
       {
         status: 429,
@@ -86,7 +110,7 @@ export async function POST(request: Request) {
   const raw = await request.text();
 
   if (raw.length > MAX_PAYLOAD_BYTES) {
-    return NextResponse.json({ error: "payload too large" }, { status: 413 });
+    return jsonResponse({ error: "payload too large" }, { status: 413 });
   }
 
   let body: IngestBody;
@@ -94,7 +118,7 @@ export async function POST(request: Request) {
   try {
     body = JSON.parse(raw) as IngestBody;
   } catch {
-    return NextResponse.json({ error: "invalid json" }, { status: 400 });
+    return jsonResponse({ error: "invalid json" }, { status: 400 });
   }
 
   if (
@@ -104,20 +128,20 @@ export async function POST(request: Request) {
     body.cues.length < MIN_CUES ||
     body.cues.length > MAX_CUES
   ) {
-    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+    return jsonResponse({ error: "invalid body" }, { status: 400 });
   }
 
   const cues = cleanCues(body.cues);
 
   if (cues.length < MIN_CUES) {
-    return NextResponse.json({ error: "not enough valid cues" }, { status: 400 });
+    return jsonResponse({ error: "not enough valid cues" }, { status: 400 });
   }
 
   const cacheKey = `subtitle:v4:${body.videoId}:${body.lang}:auto`;
   const existing = await redis.get(cacheKey);
 
   if (existing) {
-    return NextResponse.json({
+    return jsonResponse({
       success: true,
       cueCount: cues.length,
       written: false
@@ -126,7 +150,7 @@ export async function POST(request: Request) {
 
   await redis.set(cacheKey, JSON.stringify(cues), "EX", SUBTITLE_CACHE_TTL);
 
-  return NextResponse.json({
+  return jsonResponse({
     success: true,
     cueCount: cues.length,
     written: true

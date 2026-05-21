@@ -140,6 +140,15 @@ test("EXT-008 server ingest route validates token, limits, payload, and preserve
 
   assert.match(route, /X-Esponal-Ingest-Token|x-esponal-ingest-token/);
   assert.match(route, /process\.env\.EXT_INGEST_TOKEN/);
+  assert.match(route, /CORS_HEADERS/);
+  assert.match(route, /Access-Control-Allow-Origin["']?\s*:\s*["']\*/);
+  assert.match(route, /Access-Control-Allow-Methods["']?\s*:\s*["']POST,\s*OPTIONS/);
+  assert.match(route, /Access-Control-Allow-Headers["']?\s*:\s*["']Content-Type,\s*X-Esponal-Ingest-Token/);
+  assert.match(route, /Access-Control-Max-Age["']?\s*:\s*["']86400/);
+  assert.match(route, /export\s+async\s+function\s+OPTIONS/);
+  assert.match(route, /status:\s*204/);
+  assert.match(route, /jsonResponse/);
+  assert.equal(route.match(/NextResponse\.json/g)?.length, 1);
   assert.match(route, /ingestLimiter/);
   assert.match(route, /MAX_PAYLOAD_BYTES\s*=\s*500_000/);
   assert.match(route, /MAX_CUES\s*=\s*5000/);

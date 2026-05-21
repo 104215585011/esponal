@@ -27,6 +27,27 @@
 
 ## 会话记录
 
+### 会话 #EXT-008-FIX2 — 2026-05-21
+
+**本轮目标**：修复 EXT-008 FIX1 端到端失败后的 CORS preflight 拦截：YouTube origin 调 `/api/subtitle/ingest` 时缺 `Access-Control-Allow-Origin`。
+
+**已完成**：
+- 更新 `src/app/api/subtitle/ingest/route.ts`，新增 `CORS_HEADERS`、`OPTIONS()` 204 preflight handler。
+- 新增 `withCorsHeaders()` / `jsonResponse()` helper，把 POST 路由内所有 JSON 响应统一带上 CORS headers。
+- 保留 429 响应的 `Retry-After` header。
+- 更新 `tests/ext008.test.mjs`，新增 CORS header、OPTIONS handler、单一 response helper 契约。
+- `feature_list.json` 中 `EXT-008` 保持 `ready_for_qa`，追加 FIX2 evidence。
+
+**验证记录**：
+- TDD 红灯：`node --test tests/ext008.test.mjs` 在实现前因缺 `CORS_HEADERS` 失败。
+- 实现后：`node --test tests/ext008.test.mjs` 8/8 通过。
+- `npm run lint:encoding`：通过。
+- `npm test`：173/173 通过。
+- `npm run build`：通过；仅既有 `<img>`、Sentry 警告。
+
+**后续必须验证**：
+- push 到 `origin/main` 后等 Vercel 部署，重新真机打开 YouTube 验证 Network `POST /api/subtitle/ingest` 为 200 且 response 含 `cueCount`。
+
 ### 会话 #EXT-008-FIX — 2026-05-21
 
 **本轮目标**：修复 EXT-008 真机失败：content script 直接 fetch YouTube 字幕缺 PO Token，导致只拿到空壳 JSON。

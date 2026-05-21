@@ -1,3 +1,49 @@
+## Dev Report: EXT-008-FIX2 ingest CORS headers
+**Time**: 2026-05-21 11:13
+**Developer**: Codex1
+
+**Status**: Ready for deployment/production E2E. EXT-008 remains `ready_for_qa` until the deployed route is verified from a real YouTube page.
+
+**Changed files**:
+- src/app/api/subtitle/ingest/route.ts
+- tests/ext008.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added `CORS_HEADERS` to `/api/subtitle/ingest` with:
+  - `Access-Control-Allow-Origin: *`
+  - `Access-Control-Allow-Methods: POST, OPTIONS`
+  - `Access-Control-Allow-Headers: Content-Type, X-Esponal-Ingest-Token`
+  - `Access-Control-Max-Age: 86400`
+- Added `OPTIONS()` handler returning 204 with those CORS headers for browser preflight from `https://www.youtube.com`.
+- Added `withCorsHeaders()` and `jsonResponse()` helpers, replacing every POST `NextResponse.json(...)` return so all success/error/rate-limit responses carry CORS headers.
+- Preserved the existing `Retry-After` header on 429 responses.
+- Extended `tests/ext008.test.mjs` to fail without the CORS contract and to lock the single shared `NextResponse.json` helper pattern.
+
+**Verification executed**:
+1. TDD red check
+   Command: `node --test tests/ext008.test.mjs`
+   Result before implementation: failed on missing `CORS_HEADERS`
+2. Focused EXT-008 test
+   Command: `node --test tests/ext008.test.mjs`
+   Result after implementation: pass, `tests 8`, `pass 8`, `fail 0`
+3. Encoding check
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+4. Full suite
+   Command: `npm test`
+   Result: pass, `tests 173`, `pass 173`, `fail 0`
+5. Production build
+   Command: `npm run build`
+   Result: pass; existing `<img>` and Sentry warnings remain unchanged
+
+**Still required after push/deploy**:
+- Push to `origin/main` so Vercel deploys the CORS route.
+- Rebuild/repackage the extension with production `EXT_INGEST_TOKEN` and `ESPONAL_APP_ORIGIN`.
+- Install/reload in Chrome, open `https://www.youtube.com/watch?v=1A9kpjdYJUg`, enable CC, play briefly, and verify Network `ingest` shows POST 200 with response containing `cueCount`.
+
 ## Dev Report: EXT-008-FIX YouTube PO Token timedtext hook
 **Time**: 2026-05-21 09:45
 **Developer**: Codex1
