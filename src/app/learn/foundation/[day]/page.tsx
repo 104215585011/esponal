@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
+import { CourseLookupText } from "@/app/learn/[slug]/CourseLookupText";
 import { foundationLessons, getFoundationLesson } from "@/content/foundation";
 
 type FoundationDayPageProps = {
@@ -23,6 +24,8 @@ export default function FoundationDayPage({ params }: FoundationDayPageProps) {
 
   const previousLesson = lesson.day > 1 ? lesson.day - 1 : null;
   const nextLesson = lesson.day < 7 ? lesson.day + 1 : null;
+  const courseRef = `foundation-day-${lesson.day}`;
+  const sourceUrl = `/learn/foundation/day-${lesson.day}`;
 
   return (
     <main className="min-h-screen bg-app text-gray-900">
@@ -55,7 +58,13 @@ export default function FoundationDayPage({ params }: FoundationDayPageProps) {
               >
                 <div>
                   <p className="text-base font-semibold text-gray-950">{row.spanish}</p>
-                  <p className="mt-2 text-sm italic text-gray-600">{row.example.es}</p>
+                  <CourseLookupText
+                    className="mt-2 block text-sm italic text-gray-600"
+                    courseRef={courseRef}
+                    sourceUrl={sourceUrl}
+                    text={row.example.es}
+                    translation={row.example.zh}
+                  />
                 </div>
                 <div className="mt-3 sm:mt-0">
                   <p className="text-sm text-gray-500">{row.english}</p>
@@ -102,7 +111,13 @@ export default function FoundationDayPage({ params }: FoundationDayPageProps) {
                 className="border-l-2 border-brand-200 pl-3 text-sm leading-7 text-gray-700"
                 key={example.es}
               >
-                <p className="font-medium text-gray-900">{example.es}</p>
+                <CourseLookupText
+                  className="block font-medium text-gray-900"
+                  courseRef={courseRef}
+                  sourceUrl={sourceUrl}
+                  text={example.es}
+                  translation={example.zh}
+                />
                 <p className="text-gray-500">{example.en}</p>
                 <p>{example.zh}</p>
               </blockquote>

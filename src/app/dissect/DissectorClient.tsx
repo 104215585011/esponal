@@ -8,15 +8,22 @@ import {
   getFoundationDayHref
 } from "@/lib/functionWords";
 import { summarizeDissection, tokenizeSentence } from "@/app/dissect/tokenize";
+import { LookupCard } from "@/app/watch/LookupCard";
 
 type ActivePopover = {
   lemma: string;
   anchorId: string;
 };
 
+type ActiveContentWord = {
+  form: string;
+  anchorId: string;
+};
+
 export function DissectorClient() {
   const [input, setInput] = useState(DEFAULT_DISSECT_SENTENCE);
   const [activePopover, setActivePopover] = useState<ActivePopover | null>(null);
+  const [activeContent, setActiveContent] = useState<ActiveContentWord | null>(null);
 
   const tokens = useMemo(() => tokenizeSentence(input), [input]);
   const summary = useMemo(() => summarizeDissection(tokens), [tokens]);
@@ -53,6 +60,7 @@ export function DissectorClient() {
           onChange={(event) => {
             setInput(event.target.value);
             setActivePopover(null);
+            setActiveContent(null);
           }}
           placeholder={DEFAULT_DISSECT_SENTENCE}
           rows={3}
@@ -96,9 +104,40 @@ export function DissectorClient() {
             }
 
             if (!token.entry || !token.lemma) {
+              // 内容词：点击触发 LookupCard 查词
+              const contentAnchorId = `content-${token.raw}-${index}`;
+              const isContentActive = activeContent?.anchorId === contentAnchorId;
               return (
-                <span className="text-gray-900" key={`${token.raw}-${index}`}>
-                  {token.raw}
+                <span className="relative inline" key={contentAnchorId}>
+                  <button
+                    aria-expanded={isContentActive}
+                    className="rounded px-0.5 text-gray-900 underline-offset-4 transition hover:bg-brand-50 hover:text-brand-700 hover:underline"
+                    onClick={() => {
+                      setActivePopover(null);
+                      setActiveContent(
+                        isContentActive
+                          ? null
+                          : { form: token.raw, anchorId: contentAnchorId }
+                      );
+                    }}
+                    type="button"
+                  >
+                    {token.raw}
+                  </button>
+                  {isContentActive ? (
+                    <LookupCard
+                      form={activeContent.form}
+                      onClose={() => setActiveContent(null)}
+                      originalSentence={input}
+                      translatedSentence=""
+                      source={{
+                        type: "course",
+                        url: "/dissect",
+                        courseRef: "dissect",
+                        sentence: input
+                      }}
+                    />
+                  ) : null}
                 </span>
               );
             }
@@ -118,11 +157,12 @@ export function DissectorClient() {
                     style.hoverClass,
                     isActive ? "bg-white" : ""
                   ].join(" ")}
-                  onClick={() =>
+                  onClick={() => {
+                    setActiveContent(null);
                     setActivePopover(
                       isActive ? null : { lemma: token.lemma!, anchorId }
-                    )
-                  }
+                    );
+                  }}
                   type="button"
                 >
                   {token.raw}

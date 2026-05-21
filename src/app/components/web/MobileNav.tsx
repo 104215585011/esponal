@@ -18,7 +18,8 @@ const navItems: MobileNavItem[] = [
   { label: "视频", href: "/" },
   { label: "课程", href: "/learn" },
   { label: "阅读", href: "/lectura" },
-  { label: "语法", href: "/grammar" }
+  { label: "语法", href: "/grammar" },
+  { label: "拆解", href: "/dissect" }
 ];
 
 function isActivePath(pathname: string, href: string) {
