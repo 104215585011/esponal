@@ -27,7 +27,7 @@ test("WEB-007 transcript panel exposes transcript, tabs, and seek contract", asy
   assert.doesNotMatch(transcriptPanel, /subtitleCues\.map\(\(cue,\s*index\)/);
 });
 
-test("WEB-007 related panel exposes hover and pin behavior contract", async () => {
+test("WEB-007 related panel exposes a simple persistent list contract", async () => {
   const relatedPanelPath = "src/app/watch/RelatedPanel.tsx";
   assert.ok(existsSync(relatedPanelPath), `${relatedPanelPath} should exist`);
 
@@ -35,9 +35,9 @@ test("WEB-007 related panel exposes hover and pin behavior contract", async () =
 
   assert.match(relatedPanel, /export function RelatedPanel/);
   assert.match(relatedPanel, /relatedVideos:\s*YouTubeVideoPayload\[\]/);
-  assert.match(relatedPanel, /setTimeout/);
-  assert.match(relatedPanel, /120/);
-  assert.match(relatedPanel, /300/);
-  assert.match(relatedPanel, /pinned/);
-  assert.match(relatedPanel, /right-0|right: 0/);
+  assert.match(relatedPanel, /flex-1 overflow-y-auto/);
+  assert.match(relatedPanel, /formatVideoDurationBadge/);
+  assert.doesNotMatch(relatedPanel, /useState|useRef|useEffect/);
+  assert.doesNotMatch(relatedPanel, /setTimeout|pinned|scheduleOpen|scheduleClose/);
+  assert.doesNotMatch(relatedPanel, /translate-x-full|absolute bottom-0 right-0/);
 });

@@ -27,6 +27,34 @@
 
 ## 会话记录
 
+### Session #WEB-016 - 2026-05-22
+
+**Goal**: Convert `/watch` from a wide two-column layout plus hover related panel into a fixed 3-column desktop layout.
+
+**Completed**:
+- Updated `src/app/watch/page.tsx` so the left video/chapters column is fixed at `lg:basis-[48rem] lg:shrink-0`.
+- Kept the player capped at `lg:max-w-[48rem]` and avoided `lg:mx-auto`.
+- Replaced the desktop related wrapper with a persistent `aside` using `lg:w-[260px] lg:shrink-0`.
+- Rewrote `RelatedPanel` as a simple persistent list with no hover/pin state machine.
+- Tightened related-card density to 96x54 thumbnails and smaller vertical padding.
+- Updated old WEB-007 hover/pin tests and added `tests/web016.test.mjs`.
+- Moved `WEB-016` to `ready_for_qa`.
+
+**Verification**:
+- Baseline `npm test`: 196/196 pass before changes.
+- TDD red: `node --test tests/web016.test.mjs tests/web007.test.mjs` failed 5/6 before implementation.
+- `node --test tests/web016.test.mjs tests/web007.test.mjs`: 6/6 pass.
+- `node --test tests/web016.test.mjs tests/web007.test.mjs tests/web015.test.mjs tests/web003.test.mjs`: 12/12 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 200/200 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Notes**:
+- Local Playwright visual attempts were not usable because the ad-hoc local Next server returned 404 for `_next/static` CSS/JS assets. Source contracts encode the 1920/2560/mobile layout math; Codex2/Claude2 should capture final visual screenshots after deploy or on a clean local server.
+
+**Next**:
+- Codex2 QA for WEB-016, followed by Claude2 visual acceptance.
+
 ### Session #WEB-015 watch player crop hotfix - 2026-05-22
 
 **Goal**: Fix the wide `/watch` layout where the player became too large and the embedded video appeared cropped.

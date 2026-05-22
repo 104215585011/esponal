@@ -98,7 +98,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
     <main className="bg-app lg:h-screen lg:overflow-hidden">
       <SiteHeader />
       <div className="relative mx-auto flex w-full max-w-app-shell flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:pl-7">
-        <section className="flex flex-col px-4 py-4 lg:basis-[63%] lg:justify-start lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
+        <section className="flex flex-col px-4 py-4 lg:basis-[48rem] lg:shrink-0 lg:justify-start lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
           <BackLink href="/" label="视频" />
 
           <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2 lg:max-w-[48rem]">
@@ -166,9 +166,9 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           <TranscriptPanel iframeId={PLAYER_IFRAME_ID} videoId={videoId} />
         </section>
 
-        <div className="hidden lg:block">
+        <aside className="hidden border-l border-gray-200 bg-surface lg:flex lg:w-[260px] lg:shrink-0">
           <RelatedPanel relatedVideos={relatedVideos} />
-        </div>
+        </aside>
       </div>
     </main>
   );

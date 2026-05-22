@@ -1,3 +1,47 @@
+## Dev Report: WEB-016 watch 3-column fixed layout
+**Time**: 2026-05-22 11:35
+**Developer**: Codex1
+
+**Status**: Ready for QA. `WEB-016` moved to `ready_for_qa`; Codex1 does not mark it `passing`.
+
+**Changed files**:
+- src/app/watch/page.tsx
+- src/app/watch/RelatedPanel.tsx
+- tests/web007.test.mjs
+- tests/web016.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Changed the `/watch` desktop left column from fluid `lg:basis-[63%]` to fixed `lg:basis-[48rem] lg:shrink-0`.
+- Kept the player shell capped with `lg:max-w-[48rem]` and did not add `lg:mx-auto`.
+- Replaced the related-video hover wrapper with a persistent desktop `<aside className="hidden border-l border-gray-200 bg-surface lg:flex lg:w-[260px] lg:shrink-0">`.
+- Simplified `RelatedPanel` by removing `useState`, `useRef`, `useEffect`, timers, edge trigger, pin button, and slide translate classes.
+- Tightened related cards for the 260px column: 96x54 thumbnails, `px-2 py-2` list padding, and `px-2 py-1.5` rows.
+- Left `MOCK_CHAPTERS`, the A1 label, and mobile related-video entry behavior unchanged per ticket.
+
+**Verification executed**:
+1. Baseline before changes: `npm test` -> tests 196, pass 196, fail 0.
+2. TDD red check: `node --test tests/web016.test.mjs tests/web007.test.mjs` failed 5/6 before implementation.
+3. Focused WEB-016/WEB-007 tests: `node --test tests/web016.test.mjs tests/web007.test.mjs` -> tests 6, pass 6, fail 0.
+4. Watch regression slice: `node --test tests/web016.test.mjs tests/web007.test.mjs tests/web015.test.mjs tests/web003.test.mjs` -> tests 12, pass 12, fail 0.
+5. Encoding: `npm run lint:encoding` -> Encoding check passed.
+6. Full suite: `npm test` -> tests 200, pass 200, fail 0.
+7. Production build: `npm run build` -> compiled successfully; existing `<img>` and Sentry warnings only.
+
+**Layout evidence**:
+- Source contract: at desktop app shell 1536px with `lg:pl-7` 28px, columns resolve to 768px left, 480px transcript, and 260px related.
+- 1920x1080 expectation: shell centered at 1536px; three columns fit with no overlay; related videos are a real right column.
+- 2560x1440 expectation: same centered 1536px shell; no widening of the video past 48rem.
+- 375px / 768px expectation: mobile stack remains video first, transcript below with `h-[60vh]`, and the related aside stays hidden until `lg`.
+- Note: local Playwright screenshot attempts hit `_next/static` 404s from the ad-hoc local Next server, so Codex2/Claude2 should take final visual screenshots after deploy or on a clean local server.
+
+**Next step**:
+- Codex2 should QA source contracts and commands, then Claude2 should do final UI visual acceptance for the 1920/2560/mobile screenshots.
+
+---
+
 ## Dev Report: WEB-015 watch player crop hotfix
 **Time**: 2026-05-22 10:56
 **Developer**: Codex1
