@@ -17,13 +17,34 @@ type TalkClientProps = {
   locale: string;
 };
 
-function arrayBufferToBase64(buf: ArrayBuffer) {
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return typeof window !== "undefined" ? window.btoa(binary) : "";
+// 浏览器原生 SpeechRecognition 类型（不在默认 TS lib 里，简化声明）
+type SpeechRecognitionEventLike = {
+  resultIndex: number;
+  results: ArrayLike<{
+    isFinal: boolean;
+    0: { transcript: string };
+  }>;
+};
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+};
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
 export function TalkClient({ characterId, characterName, locale }: TalkClientProps) {
@@ -32,13 +53,15 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
   const [streaming, setStreaming] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [playbackRate] = usePlaybackRate();
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  // 记录会话开始时输入框已有的文本，识别到的内容追加在后面
+  const baseInputRef = useRef<string>("");
 
   // 滚到底
   useEffect(() => {
@@ -185,56 +208,79 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
     }
   }
 
-  async function startRecording() {
+  function startRecording() {
     if (recording) return;
     setStatusMessage(null);
+
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) {
+      setStatusMessage("当前浏览器不支持语音识别（请用 Chrome 或 Edge）");
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      audioChunksRef.current = [];
+      const recognition = new Ctor();
+      recognition.lang = locale;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      baseInputRef.current = input;
 
-      recorder.addEventListener("dataavailable", (event) => {
-        if (event.data.size > 0) audioChunksRef.current.push(event.data);
-      });
-
-      recorder.addEventListener("stop", async () => {
-        stream.getTracks().forEach((track) => track.stop());
-        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-        setStatusMessage("识别中...");
-        try {
-          const buffer = await blob.arrayBuffer();
-          const base64 = arrayBufferToBase64(buffer);
-          const resp = await fetch("/api/talk/recognize", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ audioBase64: base64, language: locale, mimeType: recorder.mimeType })
-          });
-          if (!resp.ok) throw new Error(`recognize ${resp.status}`);
-          const data = (await resp.json()) as { transcript?: string };
-          if (data.transcript) {
-            setInput((prev) => (prev ? `${prev} ${data.transcript}` : data.transcript ?? ""));
-            setStatusMessage(null);
+      recognition.onresult = (event) => {
+        // 把这一轮所有结果拼起来：final 的追加进 baseInputRef，interim 的实时显示
+        let finalChunk = "";
+        let interimChunk = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const text = result[0].transcript;
+          if (result.isFinal) {
+            finalChunk += text;
           } else {
-            setStatusMessage("没听清，再试一次");
+            interimChunk += text;
           }
-        } catch (err) {
-          setStatusMessage(err instanceof Error ? err.message : "识别失败");
         }
-      });
+        if (finalChunk) {
+          const base = baseInputRef.current;
+          baseInputRef.current = base ? `${base} ${finalChunk.trim()}` : finalChunk.trim();
+          setInput(baseInputRef.current);
+          setInterimTranscript("");
+        } else {
+          setInterimTranscript(interimChunk);
+        }
+      };
 
-      mediaRecorderRef.current = recorder;
-      recorder.start();
+      recognition.onerror = (event) => {
+        const code = event.error ?? "unknown";
+        if (code === "no-speech") {
+          setStatusMessage("没听到声音，再试一次");
+        } else if (code === "not-allowed" || code === "service-not-allowed") {
+          setStatusMessage("浏览器拒绝了麦克风权限");
+        } else if (code === "audio-capture") {
+          setStatusMessage("找不到麦克风设备");
+        } else {
+          setStatusMessage(`识别错误：${code}`);
+        }
+        setRecording(false);
+        setInterimTranscript("");
+      };
+
+      recognition.onend = () => {
+        setRecording(false);
+        setInterimTranscript("");
+        recognitionRef.current = null;
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
       setRecording(true);
-    } catch {
-      setStatusMessage("无法访问麦克风（检查浏览器权限）");
+    } catch (err) {
+      setStatusMessage(err instanceof Error ? err.message : "无法启动识别");
     }
   }
 
   function stopRecording() {
     if (!recording) return;
-    mediaRecorderRef.current?.stop();
-    mediaRecorderRef.current = null;
-    setRecording(false);
+    recognitionRef.current?.stop();
+    // onend 会清掉 ref + recording
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -252,7 +298,7 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
       >
         {messages.length === 0 ? (
           <div className="rounded-surface border border-dashed border-gray-200 bg-white/50 p-6 text-center text-sm text-gray-500">
-            <p>开始一段对话吧。你可以打字，也可以按住下面的麦克风按钮说话。</p>
+            <p>开始一段对话吧。你可以打字，也可以点麦克风按钮说话（边说边出字）。</p>
             <p className="mt-2 text-[12px] text-gray-400">
               {characterName} 会用对应语言回复你，并自动朗读出来。
             </p>
@@ -326,6 +372,13 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
       >
         {statusMessage ? (
           <p className="mb-2 text-[12px] text-red-500">{statusMessage}</p>
+        ) : null}
+        {recording ? (
+          <p className="mb-2 text-[12px] text-brand-600">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500 align-middle" />
+            {" "}正在听...{" "}
+            <span className="italic text-gray-500">{interimTranscript || "（说话试试）"}</span>
+          </p>
         ) : null}
         <div className="flex items-end gap-2">
           <textarea
