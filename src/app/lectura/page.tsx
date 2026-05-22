@@ -10,6 +10,12 @@ const levelStyle: Record<LecturaLevel, string> = {
   B1: "bg-purple-100 text-purple-700"
 };
 
+const levelOrder: Record<LecturaLevel, number> = { A1: 0, A2: 1, B1: 2 };
+
+const sortedStories = [...lecturaStories].sort(
+  (a, b) => levelOrder[a.level] - levelOrder[b.level]
+);
+
 export default function LecturaIndexPage() {
   return (
     <main className="min-h-screen bg-app">
@@ -25,7 +31,7 @@ export default function LecturaIndexPage() {
         </header>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {lecturaStories.map((story) => (
+          {sortedStories.map((story) => (
             <Link
               className="group flex flex-col gap-3 rounded-surface border border-gray-100 bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 hover:shadow-elevated"
               href={`/lectura/${story.slug}`}

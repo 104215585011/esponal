@@ -41,7 +41,9 @@ test("READ-001 /lectura list page imports stories and renders cards", async () =
   assert.match(page, /dynamic\s*=\s*"force-dynamic"/);
   assert.doesNotMatch(page, /dynamic\s*=\s*"force-static"/);
   assert.match(page, /lecturaStories/);
-  assert.match(page, /lecturaStories\.map/);
+  // Cards are rendered from a CEFR-sorted view of lecturaStories.
+  assert.match(page, /\.map\(\(story\)/);
+  assert.match(page, /levelOrder/);
   assert.match(page, /\/lectura\/\$\{story\.slug\}/);
   assert.match(page, /SiteHeader/);
   assert.match(page, /durationMin/);
