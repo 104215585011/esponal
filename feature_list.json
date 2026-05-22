@@ -839,5 +839,25 @@
     ],
     "evidence": "",
     "notes": "Ticket: docs/tickets/VOCAB-009-C.md（待写）。从 VOCAB-009 Phase C 拆出来。原因：改 contrastBlocks 数据结构需要 PM readthrough 校对 7 天 × 平均 3 条 block = 21 条手工拆解 es/en/zh/note，PM 时间未确认前不强推。可选择继续延后。"
+  },
+  {
+    "id": "WEB-016",
+    "priority": 48,
+    "area": "web",
+    "title": "watch 页改 3 列固定布局",
+    "user_visible_behavior": "watch 页采用 3 列固定布局：左列 768px 视频+章节左对齐填满、中列 480px 字幕、右列 260px 相关视频常驻；相关视频不再悬浮覆盖字幕；视频不再随窗口缩放。",
+    "status": "backlog",
+    "verification": [
+      "watch/page.tsx 左列 section 含 lg:basis-[48rem] lg:shrink-0，不含 lg:basis-[63%] 或 lg:basis-[51rem]",
+      "视频容器含 lg:max-w-[48rem]，不含 lg:mx-auto",
+      "右列是 aside 含 lg:flex lg:w-[260px] lg:shrink-0",
+      "RelatedPanel.tsx 不含 useState/useRef/useEffect/translate-x-full/absolute/scheduleOpen",
+      "RelatedPanel 缩略图含 h-[54px] w-[96px]",
+      "1920px 和 2560px 两种视口截图作为 evidence",
+      "移动端布局不变（视频上+字幕下 60vh）",
+      "npm test 通过，npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/WEB-016.md。Claude2 二审 PASS WITH CHANGES：PM 初版字幕宽算错（漏算 pl-7=28px），调整为左列 48rem + 右列 260px 救回字幕 480px。已知占位（MOCK_CHAPTERS、A1 标签写死、移动端无相关视频入口）不在本票范围。"
   }
 ]
