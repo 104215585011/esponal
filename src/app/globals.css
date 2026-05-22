@@ -20,33 +20,3 @@ body {
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
 }
-
-/* Circling 热力图：阅读时按用户的 encounter 次数分档配色 */
-/* 0 次：新词，暖色提醒「这个词值得注意」 */
-.word-tier-new {
-  text-decoration: underline;
-  text-decoration-color: #d97706; /* amber-600 */
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
-}
-
-/* 1-2 次：刚学过，蓝色 */
-.word-tier-learning {
-  text-decoration: underline;
-  text-decoration-color: #2563eb; /* blue-600 */
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
-}
-
-/* 3-6 次：熟悉，绿色 */
-.word-tier-familiar {
-  text-decoration: underline;
-  text-decoration-color: #059669; /* emerald-600 */
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
-}
-
-/* 7+ 次：已掌握，无样式（看起来像普通文字，但仍可点） */
-.word-tier-mastered {
-  /* no decoration — user has internalized this word */
-}

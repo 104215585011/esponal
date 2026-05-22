@@ -39,14 +39,13 @@ test("VOCAB-008 highlight GET returns savedForms for the current user", async ()
   assert.match(route, /savedForms:\s*\[\]/);
 });
 
-test("VOCAB-008 Lectura reader fetches encounter counts and applies tier classes", async () => {
+test("VOCAB-008 Lectura reader fetches saved forms and marks saved words", async () => {
   const reader = await readText("src/app/lectura/LecturaReader.tsx");
 
-  // Superseded by circling heatmap: encounter-count based 4-tier coloring instead of binary saved/unsaved.
   assert.match(reader, /\/api\/vocab\/highlight/);
-  assert.match(reader, /encounterMap/);
-  assert.match(reader, /tierForEncounters/);
-  assert.match(reader, /word-tier-/);
+  assert.match(reader, /savedSet/);
+  assert.match(reader, /saved-word/);
+  assert.match(reader, /savedSet\.has\(normalized\)/);
   assert.match(reader, /openLookup/);
 });
 

@@ -116,31 +116,33 @@ Stage 4  长文     PDF / EPUB 自主阅读（来自 eslearn 项目）
 
 ---
 
-## 8.1 当前迭代焦点：Circling 可视化（Stage 1 体验闭环）
+## 8.1 Circling 可视化：尝试过、已撤回
 
-**目标**：让用户读文章时，能直观感受到"这个词我以前见过"的复现效果。
+**2026-05-23 更新**：Circling MVP（热力图 + 侧栏）做完后立刻撤回了。教训值得记下来。
 
-**已确认的范围（已经过砍刀）**：
+**为什么撤回**：
 
-| 做 | 砍 | 原因 |
-|---|---|---|
-| ✅ 阅读时文本热力图（4 档配色） | ❌ 读完弹 summary 卡片 | 内容已到 35 篇，但弹窗仍属于"为不存在的规模造仪式感"。颜色是被动呈现，仪式感是主动打扰。 |
-| ✅ 侧栏统计面板（已掌握/熟悉/学习中/新词 计数 + 词单） | ❌ 读前预告徽章 | 侧栏已能呈现同样信息，且持续可见。 |
-| ✅ 词形还原已就位（`Word.forms[]` + `lemma-dict.json`） | ❌ 跨源遭遇时间线页 | 当前 source 数据稀疏，等 YouTube 扩展真正喂数据再做 |
+实现后才看清一个根本矛盾——**"encounter 次数"只有在用户点击查义后才增长**，所以默认状态下文章里**所有词都是 0 次**（amber 下划线）。视觉上整篇文章被一片暖色覆盖，违背了"保持文本简洁"的核心原则。
 
-**4 档颜色（起步阈值，A1-A2 期可校准）**：
+要让 Circling 真正成立，需要先解决一个上游问题：**被动遭遇追踪**——光是阅读经过、不点击，也能算作一次 encounter。这需要 reading-progress 类的滚动追踪机制。在没有这个基础设施前，做颜色分档只会产生噪音。
 
-- 🩶 新词（0 次）
-- 🟦 学习中（1-2 次）
-- 🟪 熟悉（3-6 次）
-- ⚫ 已掌握（7+ 次，无色，正常字体）
+**已撤回**（视觉部分）：
 
-**实施分解**：
+- ❌ 4 档配色（amber / blue / emerald / mastered）
+- ❌ "本文词汇"侧栏
+- ❌ `/api/vocab/highlight` 的 encounter count 字段
 
-1. 改 `/api/vocab/highlight`：返回 encounter count（而非只 course/saved/unknown 三态）
-2. 改 `LecturaReader.tsx`：tokenize → 查 highlight → 按 count 上色
-3. 新增侧栏组件：本文词汇分档统计 + 词单列表
-4. 真人试读 + 调阈值
+**保留**：
+
+- ✅ Word/WordEncounter 数据基础设施（pre-existing，不动）
+- ✅ `saved-word` 灰下划线（点击后才出现，是用户的主动标记）
+
+**未来如果重做**，先决条件：
+
+1. 实现被动滚动追踪 → 经过的段落自动写 encounter
+2. 或者实现 "我读过这一段" 的轻量按钮
+3. 数据攒到能区分 0/1-5/5+ 的真实分布
+4. 然后再考虑可视化（且大概率不是文本上色，而是更克制的视觉，如词列表的"老朋友 / 新朋友"分组）
 
 ---
 
@@ -162,3 +164,5 @@ Stage 4  长文     PDF / EPUB 自主阅读（来自 eslearn 项目）
 | 2026-05-22 | 王 + Claude | 内容扩张：5 → 35 篇 lectura（30 篇文化习俗，覆盖西/墨/Río de la Plata/加勒比/安第斯/泛西语）。新增 8.1 节固化 Circling 实施范围（含被刻意砍掉的功能与理由）。Stage 1 状态从"🟡 雏形"升级为"🟢 内容齐备"。 |
 | 2026-05-22 | Claude | Circling MVP 落地：`/api/vocab/highlight` 返回 encounter 次数；`LecturaReader` 按 0 / 1-2 / 3-6 / 7+ 四档配色（amber / blue / emerald / 无样式）；xl+ 屏幕加 sticky 侧栏面板显示本文各档计数。200/200 测试通过。下一步：真人试读校准阈值（task #12）。 |
 | 2026-05-23 | Claude | 全局 TTS 倍速控制：新增 `lib/playback-rate.ts`（localStorage 持久化 + 跨组件事件广播）和 `PlaybackRateControl`（Header 上的 5 档下拉：0.5/0.75/1/1.25/1.5）。所有 TTS 播放点接入：`speak()`（点词查义、复习）、`LecturaReader` 段落音频（支持播放中实时切倍速）、`AudioButton`（课程音频）。同时修复 `/lectura` 列表页"无音频"过时文案。 |
+| 2026-05-23 | 王 + Claude | `/lectura` 列表按 CEFR 级别排序（A1 → A2 → B1）。 |
+| 2026-05-23 | 王 + Claude | **撤回 Circling 可视化**：用户验收时发现根本矛盾——未点击的词永远是 0 encounter，导致默认状态下整篇文章被 amber 上色，违背"文本简洁"。LecturaReader 回到 `saved-word` 二态高亮（仅显示用户主动点击过的词），`/api/vocab/highlight` 回到原 `course/saved/unknown` 三态，侧栏移除，CSS 清理。**保留全局倍速控制不变**。8.1 节改写记录这次教训：Circling 重做的先决条件是被动遭遇追踪基础设施。|
