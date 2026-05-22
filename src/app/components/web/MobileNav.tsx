@@ -18,6 +18,7 @@ const navItems: MobileNavItem[] = [
   { label: "视频", href: "/" },
   { label: "课程", href: "/learn" },
   { label: "阅读", href: "/lectura" },
+  { label: "对话", href: "/talk" },
   { label: "语法", href: "/grammar" },
   { label: "拆解", href: "/dissect" }
 ];

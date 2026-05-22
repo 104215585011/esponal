@@ -16,6 +16,7 @@
     "test": "node --test tests/*.test.mjs",
     "test:e2e": "playwright test",
     "seed:e2e": "node scripts/seed-e2e-user.mjs",
+    "seed:talk": "node scripts/seed-talk-characters.mjs",
     "ci:local": "npm run lint:encoding && npm test && npm run build",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate"

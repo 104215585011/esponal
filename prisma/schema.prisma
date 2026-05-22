@@ -8,17 +8,18 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?       @unique
   password      String?
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   words         Word[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  chatSessions  ChatSession[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Account {
@@ -62,27 +63,27 @@ enum WordStatus {
 }
 
 model Word {
-  id          String          @id @default(cuid())
-  userId      String
-  lemma       String
-  translation String
-  forms       String[]        @default([])
-  dictData    Json?
-  partOfSpeech String?
-  status      WordStatus      @default(NEW)
-  srsState      String?
-  srsDue        DateTime?
-  srsStability  Float?
-  srsDifficulty Float?
-  srsElapsedDays Int?
+  id               String          @id @default(cuid())
+  userId           String
+  lemma            String
+  translation      String
+  forms            String[]        @default([])
+  dictData         Json?
+  partOfSpeech     String?
+  status           WordStatus      @default(NEW)
+  srsState         String?
+  srsDue           DateTime?
+  srsStability     Float?
+  srsDifficulty    Float?
+  srsElapsedDays   Int?
   srsScheduledDays Int?
-  srsReps       Int       @default(0)
-  srsLapses     Int       @default(0)
-  srsLastReview DateTime?
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  encounters  WordEncounter[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  srsReps          Int             @default(0)
+  srsLapses        Int             @default(0)
+  srsLastReview    DateTime?
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encounters       WordEncounter[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@unique([userId, lemma])
   @@index([userId])
@@ -103,4 +104,65 @@ model WordEncounter {
 
   @@index([wordId])
   @@index([sourceType, createdAt])
+}
+
+// === Talk 集成（口语训练）===
+// Character: 5 个 AI 对话角色（Emma 英、Jake 美、Sophie 法、Kenji 日、Carlos 西）
+// ChatSession: 用户 × 角色的一次对话会话（避开 NextAuth 的 Session）
+// ChatMessage: 会话内的单条消息，content 用 AES-256-GCM 加密落库
+
+enum ChatSessionStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ChatMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model Character {
+  id           String        @id
+  name         String
+  language     String
+  voice        String        @default("")
+  bio          String        @default("")
+  style        String        @default("")
+  systemPrompt String        @db.Text
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  chatSessions ChatSession[]
+}
+
+model ChatSession {
+  id          String            @id @default(cuid())
+  userId      String
+  characterId String
+  title       String?
+  status      ChatSessionStatus @default(ACTIVE)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  character   Character         @relation(fields: [characterId], references: [id], onDelete: Restrict)
+  messages    ChatMessage[]
+
+  @@index([userId])
+  @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id             String          @id @default(cuid())
+  sessionId      String
+  role           ChatMessageRole
+  content        String          @db.Text
+  contentIv      String          @default("")
+  contentAuthTag String          @default("")
+  corrections    String[]        @default([])
+  newWords       String[]        @default([])
+  createdAt      DateTime        @default(now())
+  session        ChatSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
 }
