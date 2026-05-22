@@ -27,6 +27,28 @@
 
 ## 会话记录
 
+### Session #Batch QA WEB-015 COURSE-005 VOCAB-009 - 2026-05-22
+
+**Goal**: Run Codex2 QA for WEB-015, COURSE-005, VOCAB-009, plus verify the three recent watch/backlink hotfixes.
+
+**Completed**:
+- Verified WEB-015 app-shell width source contracts and preserved narrow reading pages.
+- Verified COURSE-005 function-word dictionary, `/dissect`, foundation overview/day pages, `/learn` banner, and `拆解` navigation.
+- Verified VOCAB-009 Phase A+B `SpanishText` extraction and `/grammar/[slug]` integration boundaries.
+- Verified hotfixes: reverse active-cue scan, `/watch` `lg:justify-start`, and `/watch` `lg:mt-2` BackLink breathing.
+- Moved WEB-015, COURSE-005, and VOCAB-009 to `passing`.
+- Left VOCAB-009-C as `backlog`.
+
+**Verification**:
+- `npm run lint:encoding`: pass, `Encoding check passed`.
+- `npm test`: 195/195 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+- Source contract script: 37/37 checks pass.
+
+**Next**:
+- PM can push the QA status commit.
+- Optional: Claude2 can do a final visual pass for the UI-facing tickets if PM wants separate visual acceptance.
+
 ### Session #VOCAB-009 Phase B - 2026-05-21
 
 **Goal**: Integrate `SpanishText` into `/grammar/[slug]` using only the explicit Spanish field allowlist from the VOCAB-009 ticket.

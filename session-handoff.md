@@ -1,3 +1,32 @@
+## QA Report: WEB-015 + COURSE-005 + VOCAB-009 batch
+**Time**: 2026-05-22 10:36
+**Tester**: Codex2
+
+**Conclusion**: PASS. WEB-015, COURSE-005, and VOCAB-009 moved to `passing`. Hotfixes `659104a`, `7d2df7e`, and `1559374` verified by source contract. VOCAB-009-C remains `backlog`.
+
+**Command verification**:
+1. `npm run lint:encoding`
+   Output: `Encoding check passed`
+   Result: pass
+2. `npm test`
+   Output: `tests 195`, `pass 195`, `fail 0`
+   Result: pass
+3. `npm run build`
+   Output: `Compiled successfully`; routes generated; existing `<img>` and Sentry warnings only
+   Result: pass
+
+**Source contract verification**:
+- WEB-015: `tailwind.config.ts` exposes `app-shell: 96rem`; SiteHeader/home/learn/learn detail/lectura/extension use `max-w-app-shell`; `/watch` keeps outer `main` full-screen and constrains the inner `lg:flex-row` shell; `/grammar`, `/grammar/[slug]`, `/lectura/[slug]`, and `/learn/phase-1` retain narrow reading widths.
+- COURSE-005: `data/function-words.json` has 95 entries and 13 categories including `indefinite_pronoun`, `quantifier`, and `adverb_function`; `/dissect` has popover, Day links, and content-word lookup; `/learn/foundation` has BackLink, 7-card map, Day 1 `lg:col-span-2`, and `/dissect` CTA; `/learn/foundation/[day]` has BackLink, Day N/7, comparison/contrast/usage structure, and tri-link nav; `/learn` has foundation banner; SiteNav and MobileNav include `拆解`.
+- VOCAB-009: `SpanishText` exists; `CourseLookupText` deleted; `/learn/[slug]` and `/learn/foundation/[day]` use `SpanishText`; `/grammar/[slug]` wraps explicit Spanish fields only; `LookupSource` and `src/lib/vocab.ts` accept `dissect`/`grammar`; `SpanishText` has `max-w-[min(20rem,calc(100vw-2rem))]`, mobile `@media (hover: none)` + `bg-brand-50/40`, and no `hover:underline`.
+- Hotfixes: `TranscriptPanel.tsx` uses reverse scan for active cue and documents latest start behavior; `watch/page.tsx` contains `lg:justify-start`; `watch/page.tsx` contains `lg:mt-2`.
+
+**Handoff**:
+- No P1 issues found.
+- These were functional/source QA checks; UI final visual acceptance can still be done by Claude2 if PM wants a separate visual pass.
+
+---
+
 ## Dev Report: VOCAB-009 Phase B grammar detail lookup
 **Time**: 2026-05-21 23:18
 **Developer**: Codex1
