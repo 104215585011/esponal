@@ -101,7 +101,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
         <section className="flex flex-col px-4 py-4 lg:basis-[63%] lg:justify-start lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
           <BackLink href="/" label="视频" />
 
-          <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated">
+          <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2">
             <div className="aspect-video w-full">
               {videoId ? (
                 <iframe

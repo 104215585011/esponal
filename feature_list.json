@@ -787,7 +787,7 @@
     "area": "course",
     "title": "西语骨架词系统（7 天起步课 + 句子拆解器）",
     "user_visible_behavior": "初学者打开 /learn 看到\"新手起步 7 天\"入口，进入后阅读 7 节中文讲解课（每节 800-1500 字 + 对照表 + 例句），系统讲解代词/冠词/介词/连词/指示词/反身/关系词这些\"骨架词\"，每条都用英语对照辅助理解；另有独立工具 /dissect，粘贴任意西语句子可看到骨架词按词性高亮拆解，每个骨架词可点击查看详解。",
-    "status": "in_progress",
+    "status": "ready_for_qa",
     "verification": [
       "data/function-words.json 存在，含至少 60 条骨架词，每条含 category/english/chinese/examples/esEnContrast/frequencyRank 6 字段",
       "scripts/validate-function-words.mjs 验证数据完整性",
@@ -799,7 +799,7 @@
       "UI 视觉过 Claude2 评审",
       "npm test 通过，npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-21 15:24: Phase 1 dictionary (83 entries). PM QC 2026-05-22 (e5ad0a4): 95 entries, 3 new categories (indefinite_pronoun/quantifier/adverb_function), validator synced. Codex1 Dev 2026-05-22 10:15: Phase 2 /dissect complete. Added src/lib/functionWords.ts with 6-group aggregation (blue pronoun, indigo object_pronoun, amber limiter, emerald prep/conj, violet relative, slate adverb_function), src/app/dissect/page.tsx + DissectorClient.tsx + tokenize.ts with textarea, default live dissection, underline+badge rendering, popover with esEnContrast and Day N links, and summary stats. TDD: course005 Phase 2 tests failed before implementation; after: node --test tests/course005.test.mjs 8/8; npm test 185/185; npm run lint:encoding passed; npm run build passed with /dissect route. Phase 3 (/learn/foundation) not started. COURSE-005 remains in_progress. Codex1 Dev 2026-05-21 20:46: Phase 3 /learn/foundation complete. Added src/content/foundation.ts with 7 Chinese reading lessons, overview route /learn/foundation, day route /learn/foundation/day-1..day-7 with intro/comparison/contrast/usage sections and tri-link nav, plus amber /learn banner below hero. TDD: Phase 3 tests failed before implementation on missing content/routes/banner; after: node --test tests/course005.test.mjs 12/12; npm run lint:encoding passed; npm test 189/189; npm run build passed with existing <img> and Sentry warnings. COURSE-005 remains in_progress pending PM readthrough of 7-day content before ready_for_qa.",
+    "evidence": "Codex1 Dev 2026-05-21 15:24: Phase 1 dictionary (83 entries). PM QC 2026-05-22 (e5ad0a4): 95 entries, 3 new categories (indefinite_pronoun/quantifier/adverb_function), validator synced. Codex1 Dev 2026-05-22 10:15: Phase 2 /dissect complete. Added src/lib/functionWords.ts with 6-group aggregation (blue pronoun, indigo object_pronoun, amber limiter, emerald prep/conj, violet relative, slate adverb_function), src/app/dissect/page.tsx + DissectorClient.tsx + tokenize.ts with textarea, default live dissection, underline+badge rendering, popover with esEnContrast and Day N links, and summary stats. TDD: course005 Phase 2 tests failed before implementation; after: node --test tests/course005.test.mjs 8/8; npm test 185/185; npm run lint:encoding passed; npm run build passed with /dissect route. Phase 3 (/learn/foundation) not started. COURSE-005 remains in_progress. Codex1 Dev 2026-05-21 20:46: Phase 3 /learn/foundation complete. Added src/content/foundation.ts with 7 Chinese reading lessons, overview route /learn/foundation, day route /learn/foundation/day-1..day-7 with intro/comparison/contrast/usage sections and tri-link nav, plus amber /learn banner below hero. TDD: Phase 3 tests failed before implementation on missing content/routes/banner; after: node --test tests/course005.test.mjs 12/12; npm run lint:encoding passed; npm test 189/189; npm run build passed with existing <img> and Sentry warnings. COURSE-005 remains in_progress pending PM readthrough of 7-day content before ready_for_qa. | PM 2026-05-22 review pass: Phase 1 字典 95 条 + Phase 2 /dissect 拆解器 + Phase 3 七天课 + 多轮 fix（QC 翻译、BackLinks、SiteNav 拆解 tab、内容词查词、foundation 例句接入 CourseLookupText）。在 Vercel 上实测：/learn/foundation 总览 + 七天课页面渲染正确、对照表 3 列、拆解器 5 色聚合 + popover + Day 链接、骨架词内容词都可点。剩余 Phase C（contrastBlocks 改对象数组）拆出独立 ticket VOCAB-009-C。",
     "notes": "Ticket: docs/tickets/COURSE-005.md。PM 教学洞察：从英语过来学西语的人无需被当成完全零基础对待，先把\"功能词\"骨架剥离讲清楚，用英语对照打底，效率比直接当词汇硬记高数倍。设计决定：(1) C+D 组合 - 七天课建立认知 + 拆解器即时验证；(2) 共享 function-words.json 词典数据源用 Wiktionary (CC-BY-SA)，不用 AI 自由生成防杜撰；(3) 课程纯静态阅读不加测验/翻牌/音频；(4) 中文长文讲解 800-1500 字/节。分 3 期 - 词典 → 拆解器 → 七天课。Codex1 不熟西语就保留 TODO 等 PM 校对。 Phase 1 contains TODO markers for por/para, aunque/subjunctive, and qu?/cu?l where PM grammar wording should be checked before publishing. Phase 3 content is implemented but should be read by PM before moving COURSE-005 to ready_for_qa, per ticket requirement."
   },
   {
@@ -808,7 +808,7 @@
     "area": "vocabulary",
     "title": "全站西语文本统一可点查词",
     "user_visible_behavior": "所有页面（语法、骨架词课、拆解器、未来新页面）显示的西语词都可点击触发查词卡，行为和 Lectura 阅读页一致；已学词带深灰虚线下划线（VOCAB-008）。",
-    "status": "in_progress",
+    "status": "ready_for_qa",
     "verification": [
       "src/app/components/vocab/SpanishText.tsx 新建并被多处调用",
       "LookupCard LookupSource 类型扩展含 dissect 与 grammar",
@@ -820,7 +820,24 @@
       "UI 视觉过 Claude2 评审",
       "npm test + npm run build 通过"
     ],
-    "evidence": "2026-05-21 23:02 Codex1 Phase A complete only: extracted SpanishText shared component, deleted CourseLookupText, migrated existing /learn/[slug] and /learn/foundation/[day] lookup call sites, extended LookupSource and /api/vocab/add sourceType for dissect/grammar, added LookupCard viewport max width, and added savedForms cache invalidation after save. Verification: TDD red node --test tests/vocab009.test.mjs failed 4/4 before implementation; node --test tests/vocab009.test.mjs -> 4/4 pass; node --test tests/vocab009.test.mjs tests/vocab008.test.mjs tests/vocab004.test.mjs tests/course005.test.mjs -> 28/28 pass; npm run lint:encoding -> pass; npm test -> 193/193 pass; npm run build -> pass with existing img and Sentry warnings only.\n2026-05-21 23:18 Codex1 Phase B complete only: wired SpanishText into /grammar/[slug] explicit Spanish fields (conjugation row.pronoun, row.form, examples, ser/estar comparison items), kept topic intro/analogy/rules/chinese/reason/sidebar/list page as plain text. Verification: baseline npm test -> 193/193 pass; TDD red node --test tests/vocab009.test.mjs failed 1/6 before implementation; node --test tests/vocab009.test.mjs -> 6/6 pass; node --test tests/vocab009.test.mjs tests/course002.test.mjs tests/web014.test.mjs tests/web015.test.mjs -> 19/19 pass; npm run lint:encoding -> pass; npm test -> 195/195 pass; npm run build -> pass with existing img and Sentry warnings only.",
+    "evidence": "2026-05-21 23:02 Codex1 Phase A complete only: extracted SpanishText shared component, deleted CourseLookupText, migrated existing /learn/[slug] and /learn/foundation/[day] lookup call sites, extended LookupSource and /api/vocab/add sourceType for dissect/grammar, added LookupCard viewport max width, and added savedForms cache invalidation after save. Verification: TDD red node --test tests/vocab009.test.mjs failed 4/4 before implementation; node --test tests/vocab009.test.mjs -> 4/4 pass; node --test tests/vocab009.test.mjs tests/vocab008.test.mjs tests/vocab004.test.mjs tests/course005.test.mjs -> 28/28 pass; npm run lint:encoding -> pass; npm test -> 193/193 pass; npm run build -> pass with existing img and Sentry warnings only.\n2026-05-21 23:18 Codex1 Phase B complete only: wired SpanishText into /grammar/[slug] explicit Spanish fields (conjugation row.pronoun, row.form, examples, ser/estar comparison items), kept topic intro/analogy/rules/chinese/reason/sidebar/list page as plain text. Verification: baseline npm test -> 193/193 pass; TDD red node --test tests/vocab009.test.mjs failed 1/6 before implementation; node --test tests/vocab009.test.mjs -> 6/6 pass; node --test tests/vocab009.test.mjs tests/course002.test.mjs tests/web014.test.mjs tests/web015.test.mjs -> 19/19 pass; npm run lint:encoding -> pass; npm test -> 195/195 pass; npm run build -> pass with existing img and Sentry warnings only. | PM 2026-05-22 review pass: Phase A SpanishText 抽出 + LookupCard source 扩展 + lib/vocab 接受 dissect/grammar + CourseLookupText 删除 + 迁移 /learn/[slug] 和 /learn/foundation/[day]。Phase B /grammar/[slug] 按死清单接入（变位 cell 和例句包，混排中文不包）。npm test 195/195 pass，build pass。Phase C foundation contrastBlocks 改对象数组拆出独立 ticket VOCAB-009-C。",
     "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。Claude2 UI review 2026-05-21: PASS WITH CHANGES，已并入 ticket。分 3 阶段：Phase A 收窄为只抽 CourseLookupText -> SpanishText，并只迁移 /learn/[slug] 与 /learn/foundation/[day] 已有调用；不动 /lectura、/watch、DissectorClient。Phase A 2026-05-21 complete. Phase B 2026-05-21 complete: /grammar/[slug] 明确西语字段已接入；/grammar 列表页按二审不接入。Phase C 改 foundation contrastBlocks 数据结构，需 PM content readthrough。"
+  },
+  {
+    "id": "VOCAB-009-C",
+    "priority": 47,
+    "area": "vocabulary",
+    "title": "foundation contrastBlocks 改对象数组 + 接入 SpanishText",
+    "user_visible_behavior": "7 天骨架词课的\"西英差异\"引用块里的西语原文也可点查词，和其他西语文本行为一致。",
+    "status": "backlog",
+    "verification": [
+      "src/content/foundation.ts contrastBlocks 字段从 string[] 改为 { es, en, zh, note }[]",
+      "7 个 day 的所有 contrastBlocks 数据全部迁移并经 PM 校对",
+      "/learn/foundation/[day] 渲染器读新结构，西语 line 用 SpanishText 包裹",
+      "视觉保留 border-l-2 border-brand-200 pl-3 引用块样式，3 行紧凑（es / en / zh+note）",
+      "npm test 通过，npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/VOCAB-009-C.md（待写）。从 VOCAB-009 Phase C 拆出来。原因：改 contrastBlocks 数据结构需要 PM readthrough 校对 7 天 × 平均 3 条 block = 21 条手工拆解 es/en/zh/note，PM 时间未确认前不强推。可选择继续延后。"
   }
 ]
