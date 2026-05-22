@@ -27,6 +27,27 @@
 
 ## 会话记录
 
+### Session #WEB-015 watch player crop hotfix - 2026-05-22
+
+**Goal**: Fix the wide `/watch` layout where the player became too large and the embedded video appeared cropped.
+
+**Completed**:
+- Identified root cause: after WEB-015 widened the `/watch` inner shell to `96rem`, the player still filled the whole 63% left column and could grow past the comfortable size on wide desktop layouts.
+- Added `lg:max-w-[48rem]` to the watch player shell while keeping `aspect-video`, `w-full`, rounded black shell, shadow, and `lg:mt-2`.
+- Added a WEB-015 regression test to require the player cap.
+- Left the wider app-shell and transcript layout intact.
+
+**Verification**:
+- TDD red: `node --test tests/web015.test.mjs` failed 1/5 before implementation.
+- `node --test tests/web015.test.mjs`: 5/5 pass.
+- `node --test tests/web015.test.mjs tests/web003.test.mjs tests/web004.test.mjs tests/web014.test.mjs`: 14/14 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 196/196 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Push and verify the production `/watch?v=1A9kpjdYJUg` player in the same wide/devtools layout.
+
 ### Session #Batch QA WEB-015 COURSE-005 VOCAB-009 - 2026-05-22
 
 **Goal**: Run Codex2 QA for WEB-015, COURSE-005, VOCAB-009, plus verify the three recent watch/backlink hotfixes.

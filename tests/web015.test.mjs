@@ -46,6 +46,17 @@ test("WEB-015 watch keeps the outer main full-screen and constrains only the inn
   assert.match(innerShellLine, /max-w-app-shell/);
 });
 
+test("WEB-015 watch caps the player width inside the wider app shell", async () => {
+  const source = await readText("src/app/watch/page.tsx");
+  const playerShellLine = source
+    .split(/\r?\n/)
+    .find((line) => line.includes("shadow-elevated"));
+
+  assert.ok(playerShellLine, "watch page should have a player shell");
+  assert.match(playerShellLine, /lg:max-w-\[48rem\]/);
+  assert.match(source, /<div className="aspect-video w-full">/);
+});
+
 test("WEB-015 reading-focused narrow pages keep their intentional max widths", async () => {
   const cases = [
     ["src/app/grammar/page.tsx", /max-w-5xl/],

@@ -1,3 +1,37 @@
+## Dev Report: WEB-015 watch player crop hotfix
+**Time**: 2026-05-22 10:56
+**Developer**: Codex1
+
+**Status**: Hotfix complete. WEB-015 remains `passing`.
+
+**Root cause**:
+- WEB-015 correctly widened the `/watch` inner app shell to `max-w-app-shell` (`96rem`), but the player still filled the whole `lg:basis-[63%]` left column.
+- On wide desktop layouts this made the YouTube iframe grow past the comfortable player size, so the embedded video/ad appeared zoomed and cropped.
+
+**Changed files**:
+- src/app/watch/page.tsx
+- tests/web015.test.mjs
+- feature_list.json
+- session-handoff.md
+
+**Implementation notes**:
+- Added `lg:max-w-[48rem]` to the player shell.
+- Preserved `aspect-video`, `w-full`, rounded black shell, shadow, and existing `lg:mt-2` BackLink breathing.
+- Left the wider `max-w-app-shell` two-column layout intact so transcript alignment from WEB-015 is unchanged.
+
+**Verification executed**:
+1. TDD red check: `node --test tests/web015.test.mjs` failed 1/5 before fix because the player shell had no desktop max-width cap.
+2. Focused test: `node --test tests/web015.test.mjs` -> tests 5, pass 5, fail 0.
+3. Watch/layout regression set: `node --test tests/web015.test.mjs tests/web003.test.mjs tests/web004.test.mjs tests/web014.test.mjs` -> tests 14, pass 14, fail 0.
+4. Encoding: `npm run lint:encoding` -> Encoding check passed.
+5. Full suite: `npm test` -> tests 196, pass 196, fail 0.
+6. Production build: `npm run build` -> compiled successfully; existing `<img>` and Sentry warnings only.
+
+**Next step**:
+- Push and let Vercel deploy; then recheck `/watch?v=1A9kpjdYJUg` in the same wide/devtools layout.
+
+---
+
 ## QA Report: WEB-015 + COURSE-005 + VOCAB-009 batch
 **Time**: 2026-05-22 10:36
 **Tester**: Codex2
