@@ -45,10 +45,11 @@ Codex1 不理解需求或遇到阻塞 → 写明问题 → 反馈给 Claude1（P
 
 ### 开工前
 1. 读本文件
-2. 读自己的角色文件（`roles/ROLE-*.md`）
-3. 读 `claude-progress.md`（当前进展）
-4. 读 `feature_list.json`（功能状态）
-5. 读 `session-handoff.md`（上一轮交接）
+2. 读 `VISION.md`（产品愿景，活文档，所有决策的中心）
+3. 读自己的角色文件（`roles/ROLE-*.md`）
+4. 读 `claude-progress.md`（当前进展）
+5. 读 `feature_list.json`（功能状态）
+6. 读 `session-handoff.md`（上一轮交接）
 
 ### 工作中
 - **同一时间只能有一个功能处于 `in_progress`**
