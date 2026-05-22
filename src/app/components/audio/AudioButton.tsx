@@ -2,6 +2,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { getPlaybackRate } from "@/lib/playback-rate";
 
 type AudioButtonProps = {
   src: string;
@@ -38,6 +39,7 @@ export default function AudioButton({ src, label }: AudioButtonProps) {
     }
 
     const audio = new Audio(src);
+    audio.playbackRate = getPlaybackRate();
     audioRef.current = audio;
     audio.addEventListener("ended", () => setIsPlaying(false), { once: true });
     audio.addEventListener(

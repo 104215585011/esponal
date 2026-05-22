@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
 import { SiteNav } from "@/app/components/web/SiteNav";
 import { getAuthOptions } from "@/lib/auth";
 
@@ -56,6 +57,8 @@ export async function SiteHeader({
             type="search"
           />
         </form>
+
+        <PlaybackRateControl className="shrink-0" />
 
         <div className="shrink-0">
           {session?.user ? (

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LookupCard } from "@/app/watch/LookupCard";
+import { getPlaybackRate, usePlaybackRate } from "@/lib/playback-rate";
 import type { LecturaStory } from "@/../content/lectura";
 
 type LecturaReaderProps = {
@@ -13,6 +14,22 @@ type ActiveLookup = {
   form: string;
   anchorX: number;
   anchorY: number;
+};
+
+type WordTier = "new" | "learning" | "familiar" | "mastered";
+
+function tierForEncounters(count: number): WordTier {
+  if (count >= 7) return "mastered";
+  if (count >= 3) return "familiar";
+  if (count >= 1) return "learning";
+  return "new";
+}
+
+const TIER_CLASS: Record<WordTier, string> = {
+  new: "word-tier-new",
+  learning: "word-tier-learning",
+  familiar: "word-tier-familiar",
+  mastered: "word-tier-mastered"
 };
 
 function splitParagraphTokens(text: string) {
@@ -31,9 +48,37 @@ function normalizeLookupWord(token: string) {
 export function LecturaReader({ story }: LecturaReaderProps) {
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
-  const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
+  const [encounterMap, setEncounterMap] = useState<Map<string, number>>(() => new Map());
+  const [playbackRate] = usePlaybackRate();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // 倍速实时生效：用户在 Header 改 rate 时，正在播放的段落跟随变化
+  useEffect(() => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate]);
+
+  const uniqueTokens = useMemo(() => {
+    const set = new Set<string>();
+    for (const paragraph of story.paragraphs) {
+      for (const part of splitParagraphTokens(paragraph)) {
+        const normalized = normalizeLookupWord(part);
+        if (normalized) set.add(normalized);
+      }
+    }
+    return Array.from(set);
+  }, [story.paragraphs]);
+
+  const tierCounts = useMemo(() => {
+    const counts: Record<WordTier, number> = { new: 0, learning: 0, familiar: 0, mastered: 0 };
+    for (const token of uniqueTokens) {
+      const tier = tierForEncounters(encounterMap.get(token) ?? 0);
+      counts[tier]++;
+    }
+    return counts;
+  }, [uniqueTokens, encounterMap]);
 
   const stopCurrentAudio = () => {
     if (!currentAudioRef.current) {
@@ -65,6 +110,7 @@ export function LecturaReader({ story }: LecturaReaderProps) {
     stopCurrentAudio();
 
     const audio = new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`);
+    audio.playbackRate = getPlaybackRate();
     currentAudioRef.current = audio;
     setPlayingParagraphIndex(paragraphIndex);
 
@@ -94,22 +140,31 @@ export function LecturaReader({ story }: LecturaReaderProps) {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/vocab/highlight")
-      .then((response) => (response.ok ? response.json() : { savedForms: [] }))
-      .then((data: { savedForms?: unknown }) => {
-        if (cancelled || !Array.isArray(data.savedForms)) return;
-        setSavedSet(
-          new Set(
-            data.savedForms
-              .filter((form): form is string => typeof form === "string")
-              .map((form) => normalizeLookupWord(form))
-              .filter(Boolean)
-          )
-        );
+    if (uniqueTokens.length === 0) {
+      setEncounterMap(new Map());
+    } else {
+      fetch("/api/vocab/highlight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ words: uniqueTokens })
       })
-      .catch(() => {
-        if (!cancelled) setSavedSet(new Set());
-      });
+        .then((response) => (response.ok ? response.json() : { items: [] }))
+        .then((data: { items?: Array<{ word?: unknown; encounters?: unknown }> }) => {
+          if (cancelled || !Array.isArray(data.items)) return;
+          const next = new Map<string, number>();
+          for (const item of data.items) {
+            if (typeof item.word !== "string") continue;
+            const key = normalizeLookupWord(item.word);
+            if (!key) continue;
+            const count = typeof item.encounters === "number" ? item.encounters : 0;
+            next.set(key, count);
+          }
+          setEncounterMap(next);
+        })
+        .catch(() => {
+          if (!cancelled) setEncounterMap(new Map());
+        });
+    }
 
     function handlePointerDown(event: PointerEvent) {
       if (!containerRef.current) return;
@@ -133,7 +188,8 @@ export function LecturaReader({ story }: LecturaReaderProps) {
       document.removeEventListener("keydown", handleKeyDown);
       stopCurrentAudio();
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uniqueTokens]);
 
   return (
     <>
@@ -174,11 +230,11 @@ export function LecturaReader({ story }: LecturaReaderProps) {
                     return <span key={tokenIndex}>{token}</span>;
                   }
 
+                  const tier = tierForEncounters(encounterMap.get(normalized) ?? 0);
+
                   return (
                     <span
-                      className={`cursor-pointer rounded-sm transition hover:bg-brand-50 ${
-                        savedSet.has(normalized) ? "saved-word" : ""
-                      }`}
+                      className={`cursor-pointer rounded-sm transition hover:bg-brand-50 ${TIER_CLASS[tier]}`}
                       key={tokenIndex}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -203,6 +259,50 @@ export function LecturaReader({ story }: LecturaReaderProps) {
           );
         })}
       </div>
+
+      <aside
+        aria-label="本文词汇统计"
+        className="fixed right-8 top-32 z-10 hidden w-56 xl:block"
+        data-testid="lectura-sidebar"
+      >
+        <div className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+            本文词汇
+          </h3>
+          <p className="mt-2 text-2xl font-semibold text-gray-900">
+            {uniqueTokens.length}
+            <span className="text-base font-normal text-gray-500"> 个词</span>
+          </p>
+
+          <ul className="mt-5 space-y-2.5 text-[13px]">
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-gray-300" />
+              <span className="flex-1 text-gray-600">已掌握</span>
+              <span className="font-medium tabular-nums text-gray-900">{tierCounts.mastered}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="flex-1 text-gray-600">熟悉</span>
+              <span className="font-medium tabular-nums text-gray-900">{tierCounts.familiar}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-blue-500" />
+              <span className="flex-1 text-gray-600">学习中</span>
+              <span className="font-medium tabular-nums text-gray-900">{tierCounts.learning}</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-amber-500" />
+              <span className="flex-1 text-gray-600">新词</span>
+              <span className="font-medium tabular-nums text-gray-900">{tierCounts.new}</span>
+            </li>
+          </ul>
+
+          <p className="mt-5 border-t border-gray-100 pt-3 text-[11px] leading-relaxed text-gray-400">
+            颜色 = 你的熟悉度。<br />
+            点任意词查义、加入词库。
+          </p>
+        </div>
+      </aside>
 
       {activeLookup
         ? (() => {

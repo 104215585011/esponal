@@ -1,5 +1,7 @@
 "use client";
 
+import { getPlaybackRate } from "@/lib/playback-rate";
+
 type SpeakOptions = {
   rate?: number;
   onEnd?: () => void;
@@ -20,7 +22,7 @@ export function speak(text: string, options: SpeakOptions = {}) {
   }
 
   const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
-  audio.playbackRate = options.rate ?? 1;
+  audio.playbackRate = options.rate ?? getPlaybackRate();
   currentAudio = audio;
 
   audio.addEventListener("play", () => options.onStart?.(), { once: true });

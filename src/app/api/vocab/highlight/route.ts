@@ -28,13 +28,14 @@ function normalizeWords(value: unknown) {
         .map((item) => item.trim().toLowerCase())
         .filter(Boolean)
     )
-  ).slice(0, 64);
+  ).slice(0, 500);
 }
 
 function buildDefaultStatuses(words: string[]) {
   return words.map((word) => ({
     word,
-    status: courseWordSet.has(word) ? ("course" satisfies HighlightStatus) : ("unknown" satisfies HighlightStatus)
+    status: courseWordSet.has(word) ? ("course" satisfies HighlightStatus) : ("unknown" satisfies HighlightStatus),
+    encounters: 0
   }));
 }
 
@@ -144,24 +145,30 @@ export async function POST(request: Request) {
       },
       select: {
         lemma: true,
-        forms: true
+        forms: true,
+        _count: { select: { encounters: true } }
       }
     });
 
-    const savedWordSet = new Set<string>();
+    const encounterMap = new Map<string, number>();
 
     for (const word of savedWords) {
-      savedWordSet.add(word.lemma.trim().toLowerCase());
+      const count = word._count.encounters;
+      const lemmaKey = word.lemma.trim().toLowerCase();
+      encounterMap.set(lemmaKey, Math.max(encounterMap.get(lemmaKey) ?? 0, count));
 
       for (const form of word.forms) {
-        savedWordSet.add(form.trim().toLowerCase());
+        const formKey = form.trim().toLowerCase();
+        if (!formKey) continue;
+        encounterMap.set(formKey, Math.max(encounterMap.get(formKey) ?? 0, count));
       }
     }
 
     return NextResponse.json({
       items: items.map((item) => ({
         word: item.word,
-        status: savedWordSet.has(item.word) ? "saved" : item.status
+        status: encounterMap.has(item.word) ? "saved" : item.status,
+        encounters: encounterMap.get(item.word) ?? 0
       }))
     });
   } catch (error) {
