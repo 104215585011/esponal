@@ -20,7 +20,7 @@ export default function LecturaIndexPage() {
             Lectura · 西语短文阅读
           </h1>
           <p className="mt-2 text-sm text-gray-500">
-            适合通勤、午休、工位 5 分钟。无音频，点任意单词查义。
+            适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
           </p>
         </header>
 
