@@ -1,3 +1,55 @@
+## Dev Report: TALK-002 cross-character scope fix
+**Time**: 2026-05-24 01:16
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 re-QA. `TALK-002` remains `ready_for_qa` per PM instruction.
+
+**Changed files**:
+- src/lib/talk/history-service.ts
+- src/app/api/talk/history/route.ts
+- src/app/api/talk/message/route.ts
+- src/lib/talk/chat-service.ts
+- src/app/talk/[characterId]/TalkClient.tsx
+- tests/talk002.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added `characterId` to `listUserHistory` input and filters for both `findMany` and `count`.
+- Required and validated `characterId` in `GET /api/talk/history`.
+- Scoped `/api/talk/message` preflight session ownership to `id + userId + characterId`.
+- Scoped `streamChatMessage` continuation lookup to `id + userId + character.id`, preserving `SESSION_NOT_FOUND`.
+- Added a client guard that rejects mismatched history payloads, clears local session/messages, removes `?session=`, and shows a small status message.
+- Added a TALK-002 regression test for cross-character history and continuation boundaries.
+
+**Verification executed**:
+1. Red check
+   Command: `node --test tests\talk002.test.mjs`
+   Result before fix: fail 1/7 on missing character scoping
+2. Focused TALK-002
+   Command: `node --test tests\talk002.test.mjs`
+   Result: pass, `tests 7`, `pass 7`, `fail 0`
+3. Talk/vocab regression slice
+   Command: `node --test tests\talk002.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab004.test.mjs`
+   Result: pass, `tests 23`, `pass 23`, `fail 0`
+4. Encoding
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+5. Full suite
+   Command: `npm test`
+   Result: pass, `tests 211`, `pass 211`, `fail 0`
+6. Prisma Client refresh
+   Command: `npx prisma generate`
+   Result: pass; needed after pulling new chat models
+7. Production build
+   Command: `npm run build`
+   Result: pass after Prisma generate; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain
+
+**Handoff**:
+- Codex2 should re-run focused TALK-002, the talk/vocab regression slice, and `npm test`.
+- No push performed.
+
 ## PM Handoff: 新开 TALK-006（Whisper 隧道接入）+ 更新 Codex1 队列
 **Time**: 2026-05-23 17:10
 **PM**: Claude1

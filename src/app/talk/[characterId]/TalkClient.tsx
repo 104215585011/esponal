@@ -23,6 +23,7 @@ type TalkClientProps = {
 type HistoryResponse = {
   items?: Array<{
     id: string;
+    characterId: string;
     messages?: Array<{
       role: "USER" | "ASSISTANT" | "SYSTEM";
       content: string;
@@ -123,7 +124,9 @@ export function TalkClient({
 
     async function loadSelectedSession() {
       setStatusMessage(null);
-      const response = await fetch(`/api/talk/history?sessionId=${encodeURIComponent(sessionIdToLoad)}`);
+      const response = await fetch(
+        `/api/talk/history?sessionId=${encodeURIComponent(sessionIdToLoad)}&characterId=${encodeURIComponent(characterId)}`
+      );
       if (!response.ok) {
         if (!cancelled) setStatusMessage("无法加载这段对话");
         return;
@@ -132,6 +135,13 @@ export function TalkClient({
       const payload = (await response.json()) as HistoryResponse;
       const item = payload.items?.[0];
       if (!item || cancelled) return;
+      if (item.characterId !== characterId) {
+        setSessionId(null);
+        setMessages([]);
+        setStatusMessage("无法访问该会话（角色不匹配）");
+        router.replace(`/talk/${characterId}`, { scroll: false });
+        return;
+      }
 
       setSessionId(item.id);
       setMessages(
@@ -151,7 +161,7 @@ export function TalkClient({
     return () => {
       cancelled = true;
     };
-  }, [searchParams, characterId]);
+  }, [searchParams, characterId, router]);
 
   function appendDeltaToLastAssistant(text: string) {
     setMessages((prev) => {

@@ -93,3 +93,27 @@ test("TALK-002 mobile drawer is 80vw with a 20vw overlay and title fade", async 
   assert.match(sidebar, /duration-150/);
   assert.match(client, /\/api\/talk\/sessions\/\$\{completedSessionId\}\/retitle/);
 });
+
+test("TALK-002 rejects cross-character session history and continuation", async () => {
+  const historyRoute = await readText("src/app/api/talk/history/route.ts");
+  const historyService = await readText("src/lib/talk/history-service.ts");
+  const messageRoute = await readText("src/app/api/talk/message/route.ts");
+  const chatService = await readText("src/lib/talk/chat-service.ts");
+  const client = await readText("src/app/talk/[characterId]/TalkClient.tsx");
+
+  assert.match(historyRoute, /characterId/);
+  assert.match(historyRoute, /getTalkCharacterById/);
+  assert.match(historyRoute, /characterId,\s*\n\s*page/);
+
+  assert.match(historyService, /characterId:\s*string/);
+  assert.match(historyService, /characterId:\s*input\.characterId/);
+  assert.match(historyService, /prisma\.chatSession\.count\(\{[\s\S]*characterId:\s*input\.characterId/);
+
+  assert.match(messageRoute, /where:\s*\{[\s\S]*id:\s*sessionId[\s\S]*userId[\s\S]*characterId/);
+  assert.match(chatService, /where:\s*\{[\s\S]*id:\s*input\.sessionId[\s\S]*userId:\s*input\.userId[\s\S]*characterId:\s*character\.id/);
+  assert.match(chatService, /throw new Error\("SESSION_NOT_FOUND"\)/);
+
+  assert.match(client, /item\.characterId !== characterId/);
+  assert.match(client, /router\.replace\(`\/talk\/\$\{characterId\}`/);
+  assert.match(client, /setStatusMessage\("无法访问该会话（角色不匹配）"\)/);
+});

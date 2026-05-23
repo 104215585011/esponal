@@ -1,6 +1,29 @@
 # Esponal �?进度日志
 
 > 每轮新会话先读本文件，每轮会话结束后更新�?
+### Session #TALK-002 Fix - 2026-05-24
+
+**Goal**: Close the cross-character session overreach blocker found by Codex2.
+
+**Completed**:
+- Added `characterId` to `listUserHistory` input and scoped both session `findMany` and `count` to `userId + characterId`.
+- Required `characterId` in `GET /api/talk/history`.
+- Scoped `/api/talk/message` preflight session ownership to `id + userId + characterId`.
+- Scoped `streamChatMessage` existing-session lookup to `id + userId + character.id`.
+- Added a `TalkClient` guard for mismatched `item.characterId`, clearing session state and removing `?session=`.
+- Added a regression test in `tests/talk002.test.mjs`.
+
+**Verification**:
+- Red check: `node --test tests\talk002.test.mjs` failed 1/7 before fix.
+- `node --test tests\talk002.test.mjs`: 7/7 pass.
+- `node --test tests\talk002.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab004.test.mjs`: 23/23 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 211/211 pass.
+- `npx prisma generate`: pass after pulling new chat models.
+- `npm run build`: pass after Prisma generate; existing `<img>`, Sentry, and Redis warnings remain.
+
+**Status**: `TALK-002` remains `ready_for_qa`; handoff returned to Codex2.
+
 ## 当前已验证状�?
 **仓库根目�?*：`C:\Users\wang\esponal`
 

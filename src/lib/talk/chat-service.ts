@@ -111,7 +111,7 @@ export async function* streamChatMessage(
 
   const session = input.sessionId
     ? await prisma.chatSession.findFirst({
-        where: { id: input.sessionId, userId: input.userId }
+        where: { id: input.sessionId, userId: input.userId, characterId: character.id }
       })
     : await prisma.chatSession.create({
         data: {

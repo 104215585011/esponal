@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getTalkCharacterById } from "@/lib/talk/characters";
 import { listUserHistory } from "@/lib/talk/history-service";
 import { getMessageEncryptionSecret } from "@/lib/talk/env";
 
@@ -22,9 +23,15 @@ export async function GET(request: Request) {
   const page = Math.max(1, Number(url.searchParams.get("page") ?? "1") || 1);
   const pageSize = Math.min(50, Math.max(1, Number(url.searchParams.get("pageSize") ?? "20") || 20));
   const sessionId = url.searchParams.get("sessionId") ?? undefined;
+  const characterId = url.searchParams.get("characterId") ?? "";
+
+  if (!characterId || !getTalkCharacterById(characterId)) {
+    return NextResponse.json({ error: "character_not_found" }, { status: 404 });
+  }
 
   const history = await listUserHistory(prisma, {
     userId,
+    characterId,
     page,
     pageSize,
     sessionId: sessionId ?? undefined,

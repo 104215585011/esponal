@@ -6,6 +6,7 @@ import { decryptMessageContent } from "./message-crypto";
 
 export type ListUserHistoryInput = {
   userId: string;
+  characterId: string;
   page: number;
   pageSize: number;
   encryptionSecret: string;
@@ -36,6 +37,7 @@ export async function listUserHistory(prisma: PrismaClient, input: ListUserHisto
     prisma.chatSession.findMany({
       where: {
         userId: input.userId,
+        characterId: input.characterId,
         ...(input.sessionId ? { id: input.sessionId } : {})
       },
       orderBy: { updatedAt: "desc" },
@@ -53,6 +55,7 @@ export async function listUserHistory(prisma: PrismaClient, input: ListUserHisto
     prisma.chatSession.count({
       where: {
         userId: input.userId,
+        characterId: input.characterId,
         ...(input.sessionId ? { id: input.sessionId } : {})
       }
     })
