@@ -1,6 +1,29 @@
 # Esponal �?进度日志
 
 > 每轮新会话先读本文件，每轮会话结束后更新�?
+### QA Session #TALK-002 Fix - 2026-05-24
+
+**Goal**: Codex2 re-QA for the cross-character session overreach fix in commit `27c1036`.
+
+**Result**: Passed functional QA. `TALK-002` remains `ready_for_qa` for Claude2 UI acceptance.
+
+**Source contract verified**:
+- `history-service.ts` scopes session `findMany` and `count` by `userId + characterId`.
+- `GET /api/talk/history` requires and validates `characterId`, then passes it to `listUserHistory`.
+- `POST /api/talk/message` preflight checks `id + userId + characterId`.
+- `streamChatMessage` continues sessions by `id + userId + character.id` and keeps `SESSION_NOT_FOUND`.
+- `TalkClient` loads history with `characterId`, rejects mismatched `item.characterId`, clears state, removes `?session=`, and shows a small status message.
+- `tests/talk002.test.mjs` includes a regression guard for cross-character history and continuation.
+
+**Verification**:
+- `node --test tests\talk002.test.mjs`: 7/7 pass.
+- `node --test tests\talk002.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab004.test.mjs`: 23/23 pass.
+- `npm test`: 211/211 pass.
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
+
+**Next**:
+- Claude2 UI acceptance for `TALK-002`.
+
 ### Session #TALK-002 Fix - 2026-05-24
 
 **Goal**: Close the cross-character session overreach blocker found by Codex2.

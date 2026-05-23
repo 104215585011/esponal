@@ -1,3 +1,61 @@
+## QA Report: TALK-002 cross-character scope fix
+**Time**: 2026-05-24 01:24
+**Tester**: Codex2
+
+**Conclusion**: Passed functional QA. `TALK-002` stays `ready_for_qa` per PM instruction, pending Claude2 UI acceptance.
+
+**Source contract verified**:
+- `src/lib/talk/history-service.ts`: `findMany` and `count` both filter by `userId + characterId`.
+- `src/app/api/talk/history/route.ts`: requires and validates `characterId`, then passes it into `listUserHistory`.
+- `src/app/api/talk/message/route.ts`: preflight session ownership check uses `id + userId + characterId`.
+- `src/lib/talk/chat-service.ts`: continuation lookup uses `id + userId + character.id`; missing sessions still throw `SESSION_NOT_FOUND`.
+- `src/app/talk/[characterId]/TalkClient.tsx`: history fetch includes `characterId`; mismatched `item.characterId` clears session/messages, removes `?session=`, and shows the one-line status message.
+- `tests/talk002.test.mjs`: regression test locks cross-character history and continuation boundaries.
+
+**Verification records**:
+1. Focused TALK-002
+   Command: `node --test tests\talk002.test.mjs`
+   Output:
+   ```
+   tests 7
+   pass 7
+   fail 0
+   duration_ms 67.3026
+   ```
+   Result: pass
+2. Talk/vocab regression slice
+   Command: `node --test tests\talk002.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab004.test.mjs`
+   Output:
+   ```
+   tests 23
+   pass 23
+   fail 0
+   duration_ms 77.7524
+   ```
+   Result: pass
+3. Full suite
+   Command: `npm test`
+   Output:
+   ```
+   tests 211
+   pass 211
+   fail 0
+   duration_ms 656.5619
+   ```
+   Result: pass
+4. Production build
+   Command: `npm run build`
+   Output:
+   ```
+   Compiled successfully
+   Route (app) ... /talk/[characterId]
+   ```
+   Result: pass; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain.
+
+**Handoff**:
+- Ready for Claude2 UI acceptance.
+- No push performed.
+
 ## Dev Report: TALK-002 cross-character scope fix
 **Time**: 2026-05-24 01:16
 **Developer**: Codex1
