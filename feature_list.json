@@ -859,5 +859,82 @@
     ],
     "evidence": "Codex1 Dev 2026-05-22 11:35: implemented fixed 3-column /watch layout. Left column changed to lg:basis-[48rem] lg:shrink-0, player keeps lg:max-w-[48rem] without lg:mx-auto, transcript remains flex middle column, and related videos now render as a persistent aside with lg:w-[260px] lg:shrink-0. RelatedPanel hover/pin state machine removed (no useState/useRef/useEffect, timers, edge trigger, pin button, or translate slide classes); compact cards use 96x54 thumbnails, px-2 py-2 list padding, and py-1.5 rows. Verification: baseline npm test 196/196 before changes; TDD red node --test tests/web016.test.mjs tests/web007.test.mjs failed 5/6 before implementation; after implementation focused tests 6/6 pass; regression slice tests/web016 + web007 + web015 + web003 12/12 pass; npm run lint:encoding pass; npm test 200/200 pass; npm run build pass with existing <img>/Sentry warnings only. Layout evidence by source contract: at app-shell 1536px with lg:pl-7=28, fixed columns produce left 768px, related 260px, and remaining transcript 480px at 1920/2560; mobile keeps h-[60vh] transcript and related aside hidden below lg. Browser Playwright attempts were blocked by local Next static asset 404 on the ad-hoc server, so final visual screenshots should be taken by Codex2/Claude2 after deploy.",
     "notes": "Ticket: docs/tickets/WEB-016.md。Claude2 二审 PASS WITH CHANGES：PM 初版字幕宽算错（漏算 pl-7=28px），调整为左列 48rem + 右列 260px 救回字幕 480px。已知占位（MOCK_CHAPTERS、A1 标签写死、移动端无相关视频入口）不在本票范围。"
+  },
+  {
+    "id": "TALK-001",
+    "priority": 49,
+    "area": "talk",
+    "title": "对话气泡内的西语点击查词",
+    "user_visible_behavior": "在 /talk/[characterId] 与 Carlos（或其他西语角色）对话时，AI 回复中的每个西语单词可点击，弹出 LookupCard 显示释义并可加入词库。WordEncounter 记录 source=talk + characterId + sessionId。非西语角色（Emma/Jake/Sophie/Kenji）的回复保持纯文本。",
+    "status": "pending",
+    "verification": [
+      "/talk/carlos 收到 AI 回复后，每个西语词可点击高亮",
+      "点击弹 LookupCard，能正确返回 lemma + 中文",
+      "加入词库后 /vocab 列表能看到，source 标注 talk · Carlos",
+      "Emma 等非西语角色的回复仍是纯文本，不可点",
+      "流式 delta 期间点击不出错（等 done 才启用）",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/TALK-001.md。优先级 P2，预估 0.5-1 天。可复用 VOCAB-009 抽出的统一查词组件（如已有）。"
+  },
+  {
+    "id": "TALK-002",
+    "priority": 50,
+    "area": "talk",
+    "title": "类 ChatGPT 多会话列表 + 自动标题 + 切换",
+    "user_visible_behavior": "进入 /talk/[characterId] 时左侧栏（桌面）/抽屉（移动）显示该角色所有 ACTIVE 会话，按 updatedAt 倒序。顶部「+ 新对话」按钮可开新 session。每条显示标题 + 相对时间。切换会话刷新 AI 上下文。URL 参数 ?session={id} 与状态同步。会话第 4 轮后自动调 DeepSeek 生成精炼标题。",
+    "status": "pending",
+    "verification": [
+      "/talk/carlos 显示左侧会话列表（空时显示空状态）",
+      "「+ 新对话」按钮新建 session",
+      "发完第一条消息后列表条目更新标题",
+      "4 轮后调 /api/talk/sessions/[id]/retitle，标题收敛",
+      "点旧会话切换上下文，AI 接续历史",
+      "?session=X 刷新页面后状态保留",
+      "lg 以下移动端列表收为汉堡抽屉",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/TALK-002.md。优先级 P1，预估 1.5-2 天。ChatSession schema 已就绪，无 migration 需要。"
+  },
+  {
+    "id": "TALK-003",
+    "priority": 51,
+    "area": "talk",
+    "title": "归档会话 + 7 天后自动清理",
+    "user_visible_behavior": "用户可在会话项 hover 点🗑归档，会话立即从 ACTIVE 列表移除（数据保留为 ARCHIVED）。7 天后由 Vercel Cron 自动物理删除归档及其关联消息。可选：底部归档抽屉展示 7 天内已归档可恢复。",
+    "status": "pending",
+    "verification": [
+      "DELETE /api/talk/sessions/[id] 将 status 设为 ARCHIVED",
+      "侧栏 ACTIVE 列表不显示归档会话",
+      "scripts/cleanup-archived-sessions.mjs 删除 7 天前的 ARCHIVED",
+      "vercel.json 配置 cron 路径 /api/talk/cron/cleanup-archived",
+      "Cron 路由验证 Authorization: Bearer $CRON_SECRET",
+      "GET /history 默认只返回 ACTIVE",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/TALK-003.md。优先级 P2，预估 1 天。依赖 TALK-002 完成（需要会话列表 UI 才能放归档按钮）。新增 CRON_SECRET env。"
+  },
+  {
+    "id": "TALK-004",
+    "priority": 52,
+    "area": "talk",
+    "title": "语音直传给模型听发音（多模态音频输入）",
+    "user_visible_behavior": "Carlos 角色启用音频对话模式：用户录音直接以 audio Blob 发给 audio-in 模型（候选 GPT-4o-audio-preview），不再走 STT → DeepSeek 链路。AI 回复包含「发音观察」一行 + 正常对话内容，能指出发错的音素。模型/网络失败时自动 fallback 到 Web Speech API + DeepSeek。",
+    "status": "blocked",
+    "verification": [
+      "原型脚本 scripts/test-audio-model.mjs 验证 GPT-4o-audio 能识别发音错误",
+      "新 model client createAudioModelClient() 上线",
+      "录音录入 → POST audio Blob → 收文本回复 + 发音反馈",
+      "用户消息在对话流以「🎙 0:03」形式呈现",
+      "故意发错音节，AI 能指出",
+      "API/模型失败时无感降级到原链路",
+      "单次请求 ≤ 30s 返回",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/TALK-004.md。优先级 P3，预估 3-5 天 + 运营成本（DeepSeek 几乎免费 → GPT-4o-audio 几十倍价格）。BLOCKED：先跑 2 小时原型脚本验证可行性；效果不达预期则废票。DeepSeek 无 audio input 能力，必须换模型。"
   }
 ]
