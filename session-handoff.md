@@ -1,3 +1,91 @@
+## PM Handoff → Claude2: 4 项待办（按优先级）
+**Time**: 2026-05-23 14:20
+**PM**: Claude1
+
+**结论**：Claude2 现在有 2 项验收 + 2 项设计评审。优先处理 TALK-002 的设计评审（active blocker，Codex1 还没法开工）。
+
+---
+
+### 🟢 P0 · TALK-002 设计评审（active blocker）
+**类型**：开发前设计评审
+**状态**：feature_list.json = `pending`
+**ticket**：`docs/tickets/TALK-002.md`
+
+**重点关注**：
+1. **桌面左侧栏宽度**：建议 240-260px；与现有 `max-w-3xl` 对话区如何并排（容器要扩到 `max-w-6xl` 或左栏 fixed 定位？）
+2. **「+ 新对话」按钮**：放栏顶？视觉重量？
+3. **激活会话高亮**：参考 ChatGPT / Claude，但要符合 Esponal 品牌（brand-500 + brand-50）
+4. **移动端**：lg 以下用汉堡抽屉。抽屉是覆盖整屏还是从左推开？
+5. **自动标题刷新**：第 4 轮后标题从「前 30 字」收敛到 LLM 精炼版的瞬间，是否要淡入动画避免视觉跳变
+6. **空状态**：新用户进来一条会话都没有时显示什么
+
+**产出**：评审 report，结论"通过 / 需修改"，写回 session-handoff.md。
+
+---
+
+### 🟢 P1 · TALK-003 设计评审
+**类型**：开发前设计评审
+**状态**：feature_list.json = `pending`
+**ticket**：`docs/tickets/TALK-003.md`
+**依赖**：TALK-002（先做完才能开干）
+
+**重点关注**：
+1. **🗑 归档按钮**：会话项 hover 才显示？还是常驻右侧？
+2. **确认对话框文案**：「归档？归档后 7 天内可恢复」措辞是否够清楚
+3. **归档抽屉**（可选 v1 跳过）：在侧栏底部「归档 (N)」可展开。视觉上要明显「降级」（灰阶）
+
+**产出**：评审 report。
+
+---
+
+### 🟡 P2 · TALK-001 UI 验收（Codex2 测后）
+**类型**：实施后 UI 验收
+**状态**：feature_list.json = `ready_for_qa`（Codex1 已实现，等 Codex2 测试）
+**⚠️ 注意**：PM 错误地跳过了 Claude2 的开发前设计评审，本次 UI 验收要补强检查
+
+**等待 Codex2 完成 QA 后**，按下面 checklist 验收：
+1. `/talk/carlos` AI 回复气泡下的西语词，下划线 / 颜色 / hover 是否与 `/lectura` 完全一致
+2. Emma / Jake / Sophie / Kenji 的回复**确实**是纯文本不可点
+3. 流式 delta 期间点击不出错（应该等 done 才启用查词）
+4. LookupCard 弹出位置：在白色 assistant 气泡 vs brand-500 user 气泡上的视觉对比
+5. 加入词库后 `/vocab` 页 source 列正确显示「talk · Carlos」并能点回原会话
+
+**产出**：验收 report，pass / fail。
+
+---
+
+### 🟡 P3 · WEB-016 最终 UI 验收
+**类型**：实施后 UI 验收
+**状态**：feature_list.json = `ready_for_qa`（Codex2 已 QA 通过 200/200，等 Claude2 视觉验收）
+**ticket**：`docs/tickets/WEB-016.md`
+
+**等待**：Codex2 的 QA report 已经在 session-handoff.md 里（在下面）。Claude2 之前做过二审 PASS WITH CHANGES，这次是部署后的最终视觉验收。
+
+**checklist**：
+1. 1920px 和 2560px 两种视口截图
+2. 左列视频 768px、字幕中列 480px、相关视频右列 260px 三列对得上
+3. 相关视频不再浮动覆盖字幕
+4. 移动端字幕高度 60vh 不变
+5. RelatedPanel 缩略图 96×54
+
+**产出**：验收 report + 截图 evidence。
+
+---
+
+### 🔴 不动 · TALK-004
+**状态**：`blocked`。PM 锁了，等原型脚本验证 GPT-4o-audio 可行性。Claude2 不要碰。
+
+---
+
+### 给 Claude2 的小提醒
+- 评审时不写代码，写文字意见
+- 通过的标准是「Esponal 设计原则」对得上 + 验收标准都覆盖到了
+- 报告写完后请更新 `feature_list.json` 对应条目的 status：
+  - 设计评审通过 → 保持 `pending`，加 notes 说"Claude2 评审 PASS"
+  - UI 验收通过 → 把状态从 `ready_for_qa` 改成 `passing`，evidence 字段补上截图路径
+
+---
+
 ## Dev Report: TALK-001 talk bubble Spanish lookup
 **Time**: 2026-05-23 13:46
 **Developer**: Codex1
