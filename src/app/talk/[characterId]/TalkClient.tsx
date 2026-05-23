@@ -127,7 +127,7 @@ export function TalkClient({
     return () => {
       recognitionRef.current?.abort();
       const recorder = mediaRecorderRef.current;
-      if (recorder?.state !== "inactive") {
+      if (recorder && recorder.state !== "inactive") {
         recorder.onstop = null;
         recorder.stop();
       }

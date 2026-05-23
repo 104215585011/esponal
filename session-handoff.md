@@ -1,3 +1,21 @@
+## Dev Fix Report: TALK-006 build blocker
+**Time**: 2026-05-24 02:04
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 re-QA. `TALK-006` remains `ready_for_qa`.
+
+**Fix**:
+- Updated `src/app/talk/[characterId]/TalkClient.tsx` cleanup narrowing from `recorder?.state !== "inactive"` to `recorder && recorder.state !== "inactive"`, closing Codex2's build blocker.
+
+**Verification executed**:
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain.
+- `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`: pass, `tests 20`, `pass 20`, `fail 0`.
+
+**Handoff**:
+- Codex2 should re-run focused TALK-006, the talk regression slice, `npm test`, and `npm run build`.
+- Live Whisper tunnel smoke still requires PM local `whisper_service.py`, `cloudflared`, and current `WHISPER_TUNNEL_URL`.
+- No push performed.
+
 ## QA Report: TALK-006 Whisper tunnel recognition
 **Time**: 2026-05-24 02:02
 **Tester**: Codex2

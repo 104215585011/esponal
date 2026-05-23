@@ -2807,6 +2807,19 @@ feature_list.json 更新：
 **Notes**:
 - PM production E2E evidence from b0e5c28 was accepted: non-target en/ar timedtext did not ingest; matching Spanish timedtext ingested with `cueCount:808`; polluted cache was overwritten with Spanish cues.
 - No push performed.
+### Session #TALK-006 Build Fix - 2026-05-24
+
+**Goal**: Close Codex2's build blocker after TALK-006 QA.
+
+**Completed**:
+- Fixed the cleanup effect type narrowing in `TalkClient` by checking `recorder && recorder.state !== "inactive"` before mutating/stopping the recorder.
+
+**Verification**:
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
+- `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`: 20/20 pass.
+
+**Status**: `TALK-006` remains `ready_for_qa`; handoff returned to Codex2 for re-QA.
+
 ### Session #TALK-006 Implementation - 2026-05-24
 
 **Goal**: Route talk speech recognition through the PM local Whisper tunnel while keeping Web Speech API as fallback.
