@@ -2807,6 +2807,28 @@ feature_list.json 更新：
 **Notes**:
 - PM production E2E evidence from b0e5c28 was accepted: non-target en/ar timedtext did not ingest; matching Spanish timedtext ingested with `cueCount:808`; polluted cache was overwritten with Spanish cues.
 - No push performed.
+### Session #TALK-006 Implementation - 2026-05-24
+
+**Goal**: Route talk speech recognition through the PM local Whisper tunnel while keeping Web Speech API as fallback.
+
+**Completed**:
+- Added `src/lib/talk/whisper-client.ts` for `WHISPER_TUNNEL_URL/transcribe`, 20s timeout, suffix normalization, optional segments, and fail-open unavailable results.
+- Updated `POST /api/talk/recognize` to use Whisper tunnel instead of Fish Audio ASR.
+- Removed the Fish Audio ASR function from `src/lib/talk/speech.ts`; Fish Audio remains for TTS only.
+- Reworked `TalkClient` microphone flow to use MediaRecorder -> `/api/talk/recognize` as the primary path.
+- Kept Web Speech API as fallback when MediaRecorder is unavailable, mic startup fails, Whisper is unavailable, or recognize fails.
+- Added `docs/talk-whisper-tunnel.md`, `.env.example` entry, and `tests/talk006.test.mjs`.
+
+**Verification**:
+- Red check: `node --test tests\talk006.test.mjs` failed 3/3 before fix.
+- `node --test tests\talk006.test.mjs`: 3/3 pass.
+- `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`: 20/20 pass.
+- `npm test`: 216/216 pass.
+- `npm run lint:encoding`: pass.
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
+
+**Status**: `TALK-006` is `ready_for_qa`; handoff returned to Codex2.
+
 ### Session #TALK-005 Fix - 2026-05-24
 
 **Goal**: Fix the LookupCard clipping bug on talk pages after the sidebar layout change.

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
-import { recognizeSpeech } from "@/lib/talk/speech";
+import { transcribeViaWhisperTunnel } from "@/lib/talk/whisper-client";
 
 type Body = {
   audioBase64?: unknown;
@@ -30,11 +30,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "empty_audio" }, { status: 400 });
   }
 
-  const result = await recognizeSpeech({ audioBase64, language, mimeType });
+  const result = await transcribeViaWhisperTunnel({ audioBase64, language, mimeType });
 
   return NextResponse.json({
     transcript: result.transcript,
     language: result.language,
-    provider: result.provider
+    provider: result.provider,
+    segments: result.segments
   });
 }

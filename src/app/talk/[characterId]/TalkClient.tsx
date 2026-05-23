@@ -33,6 +33,13 @@ type HistoryResponse = {
   }>;
 };
 
+type RecognizeResponse = {
+  language?: string;
+  provider?: "whisper" | "unavailable";
+  segments?: Array<{ start?: number; end?: number; text?: string; avg_logprob?: number }>;
+  transcript?: string;
+};
+
 // 浏览器原生 SpeechRecognition 类型（不在默认 TS lib 里，简化声明）
 type SpeechRecognitionEventLike = {
   resultIndex: number;
@@ -85,6 +92,8 @@ export function TalkClient({
   const [streaming, setStreaming] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [recording, setRecording] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [playbackRate] = usePlaybackRate();
@@ -92,6 +101,10 @@ export function TalkClient({
   const listRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
   const messagesRef = useRef<Message[]>([]);
   // 记录会话开始时输入框已有的文本，识别到的内容追加在后面
   const baseInputRef = useRef<string>("");
@@ -109,6 +122,19 @@ export function TalkClient({
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = playbackRate;
   }, [playbackRate]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort();
+      const recorder = mediaRecorderRef.current;
+      if (recorder?.state !== "inactive") {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      if (recordingTimerRef.current) window.clearInterval(recordingTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const selectedSessionId = searchParams.get("session");
@@ -314,9 +340,97 @@ export function TalkClient({
     }
   }
 
-  function startRecording() {
+  function appendTranscript(text: string) {
+    const transcript = text.trim();
+    if (!transcript) return;
+    const base = baseInputRef.current.trim();
+    const next = base ? `${base} ${transcript}` : transcript;
+    baseInputRef.current = next;
+    setInput(next);
+  }
+
+  function startRecordingTimer() {
+    setRecordingSeconds(0);
+    if (recordingTimerRef.current) window.clearInterval(recordingTimerRef.current);
+    recordingTimerRef.current = window.setInterval(() => {
+      setRecordingSeconds((value) => value + 1);
+    }, 1000);
+  }
+
+  function stopRecordingTimer() {
+    if (recordingTimerRef.current) {
+      window.clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+  }
+
+  function cleanupMediaRecorder() {
+    mediaRecorderRef.current = null;
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    mediaStreamRef.current = null;
+    audioChunksRef.current = [];
+    stopRecordingTimer();
+  }
+
+  function getPreferredRecordingMimeType() {
+    if (typeof MediaRecorder === "undefined") return "";
+    if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
+    if (MediaRecorder.isTypeSupported("audio/webm")) return "audio/webm";
+    if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
+    return "";
+  }
+
+  function blobToBase64(blob: Blob) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === "string" ? reader.result : "";
+        resolve(result.split(",")[1] ?? "");
+      };
+      reader.onerror = () => reject(reader.error ?? new Error("read audio failed"));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function transcribeRecordedAudio(blob: Blob) {
+    setRecognizing(true);
+    setStatusMessage("识别中...");
+    try {
+      const audioBase64 = await blobToBase64(blob);
+      if (!audioBase64) {
+        setStatusMessage("没有录到声音，再试一次");
+        return;
+      }
+
+      const response = await fetch("/api/talk/recognize", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          audioBase64,
+          language: locale,
+          mimeType: blob.type || "audio/webm"
+        })
+      });
+      const payload = (await response.json().catch(() => ({}))) as RecognizeResponse;
+
+      if (!response.ok || payload.provider === "unavailable") {
+        setStatusMessage("Whisper 暂不可用，已切换到浏览器语音识别，请再说一次");
+        startSpeechRecognitionFallback();
+        return;
+      }
+
+      appendTranscript(payload.transcript ?? "");
+      setStatusMessage(null);
+    } catch {
+      setStatusMessage("Whisper 暂不可用，已切换到浏览器语音识别，请再说一次");
+      startSpeechRecognitionFallback();
+    } finally {
+      setRecognizing(false);
+    }
+  }
+
+  function startSpeechRecognitionFallback() {
     if (recording) return;
-    setStatusMessage(null);
 
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
@@ -332,7 +446,6 @@ export function TalkClient({
       baseInputRef.current = input;
 
       recognition.onresult = (event) => {
-        // 把这一轮所有结果拼起来：final 的追加进 baseInputRef，interim 的实时显示
         let finalChunk = "";
         let interimChunk = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -345,9 +458,7 @@ export function TalkClient({
           }
         }
         if (finalChunk) {
-          const base = baseInputRef.current;
-          baseInputRef.current = base ? `${base} ${finalChunk.trim()}` : finalChunk.trim();
-          setInput(baseInputRef.current);
+          appendTranscript(finalChunk);
           setInterimTranscript("");
         } else {
           setInterimTranscript(interimChunk);
@@ -371,6 +482,7 @@ export function TalkClient({
 
       recognition.onend = () => {
         setRecording(false);
+        stopRecordingTimer();
         setInterimTranscript("");
         recognitionRef.current = null;
       };
@@ -378,15 +490,73 @@ export function TalkClient({
       recognitionRef.current = recognition;
       recognition.start();
       setRecording(true);
+      startRecordingTimer();
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "无法启动识别");
     }
   }
 
+  async function startRecording() {
+    if (recording || recognizing) return;
+    setStatusMessage(null);
+    setInterimTranscript("");
+    baseInputRef.current = input;
+
+    if (
+      typeof MediaRecorder === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
+      startSpeechRecognitionFallback();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = getPreferredRecordingMimeType();
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+
+      audioChunksRef.current = [];
+      mediaStreamRef.current = stream;
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onerror = () => {
+        cleanupMediaRecorder();
+        setRecording(false);
+        setStatusMessage("录音失败，已切换到浏览器语音识别");
+        startSpeechRecognitionFallback();
+      };
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || mimeType || "audio/webm"
+        });
+        cleanupMediaRecorder();
+        setRecording(false);
+        void transcribeRecordedAudio(audioBlob);
+      };
+
+      recorder.start();
+      setRecording(true);
+      startRecordingTimer();
+    } catch (err) {
+      cleanupMediaRecorder();
+      const message = err instanceof Error ? err.message : "无法启动录音";
+      setStatusMessage(message);
+      startSpeechRecognitionFallback();
+    }
+  }
+
   function stopRecording() {
     if (!recording) return;
+    if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state !== "inactive") mediaRecorderRef.current.stop();
+      return;
+    }
     recognitionRef.current?.stop();
-    // onend 会清掉 ref + recording
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -404,7 +574,7 @@ export function TalkClient({
       >
         {messages.length === 0 ? (
           <div className="rounded-surface border border-dashed border-gray-200 bg-white/50 p-6 text-center text-sm text-gray-500">
-            <p>开始一段对话吧。你可以打字，也可以点麦克风按钮说话（边说边出字）。</p>
+            <p>开始一段对话吧。你可以打字，也可以点麦克风按钮说话。</p>
             <p className="mt-2 text-[12px] text-gray-400">
               {characterName} 会用对应语言回复你，并自动朗读出来。
             </p>
@@ -502,14 +672,17 @@ export function TalkClient({
         {recording ? (
           <p className="mb-2 text-[12px] text-brand-600">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500 align-middle" />
-            {" "}正在听...{" "}
-            <span className="italic text-gray-500">{interimTranscript || "（说话试试）"}</span>
+            {" "}正在录音 {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}{" "}
+            <span className="italic text-gray-500">{interimTranscript}</span>
           </p>
+        ) : null}
+        {recognizing ? (
+          <p className="mb-2 text-[12px] text-brand-600">识别中...</p>
         ) : null}
         <div className="flex items-end gap-2">
           <textarea
             className="min-h-[48px] max-h-32 flex-1 resize-none rounded-card border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-            disabled={streaming}
+            disabled={streaming || recognizing}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
@@ -529,8 +702,8 @@ export function TalkClient({
                 ? "border-red-400 bg-red-50 text-red-600 animate-pulse"
                 : "border-gray-200 bg-white text-gray-500 hover:border-brand-400 hover:text-brand-600"
             }`}
-            disabled={streaming}
-            onClick={recording ? stopRecording : startRecording}
+            disabled={streaming || recognizing}
+            onClick={recording ? stopRecording : () => void startRecording()}
             type="button"
           >
             {recording ? "■" : "🎤"}
@@ -539,7 +712,7 @@ export function TalkClient({
           <button
             aria-label="发送"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-300"
-            disabled={!input.trim() || streaming}
+            disabled={!input.trim() || streaming || recognizing}
             type="submit"
           >
             ➤

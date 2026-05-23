@@ -1,5 +1,4 @@
-// Fish Audio TTS (synthesize) + ASR (recognize)
-// 改自 talks/src/lib/speech/speech-service.ts；Azure 备份链路移除（用户没设 Azure），保留 Fish Audio + 静默 fallback
+// Fish Audio TTS. ASR now lives in whisper-client.ts.
 
 import { isConfiguredSecret } from "./env";
 
@@ -19,18 +18,6 @@ type SynthesizeResult = {
   contentType: string;
   provider: "fish-audio" | "local";
   stream: ReadableStream<Uint8Array>;
-};
-
-type RecognizeInput = {
-  audioBase64: string;
-  language: string;
-  mimeType: string;
-};
-
-type RecognizeResult = {
-  language: string;
-  provider: "fish-audio" | "local";
-  transcript: string;
 };
 
 const CHARACTER_VOICE_CONFIG: Record<string, Omit<VoiceConfig, "voiceId"> & { envKey: string }> = {
@@ -112,34 +99,4 @@ export async function synthesizeSpeech(input: SynthesizeInput): Promise<Synthesi
   }
 
   return fallbackAudio();
-}
-
-export async function recognizeSpeech(input: RecognizeInput): Promise<RecognizeResult> {
-  const apiKey = process.env.FISH_AUDIO_API_KEY;
-  if (!isConfiguredSecret(apiKey)) {
-    return { language: input.language, provider: "local", transcript: "" };
-  }
-
-  const audioBytes = Uint8Array.from(Buffer.from(input.audioBase64, "base64"));
-  const formData = new FormData();
-  formData.append("audio", new Blob([audioBytes], { type: input.mimeType }), "speech.webm");
-  formData.append("language", input.language.split("-")[0] ?? input.language);
-  formData.append("ignore_timestamps", "true");
-
-  const response = await fetch("https://api.fish.audio/v1/asr", {
-    method: "POST",
-    headers: { authorization: `Bearer ${apiKey}` },
-    body: formData
-  });
-
-  if (response.ok) {
-    const payload = (await response.json()) as { text?: string };
-    return {
-      language: input.language,
-      provider: "fish-audio",
-      transcript: payload.text ?? ""
-    };
-  }
-
-  return { language: input.language, provider: "local", transcript: "" };
 }

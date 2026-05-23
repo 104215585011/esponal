@@ -961,7 +961,7 @@
     "area": "talk",
     "title": "语音识别接入本机 Whisper Large v3 Turbo (via Cloudflare Tunnel)",
     "user_visible_behavior": "/talk/[characterId] 麦克风录音后调用 PM 本机 Whisper 服务（公网经 Cloudflare Tunnel 暴露），返回西语转写填入输入框。Whisper 不可达时自动降级到浏览器 Web Speech API，不卡死。Fish Audio ASR 旧链路废弃。",
-    "status": "pending",
+    "status": "ready_for_qa",
     "verification": [
       "WHISPER_TUNNEL_URL env 已加（本地 + Vercel）",
       "新增 src/lib/talk/whisper-client.ts 含 20s 超时 + 错误归一化",
@@ -972,7 +972,7 @@
       "新增 docs/talk-whisper-tunnel.md 说明 PM 个人启动步骤",
       "npm test 通过（含 env 缺 / 超时 / 200 三个新用例）"
     ],
-    "evidence": "",
+    "evidence": "2026-05-24 01:58 Codex1: /api/talk/recognize now forwards to WHISPER_TUNNEL_URL/transcribe via src/lib/talk/whisper-client.ts with 20s timeout and fail-open provider=unavailable; TalkClient uses MediaRecorder -> recognize as primary path and Web Speech API only as fallback; docs/talk-whisper-tunnel.md and .env.example updated. Red test node --test tests\\talk006.test.mjs failed 3/3 before implementation; focused 3/3 pass; talk regression slice 20/20 pass; npm test 216/216 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings.",
     "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。"
   }
 ]

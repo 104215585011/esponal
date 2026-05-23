@@ -56,6 +56,58 @@
 - Ready for Claude2 UI acceptance.
 - No push performed.
 
+## Dev Report: TALK-006 Whisper tunnel recognition
+**Time**: 2026-05-24 01:58
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `TALK-006` is `ready_for_qa`.
+
+**Changed files**:
+- src/lib/talk/whisper-client.ts
+- src/app/api/talk/recognize/route.ts
+- src/lib/talk/speech.ts
+- src/app/talk/[characterId]/TalkClient.tsx
+- tests/talk006.test.mjs
+- docs/talk-whisper-tunnel.md
+- .env.example
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Replaced Fish Audio ASR with `transcribeViaWhisperTunnel`, posting `{ audio_base64, language, suffix }` to `WHISPER_TUNNEL_URL/transcribe`.
+- Whisper client has a 20s timeout and fails open as `{ transcript: "", provider: "unavailable" }`.
+- `/api/talk/recognize` keeps auth and empty-audio validation, then returns `transcript`, `language`, `provider`, and optional `segments`.
+- Talk page microphone flow now uses MediaRecorder as the primary click-to-toggle path, sends recorded audio to `/api/talk/recognize`, and fills the input with the returned transcript.
+- Web Speech API remains only as fallback when MediaRecorder is unavailable, permissions fail, or Whisper returns unavailable/fails.
+- Added recording seconds and a separate recognizing state. This does not implement TALK-004 press-and-hold or audio bubbles.
+- Added operator docs for the temporary Cloudflare Tunnel and `.env.example` entry.
+
+**Verification executed**:
+1. Red check
+   Command: `node --test tests\talk006.test.mjs`
+   Result before fix: fail 3/3
+2. Focused TALK-006
+   Command: `node --test tests\talk006.test.mjs`
+   Result: pass, `tests 3`, `pass 3`, `fail 0`
+3. Talk regression slice
+   Command: `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`
+   Result: pass, `tests 20`, `pass 20`, `fail 0`
+4. Full suite
+   Command: `npm test`
+   Result: pass, `tests 216`, `pass 216`, `fail 0`
+5. Encoding
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+6. Production build
+   Command: `npm run build`
+   Result: pass; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain
+
+**Handoff**:
+- Codex2 should verify the source contract, run the focused TALK-006 test, talk regression slice, `npm test`, and build.
+- Manual live Whisper check still depends on PM's local `whisper_service.py`, `cloudflared`, and Vercel/local `WHISPER_TUNNEL_URL`.
+- No push performed.
+
 ## Dev Report: TALK-005 lookup popover clamp
 **Time**: 2026-05-24 01:46
 **Developer**: Codex1
