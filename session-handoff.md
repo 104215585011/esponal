@@ -1,3 +1,47 @@
+## Dev Report: TALK-005 lookup popover clamp
+**Time**: 2026-05-24 01:46
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `TALK-005` is `ready_for_qa`.
+
+**Changed files**:
+- src/app/components/vocab/SpanishText.tsx
+- tests/talk005.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added a source-aware lookup anchor clamp for `SpanishText` popovers.
+- On talk desktop (`source.type === "talk"` and `window.innerWidth >= 1024`), the clamp keeps the card clear of the 260px sidebar with an 8px pad.
+- On non-talk pages and mobile widths, the lower bound stays the normal 8px viewport pad.
+- Kept the existing `LookupCard` visual width/classes intact; the wrapper shifts the existing centered card instead of redesigning it.
+- Added `tests/talk005.test.mjs` to lock the sidebar/viewport clamp contract and non-talk behavior.
+
+**Verification executed**:
+1. Red check
+   Command: `node --test tests\talk005.test.mjs`
+   Result before fix: fail 2/2
+2. Focused TALK-005
+   Command: `node --test tests\talk005.test.mjs`
+   Result: pass, `tests 2`, `pass 2`, `fail 0`
+3. Talk/vocab/read regression slice
+   Command: `node --test tests\talk005.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab008.test.mjs tests\read001.test.mjs`
+   Result: pass, `tests 25`, `pass 25`, `fail 0`
+4. Full suite
+   Command: `npm test`
+   Result: pass, `tests 213`, `pass 213`, `fail 0`
+5. Encoding
+   Command: `npm run lint:encoding`
+   Result: pass, `Encoding check passed`
+6. Production build
+   Command: `npm run build`
+   Result: pass; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain
+
+**Handoff**:
+- Codex2 should re-run the focused TALK-005 test, the talk/vocab/read regression slice, `npm test`, and build if desired.
+- No push performed.
+
 ## QA Report: TALK-002 cross-character scope fix
 **Time**: 2026-05-24 01:24
 **Tester**: Codex2

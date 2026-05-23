@@ -943,7 +943,7 @@
     "area": "talk",
     "title": "LookupCard 在 talk 页面左边被裁剪 bug 修复",
     "user_visible_behavior": "在 /talk/[characterId] 点击 AI 气泡里的西语词，LookupCard 完整显示在视口内（不被左侧 sidebar 遮挡、不被 viewport 左/右边裁剪）。/lectura 的查词功能不回归。",
-    "status": "pending",
+    "status": "ready_for_qa",
     "verification": [
       "/talk/carlos 点最左边的词，卡片左边距 viewport ≥ 8px",
       "/talk/carlos 点最右边的词，卡片右边距 viewport ≥ 8px",
@@ -952,7 +952,7 @@
       "移动端（< lg）正常",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "2026-05-24 01:46 Codex1: implemented source-aware LookupCard anchor clamp in SpanishText for talk desktop sidebar (minLeft=260+8), viewport edges, and non-talk 8px lower bound. Red test node --test tests\\talk005.test.mjs failed before fix; focused 2/2 pass; regression slice node --test tests\\talk005.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab008.test.mjs tests\\read001.test.mjs 25/25 pass; npm test 213/213 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings.",
     "notes": "Ticket: docs/tickets/TALK-005.md。优先级 P1，预估 2-4 小时。原因：TALK-002 重构 page.tsx 整页 flex + 260px sidebar 后，LookupCard 的 left 计算只夹了 max（防右溢出）没夹 min（防左溢出 + 避开 sidebar）。PM 截图复现 2026-05-23。"
   },
   {

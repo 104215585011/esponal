@@ -2784,3 +2784,22 @@ feature_list.json 更新：
 **Notes**:
 - PM production E2E evidence from b0e5c28 was accepted: non-target en/ar timedtext did not ingest; matching Spanish timedtext ingested with `cueCount:808`; polluted cache was overwritten with Spanish cues.
 - No push performed.
+### Session #TALK-005 Fix - 2026-05-24
+
+**Goal**: Fix the LookupCard clipping bug on talk pages after the sidebar layout change.
+
+**Completed**:
+- Added a source-aware anchor clamp in `SpanishText` for lookup popovers.
+- Talk desktop now clamps popovers to `260px sidebar + 8px` on the left and `viewport - 320px - 8px` on the right.
+- Non-talk and mobile lookup behavior keeps the normal 8px viewport lower bound.
+- Added `tests/talk005.test.mjs` for the talk clamp and non-talk regression contract.
+
+**Verification**:
+- Red check: `node --test tests\talk005.test.mjs` failed 2/2 before fix.
+- `node --test tests\talk005.test.mjs`: 2/2 pass.
+- `node --test tests\talk005.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab008.test.mjs tests\read001.test.mjs`: 25/25 pass.
+- `npm test`: 213/213 pass.
+- `npm run lint:encoding`: pass.
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
+
+**Status**: `TALK-005` is `ready_for_qa`; handoff returned to Codex2.

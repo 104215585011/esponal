@@ -16,9 +16,13 @@ type SpanishTextProps = {
 type ActiveWord = {
   form: string;
   index: number;
+  anchorX: number;
 };
 
 const wordPattern = /([\p{L}áéíóúüñÁÉÍÓÚÜÑ]+)/gu;
+const SIDEBAR_W_LG = 260;
+const LOOKUP_CARD_W = 320;
+const LOOKUP_PADDING = 8;
 let savedFormsPromise: Promise<Set<string>> | null = null;
 
 // TODO: Replace opt-in per-word tab stops with roving tabindex when long-form keyboard lookup is needed.
@@ -99,6 +103,17 @@ function getWordClassName({
     .join(" ");
 }
 
+function getLookupAnchorOffset(anchorX: number, source?: LookupSource) {
+  if (typeof window === "undefined") return 0;
+
+  const isTalkDesktop = source?.type === "talk" && window.innerWidth >= 1024;
+  const minLeft = isTalkDesktop ? SIDEBAR_W_LG + LOOKUP_PADDING : LOOKUP_PADDING;
+  const maxLeft = Math.max(minLeft, window.innerWidth - LOOKUP_CARD_W - LOOKUP_PADDING);
+  const clampedLeft = Math.max(minLeft, Math.min(anchorX, maxLeft));
+
+  return clampedLeft - anchorX + LOOKUP_CARD_W / 2;
+}
+
 export function SpanishText({
   text,
   translation = "",
@@ -170,21 +185,29 @@ export function SpanishText({
           >
             <button
               className={getWordClassName({ isSaved, interactionDensity, wordClassName })}
-              onClick={() => setActiveWord(isActive ? null : { form: part.text, index })}
+              onClick={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                setActiveWord(isActive ? null : { form: part.text, index, anchorX: rect.left });
+              }}
               tabIndex={enableKeyboard ? 0 : -1}
               type="button"
             >
               {part.text}
             </button>
             {isActive ? (
-              <LookupCard
-                form={activeWord.form}
-                onClose={() => setActiveWord(null)}
-                onSaved={handleSaved}
-                originalSentence={text}
-                translatedSentence={translation}
-                source={source}
-              />
+              <span
+                className="absolute top-full"
+                style={{ left: getLookupAnchorOffset(activeWord.anchorX, source) }}
+              >
+                <LookupCard
+                  form={activeWord.form}
+                  onClose={() => setActiveWord(null)}
+                  onSaved={handleSaved}
+                  originalSentence={text}
+                  translatedSentence={translation}
+                  source={source}
+                />
+              </span>
             ) : null}
           </span>
         );
