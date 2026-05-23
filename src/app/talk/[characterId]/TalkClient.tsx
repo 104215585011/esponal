@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SpanishText } from "@/app/components/vocab/SpanishText";
 import { usePlaybackRate } from "@/lib/playback-rate";
 import { parseSseChunk } from "@/lib/talk/sse";
 
@@ -45,6 +46,15 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
     webkitSpeechRecognition?: SpeechRecognitionCtor;
   };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+function isSpanishLookupCharacter(characterId: string, locale: string) {
+  const normalizedLocale = locale.trim().toLowerCase();
+  return (
+    characterId === "carlos" ||
+    characterId.startsWith("es-") ||
+    normalizedLocale.startsWith("spanish")
+  );
 }
 
 export function TalkClient({ characterId, characterName, locale }: TalkClientProps) {
@@ -306,6 +316,13 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
         ) : (
           messages.map((message, index) => {
             const isUser = message.role === "user";
+            const isAssistantStreaming = streaming && index === messages.length - 1 && !isUser;
+            const canLookupAssistantMessage =
+              message.role === "assistant" &&
+              !isUser &&
+              !isAssistantStreaming &&
+              Boolean(message.content) &&
+              isSpanishLookupCharacter(characterId, locale);
             return (
               <div
                 className={`flex ${isUser ? "justify-end" : "justify-start"}`}
@@ -320,7 +337,20 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
                   }`}
                 >
                   <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                    {message.content || (
+                    {canLookupAssistantMessage ? (
+                      <SpanishText
+                        text={message.content}
+                        translation=""
+                        source={{
+                          type: "talk",
+                          url: `/talk/${characterId}?session=${sessionId ?? ""}#m${index}`,
+                          characterId,
+                          sessionId: sessionId ?? "",
+                          messageIndex: index,
+                          sentence: message.content
+                        }}
+                      />
+                    ) : message.content || (
                       <span className="text-gray-400">…</span>
                     )}
                   </p>

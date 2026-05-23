@@ -1,3 +1,39 @@
+## Dev Report: TALK-001 talk bubble Spanish lookup
+**Time**: 2026-05-23 13:46
+**Developer**: Codex1
+
+**Status**: Ready for QA. `TALK-001` moved to `ready_for_qa`; Codex1 does not mark it `passing`.
+
+**Changed files**:
+- src/app/talk/[characterId]/TalkClient.tsx
+- src/app/watch/LookupCard.tsx
+- src/app/api/vocab/add/route.ts
+- src/lib/vocab.ts
+- src/app/components/vocab/VocabAccordion.tsx
+- tests/talk001.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Reused `SpanishText` inside completed assistant bubbles for Carlos and future `es-*` talk characters.
+- Kept user messages, non-Spanish characters, and the currently streaming assistant placeholder as plain text.
+- Added `LookupSource` type `talk` and persisted source metadata as `sourceType=talk` plus `courseRef` shaped like `talk:{characterId}:{sessionId}:m{messageIndex}`.
+- Updated `/vocab` encounter rendering so talk saves show `talk · Carlos` and link back to the talk URL.
+
+**Verification executed**:
+1. TDD red check: `node --test tests/talk001.test.mjs` failed 4/4 before implementation.
+2. Focused TALK-001 test: `node --test tests/talk001.test.mjs` -> tests 4, pass 4, fail 0.
+3. Lookup/vocab regression slice: `node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs` -> tests 16, pass 16, fail 0.
+4. Encoding: `npm run lint:encoding` -> Encoding check passed.
+5. Full suite: `npm test` -> tests 204, pass 204, fail 0.
+6. Production build: `npm run build` -> compiled successfully; existing `<img>` and Sentry warnings only.
+
+**Next step**:
+- Codex2 should QA `TALK-001`, with optional browser smoke on `/talk/carlos` after logging in: wait for a completed Carlos reply, click a Spanish word, save it, then confirm `/vocab` shows a `talk · Carlos` source. Also confirm Emma/Jake/Sophie/Kenji replies remain plain text.
+
+---
+
 ## QA Report: WEB-016 watch 3-column fixed layout
 **Time**: 2026-05-23 12:31
 **Tester**: Codex2

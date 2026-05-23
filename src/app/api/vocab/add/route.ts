@@ -57,7 +57,8 @@ export async function POST(request: Request) {
       body.sourceType === "course" ||
       body.sourceType === "lectura" ||
       body.sourceType === "dissect" ||
-      body.sourceType === "grammar"
+      body.sourceType === "grammar" ||
+      body.sourceType === "talk"
         ? body.sourceType
         : "video";
     const sourceUrl = typeof body.sourceUrl === "string" ? body.sourceUrl.trim() : "";

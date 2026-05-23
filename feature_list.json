@@ -866,7 +866,7 @@
     "area": "talk",
     "title": "对话气泡内的西语点击查词",
     "user_visible_behavior": "在 /talk/[characterId] 与 Carlos（或其他西语角色）对话时，AI 回复中的每个西语单词可点击，弹出 LookupCard 显示释义并可加入词库。WordEncounter 记录 source=talk + characterId + sessionId。非西语角色（Emma/Jake/Sophie/Kenji）的回复保持纯文本。",
-    "status": "pending",
+    "status": "ready_for_qa",
     "verification": [
       "/talk/carlos 收到 AI 回复后，每个西语词可点击高亮",
       "点击弹 LookupCard，能正确返回 lemma + 中文",
@@ -875,7 +875,7 @@
       "流式 delta 期间点击不出错（等 done 才启用）",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-23 13:46: implemented clickable Spanish lookup for completed Carlos/es-* assistant messages in /talk/[characterId]. User messages, non-Spanish characters, and the currently streaming assistant message remain plain text until done. Extended LookupSource, /api/vocab/add, and src/lib/vocab.ts to accept sourceType=talk with courseRef metadata shaped like talk:{characterId}:{sessionId}:m{messageIndex}; /vocab now displays talk encounters as talk · Carlos. Verification: TDD red node --test tests/talk001.test.mjs failed 4/4 before implementation; after implementation node --test tests/talk001.test.mjs -> 4/4 pass; node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 16/16 pass; npm run lint:encoding -> pass; npm test -> 204/204 pass; npm run build -> pass with existing <img>/Sentry warnings only.",
     "notes": "Ticket: docs/tickets/TALK-001.md。优先级 P2，预估 0.5-1 天。可复用 VOCAB-009 抽出的统一查词组件（如已有）。"
   },
   {

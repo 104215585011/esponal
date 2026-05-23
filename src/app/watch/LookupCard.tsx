@@ -33,6 +33,14 @@ export type LookupSource =
       url: string;
       topicSlug: string;
       sentence: string;
+    }
+  | {
+      type: "talk";
+      url: string;
+      characterId: string;
+      sessionId: string;
+      messageIndex: number;
+      sentence: string;
     };
 
 type LookupCardProps = {
@@ -233,7 +241,9 @@ export function LookupCard({
                   ? `grammar:${resolvedSource.topicSlug}`
                   : resolvedSource.type === "dissect"
                     ? "dissect"
-                    : null,
+                    : resolvedSource.type === "talk"
+                      ? `talk:${resolvedSource.characterId}:${resolvedSource.sessionId}:m${resolvedSource.messageIndex}`
+                      : null,
           originalSentence: sourceSentence,
           translatedSentence: translatedSentence || lookupState.translation
         })

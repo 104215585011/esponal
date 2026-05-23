@@ -62,6 +62,15 @@ const formatDividerDate = (dateValue: string) =>
 
 const getDateKey = (dateValue: string) => dateValue.slice(0, 10);
 
+const TALK_SOURCE_NAMES: Record<string, string> = {
+  carlos: "Carlos"
+};
+
+function getTalkSourceName(courseRef: string | null) {
+  const characterId = courseRef?.split(":")[1] ?? "";
+  return TALK_SOURCE_NAMES[characterId] ?? (characterId || "Talk");
+}
+
 export default function VocabAccordion({ words }: VocabAccordionProps) {
   const [openWordId, setOpenWordId] = useState<string | null>(null);
 
@@ -167,22 +176,30 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                   lastDateKey = dateKey;
                   const isCourse = encounter.sourceType === "course";
                   const isLectura = encounter.sourceType === "lectura";
-                  const isStatic = isCourse || isLectura;
+                  const isTalk = encounter.sourceType === "talk";
+                  const isStatic = isCourse || isLectura || isTalk;
+                  const talkName = getTalkSourceName(encounter.courseRef);
                   const badgeLabel = isCourse
                     ? "课程"
                     : isLectura
                       ? "阅读"
-                      : formatTimestamp(encounter.timestampSec);
+                      : isTalk
+                        ? "talk"
+                        : formatTimestamp(encounter.timestampSec);
                   const badgeClass = isCourse
                     ? "bg-brand-50 text-brand-600"
                     : isLectura
                       ? "bg-purple-50 text-purple-600"
-                      : "bg-gray-200 text-gray-500";
+                      : isTalk
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-gray-200 text-gray-500";
                   const titleLabel = isLectura
                     ? encounter.courseRef ?? "阅读出处"
                     : isCourse
                       ? encounter.courseRef ?? "课程出处"
-                      : encounter.videoTitle;
+                      : isTalk
+                        ? `talk · ${talkName}`
+                        : encounter.videoTitle;
                   const linkLabel = isStatic ? "查看" : "跳回视频";
 
                   return (

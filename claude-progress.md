@@ -27,6 +27,30 @@
 
 ## 会话记录
 
+### Session #TALK-001 - 2026-05-23
+
+**Goal**: Enable clickable Spanish lookup in completed Carlos/es-* assistant bubbles on `/talk/[characterId]`.
+
+**Completed**:
+- Added `SpanishText` rendering for completed assistant messages when the character is `carlos` or an `es-*` future Spanish character.
+- Kept user messages, non-Spanish characters, and the actively streaming assistant message as plain text.
+- Extended `LookupSource`, `/api/vocab/add`, and `src/lib/vocab.ts` to support `sourceType=talk`.
+- Saved talk metadata through `courseRef` shaped like `talk:{characterId}:{sessionId}:m{messageIndex}`.
+- Updated `/vocab` encounter display to show talk sources as `talk · Carlos`.
+- Added `tests/talk001.test.mjs`.
+- Moved `TALK-001` to `ready_for_qa`.
+
+**Verification**:
+- TDD red: `node --test tests/talk001.test.mjs` failed 4/4 before implementation.
+- `node --test tests/talk001.test.mjs`: 4/4 pass.
+- `node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`: 16/16 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 204/204 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Codex2 QA for TALK-001; useful live smoke is Carlos reply lookup/save plus non-Spanish character plain-text confirmation.
+
 ### QA Session #WEB-016 - 2026-05-23
 
 **Goal**: Codex2 QA for WEB-016 watch fixed 3-column layout.
