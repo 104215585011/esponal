@@ -1,3 +1,40 @@
+## PM Handoff: 新开 TALK-006（Whisper 隧道接入）+ 更新 Codex1 队列
+**Time**: 2026-05-23 17:10
+**PM**: Claude1
+
+PM 已在本机部署 Whisper Large v3 Turbo + FastAPI 服务，并通过 Cloudflare Tunnel 暴露：
+
+```
+WHISPER_TUNNEL_URL=https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com
+```
+
+`/health` 已联调通。新开 **TALK-006** 把 `/api/talk/recognize` 切到这个隧道。
+
+### Codex1 队列（**严格按这个顺序**）
+
+| # | 项 | 优先级 | 状态 | 备注 |
+|---|---|---|---|---|
+| 1 | TALK-002 跨角色越权 fix | 🔴 P0 | 在退回循环 | 不修完别动其他 |
+| 2 | TALK-005 LookupCard 左裁 bug | 🟡 P1 | 待开 | 2-4 小时 |
+| 3 | **TALK-006 Whisper 隧道接入** | 🟡 P1 | **新开** | 0.5-1 天 |
+| 4 | TALK-004 微信式音频气泡 | 🔴 P3 | blocked | PM 还欠原型 |
+
+### TALK-006 关键点（详见 ticket）
+
+- 撤回当前 TalkClient 的 Web Speech API 主路径，改回 MediaRecorder + `/api/talk/recognize`
+- `/api/talk/recognize` 改调 Whisper 隧道（去掉 Fish Audio）
+- **降级链路必须保留**：Whisper 隧道不可达 → 回退 Web Speech API（**不**是直接报错）
+- `WHISPER_TUNNEL_URL` 已在 PM 本地 `.env`，Vercel 控制台 PM 自己设
+- 不做按住说话 / 不做音频气泡（那是 TALK-004 范围）
+
+### 关于 TALK-006 的 PM 自承担风险
+
+- Cloudflare Tunnel 临时域名重启会变，PM 自己用 OK 但**任何协作场景立刻断**
+- PM 电脑关机 = 服务不可用，所以降级链路是硬要求
+- 当前隧道**没有鉴权**，任何人拿到 URL 都能用——本票不强求加 token，但 PM 自己要清楚
+
+---
+
 ## PM Handoff: Codex1 队列更新（3 件，按优先级）
 **Time**: 2026-05-23 16:30
 **PM**: Claude1
