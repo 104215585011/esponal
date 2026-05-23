@@ -1,3 +1,38 @@
+## PM Handoff: Codex1 队列更新（3 件，按优先级）
+**Time**: 2026-05-23 16:30
+**PM**: Claude1
+
+PM 在 Vercel 上亲自试了 `/talk/carlos`，发现两件事：
+1. **新 bug**：点 AI 气泡里的词，LookupCard 左边被裁——已开 TALK-005
+2. **TALK-004 UX 重新澄清**：用户想要"微信式语音消息气泡"——已更新 TALK-004 ticket + feature_list notes
+
+加上之前的 TALK-002 跨角色越权 fix，Codex1 现在的队列：
+
+### 🔴 P0 · TALK-002 跨角色越权修复（**优先做完这个**）
+仍在退回循环中。详见下方原 PM Handoff（2026-05-23 15:55）。
+**三处源码改动 + 一条 cross-character regression test**。不要跳过去做 TALK-005，先把 TALK-002 修干净。
+
+### 🟡 P1 · TALK-005 LookupCard 左裁 bug
+**ticket**：`docs/tickets/TALK-005.md`
+**核心动作**：`src/app/talk/[characterId]/TalkClient.tsx` 里的 `left` 计算改成：
+```ts
+const SIDEBAR_W_LG = 260;
+const CARD_W = 320;
+const PADDING = 8;
+const isLg = window.innerWidth >= 1024;
+const minLeft = isLg ? SIDEBAR_W_LG + PADDING : PADDING;
+const maxLeft = window.innerWidth - CARD_W - PADDING;
+const left = Math.max(minLeft, Math.min(activeLookup.anchorX, maxLeft));
+```
+**禁止**改 LookupCard 设计或卡片宽度。
+**回归点**：`/lectura` 没 sidebar，逻辑也别坏。
+
+### 🔴 P3 · TALK-004 仍 blocked
+**变更**：ticket 已重写，UX 现在明确是"微信式音频气泡"——按住说话、松开发送、气泡里只有🔊+时长不显示转写、AI 接原始 audio 给发音反馈。
+**仍 blocked**：Codex1 **不要开工**。PM 还没跑 GPT-4o-audio 可行性原型脚本。Codex1 不动它。
+
+---
+
 ## PM Handoff: TALK-002 退回 Codex1 修复（跨角色越权）
 **Time**: 2026-05-23 15:55
 **PM**: Claude1

@@ -935,6 +935,24 @@
       "npm test 通过"
     ],
     "evidence": "",
-    "notes": "Ticket: docs/tickets/TALK-004.md。优先级 P3，预估 3-5 天 + 运营成本（DeepSeek 几乎免费 → GPT-4o-audio 几十倍价格）。BLOCKED：先跑 2 小时原型脚本验证可行性；效果不达预期则废票。DeepSeek 无 audio input 能力，必须换模型。"
+    "notes": "Ticket: docs/tickets/TALK-004.md。优先级 P3，预估 3-5 天 + 运营成本（DeepSeek 几乎免费 → GPT-4o-audio 几十倍价格）。BLOCKED：先跑 2 小时原型脚本验证可行性；效果不达预期则废票。DeepSeek 无 audio input 能力，必须换模型。PM 二次澄清 2026-05-23：UX 走微信式音频气泡——按住说话、松开发送，气泡里只有🔊+时长不显示转写，AI 接原始 audio 并在回复里给发音反馈。ChatMessage 需 audioUrl 列 migration。"
+  },
+  {
+    "id": "TALK-005",
+    "priority": 53,
+    "area": "talk",
+    "title": "LookupCard 在 talk 页面左边被裁剪 bug 修复",
+    "user_visible_behavior": "在 /talk/[characterId] 点击 AI 气泡里的西语词，LookupCard 完整显示在视口内（不被左侧 sidebar 遮挡、不被 viewport 左/右边裁剪）。/lectura 的查词功能不回归。",
+    "status": "pending",
+    "verification": [
+      "/talk/carlos 点最左边的词，卡片左边距 viewport ≥ 8px",
+      "/talk/carlos 点最右边的词，卡片右边距 viewport ≥ 8px",
+      "卡片不被 lg+ 的 260px sidebar 覆盖",
+      "/lectura 点词行为不回归",
+      "移动端（< lg）正常",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/TALK-005.md。优先级 P1，预估 2-4 小时。原因：TALK-002 重构 page.tsx 整页 flex + 260px sidebar 后，LookupCard 的 left 计算只夹了 max（防右溢出）没夹 min（防左溢出 + 避开 sidebar）。PM 截图复现 2026-05-23。"
   }
 ]

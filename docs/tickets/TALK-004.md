@@ -8,22 +8,36 @@
 
 ## 背景
 
-PM 提出：
+PM 反复确认（2026-05-23 二次澄清）：
 
-> "我们其实最好输出给对面的是语音的话就不要转文字，这样子如果我的发音有问题它也可以帮我及时纠正。"
+> "我之前说的，我发的语音不需要转文字，发出像语音消息那样的就好，
+> 你知道微信聊天吗？做成那种逻辑就可以"
 
-当前流程：
-```
-用户说话 → 浏览器 STT 转文字 → 文字发给 DeepSeek → DeepSeek 不知道发音
-```
+### 完整 UX（微信式语音消息）
 
-理想流程：
+**用户侧**：
+- 按住麦克风按钮录音（"按住说话" 不是 "点击切换"）
+- 松开 → 消息以**音频气泡**形式发出，**不显示转写文本**
+- 气泡显示：🔊 0:03（时长） · 点击可重放
+- 可选：长按气泡 → "转为文字" 二级动作（参考微信）——v2 再做
+
+**AI 侧**：
+- 接收原始音频（不经过本地 STT）
+- 回复时同时输出两路：
+  1. 「发音观察」：「'r' 颤音不够，听起来像 'l'」一类即时反馈
+  2. 正常对话回复（文字 + TTS 语音，沿用现有 /api/talk/synthesize）
+
+### 当前架构与目标的 gap
+
 ```
-用户说话 → 录音直接发给「能听音」的模型 → 模型反馈发音 + 内容回复
+现在：录音 → 浏览器 Web Speech API STT → 文字 → DeepSeek → 文字回复 → Fish Audio TTS
+目标：录音 → audio Blob 直传 → 多模态模型 → 文字+发音反馈 → Fish Audio TTS
 ```
 
 **这是 Esponal 区别于 ChatGPT 的核心卖点**：
 对口语学习者，发音纠正比内容理解还重要。
+微信式音频气泡保留了"我说了什么"的完整证据（用户可重听自己刚才发音），
+这本身就是学习材料。
 
 ## 关键技术风险
 
@@ -47,17 +61,25 @@ GPT-4o Realtime 是它的 100-1000 倍。先评估付费意愿再启动。
 - **模型选型**：建议先做 **GPT-4o-audio-preview**（非实时，一问一答），
   风险可控、迁移最小。流式 Realtime 留到 v2。
 - **新 model-client**：`createAudioModelClient()` 接受 audio bytes + character prompt
-- **前端改造**：
-  - 移除"识别→文本→发送"链路
-  - 改为：录音 → POST audio Blob → 等模型返回 → 收文本回复 + 发音反馈
-  - 视觉：用户消息显示为「🎙 0:03 [waveform]」而非文本
+- **前端改造（微信式语音气泡）**：
+  - 麦克风按钮改为**按住录音、松开发送**（替换当前的点击切换）
+  - 录音时按钮变红 + 显示时长 0:01 / 0:02 ...（上限 60s）
+  - 松开后立即在消息流插入「user audio bubble」：🔊 0:03 + 点击播放
+  - **不显示转写**——音频本身就是消息
+  - 移除现有"识别→文本→发送"链路（浏览器 STT 留作 fallback）
+- **数据模型**：
+  - `ChatMessage` 新增 `audioUrl: String?` 列（migration）
+  - 上传音频到 Vercel Blob / R2 / Supabase Storage（具体选型放在实施阶段决定）
+  - 转写文本（如果模型返回了）存在 content 字段中加密
 - **system prompt 增强**：
   ```
   When the user sends audio, do TWO things in your reply:
   1. Note any pronunciation issues you heard, gently (one short line at the top).
   2. Continue the conversation naturally based on what they said.
+  Always reply in Spanish (Mexico) for Carlos.
   ```
-- **降级链路**：模型说听不清 / API 失败 → 自动 fallback 到 Web Speech API + DeepSeek
+- **降级链路**：模型说听不清 / API 失败 → 自动 fallback 到 Web Speech API STT + DeepSeek
+  - fallback 时仍显示音频气泡（用户体验一致），只是 AI 回复中可能不带发音反馈
 
 ### 不做（本 ticket 范围外）
 
@@ -67,12 +89,16 @@ GPT-4o Realtime 是它的 100-1000 倍。先评估付费意愿再启动。
 
 ## 验收
 
-- [ ] Carlos 角色启用音频模式开关（默认开）
-- [ ] 录音说"Hola Carlos"，AI 回复里包含「发音观察」一行 + 正常对话
+- [ ] Carlos 角色按住麦克风录音、松开发送（不再是点击切换）
+- [ ] 录音时按钮变红 + 实时显示时长 0:01 / 0:02 ...
+- [ ] 松开后消息流出现🔊 0:03 音频气泡，点击可重放自己的录音
+- [ ] AI 回复包含「发音观察」一行 + 正常对话回复
+- [ ] AI 回复气泡仍是 Fish Audio TTS 自动播放（沿用现有逻辑）
 - [ ] 故意说错（如错把 "ll" 发成 "l"），AI 能指出来
-- [ ] 失败时自动退回 STT + DeepSeek 链路，用户无感
+- [ ] 模型 / API 失败时自动退回 Web Speech STT + DeepSeek，用户看到的仍是音频气泡（无感降级）
+- [ ] 录音上限 60s，超过自动停止并发送
 - [ ] 单次请求 ≤ 30s 内返回（包括 audio upload）
-- [ ] DB 里用户消息存音频 URL（或 base64）+ 转写文本
+- [ ] DB 里 ChatMessage 新增 audioUrl 列；旧消息 audioUrl=null 不影响渲染
 
 ## 成本估计
 
