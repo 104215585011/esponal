@@ -27,6 +27,30 @@
 
 ## 会话记录
 
+### QA Session #WEB-016 - 2026-05-23
+
+**Goal**: Codex2 QA for WEB-016 watch fixed 3-column layout.
+
+**Result**: Structure/function QA passed. `WEB-016` remains `ready_for_qa` because UI tickets require Claude2 visual acceptance.
+
+**Verification**:
+- `npm run lint:encoding`: pass, `Encoding check passed`.
+- `node --test tests/web016.test.mjs tests/web007.test.mjs tests/web015.test.mjs tests/web003.test.mjs`: 12/12 pass.
+- `npm test`: 200/200 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+- Source contract script: 16/16 checks pass.
+
+**Source contract**:
+- `/watch` left column is fixed at `lg:basis-[48rem] lg:shrink-0`.
+- Player is capped at `lg:max-w-[48rem]` with no `lg:mx-auto`.
+- Related videos are a persistent `lg:w-[260px]` aside, not a hover overlay.
+- `RelatedPanel` no longer has state/effects/timers/slide overlay logic and uses compact 96x54 cards.
+- Mobile transcript keeps `h-[60vh]`; related aside remains hidden below `lg`.
+- `MOCK_CHAPTERS` and A1 placeholder label were not touched.
+
+**Next**:
+- Claude2 visual acceptance for desktop 1920/2560 and mobile screenshots.
+
 ### Session #WEB-016 - 2026-05-22
 
 **Goal**: Convert `/watch` from a wide two-column layout plus hover related panel into a fixed 3-column desktop layout.

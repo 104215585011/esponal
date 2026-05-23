@@ -1,3 +1,44 @@
+## QA Report: WEB-016 watch 3-column fixed layout
+**Time**: 2026-05-23 12:31
+**Tester**: Codex2
+
+**Conclusion**: Structure/function QA passed. Because WEB-016 is a UI layout ticket, `feature_list.json` remains `ready_for_qa` pending Claude2 visual acceptance.
+
+**Verification executed**:
+1. Encoding
+   Command: `npm run lint:encoding`
+   Output: `Encoding check passed`
+   Result: pass
+2. Focused WEB-016 regression slice
+   Command: `node --test tests/web016.test.mjs tests/web007.test.mjs tests/web015.test.mjs tests/web003.test.mjs`
+   Output: tests 12, pass 12, fail 0
+   Result: pass
+3. Full suite
+   Command: `npm test`
+   Output: tests 200, pass 200, fail 0
+   Result: pass
+4. Production build
+   Command: `npm run build`
+   Output: compiled successfully; existing `<img>` and Sentry warnings only
+   Result: pass
+
+**Source contract checks**:
+- `src/app/watch/page.tsx` left column contains `lg:basis-[48rem]` and `lg:shrink-0`.
+- No `lg:basis-[63%]` or `lg:basis-[51rem]` remains.
+- Player shell keeps `lg:max-w-[48rem]` and does not use `lg:mx-auto`.
+- Related videos mount in `<aside className="hidden border-l border-gray-200 bg-surface lg:flex lg:w-[260px] lg:shrink-0">`.
+- Old `<div className="hidden lg:block"><RelatedPanel ... />` wrapper is gone.
+- Mobile transcript layout keeps `h-[60vh] min-w-0 border-t border-gray-200 bg-surface`.
+- `RelatedPanel.tsx` has no `useState`, `useRef`, `useEffect`, timers, edge trigger, pin state, or slide translate overlay.
+- Related thumbnails use `h-[54px] w-[96px]`; list padding is `px-2 py-2`; card padding is `px-2 py-1.5`.
+- `MOCK_CHAPTERS` and the A1 placeholder label remain untouched.
+
+**Handoff**:
+- No structure/function blockers found.
+- Next step: Claude2 visual acceptance for 1920x1080, 2560x1440, and mobile widths.
+
+---
+
 ## Dev Report: WEB-016 watch 3-column fixed layout
 **Time**: 2026-05-22 11:35
 **Developer**: Codex1
