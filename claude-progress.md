@@ -27,6 +27,54 @@
 
 ## 会话记录
 
+### Session #TALK-002 - 2026-05-23
+
+**Goal**: Implement ChatGPT-style multi-session list, switching, and auto-title refinement for `/talk/[characterId]`.
+
+**Completed**:
+- Added `GET/POST /api/talk/sessions` and `POST /api/talk/sessions/[id]/retitle`.
+- Added `src/lib/talk/session-service.ts` for ACTIVE session listing, draft session creation, previews, and retitle updates.
+- Added `generateSessionTitle()` in `src/lib/talk/model-client.ts` with DeepSeek support and safe fallback.
+- Changed first-message fallback titles from 80 chars to 30 chars.
+- Reworked `/talk/[characterId]` into `max-w-app-shell` flex layout: 260px desktop sidebar + right `mx-auto max-w-3xl` chat column.
+- Added `TalkSidebar` with full-width `+ 新对话`, active 2px brand rail, 80vw mobile drawer + 20vw overlay, empty state, and 150ms title transition.
+- Updated `TalkClient` to read `?session=`, load selected history, update URL on session creation, refresh the sidebar, and trigger retitle after 4 turns.
+- Moved `TALK-002` to `ready_for_qa`.
+
+**Verification**:
+- Baseline `npm test`: 204/204 pass before changes.
+- TDD red: `node --test tests/talk002.test.mjs` failed 6/6 before implementation.
+- `node --test tests/talk002.test.mjs`: 6/6 pass.
+- `node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`: 22/22 pass.
+- `npm run lint:encoding`: pass.
+- `npm test`: 210/210 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+- Browser smoke reached the expected auth redirect for unauthenticated `/talk/carlos`; logged-in visual smoke remains for QA/UI acceptance.
+
+**Next**:
+- Codex2 QA for `TALK-002`, then Claude2 UI acceptance.
+
+### QA Session #TALK-001 - 2026-05-23
+
+**Goal**: Codex2 QA for clickable Spanish lookup in `/talk/[characterId]` assistant bubbles.
+
+**Result**: Passed. `TALK-001` is now marked `passing`.
+
+**Verification**:
+- `npm run lint:encoding`: pass, `Encoding check passed`.
+- `node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`: 16/16 pass.
+- `npm test`: 204/204 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Source contract**:
+- Completed Carlos/es-* assistant messages use `SpanishText`.
+- User messages, non-Spanish characters, and streaming assistant messages remain plain text.
+- `sourceType=talk` is accepted by `LookupCard`, `/api/vocab/add`, and `src/lib/vocab.ts`.
+- `/vocab` displays talk encounters as `talk · Carlos` and links back to the talk URL.
+
+**Next**:
+- No Codex2 blocker for TALK-001.
+
 ### Session #TALK-001 - 2026-05-23
 
 **Goal**: Enable clickable Spanish lookup in completed Carlos/es-* assistant bubbles on `/talk/[characterId]`.

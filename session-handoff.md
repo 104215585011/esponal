@@ -1,3 +1,84 @@
+## Dev Report: TALK-002 multi-session list and switching
+**Time**: 2026-05-23 14:23
+**Developer**: Codex1
+
+**Status**: Ready for QA. `TALK-002` moved to `ready_for_qa`; Codex1 does not mark it `passing`.
+
+**Changed files**:
+- src/app/api/talk/sessions/route.ts
+- src/app/api/talk/sessions/[id]/retitle/route.ts
+- src/app/talk/[characterId]/page.tsx
+- src/app/talk/[characterId]/TalkClient.tsx
+- src/app/talk/[characterId]/TalkSidebar.tsx
+- src/lib/talk/chat-service.ts
+- src/lib/talk/model-client.ts
+- src/lib/talk/session-service.ts
+- tests/talk002.test.mjs
+- feature_list.json
+- claude-progress.md
+- session-handoff.md
+
+**Implementation notes**:
+- Added ACTIVE session list API scoped by `characterId`, ordered by `updatedAt desc`, with `lastMessagePreview`.
+- Added draft session creation through `POST /api/talk/sessions`; draft title is `新会话`.
+- Updated chat creation/title fallback to first 30 characters, including first message sent into a draft session.
+- Added retitle route and service path; after 4 turns (8 stored messages), `TalkClient` calls `/api/talk/sessions/[id]/retitle`, which uses DeepSeek when configured and otherwise falls back quietly.
+- Rebuilt `/talk/[characterId]` as `max-w-app-shell` flex: left 260px sidebar and right `mx-auto max-w-3xl` message column.
+- Implemented Claude2 constraints: brand-50 new-chat button, active bg-brand-50 + 2px brand-500 rail, 80vw mobile drawer + 20vw black overlay, 150ms title opacity transition, and restrained empty state.
+- `TalkClient` now reads `?session=`, loads selected history from `/api/talk/history`, writes `?session=` after a new send-created session, and dispatches sidebar refresh events.
+
+**Verification executed**:
+1. Baseline before changes: `npm test` -> tests 204, pass 204, fail 0.
+2. TDD red check: `node --test tests/talk002.test.mjs` failed 6/6 before implementation.
+3. Focused TALK-002 test: `node --test tests/talk002.test.mjs` -> tests 6, pass 6, fail 0.
+4. Talk/vocab regression slice: `node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs` -> tests 22, pass 22, fail 0.
+5. Encoding: `npm run lint:encoding` -> Encoding check passed.
+6. Full suite: `npm test` -> tests 210, pass 210, fail 0.
+7. Production build: `npm run build` -> compiled successfully; existing `<img>` and Sentry warnings only.
+8. Local browser smoke: dev server on `http://127.0.0.1:3001`; `/talk/carlos` redirects to `/auth/sign-in?callbackUrl=/talk/carlos` when unauthenticated, so logged-in visual smoke remains for QA.
+
+**Next step**:
+- Codex2 should QA `TALK-002`, focusing on source contracts, auth/session ownership, selected-history loading, new-session behavior, retitle trigger, and desktop/mobile sidebar layout. Claude2 should do final UI acceptance after Codex2.
+
+## QA Report: TALK-001 talk bubble Spanish lookup
+**Time**: 2026-05-23 14:05
+**Tester**: Codex2
+
+**Conclusion**: Passed. `feature_list.json` now marks `TALK-001` as `passing`.
+
+**Verification executed**:
+1. Confirmed status
+   Command: `node -e "...find TALK-001..."`
+   Output: `status: ready_for_qa`
+   Result: pass
+2. Encoding
+   Command: `npm run lint:encoding`
+   Output: `Encoding check passed`
+   Result: pass
+3. Focused TALK-001 + vocab lookup regression slice
+   Command: `node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`
+   Output: tests 16, pass 16, fail 0
+   Result: pass
+4. Full suite
+   Command: `npm test`
+   Output: tests 204, pass 204, fail 0
+   Result: pass
+5. Production build
+   Command: `npm run build`
+   Output: compiled successfully; existing `<img>` and Sentry warnings only
+   Result: pass
+
+**Source contract checks**:
+- `src/app/talk/[characterId]/TalkClient.tsx` uses `SpanishText` only for completed assistant messages when the character is `carlos`, `es-*`, or Spanish-locale.
+- User messages, non-Spanish character messages, and the currently streaming assistant message remain plain text.
+- `src/app/watch/LookupCard.tsx`, `src/app/api/vocab/add/route.ts`, and `src/lib/vocab.ts` all accept `sourceType=talk`.
+- Talk encounters persist metadata as `talk:{characterId}:{sessionId}:m{messageIndex}`.
+- `/vocab` history displays `talk · Carlos` and links static talk encounters back to the saved talk URL.
+
+**Handoff**:
+- No QA blockers found for `TALK-001`.
+- QA did not handle `WEB-016` or `TALK-002`.
+
 ## UI Review Report: TALK-002 design review
 **Time**: 2026-05-23 14:55
 **Reviewer**: Claude2

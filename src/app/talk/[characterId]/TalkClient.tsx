@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SpanishText } from "@/app/components/vocab/SpanishText";
 import { usePlaybackRate } from "@/lib/playback-rate";
 import { parseSseChunk } from "@/lib/talk/sse";
@@ -16,6 +17,19 @@ type TalkClientProps = {
   characterId: string;
   characterName: string;
   locale: string;
+  initialSessionId?: string | null;
+};
+
+type HistoryResponse = {
+  items?: Array<{
+    id: string;
+    messages?: Array<{
+      role: "USER" | "ASSISTANT" | "SYSTEM";
+      content: string;
+      corrections?: string[];
+      newWords?: string[];
+    }>;
+  }>;
 };
 
 // 浏览器原生 SpeechRecognition 类型（不在默认 TS lib 里，简化声明）
@@ -57,11 +71,18 @@ function isSpanishLookupCharacter(characterId: string, locale: string) {
   );
 }
 
-export function TalkClient({ characterId, characterName, locale }: TalkClientProps) {
+export function TalkClient({
+  characterId,
+  characterName,
+  locale,
+  initialSessionId = null
+}: TalkClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [recording, setRecording] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -70,6 +91,7 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
   const listRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const messagesRef = useRef<Message[]>([]);
   // 记录会话开始时输入框已有的文本，识别到的内容追加在后面
   const baseInputRef = useRef<string>("");
 
@@ -78,10 +100,58 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   // 全局倍速实时作用于正在播放的 TTS
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = playbackRate;
   }, [playbackRate]);
+
+  useEffect(() => {
+    const selectedSessionId = searchParams.get("session");
+
+    if (!selectedSessionId) {
+      setSessionId(null);
+      setMessages([]);
+      return;
+    }
+
+    const sessionIdToLoad = selectedSessionId;
+    let cancelled = false;
+
+    async function loadSelectedSession() {
+      setStatusMessage(null);
+      const response = await fetch(`/api/talk/history?sessionId=${encodeURIComponent(sessionIdToLoad)}`);
+      if (!response.ok) {
+        if (!cancelled) setStatusMessage("无法加载这段对话");
+        return;
+      }
+
+      const payload = (await response.json()) as HistoryResponse;
+      const item = payload.items?.[0];
+      if (!item || cancelled) return;
+
+      setSessionId(item.id);
+      setMessages(
+        (item.messages ?? [])
+          .filter((message) => message.role === "USER" || message.role === "ASSISTANT")
+          .map((message) => ({
+            role: message.role === "USER" ? "user" : "assistant",
+            content: message.content,
+            corrections: message.corrections ?? [],
+            newWords: message.newWords ?? []
+          }))
+      );
+    }
+
+    void loadSelectedSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, characterId]);
 
   function appendDeltaToLastAssistant(text: string) {
     setMessages((prev) => {
@@ -150,6 +220,8 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
     setStreaming(true);
 
     let finalAssistantText = "";
+    let completedSessionId: string | null = null;
+    const messageCountAfterDone = messagesRef.current.length + 2;
 
     try {
       const resp = await fetch("/api/talk/message", {
@@ -186,6 +258,7 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
               newWords: string[];
             };
             setSessionId(data.sessionId);
+            completedSessionId = data.sessionId;
             finalAssistantText = data.assistantText;
             finalizeAssistant({
               assistantText: data.assistantText,
@@ -215,6 +288,19 @@ export function TalkClient({ characterId, characterName, locale }: TalkClientPro
     if (finalAssistantText) {
       // 不 await，让 UI 立即响应
       void playTTS(finalAssistantText);
+    }
+
+    if (completedSessionId) {
+      router.replace(`/talk/${characterId}?session=${completedSessionId}`, { scroll: false });
+      window.dispatchEvent(new CustomEvent("talk:sessions:changed"));
+
+      if (messageCountAfterDone >= 8) {
+        void fetch(`/api/talk/sessions/${completedSessionId}/retitle`, { method: "POST" })
+          .then(() => {
+            window.dispatchEvent(new CustomEvent("talk:sessions:changed"));
+          })
+          .catch(() => undefined);
+      }
     }
   }
 

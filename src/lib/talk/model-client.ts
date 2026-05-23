@@ -35,6 +35,62 @@ function getFallbackReply(characterId: string, message: string) {
   return `Great practice. Let us refine this sentence together: "${message}".`;
 }
 
+function cleanTitle(title: string) {
+  return title
+    .replace(/^["'“”‘’]+|["'“”‘’]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 30);
+}
+
+export async function generateSessionTitle(messages: ChatMessageForModel[]) {
+  const fallback = cleanTitle(messages.find((message) => message.role === "user")?.content ?? "新会话");
+  const { apiKey, baseUrl, model } = getDeepseekConfig();
+
+  if (!isConfiguredSecret(apiKey)) {
+    return fallback || "新会话";
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 24,
+        stream: false,
+        messages: [
+          {
+            role: "system",
+            content:
+              "为这段语言学习对话生成一个中文短标题，5-10个字。只输出标题，不要标点、引号或解释。"
+          },
+          {
+            role: "user",
+            content: messages
+              .slice(-8)
+              .map((message) => `${message.role}: ${message.content}`)
+              .join("\n")
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) return fallback || "新会话";
+
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const title = cleanTitle(payload.choices?.[0]?.message?.content ?? "");
+    return title || fallback || "新会话";
+  } catch {
+    return fallback || "新会话";
+  }
+}
+
 export function createModelClient(): ModelClient {
   const { apiKey, baseUrl, model } = getDeepseekConfig();
 

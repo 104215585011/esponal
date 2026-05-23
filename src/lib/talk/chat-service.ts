@@ -39,6 +39,11 @@ type ParsedLearningNotes = {
 };
 
 const learningNotesPattern = /<learning_notes>([\s\S]*?)<\/learning_notes>/gi;
+const DRAFT_SESSION_TITLE = "新会话";
+
+export function buildInitialSessionTitle(message: string) {
+  return message.replace(/\s+/g, " ").trim().slice(0, 30) || DRAFT_SESSION_TITLE;
+}
 
 export function parseStructuredLearningNotes(assistantText: string): ParsedLearningNotes {
   const matches = Array.from(assistantText.matchAll(learningNotesPattern));
@@ -112,7 +117,7 @@ export async function* streamChatMessage(
         data: {
           userId: input.userId,
           characterId: character.id,
-          title: input.message.slice(0, 80)
+          title: buildInitialSessionTitle(input.message)
         }
       });
 
@@ -124,6 +129,13 @@ export async function* streamChatMessage(
     where: { sessionId: session.id },
     orderBy: { createdAt: "asc" }
   });
+
+  if (previousMessages.length === 0 && (!session.title || session.title === DRAFT_SESSION_TITLE)) {
+    await prisma.chatSession.update({
+      where: { id: session.id },
+      data: { title: buildInitialSessionTitle(input.message) }
+    });
+  }
 
   const encryptedUserMessage = encryptMessageContent(input.message, input.encryptionSecret);
 

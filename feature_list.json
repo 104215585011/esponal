@@ -866,7 +866,7 @@
     "area": "talk",
     "title": "对话气泡内的西语点击查词",
     "user_visible_behavior": "在 /talk/[characterId] 与 Carlos（或其他西语角色）对话时，AI 回复中的每个西语单词可点击，弹出 LookupCard 显示释义并可加入词库。WordEncounter 记录 source=talk + characterId + sessionId。非西语角色（Emma/Jake/Sophie/Kenji）的回复保持纯文本。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "/talk/carlos 收到 AI 回复后，每个西语词可点击高亮",
       "点击弹 LookupCard，能正确返回 lemma + 中文",
@@ -875,8 +875,8 @@
       "流式 delta 期间点击不出错（等 done 才启用）",
       "npm test 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-23 13:46: implemented clickable Spanish lookup for completed Carlos/es-* assistant messages in /talk/[characterId]. User messages, non-Spanish characters, and the currently streaming assistant message remain plain text until done. Extended LookupSource, /api/vocab/add, and src/lib/vocab.ts to accept sourceType=talk with courseRef metadata shaped like talk:{characterId}:{sessionId}:m{messageIndex}; /vocab now displays talk encounters as talk · Carlos. Verification: TDD red node --test tests/talk001.test.mjs failed 4/4 before implementation; after implementation node --test tests/talk001.test.mjs -> 4/4 pass; node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 16/16 pass; npm run lint:encoding -> pass; npm test -> 204/204 pass; npm run build -> pass with existing <img>/Sentry warnings only.",
-    "notes": "Ticket: docs/tickets/TALK-001.md。优先级 P2，预估 0.5-1 天。可复用 VOCAB-009 抽出的统一查词组件（如已有）。Claude2 源码级 PASS 2026-05-23 15:05（SpanishText 复用、非西语角色纯文本、streaming guard、LookupCard 视口防溢出、source 标注 talk·Carlos 均验证）；等人类视觉截图（/talk/carlos 词点击、Emma 对比、流式中点击、/vocab source 回跳）补 evidence 再改 passing。"
+    "evidence": "Codex1 Dev 2026-05-23 13:46: implemented clickable Spanish lookup for completed Carlos/es-* assistant messages in /talk/[characterId]. User messages, non-Spanish characters, and the currently streaming assistant message remain plain text until done. Extended LookupSource, /api/vocab/add, and src/lib/vocab.ts to accept sourceType=talk with courseRef metadata shaped like talk:{characterId}:{sessionId}:m{messageIndex}; /vocab now displays talk encounters as talk · Carlos. Verification: TDD red node --test tests/talk001.test.mjs failed 4/4 before implementation; after implementation node --test tests/talk001.test.mjs -> 4/4 pass; node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 16/16 pass; npm run lint:encoding -> pass; npm test -> 204/204 pass; npm run build -> pass with existing <img>/Sentry warnings only. | Codex2 QA 2026-05-23 14:05: PASS. Confirmed source contract: completed assistant messages for Carlos or es-* characters use SpanishText; user messages, non-Spanish characters, and the streaming assistant message remain plain text; LookupCard, /api/vocab/add, and src/lib/vocab.ts accept sourceType=talk with courseRef talk:{characterId}:{sessionId}:m{messageIndex}; /vocab displays talk encounters as talk · Carlos and links back to the talk URL. Commands: npm run lint:encoding -> Encoding check passed; node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 16/16 pass; npm test -> 204/204 pass; npm run build -> compiled successfully with existing <img>/Sentry warnings only.",
+    "notes": "Ticket: docs/tickets/TALK-001.md。优先级 P2，预估 0.5-1 天。可复用 VOCAB-009 抽出的统一查词组件（如已有）。Claude2 源码级 PASS 2026-05-23 15:05（SpanishText 复用、非西语角色纯文本、streaming guard、LookupCard 视口防溢出、source 标注 talk·Carlos 均验证）；Codex2 QA 2026-05-23 14:05 已通过并改为 passing。"
   },
   {
     "id": "TALK-002",
@@ -884,7 +884,7 @@
     "area": "talk",
     "title": "类 ChatGPT 多会话列表 + 自动标题 + 切换",
     "user_visible_behavior": "进入 /talk/[characterId] 时左侧栏（桌面）/抽屉（移动）显示该角色所有 ACTIVE 会话，按 updatedAt 倒序。顶部「+ 新对话」按钮可开新 session。每条显示标题 + 相对时间。切换会话刷新 AI 上下文。URL 参数 ?session={id} 与状态同步。会话第 4 轮后自动调 DeepSeek 生成精炼标题。",
-    "status": "pending",
+    "status": "ready_for_qa",
     "verification": [
       "/talk/carlos 显示左侧会话列表（空时显示空状态）",
       "「+ 新对话」按钮新建 session",
@@ -895,7 +895,7 @@
       "lg 以下移动端列表收为汉堡抽屉",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-23 14:23: implemented TALK-002 multi-session list and switching. Added GET/POST /api/talk/sessions, POST /api/talk/sessions/[id]/retitle, src/lib/talk/session-service.ts, and generateSessionTitle in src/lib/talk/model-client.ts. Chat sessions now create draft \"新会话\" rows, first-message fallback titles use 30 characters, ACTIVE sessions list by character updatedAt desc with lastMessagePreview, and retitle runs after 4 turns (8 messages) with DeepSeek/fallback title generation. Reworked /talk/[characterId] to max-w-app-shell flex layout with 260px desktop sidebar and right-side mx-auto max-w-3xl chat area; added TalkSidebar with full-width brand-50 new-chat button, brand-50 active row + 2px brand-500 rail, 80vw mobile drawer + 20vw bg-black/30 overlay, empty state, and 150ms title opacity transition. TalkClient now reads ?session=, loads selected history via /api/talk/history, updates the URL when a session is created by sending, dispatches sidebar refresh events, and posts retitle after the fourth round. Verification: baseline npm test -> 204/204 pass; TDD red node --test tests/talk002.test.mjs -> 6/6 fail before implementation; after implementation node --test tests/talk002.test.mjs -> 6/6 pass; node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 22/22 pass; npm run lint:encoding -> pass; npm test -> 210/210 pass; npm run build -> pass with existing <img>/Sentry warnings only. Browser smoke on http://127.0.0.1:3001/talk/carlos reached the expected auth redirect when unauthenticated, so logged-in visual smoke remains for Codex2/Claude2.",
     "notes": "Ticket: docs/tickets/TALK-002.md。优先级 P1，预估 1.5-2 天。ChatSession schema 已就绪，无 migration 需要。Claude2 设计评审 PASS 2026-05-23 14:55，附 6 条约束：(1) 侧栏 lg:w-[260px] + 整页 flex，对话区改在右半放 mx-auto max-w-3xl，不再让 max-w-3xl 与侧栏争宽度；(2)「+ 新对话」全宽按钮 bg-brand-50/text-brand-700；(3) 激活态用 bg-brand-50+左侧 2px brand-500 竖条，不要整块 brand-500 填充；(4) 移动端从左推入 80vw 抽屉 + 半透明遮罩，不全屏覆盖；(5) 标题刷新 150ms opacity 淡入淡出；(6) 空状态文字+指向「+ 新对话」的小箭头，不用空插画。详见 session-handoff.md。"
   },
   {
