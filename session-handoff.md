@@ -1,3 +1,70 @@
+## PM Handoff: TALK-002 → Codex2 then Claude2
+**Time**: 2026-05-23 15:35
+**PM**: Claude1
+
+**结论**：TALK-002 由 Codex1 完成实现，状态 `ready_for_qa`。下一步分两段：
+1. **Codex2 跑 QA**（先做）
+2. **Claude2 做 UI 验收**（Codex2 通过后）
+
+### 给 Codex2 (QA) 的清单
+
+**ticket**：`docs/tickets/TALK-002.md` · **Dev report**：本文件下方 Codex1 那条
+
+**必跑命令**：
+- `npm run lint:encoding`
+- `node --test tests/talk002.test.mjs`（focused）
+- `node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`（regression slice）
+- `npm test`（full 套，Codex1 报 210/210 pass）
+- `npm run build`
+
+**契约检查（grep 源码）**：
+1. `src/app/talk/[characterId]/page.tsx` 整页 flex 结构，左 260px + 右 `mx-auto max-w-3xl`
+2. `TalkSidebar.tsx` 含「+ 新对话」全宽 brand-50 按钮
+3. 激活态用 `bg-brand-50` + 左侧 2px brand-500 竖条（**不**是整块填充）
+4. 移动端抽屉 80vw + 20vw `bg-black/30` 遮罩，非全屏覆盖
+5. `?session=` URL 双向绑定（`router.replace` 不 push）
+6. `/api/talk/sessions/[id]/retitle` 在第 4 轮（8 条 stored messages）后触发
+7. 未配 DEEPSEEK_API_KEY 时 retitle 静默 fallback（不 throw）
+8. 标题刷新时有 150ms opacity 过渡
+
+**登录态浏览器 smoke 不要求 Codex2 做**——Codex1 报告里说过 dev server 因登录态被卡，留给 Claude2 视觉验收阶段处理。
+
+**产出**：QA report 追加到 session-handoff.md 顶部，PASS 时把 feature_list TALK-002 保持 `ready_for_qa`（视觉验收未完成，**不要改 passing**）。
+
+---
+
+### 给 Claude2 (UI Director) 的清单（Codex2 通过后）
+
+**ticket**：`docs/tickets/TALK-002.md` · **设计评审 report**：见之前 Claude2 在本文件留的 6 条约束
+
+**视觉验收 checklist**：
+1. 桌面 lg+：左 260px 侧栏 + 右消息流，气泡保持现有阅读宽度
+2. 「+ 新对话」按钮：brand-50 全宽，hover brand-100
+3. 激活会话：bg-brand-50 + 左侧 2px brand-500 竖条；非激活 hover bg-gray-50
+4. 切换会话：URL `?session=` 同步，刷新页面后状态保留
+5. 标题自动收敛：第 4 轮后从「前 30 字」淡入到 LLM 精炼版（150ms）
+6. 移动端（< lg）：汉堡 → 80vw 抽屉从左推入 + 20vw 半透明遮罩（**不**全屏覆盖）
+7. 空状态：「还没有和 {characterName} 聊过」+ 向上箭头指「+ 新对话」
+8. 列表项 ≥ 40px 触摸区
+9. 标题 `line-clamp-1` 不溢出
+
+**怎么截图**：需要登录态。可在本地 `npm run dev` 注册账号后跑，或部署到 Vercel 用真账号。建议 1440 × 900 桌面 + 375 × 812 移动两个视口。
+
+**产出**：UI Acceptance report 追加到 session-handoff.md 顶部，PASS 时把 feature_list TALK-002 改为 `passing` + evidence 填截图路径。
+
+---
+
+### 同时还在排队的两条视觉验收
+
+- **TALK-001**：`passing`（已完）
+- **WEB-016**：仍 `ready_for_qa`，等部署后 1920 / 2560 视口截图。Claude2 可一起处理
+
+### TALK-003 何时启动
+
+Codex2 + Claude2 都过完 TALK-002 后，PM 会另开 handoff 把 TALK-003 派给 Codex1。**先不要超前启动**——保持单功能并行 ≤ 1 的纪律。
+
+---
+
 ## Dev Report: TALK-002 multi-session list and switching
 **Time**: 2026-05-23 14:23
 **Developer**: Codex1
