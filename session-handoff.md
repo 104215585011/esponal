@@ -1,3 +1,113 @@
+## UI Review Report: TALK-002 design review
+**Time**: 2026-05-23 14:55
+**Reviewer**: Claude2
+
+**Conclusion**: PASS（带 6 条具体设计约束，Codex1 实施时必须吸收）
+
+**Observations**:
+- **侧栏宽度**：建议固定 `lg:w-[260px]`，与 WEB-016 的相关视频列同宽，建立全站「次级竖栏」一致节奏。对话区容器不要再用 `max-w-3xl` 居中，改为整页 `flex`：左 260px 侧栏（`lg:shrink-0` + `border-r border-gray-200`） + 右侧 `flex-1` 内含 `mx-auto max-w-3xl` 的消息流。这样侧栏不会和气泡争宽度，气泡保持现有阅读宽度。整页外层用 `max-w-app-shell mx-auto` 与全站对齐。
+- **「+ 新对话」按钮**：放栏顶（紧贴 SiteHeader 下），整行铺满（`w-full`），左侧 `+` 图标 + 文字「新对话」，背景 `bg-brand-50 text-brand-700 hover:bg-brand-100`，圆角 `rounded-card`，高度约 36px。视觉重量比会话项稍重但不抢眼——它是"动作"不是"内容"。
+- **激活会话高亮**：当前会话用 `bg-brand-50 text-brand-700 font-medium`，左侧加 2px brand-500 竖条作为指示器；非激活态默认 `text-gray-700`，hover 用 `bg-gray-50`。**不要**用粗 brand-500 整块填充——会和「+ 新对话」按钮撞色。相对时间用 `text-[11px] text-gray-400`。
+- **移动端**：< lg 用左侧抽屉（不是覆盖全屏）。汉堡按钮放在 SiteHeader 左侧或对话页顶部 sticky 条；点击后侧栏从左推入 80vw 宽，右侧留 20vw 半透明遮罩（`bg-black/30`），点遮罩或会话项后关闭。**不要全屏覆盖**——用户切会话时要瞄一眼当前正聊的内容。
+- **自动标题刷新**：第 4 轮后从「前 30 字」收敛到 LLM 精炼版时，加 150ms `opacity` 淡入淡出（旧标题淡出 → 新标题淡入），不要瞬切。注意：标题在侧栏的 `line-clamp-1` 上，跳变会很扎眼。同一会话激活时也要应用这个动画。
+- **空状态**：新用户进来一条会话都没有时显示「还没有和 {characterName} 聊过 / 点上方「+ 新对话」开始」，灰色文字 + 一个向上指的小箭头图标指向「+ 新对话」按钮。**不要**显示空插画——Esponal 整体审美是克制的。
+
+**Additional notes**:
+- URL `?session=` 与 sessionState 同步：进侧栏点会话改 URL（`router.replace`，不是 push，避免污染历史栈）。刷新页面从 URL 恢复。
+- 标题截断：建议 `line-clamp-1` + CSS `text-overflow: ellipsis`（30 字在窄列里仍可能爆）。LLM 生成的精炼标题目标 5-10 字。
+- 列表项最小点击区域 ≥ 40px 高，方便移动端触摸。
+
+**Next step**:
+- 通过 → 交给 Codex1 开发
+- Codex1 实施完后需要回到 Claude2 做 UI 验收
+
+---
+
+## PM Decision: TALK-003 mobile 🗑 strategy
+**Time**: 2026-05-23 15:10
+**PM**: Claude1
+
+Claude2 评审里留了一个问题——移动端 🗑 显示策略。两个选项：(A) 常显，(B) 长按 ActionSheet。
+
+**决定**：走 **(A) 常显**。
+
+理由：Web 没有原生 ActionSheet API，长按要自造组件（手势识别 + 模态层 + iOS Safari 长按选词冲突排查），价值/成本比差。常显简单、可达、符合 Esponal 克制审美。已更新 `docs/tickets/TALK-003.md` 同步该决定。
+
+Codex1 可以按此实施，Claude2 评审保持 PASS。
+
+---
+
+## UI Review Report: TALK-003 design review
+**Time**: 2026-05-23 15:00
+**Reviewer**: Claude2
+
+**Conclusion**: PASS
+
+**Observations**:
+- **🗑 归档按钮**：会话项 **hover 才显示**（默认 `opacity-0`，`group-hover:opacity-100`，150ms transition），常驻会让侧栏视觉过于嘈杂、且与「激活高亮」+「相对时间」争注意力。按钮位置：会话项右侧，纵向居中，尺寸 16×16px，`text-gray-400 hover:text-rose-500`。移动端因为没有 hover，需要单独处理——建议长按 300ms 弹一个 ActionSheet（包含「归档」），或者侧栏宽 80vw 时永久显示按钮（仅 < lg）。两种方案让 PM 二选一，我倾向后者更简单。
+- **确认对话框文案**：「归档？归档后 7 天内可恢复」太短，建议改为：标题「归档此对话？」+ 正文「归档后会从列表移除。7 天内可在「归档」抽屉里恢复，之后将永久删除。」按钮：左「取消」（次要按钮 `text-gray-600`），右「归档」（**不要用红色 destructive 配色**——这不是删除，是软归档；用 `bg-brand-500 text-white` 或 `bg-gray-700`）。红色危险按钮留给真正的「永久删除」场景。
+- **归档抽屉**（v1 可选）：放侧栏底部，折叠态显示「归档 (3)」字样 + 向下小箭头 `▾`，整行 `text-gray-500 text-[12px]` 视觉降级；展开后列出归档会话，背景换 `bg-gray-50`，标题字色 `text-gray-500`，每条尾部带「恢复」小链接（`text-brand-600 text-[11px]`）。整体灰阶比 ACTIVE 列表明显降一级，让用户一眼看出"这是被收起来的东西"。如 v1 跳过此抽屉，必须在归档确认对话框文案里说明"通过... 抽屉恢复"的入口（或者先把入口路径删掉以免误导）。
+
+**Next step**:
+- 通过 → 等 TALK-002 落地后交 Codex1 开发
+- 移动端🗑按钮显示策略请 PM 拍板（hover vs 长按 vs 常显）
+
+---
+
+## UI Acceptance Report: TALK-001
+**Time**: 2026-05-23 15:05
+**Reviewer**: Claude2
+
+**Conclusion**: 源码级 PASS / 视觉验收待人类截图补 evidence
+
+**逐条检查（源码级）**:
+- ✅ **西语词样式与 lectura 一致**：`TalkClient.tsx:341` 复用同一个 `SpanishText` 组件（同 `/lectura` 与 `/learn`），下划线、hover、点击行为完全继承 VOCAB-009 的统一查词体验。
+- ✅ **非西语角色不可点**：`canLookupAssistantMessage` 必须满足 `isSpanishLookupCharacter(characterId, locale)`（仅 `es*` locale），Emma / Jake / Sophie / Kenji 走 `message.content` 纯文本分支（`TalkClient.tsx:353`）。
+- ✅ **流式中点击是安全的**：`isAssistantStreaming` 在判定 `canLookupAssistantMessage` 时被取反（`!isAssistantStreaming`），SSE delta 期间最后一条 assistant 走纯文本分支，done 事件后才切到 `SpanishText`，避免半截字 token 化失败。
+- ✅ **LookupCard 在两种气泡上的定位**：`LookupCard.tsx:310` 用 `absolute left-1/2 top-full mt-3 -translate-x-1/2` 相对触发词定位 + `max-w-[min(20rem,calc(100vw-2rem))]` 视口防溢出，与 lectura/watch 完全一致。在 brand-500 user 气泡（白字）上理论上不会触发（user 消息不可点），在白色 assistant 气泡上对比度正常。
+- ✅ **source 标注**：`talk · Carlos` 在 `VocabAccordion.tsx:201` 已实现；persistence 路径 `LookupCard.tsx:244` 写入 `talk:{characterId}:{sessionId}:m{messageIndex}`，与 ticket 技术草图一致。
+
+**视觉验收 checklist（待人类截图补）**:
+- ⏳ `/talk/carlos` 收到完整回复后悬停一个西语词，下划线 + amber 微样式应与 `/lectura/[slug]` 视觉一致
+- ⏳ 点击西语词弹出 LookupCard，气泡内不挤压、不被裁切
+- ⏳ Emma 等角色对比截图：肉眼确认没有下划线、hover 无效
+- ⏳ 流式生成中（看到 token 逐字蹦出）尝试点击，应该无反应、无报错
+- ⏳ 加词后跳 `/vocab`，source 列显示「talk · Carlos」并可点回 `/talk/carlos?session=...`
+
+**Next step**:
+- feature_list.json 保持 `ready_for_qa`（视觉验收未完成）
+- 请 PM 或人类用户在本地跑 `npm run dev` 走一遍视觉 checklist，补 evidence 后改 `passing`
+
+---
+
+## UI Acceptance Report: WEB-016 final visual acceptance
+**Time**: 2026-05-23 15:10
+**Reviewer**: Claude2
+
+**Conclusion**: 源码级 PASS / 视觉验收待部署截图补 evidence
+
+**逐条检查（源码级）**:
+- ✅ **左列 basis**：Codex2 QA 已确认 `src/app/watch/page.tsx` 含 `lg:basis-[48rem] lg:shrink-0`，不含 `lg:basis-[63%]` 或 `lg:basis-[51rem]`。
+- ✅ **视频容器**：含 `lg:max-w-[48rem]`，不含 `lg:mx-auto`。
+- ✅ **右列 aside**：`<aside className="hidden border-l border-gray-200 bg-surface lg:flex lg:w-[260px] lg:shrink-0">`，老 `<div className="hidden lg:block">` wrapper 已移除。
+- ✅ **RelatedPanel 简化**：无 `useState` / `useRef` / `useEffect` / `translate-x-full` / `absolute` / `scheduleOpen` / `scheduleClose`，hover/pin 状态机彻底删除。
+- ✅ **缩略图密度**：`h-[54px] w-[96px]`，列表 `px-2 py-2`，卡片 `px-2 py-1.5`，与二审约定一致。
+- ✅ **移动端不变**：mobile transcript 仍 `h-[60vh] min-w-0 border-t border-gray-200 bg-surface`，相关视频 `hidden` 不显示。
+- ✅ **测试与构建**：Codex2 `npm test` 200/200 通过；`npm run build` 通过。
+
+**视觉验收 checklist（待部署后截图补）**:
+- ⏳ 1920×1080 视口截图：三列 768 / 480 / 260 对齐，shell 居中 1536px
+- ⏳ 2560×1440 视口截图：视频不再随窗口拉宽，仍 ≤ 768px，左侧不再有空荡
+- ⏳ hover 字幕区域：确认相关视频面板不会再浮出覆盖字幕
+- ⏳ 375px / 768px 移动端：视频上、字幕下 60vh，无右列
+- ⏳ RelatedPanel 缩略图 96×54 比例正确，标题 line-clamp-2 不溢出
+
+**Next step**:
+- feature_list.json 保持 `ready_for_qa`（视觉验收未完成）
+- 请 PM 在 Vercel 部署后用 DevTools 切 1920 / 2560 视口截图，补 evidence 后改 `passing`
+
+---
+
 ## PM Handoff → Claude2: 4 项待办（按优先级）
 **Time**: 2026-05-23 14:20
 **PM**: Claude1
