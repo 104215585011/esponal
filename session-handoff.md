@@ -1,3 +1,76 @@
+## QA Report: TALK-006 Whisper tunnel recognition
+**Time**: 2026-05-24 02:02
+**Tester**: Codex2
+
+**Conclusion**: Failed. Return to Codex1 for a minimal build fix. `TALK-006` remains `ready_for_qa`; do not send to Claude2/UI acceptance yet.
+
+**Source contract verified before blocker**:
+- `src/lib/talk/whisper-client.ts`: uses `WHISPER_TUNNEL_URL`, posts to `/transcribe` with `{ audio_base64, language, suffix }`, has a 20s timeout, returns `provider: "unavailable"` on missing env, non-OK response, JSON/fetch failure, or timeout, and returns transcript plus optional segments on success.
+- `src/app/api/talk/recognize/route.ts`: imports `transcribeViaWhisperTunnel`, keeps auth and empty audio validation, and returns `transcript`, `language`, `provider`, and `segments`; no Fish ASR route usage remains.
+- `src/lib/talk/speech.ts`: Fish Audio TTS remains; Fish ASR was removed.
+- `src/app/talk/[characterId]/TalkClient.tsx`: MediaRecorder is the primary click-to-toggle flow, posts to `/api/talk/recognize`, fills input on transcript, and falls back to Web Speech when unavailable/failure/no MediaRecorder. No TALK-004 press-and-hold or audio-bubble implementation was found.
+- `.env.example` and `docs/talk-whisper-tunnel.md` document `WHISPER_TUNNEL_URL`, `cloudflared`, `whisper_service.py`, temporary trycloudflare URL behavior, and production caveat.
+
+**Verification records**:
+1. Focused TALK-006
+   Command: `node --test tests\talk006.test.mjs`
+   Output:
+   ```
+   tests 3
+   pass 3
+   fail 0
+   duration_ms 56.399
+   ```
+   Result: pass
+2. Talk regression slice
+   Command: `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`
+   Output:
+   ```
+   tests 20
+   pass 20
+   fail 0
+   duration_ms 88.8862
+   ```
+   Result: pass
+3. Full suite
+   Command: `npm test`
+   Output:
+   ```
+   tests 216
+   pass 216
+   fail 0
+   duration_ms 670.7824
+   ```
+   Result: pass
+4. Production build
+   Command: `npm run build`
+   Output:
+   ```
+   Failed to compile.
+
+   ./src/app/talk/[characterId]/TalkClient.tsx:131:9
+   Type error: 'recorder' is possibly 'null'.
+
+     129 |       const recorder = mediaRecorderRef.current;
+     130 |       if (recorder?.state !== "inactive") {
+   > 131 |         recorder.onstop = null;
+         |         ^
+     132 |         recorder.stop();
+   ```
+   Result: fail
+
+**Failure detail**:
+- Build blocker in `src/app/talk/[characterId]/TalkClient.tsx` cleanup effect.
+- `if (recorder?.state !== "inactive")` is true when `recorder` is `null`, so TypeScript correctly refuses `recorder.onstop = null`.
+- Minimal expected fix: narrow with `if (recorder && recorder.state !== "inactive") { ... }`.
+
+**Residual manual risk**:
+- Live Whisper tunnel smoke was not executed here because it depends on PM's local `whisper_service.py`, `cloudflared`, and active `WHISPER_TUNNEL_URL`.
+
+**Handoff**:
+- Return to Codex1 for the build fix, then re-run focused TALK-006, the talk regression slice, `npm test`, and `npm run build`.
+- No push performed.
+
 ## QA Report: TALK-005 lookup popover clamp
 **Time**: 2026-05-24 01:50
 **Tester**: Codex2
