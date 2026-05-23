@@ -1,6 +1,29 @@
 # Esponal �?进度日志
 
 > 每轮新会话先读本文件，每轮会话结束后更新�?
+### QA Session #TALK-005 - 2026-05-24
+
+**Goal**: Codex2 QA for the talk LookupCard left clipping fix in commit `c8a86f6`.
+
+**Result**: Passed functional QA. `TALK-005` remains `ready_for_qa` for Claude2 UI acceptance.
+
+**Source contract verified**:
+- `SpanishText.tsx` applies a talk desktop lower bound of `260 + 8` so the popover avoids the sidebar.
+- The right edge clamps against `window.innerWidth - 320 - 8`.
+- Non-talk pages and mobile widths still use the normal 8px lower bound.
+- Existing `LookupCard` visual classes were not redesigned.
+- `tests/talk005.test.mjs` covers the talk clamp and non-talk behavior.
+- `/lectura` regression is covered by READ-001 and VOCAB-008 SpanishText tests.
+
+**Verification**:
+- `node --test tests\talk005.test.mjs`: 2/2 pass.
+- `node --test tests\talk005.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab008.test.mjs tests\read001.test.mjs`: 25/25 pass.
+- `npm test`: 213/213 pass.
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
+
+**Next**:
+- Claude2 UI acceptance for `TALK-005`.
+
 ### QA Session #TALK-002 Fix - 2026-05-24
 
 **Goal**: Codex2 re-QA for the cross-character session overreach fix in commit `27c1036`.

@@ -1,3 +1,61 @@
+## QA Report: TALK-005 lookup popover clamp
+**Time**: 2026-05-24 01:50
+**Tester**: Codex2
+
+**Conclusion**: Passed functional QA for Codex1 commit `c8a86f6`. `TALK-005` stays `ready_for_qa`, pending Claude2 UI acceptance.
+
+**Source contract verified**:
+- `src/app/components/vocab/SpanishText.tsx`: talk desktop popover lower bound avoids the 260px sidebar plus 8px padding.
+- `src/app/components/vocab/SpanishText.tsx`: right edge clamps with `window.innerWidth - LOOKUP_CARD_W - LOOKUP_PADDING`.
+- `src/app/components/vocab/SpanishText.tsx`: non-talk and mobile widths keep the normal 8px lower bound.
+- `src/app/watch/LookupCard.tsx`: existing width, rounded, border, background, and shadow classes were not redesigned.
+- `tests/talk005.test.mjs`: covers the talk desktop clamp and non-talk lower-bound contract.
+- `/lectura` regression is covered by the shared SpanishText/read slice.
+
+**Verification records**:
+1. Focused TALK-005
+   Command: `node --test tests\talk005.test.mjs`
+   Output:
+   ```
+   tests 2
+   pass 2
+   fail 0
+   duration_ms 56.5453
+   ```
+   Result: pass
+2. Talk/vocab/read regression slice
+   Command: `node --test tests\talk005.test.mjs tests\talk001.test.mjs tests\vocab009.test.mjs tests\vocab008.test.mjs tests\read001.test.mjs`
+   Output:
+   ```
+   tests 25
+   pass 25
+   fail 0
+   duration_ms 93.7941
+   ```
+   Result: pass
+3. Full suite
+   Command: `npm test`
+   Output:
+   ```
+   tests 213
+   pass 213
+   fail 0
+   duration_ms 672.7295
+   ```
+   Result: pass
+4. Production build
+   Command: `npm run build`
+   Output:
+   ```
+   Compiled successfully
+   Route (app) ... /talk/[characterId]
+   ```
+   Result: pass; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain.
+
+**Handoff**:
+- Ready for Claude2 UI acceptance.
+- No push performed.
+
 ## Dev Report: TALK-005 lookup popover clamp
 **Time**: 2026-05-24 01:46
 **Developer**: Codex1
