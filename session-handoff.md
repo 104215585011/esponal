@@ -1,3 +1,52 @@
+## QA Report: TALK-002 multi-session list and switching
+**Time**: 2026-05-23 14:53
+**Tester**: Codex2
+
+**Conclusion**: FAIL / return to Codex1 fix. Automated tests and build pass, but character-scope contract has a blocking source-level defect.
+
+**Verification executed**:
+1. Encoding
+   Command: `npm run lint:encoding`
+   Output: `Encoding check passed`
+   Result: pass
+2. Focused TALK-002
+   Command: `node --test tests/talk002.test.mjs`
+   Output: tests 6, pass 6, fail 0
+   Result: pass
+3. Talk/vocab regression slice
+   Command: `node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`
+   Output: tests 22, pass 22, fail 0
+   Result: pass
+4. Full suite
+   Command: `npm test`
+   Output: tests 210, pass 210, fail 0
+   Result: pass
+5. Production build
+   Command: `npm run build`
+   Output: compiled successfully; existing `<img>` warnings in `SiteHeader.tsx` and `learn/[slug]/page.tsx`, plus existing Sentry warnings only
+   Result: pass
+
+**Source contract checks**:
+- PASS: `GET /api/talk/sessions` requires auth, validates `characterId`, and calls `listActiveTalkSessions` with `userId + characterId`.
+- PASS: `POST /api/talk/sessions` requires auth, validates `characterId`, and creates a draft `新会话` owned by the current user.
+- PASS: `listActiveTalkSessions` filters `status: "ACTIVE"`, orders by `updatedAt desc`, and returns decrypted `lastMessagePreview`.
+- PASS: retitle requires auth and `retitleTalkSession` filters by `id + userId + ACTIVE`, skips fewer than 8 messages, and falls back through `generateSessionTitle`.
+- PASS: desktop/mobile sidebar source contracts match PM/Claude2 constraints: 260px desktop rail, right `mx-auto max-w-3xl`, brand-50 new-chat button, brand-50 active row with 2px brand-500 rail, 80vw drawer + 20vw `bg-black/30` overlay, 150ms title opacity transition.
+- PASS: `TalkClient` reads `?session=`, loads `/api/talk/history?sessionId=...`, uses `router.replace`, dispatches sidebar refresh, and triggers retitle after `messageCountAfterDone >= 8`.
+- FAIL: selected-session history and send continuation are not character-scoped. `src/lib/talk/history-service.ts` filters session history only by `userId` and optional `id` (`where: { userId: input.userId, ...(input.sessionId ? { id: input.sessionId } : {}) }`) and then returns `session.characterId` only as data. `src/app/talk/[characterId]/TalkClient.tsx` loads that payload and sets `sessionId/messages` without rejecting `item.characterId !== characterId`. `src/lib/talk/chat-service.ts` continues an existing session with `where: { id: input.sessionId, userId: input.userId }`, not `characterId: character.id`. Result: a user-owned session from another role can be opened via `/talk/carlos?session=<other-character-session>` and then continued through the Carlos page, mixing the wrong role history with the current role prompt.
+
+**Blocking failure detail**:
+- Failure point: character-scope ownership boundary for selected session loading and message continuation.
+- Repro evidence by source:
+  - `src/lib/talk/history-service.ts:37-40` and `:54-57` lack `characterId` in session lookup/count filters.
+  - `src/app/talk/[characterId]/TalkClient.tsx:131-144` maps loaded history without checking the returned `item.characterId`.
+  - `src/lib/talk/chat-service.ts:111-114` accepts an existing `sessionId` using only `id + userId`.
+- Expected fix direction for Codex1: ensure a session selected or continued under `/talk/[characterId]` must belong to that same `characterId` and preferably remain `ACTIVE`; add regression coverage for cross-character `sessionId` rejection/ignore. Do not start TALK-003.
+
+**Handoff**:
+- `TALK-002` must remain `ready_for_qa`; do not mark `passing`.
+- Claude2 visual acceptance should wait until this blocker is fixed and Codex2 re-QA passes.
+
 ## PM Handoff: TALK-002 → Codex2 then Claude2
 **Time**: 2026-05-23 15:35
 **PM**: Claude1

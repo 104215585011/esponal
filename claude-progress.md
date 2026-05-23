@@ -27,6 +27,30 @@
 
 ## 会话记录
 
+### QA Session #TALK-002 - 2026-05-23
+
+**Goal**: Codex2 QA for ChatGPT-style multi-session list, switching, and auto-title refinement on `/talk/[characterId]`.
+
+**Result**: Failed. `TALK-002` remains `ready_for_qa`; Claude2 UI acceptance should wait.
+
+**Verification**:
+- `npm run lint:encoding`: pass, `Encoding check passed`.
+- `node --test tests/talk002.test.mjs`: 6/6 pass.
+- `node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs`: 22/22 pass.
+- `npm test`: 210/210 pass.
+- `npm run build`: pass, existing `<img>` and Sentry warnings only.
+
+**Blocking finding**:
+- Selected-session history and continuation are not scoped to the current talk character.
+- `src/lib/talk/history-service.ts` filters history by `userId` and optional `sessionId`, but not `characterId`.
+- `src/app/talk/[characterId]/TalkClient.tsx` loads the returned session without rejecting `item.characterId !== characterId`.
+- `src/lib/talk/chat-service.ts` continues existing sessions by `id + userId`, not `id + userId + characterId`.
+- A user-owned session from another role can therefore be loaded through `/talk/carlos?session=<other-character-session>` and continued with the Carlos page context.
+
+**Next**:
+- Return to Codex1 for a minimal character-scope fix and regression test.
+- Do not start `TALK-003`.
+
 ### Session #TALK-002 - 2026-05-23
 
 **Goal**: Implement ChatGPT-style multi-session list, switching, and auto-title refinement for `/talk/[characterId]`.
