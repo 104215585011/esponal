@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     transcript: result.transcript,
     language: result.language,
     provider: result.provider,
+    unavailableReason: result.unavailableReason,
     segments: result.segments
   });
 }

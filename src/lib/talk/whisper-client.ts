@@ -16,6 +16,7 @@ type WhisperResult = {
   provider: "whisper" | "unavailable";
   segments?: WhisperSegment[];
   transcript: string;
+  unavailableReason?: "missing_env" | "timeout" | "fetch_failed" | "invalid_response" | `http_${number}`;
 };
 
 function getAudioSuffix(mimeType: string) {
@@ -35,7 +36,12 @@ function getWhisperUrl() {
 export async function transcribeViaWhisperTunnel(input: WhisperInput): Promise<WhisperResult> {
   const url = getWhisperUrl();
   if (!url) {
-    return { language: input.language, provider: "unavailable", transcript: "" };
+    return {
+      language: input.language,
+      provider: "unavailable",
+      transcript: "",
+      unavailableReason: "missing_env"
+    };
   }
 
   const controller = new AbortController();
@@ -54,13 +60,26 @@ export async function transcribeViaWhisperTunnel(input: WhisperInput): Promise<W
     });
 
     if (!response.ok) {
-      return { language: input.language, provider: "unavailable", transcript: "" };
+      return {
+        language: input.language,
+        provider: "unavailable",
+        transcript: "",
+        unavailableReason: `http_${response.status}`
+      };
     }
 
-    const payload = (await response.json().catch(() => ({}))) as {
+    const payload = (await response.json().catch(() => null)) as {
       text?: unknown;
       segments?: unknown;
-    };
+    } | null;
+    if (!payload) {
+      return {
+        language: input.language,
+        provider: "unavailable",
+        transcript: "",
+        unavailableReason: "invalid_response"
+      };
+    }
     const transcript = typeof payload.text === "string" ? payload.text.trim() : "";
     const segments = Array.isArray(payload.segments)
       ? payload.segments.filter((segment): segment is WhisperSegment => {
@@ -74,8 +93,11 @@ export async function transcribeViaWhisperTunnel(input: WhisperInput): Promise<W
       segments,
       transcript
     };
-  } catch {
-    return { language: input.language, provider: "unavailable", transcript: "" };
+  } catch (error) {
+    const unavailableReason = error instanceof DOMException && error.name === "AbortError"
+      ? "timeout"
+      : "fetch_failed";
+    return { language: input.language, provider: "unavailable", transcript: "", unavailableReason };
   } finally {
     clearTimeout(timer);
   }

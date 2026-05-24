@@ -13,6 +13,7 @@ test("TALK-006 recognize route uses the Whisper tunnel and fails open for fallba
   assert.match(route, /transcribeViaWhisperTunnel/);
   assert.match(route, /segments:\s*result\.segments/);
   assert.match(route, /provider:\s*result\.provider/);
+  assert.match(route, /unavailableReason:\s*result\.unavailableReason/);
   assert.doesNotMatch(route, /recognizeSpeech/);
   assert.doesNotMatch(speech, /v1\/asr/);
 
@@ -23,6 +24,8 @@ test("TALK-006 recognize route uses the Whisper tunnel and fails open for fallba
   assert.match(client, /suffix:\s*getAudioSuffix\(input\.mimeType\)/);
   assert.match(client, /setTimeout\([\s\S]*20_000/);
   assert.match(client, /provider:\s*"unavailable"/);
+  assert.match(client, /unavailableReason:\s*"missing_env"/);
+  assert.match(client, /unavailableReason:\s*`http_\$\{response\.status\}`/);
 });
 
 test("TALK-006 talk client records with MediaRecorder and only falls back to Web Speech", async () => {
@@ -34,6 +37,7 @@ test("TALK-006 talk client records with MediaRecorder and only falls back to Web
   assert.match(client, /new MediaRecorder\(stream/);
   assert.match(client, /\/api\/talk\/recognize/);
   assert.match(client, /provider === "unavailable"/);
+  assert.match(client, /payload\.unavailableReason/);
   assert.match(client, /startSpeechRecognitionFallback/);
   assert.match(client, /async function startRecording\(\)[\s\S]*new MediaRecorder\(stream/);
   assert.match(client, /recognizing/);

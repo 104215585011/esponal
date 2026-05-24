@@ -38,6 +38,7 @@ type RecognizeResponse = {
   provider?: "whisper" | "unavailable";
   segments?: Array<{ start?: number; end?: number; text?: string; avg_logprob?: number }>;
   transcript?: string;
+  unavailableReason?: string;
 };
 
 // 浏览器原生 SpeechRecognition 类型（不在默认 TS lib 里，简化声明）
@@ -414,7 +415,8 @@ export function TalkClient({
       const payload = (await response.json().catch(() => ({}))) as RecognizeResponse;
 
       if (!response.ok || payload.provider === "unavailable") {
-        setStatusMessage("Whisper 暂不可用，已切换到浏览器语音识别，请再说一次");
+        const reason = payload.unavailableReason ? `（${payload.unavailableReason}）` : "";
+        setStatusMessage(`Whisper 暂不可用${reason}，已切换到浏览器语音识别，请再说一次`);
         startSpeechRecognitionFallback();
         return;
       }
