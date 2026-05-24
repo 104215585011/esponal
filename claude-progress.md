@@ -2807,6 +2807,28 @@ feature_list.json 更新：
 **Notes**:
 - PM production E2E evidence from b0e5c28 was accepted: non-target en/ar timedtext did not ingest; matching Spanish timedtext ingested with `cueCount:808`; polluted cache was overwritten with Spanish cues.
 - No push performed.
+### QA Session #TALK-006 Re-QA - 2026-05-24
+
+**Goal**: Codex2 re-QA after Codex1 fixed the recorder cleanup build blocker in commit `8310ee2`.
+
+**Result**: Passed functional re-QA. `TALK-006` remains `ready_for_qa` for Claude2/UI acceptance.
+
+**Source contract verified**:
+- `whisper-client.ts` still posts to `WHISPER_TUNNEL_URL/transcribe` with `audio_base64`, `language`, and `suffix`, keeps the 20s timeout, and fails open as `provider: "unavailable"`.
+- `POST /api/talk/recognize` still returns `transcript`, `language`, `provider`, and `segments` with auth and empty-audio validation.
+- `TalkClient` still uses MediaRecorder as the primary path, fills the input from Whisper transcript, and falls back to Web Speech API when unavailable/failure/no MediaRecorder.
+- The previous `recorder is possibly null` build blocker is closed by `recorder && recorder.state !== "inactive"`.
+- No TALK-004 press-and-hold or audio bubble scope leaked in.
+
+**Verification**:
+- `node --test tests\talk006.test.mjs`: 3/3 pass.
+- `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`: 20/20 pass.
+- `npm test`: 216/216 pass.
+- `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
+
+**Residual Risk**:
+- Live Whisper tunnel smoke still requires PM local `whisper_service.py`, `cloudflared`, and the current tunnel URL.
+
 ### Session #TALK-006 Build Fix - 2026-05-24
 
 **Goal**: Close Codex2's build blocker after TALK-006 QA.

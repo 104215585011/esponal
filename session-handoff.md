@@ -1,3 +1,66 @@
+## QA Report: TALK-006 Whisper tunnel recognition re-QA
+**Time**: 2026-05-24 02:06
+**Tester**: Codex2
+
+**Conclusion**: Passed functional re-QA for Codex1 fix commit `8310ee2`. The previous build blocker from `e89a237` is closed. `TALK-006` stays `ready_for_qa`, pending Claude2 UI acceptance.
+
+**Build blocker re-check**:
+- `src/app/talk/[characterId]/TalkClient.tsx` now narrows cleanup with `if (recorder && recorder.state !== "inactive")`.
+- `npm run build` now passes; no `recorder is possibly null` TypeScript error remains.
+
+**Source contract re-verified**:
+- `src/lib/talk/whisper-client.ts`: still uses `WHISPER_TUNNEL_URL`, posts to `/transcribe` with `{ audio_base64, language, suffix }`, keeps the 20s timeout, and fails open with `provider: "unavailable"`.
+- `src/app/api/talk/recognize/route.ts`: still uses `transcribeViaWhisperTunnel`, keeps auth and empty-audio validation, and returns `transcript`, `language`, `provider`, and `segments`.
+- `src/app/talk/[characterId]/TalkClient.tsx`: still uses MediaRecorder as the primary click-to-toggle path, posts to `/api/talk/recognize`, fills input on transcript, and falls back to Web Speech when unavailable/failure/no MediaRecorder.
+- No TALK-004 press-and-hold or audio-bubble implementation was found.
+
+**Verification records**:
+1. Focused TALK-006
+   Command: `node --test tests\talk006.test.mjs`
+   Output:
+   ```
+   tests 3
+   pass 3
+   fail 0
+   duration_ms 55.9641
+   ```
+   Result: pass
+2. Talk regression slice
+   Command: `node --test tests\talk006.test.mjs tests\talk001.test.mjs tests\talk002.test.mjs tests\vocab009.test.mjs`
+   Output:
+   ```
+   tests 20
+   pass 20
+   fail 0
+   duration_ms 78.338
+   ```
+   Result: pass
+3. Full suite
+   Command: `npm test`
+   Output:
+   ```
+   tests 216
+   pass 216
+   fail 0
+   duration_ms 628.648
+   ```
+   Result: pass
+4. Production build
+   Command: `npm run build`
+   Output:
+   ```
+   Compiled successfully
+   Route (app) ... /talk/[characterId]
+   ```
+   Result: pass; existing `<img>`, Sentry, and local Redis `ECONNREFUSED` warnings remain.
+
+**Residual manual risk**:
+- Live Whisper tunnel smoke was not executed here because it depends on PM's local `whisper_service.py`, `cloudflared`, and active/current `WHISPER_TUNNEL_URL`.
+
+**Handoff**:
+- Ready for Claude2 UI acceptance.
+- No push performed.
+
 ## Dev Fix Report: TALK-006 build blocker
 **Time**: 2026-05-24 02:04
 **Developer**: Codex1
