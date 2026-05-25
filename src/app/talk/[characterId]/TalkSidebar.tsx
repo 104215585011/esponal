@@ -321,7 +321,7 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
           <div className="w-full max-w-sm rounded-card bg-surface p-4 shadow-elevated">
             <h2 className="text-base font-semibold text-gray-900">归档此对话？</h2>
             <p className="mt-2 text-sm leading-6 text-gray-500">
-              本次归档后 7 天内可恢复，之后将永久删除。
+              归档后会从列表移除。7 天内可在底部「归档」抽屉里恢复，之后将永久删除。
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button

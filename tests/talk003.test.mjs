@@ -65,7 +65,8 @@ test("TALK-003 sidebar exposes desktop hover archive, mobile always-visible arch
   assert.match(sidebar, /opacity-100/);
   assert.match(sidebar, /🗑/);
   assert.match(sidebar, /归档此对话/);
-  assert.match(sidebar, /本次归档后 7 天内可恢复/);
+  assert.match(sidebar, /归档后会从列表移除/);
+  assert.match(sidebar, /底部「归档」抽屉里恢复/);
   assert.match(sidebar, /归档/);
   assert.match(sidebar, /恢复/);
   assert.match(sidebar, /includeArchived=true/);
