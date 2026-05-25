@@ -42,6 +42,9 @@ test("TALK-006 talk client records with MediaRecorder and only falls back to Web
   assert.match(client, /async function startRecording\(\)[\s\S]*new MediaRecorder\(stream/);
   assert.match(client, /recognizing/);
   assert.match(client, /recordingSeconds/);
+  assert.match(client, /setStatusMessage\("本机识别不可用，已切换到浏览器识别"\)/);
+  assert.doesNotMatch(client, /setStatusMessage\(`?Whisper/);
+  assert.doesNotMatch(client, /setStatusMessage\([\s\S]*missing_env/);
 });
 
 test("TALK-006 documents tunnel env and operator steps", async () => {

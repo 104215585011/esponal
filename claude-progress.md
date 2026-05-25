@@ -1,3 +1,28 @@
+### Session #TALK-006 Copy + PHON-001 Accents - 2026-05-25
+
+**Goal**: Apply PM's small return items: unify TALK-006 fallback copy and fix PHON-001 accent marks plus regenerated audio.
+
+**Completed**:
+- Replaced TALK-006's user-visible downgrade copy with `本机识别不可用，已切换到浏览器识别` in both fallback branches.
+- Moved `unavailableReason` details out of UI and into `console.warn`.
+- Added a focused TALK-006 test guard so the fallback copy does not expose `Whisper` or `missing_env`.
+- Corrected PHON-001 examples to `día`, `jamón`, and `xilófono`.
+- Added focused PHON-001 coverage for the accented examples.
+- Updated `scripts/generate-phonics-audio.mjs` with per-file text cache markers and regenerated the affected phonics word audio.
+
+**Verification**:
+- Red: `node --test tests/talk006.test.mjs` -> 2/3 pass, 1 fail before fix.
+- Red: `node --test tests/phon001.test.mjs` -> 5/6 pass, 1 fail before fix.
+- Green: `node --test tests/talk006.test.mjs` -> 3/3 pass.
+- Green: `node --test tests/phon001.test.mjs` -> 6/6 pass.
+- `node scripts/generate-phonics-audio.mjs` regenerated the phonics assets; second run skipped cached files.
+- `npm test` -> 222/222 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings.
+
+**Status**:
+- `TALK-006` stays `ready_for_qa` and returns to Claude2 for copy-only UI re-check.
+- `PHON-001` stays `ready_for_qa` and remains in the screenshot/evidence batch.
+
 ### QA Session #PHON-001 - 2026-05-25 13:53
 
 **Goal**: Codex2 QA for PHON-001 Stage 0 alphabet pronunciation page on `/phonics`.

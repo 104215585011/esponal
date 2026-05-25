@@ -415,16 +415,20 @@ export function TalkClient({
       const payload = (await response.json().catch(() => ({}))) as RecognizeResponse;
 
       if (!response.ok || payload.provider === "unavailable") {
-        const reason = payload.unavailableReason ? `（${payload.unavailableReason}）` : "";
-        setStatusMessage(`Whisper 暂不可用${reason}，已切换到浏览器语音识别，请再说一次`);
+        console.warn("[talk] local recognition unavailable; falling back to browser recognition", {
+          status: response.status,
+          unavailableReason: payload.unavailableReason ?? null
+        });
+        setStatusMessage("本机识别不可用，已切换到浏览器识别");
         startSpeechRecognitionFallback();
         return;
       }
 
       appendTranscript(payload.transcript ?? "");
       setStatusMessage(null);
-    } catch {
-      setStatusMessage("Whisper 暂不可用，已切换到浏览器语音识别，请再说一次");
+    } catch (error) {
+      console.warn("[talk] local recognition request failed; falling back to browser recognition", error);
+      setStatusMessage("本机识别不可用，已切换到浏览器识别");
       startSpeechRecognitionFallback();
     } finally {
       setRecognizing(false);

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
@@ -24,7 +24,10 @@ function loadAlphabet() {
 }
 
 async function synthesize(text, absolutePath) {
-  if (existsSync(absolutePath) && statSync(absolutePath).size > 1024) {
+  const textCachePath = `${absolutePath}.txt`;
+  const cachedText = existsSync(textCachePath) ? readFileSync(textCachePath, "utf8") : null;
+
+  if (existsSync(absolutePath) && statSync(absolutePath).size > 1024 && cachedText === text) {
     console.log(`${path.relative(repoRoot, absolutePath)} (skip, exists)`);
     return;
   }
@@ -64,6 +67,7 @@ async function synthesize(text, absolutePath) {
         throw new Error(`Generated audio is too small for ${absolutePath}`);
       }
 
+      writeFileSync(textCachePath, text, "utf8");
       console.log(`${path.relative(repoRoot, absolutePath)} ok`);
       return;
     } catch (error) {

@@ -24,6 +24,11 @@ test("PHON-001 exposes 27 static Spanish alphabet entries including N tilde", as
 });
 
 test("PHON-001 page renders the approved alphabet layout and audio controls", async () => {
+  const data = await readText("content/phonics/alphabet.ts");
+  assert.match(data, /example:\s*"día"/);
+  assert.match(data, /example:\s*"jamón"/);
+  assert.match(data, /example:\s*"xilófono"/);
+
   const pagePath = "src/app/phonics/page.tsx";
   const clientPath = "src/app/phonics/AlphabetGrid.tsx";
   assert.ok(existsSync(pagePath), "/phonics page should exist");
