@@ -1,3 +1,27 @@
+### Session #PHON-001 - 2026-05-25
+
+**Goal**: Implement the Stage 0 Spanish alphabet pronunciation page after Claude2 review and PM revisions.
+
+**Completed**:
+- Added `/phonics` with `SiteHeader`, hero copy, and the approved 27-letter alphabet grid.
+- Added static alphabet data in `content/phonics/alphabet.ts`.
+- Added `AlphabetGrid` with 3/4/5 columns, 3-line card hierarchy, labeled letter/example audio buttons, playback-rate integration, and `Ñ` brand treatment.
+- Added `scripts/generate-phonics-audio.mjs`, `npm run audio:phonics`, and 54 generated mp3 assets.
+- Added `字母` as the first desktop/mobile nav item.
+- Updated `VISION.md` Stage 0 to `🟢 部分完成`.
+
+**Verification**:
+- Baseline `npm test`: 216/216 pass.
+- TDD red `node --test tests/phon001.test.mjs`: 0/6 pass before implementation.
+- Focused `node --test tests/phon001.test.mjs`: 6/6 pass.
+- Regression slice `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs`: 18/18 pass.
+- `npm run lint:encoding`: pass.
+- `npm run build`: pass; existing `<img>`, Sentry, and Redis warnings remain.
+- `npm test`: 222/222 pass.
+- Browser smoke on `http://127.0.0.1:3006/phonics`: title/subtitle, first nav item `字母`, 27 cards, desktop 5-column grid, and `Ñ` badge confirmed.
+
+**Status**: `PHON-001` is `ready_for_qa`; handoff returned to Codex2 and then Claude2 UI acceptance.
+
 # Esponal �?进度日志
 
 > 每轮新会话先读本文件，每轮会话结束后更新�?

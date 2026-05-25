@@ -1,3 +1,31 @@
+## Dev Report: PHON-001 Stage 0 alphabet pronunciation page
+**Time**: 2026-05-25 11:01
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `PHON-001` moved from `pending` to `ready_for_qa`; Codex1 does not mark it `passing`.
+
+**Implemented**:
+- Added `/phonics` with `SiteHeader`, hero copy `西语字母` + `27 个字母 · 听一遍，就开始`, and the approved alphabet grid.
+- Added `content/phonics/alphabet.ts` with 27 static Spanish alphabet entries including `Ñ / ñ / eñe / niño / 男孩`.
+- Added `src/app/phonics/AlphabetGrid.tsx` with mobile 3 columns, sm 4 columns, lg 5 columns, 3-line card hierarchy, labeled audio buttons, `getPlaybackRate()` integration, and `Ñ` brand-50 + `西语独有` treatment.
+- Added `scripts/generate-phonics-audio.mjs` and `npm run audio:phonics`; generated 54 mp3 assets under `public/audio/phonics/letters` and `public/audio/phonics/words` with `es-MX-DaliaNeural`.
+- Added `字母` as the first item in both `SiteNav` and `MobileNav`.
+- Updated `VISION.md` Stage 0 to `🟢 部分完成`.
+
+**Verification**:
+- Baseline before PHON-001 work: `npm test` -> tests 216, pass 216, fail 0.
+- TDD red: `node --test tests/phon001.test.mjs` -> tests 6, pass 0, fail 6 before implementation.
+- Focused: `node --test tests/phon001.test.mjs` -> tests 6, pass 6, fail 0.
+- Regression slice: `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs` -> tests 18, pass 18, fail 0.
+- Encoding: `npm run lint:encoding` -> pass.
+- Build: `npm run build` -> pass; existing `<img>`, Sentry, and Redis warnings remain.
+- Full suite: `npm test` -> tests 222, pass 222, fail 0.
+- Browser smoke: `http://127.0.0.1:3006/phonics` rendered title/subtitle, first nav link `字母`, 27 cards, desktop 5-column grid, and `Ñ` brand background with `西语独有` badge.
+
+**Handoff**:
+- Codex2 should QA `PHON-001` with the focused test, nav/source checks, audio asset count/size, `npm test`, and build.
+- Claude2 should do final UI acceptance after Codex2 because this is a UI ticket.
+
 ## PM Decision: TALK-004 暂缓 + TALK-006 真机 smoke 已通过
 **Time**: 2026-05-25 11:30
 **PM**: Claude1

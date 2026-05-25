@@ -904,7 +904,7 @@
     "area": "talk",
     "title": "归档会话 + 7 天后自动清理",
     "user_visible_behavior": "用户可在会话项 hover 点🗑归档，会话立即从 ACTIVE 列表移除（数据保留为 ARCHIVED）。7 天后由 Vercel Cron 自动物理删除归档及其关联消息。可选：底部归档抽屉展示 7 天内已归档可恢复。",
-    "status": "pending",
+    "status": "ready_for_qa",
     "verification": [
       "DELETE /api/talk/sessions/[id] 将 status 设为 ARCHIVED",
       "侧栏 ACTIVE 列表不显示归档会话",
@@ -990,11 +990,11 @@
       "content/phonics/alphabet.ts 含 27 条静态数据",
       "scripts/generate-phonics-audio.mjs 产出 54 个 mp3（27 字母 + 27 例词）",
       "SiteNav + MobileNav 加「字母」入口位于最左",
-      "移动端响应式网格（3 / 4 / 6 列）",
+      "移动端响应式网格（3 / 4 / 5 列）",
       "VISION.md Stage 0 状态从 ❌ 改为 🟢（v1 完成字母部分）",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-25 11:01: PHON-001 ready for QA. Implemented /phonics Stage 0 alphabet page with SiteHeader, 27-entry static content/phonics/alphabet.ts, client AlphabetGrid with 3/4/5 responsive columns, 3-line card hierarchy, labeled audio buttons (letter name + example word), getPlaybackRate() playback integration, and Ñ bg-brand-50/text-brand-700 with 「西语独有」 badge. Added scripts/generate-phonics-audio.mjs and npm script audio:phonics; generated 54 mp3 assets under public/audio/phonics/letters and public/audio/phonics/words using es-MX-DaliaNeural. Added 「字母」 as the first SiteNav and MobileNav item. Updated VISION.md Stage 0 to 🟢 部分完成. Verification: baseline npm test -> 216/216 pass; TDD red node --test tests/phon001.test.mjs -> 0/6 pass before implementation; after implementation node --test tests/phon001.test.mjs -> 6/6 pass; node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs -> 18/18 pass; npm run lint:encoding -> pass; npm run build -> pass with existing <img>/Sentry/Redis warnings only; npm test -> 222/222 pass. Browser smoke on http://127.0.0.1:3006/phonics confirmed title/subtitle, nav first link 字母, 27 cards, desktop 5-column grid, and Ñ brand background/badge.",
     "notes": "Ticket: docs/tickets/PHON-001.md。优先级 P1，预估 1-2 天。从 eslearn (C:\\Users\\wang\\Documents\\New project 2\\eslearn) 移植 phonicsSeed + AlphabetGrid + LetterCard 三个文件，去掉 Supabase 改静态数据。拼读规则页与练习模式留作 PHON-002 / PHON-003。Claude2 评审 NEEDS REVISION 2026-05-25 10:30 + PM 拍板 2026-05-25 10:55：(1) 3 行+按钮区 ✅；(2) 🔊 按钮带文字标签 ✅；(3) lg 改 5 列 ✅；(4) Ñ brand-50 + 「西语独有」小标签 ✅；(5) 未登录提示条 ❌ 推迟到 PHON-002（v1 无进度可记录，提示是卖空）。Hero 副标改「27 个字母 · 听一遍，就开始」。ticket 已落实修订，可交 Codex1。"
   }
 ]
