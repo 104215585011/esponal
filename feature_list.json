@@ -953,7 +953,7 @@
       "npm test 通过"
     ],
     "evidence": "2026-05-24 01:46 Codex1: implemented source-aware LookupCard anchor clamp in SpanishText for talk desktop sidebar (minLeft=260+8), viewport edges, and non-talk 8px lower bound. Red test node --test tests\\talk005.test.mjs failed before fix; focused 2/2 pass; regression slice node --test tests\\talk005.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab008.test.mjs tests\\read001.test.mjs 25/25 pass; npm test 213/213 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings. Codex2 QA 2026-05-24 01:50: PASS functional QA for commit c8a86f6; status intentionally remains ready_for_qa pending Claude2 UI acceptance. Source contract verified in src/app/components/vocab/SpanishText.tsx: talk desktop uses minLeft=260+8, right edge clamps to window.innerWidth - 320 - 8, non-talk/mobile lower bound remains 8, and existing LookupCard visual classes in src/app/watch/LookupCard.tsx were not redesigned. tests/talk005.test.mjs covers the talk clamp and non-talk behavior. /lectura regression covered through READ-001 and VOCAB-008 SpanishText tests. Verification: node --test tests\\talk005.test.mjs -> 2/2 pass; node --test tests\\talk005.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab008.test.mjs tests\\read001.test.mjs -> 25/25 pass; npm test -> 213/213 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only.",
-    "notes": "Ticket: docs/tickets/TALK-005.md。优先级 P1，预估 2-4 小时。原因：TALK-002 重构 page.tsx 整页 flex + 260px sidebar 后，LookupCard 的 left 计算只夹了 max（防右溢出）没夹 min（防左溢出 + 避开 sidebar）。PM 截图复现 2026-05-23。"
+    "notes": "Ticket: docs/tickets/TALK-005.md。优先级 P1，预估 2-4 小时。原因：TALK-002 重构 page.tsx 整页 flex + 260px sidebar 后，LookupCard 的 left 计算只夹了 max（防右溢出）没夹 min（防左溢出 + 避开 sidebar）。PM 截图复现 2026-05-23。Claude2 评审 PASS 2026-05-25 10:38（clamp 算法、320px 卡片宽、阴影/边框、/lectura 不回归均无顾虑）。"
   },
   {
     "id": "TALK-006",
@@ -973,7 +973,7 @@
       "npm test 通过（含 env 缺 / 超时 / 200 三个新用例）"
     ],
     "evidence": "2026-05-24 01:58 Codex1: /api/talk/recognize now forwards to WHISPER_TUNNEL_URL/transcribe via src/lib/talk/whisper-client.ts with 20s timeout and fail-open provider=unavailable; TalkClient uses MediaRecorder -> recognize as primary path and Web Speech API only as fallback; docs/talk-whisper-tunnel.md and .env.example updated. Red test node --test tests\\talk006.test.mjs failed 3/3 before implementation; focused 3/3 pass; talk regression slice 20/20 pass; npm test 216/216 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings. Codex2 re-QA 2026-05-24 02:06: PASS for Codex1 fix commit 8310ee2; build blocker from e89a237 is closed by narrowing recorder cleanup to recorder && recorder.state !== \"inactive\". TALK-006 remains ready_for_qa pending Claude2/UI acceptance. Original source contract re-verified: whisper-client still posts to WHISPER_TUNNEL_URL/transcribe with audio_base64/language/suffix and 20s fail-open unavailable; recognize route still returns transcript/language/provider/segments with auth and empty-audio validation; TalkClient still uses MediaRecorder primary path with Web Speech fallback, recognizing state, and timer; no TALK-004 press-and-hold/audio bubbles found. Verification: node --test tests\\talk006.test.mjs -> 3/3 pass; node --test tests\\talk006.test.mjs tests\\talk001.test.mjs tests\\talk002.test.mjs tests\\vocab009.test.mjs -> 20/20 pass; npm test -> 216/216 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only. Live Whisper tunnel smoke not executed because it requires PM local whisper_service.py/cloudflared/current tunnel URL.",
-    "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。"
+    "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。Claude2 评审 PASS 2026-05-25 10:35（补充 UX 建议：录音脉冲点 + 一次性降级提示文案 + 兜底「没听清，再试一次」，已在 session-handoff 留档）。"
   },
   {
     "id": "PHON-001",
@@ -995,6 +995,6 @@
       "npm test 通过"
     ],
     "evidence": "",
-    "notes": "Ticket: docs/tickets/PHON-001.md。优先级 P1，预估 1-2 天。从 eslearn (C:\\Users\\wang\\Documents\\New project 2\\eslearn) 移植 phonicsSeed + AlphabetGrid + LetterCard 三个文件，去掉 Supabase 改静态数据。拼读规则页与练习模式留作 PHON-002 / PHON-003。"
+    "notes": "Ticket: docs/tickets/PHON-001.md。优先级 P1，预估 1-2 天。从 eslearn (C:\\Users\\wang\\Documents\\New project 2\\eslearn) 移植 phonicsSeed + AlphabetGrid + LetterCard 三个文件，去掉 Supabase 改静态数据。拼读规则页与练习模式留作 PHON-002 / PHON-003。Claude2 评审 NEEDS REVISION 2026-05-25 10:30 + PM 拍板 2026-05-25 10:55：(1) 3 行+按钮区 ✅；(2) 🔊 按钮带文字标签 ✅；(3) lg 改 5 列 ✅；(4) Ñ brand-50 + 「西语独有」小标签 ✅；(5) 未登录提示条 ❌ 推迟到 PHON-002（v1 无进度可记录，提示是卖空）。Hero 副标改「27 个字母 · 听一遍，就开始」。ticket 已落实修订，可交 Codex1。"
   }
 ]

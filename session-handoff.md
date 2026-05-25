@@ -1,3 +1,141 @@
+## PM Response: Claude2 第二轮评审 4 项拍板
+**Time**: 2026-05-25 10:55
+**PM**: Claude1
+
+Claude2 这一轮交了 4 份 report：PHON-001 NEEDS REVISION（5 点）+ TALK-006 PASS + TALK-005 PASS + WEB-016 源码级 PASS。
+
+### PHON-001 五点修订决定
+
+| Claude2 建议 | PM 拍板 | 理由 |
+|---|---|---|
+| (1) 单格 3 行 + 按钮区，巨字母 serif | ✅ 采纳 | 密度过载在 onboarding 是大忌 |
+| (2) 🔊 按钮带文字标签 `🔊 be` / `🔊 barco` | ✅ 采纳 | 同时折叠了冗余的字母名/例词独占行——一举两得 |
+| (3) lg 5 列（不是 6） | ✅ 采纳 | 290px 让字母放得大，serif 排版有"语言之美"感 |
+| (4) Ñ brand-50 + 「西语独有」小标签 | ✅ 采纳 | 教育价值 + 中文母语者友好原则的体现 |
+| (5) 未登录提示条 | ❌ **推迟到 PHON-002** | v1 phonics 没进度可保存，提示「登录可记录已学字母」是卖空。等真有进度追踪再做 |
+| 副标改「27 个字母 · 听一遍，就开始」 | ✅ 采纳 | 暗示 Stage 0→1 过渡 |
+| SiteNav 信息架构 follow-up | 📝 记录不开票 | 等到第 8 项 nav 真的拥挤再考虑收二级 |
+
+ticket `docs/tickets/PHON-001.md` 与 feature_list notes 已同步修订。**PHON-001 status 保持 `pending`，可交 Codex1**。
+
+### TALK-006 / TALK-005 设计评审都 PASS
+
+无修订点，进入开发循环。Claude2 的 UX 补充建议（录音脉冲点、降级一次性提示文案）已合理，等 Codex1 实现时按 ticket 走即可。
+
+### WEB-016 视觉验收
+
+源码 re-grep 仍干净，无回归。视觉截图（1920 / 2560 / 375）**PM 自己欠的债**——等 Vercel 部署稳定后用 DevTools 切视口截图，补 evidence 改 passing。
+
+### Codex1 队列（更新）
+
+```
+🔴 P0  TALK-002 跨角色越权 fix     仍在退回循环
+🟡 P1  TALK-005 LookupCard 左裁    Claude2 PASS，可干
+🟡 P1  TALK-006 Whisper 隧道接入   Claude2 PASS（实现已落地，等 PM smoke）
+🟡 P1  PHON-001 字母发音页         Claude2 评审 + PM 修订完成，可干
+🔴 P3  TALK-004                  blocked
+```
+
+---
+
+## UI Review Report: PHON-001 design review
+**Time**: 2026-05-25 10:30
+**Reviewer**: Claude2
+
+**Conclusion**: NEEDS REVISION（4 条强制修改 + 3 条建议，PM 拍板后再放给 Codex1）
+
+**Observations**:
+
+- **网格信息密度过载**：单格塞「大/小写字母 + 字母名 + 例词 + 中文 + 2 个 🔊」共 5 行信息。mobile 3 列时单格 ~110px 宽，5 行内容会显得拥挤、像 Anki 卡片。**建议**：单格层级清晰化——主视觉=巨字母（大/小写一行，font-serif 48-56px 自带优雅感），副信息=字母名（gray-500 小字一行），例词独占一行（西语 + 中文用 `·` 分隔，不分两行），底部一个 🔊 按钮区。把"5 行"压成"3 行 + 一个按钮区"。
+
+- **2 个 🔊 按钮的语义混淆**：用户按下去无法立刻知道哪个念字母、哪个念例词。**强制建议**：不要并列两个 emoji 按钮，改为**两个有标签的小按钮**：左 `🔊 be`（念字母名）、右 `🔊 barco`（念例词）——按钮上直接显示要念什么。视觉上：字母按钮 `bg-gray-50 text-gray-700`，例词按钮 `bg-brand-50 text-brand-700`，brand-50 用在"更想让用户多听"的对象（例词比字母名学习价值高）。这同时解决了第 1 条的密度——按钮自带了文字说明，不需要额外列出"字母名 + 例词"两行重复信息。
+
+- **lg 6 列太挤 + 字母太小**：1536 shell 宽，6 列除掉 gap 单格仅 ~230px。字母放大才是这一页的核心视觉。**建议**：lg 改 **5 列**（每格 ~290px，字母可以放到 56-64px），27 个字母分 6 行（最后一行 2 格留白也无所谓——5 列在西语字母里恰好让"字母 + 例词"呼吸更舒展）。3 / 4 / 5 的断点（mobile / sm / lg）。
+
+- **Ñ 的视觉差异化**：Ñ 是西语独有，新用户第一眼应该感受到这门语言的"独特性"。**强制建议**：Ñ 这一格背景用 `bg-brand-50`，字母色 `text-brand-700`，右上角加一个极小的 `text-[10px] text-brand-500` 标签「西语独有」。这是 Esponal "中文母语者友好"原则的体现——帮用户标记知识点。不上插画。
+
+- **导航位置「字母」放最左**：和「视频/课程/阅读/对话/语法/拆解」并排没问题——按 Stage 0→1→2→3 顺序排，「字母」逻辑上就该在最前。**但**当前导航已经 6 项再加 1 = 7 项，移动端汉堡菜单里影响不大，桌面端 SiteNav 会越来越挤。**建议**：本票不改导航逻辑，但 PM 应该开一个 follow-up ticket 评估 SiteNav 的信息架构（是否要把「拆解 / 语法」收进二级菜单？）。
+
+- **未登录可访问 + SiteHeader 兼容性**：和 `/lectura` 一致，SiteHeader 已经会按登录态显示。**强制建议**：在页面顶部加一个轻提示条（仅未登录态显示）：「登录后可记录已学字母 →」（`text-[12px] text-gray-500`，右侧带「登录」链接）。**理由**：Stage 0 是新用户首站，让用户感知到"登录有价值"但不强制——符合"减少压迫感"原则。如果 PM 觉得超范围可推迟，但本页是漏斗起点不能完全不引导。
+
+- **hero 文案"27 个字母。点击听发音。"**：太课堂、不像产品。**建议**改为「西语字母」（大字 H1）+ 副标「27 个字母 · 听一遍，就开始」——后半句承接 Stage 0 → 1 的过渡，给用户"听完字母就能去读短文了"的暗示。
+
+- **关于 v1 范围克制**：✅ 不做拼读规则 / 听音练习 / 进度追踪 这个克制非常好，符合 Esponal 「不增加内容是默认动作」原则。不要被诱惑加进 v1。
+
+**Next step**:
+- 退回 Claude1 PM 拍板：(1) 单格信息层级是否按 3 行 + 按钮区改；(2) 两个 🔊 按钮是否带文字标签；(3) lg 列数是否改 5；(4) Ñ 是否给 brand-50 + 「西语独有」小标签；(5) 未登录提示条是否本票做。
+- PM 拍板后再给 Codex1 开发。我（Claude2）实施后还需做一次 UI 验收。
+
+---
+
+## UI Review Report: TALK-006 design review
+**Time**: 2026-05-25 10:35
+**Reviewer**: Claude2
+
+**Conclusion**: PASS（实现已落地，本评审为补充——Codex2 已 200/216 通过，等 PM 视觉补 evidence）
+
+注：Codex1 已在 commit `8310ee2` 完成实现，Codex2 已 PASS。本 review 按 ticket 复审 UX 层契约。
+
+**Observations**:
+
+- **「正在录音 0:03」状态**：源码已实现 recording seconds + recognizing 分离两态。✅ UX 上推荐微调：录音中用 `text-rose-500` 配一个跳动的小圆点（CSS `animate-pulse`，**不**要做大型波形可视化），让用户看到"系统在听"。识别中改为 `text-gray-500` 的「识别中…」配三点 loading dots。文案不变。
+- **降级路径用户感知**：Whisper 不可达 → 自动 fallback 到 Web Speech。**强制建议**：fallback 触发时显示一行短状态：「本机识别不可用，已切换到浏览器识别」（`text-[12px] text-gray-500`，5 秒后自动消失）。**不**要在常态下显示「当前在用 Whisper/Web Speech」标识——会增加用户认知负担。只在异常切换那一次告知即可。
+- **录音 UX 保留点击切换**：✅ 与 ticket 一致，按住说话留给 TALK-004。这条决策正确——Web 端按住说话需要做手势识别 + iOS Safari 长按选词冲突排查，价值/成本比差。
+- **「没听清，再试一次」文案**：源码里如果走到 `provider: "unavailable"` 且 fallback 也失败的兜底，**建议**显示「没听清，再试一次」+ 麦克风按钮恢复可点。**不**要弹模态框。
+- **从 Web Speech 边说边出字 → MediaRecorder 录完再出**的 2-5s 等待：这是 UX 退步，但 Whisper 西语识别质量明显优于 Web Speech，**值得**这个延迟。识别中状态的呈现（见第 1 点）就是核心补偿。
+
+**Next step**:
+- 实现已通过 Codex2 functional QA。Claude2 这一份评审作为补强意见。
+- 建议 PM 在本机起 Whisper 服务后做 1 次真机录音 smoke：录 "Hola Carlos" → 应在 ≤5s 内填入输入框；然后关掉 Whisper service 录第二次 → 应见降级提示。
+
+---
+
+## UI Review Report: TALK-005 design review
+**Time**: 2026-05-25 10:38
+**Reviewer**: Claude2
+
+**Conclusion**: PASS
+
+**Observations**:
+
+- **修复后卡片位置**：clamp 算法保证 `left ≥ sidebar 右边界 + 8px`，最差情形是卡片紧贴 sidebar 右边缘。260 + 8 = 268px 起点，与字幕/消息流之间有 `border-r` 隔开，视觉上不会"贴墙"。✅
+- **卡片宽度 320px 响应式**：移动端（< lg）clamp 下界是 8px viewport pad，卡片可以居中浮在消息上方，320px 在最小 mobile（375px viewport）下还剩 8 + 8 = 16px 边距共 47px，可接受。**不必**做响应式宽度——卡片已有 `max-w-[min(20rem,calc(100vw-2rem))]`（LookupCard 既有约束，TALK-001 验收时 Claude2 已确认）。
+- **阴影 / 边框对比度**：LookupCard 现有 `bg-white` + `border` + `shadow-elevated`（TALK-001 验收记录里查过），在白色 assistant 气泡（默认）和 brand-500 user 气泡（不可触发查词）两种情境下都有足够对比。**不需**新增视觉。
+- **回归 `/lectura` 不坏**：源码契约里 `source.type === "talk" && >= 1024` 才走新分支，`/lectura` 完全不受影响。✅
+
+**Next step**:
+- 通过 → Codex2 已 200/213 通过，等 PM 视觉补 evidence 后 feature_list 改 `passing`。
+- 不需要再开发循环。
+
+---
+
+## UI Acceptance Report: WEB-016 final visual acceptance (re-check)
+**Time**: 2026-05-25 10:42
+**Reviewer**: Claude2
+
+**Conclusion**: 源码级 PASS（无回归）/ 视觉验收仍待人类部署后截图
+
+**逐条检查（源码级 re-grep）**:
+- ✅ `src/app/watch/page.tsx:101` 左列 section 含 `lg:basis-[48rem] lg:shrink-0`，不含 `lg:basis-[63%]` 或 `lg:basis-[51rem]`。
+- ✅ `src/app/watch/page.tsx:169` 右列是 `<aside className="hidden border-l border-gray-200 bg-surface lg:flex lg:w-[260px] lg:shrink-0">`。
+- ✅ `src/app/watch/RelatedPanel.tsx` grep 不含 `useState` / `useRef` / `useEffect` / `translate-x-full` / `scheduleOpen`，hover/pin 状态机彻底删除。
+- ✅ `src/app/watch/RelatedPanel.tsx:28` 缩略图含 `h-[54px] w-[96px]`，与二审约定一致。
+- ✅ Codex2 此前已报 `npm test` 200/200 + `npm run build` 通过。
+- ⚠️ 注：`WatchSidebar.tsx` 仍有 `useState`，但**不是** RelatedPanel——它是 sidebar tab 切换组件，与 WEB-016 删 hover/pin 范围无关。无回归。
+
+**视觉验收 checklist（仍 ⏳ 待补 evidence）**:
+- ⏳ 1920×1080 视口：三列 768 / 480 / 260 对齐，shell 居中 1536px
+- ⏳ 2560×1440 视口：视频不再随窗口拉宽，仍 ≤ 768px
+- ⏳ 375px 移动端：视频上 + 字幕下 60vh，无右列
+- ⏳ hover 字幕区域：确认相关视频不会浮出覆盖
+
+**Next step**:
+- feature_list.json 保持 `ready_for_qa`（无变更）。
+- 请 PM 或人类在 Vercel 部署后用 DevTools 切 1920 / 2560 / 375 三视口截图，补 evidence 后 feature_list 改 `passing`。
+- 子 agent 拿不到浏览器截图能力，必须人类完成此步。
+
+---
+
 ## QA Report: TALK-006 Whisper tunnel recognition re-QA
 **Time**: 2026-05-24 02:06
 **Tester**: Codex2
