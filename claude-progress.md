@@ -1,3 +1,25 @@
+### QA Session #TALK-003 - 2026-05-25 14:56
+
+**Goal**: Codex2 QA for archive-session flow, 7-day cleanup, and cron wiring on `/talk/[characterId]`.
+
+**Result**: PASS for functional QA. Because TALK-003 is a UI ticket, `feature_list.json` remains `ready_for_qa`; 待 Claude2 UI 验收.
+
+**Verification**:
+- `node --test tests/talk003.test.mjs`: 3/3 pass.
+- Source contract checks passed:
+  - `prisma/schema.prisma` has `archivedAt DateTime? @map("archived_at")` and `@@index([status, archivedAt])`.
+  - `archiveTalkSession()` writes `status: "ARCHIVED"` + `archivedAt: new Date()`.
+  - cleanup uses `archivedAt: { lt: cutoff }`, not `updatedAt`.
+  - cron route validates `Authorization` against `CRON_SECRET`.
+  - `vercel.json` schedules `/api/talk/cron/cleanup-archived` at `0 3 * * *`.
+  - history defaults to ACTIVE unless `includeArchived=true`.
+  - `ChatMessage.session` keeps `onDelete: Cascade`.
+- `npm test`: 225/225 pass.
+- `npm run build`: pass; existing `<img>` and Sentry warnings remain.
+
+**Next**:
+- Claude2 UI acceptance for TALK-003 archive button behavior, confirm dialog copy, and archived drawer styling.
+
 ### Session #TALK-006 Copy + PHON-001 Accents - 2026-05-25
 
 **Goal**: Apply PM's small return items: unify TALK-006 fallback copy and fix PHON-001 accent marks plus regenerated audio.

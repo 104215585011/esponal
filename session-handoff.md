@@ -1,3 +1,239 @@
+## PM: 开票 PHON-002 / PHON-003 / PHON-004
+**Time**: 2026-05-25
+**PM**: Claude1
+
+### 背景
+
+用户反馈字母表缺少发音规则内容，参考学习日记补充三张票。
+
+### 新票概览
+
+| 票 | 标题 | 状态 | 优先级 |
+|---|---|---|---|
+| PHON-002 | 元音/辅音基础介绍模块 | not_started | 56 |
+| PHON-003 | 字母条件发音规则 + 音节例子 | not_started | 57 |
+| PHON-004 | 重音规则 + Sinalefa 连读 | not_started | 58 |
+
+### 执行顺序
+
+1. **PHON-002 先做**（前置知识，强/弱元音概念是 PHON-004 重音规则的基础）
+2. **PHON-003 和 PHON-004 可并行**（互不依赖，都依赖 PHON-002 完成）
+
+### 工作流（每张票）
+
+所有三张票都有 UI，走完整流程：
+```
+Claude2 设计评审 → Codex1 实现（含音频预生成脚本）→ Codex2 QA → Claude2 视觉验收
+```
+
+### 下一步
+
+当前 TALK-003 仍在 `ready_for_qa`，优先让 Codex2 处理 TALK-003 QA。
+TALK-003 关闭后，派 Claude2 评审 PHON-002 设计，再开发。
+
+详见：
+- `docs/tickets/PHON-002.md`
+- `docs/tickets/PHON-003.md`
+- `docs/tickets/PHON-004.md`
+
+---
+
+## QA Report: TALK-003
+**Time**: 2026-05-25 14:56
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused test
+   Command: `node --test tests/talk003.test.mjs`
+   Output:
+   ```text
+   ✔ TALK-003 adds archivedAt storage and cleanup tooling
+   ✔ TALK-003 archive and restore APIs keep ownership, archivedAt, and ACTIVE filtering
+   ✔ TALK-003 sidebar exposes desktop hover archive, mobile always-visible archive, and restore drawer
+   ℹ pass 3
+   ℹ fail 0
+   ```
+   Result: PASS
+2. Source contract: archivedAt column and index
+   Command: `rg -n "archivedAt" prisma`
+   Output:
+   ```text
+   prisma\schema.prisma:145:  archivedAt  DateTime?         @map("archived_at")
+   prisma\schema.prisma:154:  @@index([status, archivedAt])
+   ```
+   Result: PASS
+3. Source contract: archive write + cleanup cutoff
+   Command: `rg -n "ARCHIVED|archivedAt" scripts/cleanup-archived-sessions.mjs src/app/api/talk/sessions/[id]/route.ts src/lib/talk/session-service.ts`
+   Output:
+   ```text
+   scripts/cleanup-archived-sessions.mjs:10:      status: "ARCHIVED",
+   scripts/cleanup-archived-sessions.mjs:11:      archivedAt: { lt: cutoff }
+   src/lib/talk/session-service.ts:188:      status: "ARCHIVED",
+   src/lib/talk/session-service.ts:189:      archivedAt: new Date()
+   src/lib/talk/session-service.ts:235:      archivedAt: null
+   src/lib/talk/session-service.ts:261:      status: "ARCHIVED",
+   src/lib/talk/session-service.ts:262:      archivedAt: { lt: cutoff }
+   ```
+   Result: PASS. `DELETE /api/talk/sessions/[id]` delegates to `archiveTalkSession()`, which writes `status=ARCHIVED` and `archivedAt=new Date()`. Cleanup uses `archivedAt < cutoff`, not `updatedAt`.
+4. Source contract: cron auth
+   Command: `rg -n "CRON_SECRET|Authorization|cleanupArchivedSessions" src/app/api/talk/cron/cleanup-archived/route.ts`
+   Output:
+   ```text
+   3:import { cleanupArchivedSessions } from "@/lib/talk/session-service";
+   6:  const header = request.headers.get("Authorization") ?? "";
+   12:  const expectedSecret = process.env.CRON_SECRET ?? "";
+   17:  const deletedCount = await cleanupArchivedSessions(prisma);
+   ```
+   Result: PASS
+5. Source contract: Vercel cron path
+   Command: `rg -n "cleanup-archived|cron|0 3 \* \* \*" vercel.json`
+   Output:
+   ```text
+   12:  "crons": [
+   14:      "path": "/api/talk/cron/cleanup-archived",
+   15:      "schedule": "0 3 * * *"
+   ```
+   Result: PASS
+6. Source contract: history defaults to ACTIVE
+   Command: `rg -n "includeArchived|ACTIVE" src/app/api/talk/history/route.ts src/lib/talk/history-service.ts`
+   Output:
+   ```text
+   src/lib/talk/history-service.ts:14:  includeArchived?: boolean;
+   src/lib/talk/history-service.ts:42:        status: input.includeArchived ? undefined : "ACTIVE",
+   src/lib/talk/history-service.ts:61:        status: input.includeArchived ? undefined : "ACTIVE",
+   src/app/api/talk/history/route.ts:27:  const includeArchived = url.searchParams.get("includeArchived") === "true";
+   src/app/api/talk/history/route.ts:39:    includeArchived,
+   ```
+   Result: PASS
+7. Source contract: cascade delete on ChatMessage
+   Command: `rg -n "onDelete: Cascade|sessionId" prisma/schema.prisma`
+   Output:
+   ```text
+   159:  sessionId      String
+   167:  session        ChatSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+   169:  @@index([sessionId, createdAt])
+   ```
+   Result: PASS
+8. Full regression
+   Command: `npm test`
+   Output:
+   ```text
+   > espanol-learning-platform@0.1.0 test
+   > node --test tests/*.test.mjs
+   ...
+   ✔ TALK-003 adds archivedAt storage and cleanup tooling
+   ✔ TALK-003 archive and restore APIs keep ownership, archivedAt, and ACTIVE filtering
+   ✔ TALK-003 sidebar exposes desktop hover archive, mobile always-visible archive, and restore drawer
+   ...
+   ℹ tests 225
+   ℹ pass 225
+   ℹ fail 0
+   ```
+   Result: PASS
+9. Build check
+   Command: `npm run build`
+   Output:
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (102/102)
+   Route (app) includes /api/talk/cron/cleanup-archived, /api/talk/sessions/[id], /api/talk/sessions/[id]/restore
+   ```
+   Result: PASS. Existing warnings only: two `@next/next/no-img-element` warnings and existing Sentry instrumentation/deprecation warnings.
+
+**Handoff**:
+- `TALK-003` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance for the archive button hover/always-visible behavior, confirm dialog copy, and archived drawer gray-tier styling.
+
+## QA Task: TALK-003 归档会话 + 7 天后自动清理
+**Time**: 2026-05-25
+**PM**: Claude1 → **交给 Codex2**
+
+### 任务背景
+
+TALK-003 实现已随 commit `f9686b3` 合入（PM 误推追认）。
+`npm test` 全套通过（含 talk003），现在需要 Codex2 做完整 QA 后出 report。
+
+### Codex2 需要执行的步骤
+
+**Step 1 — 专项测试**
+```
+node --test tests/talk003.test.mjs
+```
+确认全部 pass，把输出贴进 report。
+
+**Step 2 — 源码契约 grep**
+
+逐项检查，把每条 grep 命令和输出贴进 report：
+
+```
+# 1. archivedAt 列 migration 存在
+grep -r "archivedAt" prisma/
+
+# 2. DELETE 路由写 ARCHIVED + archivedAt
+grep -n "ARCHIVED\|archivedAt" src/app/api/talk/sessions/\[id\]/route.ts
+
+# 3. cleanup 脚本用 archivedAt（不是 updatedAt）做截止判断
+grep -n "archivedAt\|updatedAt" scripts/cleanup-archived-sessions.mjs
+
+# 4. cron route 验证 CRON_SECRET
+grep -n "CRON_SECRET\|Authorization" src/app/api/talk/cron/cleanup-archived/route.ts
+
+# 5. vercel.json cron 路径正确
+grep -n "cleanup-archived\|cron" vercel.json
+
+# 6. GET /history 默认过滤 ACTIVE
+grep -n "ACTIVE\|includeArchived" src/app/api/talk/history/route.ts
+
+# 7. ChatMessage onDelete Cascade
+grep -n "onDelete\|Cascade" prisma/schema.prisma
+```
+
+**Step 3 — 全量回归**
+```
+npm test
+```
+确认全部通过，无新增失败，把通过数贴进 report。
+
+**Step 4 — 构建检查**
+```
+npm run build
+```
+确认 0 error，有 warning 列出来。
+
+### 验收标准（逐条打勾）
+
+- [ ] `node --test tests/talk003.test.mjs` 全部通过
+- [ ] `prisma/` 目录下有 `archivedAt` 相关 migration
+- [ ] DELETE 路由同时写 `status=ARCHIVED` + `archivedAt=now()`（不是 updatedAt）
+- [ ] cleanup 脚本条件是 `archivedAt < now()-7d`（不是 updatedAt）
+- [ ] cron route 检查 `Authorization: Bearer $CRON_SECRET`
+- [ ] `vercel.json` 里有 `/api/talk/cron/cleanup-archived` 的 cron 配置
+- [ ] GET /history 默认只返回 ACTIVE
+- [ ] `ChatMessage` 有 `onDelete: Cascade`（级联删除）
+- [ ] `npm test` 全量通过，无新增失败
+- [ ] `npm run build` 0 error
+
+### 完成后
+
+在 `session-handoff.md` 顶部写 QA Report，格式：
+
+```
+## QA Report: TALK-003
+**Time**: YYYY-MM-DD HH:MM
+**QA**: Codex2
+**结论**: PASS / FAIL
+
+[逐条验收结果]
+[测试输出摘要]
+[如 FAIL：失败项 + 建议修复方向]
+```
+
+QA PASS → Claude2 继续做视觉验收。
+QA FAIL → 反馈给 Codex1 修复。
+
+---
+
 ## PM Recovery: 5 票 passing + TALK-003 误推追认
 **Time**: 2026-05-25 15:30
 **PM**: Claude1
