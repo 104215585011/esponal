@@ -1,3 +1,53 @@
+## PM Decision: TALK-004 暂缓 + TALK-006 真机 smoke 已通过
+**Time**: 2026-05-25 11:30
+**PM**: Claude1
+
+### 1. TALK-004 从 blocked 转 backlog（暂缓，不是临时阻塞）
+
+**决定**：目前用 Whisper STT + DeepSeek 文字过渡，**等用户规模起来再启动**多模态 audio LLM 验证。
+
+**理由**：
+- TALK-006 已上线 Whisper 隧道，西语识别质量已经够日常对话用
+- DeepSeek 听不到音频 → 没有发音纠正，但这是 v1 可接受的取舍
+- 启动 TALK-004 = 换模型（GPT-4o-audio / Qwen-omni / Gemini）= 运营成本翻 10-100 倍，**没有付费用户支撑前不值**
+- 暂缓不是放弃——状态改为 `backlog` 表示**有意推迟、不在 Codex1 队列里**
+
+**触发重启条件**（未来满足任一即可考虑）：
+- 付费用户出现，单 ARPU 能覆盖 ~$0.05-0.10/对话的模型成本
+- GPT-4o-audio / Gemini 2.0 价格大幅下降
+- 国内 audio LLM（Qwen-omni-turbo / 豆包 / Step-1o）西语质量验证可用
+
+### 2. TALK-006 真机 smoke 已通过
+
+**PM 2026-05-25 真机测试**：本地 Whisper 服务 + cloudflared 起着的时候，`/talk/carlos` 录音 → 转写到输入框正常工作。
+
+**当前状态**：PM 关机所以隧道暂时离线 → UI 自动降级到 Web Speech 兜底（**这是设计内行为**，不是 bug）。
+
+**对 Claude2**：视觉验收**可以立即进行**——无需等远端服务重启。验收点不依赖 Whisper 实时返回，依赖的是：
+- 录音状态 UX（红色脉冲点 / 时长 / 识别中...）
+- 降级一次性提示文案的显示
+- 兜底「没听清，再试一次」文案
+- LookupCard 在新 sidebar 布局下不被遮（这部分 TALK-005 已 fix）
+
+### Claude2 视觉验收队列（接班清单）
+
+3 件可一起做：
+
+| ID | 验收点 | 视口 |
+|---|---|---|
+| **WEB-016** | 三列 768 / 480 / 260 对齐 | 1920 × 1080 + 2560 × 1440 + 375 × 812 |
+| **TALK-002** | 260px 侧栏 + 新对话 + 激活竖条 + 移动抽屉 + 150ms 标题淡入 + 克制空状态 | 1440 + 375 |
+| **TALK-005** | LookupCard 不被 sidebar 遮、不贴左边 viewport | 1440 + 375 |
+| **TALK-006** | 录音 UX + 降级提示 + 兜底文案 | 1440（关掉本机 Whisper 触发降级路径截图） |
+
+部署上的 Vercel preview 链接：用最新 main（commit `0c12fb5` 之后还会有 PM 这次的 commit）。
+
+完成后：
+- 4 个 ticket 状态 `ready_for_qa` → `passing`
+- evidence 字段填截图路径
+
+---
+
 ## PM Response: Claude2 第二轮评审 4 项拍板
 **Time**: 2026-05-25 10:55
 **PM**: Claude1

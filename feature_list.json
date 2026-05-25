@@ -923,7 +923,7 @@
     "area": "talk",
     "title": "语音直传给模型听发音（多模态音频输入）",
     "user_visible_behavior": "Carlos 角色启用音频对话模式：用户录音直接以 audio Blob 发给 audio-in 模型（候选 GPT-4o-audio-preview），不再走 STT → DeepSeek 链路。AI 回复包含「发音观察」一行 + 正常对话内容，能指出发错的音素。模型/网络失败时自动 fallback 到 Web Speech API + DeepSeek。",
-    "status": "blocked",
+    "status": "backlog",
     "verification": [
       "原型脚本 scripts/test-audio-model.mjs 验证 GPT-4o-audio 能识别发音错误",
       "新 model client createAudioModelClient() 上线",
@@ -935,7 +935,7 @@
       "npm test 通过"
     ],
     "evidence": "",
-    "notes": "Ticket: docs/tickets/TALK-004.md。优先级 P3，预估 3-5 天 + 运营成本（DeepSeek 几乎免费 → GPT-4o-audio 几十倍价格）。BLOCKED：先跑 2 小时原型脚本验证可行性；效果不达预期则废票。DeepSeek 无 audio input 能力，必须换模型。PM 二次澄清 2026-05-23：UX 走微信式音频气泡——按住说话、松开发送，气泡里只有🔊+时长不显示转写，AI 接原始 audio 并在回复里给发音反馈。ChatMessage 需 audioUrl 列 migration。"
+    "notes": "Ticket: docs/tickets/TALK-004.md。优先级 P3，预估 3-5 天 + 运营成本（DeepSeek 几乎免费 → GPT-4o-audio 几十倍价格）。**PM 2026-05-25 决定：暂缓**——目前用 Whisper STT + DeepSeek 文字过渡（TALK-006 已上线），等用户规模起来再启动原型脚本验证多模态 audio LLM。状态从 blocked 转 backlog 表示这不是 fix 循环、不是临时阻塞，而是有意推迟。DeepSeek 无 audio input 能力，必须换模型。PM 二次澄清 UX 走微信式音频气泡——按住说话、松开发送，气泡里只有🔊+时长不显示转写，AI 接原始 audio 并在回复里给发音反馈。ChatMessage 需 audioUrl 列 migration。"
   },
   {
     "id": "TALK-005",
@@ -973,7 +973,7 @@
       "npm test 通过（含 env 缺 / 超时 / 200 三个新用例）"
     ],
     "evidence": "2026-05-24 01:58 Codex1: /api/talk/recognize now forwards to WHISPER_TUNNEL_URL/transcribe via src/lib/talk/whisper-client.ts with 20s timeout and fail-open provider=unavailable; TalkClient uses MediaRecorder -> recognize as primary path and Web Speech API only as fallback; docs/talk-whisper-tunnel.md and .env.example updated. Red test node --test tests\\talk006.test.mjs failed 3/3 before implementation; focused 3/3 pass; talk regression slice 20/20 pass; npm test 216/216 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings. Codex2 re-QA 2026-05-24 02:06: PASS for Codex1 fix commit 8310ee2; build blocker from e89a237 is closed by narrowing recorder cleanup to recorder && recorder.state !== \"inactive\". TALK-006 remains ready_for_qa pending Claude2/UI acceptance. Original source contract re-verified: whisper-client still posts to WHISPER_TUNNEL_URL/transcribe with audio_base64/language/suffix and 20s fail-open unavailable; recognize route still returns transcript/language/provider/segments with auth and empty-audio validation; TalkClient still uses MediaRecorder primary path with Web Speech fallback, recognizing state, and timer; no TALK-004 press-and-hold/audio bubbles found. Verification: node --test tests\\talk006.test.mjs -> 3/3 pass; node --test tests\\talk006.test.mjs tests\\talk001.test.mjs tests\\talk002.test.mjs tests\\vocab009.test.mjs -> 20/20 pass; npm test -> 216/216 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only. Live Whisper tunnel smoke not executed because it requires PM local whisper_service.py/cloudflared/current tunnel URL.",
-    "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。Claude2 评审 PASS 2026-05-25 10:35（补充 UX 建议：录音脉冲点 + 一次性降级提示文案 + 兜底「没听清，再试一次」，已在 session-handoff 留档）。"
+    "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。Claude2 评审 PASS 2026-05-25 10:35（补充 UX 建议：录音脉冲点 + 一次性降级提示文案 + 兜底「没听清，再试一次」，已在 session-handoff 留档）。**PM 真机 smoke 2026-05-25 已通过**：本地 Whisper 服务 + cloudflared 起着的时候录音转写正常；目前 PM 关机所以隧道暂时离线，UI 降级到 Web Speech 兜底——这是设计内行为。Claude2 视觉验收可同时进行，不必等服务重启。"
   },
   {
     "id": "PHON-001",

@@ -2,7 +2,7 @@
 
 > **这是一份活文档**。PRD 一开始不会完全清楚，会随着我们了解更多语言学习者的真实需求不断修改。每次有新认知就来更新这里。
 >
-> 最后更新：2026-05-22
+> 最后更新：2026-05-25
 
 ---
 
@@ -67,7 +67,7 @@ Stage 4  长文     PDF / EPUB 自主阅读（来自 eslearn 项目）
 
 | Stage | 状态 | 已有 | 缺什么 |
 |---|---|---|---|
-| 0 入门 | ❌ 未做 | — | 字母发音、拼读练习、最基础的代词/介词/动词模块（**新用户入口**） |
+| 0 入门 | 🟢 部分完成 | 字母发音页（27 个西语字母 + 字母/例词 TTS） | 拼读练习、最基础的代词/介词/动词模块 |
 | 1 阅读 | 🟢 内容齐备，缺循环可视化 | **35 篇短文**（5 原创 + 30 文化习俗）、300 高频词库、语法库、词汇追踪基础设施、AI 词形还原、TTS 音频管线 | 阅读时的热力图、侧栏词汇统计 |
 | 2 视频 | 🟢 已有扩展 | Chrome 扩展 + YouTube 双语字幕（EXT-002） | 字幕悬停 → 写入 WordEncounter 的闭环 |
 | 3 口语 | 🟢 合并完成（MVP） | `/talk` 页 5 角色对话（DeepSeek 模型 + Fish Audio TTS/ASR + 文字/语音双向） | 真人试用、错误处理打磨 |
@@ -167,3 +167,4 @@ Stage 4  长文     PDF / EPUB 自主阅读（来自 eslearn 项目）
 | 2026-05-23 | 王 + Claude | `/lectura` 列表按 CEFR 级别排序（A1 → A2 → B1）。 |
 | 2026-05-23 | 王 + Claude | **撤回 Circling 可视化**：用户验收时发现根本矛盾——未点击的词永远是 0 encounter，导致默认状态下整篇文章被 amber 上色，违背"文本简洁"。LecturaReader 回到 `saved-word` 二态高亮（仅显示用户主动点击过的词），`/api/vocab/highlight` 回到原 `course/saved/unknown` 三态，侧栏移除，CSS 清理。**保留全局倍速控制不变**。8.1 节改写记录这次教训：Circling 重做的先决条件是被动遭遇追踪基础设施。|
 | 2026-05-23 | 王 + Claude | **Stage 3 口语 MVP**：把外部 talks 项目合并进来。Prisma 加 Character / ChatSession / ChatMessage（避开 NextAuth Session），seed 5 角色（Carlos 西、Emma 英、Jake 美、Sophie 法、Kenji 日）。模型从 aicodee 换成 DeepSeek（OpenAI 兼容）。Fish Audio 做 TTS + ASR（每角色独立声音），browser MediaRecorder 录音。`/talk` 列表 + `/talk/[id]` 对话页，SSE 流式收 delta，AI 回复完成自动 TTS 朗读，麦克风按钮录音 → 转文字。导航加"对话"入口。|
+| 2026-05-25 | Claude | **PHON-001 Stage 0 字母发音页**：新增 `/phonics`，展示 27 个西语字母、字母名、例词和中文释义；每格提供字母名与例词两个 TTS 播放按钮，并接入全局倍速。导航最左加入「字母」。Stage 0 从未做到部分完成。 |

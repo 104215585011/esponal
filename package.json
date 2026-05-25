@@ -8,6 +8,7 @@
     "lint:encoding": "node scripts/check-encoding.mjs",
     "validate:function-words": "node scripts/validate-function-words.mjs",
     "audio:lectura": "node scripts/generate-lectura-audio.mjs",
+    "audio:phonics": "node scripts/generate-phonics-audio.mjs",
     "backfill:verb-forms": "node scripts/backfill-verb-forms.mjs",
     "prepare": "node scripts/install-git-hooks.mjs",
     "postinstall": "prisma generate",
