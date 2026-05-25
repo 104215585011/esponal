@@ -8,5 +8,11 @@
     "src/app/api/tts/route.ts": {
       "maxDuration": 15
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/talk/cron/cleanup-archived",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

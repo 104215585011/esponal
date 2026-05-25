@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   // 验 sessionId 归属
   if (sessionId) {
     const chatSession = await prisma.chatSession.findFirst({
-      where: { id: sessionId, userId, characterId }
+      where: { id: sessionId, userId, characterId, status: "ACTIVE" }
     });
     if (!chatSession) {
       return jsonError(404, "SESSION_NOT_FOUND", "找不到该对话或无权访问");

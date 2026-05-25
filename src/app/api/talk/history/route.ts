@@ -24,6 +24,7 @@ export async function GET(request: Request) {
   const pageSize = Math.min(50, Math.max(1, Number(url.searchParams.get("pageSize") ?? "20") || 20));
   const sessionId = url.searchParams.get("sessionId") ?? undefined;
   const characterId = url.searchParams.get("characterId") ?? "";
+  const includeArchived = url.searchParams.get("includeArchived") === "true";
 
   if (!characterId || !getTalkCharacterById(characterId)) {
     return NextResponse.json({ error: "character_not_found" }, { status: 404 });
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
     page,
     pageSize,
     sessionId: sessionId ?? undefined,
+    includeArchived,
     encryptionSecret: getMessageEncryptionSecret()
   });
 

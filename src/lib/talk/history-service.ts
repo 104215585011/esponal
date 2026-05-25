@@ -11,6 +11,7 @@ export type ListUserHistoryInput = {
   pageSize: number;
   encryptionSecret: string;
   sessionId?: string;
+  includeArchived?: boolean;
 };
 
 function toReadableContent(message: ChatMessage, encryptionSecret: string) {
@@ -38,6 +39,7 @@ export async function listUserHistory(prisma: PrismaClient, input: ListUserHisto
       where: {
         userId: input.userId,
         characterId: input.characterId,
+        status: input.includeArchived ? undefined : "ACTIVE",
         ...(input.sessionId ? { id: input.sessionId } : {})
       },
       orderBy: { updatedAt: "desc" },
@@ -56,6 +58,7 @@ export async function listUserHistory(prisma: PrismaClient, input: ListUserHisto
       where: {
         userId: input.userId,
         characterId: input.characterId,
+        status: input.includeArchived ? undefined : "ACTIVE",
         ...(input.sessionId ? { id: input.sessionId } : {})
       }
     })

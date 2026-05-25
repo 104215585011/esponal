@@ -27,6 +27,7 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const characterId = url.searchParams.get("characterId") ?? "";
+  const includeArchived = url.searchParams.get("includeArchived") === "true";
   if (!characterId || !getTalkCharacterById(characterId)) {
     return jsonError(404, "CHARACTER_NOT_FOUND", "未知角色");
   }
@@ -34,7 +35,8 @@ export async function GET(request: Request) {
   const items = await listActiveTalkSessions(prisma, {
     userId,
     characterId,
-    encryptionSecret: getMessageEncryptionSecret()
+    encryptionSecret: getMessageEncryptionSecret(),
+    includeArchived
   });
 
   return NextResponse.json({ items });
