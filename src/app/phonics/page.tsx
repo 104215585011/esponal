@@ -1,6 +1,8 @@
 import { SPANISH_ALPHABET } from "@/../content/phonics/alphabet";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { AlphabetGrid } from "./AlphabetGrid";
+import { PhonicsIntro } from "./PhonicsIntro";
+import { PhonicsProsody } from "./PhonicsProsody";
 
 export default function PhonicsPage() {
   return (
@@ -14,7 +16,13 @@ export default function PhonicsPage() {
           <p className="mt-3 text-base text-gray-600">27 个字母 · 听一遍，就开始</p>
         </section>
 
+        <section className="mb-10 border-b border-gray-100 pb-10">
+          <PhonicsIntro />
+        </section>
+
         <AlphabetGrid letters={SPANISH_ALPHABET} />
+
+        <PhonicsProsody />
       </div>
     </main>
   );

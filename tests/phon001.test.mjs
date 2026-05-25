@@ -51,8 +51,9 @@ test("PHON-001 page renders the approved alphabet layout and audio controls", as
   assert.match(grid, /bg-brand-50/);
   assert.match(grid, /text-brand-700/);
   assert.match(grid, /西语独有/);
-  assert.match(grid, /🔊 \{letter\.name\}/);
-  assert.match(grid, /🔊 \{letter\.example\}/);
+  assert.match(grid, /🔊 \{label\}/);
+  assert.match(grid, /label=\{letter\.name\}/);
+  assert.match(grid, /label=\{letter\.example\}/);
   assert.match(grid, /getPlaybackRate/);
   assert.match(grid, /\/audio\/phonics\/letters\/\$\{letter\.slug\}\.mp3/);
   assert.match(grid, /\/audio\/phonics\/words\/\$\{letter\.slug\}\.mp3/);
@@ -93,7 +94,39 @@ test("PHON-001 commits generated letter and example audio assets", () => {
   const letterFiles = readdirSync(lettersDir).filter((file) => file.endsWith(".mp3"));
   const wordFiles = readdirSync(wordsDir).filter((file) => file.endsWith(".mp3"));
   assert.equal(letterFiles.length, 27);
-  assert.equal(wordFiles.length, 27);
+  assert.ok(wordFiles.length >= 27);
+
+  for (const slug of [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "n-tilde",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z"
+  ]) {
+    assert.ok(wordFiles.includes(`${slug}.mp3`), `${slug}.mp3 should remain present`);
+  }
 
   for (const file of [...letterFiles.map((file) => `${lettersDir}/${file}`), ...wordFiles.map((file) => `${wordsDir}/${file}`)]) {
     assert.ok(statSync(file).size > 1024, `${file} should be a non-trivial mp3`);

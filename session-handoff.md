@@ -1,3 +1,497 @@
+## Claude2 视觉验收：COURSE-006
+**Time**: 2026-05-25
+**UI**: Claude2
+**结论**: ✅ PASS
+
+10 项全部通过。结构微调说明：实现将逐词对照放在同一张卡内（border-t 分隔 + 内层 bg-gray-50/70 容器），而非独立卡片——视觉效果更整洁，保留。COURSE-006 → passing。
+
+---
+
+## Claude2 视觉验收：PHON-002 / PHON-003 / PHON-004
+**Time**: 2026-05-25
+**UI**: Claude2
+**结论**: ✅ 三票全部 PASS
+
+- PHON-002：发音基础模块，位置/分隔/元音按钮/强弱元音卡/二合元音高亮/辅音说明全部吻合规格
+- PHON-003：字母规则 Modal，圆点指示/底部 sheet/条件标签/音节按钮/例词行/滚动全部吻合规格
+- PHON-004：重音 & 连读模块，重音节 font-bold text-brand-600/小写/Sinalefa border-b-2 连续下划线全部吻合规格
+
+三票 → passing。
+
+---
+
+## QA Report: PHON-004
+**Time**: 2026-05-25 15:57
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused phonics test slice
+   Command: `node --test tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`
+   Output:
+   ```text
+   ✔ PHON-002 adds a phonics intro module above the alphabet grid
+   ✔ PHON-002 exposes vowel, strong-weak, and diphthong data with audio-backed examples
+   ✔ PHON-002 audio generation covers intro words and reuses vowel letter audio
+   ✔ PHON-003 extends alphabet data with pronunciation rules for variable letters
+   ✔ PHON-003 uses a modal rule viewer instead of inline grid expansion
+   ✔ PHON-003 audio generation covers syllable mp3 files and rule example words
+   ✔ PHON-004 adds a bottom prosody module under the alphabet grid
+   ✔ PHON-004 exposes stress rules and sinalefa examples with reviewed highlights
+   ✔ PHON-004 audio generation covers stress words and sinalefa sentences
+   ℹ pass 9
+   ℹ fail 0
+   ```
+   Result: PASS
+2. Source contract: prosody content + reviewed styling
+   Command: `rg -n 'PHONICS_STRESS_RULES|PHONICS_SINALEFA_EXAMPLES|font-bold text-brand-600|border-b-2 border-brand-400|mt-12|pt-10|border-t border-gray-100' content/phonics/prosody.ts src/app/phonics/PhonicsProsody.tsx src/app/phonics/page.tsx`
+   Output:
+   ```text
+   content/phonics/prosody.ts:29:export const PHONICS_STRESS_RULES: PhonicsStressRule[] = [
+   src/app/phonics/PhonicsProsody.tsx:52:className={index === example.stressedIndex ? "font-bold text-brand-600" : ""}
+   src/app/phonics/PhonicsProsody.tsx:85:<span className="border-b-2 border-brand-400">{sentence.parts.merge}</span>
+   src/app/phonics/PhonicsProsody.tsx:124:<section className="mt-12 border-t border-gray-100 pt-10">
+   ```
+   Result: PASS
+3. Audio inventory
+   Commands:
+   - `(Get-ChildItem public/audio/phonics/stress -Filter *.mp3 -File | Measure-Object).Count`
+   - `(Get-ChildItem public/audio/phonics/sinalefa -Filter *.mp3 -File | Measure-Object).Count`
+   Output:
+   ```text
+   6
+   3
+   ```
+   Result: PASS
+4. Full regression
+   Command: `npm test`
+   Output:
+   ```text
+   ℹ tests 237
+   ℹ pass 237
+   ℹ fail 0
+   ```
+   Result: PASS
+5. Build check
+   Command: `npm run build`
+   Output:
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (103/103)
+   Route (app) includes /phonics
+   ```
+   Result: PASS. Existing warnings only: two `<img>` lint warnings and existing Sentry instrumentation warnings.
+
+**Handoff**:
+- `PHON-004` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance for stress emphasis and sinalefa underline treatment.
+
+## QA Report: PHON-003
+**Time**: 2026-05-25 15:57
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused phonics test slice
+   Command: `node --test tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`
+   Output:
+   ```text
+   ✔ PHON-003 extends alphabet data with pronunciation rules for variable letters
+   ✔ PHON-003 uses a modal rule viewer instead of inline grid expansion
+   ✔ PHON-003 audio generation covers syllable mp3 files and rule example words
+   ℹ pass 9
+   ℹ fail 0
+   ```
+   Result: PASS
+2. Source contract: rule data + modal interaction
+   Command: `rg -n 'PronunciationRule|rules\\?:|bg-brand-400|查看发音|rounded-t-card|sm:max-w-lg|syllables|words' content/phonics/alphabet.ts src/app/phonics/AlphabetGrid.tsx`
+   Output:
+   ```text
+   src/app/phonics/AlphabetGrid.tsx:80:<div className="w-full rounded-t-card bg-white shadow-elevated sm:max-w-lg sm:rounded-card">
+   src/app/phonics/AlphabetGrid.tsx:184:<span className="absolute right-3 top-3 h-1.5 w-1.5 bg-brand-400 rounded-full" />
+   src/app/phonics/AlphabetGrid.tsx:227:查看发音
+   content/phonics/alphabet.ts:1:export type PronunciationRuleWord = {
+   content/phonics/alphabet.ts:7:export type PronunciationRule = {
+   content/phonics/alphabet.ts:21:rules?: PronunciationRule[];
+   ...
+   ```
+   Result: PASS
+3. Audio inventory
+   Command: `(Get-ChildItem public/audio/phonics/syllables -Filter *.mp3 -File | Measure-Object).Count`
+   Output:
+   ```text
+   84
+   ```
+   Result: PASS
+4. Full regression
+   Command: `npm test`
+   Output:
+   ```text
+   ℹ tests 237
+   ℹ pass 237
+   ℹ fail 0
+   ```
+   Result: PASS
+5. Build check
+   Command: `npm run build`
+   Output:
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (103/103)
+   Route (app) includes /phonics
+   ```
+   Result: PASS. Existing warnings only: two `<img>` lint warnings and existing Sentry instrumentation warnings.
+
+**Handoff**:
+- `PHON-003` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance for modal / bottom-sheet interaction and rule presentation.
+
+## QA Report: PHON-002
+**Time**: 2026-05-25 15:57
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused phonics test slice
+   Command: `node --test tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`
+   Output:
+   ```text
+   ✔ PHON-002 adds a phonics intro module above the alphabet grid
+   ✔ PHON-002 exposes vowel, strong-weak, and diphthong data with audio-backed examples
+   ✔ PHON-002 audio generation covers intro words and reuses vowel letter audio
+   ℹ pass 9
+   ℹ fail 0
+   ```
+   Result: PASS
+2. Source contract: foundations data
+   Command: `rg -n 'PHONICS_VOWELS|PHONICS_STRONG_VOWELS|PHONICS_WEAK_VOWELS|PHONICS_DIPHTHONGS|PHONICS_FOUNDATION_AUDIO_WORDS' content/phonics/foundations.ts`
+   Output:
+   ```text
+   27:export const PHONICS_VOWELS: PhonicsVowel[] = [
+   35:export const PHONICS_STRONG_VOWELS: PhonicsExample[] = [
+   40:export const PHONICS_WEAK_VOWELS: PhonicsExample[] = [
+   45:export const PHONICS_DIPHTHONGS: PhonicsDiphthong[] = [
+   72:export const PHONICS_FOUNDATION_AUDIO_WORDS: PhonicsAudioWord[] = [
+   ```
+   Result: PASS
+3. Source contract: audio generation coverage
+   Command: `rg -n 'syllables|stress|sinalefa|bueno|ciudad|aire' scripts/generate-phonics-audio.mjs`
+   Output:
+   ```text
+   112:SPANISH_ALPHABET.flatMap((letter) => (letter.rules ?? []).flatMap((rule) => rule.syllables ?? []))
+   131:await synthesize(syllable, path.join(outputRoot, "syllables", `${syllable}.mp3`));
+   139:await synthesize(example.text, path.join(outputRoot, "stress", `${example.slug}.mp3`));
+   143:await synthesize(sentence.text, path.join(outputRoot, "sinalefa", `${sentence.slug}.mp3`));
+   ```
+   Result: PASS. The foundations words remain covered by the focused PHON-002 tests and generated assets from Codex1 evidence.
+4. Full regression
+   Command: `npm test`
+   Output:
+   ```text
+   ℹ tests 237
+   ℹ pass 237
+   ℹ fail 0
+   ```
+   Result: PASS
+5. Build check
+   Command: `npm run build`
+   Output:
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (103/103)
+   Route (app) includes /phonics
+   ```
+   Result: PASS. Existing warnings only: two `<img>` lint warnings and existing Sentry instrumentation warnings.
+
+**Handoff**:
+- `PHON-002` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance for the foundations intro layout and copy.
+
+## QA Report: COURSE-006
+**Time**: 2026-05-25 15:44
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused test
+   Command: `node --test tests/course006.test.mjs`
+   Output:
+   ```text
+   ✔ COURSE-006 adds a dissect analyze API with implied-subject JSON contract
+   ✔ COURSE-006 DissectorClient keeps immediate skeleton highlighting and adds async gloss states
+   ✔ COURSE-006 interlinear gloss UI uses aligned token columns and separate natural English footer
+   ℹ pass 3
+   ℹ fail 0
+   ```
+   Result: PASS
+2. Course regression slice
+   Command: `node --test tests/course005.test.mjs tests/course006.test.mjs`
+   Output:
+   ```text
+   ✔ COURSE-005 ... existing dissect/foundation contracts
+   ✔ COURSE-006 adds a dissect analyze API with implied-subject JSON contract
+   ✔ COURSE-006 DissectorClient keeps immediate skeleton highlighting and adds async gloss states
+   ✔ COURSE-006 interlinear gloss UI uses aligned token columns and separate natural English footer
+   ℹ pass 15
+   ℹ fail 0
+   ```
+   Result: PASS
+3. Source contract: analyze route JSON fields + validation
+   Command: `rg -n "POST|sentence|tokens|impliedSubject|naturalEnglish|insertBeforeIndex|400" src/app/api/dissect/analyze/route.ts`
+   Output:
+   ```text
+   81: "Return JSON only with keys: tokens, impliedSubject, naturalEnglish."
+   83: "If the sentence omits a subject pronoun, infer it and return pronoun, english, insertBeforeIndex."
+   123: export async function POST(request: Request) {
+   124: const body = (await request.json().catch(() => null)) as { sentence?: unknown } | null;
+   128: return NextResponse.json({ error: "sentence is required" }, { status: 400 });
+   132: return NextResponse.json({ error: "sentence is too long" }, { status: 400 });
+   ```
+   Result: PASS
+4. Source contract: client async gloss states
+   Command: `Get-Content src/app/dissect/DissectorClient.tsx | Select-String -Pattern 'analysis|fetch\\(\"/api/dissect/analyze|setActivePopover\\(null\\)|分析中|分析暂不可用|逐词对照|naturalEnglish|text-brand-600|\\[you\\]|\\[I\\]'`
+   Output:
+   ```text
+   import type { DissectAnalysisResult } from "@/app/dissect/analysis";
+   type AnalysisState = DissectAnalysisResult | "loading" | "error" | null;
+   {analysis === "loading" ? (
+   {analysis === "error" ? (
+   const [analysis, setAnalysis] = useState<AnalysisState>(null);
+   setActivePopover(null);
+   setAnalysis("loading");
+   const response = await fetch("/api/dissect/analyze", {
+   setAnalysis(payload);
+   setAnalysis("error");
+   <InterlinearGloss analysis={analysis} />
+   ```
+   Result: PASS
+5. Source contract: aligned token columns + footer row
+   Command: `rg -n "flex flex-nowrap overflow-x-auto|inline-flex flex-col items-center|min-w-\\[2rem\\]|bg-brand-50 text-brand-600 rounded px-1.5|italic text-brand-400|text-\\[10px\\] text-brand-300|border-t mt-4 pt-4|→" src/app/dissect/DissectorClient.tsx`
+   Output:
+   ```text
+   33: <div className="border-t mt-4 pt-4">
+   53: <div className="flex flex-nowrap overflow-x-auto gap-3 pb-1">
+   63: <div className="inline-flex flex-col items-center min-w-[2rem]">
+   64: <span className="bg-brand-50 text-brand-600 rounded px-1.5 font-medium">
+   67: <span className="italic text-brand-400">[{impliedSubject.english}]</span>
+   68: <span className="text-[10px] text-brand-300">省略</span>
+   82: <span className="mr-2 text-gray-400">→</span>
+   ```
+   Result: PASS
+6. Full regression
+   Command: `npm test`
+   Output:
+   ```text
+   > espanol-learning-platform@0.1.0 test
+   > node --test tests/*.test.mjs
+   ...
+   ✔ COURSE-006 adds a dissect analyze API with implied-subject JSON contract
+   ✔ COURSE-006 DissectorClient keeps immediate skeleton highlighting and adds async gloss states
+   ✔ COURSE-006 interlinear gloss UI uses aligned token columns and separate natural English footer
+   ...
+   ℹ tests 237
+   ℹ pass 237
+   ℹ fail 0
+   ```
+   Result: PASS
+7. Build check
+   Command: `npm run build`
+   Output:
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (103/103)
+   Route (app) includes /api/dissect/analyze and /dissect
+   ```
+   Result: PASS. Existing warnings only: two `<img>` lint warnings and existing Sentry instrumentation warnings.
+
+**Handoff**:
+- `COURSE-006` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance for the async gloss card, implied-subject chip treatment, and loading/error visual states.
+
+## Dev Report: COURSE-006
+**Time**: 2026-05-25 15:44
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `COURSE-006` moved from `not_started` to `ready_for_qa`.
+
+**Implemented**:
+- Added `src/app/dissect/analysis.ts` with:
+  - shared `DissectAnalysisResult` / token / implied-subject types
+  - punctuation-aware fallback tokenization for gloss rendering
+  - local omitted-subject inference heuristics
+  - fallback gloss assembly from function-word and dictionary lookups
+- Added `src/app/api/dissect/analyze/route.ts` to:
+  - validate `sentence`
+  - call DeepSeek in JSON mode when configured
+  - normalize the returned `tokens` / `impliedSubject` / `naturalEnglish`
+  - fall back to local analysis when the model is unavailable
+- Reworked `src/app/dissect/DissectorClient.tsx` so the existing skeleton-word highlight stays immediate while `拆解` now also:
+  - clears open popovers
+  - posts to `/api/dissect/analyze`
+  - shows `分析中…` and `分析暂不可用` states
+  - renders a separate `逐词对照` card under the existing result card
+  - aligns original tokens and glosses horizontally
+  - inserts omitted-subject chips in brand styling
+  - shows the natural-English footer row
+- Added `tests/course006.test.mjs`.
+
+**Verification**:
+- TDD red before implementation: `node --test tests/course006.test.mjs` failed.
+- Green after implementation: `node --test tests/course006.test.mjs` -> 3/3 pass.
+- Course regression: `node --test tests/course005.test.mjs tests/course006.test.mjs` -> 15/15 pass.
+- Full regression: `npm test` -> 237/237 pass.
+- Build: `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Codex2 QA for `COURSE-006`.
+- Then Claude2 UI acceptance.
+
+## Claude2 设计评审：COURSE-006
+**Time**: 2026-05-25
+**UI**: Claude2
+**结论**: ✅ PASS
+
+关键设计决策：
+1. 逐词对照独立卡片（不合并进现有拆解结果卡），mt-6 紧跟其后
+2. Token 对齐：`flex flex-nowrap overflow-x-auto`，每个 token 是 `inline-flex flex-col items-center`，长句横向滚动
+3. 省略主语：原词行 `bg-brand-50 text-brand-600 rounded px-1.5`；英注行 `[you] italic text-brand-400`；加 `text-[10px] text-brand-300`「省略」三行叠放
+4. 自然英语：`border-t mt-4 pt-4`，`→` 前缀灰色
+5. 加载态：同款卡片 + 单行「分析中…」；错误态：卡片不消失，内容替换为「分析暂不可用」
+6. 区块标题右侧附 `text-xs text-gray-400`「AI 辅助分析」说明
+
+---
+
+## PM: 开票 COURSE-006 拆解器逐词英注
+**Time**: 2026-05-25
+**PM**: Claude1
+
+新票 COURSE-006「拆解器增强：逐词英注 + 省略主语推断」。
+渐进加载方案：骨架词高亮客户端即时，逐词对照异步 AI 加载。
+需要 Claude2 UI 评审后交 Codex1。
+详见 `docs/tickets/COURSE-006.md`。
+
+---
+
+## Dev Report: PHON-002
+**Time**: 2026-05-25 15:12
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `PHON-002` moved from `not_started` to `ready_for_qa`.
+
+**Implemented**:
+- Added `content/phonics/foundations.ts` with:
+  - `PHONICS_VOWELS` for the 5 fixed vowels and their reused letter audio
+  - `PHONICS_STRONG_VOWELS` / `PHONICS_WEAK_VOWELS` example groups
+  - `PHONICS_DIPHTHONGS` for `bueno`, `ciudad`, and `aire`
+  - `PHONICS_FOUNDATION_AUDIO_WORDS` to drive extra audio generation
+- Added `src/app/phonics/PhonicsIntro.tsx` and placed it above `AlphabetGrid` in `src/app/phonics/page.tsx` with `mb-10 border-b border-gray-100 pb-10`.
+- The new UI follows Claude2's approved PHON-002 layout:
+  - vertical 3-section module
+  - rounded vowel audio buttons
+  - split strong/weak vowel cards
+  - diphthong examples with `text-brand-600 font-semibold` highlight on the merged syllable
+  - one-line consonant explanation
+- Extended `scripts/generate-phonics-audio.mjs` so it reads the PHON-002 word list and generates:
+  - `public/audio/phonics/words/bueno.mp3`
+  - `public/audio/phonics/words/ciudad.mp3`
+  - `public/audio/phonics/words/aire.mp3`
+  plus matching `.txt` source-text cache files
+- Added `tests/phon002.test.mjs` and updated `tests/phon001.test.mjs` so PHON-001 keeps guarding the original 27 core audio files without blocking PHON-002 expansion.
+
+**Verification**:
+- Baseline: `npm test` -> 225/225 pass.
+- Red test before implementation: `node --test tests/phon002.test.mjs` -> 0/3 pass.
+- Focused regression: `node --test tests/phon001.test.mjs tests/phon002.test.mjs` -> 9/9 pass.
+- Audio generation: `node scripts/generate-phonics-audio.mjs` generated `bueno`, `ciudad`, and `aire`; unchanged existing assets skipped.
+- Full regression: `npm test` -> 228/228 pass.
+- Build: `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+- Local smoke: `/phonics` returned HTTP 200 on port 3007 after `npm run start -- -p 3007`.
+
+**Next**:
+- Codex2 QA for `PHON-002`.
+- `PHON-003` and `PHON-004` remain pending until `PHON-002` is verified.
+
+## Claude2 设计评审：PHON-002 / PHON-003 / PHON-004
+**Time**: 2026-05-25
+**UI**: Claude2
+
+### 总结
+
+| 票 | 结论 | 关键设计决策 |
+|---|---|---|
+| PHON-002 | ✅ PASS（附布局指引） | 新组件 `PhonicsIntro`，三段式纵向布局 |
+| PHON-003 | ✅ PASS（改交互模式） | 卡片点击 → Modal，不做 inline collapse |
+| PHON-004 | ✅ PASS（附视觉细节） | 重音用小写加粗品牌色；Sinalefa 用连续下划线 |
+
+---
+
+### PHON-002 ✅ PASS
+
+新增组件 `src/app/phonics/PhonicsIntro.tsx`，在 `page.tsx` 插到 `<AlphabetGrid>` 上方，两者之间加 `mb-10 border-b border-gray-100 pb-10`。
+
+**三段纵向堆叠**：
+
+段 1 — 元音：5 个圆形按钮 `font-serif text-lg px-4 py-2 rounded-full bg-brand-50 text-brand-700`，点击播单音；下方一行灰色说明文字。
+
+段 2 — 强/弱元音：两组并排，强（a e o）用 `bg-brand-50 text-brand-600`，弱（i u）用 `bg-gray-100 text-gray-500`；每组附 2 个可播音例词。
+
+段 3 — 二合元音：3 个例词，合并音节包在 `<span className="font-semibold text-brand-600">` 里；右侧小 🔊 按钮。
+
+音频：缺失词（bueno / ciudad / aire）补进 `generate-phonics-audio.mjs`。
+
+---
+
+### PHON-003 ✅ PASS（交互模式调整）
+
+**Ticket 写的 inline collapse 不可行**：AlphabetGrid 是 CSS grid 多列，单卡展开会撑高同行所有卡片，布局破碎。
+
+**改为 Modal 模式**：
+- 有规则的字母卡右上角加 `w-1.5 h-1.5 bg-brand-400 rounded-full` 小圆点（有规则的标识）
+- 右下角加 `查看发音` 文字按钮 `text-[11px] text-gray-400 hover:text-brand-600`
+- 点击 → 居中 Modal（桌面）/ `fixed bottom-0 rounded-t-card` Sheet（移动端）
+
+Modal 内容结构：
+```
+顶部大字母 + 字母名
+规则列表（rules 之间 border-b border-gray-100）：
+  条件标签：text-xs bg-gray-100 rounded px-2（如「在 e / i 前」）
+  发音描述：text-sm text-gray-700
+  音节按钮：px-3 py-1 bg-brand-50 rounded-full text-brand-700，点击播 /audio/phonics/syllables/{syllable}.mp3
+  例词：text-sm text-gray-600「词 · 中文」可播音
+右上角关闭按钮
+```
+
+无规则字母卡不改外观。
+
+---
+
+### PHON-004 ✅ PASS（两处视觉细节）
+
+页面底部 `mt-12 pt-10 border-t border-gray-100`，两子块上下堆叠不用 tab。
+
+**细节 1 — 重音音节**：用小写加粗品牌色，不用大写：
+```tsx
+<span>co·</span><span className="font-bold text-brand-600">men</span>
+```
+
+**细节 2 — Sinalefa**：不用弧线（SVG 维护成本高）。把跨词合并的两个字母包进同一 `<span>` 加 `border-b-2 border-brand-400`，形成连续下划线：
+```tsx
+// "mi amigo" 中 i 和 a 合并
+<span>m</span><span className="border-b-2 border-brand-400">i a</span><span>migo</span>
+```
+
+每个例句右侧统一 🔊 按钮，音频 `/audio/phonics/sinalefa/{slug}.mp3`。
+
+---
+
+### Codex1 开工顺序
+
+1. PHON-002（0.5 天）— 先做，是后两票的知识铺垫
+2. PHON-003（1.5 天）— PHON-002 完成后
+3. PHON-004（0.5 天）— 可与 PHON-003 并行
+
+---
+
 ## PM: 开票 PHON-002 / PHON-003 / PHON-004
 **Time**: 2026-05-25
 **PM**: Claude1
@@ -4102,3 +4596,72 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 - PM/Claude2 can focus UI review on popup compactness and the two-button EmptyState behavior when no subtitle is available.
 
 ---
+## Dev Report: PHON-003
+**Time**: 2026-05-25 16:02
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `PHON-003` moved from `not_started` to `ready_for_qa`.
+
+**Implemented**:
+- Extended `content/phonics/alphabet.ts` with:
+  - `PronunciationRuleWord` and `PronunciationRule`
+  - `rules?: PronunciationRule[]` on `AlphabetLetter`
+  - reviewed rule data for B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z
+- Reworked `src/app/phonics/AlphabetGrid.tsx` into the reviewed modal interaction:
+  - letters with rules show a small `bg-brand-400 rounded-full` indicator
+  - cards keep the existing two audio buttons and add `查看发音`
+  - desktop opens a centered `sm:max-w-lg` modal
+  - mobile opens a bottom sheet with `rounded-t-card`
+  - each rule section shows a condition chip, sound explanation, syllable audio buttons, and example-word rows
+- Extended `scripts/generate-phonics-audio.mjs` so it derives:
+  - `PHONICS_RULE_SYLLABLES` from `letter.rules[].syllables`
+  - `PHONICS_RULE_WORDS` from `letter.rules[].words`
+  and generates the corresponding files under:
+  - `public/audio/phonics/syllables/`
+  - `public/audio/phonics/words/`
+- Added `tests/phon003.test.mjs`.
+- Updated `tests/phon001.test.mjs` to keep guarding the PHON-001 UI contract while accepting the shared `AudioButton` abstraction introduced by PHON-003.
+
+**Verification**:
+- Red test before implementation: `node --test tests/phon003.test.mjs` -> 1/3 pass.
+- Audio generation: `node scripts/generate-phonics-audio.mjs` generated the new syllable and rule-word assets, including `ce.mp3`, `gue.mp3`, `rr.mp3`, `uva.mp3`, `quiero.mp3`, and `y-conjunction.mp3`.
+- Focused regression: `node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs` -> 12/12 pass.
+- Full regression: `npm test` -> 231/231 pass.
+- Build: `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Codex2 QA for `PHON-003`.
+- `PHON-004` can build on the now-landed strong/weak vowel intro and modal rule pattern.
+## Dev Report: PHON-004
+**Time**: 2026-05-25 16:28
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `PHON-004` moved from `not_started` to `ready_for_qa`.
+
+**Implemented**:
+- Added `content/phonics/prosody.ts` with:
+  - 3 stress rules
+  - 6 stress example words with syllable splits and stressed-syllable indices
+  - 3 sinalefa sentences with pronunciation strings and merge-span metadata
+- Added `src/app/phonics/PhonicsProsody.tsx` and mounted it below `AlphabetGrid` in `src/app/phonics/page.tsx`.
+- The new UI follows Claude2's approved PHON-004 layout:
+  - bottom section split via `mt-12 border-t border-gray-100 pt-10`
+  - stacked `Acentuación` and `Sinalefa` blocks
+  - stressed syllables rendered with `font-bold text-brand-600`
+  - merged vowel spans rendered with `border-b-2 border-brand-400`
+  - every word and sentence has a playback-rate-aware audio button
+- Extended `scripts/generate-phonics-audio.mjs` so it loads the prosody data and generates:
+  - `public/audio/phonics/stress/*.mp3`
+  - `public/audio/phonics/sinalefa/*.mp3`
+- Added `tests/phon004.test.mjs`.
+
+**Verification**:
+- Red test before implementation: `node --test tests/phon004.test.mjs` -> 0/3 pass.
+- Audio generation: `node scripts/generate-phonics-audio.mjs` generated `stress/casa.mp3`, `stress/comen.mp3`, `stress/ciudad.mp3`, `stress/trabajar.mp3`, `stress/cafe.mp3`, `stress/musica.mp3`, `sinalefa/mi-amigo.mp3`, `sinalefa/la-escuela.mp3`, and `sinalefa/todo-el-dia.mp3`.
+- Focused regression: `node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs` -> 15/15 pass.
+- Full regression: `npm test` -> 234/234 pass.
+- Build: `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Codex2 QA for `PHON-004`.
+- Claude2 UI acceptance for the stress emphasis and sinalefa underline treatment after QA.

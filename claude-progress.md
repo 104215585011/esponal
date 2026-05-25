@@ -1,3 +1,160 @@
+### QA Session #PHON-004 - 2026-05-25 15:57
+
+**Goal**: Codex2 QA for the bottom-of-page stress and sinalefa module on `/phonics`.
+
+**Result**: PASS for functional QA. Because `PHON-004` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`: 9/9 pass.
+- Source contract checks passed:
+  - `content/phonics/prosody.ts` exports `PHONICS_STRESS_RULES`.
+  - `src/app/phonics/PhonicsProsody.tsx` uses `font-bold text-brand-600` for stressed syllables and `border-b-2 border-brand-400` for sinalefa merges.
+  - `src/app/phonics/page.tsx` mounts the module with the reviewed `mt-12 border-t border-gray-100 pt-10` split.
+  - generated audio inventory includes 6 `stress/*.mp3` files and 3 `sinalefa/*.mp3` files.
+- `npm test`: 237/237 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Next**:
+- Claude2 UI acceptance for `PHON-004`.
+
+### QA Session #PHON-003 - 2026-05-25 15:57
+
+**Goal**: Codex2 QA for pronunciation-rule modal teaching on `/phonics`.
+
+**Result**: PASS for functional QA. Because `PHON-003` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`: 9/9 pass.
+- Source contract checks passed:
+  - `content/phonics/alphabet.ts` defines `PronunciationRule` data and `rules?:` on alphabet letters.
+  - rule-backed letters include reviewed variable sets B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z.
+  - `src/app/phonics/AlphabetGrid.tsx` uses the reviewed modal/sheet interaction with `rounded-t-card`, `sm:max-w-lg`, the `bg-brand-400` indicator dot, and `查看发音` trigger.
+  - generated audio inventory includes 84 `syllables/*.mp3` files plus the expanded rule-word set.
+- `npm test`: 237/237 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Next**:
+- Claude2 UI acceptance for `PHON-003`.
+
+### QA Session #PHON-002 - 2026-05-25 15:57
+
+**Goal**: Codex2 QA for the phonics foundations intro module above the alphabet grid.
+
+**Result**: PASS for functional QA. Because `PHON-002` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`: 9/9 pass.
+- Source contract checks passed:
+  - `content/phonics/foundations.ts` exports `PHONICS_VOWELS`, `PHONICS_STRONG_VOWELS`, `PHONICS_WEAK_VOWELS`, `PHONICS_DIPHTHONGS`, and `PHONICS_FOUNDATION_AUDIO_WORDS`.
+  - `src/app/phonics/page.tsx` mounts the intro above `AlphabetGrid`.
+  - `scripts/generate-phonics-audio.mjs` covers the foundation words `bueno`, `ciudad`, and `aire`.
+- `npm test`: 237/237 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Next**:
+- Claude2 UI acceptance for `PHON-002`.
+
+### QA Session #COURSE-006 - 2026-05-25 15:44
+
+**Goal**: Codex2 QA for async interlinear gloss and implied-subject analysis on `/dissect`.
+
+**Result**: PASS for functional QA. Because `COURSE-006` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/course006.test.mjs`: 3/3 pass.
+- `node --test tests/course005.test.mjs tests/course006.test.mjs`: 15/15 pass.
+- Source contract checks passed:
+  - `src/app/api/dissect/analyze/route.ts` exports `POST`, validates `sentence`, returns 400 for bad input, and contains the `tokens` / `impliedSubject` / `naturalEnglish` / `insertBeforeIndex` JSON contract.
+  - `src/app/dissect/DissectorClient.tsx` keeps immediate skeleton highlighting and adds async `analysis` state, `fetch("/api/dissect/analyze")`, `分析中…`, `分析暂不可用`, `逐词对照`, implied-subject styling, and natural-English footer rendering.
+  - Gloss layout uses `flex flex-nowrap overflow-x-auto`, token columns with `inline-flex flex-col items-center min-w-[2rem]`, brand-highlighted implied subject chips, and the `→` footer row.
+- `npm test`: 237/237 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Next**:
+- Claude2 UI acceptance for `COURSE-006`.
+
+### Session #COURSE-006 - 2026-05-25 15:44
+
+**Goal**: Add async interlinear gloss and omitted-subject hints to the `/dissect` sentence analyzer without delaying the existing skeleton-word highlight.
+
+**Completed**:
+- Added `src/app/dissect/analysis.ts` with shared types plus a local fallback analyzer that tokenizes punctuation separately, infers simple omitted subjects, and builds glosses from function words and dictionary lookups.
+- Added `src/app/api/dissect/analyze/route.ts` to validate `sentence`, call DeepSeek in JSON mode when configured, and fall back to the local analyzer when the model is unavailable.
+- Reworked `src/app/dissect/DissectorClient.tsx` to keep the existing immediate skeleton highlight while adding `analysis` async state, `分析中…` / `分析暂不可用` states, and a separate `逐词对照` card.
+- Rendered aligned token columns, inserted omitted-subject chips in brand styling, and added the natural-English footer row.
+- Added `tests/course006.test.mjs`.
+
+**Verification**:
+- TDD red `node --test tests/course006.test.mjs`: failed before implementation.
+- Green `node --test tests/course006.test.mjs`: 3/3 pass.
+- Focused `node --test tests/course005.test.mjs tests/course006.test.mjs`: 15/15 pass.
+- `npm test`: 237/237 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Status**: `COURSE-006` moved to `ready_for_qa`; next stop is Codex2 QA and then Claude2 UI acceptance.
+
+### Session #PHON-004 - 2026-05-25 16:28
+
+**Goal**: Add the bottom-of-page stress and sinalefa teaching module for `/phonics`.
+
+**Completed**:
+- Added `content/phonics/prosody.ts` with three stress rules, six clickable example words, and three sinalefa sentences with merge-span metadata.
+- Added `src/app/phonics/PhonicsProsody.tsx` and mounted it below `AlphabetGrid` in `src/app/phonics/page.tsx`.
+- Rendered the reviewed two-block layout: `Acentuación` and `Sinalefa`, with stressed syllables in `font-bold text-brand-600` and merged vowels in `border-b-2 border-brand-400`.
+- Extended `scripts/generate-phonics-audio.mjs` to generate `/audio/phonics/stress/*.mp3` and `/audio/phonics/sinalefa/*.mp3`.
+- Added `tests/phon004.test.mjs`.
+
+**Verification**:
+- TDD red `node --test tests/phon004.test.mjs`: 0/3 pass before implementation.
+- `node scripts/generate-phonics-audio.mjs`: generated `stress/casa.mp3`, `stress/trabajar.mp3`, `stress/cafe.mp3`, `sinalefa/mi-amigo.mp3`, `sinalefa/la-escuela.mp3`, and `sinalefa/todo-el-dia.mp3`.
+- Focused `node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs`: 15/15 pass.
+- `npm test`: 234/234 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Status**: `PHON-004` moved to `ready_for_qa`; next stop is Codex2 QA.
+
+### Session #PHON-003 - 2026-05-25 16:02
+
+**Goal**: Implement conditional pronunciation rules, modal rule viewing, and generated syllable audio for the Stage 0 phonics page.
+
+**Completed**:
+- Extended `content/phonics/alphabet.ts` with `PronunciationRule` / `PronunciationRuleWord` data for the reviewed variable letters: B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z.
+- Reworked `src/app/phonics/AlphabetGrid.tsx` so letters with rules show a small brand dot plus a `查看发音` trigger, then open a desktop modal / mobile bottom sheet instead of expanding the grid inline.
+- Added per-rule condition chips, syllable playback buttons, and example-word rows inside the modal while keeping plain fixed-pronunciation letters visually unchanged.
+- Extended `scripts/generate-phonics-audio.mjs` to derive syllable audio and rule-word audio from `SPANISH_ALPHABET`, then generated the new `/audio/phonics/syllables/*.mp3` set and expanded word inventory.
+- Added `tests/phon003.test.mjs` and updated `tests/phon001.test.mjs` so the shared `AudioButton` abstraction remains covered without depending on the old inline JSX literals.
+
+**Verification**:
+- TDD red `node --test tests/phon003.test.mjs`: 1/3 pass before implementation.
+- `node scripts/generate-phonics-audio.mjs`: generated the new syllable and rule-word assets, including `ce.mp3`, `gue.mp3`, `rr.mp3`, `uva.mp3`, `quiero.mp3`, and `y-conjunction.mp3`.
+- Focused `node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs`: 12/12 pass.
+- `npm test`: 231/231 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Status**: `PHON-003` moved to `ready_for_qa`; next stop is Codex2 QA.
+
+### Session #PHON-002 - 2026-05-25 15:12
+
+**Goal**: Implement the phonics foundations module above the alphabet grid as the prerequisite for PHON-003 and PHON-004.
+
+**Completed**:
+- Added `content/phonics/foundations.ts` with structured data for vowels, strong/weak vowel examples, diphthongs, and the extra audio-generation word list.
+- Added `src/app/phonics/PhonicsIntro.tsx` with three reviewed sections: `Vocales`, `Vocales fuertes / débiles`, and `Diptongo`, all wired to the existing playback-rate audio behavior.
+- Inserted the intro module above `AlphabetGrid` in `src/app/phonics/page.tsx` with the requested `mb-10 border-b border-gray-100 pb-10` separation.
+- Extended `scripts/generate-phonics-audio.mjs` to load PHON-002 foundation words and generated `bueno`, `ciudad`, and `aire` audio assets plus text caches.
+- Added `tests/phon002.test.mjs` and updated `tests/phon001.test.mjs` so PHON-001 still requires the original 27 core word files while allowing new phonics words to coexist.
+
+**Verification**:
+- Baseline `npm test`: 225/225 pass.
+- TDD red `node --test tests/phon002.test.mjs`: 0/3 pass before implementation.
+- Focused `node --test tests/phon001.test.mjs tests/phon002.test.mjs`: 9/9 pass.
+- `node scripts/generate-phonics-audio.mjs`: generated `public/audio/phonics/words/bueno.mp3`, `ciudad.mp3`, and `aire.mp3`; unchanged files hit the skip branch.
+- `npm test`: 228/228 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+- Local `/phonics` smoke: HTTP 200 on port 3007 after `npm run start -- -p 3007`.
+
+**Status**: `PHON-002` moved to `ready_for_qa`; next stop is Codex2 QA.
+
 ### QA Session #TALK-003 - 2026-05-25 14:56
 
 **Goal**: Codex2 QA for archive-session flow, 7-day cleanup, and cron wiring on `/talk/[characterId]`.

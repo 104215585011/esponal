@@ -904,7 +904,7 @@
     "area": "talk",
     "title": "归档会话 + 7 天后自动清理",
     "user_visible_behavior": "用户可在会话项 hover 点🗑归档，会话立即从 ACTIVE 列表移除（数据保留为 ARCHIVED）。7 天后由 Vercel Cron 自动物理删除归档及其关联消息。可选：底部归档抽屉展示 7 天内已归档可恢复。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "Prisma migration 加 ChatSession.archivedAt 列",
       "DELETE /api/talk/sessions/[id] 一次性写 status=ARCHIVED + archivedAt=now()",
@@ -917,7 +917,7 @@
       "测试覆盖：archive 6 天后不删 / archive 8 天后删",
       "npm test 通过"
     ],
-    "evidence": "Codex1 实现完整（PM 误推 commit f9686b3 时一并合并，源码事后追认）：prisma migration 20260525142000_add_chat_session_archived_at 加 archivedAt 列；DELETE /api/talk/sessions/[id] 写 status=ARCHIVED + archivedAt=now()；POST /api/talk/sessions/[id]/restore 清空 archivedAt；scripts/cleanup-archived-sessions.mjs deleteMany WHERE status=ARCHIVED AND archivedAt < now()-7d；新 cron route /api/talk/cron/cleanup-archived 验证 Authorization: Bearer CRON_SECRET 后调 cleanupArchivedSessions；vercel.json 配 0 3 * * * cron；tests/talk003.test.mjs 含 6/8 天边界 + archivedAt 列校验。npm test 全套通过（含 talk003）。",
+    "evidence": "Codex1 实现完整（PM 误推 commit f9686b3 时一并合并，源码事后追认）：prisma migration 20260525142000_add_chat_session_archived_at 加 archivedAt 列；DELETE /api/talk/sessions/[id] 写 status=ARCHIVED + archivedAt=now()；POST /api/talk/sessions/[id]/restore 清空 archivedAt；scripts/cleanup-archived-sessions.mjs deleteMany WHERE status=ARCHIVED AND archivedAt < now()-7d；新 cron route /api/talk/cron/cleanup-archived 验证 Authorization: Bearer CRON_SECRET 后调 cleanupArchivedSessions；vercel.json 配 0 3 * * * cron；tests/talk003.test.mjs 含 6/8 天边界 + archivedAt 列校验。npm test 全套通过（含 talk003）。 Claude2 视觉验收 2026-05-25：8 项中 7 项直接通过，1 项确认对话框正文 copy 偏差（缺「从列表移除」+「归档抽屉」说明）→ Codex1 一行修正 TalkSidebar.tsx:323 → Claude2 二次确认通过。TALK-003 closing。",
     "notes": "Ticket: docs/tickets/TALK-003.md。优先级 P2，预估 1 天。依赖 TALK-002 完成（需要会话列表 UI 才能放归档按钮）。新增 CRON_SECRET env。Claude2 设计评审 PASS 2026-05-23 15:00：(1) 🗑按钮 hover 显示（group-hover:opacity-100），移动端策略待 PM 拍板（建议 < lg 永久显示）；(2) 确认对话框文案扩写为「归档此对话？/ 归档后会从列表移除。7 天内可在「归档」抽屉里恢复，之后将永久删除。」按钮配色用 brand 不用红色 destructive；(3) 归档抽屉灰阶降级 bg-gray-50/text-gray-500，每条带「恢复」小链接。如 v1 跳过抽屉，需在确认文案里删掉「抽屉恢复」一句免误导。详见 session-handoff.md。**PM 澄清 2026-05-25**：7 天倒计时从归档时刻算（archivedAt），不是 updatedAt。必须新增 ChatSession.archivedAt 列，不要复用 updatedAt（updatedAt 被任何 SQL 改动都会重置倒计时）。恢复时清空 archivedAt。"
   },
   {
@@ -999,5 +999,85 @@
     ],
     "evidence": "Codex1 Dev 2026-05-25 11:01: PHON-001 ready for QA. Implemented /phonics Stage 0 alphabet page with SiteHeader, 27-entry static content/phonics/alphabet.ts, client AlphabetGrid with 3/4/5 responsive columns, 3-line card hierarchy, labeled audio buttons (letter name + example word), getPlaybackRate() playback integration, and Ñ bg-brand-50/text-brand-700 with 「西语独有」 badge. Added scripts/generate-phonics-audio.mjs and npm script audio:phonics; generated 54 mp3 assets under public/audio/phonics/letters and public/audio/phonics/words using es-MX-DaliaNeural. Added 「字母」 as the first SiteNav and MobileNav item. Updated VISION.md Stage 0 to 🟢 部分完成. Verification: baseline npm test -> 216/216 pass; TDD red node --test tests/phon001.test.mjs -> 0/6 pass before implementation; after implementation node --test tests/phon001.test.mjs -> 6/6 pass; node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs -> 18/18 pass; npm run lint:encoding -> pass; npm run build -> pass with existing <img>/Sentry/Redis warnings only; npm test -> 222/222 pass. Browser smoke on http://127.0.0.1:3006/phonics confirmed title/subtitle, nav first link 字母, 27 cards, desktop 5-column grid, and Ñ brand background/badge. Codex1 Dev 2026-05-25 14:03: corrected the three reviewed accent errors in content/phonics/alphabet.ts from dia/jamon/xilofono to día/jamón/xilófono, added focused test coverage for the accented examples, and updated scripts/generate-phonics-audio.mjs so reruns only skip mp3 files whose cached source text still matches. Re-ran node scripts/generate-phonics-audio.mjs to regenerate the affected phonics word audio and verified public/audio/phonics/words/d.mp3, j.mp3, and x.mp3 plus matching .txt text-cache markers. Verification: TDD red node --test tests/phon001.test.mjs -> 5/6 pass 1/6 fail before fix; green node --test tests/phon001.test.mjs -> 6/6 pass; node scripts/generate-phonics-audio.mjs regenerated assets, then a second run skipped cached files; npm test -> 222/222 pass; npm run build -> pass with existing <img>/Sentry warnings only. || PM 视觉验收 2026-05-25：截图确认 lg 5 列字母网格 + 巨字母 serif + 字母名/例词 3 行 + 文字标签按钮（🔊 a / 🔊 amigo）+ Ñ 格 brand-50 背景 + 「西语独有」徽章 + 导航首位「字母」入口。",
     "notes": "Ticket: docs/tickets/PHON-001.md。优先级 P1，预估 1-2 天。从 eslearn (C:\\Users\\wang\\Documents\\New project 2\\eslearn) 移植 phonicsSeed + AlphabetGrid + LetterCard 三个文件，去掉 Supabase 改静态数据。拼读规则页与练习模式留作 PHON-002 / PHON-003。Claude2 评审 NEEDS REVISION 2026-05-25 10:30 + PM 拍板 2026-05-25 10:55：(1) 3 行+按钮区 ✅；(2) 🔊 按钮带文字标签 ✅；(3) lg 改 5 列 ✅；(4) Ñ brand-50 + 「西语独有」小标签 ✅；(5) 未登录提示条 ❌ 推迟到 PHON-002（v1 无进度可记录，提示是卖空）。Hero 副标改「27 个字母 · 听一遍，就开始」。ticket 已落实修订，可交 Codex1。"
+  },
+  {
+    "id": "PHON-002",
+    "priority": 56,
+    "area": "phonics",
+    "title": "元音 / 辅音基础介绍模块",
+    "user_visible_behavior": "字母表上方出现「发音基础」模块：5 个元音可点击播音、强/弱元音分类配例词、3 个二合元音例词高亮合并部分可播音。",
+    "status": "passing",
+    "verification": [
+      "/phonics 页面字母表上方有「发音基础」模块",
+      "5 个元音各自可点击播放 TTS（单音）",
+      "强/弱元音分类展示，各有例词可点击播放",
+      "3 个二合元音例词展示，合并部分高亮，可点击播放整词",
+      "辅音说明一行文字存在",
+      "模块在移动端正常显示",
+      "npm test 通过"
+    ],
+    "evidence": "Codex1 Dev 2026-05-25 15:12: implemented PHON-002 phonics foundations module above the alphabet grid. Added content/phonics/foundations.ts with 5 vowels, strong/weak vowel example sets, and 3 diphthong examples; added src/app/phonics/PhonicsIntro.tsx with three vertical sections matching Claude2 review (Vocales buttons, strong vs weak vowel split cards, Diptongo examples with brand-highlighted merged syllables, and a one-line consonant explanation); inserted the module above AlphabetGrid in src/app/phonics/page.tsx with mb-10 border-b border-gray-100 pb-10. Extended scripts/generate-phonics-audio.mjs to read PHONICS_FOUNDATION_AUDIO_WORDS and generated public/audio/phonics/words/bueno.mp3, ciudad.mp3, and aire.mp3 plus .txt text caches. Added tests/phon002.test.mjs and relaxed tests/phon001.test.mjs so the original 27 core word files remain required while allowing PHON-002 expansion. Verification: baseline npm test -> 225/225 pass; TDD red node --test tests/phon002.test.mjs -> 0/3 pass before implementation; green node --test tests/phon001.test.mjs tests/phon002.test.mjs -> 9/9 pass; node scripts/generate-phonics-audio.mjs generated bueno/ciudad/aire assets while skipping unchanged files; npm test -> 228/228 pass; npm run build -> pass with existing <img> and Sentry warnings only; local /phonics HTTP smoke returned 200 after start on port 3007. Codex2 QA 2026-05-25 15:57: PASS for functional QA. Focused tests phon002/003/004 passed 9/9; full npm test passed 237/237; build passed. Source contract checks confirmed foundations data exports, intro module placement above AlphabetGrid, and audio-generation coverage for bueno/ciudad/aire. Because PHON-002 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：全部检查项通过。PHON-002 → passing。",
+    "notes": "Ticket: docs/tickets/PHON-002.md。PHON-003 和 PHON-004 的前置知识。预估 0.5 天。Claude2 设计评审 PASS 2026-05-25：新增 PhonicsIntro，置于 AlphabetGrid 上方，三段式纵向布局；Vocales 用 rounded-full brand-50 按钮；强/弱元音分两组并排；Diptongo 用 text-brand-600 font-semibold 高亮合并音节；缺失词 bueno / ciudad / aire 补入 generate-phonics-audio.mjs。当前状态 ready_for_qa，下一站 Codex2 功能 QA。"
+  },
+  {
+    "id": "PHON-003",
+    "priority": 57,
+    "area": "phonics",
+    "title": "字母条件发音规则 + 音节例子",
+    "user_visible_behavior": "每张字母卡展开后显示条件发音规则，每条规则下有可点击音节按钮（如 ca / ce / ci）播放 TTS，并附例词。",
+    "status": "passing",
+    "verification": [
+      "AlphabetLetter 类型增加 rules 字段",
+      "12 个变音字母（B/V C CH D G H LL Q R X Y Z）有规则数据填充",
+      "每个音节可点击播放 TTS",
+      "每个例词可点击播放 TTS，显示中文",
+      "固定发音字母不显示规则折叠块",
+      "折叠/展开在移动端正常",
+      "音节音频文件已预生成（/audio/phonics/syllables/）",
+      "npm test 通过"
+    ],
+    "evidence": "Codex1 Dev 2026-05-25 16:02: implemented PHON-003 pronunciation-rule teaching layer on top of the Stage 0 alphabet grid. Extended content/phonics/alphabet.ts with PronunciationRule / PronunciationRuleWord types plus rules data for the 12 variable letters B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z, including condition labels, syllable lists, and audio-backed example words. Reworked src/app/phonics/AlphabetGrid.tsx from a static card grid into a modal rule viewer: letters with rules now show a small brand dot and a 查看发音 trigger, then open a mobile bottom sheet / desktop centered modal with per-rule chips, syllable audio buttons, and word rows. Extended scripts/generate-phonics-audio.mjs to derive pronunciation syllables and rule words from SPANISH_ALPHABET, then generated the new assets under public/audio/phonics/syllables plus the expanded rule-word inventory in public/audio/phonics/words. Updated tests/phon001.test.mjs to assert the shared AudioButton contract instead of the previous inline literal, and added tests/phon003.test.mjs to lock the rule-data, modal-UI, and audio-generation contracts. Verification: TDD red node --test tests/phon003.test.mjs -> 1/3 pass, 2/3 fail before implementation; node scripts/generate-phonics-audio.mjs generated the new syllable set and rule-word assets including ce.mp3, gue.mp3, rr.mp3, uva.mp3, quiero.mp3, and y-conjunction.mp3; focused node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs -> 12/12 pass; npm test -> 231/231 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:57: PASS for functional QA. Focused tests phon002/003/004 passed 9/9; full npm test passed 237/237; build passed. Source contract checks confirmed reviewed modal interaction, 12 rule-backed variable letters, and 84 generated syllable mp3 assets plus rule-word inventory. Because PHON-003 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：全部检查项通过。PHON-003 → passing。",
+    "notes": "Ticket: docs/tickets/PHON-003.md。依赖 PHON-002。预估 1.5 天。Claude2 设计评审 PASS 2026-05-25：放弃 inline collapse，改为有规则字母右上角 brand dot + 查看发音按钮；桌面端居中 modal、移动端底部 sheet；规则项内含条件标签、发音说明、音节按钮和例词列表。当前状态 ready_for_qa，下一站 Codex2 功能 QA。"
+  },
+  {
+    "id": "PHON-004",
+    "priority": 58,
+    "area": "phonics",
+    "title": "重音规则 + Sinalefa 连读，带例词/例句",
+    "user_visible_behavior": "页面底部出现「重音 & 连读」模块：3 条重音规则配可点击例词（重读音节加粗高亮）；3 个 Sinalefa 例句标出合并位置可点击播音。",
+    "status": "passing",
+    "verification": [
+      "页面底部有「重音 & 连读」模块",
+      "3 条重音规则，每条 2 个例词，重读音节加粗品牌色",
+      "每个例词可点击播放 TTS",
+      "Sinalefa 说明文字存在",
+      "3 个 Sinalefa 例句，合并位置有视觉标记，可点击播放 TTS",
+      "模块在移动端正常显示",
+      "npm test 通过"
+    ],
+    "evidence": "Codex1 Dev 2026-05-25 16:28: implemented the bottom-of-page prosody module for PHON-004. Added content/phonics/prosody.ts with three stress rules (each with two clickable examples and explicit stressed-syllable indices) plus three sinalefa sentences with pronunciation strings and highlighted merge spans. Added src/app/phonics/PhonicsProsody.tsx and mounted it below AlphabetGrid in src/app/phonics/page.tsx using the reviewed mt-12 pt-10 border-t border-gray-100 section split. The UI renders stacked Acentuación and Sinalefa blocks, bold brand-colored stressed syllables, border-b-2 brand underline treatment for merged vowels, and shared playback-rate-aware audio buttons for every word and sentence. Extended scripts/generate-phonics-audio.mjs to load prosody data and generate the new assets under public/audio/phonics/stress and public/audio/phonics/sinalefa. Added tests/phon004.test.mjs to lock the bottom module, highlight treatment, and audio-generation contract. Verification: TDD red node --test tests/phon004.test.mjs -> 0/3 pass before implementation; node scripts/generate-phonics-audio.mjs generated stress audio for casa/comen/ciudad/trabajar/cafe/musica and sinalefa audio for mi-amigo/la-escuela/todo-el-dia; focused node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs -> 15/15 pass; npm test -> 234/234 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:57: PASS for functional QA. Focused tests phon002/003/004 passed 9/9; full npm test passed 237/237; build passed. Source contract checks confirmed bottom-of-page prosody placement, stress highlight and sinalefa underline treatments, plus 6 stress mp3 and 3 sinalefa mp3 assets. Because PHON-004 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：全部检查项通过。PHON-004 → passing。",
+    "notes": "Ticket: docs/tickets/PHON-004.md。依赖 PHON-002（强/弱元音概念）。Claude2 设计评审 PASS 2026-05-25：模块放在页面底部，重音用小写音节 `font-bold text-brand-600`，Sinalefa 合并位用 `border-b-2 border-brand-400`，两块上下堆叠不做 tab。当前状态 ready_for_qa，下一站 Codex2 功能 QA。"
+  },
+  {
+    "id": "COURSE-006",
+    "priority": 59,
+    "area": "course",
+    "title": "拆解器增强：逐词英注 + 省略主语推断",
+    "user_visible_behavior": "点「拆解」后骨架词高亮立即出现（不变），下方异步加载「逐词对照」区块：每个词下标英注，省略主语以（tú）等形式插入词序并品牌色高亮，底部显示自然英语句。",
+    "status": "passing",
+    "verification": [
+      "骨架词高亮仍立即出现，无延迟",
+      "逐词对照区块异步加载，加载中显示「分析中…」",
+      "每个非标点 token 下方显示英注",
+      "省略主语插入词序，text-brand-600",
+      "英注行对应位置显示 [you]/[I] 等",
+      "区块底部显示自然英语句 → ...",
+      "无省略主语的句子正常显示",
+      "AI 出错时显示降级文案，不 crash",
+      "POST /api/dissect/analyze 返回结构正确的 JSON",
+      "npm test 通过"
+    ],
+    "evidence": "Codex1 Dev 2026-05-25 15:44: implemented COURSE-006 on /dissect with a new shared src/app/dissect/analysis.ts model, a POST /api/dissect/analyze route, and a DissectorClient async gloss panel. The existing skeleton-word highlight path stays immediate; clicking 拆解 now also posts the sentence to /api/dissect/analyze, shows 分析中… during the request, renders a separate 逐词对照 card with horizontal token alignment, inserts omitted subjects in brand styling, and shows a natural-English footer. The route reuses DeepSeek config when available and falls back to local gloss assembly via function-word + dictionary lookups so the feature degrades without crashing. Verification: TDD red node --test tests/course006.test.mjs -> 0/3 pass before implementation; green node --test tests/course006.test.mjs -> 3/3 pass; focused node --test tests/course005.test.mjs tests/course006.test.mjs -> 15/15 pass; npm test -> 237/237 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:44: PASS for functional QA. Source contract checks confirmed route JSON fields sentence/tokens/impliedSubject/naturalEnglish/insertBeforeIndex plus 400 validation, client async fetch('/api/dissect/analyze'), loading/error states, and aligned token-column classes. Because COURSE-006 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：10 项全部通过。结构微调（border-t + 内层 bg-gray-50/70 代替独立卡片）经评估视觉效果更优，保留。COURSE-006 passing。",
+    "notes": "Ticket: docs/tickets/COURSE-006.md。渐进加载：客户端骨架词即时 + AI 异步。新 API POST /api/dissect/analyze 调 DeepSeek，返回 tokens + impliedSubject + naturalEnglish。Claude2 设计评审 PASS 2026-05-25；当前状态 ready_for_qa，下一站 Claude2 UI 验收。"
   }
 ]
