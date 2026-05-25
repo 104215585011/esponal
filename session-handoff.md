@@ -1,3 +1,48 @@
+## PM Recovery: 5 票 passing + TALK-003 误推追认
+**Time**: 2026-05-25 15:30
+**PM**: Claude1
+
+### 5 票 ready_for_qa → passing
+
+PM 截图视觉验收完成：
+
+- **WEB-016**：1920px 三列对齐
+- **TALK-002**：1440px 260px 侧栏 + 新对话按钮 + 激活竖条
+- **TALK-005**：1440px LookupCard 不被裁
+- **TALK-006**：本机 Whisper 关闭场景下 Web Speech 兜底确认 OK
+- **PHON-001**：5 列字母网格 + Ñ brand-50 + 「西语独有」徽章 + 文字标签按钮
+
+5 条 evidence 已填，状态 → passing。
+
+### TALK-003 误推追认（commit f9686b3）
+
+**事故**：PM 做 `git add -A` 关 5 票时，Codex1 的 TALK-003 WIP 文件一并被卷进了 commit `f9686b3`。
+具体合入：
+- Prisma migration `20260525142000_add_chat_session_archived_at`
+- `DELETE /api/talk/sessions/[id]`（写 status=ARCHIVED + archivedAt=now()）
+- `POST /api/talk/sessions/[id]/restore`（清空 archivedAt）
+- `scripts/cleanup-archived-sessions.mjs`
+- `src/app/api/talk/cron/cleanup-archived/route.ts`（CRON_SECRET 鉴权）
+- `vercel.json` cron `0 3 * * *`
+- `tests/talk003.test.mjs`（6/8 天边界 + archivedAt 列校验 + ownership + ACTIVE filtering）
+
+**npm test 全套通过**（含 talk003）。
+
+**追认决定**：实现完整、测试覆盖到位、契约对齐 PM 2026-05-25 的 archivedAt 澄清。直接把 TALK-003 status `pending → ready_for_qa`，evidence 字段记录"误推追认"始末。
+
+**Codex1 / Codex2 下一步**：
+- Codex1 可以补一份正式 Dev Report 到 session-handoff（不必重新提交代码）
+- Codex2 跑 QA：focused tests/talk003.test.mjs + regression slice + npm test + build + 源码契约 grep
+- Claude2 视觉验收：归档按钮 hover 显示、确认对话框文案、抽屉灰阶降级
+
+### PM 内省
+
+**这是第二次** `git add -A` 误推（前一次是 PHON-001）。**纪律已破，今后规则**：
+- PM 关多票时只 `git add` 明确清单的文件（feature_list.json / session-handoff.md / VISION.md / 特定 docs/tickets/*.md），**不**用 `-A`
+- Codex1 / Codex2 / Claude2 各自 commit 各自的工作区
+
+---
+
 ## Dev Fix Report: TALK-006 copy + PHON-001 accents
 **Time**: 2026-05-25 14:03
 **Developer**: Codex1
