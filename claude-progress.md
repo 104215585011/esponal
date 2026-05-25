@@ -1,3 +1,88 @@
+### QA Session #VOCAB-010 - 2026-05-26 00:27
+
+**Goal**: Codex2 QA for the saved-word LookupCard state so already-saved lemmas stop offering a second save action.
+
+**Result**: PASS. `VOCAB-010` now moves to `passing` because this ticket does not require Claude2 review.
+
+**Verification**:
+- `node --test tests/vocab010.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs tests/course006.test.mjs tests/talk005.test.mjs`: 23/23 pass.
+- `npm test`: 240/240 pass.
+- Source contract checks passed:
+  - `src/app/api/vocab/lookup/route.ts` returns `isSaved: Boolean(savedWord)` after a session-aware `getWordWithEncounters(userId, entry.lemma)` lookup.
+  - `src/app/watch/LookupCard.tsx` extends `LookupResponse` with `isSaved`, adds `already_saved` to `ButtonState`, sets that state when `payload.isSaved === true`, renders `bg-amber-50 text-amber-600 cursor-default`, and disables the button in that state.
+- `npm run build`: pass during Codex1 verification with only existing `<img>` and Sentry warnings.
+
+**Notes**:
+- A temporary CRLF regression in `src/app/watch/LookupCard.tsx` and `tests/vocab010.test.mjs` tripped `INFRA-002`; converting both files back to LF closed the only full-suite failure.
+
+### Session #VOCAB-010 - 2026-05-26 00:27
+
+**Goal**: Add a first-class saved-word state to LookupCard so users immediately see when a lemma is already in their vocab list.
+
+**Completed**:
+- Updated [src/app/api/vocab/lookup/route.ts](C:/Users/wang/esponal/src/app/api/vocab/lookup/route.ts) to return `isSaved: boolean` by combining the lookup response with a session-aware `getWordWithEncounters(userId, entry.lemma)` check.
+- Updated [src/app/watch/LookupCard.tsx](C:/Users/wang/esponal/src/app/watch/LookupCard.tsx) to:
+  - extend `LookupResponse` with `isSaved`
+  - add `already_saved` to `ButtonState`
+  - switch the ready-state flow to `setButtonState("already_saved")` when the backend marks the lemma as saved
+  - render the reviewed amber disabled button style `bg-amber-50 text-amber-600 cursor-default`
+  - disable the action when the state is `already_saved`
+- Added [tests/vocab010.test.mjs](C:/Users/wang/esponal/tests/vocab010.test.mjs).
+
+**Verification**:
+- TDD red `node --test tests/vocab010.test.mjs`: failed 2/2 before implementation.
+- Green `node --test tests/vocab010.test.mjs`: 2/2 pass.
+- Regression slice `node --test tests/vocab010.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs tests/course006.test.mjs tests/talk005.test.mjs`: 23/23 pass.
+- `npm test`: 240/240 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- PM can start `VOCAB-011` whenever ready; `VOCAB-010` itself is closed.
+
+### QA Session #COURSE-006-FIX - 2026-05-25 23:25
+
+**Goal**: Codex2 QA for the expanded `/dissect` implied-subject handling and `gustar` inversion helper note.
+
+**Result**: PASS for functional QA. Because `COURSE-006` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 focused UI acceptance.
+
+**Verification**:
+- `node --test tests/course006.test.mjs`: 4/4 pass.
+- `node --test tests/course005.test.mjs tests/course006.test.mjs`: 16/16 pass.
+- Source contract checks passed:
+  - `src/app/dissect/analysis.ts` exports `ImpliedSubjectType`, `type`, and `inversionNote?: "gustar"`.
+  - fallback heuristics cover `hace`, `hay`, `se`, and `gustar` detection paths.
+  - `src/app/api/dissect/analyze/route.ts` enumerates CASE 1-6, includes `type` in the example schema, and normalizes both `type` and `inversionNote`.
+  - `src/app/dissect/DissectorClient.tsx` renders the gray `gustar` helper line with `text-xs text-gray-400 mt-1`.
+- `npm test`: 238/238 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings.
+
+**Next**:
+- Claude2 focused UI acceptance for the `gustar` note and new implied-subject chip cases.
+
+### Session #COURSE-006-FIX - 2026-05-25 23:16
+
+**Goal**: Extend `/dissect` omitted-subject handling beyond simple personal pro-drop so impersonal, existential, `se` impersonal, and `gustar` inversion cases are surfaced correctly.
+
+**Completed**:
+- Expanded [src/app/dissect/analysis.ts](C:/Users/wang/esponal/src/app/dissect/analysis.ts) with `ImpliedSubjectType`, `inversionNote?: "gustar"`, and fallback heuristics for:
+  - impersonal weather like `hace / llueve / nieva`
+  - impersonal `es / parece / resulta`
+  - existential `hay`
+  - `se` impersonal / passive-reflexive
+  - `gustar`-type inversion notes without injecting a fake subject
+- Updated [src/app/api/dissect/analyze/route.ts](C:/Users/wang/esponal/src/app/api/dissect/analyze/route.ts) so the DeepSeek prompt explicitly enumerates CASE 1-6, the schema example includes `type`, and the normalizer now passes through `type` plus `inversionNote`.
+- Updated [src/app/dissect/DissectorClient.tsx](C:/Users/wang/esponal/src/app/dissect/DissectorClient.tsx) to render the gray `gustar` helper line under the natural-English footer.
+- Expanded [tests/course006.test.mjs](C:/Users/wang/esponal/tests/course006.test.mjs) to lock the new analysis model, fallback heuristics, prompt contract, and UI note.
+
+**Verification**:
+- TDD red `node --test tests/course006.test.mjs`: 2/4 fail before implementation.
+- Green `node --test tests/course006.test.mjs`: 4/4 pass.
+- Focused `node --test tests/course005.test.mjs tests/course006.test.mjs`: 16/16 pass.
+- `npm test`: 238/238 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `COURSE-006` moved back to `ready_for_qa` for the fix pass; next stop is Codex2 QA, then Claude2 focused UI acceptance for the `gustar` helper line and new implied-subject chips.
+
 ### QA Session #PHON-004 - 2026-05-25 15:57
 
 **Goal**: Codex2 QA for the bottom-of-page stress and sinalefa module on `/phonics`.

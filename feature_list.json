@@ -1077,7 +1077,85 @@
       "POST /api/dissect/analyze 返回结构正确的 JSON",
       "npm test 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-25 15:44: implemented COURSE-006 on /dissect with a new shared src/app/dissect/analysis.ts model, a POST /api/dissect/analyze route, and a DissectorClient async gloss panel. The existing skeleton-word highlight path stays immediate; clicking 拆解 now also posts the sentence to /api/dissect/analyze, shows 分析中… during the request, renders a separate 逐词对照 card with horizontal token alignment, inserts omitted subjects in brand styling, and shows a natural-English footer. The route reuses DeepSeek config when available and falls back to local gloss assembly via function-word + dictionary lookups so the feature degrades without crashing. Verification: TDD red node --test tests/course006.test.mjs -> 0/3 pass before implementation; green node --test tests/course006.test.mjs -> 3/3 pass; focused node --test tests/course005.test.mjs tests/course006.test.mjs -> 15/15 pass; npm test -> 237/237 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:44: PASS for functional QA. Source contract checks confirmed route JSON fields sentence/tokens/impliedSubject/naturalEnglish/insertBeforeIndex plus 400 validation, client async fetch('/api/dissect/analyze'), loading/error states, and aligned token-column classes. Because COURSE-006 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：10 项全部通过。结构微调（border-t + 内层 bg-gray-50/70 代替独立卡片）经评估视觉效果更优，保留。COURSE-006 passing。",
+    "evidence": "Codex1 Dev 2026-05-25 15:44: implemented COURSE-006 on /dissect with a new shared src/app/dissect/analysis.ts model, a POST /api/dissect/analyze route, and a DissectorClient async gloss panel. The existing skeleton-word highlight path stays immediate; clicking 拆解 now also posts the sentence to /api/dissect/analyze, shows 分析中… during the request, renders a separate 逐词对照 card with horizontal token alignment, inserts omitted subjects in brand styling, and shows a natural-English footer. The route reuses DeepSeek config when available and falls back to local gloss assembly via function-word + dictionary lookups so the feature degrades without crashing. Verification: TDD red node --test tests/course006.test.mjs -> 0/3 pass before implementation; green node --test tests/course006.test.mjs -> 3/3 pass; focused node --test tests/course005.test.mjs tests/course006.test.mjs -> 15/15 pass; npm test -> 237/237 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:44: PASS for functional QA. Source contract checks confirmed route JSON fields sentence/tokens/impliedSubject/naturalEnglish/insertBeforeIndex plus 400 validation, client async fetch('/api/dissect/analyze'), loading/error states, and aligned token-column classes. Because COURSE-006 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：10 项全部通过。结构微调（border-t + 内层 bg-gray-50/70 代替独立卡片）经评估视觉效果更优，保留。COURSE-006 passing。Codex1 Dev 2026-05-25 23:16: COURSE-006-FIX expanded implied-subject handling beyond simple pro-drop. Added ImpliedSubjectType plus inversionNote?: \"gustar\", extended fallback heuristics for impersonal weather, impersonal es/parece/resulta clauses, existential hay, and se impersonal, and taught the DeepSeek prompt plus normalizer to emit type and inversionNote. Updated /dissect UI to show the gray gustar helper line under the natural English translation. Verification: red node --test tests/course006.test.mjs -> 2/4 fail before implementation; green node --test tests/course006.test.mjs -> 4/4 pass; focused node --test tests/course005.test.mjs tests/course006.test.mjs -> 16/16 pass; npm test -> 238/238 pass; npm run build -> pass with existing <img> and Sentry warnings only. Next stop: Codex2 QA, then Claude2 focused UI acceptance. Codex2 QA 2026-05-25 23:25: PASS for functional QA. Focused node --test tests/course006.test.mjs passed 4/4; course regression slice node --test tests/course005.test.mjs tests/course006.test.mjs passed 16/16; npm test passed 238/238; npm run build passed with existing <img> and Sentry warnings only. Because COURSE-006 is a UI ticket, status remains ready_for_qa pending Claude2 focused UI acceptance. COURSE-006-FIX Claude2 视觉验收 2026-05-25：六类省略/倒置场景全部实现，gustar ⓘ 提示行样式正确，11 项全部通过。passing。",
     "notes": "Ticket: docs/tickets/COURSE-006.md。渐进加载：客户端骨架词即时 + AI 异步。新 API POST /api/dissect/analyze 调 DeepSeek，返回 tokens + impliedSubject + naturalEnglish。Claude2 设计评审 PASS 2026-05-25；当前状态 ready_for_qa，下一站 Claude2 UI 验收。"
+  },
+  {
+    "id": "VOCAB-010",
+    "priority": 60,
+    "area": "vocab",
+    "title": "LookupCard 已标记状态",
+    "user_visible_behavior": "点击已加入词库的词，「加入我的词库」按钮立即显示为黄色 + 不可点击 + 「已加入词库」，不需要再点一次。",
+    "status": "passing",
+    "verification": [
+      "/api/vocab/lookup 响应包含 isSaved: boolean",
+      "已登录用户点击已保存词 → bg-amber-50 text-amber-600「已加入词库」按钮",
+      "未登录用户 isSaved: false，行为不变",
+      "未保存词绿色按钮正常显示",
+      "already_saved 状态按钮不可点击",
+      "lectura/watch/dissect/talk 各入口均生效",
+      "npm test 通过"
+    ],
+    "evidence": "Codex1 Dev 2026-05-26 00:27: implemented VOCAB-010 saved-word state across LookupCard entry points. Updated src/app/api/vocab/lookup/route.ts to derive session userId and return isSaved: boolean by checking getWordWithEncounters(userId, entry.lemma); updated src/app/watch/LookupCard.tsx to extend LookupResponse with isSaved, add already_saved to ButtonState, switch ready-state handling to setButtonState(\"already_saved\") for saved lemmas, render the reviewed amber disabled style bg-amber-50 text-amber-600 cursor-default, and disable the button for already_saved alongside loading/success. Added tests/vocab010.test.mjs. Verification: red node --test tests/vocab010.test.mjs failed 2/2 before implementation; green node --test tests/vocab010.test.mjs passed 2/2; regression slice node --test tests/vocab010.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs tests/course006.test.mjs tests/talk005.test.mjs passed 23/23; npm run build passed with existing <img> and Sentry warnings only. Codex2 QA 2026-05-26 00:27: PASS. Re-ran node --test tests/vocab010.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs tests/course006.test.mjs tests/talk005.test.mjs -> 23/23 pass; npm test -> 240/240 pass after fixing CRLF-only encoding noise in src/app/watch/LookupCard.tsx and tests/vocab010.test.mjs; npm run build had already passed on the implementation tree. Because VOCAB-010 does not require Claude2 review, status moved directly to passing.",
+    "notes": "Ticket: docs/tickets/VOCAB-010.md。预估 0.5 天。无需 Claude2 评审（按钮颜色规格已在票里写明）。"
+  },
+  {
+    "id": "VOCAB-011",
+    "priority": 61,
+    "area": "vocab",
+    "title": "词汇仪表盘",
+    "user_visible_behavior": "词库页顶部展示：已收藏总数、遇到 3+ 次的词数、本周新增数、遭遇分布条形、来源分布 badge。",
+    "status": "not_started",
+    "verification": [
+      "GET /api/vocab/stats 返回正确数据结构",
+      "词库页顶部 3 个数字卡片正确渲染",
+      "遭遇分布 4 档条形正确",
+      "来源分布 badge 列表显示",
+      "未登录区块不渲染",
+      "加载中有骨架态",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/VOCAB-011.md。预估 1 天。需要 Claude2 UI 评审。"
+  },
+  {
+    "id": "READ-001",
+    "priority": 62,
+    "area": "lectura",
+    "title": "阅读记录（数据库绑定）",
+    "user_visible_behavior": "用户阅读 lectura 滚动至 90% 自动标记已读；列表页已读文章显示 ✓ 徽章；顶部显示「已读 X / 35 篇」。",
+    "status": "not_started",
+    "verification": [
+      "Prisma migration 创建 lectura_reads 表",
+      "POST /api/lectura/[slug]/read 幂等写入",
+      "GET /api/lectura/reads 返回已读 slug 数组",
+      "详情页滚动 90% 自动标记",
+      "详情页手动标记按钮存在，已读后不可点",
+      "列表页已读文章显示 ✓ 徽章",
+      "列表页顶部显示已读进度",
+      "未登录无报错",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/READ-001.md。预估 1 天。需要 Claude2 UI 评审。"
+  },
+  {
+    "id": "HOME-001",
+    "priority": 63,
+    "area": "web",
+    "title": "首页 + 学习路径",
+    "user_visible_behavior": "首页有 Hero 区块说明产品、5 步学习路径卡片（各自链接正确）、工具介绍区块；已登录用户 Step 卡片显示真实进度。",
+    "status": "not_started",
+    "verification": [
+      "首页 Hero 区块含标题 + 副标题 + 2 个 CTA 按钮",
+      "学习路径 5 个 Step 卡片，链接正确",
+      "已登录用户 Step 卡片显示进度数字",
+      "未登录用户无进度数字，不报错",
+      "工具介绍区块存在，链接正确",
+      "移动端 / 桌面布局正确",
+      "npm test 通过，npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/HOME-001.md。预估 1.5 天。需要 Claude2 UI 评审。执行顺序最后，依赖 VOCAB-010/011 和 READ-001 完成后进度数据才准确。"
   }
 ]

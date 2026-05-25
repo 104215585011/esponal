@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAuthOptions } from "@/lib/auth";
 import { lookupDictionary } from "@/lib/dictionary";
 import { reportLookupFailure } from "@/lib/monitor";
+import { getWordWithEncounters } from "@/lib/vocab";
 import {
   checkRateLimit,
   getRetryAfterSec,
@@ -46,7 +47,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "lookup failed" }, { status: 500 });
     }
 
-    return NextResponse.json(entry);
+    const userId =
+      session?.user && "id" in session.user && typeof session.user.id === "string"
+        ? session.user.id
+        : null;
+    const savedWord =
+      userId && entry.lemma ? await getWordWithEncounters(userId, entry.lemma) : null;
+
+    return NextResponse.json({
+      ...entry,
+      isSaved: Boolean(savedWord)
+    });
   } catch (error) {
     reportLookupFailure(word, error);
     return NextResponse.json({ error: "lookup failed" }, { status: 500 });

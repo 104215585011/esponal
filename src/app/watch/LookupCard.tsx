@@ -61,13 +61,14 @@ type LookupResponse = {
   meanings: string[];
   examples: { es: string; zh: string }[];
   phonetic: string | null;
+  isSaved?: boolean;
   conjugations?: unknown;
   nounForms?: unknown;
   adjectiveForms?: unknown;
   degraded?: boolean;
 };
 
-type ButtonState = "default" | "loading" | "success" | "login" | "disabled";
+type ButtonState = "default" | "loading" | "success" | "login" | "disabled" | "already_saved";
 
 type LookupState =
   | { kind: "loading" }
@@ -170,6 +171,10 @@ export function LookupCard({
           nounForms: payload.nounForms,
           adjectiveForms: payload.adjectiveForms
         });
+        if (payload.isSaved === true) {
+          setButtonState("already_saved");
+          return;
+        }
         setButtonState("default");
       } catch (error) {
         if (!cancelled) {
@@ -415,6 +420,8 @@ export function LookupCard({
                 ? "bg-brand-50 text-brand-600 hover:bg-brand-100"
                 : buttonState === "loading"
                   ? "cursor-progress bg-brand-50 text-brand-600 opacity-70"
+                  : buttonState === "already_saved"
+                    ? "bg-amber-50 text-amber-600 cursor-default"
                   : buttonState === "success"
                     ? "bg-brand-50 text-brand-600"
                     : "cursor-default bg-gray-100 text-gray-400"
@@ -422,18 +429,21 @@ export function LookupCard({
             disabled={
               !isReady ||
               buttonState === "loading" ||
-              buttonState === "success"
+              buttonState === "success" ||
+              buttonState === "already_saved"
             }
             onClick={handleAddToVocab}
             type="button"
           >
             {buttonState === "loading"
-              ? "保存中..."
-              : buttonState === "success"
+              ? "保存中.."
+              : buttonState === "already_saved"
                 ? "已加入词库"
-                : lookupState.kind === "unsupported"
-                  ? "无法查词"
-                  : "加入我的词库"}
+                : buttonState === "success"
+                  ? "已加入词库"
+                  : lookupState.kind === "unsupported"
+                    ? "无法查词"
+                    : "加入我的词库"}
           </button>
         )}
       </div>
