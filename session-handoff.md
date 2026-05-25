@@ -186,6 +186,142 @@ Claude2 5 项视觉验收结果：4 项源码级 PASS（等部署后截图）+ *
 
 ---
 
+## QA Report: PHON-001 Stage 0 alphabet pronunciation page
+**Time**: 2026-05-25 13:53
+**Tester**: Codex2
+
+**Conclusion**: PASS for functional QA. PHON-001 is a UI ticket, so `feature_list.json` remains `ready_for_qa`; 待 Claude2 UI 验收.
+
+**Verification steps executed**:
+1. Full baseline suite
+   Command: `npm test`
+   Output:
+   ```
+   > espanol-learning-platform@0.1.0 test
+   > node --test tests/*.test.mjs
+   ...
+   ✔ PHON-001 exposes 27 static Spanish alphabet entries including N tilde
+   ✔ PHON-001 page renders the approved alphabet layout and audio controls
+   ✔ PHON-001 navigation exposes the alphabet entry before video
+   ✔ PHON-001 audio generation script targets 54 mp3 files with Dalia voice
+   ✔ PHON-001 commits generated letter and example audio assets
+   ✔ PHON-001 updates VISION Stage 0 to partially complete
+   ...
+   ℹ tests 222
+   ℹ pass 222
+   ℹ fail 0
+   ```
+   Result: PASS.
+
+2. Focused PHON-001 test
+   Command: `node --test tests/phon001.test.mjs`
+   Output:
+   ```
+   ✔ PHON-001 exposes 27 static Spanish alphabet entries including N tilde
+   ✔ PHON-001 page renders the approved alphabet layout and audio controls
+   ✔ PHON-001 navigation exposes the alphabet entry before video
+   ✔ PHON-001 audio generation script targets 54 mp3 files with Dalia voice
+   ✔ PHON-001 commits generated letter and example audio assets
+   ✔ PHON-001 updates VISION Stage 0 to partially complete
+   ℹ tests 6
+   ℹ pass 6
+   ℹ fail 0
+   ```
+   Result: PASS.
+
+3. Regression slice
+   Command: `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs`
+   Output:
+   ```
+   ✔ AUDIO-002 tts route exposes server-side msedge mp3 synthesis
+   ✔ AUDIO-002 tts route validates, rate-limits, and caches generated audio
+   ✔ AUDIO-002 speak helper always uses the server tts endpoint
+   ✔ AUDIO-002 rate limiter exports a dedicated tts limiter
+   ✔ AUDIO-002 service worker cache-first handles tts audio
+   ✔ PHON-001 exposes 27 static Spanish alphabet entries including N tilde
+   ✔ PHON-001 page renders the approved alphabet layout and audio controls
+   ✔ PHON-001 navigation exposes the alphabet entry before video
+   ✔ PHON-001 audio generation script targets 54 mp3 files with Dalia voice
+   ✔ PHON-001 commits generated letter and example audio assets
+   ✔ PHON-001 updates VISION Stage 0 to partially complete
+   ✔ WEB-009 tailwind config exposes unified design tokens
+   ✔ WEB-009 site header exposes primary navigation
+   ✔ WEB-009 homepage renders logged-out hero with CTA contract
+   ✔ WEB-009 source no longer uses raw green or emerald utility colors
+   ✔ WEB-013 mobile nav component exists and wires the required behavior
+   ✔ WEB-013 SiteNav keeps desktop nav and exposes a mobile branch
+   ✔ WEB-013 SiteHeader keeps SiteNav and hides desktop search on small screens
+   ℹ tests 18
+   ℹ pass 18
+   ℹ fail 0
+   ```
+   Result: PASS.
+
+4. Production build
+   Command: `npm run build`
+   Output:
+   ```
+   > espanol-learning-platform@0.1.0 build
+   > next build
+   ✓ Compiled successfully
+   ✓ Generating static pages (101/101)
+   Route (app)
+   ...
+   ├ ƒ /phonics                             2.95 kB         163 kB
+   ```
+   Notes: build passed with existing `<img>` warnings in `SiteHeader.tsx` and `learn/[slug]/page.tsx`, plus existing Sentry instrumentation migration notices.
+   Result: PASS.
+
+5. Source and asset contract checks
+   Commands:
+   - `rg -n "grid-cols-3|sm:grid-cols-4|lg:grid-cols-5|getPlaybackRate|西语独有|bg-brand-50|text-brand-700|SiteHeader|SPANISH_ALPHABET|字母" src/app/phonics content/phonics src/app/components/web VISION.md package.json scripts/generate-phonics-audio.mjs`
+   - `Get-ChildItem -File public/audio/phonics/letters/*.mp3 | Measure-Object -Property Length -Minimum -Maximum -Sum`
+   - `Get-ChildItem -File public/audio/phonics/words/*.mp3 | Measure-Object -Property Length -Minimum -Maximum -Sum`
+   Output:
+   ```
+   src/app/phonics/page.tsx imports SiteHeader and SPANISH_ALPHABET.
+   src/app/phonics/AlphabetGrid.tsx imports getPlaybackRate and sets audio.playbackRate = getPlaybackRate().
+   src/app/phonics/AlphabetGrid.tsx includes grid-cols-3 sm:grid-cols-4 lg:grid-cols-5.
+   src/app/phonics/AlphabetGrid.tsx includes bg-brand-50/text-brand-700 and 西语独有 for Ñ.
+   src/app/components/web/SiteNav.tsx: { label: "字母", href: "/phonics" } is first.
+   src/app/components/web/MobileNav.tsx: { label: "字母", href: "/phonics" } is first.
+   VISION.md Stage 0: 🟢 部分完成.
+
+   letters: Count 27, Minimum 7776, Maximum 10368, Sum 235872
+   words:   Count 27, Minimum 8208, Maximum 10944, Sum 248832
+   ```
+   Result: PASS.
+
+6. Local served `/phonics` HTML smoke
+   Commands:
+   - `npm run start -- -p 3007` via hidden local process
+   - `Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3007/phonics`
+   Output:
+   ```
+   Initial HTTP probe: 200
+   {"HttpStatus":200,"Cards":27,"AudioButtons":54,"FirstDesktopNavIsAlphabet":true,"FirstMobileNavIsAlphabet":true,"HasNBadge":true,"HasDeferredLoginProgressPrompt":false,"HasHero":true}
+   ```
+   Browser note: Codex in-app browser navigation to both `http://127.0.0.1:3007/phonics` and `http://localhost:3007/phonics` was blocked by the browser surface with `net::ERR_BLOCKED_BY_CLIENT`, so visual screenshot/browser interaction was not available in this environment. Served HTML and source checks confirmed the key DOM/UI contract.
+   Result: PASS.
+
+**Verification mapping**:
+- `/phonics` unauthenticated access: HTTP 200.
+- 27 letters including `Ñ`: PASS.
+- 54 rendered audio buttons and 54 MP3 assets: PASS.
+- Audio uses `getPlaybackRate()`: PASS.
+- Static alphabet data exists with 27 entries: PASS.
+- Generator script and `audio:phonics` path covered by focused test/source check: PASS.
+- SiteNav and MobileNav first item is 「字母」: PASS.
+- Responsive grid source classes are `grid-cols-3 sm:grid-cols-4 lg:grid-cols-5`: PASS.
+- Card hierarchy, serif large letter, name, example Chinese, and two labeled audio buttons appear in served HTML: PASS.
+- Ñ uses brand treatment and 「西语独有」: PASS.
+- Deferred unauthenticated progress prompt is absent: PASS.
+- VISION Stage 0 is `🟢 部分完成`: PASS.
+
+**Handoff**:
+- No Codex2 functional blocker found.
+- Next: Claude2 UI acceptance for PHON-001.
+
 ## Dev Report: PHON-001 Stage 0 alphabet pronunciation page
 **Time**: 2026-05-25 11:01
 **Developer**: Codex1

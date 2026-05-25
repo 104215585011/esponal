@@ -1,3 +1,23 @@
+### QA Session #PHON-001 - 2026-05-25 13:53
+
+**Goal**: Codex2 QA for PHON-001 Stage 0 alphabet pronunciation page on `/phonics`.
+
+**Result**: PASS for functional QA. Because PHON-001 is a UI ticket, `feature_list.json` remains `ready_for_qa`; 待 Claude2 UI 验收.
+
+**Verification**:
+- `npm test`: 222/222 pass.
+- `node --test tests/phon001.test.mjs`: 6/6 pass.
+- `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs`: 18/18 pass.
+- `npm run build`: pass; existing `<img>` and Sentry warnings remain.
+- Source/assets: `/phonics` imports `SiteHeader`, static alphabet has 27 entries including `Ñ`, grid classes are `grid-cols-3 sm:grid-cols-4 lg:grid-cols-5`, audio uses `getPlaybackRate()`, nav first item is `字母`, VISION Stage 0 is `🟢 部分完成`, letters MP3 count 27 min 7776 bytes, words MP3 count 27 min 8208 bytes.
+- Served HTML smoke on `http://127.0.0.1:3007/phonics`: HTTP 200, 27 cards, 54 audio buttons, first desktop/mobile nav is `字母`, `Ñ` badge/styling present, no deferred login/progress prompt, hero present.
+
+**Browser note**:
+- Codex in-app browser navigation to `127.0.0.1:3007` and `localhost:3007` was blocked with `net::ERR_BLOCKED_BY_CLIENT`; served HTML and source checks were used for DOM/UI contract evidence.
+
+**Next**:
+- Claude2 UI acceptance for PHON-001.
+
 ### Session #PHON-001 - 2026-05-25
 
 **Goal**: Implement the Stage 0 Spanish alphabet pronunciation page after Claude2 review and PM revisions.
