@@ -974,5 +974,27 @@
     ],
     "evidence": "2026-05-24 01:58 Codex1: /api/talk/recognize now forwards to WHISPER_TUNNEL_URL/transcribe via src/lib/talk/whisper-client.ts with 20s timeout and fail-open provider=unavailable; TalkClient uses MediaRecorder -> recognize as primary path and Web Speech API only as fallback; docs/talk-whisper-tunnel.md and .env.example updated. Red test node --test tests\\talk006.test.mjs failed 3/3 before implementation; focused 3/3 pass; talk regression slice 20/20 pass; npm test 216/216 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings. Codex2 re-QA 2026-05-24 02:06: PASS for Codex1 fix commit 8310ee2; build blocker from e89a237 is closed by narrowing recorder cleanup to recorder && recorder.state !== \"inactive\". TALK-006 remains ready_for_qa pending Claude2/UI acceptance. Original source contract re-verified: whisper-client still posts to WHISPER_TUNNEL_URL/transcribe with audio_base64/language/suffix and 20s fail-open unavailable; recognize route still returns transcript/language/provider/segments with auth and empty-audio validation; TalkClient still uses MediaRecorder primary path with Web Speech fallback, recognizing state, and timer; no TALK-004 press-and-hold/audio bubbles found. Verification: node --test tests\\talk006.test.mjs -> 3/3 pass; node --test tests\\talk006.test.mjs tests\\talk001.test.mjs tests\\talk002.test.mjs tests\\vocab009.test.mjs -> 20/20 pass; npm test -> 216/216 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only. Live Whisper tunnel smoke not executed because it requires PM local whisper_service.py/cloudflared/current tunnel URL.",
     "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。"
+  },
+  {
+    "id": "PHON-001",
+    "priority": 55,
+    "area": "phonics",
+    "title": "Stage 0 字母发音页（从 eslearn 移植）",
+    "user_visible_behavior": "新用户访问 /phonics（无需登录）看到 27 个西语字母网格，每格展示大/小写字母、字母名、例词及中文。点 🔊 听字母发音 / 例词发音。Header 全局倍速控件可调速。导航在最左加「字母」入口。",
+    "status": "pending",
+    "verification": [
+      "/phonics 未登录可访问，渲染 27 字母（含 Ñ）",
+      "每个字母有 🔊 按钮播放字母发音",
+      "每个例词有 🔊 按钮播放例词发音",
+      "音频接入 getPlaybackRate()，受 Header 倍速控制影响",
+      "content/phonics/alphabet.ts 含 27 条静态数据",
+      "scripts/generate-phonics-audio.mjs 产出 54 个 mp3（27 字母 + 27 例词）",
+      "SiteNav + MobileNav 加「字母」入口位于最左",
+      "移动端响应式网格（3 / 4 / 6 列）",
+      "VISION.md Stage 0 状态从 ❌ 改为 🟢（v1 完成字母部分）",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "Ticket: docs/tickets/PHON-001.md。优先级 P1，预估 1-2 天。从 eslearn (C:\\Users\\wang\\Documents\\New project 2\\eslearn) 移植 phonicsSeed + AlphabetGrid + LetterCard 三个文件，去掉 Supabase 改静态数据。拼读规则页与练习模式留作 PHON-002 / PHON-003。"
   }
 ]
