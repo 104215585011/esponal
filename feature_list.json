@@ -906,16 +906,19 @@
     "user_visible_behavior": "用户可在会话项 hover 点🗑归档，会话立即从 ACTIVE 列表移除（数据保留为 ARCHIVED）。7 天后由 Vercel Cron 自动物理删除归档及其关联消息。可选：底部归档抽屉展示 7 天内已归档可恢复。",
     "status": "pending",
     "verification": [
-      "DELETE /api/talk/sessions/[id] 将 status 设为 ARCHIVED",
+      "Prisma migration 加 ChatSession.archivedAt 列",
+      "DELETE /api/talk/sessions/[id] 一次性写 status=ARCHIVED + archivedAt=now()",
       "侧栏 ACTIVE 列表不显示归档会话",
-      "scripts/cleanup-archived-sessions.mjs 删除 7 天前的 ARCHIVED",
+      "scripts/cleanup-archived-sessions.mjs 删除 archivedAt < now() - 7 days 的 session（归档后 +7 天，不是 updatedAt）",
+      "关联 ChatMessage 级联删除（Prisma onDelete: Cascade）",
       "vercel.json 配置 cron 路径 /api/talk/cron/cleanup-archived",
       "Cron 路由验证 Authorization: Bearer $CRON_SECRET",
       "GET /history 默认只返回 ACTIVE",
+      "测试覆盖：archive 6 天后不删 / archive 8 天后删",
       "npm test 通过"
     ],
     "evidence": "",
-    "notes": "Ticket: docs/tickets/TALK-003.md。优先级 P2，预估 1 天。依赖 TALK-002 完成（需要会话列表 UI 才能放归档按钮）。新增 CRON_SECRET env。Claude2 设计评审 PASS 2026-05-23 15:00：(1) 🗑按钮 hover 显示（group-hover:opacity-100），移动端策略待 PM 拍板（建议 < lg 永久显示）；(2) 确认对话框文案扩写为「归档此对话？/ 归档后会从列表移除。7 天内可在「归档」抽屉里恢复，之后将永久删除。」按钮配色用 brand 不用红色 destructive；(3) 归档抽屉灰阶降级 bg-gray-50/text-gray-500，每条带「恢复」小链接。如 v1 跳过抽屉，需在确认文案里删掉「抽屉恢复」一句免误导。详见 session-handoff.md。"
+    "notes": "Ticket: docs/tickets/TALK-003.md。优先级 P2，预估 1 天。依赖 TALK-002 完成（需要会话列表 UI 才能放归档按钮）。新增 CRON_SECRET env。Claude2 设计评审 PASS 2026-05-23 15:00：(1) 🗑按钮 hover 显示（group-hover:opacity-100），移动端策略待 PM 拍板（建议 < lg 永久显示）；(2) 确认对话框文案扩写为「归档此对话？/ 归档后会从列表移除。7 天内可在「归档」抽屉里恢复，之后将永久删除。」按钮配色用 brand 不用红色 destructive；(3) 归档抽屉灰阶降级 bg-gray-50/text-gray-500，每条带「恢复」小链接。如 v1 跳过抽屉，需在确认文案里删掉「抽屉恢复」一句免误导。详见 session-handoff.md。**PM 澄清 2026-05-25**：7 天倒计时从归档时刻算（archivedAt），不是 updatedAt。必须新增 ChatSession.archivedAt 列，不要复用 updatedAt（updatedAt 被任何 SQL 改动都会重置倒计时）。恢复时清空 archivedAt。"
   },
   {
     "id": "TALK-004",
