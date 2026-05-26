@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LookupCard } from "@/app/watch/LookupCard";
 import { getPlaybackRate, usePlaybackRate } from "@/lib/playback-rate";
 import type { LecturaStory } from "@/../content/lectura";
 
 type LecturaReaderProps = {
   story: LecturaStory;
+  isRead: boolean;
 };
 
 type ActiveLookup = {
@@ -29,15 +30,16 @@ function normalizeLookupWord(token: string) {
     .trim();
 }
 
-export function LecturaReader({ story }: LecturaReaderProps) {
+export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
+  const [isMarked, setIsMarked] = useState(isRead);
   const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
   const [playbackRate] = usePlaybackRate();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isAutoMarkingRef = useRef(false);
 
-  // Live rate change: keep the currently playing paragraph in sync with global rate.
   useEffect(() => {
     if (currentAudioRef.current) {
       currentAudioRef.current.playbackRate = playbackRate;
@@ -101,13 +103,42 @@ export function LecturaReader({ story }: LecturaReaderProps) {
     });
   };
 
+  const markAsRead = useCallback(async () => {
+    if (isMarked || isAutoMarkingRef.current) {
+      return;
+    }
+
+    isAutoMarkingRef.current = true;
+    try {
+      const response = await fetch(`/api/lectura/${story.slug}/read`, {
+        method: "POST"
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      setIsMarked(true);
+      window.dispatchEvent(
+        new CustomEvent("lectura:marked-read", {
+          detail: { slug: story.slug }
+        })
+      );
+    } finally {
+      isAutoMarkingRef.current = false;
+    }
+  }, [isMarked, story.slug]);
+
   useEffect(() => {
     let cancelled = false;
 
     fetch("/api/vocab/highlight")
       .then((response) => (response.ok ? response.json() : { savedForms: [] }))
       .then((data: { savedForms?: unknown }) => {
-        if (cancelled || !Array.isArray(data.savedForms)) return;
+        if (cancelled || !Array.isArray(data.savedForms)) {
+          return;
+        }
+
         setSavedSet(
           new Set(
             data.savedForms
@@ -118,10 +149,12 @@ export function LecturaReader({ story }: LecturaReaderProps) {
         );
       })
       .catch(() => {
-        if (!cancelled) setSavedSet(new Set());
+        if (!cancelled) {
+          setSavedSet(new Set());
+        }
       });
 
-    function handlePointerDown(event: PointerEvent) {
+    const handlePointerDown = (event: PointerEvent) => {
       if (!containerRef.current) return;
       const target = event.target as Node | null;
       if (!target) return;
@@ -129,14 +162,17 @@ export function LecturaReader({ story }: LecturaReaderProps) {
       const lookupEl = document.querySelector("[data-testid='lookup-card']");
       if (lookupEl && lookupEl.contains(target)) return;
       setActiveLookup(null);
-    }
+    };
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setActiveLookup(null);
-    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveLookup(null);
+      }
+    };
 
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       cancelled = true;
       document.removeEventListener("pointerdown", handlePointerDown);
@@ -144,6 +180,29 @@ export function LecturaReader({ story }: LecturaReaderProps) {
       stopCurrentAudio();
     };
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isMarked) {
+        return;
+      }
+
+      const progress = Math.round(
+        ((window.scrollY + window.innerHeight) / document.documentElement.scrollHeight) * 100
+      );
+
+      if (progress >= 90) {
+        void markAsRead();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isMarked, markAsRead]);
 
   return (
     <>
@@ -194,8 +253,6 @@ export function LecturaReader({ story }: LecturaReaderProps) {
                         event.stopPropagation();
                         openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
                       }}
-                      role="button"
-                      tabIndex={0}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
@@ -203,6 +260,8 @@ export function LecturaReader({ story }: LecturaReaderProps) {
                           openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
                         }
                       }}
+                      role="button"
+                      tabIndex={0}
                     >
                       {token}
                     </span>
@@ -232,18 +291,26 @@ export function LecturaReader({ story }: LecturaReaderProps) {
                   form={activeLookup.form}
                   onClose={() => setActiveLookup(null)}
                   originalSentence={paragraph}
-                  translatedSentence=""
                   source={{
                     type: "lectura",
                     storySlug: story.slug,
                     paragraphIndex: activeLookup.paragraphIndex,
                     sentence: paragraph
                   }}
+                  translatedSentence=""
                 />
               </div>
             );
           })()
         : null}
+
+      {isMarked ? (
+        <div className="mt-6 flex justify-end">
+          <span className="inline-flex min-h-[36px] items-center rounded-full bg-emerald-50 px-3 text-sm font-medium text-emerald-600 cursor-default">
+            已读 ✓
+          </span>
+        </div>
+      ) : null}
     </>
   );
 }

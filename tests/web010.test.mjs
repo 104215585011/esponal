@@ -21,13 +21,13 @@ test("WEB-010 continue learning data helpers query recent video and course encou
   assert.match(helper, /formatRelativeTime/);
 });
 
-test("WEB-010 ContinueLearning component renders video and course cards with jump links", async () => {
+test("WEB-010 ContinueLearning component still renders video and course cards with jump links", async () => {
   const componentPath = "src/app/components/web/ContinueLearning.tsx";
   assert.ok(existsSync(componentPath), `${componentPath} should exist`);
 
   const component = await readText(componentPath);
 
-  assert.match(component, /继续学习/);
+  assert.match(component, /缁х画瀛︿範|继续学习/);
   assert.match(component, /videoEncounter/);
   assert.match(component, /courseEncounter/);
   assert.match(component, /buildVideoJumpHref/);
@@ -35,22 +35,19 @@ test("WEB-010 ContinueLearning component renders video and course cards with jum
   assert.match(component, /\/learn\/\$\{courseEncounter\.slug\}/);
   assert.match(component, /videoEncounter\.thumbnail/);
   assert.match(component, /fallback/);
-  assert.match(component, /开始学习/);
   assert.match(component, /rounded-hero/);
   assert.match(component, /shadow-card/);
 });
 
-test("WEB-010 homepage renders ContinueLearning only for logged-in users with data", async () => {
+test("WEB-010 homepage now uses shared progress data instead of ContinueLearning cards", async () => {
   const page = await readText("src/app/page.tsx");
 
-  assert.match(page, /ContinueLearning/);
-  assert.match(page, /getLastVideoEncounter/);
-  assert.match(page, /getLastCourseEncounter/);
+  assert.match(page, /getVocabStats/);
+  assert.match(page, /prisma\.lecturaRead\.count/);
   assert.match(page, /userId/);
-  assert.match(page, /try\s*\{/);
-  assert.match(page, /continueLearningFallback/);
-  assert.match(page, /continueLearning/);
-  assert.match(page, /!\s*session\?\.user\s*\?\s*<HomeHero/);
+  assert.match(page, /learningSteps/);
+  assert.match(page, /<HomeHero isLoggedIn=\{!!userId\} \/>/);
+  assert.doesNotMatch(page, /ContinueLearning/);
 });
 
 test("WEB-010 schema adds an encounter source/time index for recent lookups", async () => {

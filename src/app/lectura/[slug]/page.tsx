@@ -1,6 +1,10 @@
+import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
+import { getAuthOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { LecturaReadStatus } from "../LecturaReadStatus";
 import { LecturaReader } from "../LecturaReader";
 import { getLecturaStory, lecturaStories, type LecturaLevel } from "@/../content/lectura";
 
@@ -20,18 +24,39 @@ type LecturaReadPageProps = {
   params: { slug: string };
 };
 
-export default function LecturaReadPage({ params }: LecturaReadPageProps) {
+export default async function LecturaReadPage({ params }: LecturaReadPageProps) {
   const story = getLecturaStory(params.slug);
 
   if (!story) {
     notFound();
   }
 
+  const session = await getServerSession(getAuthOptions());
+  const userId =
+    session?.user && "id" in session.user && typeof session.user.id === "string"
+      ? session.user.id
+      : null;
+  const read = userId
+    ? await prisma.lecturaRead.findUnique({
+        where: {
+          userId_slug: {
+            userId,
+            slug: story.slug
+          }
+        },
+        select: { id: true }
+      })
+    : null;
+  const isRead = Boolean(read);
+
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-10">
-        <BackLink href="/lectura" label="阅读" />
+        <div className="flex items-center justify-between gap-4">
+          <BackLink href="/lectura" label="阅读" />
+          {userId ? <LecturaReadStatus isRead={isRead} slug={story.slug} /> : null}
+        </div>
 
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
           {story.title}
@@ -44,18 +69,19 @@ export default function LecturaReadPage({ params }: LecturaReadPageProps) {
           >
             {story.level}
           </span>
-          <span>·</span>
+          <span>路</span>
           <span>{story.durationMin} min</span>
-          <span>·</span>
+          <span>路</span>
           <span className="text-[12px] text-gray-400">{story.source}</span>
         </div>
 
         <div className="mt-10">
-          <LecturaReader story={story} />
+          <LecturaReader story={story} isRead={isRead} />
         </div>
 
         <footer className="mt-16 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
-          ⌛ 大约 {story.durationMin} 分钟  ·  💡 点击任意单词查义
+          <p>约 {story.durationMin} 分钟 路 点任意单词查义</p>
+          {!userId ? <p className="mt-2">登录后可保存阅读记录</p> : null}
         </footer>
       </article>
     </main>

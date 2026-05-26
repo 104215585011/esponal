@@ -52,7 +52,7 @@ test("PWA-001 service worker wiring exists", async () => {
   assert.match(register, /navigator\.serviceWorker\.register\("\/sw\.js"\)/);
 });
 
-test("PWA-001 layout and home hero expose manifest and install prompt hooks", async () => {
+test("PWA-001 layout exposes manifest and service worker hooks while install prompt stays reusable", async () => {
   const layoutPath = "src/app/layout.tsx";
   const heroPath = "src/app/components/web/HomeHero.tsx";
   const promptPath = "src/app/components/web/InstallPrompt.tsx";
@@ -69,7 +69,7 @@ test("PWA-001 layout and home hero expose manifest and install prompt hooks", as
   assert.match(layout, /themeColor:\s*"#10b981"/);
   assert.match(layout, /appleWebApp/);
   assert.match(layout, /ServiceWorkerRegister/);
-  assert.match(hero, /InstallPrompt/);
+  assert.doesNotMatch(hero, /InstallPrompt/);
   assert.match(prompt, /beforeinstallprompt/);
   assert.match(prompt, /event\.prompt\(\)/);
 });
@@ -83,7 +83,7 @@ test("PWA-001 offline fallback and icon generator script exist", async () => {
   const offline = await readText(offlinePath);
   const script = await readText(scriptPath);
 
-  assert.match(offline, /离线|绂荤嚎/);
+  assert.match(offline, /离线|稍后再试/);
   assert.match(script, /writeFile|deflateSync/);
   assert.match(script, /icon-maskable-512\.png/);
 });

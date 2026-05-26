@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
+import { getAuthOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { lecturaStories, type LecturaLevel } from "@/../content/lectura";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +19,20 @@ const sortedStories = [...lecturaStories].sort(
   (a, b) => levelOrder[a.level] - levelOrder[b.level]
 );
 
-export default function LecturaIndexPage() {
+export default async function LecturaIndexPage() {
+  const session = await getServerSession(getAuthOptions());
+  const userId =
+    session?.user && "id" in session.user && typeof session.user.id === "string"
+      ? session.user.id
+      : null;
+  const reads = userId
+    ? await prisma.lecturaRead.findMany({
+        where: { userId },
+        select: { slug: true }
+      })
+    : [];
+  const readSlugs = new Set(reads.map((read) => read.slug));
+
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
@@ -28,42 +44,52 @@ export default function LecturaIndexPage() {
           <p className="mt-2 text-sm text-gray-500">
             适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
           </p>
+          {userId ? (
+            <p className="mt-3 text-sm text-gray-500">已读 {readSlugs.size} / {sortedStories.length} 篇</p>
+          ) : null}
         </header>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedStories.map((story) => (
-            <Link
-              className="group flex flex-col gap-3 rounded-surface border border-gray-100 bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 hover:shadow-elevated"
-              href={`/lectura/${story.slug}`}
-              key={story.slug}
-            >
-              <div className="flex items-center justify-between">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${levelStyle[story.level]}`}
-                >
-                  {story.level}
-                </span>
-                <span className="text-[11px] text-gray-400">
-                  {story.durationMin} min
-                </span>
-              </div>
+          {sortedStories.map((story) => {
+            const isRead = readSlugs.has(story.slug);
 
-              <div>
-                <p className="text-base font-semibold text-gray-900 group-hover:text-brand-700">
-                  {story.titleZh}
+            return (
+              <Link
+                className={`group flex flex-col gap-3 rounded-surface border bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 hover:shadow-elevated ${
+                  isRead ? "border-emerald-100" : "border-gray-100"
+                }`}
+                href={`/lectura/${story.slug}`}
+                key={story.slug}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${levelStyle[story.level]}`}
+                  >
+                    {story.level}
+                  </span>
+                  <span className="text-[11px] text-gray-400">
+                    {story.durationMin} min
+                    {isRead ? <span className="ml-1.5 text-emerald-500">✓</span> : null}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="text-base font-semibold text-gray-900 group-hover:text-brand-700">
+                    {story.titleZh}
+                  </p>
+                  <p className="mt-0.5 text-[13px] italic text-gray-500">
+                    {story.title}
+                  </p>
+                </div>
+
+                <p className="text-sm leading-6 text-gray-600 line-clamp-3">
+                  {story.summaryZh}
                 </p>
-                <p className="mt-0.5 text-[13px] italic text-gray-500">
-                  {story.title}
-                </p>
-              </div>
 
-              <p className="text-sm leading-6 text-gray-600 line-clamp-3">
-                {story.summaryZh}
-              </p>
-
-              <p className="mt-auto text-[11px] text-gray-400">{story.source}</p>
-            </Link>
-          ))}
+                <p className="mt-auto text-[11px] text-gray-400">{story.source}</p>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </main>

@@ -1,3 +1,214 @@
+## QA Report: HOME-001
+**Time**: 2026-05-26 01:20
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused homepage test
+   Command: `node --test tests/home001.test.mjs`
+   Output:
+   ```text
+   pass 3
+   fail 0
+   ```
+   Result: PASS
+2. Homepage regression slice
+   Command: `node --test tests/web009.test.mjs tests/web010.test.mjs tests/ext005.test.mjs tests/pwa001.test.mjs`
+   Output:
+   ```text
+   pass 16
+   fail 0
+   ```
+   Result: PASS
+3. Full regression and build
+   Commands: `npm test`; `npm run build`
+   Output:
+   ```text
+   npm test: pass 249, fail 0
+   build: Compiled successfully
+   ```
+   Result: PASS with existing `<img>` and Sentry warnings only.
+
+**Handoff**:
+- `HOME-001` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance for homepage layout at desktop and mobile widths.
+
+## Dev Report: HOME-001
+**Time**: 2026-05-26 01:18
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA.
+
+**Implemented**:
+- Reworked `src/app/components/web/HomeHero.tsx` into an `isLoggedIn` aware hero with `/phonics` and `#tools` CTAs.
+- Updated `src/app/page.tsx` to fetch `getVocabStats(userId)`, `prisma.lecturaRead.count`, and curated video sections in parallel.
+- Added 5 learning-path steps: phonics, learn, lectura, watch, and talk.
+- Added tools cards for dissect and vocab.
+- Preserved the existing curated video sections below the new homepage structure.
+- Added `tests/home001.test.mjs` and updated homepage-related regression tests for the new contract.
+
+**Verification**:
+1. TDD red
+   - Command: `node --test tests/home001.test.mjs`
+   - Result before implementation: failed
+2. Focused green
+   - Command: `node --test tests/home001.test.mjs`
+   - Result: 3/3 pass
+3. Regression slice
+   - Command: `node --test tests/web009.test.mjs tests/web010.test.mjs tests/ext005.test.mjs tests/pwa001.test.mjs`
+   - Result: 16/16 pass
+4. Full suite
+   - Command: `npm test`
+   - Result: 249/249 pass
+5. Build
+   - Command: `npm run build`
+   - Result: pass with existing `<img>` and Sentry warnings only
+
+**Next**:
+- Codex2 QA
+- Claude2 UI acceptance
+
+## QA Report: READ-001
+**Time**: 2026-05-26 01:20
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused lectura test
+   Command: `node --test tests/read001.test.mjs`
+   Output:
+   ```text
+   pass 9
+   fail 0
+   ```
+   Result: PASS
+2. Combined feature slice
+   Command: `node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs`
+   Output:
+   ```text
+   pass 16
+   fail 0
+   ```
+   Result: PASS
+3. Full regression and build
+   Commands: `npm test`; `npm run build`
+   Output:
+   ```text
+   npm test: pass 249, fail 0
+   build: Compiled successfully
+   ```
+   Result: PASS with existing `<img>` and Sentry warnings only.
+
+**Handoff**:
+- `READ-001` remains `ready_for_qa` because the new read-status UI needs Claude2 acceptance.
+- Next stop: Claude2 UI acceptance for the read badge, manual marker, and list progress display.
+
+## Dev Report: READ-001
+**Time**: 2026-05-26 01:10
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA.
+
+**Implemented**:
+- Added Prisma `LecturaRead` model and migration `20260526010500_add_lectura_reads`.
+- Added authenticated `POST /api/lectura/[slug]/read` with idempotent upsert.
+- Added authenticated `GET /api/lectura/reads`.
+- Added `src/app/lectura/LecturaReadStatus.tsx` for manual read marking.
+- Updated lectura list/detail pages and `LecturaReader` for read progress, read badges, and 90% scroll auto-marking.
+- Expanded `tests/read001.test.mjs`.
+
+**Verification**:
+1. TDD red
+   - Command: `node --test tests/read001.test.mjs`
+   - Result before implementation: failed
+2. Focused green
+   - Command: `node --test tests/read001.test.mjs`
+   - Result: 9/9 pass
+3. Combined feature slice
+   - Command: `node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs`
+   - Result: 16/16 pass
+4. Full suite
+   - Command: `npm test`
+   - Result: 249/249 pass
+5. Build
+   - Command: `npm run build`
+   - Result: pass with existing `<img>` and Sentry warnings only
+
+**Next**:
+- Codex2 QA
+- Claude2 UI acceptance
+
+## QA Report: VOCAB-011
+**Time**: 2026-05-26 00:37
+**QA**: Codex2
+**Conclusion**: PASS
+
+**Verification log**:
+1. Focused vocab regression slice
+   Command: `node --test tests/vocab011.test.mjs tests/vocab010.test.mjs tests/vocab004.test.mjs tests/vocab005.test.mjs tests/web010.test.mjs tests/read001.test.mjs`
+   Output:
+   ```text
+   pass 27
+   fail 0
+   includes VOCAB-011 route, helper, page, and dashboard assertions
+   ```
+   Result: PASS
+2. Full regression
+   Command: `npm test`
+   Output:
+   ```text
+   tests 244
+   pass 244
+   fail 0
+   ```
+   Result: PASS
+3. Build check
+   Command: `npm run build`
+   Output:
+   ```text
+   Compiled successfully
+   Route (app) includes /api/vocab/stats and /vocab
+   ```
+   Result: PASS with existing `<img>` and Sentry warnings only.
+
+**Handoff**:
+- `VOCAB-011` is a UI ticket, so `feature_list.json` stays `ready_for_qa`.
+- Next stop: Claude2 UI acceptance.
+
+## Dev Report: VOCAB-011
+**Time**: 2026-05-26 00:37
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA.
+
+**Implemented**:
+- Added `src/app/api/vocab/stats/route.ts` for authenticated vocab stats JSON.
+- Added `getVocabStats()` and shared stats types to `src/lib/vocab.ts`.
+- Added `src/app/vocab/VocabDashboard.tsx` with the reviewed compact cards, bar rows, and source text separators.
+- Updated `src/app/vocab/page.tsx` to fetch stats inside the existing server-side `Promise.all` and render the dashboard above `VocabAccordion`.
+- Added `tests/vocab011.test.mjs`.
+
+**Verification**:
+1. TDD red
+   - Command: `node --test tests/vocab011.test.mjs`
+   - Result before implementation: 0/4 pass
+2. Focused green
+   - Command: `node --test tests/vocab011.test.mjs`
+   - Result: 4/4 pass
+3. Regression slice
+   - Command: `node --test tests/vocab011.test.mjs tests/vocab010.test.mjs tests/vocab004.test.mjs tests/vocab005.test.mjs tests/web010.test.mjs tests/read001.test.mjs`
+   - Result: 27/27 pass
+4. Full suite
+   - Command: `npm test`
+   - Result: 244/244 pass
+5. Build
+   - Command: `npm run build`
+   - Result: pass with existing `<img>` and Sentry warnings only
+
+**Next**:
+- Codex2 QA
+- Claude2 UI acceptance
+
 ## QA Report: VOCAB-010
 **Time**: 2026-05-26 00:27
 **QA**: Codex2

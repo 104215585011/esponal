@@ -17,6 +17,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   words         Word[]
+  lecturaReads  LecturaRead[]
   chatSessions  ChatSession[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -104,6 +105,18 @@ model WordEncounter {
 
   @@index([wordId])
   @@index([sourceType, createdAt])
+}
+
+model LecturaRead {
+  id     String   @id @default(cuid())
+  userId String
+  slug   String
+  readAt DateTime @default(now())
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slug])
+  @@index([userId, readAt])
+  @@map("lectura_reads")
 }
 
 // === Talk 集成（口语训练）===

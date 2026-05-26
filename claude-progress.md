@@ -1,3 +1,119 @@
+### QA Session #HOME-001 - 2026-05-26 01:20
+
+**Goal**: Codex2 QA for the new homepage hero, learning path, progress data wiring, tools section, and retained video sections.
+
+**Result**: PASS for functional QA. Because `HOME-001` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/home001.test.mjs`: 3/3 pass.
+- `node --test tests/web009.test.mjs tests/web010.test.mjs tests/ext005.test.mjs tests/pwa001.test.mjs`: 16/16 pass.
+- `node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs`: 16/16 pass.
+- `npm test`: 249/249 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Source contract checks**:
+- `src/app/components/web/HomeHero.tsx` accepts `isLoggedIn`, shows logged-in/logged-out copy, links primary CTA to `/phonics`, secondary CTA to `#tools`, and no longer mounts `InstallPrompt`.
+- `src/app/page.tsx` fetches vocab stats and lectura read count for signed-in users, renders 5 learning steps, exposes `/dissect` and `/vocab` tools, and keeps `video-sections`.
+
+### Session #HOME-001 - 2026-05-26 01:18
+
+**Goal**: Rebuild the homepage around a clear learning path so new users see the product quickly and signed-in users see real progress.
+
+**Completed**:
+- Reworked [src/app/components/web/HomeHero.tsx](C:/Users/wang/esponal/src/app/components/web/HomeHero.tsx) into a logged-in aware hero with `/phonics` and `#tools` CTAs.
+- Updated [src/app/page.tsx](C:/Users/wang/esponal/src/app/page.tsx) to fetch vocab stats, lectura read count, and curated videos in parallel.
+- Added a 5-step learning path for phonics, learn, lectura, watch, and talk.
+- Added a compact tools section for dissect and vocab, while retaining the existing curated video channel sections.
+- Added [tests/home001.test.mjs](C:/Users/wang/esponal/tests/home001.test.mjs) and updated homepage regression tests for the new contract.
+
+**Verification**:
+- TDD red `node --test tests/home001.test.mjs`: failed before implementation.
+- Green `node --test tests/home001.test.mjs`: 3/3 pass.
+- Regression slice `node --test tests/web009.test.mjs tests/web010.test.mjs tests/ext005.test.mjs tests/pwa001.test.mjs`: 16/16 pass.
+- Combined feature slice `node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs`: 16/16 pass.
+- `npm test`: 249/249 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Claude2 UI acceptance for desktop/mobile homepage layout and copy density.
+
+### QA Session #READ-001 - 2026-05-26 01:20
+
+**Goal**: Codex2 QA for database-backed lectura read tracking, APIs, automatic/manual marking, and list progress.
+
+**Result**: PASS for functional QA. Because this READ-001 extension is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/read001.test.mjs`: 9/9 pass.
+- `node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs`: 16/16 pass.
+- `npm test`: 249/249 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Source contract checks**:
+- Prisma contains `LecturaRead` with unique `[userId, slug]` and read-time index.
+- `POST /api/lectura/[slug]/read` is auth-protected and idempotent.
+- `GET /api/lectura/reads` returns the signed-in user's read slugs.
+- `/lectura` shows signed-in read progress and per-story read badges.
+- `/lectura/[slug]` supports manual marking and `LecturaReader` auto-marks at 90% scroll.
+
+### Session #READ-001 - 2026-05-26 01:10
+
+**Goal**: Add persistent lectura read tracking so reading progress can feed the list page and homepage.
+
+**Completed**:
+- Added `LecturaRead` to [prisma/schema.prisma](C:/Users/wang/esponal/prisma/schema.prisma) and migration `20260526010500_add_lectura_reads`.
+- Added authenticated lectura read APIs under [src/app/api/lectura](C:/Users/wang/esponal/src/app/api/lectura).
+- Added [src/app/lectura/LecturaReadStatus.tsx](C:/Users/wang/esponal/src/app/lectura/LecturaReadStatus.tsx) for manual read marking.
+- Updated lectura list/detail pages and [src/app/lectura/LecturaReader.tsx](C:/Users/wang/esponal/src/app/lectura/LecturaReader.tsx) for read badges, progress, and 90% auto-marking.
+- Expanded [tests/read001.test.mjs](C:/Users/wang/esponal/tests/read001.test.mjs).
+
+**Verification**:
+- TDD red `node --test tests/read001.test.mjs`: failed before implementation.
+- Green `node --test tests/read001.test.mjs`: 9/9 pass.
+- Combined feature slice `node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs`: 16/16 pass.
+- `npm test`: 249/249 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Claude2 UI acceptance for read status placement, list badge subtlety, and mobile behavior.
+
+### QA Session #VOCAB-011 - 2026-05-26 00:37
+
+**Goal**: Codex2 QA for the new vocab dashboard stats API and top-of-page summary block on `/vocab`.
+
+**Result**: PASS for functional QA. Because `VOCAB-011` is a UI ticket, `feature_list.json` remains `ready_for_qa`; next stop is Claude2 UI acceptance.
+
+**Verification**:
+- `node --test tests/vocab011.test.mjs tests/vocab010.test.mjs tests/vocab004.test.mjs tests/vocab005.test.mjs tests/web010.test.mjs tests/read001.test.mjs`: 27/27 pass.
+- `npm test`: 244/244 pass.
+- Source contract checks passed:
+  - `src/app/api/vocab/stats/route.ts` is auth-protected and returns `totalSaved`, `encounterBuckets`, `weeklyNew`, and `bySource`.
+  - `src/lib/vocab.ts` exports `getVocabStats()` with 4 encounter buckets and grouped source totals.
+  - `src/app/vocab/page.tsx` fetches stats server-side inside `Promise.all` and mounts `VocabDashboard` above `VocabAccordion`.
+  - `src/app/vocab/VocabDashboard.tsx` uses the reviewed `text-2xl` compact cards, brand bar rows, and text separators instead of pills.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+### Session #VOCAB-011 - 2026-05-26 00:37
+
+**Goal**: Add a lightweight progress dashboard to `/vocab` so users can see saved-word totals, repeated encounters, weekly growth, and source mix at a glance.
+
+**Completed**:
+- Added [src/app/api/vocab/stats/route.ts](C:/Users/wang/esponal/src/app/api/vocab/stats/route.ts) for an auth-protected stats payload.
+- Added `getVocabStats()` plus exported stats types in [src/lib/vocab.ts](C:/Users/wang/esponal/src/lib/vocab.ts).
+- Added [src/app/vocab/VocabDashboard.tsx](C:/Users/wang/esponal/src/app/vocab/VocabDashboard.tsx) with the reviewed 3-card summary, 4 encounter buckets, and text-only source distribution row.
+- Updated [src/app/vocab/page.tsx](C:/Users/wang/esponal/src/app/vocab/page.tsx) to fetch stats server-side and render the dashboard above the existing accordion.
+- Added [tests/vocab011.test.mjs](C:/Users/wang/esponal/tests/vocab011.test.mjs).
+
+**Verification**:
+- TDD red `node --test tests/vocab011.test.mjs`: failed 4/4 before implementation.
+- Green `node --test tests/vocab011.test.mjs`: 4/4 pass.
+- Regression slice `node --test tests/vocab011.test.mjs tests/vocab010.test.mjs tests/vocab004.test.mjs tests/vocab005.test.mjs tests/web010.test.mjs tests/read001.test.mjs`: 27/27 pass.
+- `npm test`: 244/244 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Claude2 UI acceptance for the dashboard spacing, compact card typography, and source separator presentation.
+
 ### QA Session #VOCAB-010 - 2026-05-26 00:27
 
 **Goal**: Codex2 QA for the saved-word LookupCard state so already-saved lemmas stop offering a second save action.

@@ -4,8 +4,9 @@ import { SiteHeader } from "@/app/components/web/SiteHeader";
 import VocabAccordion, {
   type VocabWord
 } from "@/app/components/vocab/VocabAccordion";
+import VocabDashboard from "@/app/vocab/VocabDashboard";
 import { getAuthOptions } from "@/lib/auth";
-import { getDueReviewCount, getWordsByUser } from "@/lib/vocab";
+import { getDueReviewCount, getVocabStats, getWordsByUser } from "@/lib/vocab";
 import type { VerbConjugations } from "@/lib/conjugate";
 
 // VOCAB-002 change timestamp: 2026-05-13 13:54
@@ -108,9 +109,10 @@ export default async function VocabPage() {
     redirect("/api/auth/signin");
   }
 
-  const [words, dueCount] = await Promise.all([
+  const [words, dueCount, stats] = await Promise.all([
     getWordsByUser(session.user.id),
-    getDueReviewCount(session.user.id)
+    getDueReviewCount(session.user.id),
+    getVocabStats(session.user.id)
   ]);
 
   const serializedWords: VocabWord[] = words
@@ -173,6 +175,9 @@ export default async function VocabPage() {
             ) : null}
           </div>
         </header>
+        <div className="border-b border-gray-100 mb-6 pb-6">
+          <VocabDashboard stats={stats} />
+        </div>
         <VocabAccordion words={serializedWords} />
       </section>
     </main>

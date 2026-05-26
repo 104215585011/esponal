@@ -22,8 +22,61 @@ type AddEncounterInput = {
   translatedSentence: string;
 };
 
+export type VocabSourceType =
+  | "video"
+  | "course"
+  | "lectura"
+  | "dissect"
+  | "grammar"
+  | "talk";
+
+export type VocabEncounterBucket = {
+  label: string;
+  min: number;
+  max: number | null;
+  count: number;
+};
+
+export type VocabSourceStat = {
+  type: VocabSourceType;
+  label: string;
+  count: number;
+};
+
+export type VocabStats = {
+  totalSaved: number;
+  encounterBuckets: VocabEncounterBucket[];
+  weeklyNew: number;
+  bySource: VocabSourceStat[];
+};
+
 const normalizeForms = (forms: string[] = []) =>
   Array.from(new Set(forms.map((form) => form.trim().toLowerCase()).filter(Boolean)));
+
+const VOCAB_ENCOUNTER_BUCKETS = [
+  { label: "1 次", min: 1, max: 1 },
+  { label: "2 次", min: 2, max: 2 },
+  { label: "3-5 次", min: 3, max: 5 },
+  { label: "6+ 次", min: 6, max: null }
+] as const;
+
+const VOCAB_SOURCE_LABELS: Record<VocabSourceType, string> = {
+  lectura: "阅读",
+  video: "视频",
+  talk: "对话",
+  course: "课程",
+  grammar: "语法",
+  dissect: "拆解"
+};
+
+const VOCAB_SOURCE_ORDER: VocabSourceType[] = [
+  "lectura",
+  "video",
+  "talk",
+  "course",
+  "grammar",
+  "dissect"
+];
 
 function isVerbPos(partOfSpeech?: string | null) {
   return Boolean(partOfSpeech?.trim().toLowerCase().startsWith("v"));
@@ -199,4 +252,84 @@ export async function getWordWithEncounters(userId: string, lemma: string) {
       }
     }
   });
+}
+
+export async function getVocabStats(
+  userId: string,
+  now = new Date()
+): Promise<VocabStats> {
+  const weekAgo = new Date(now);
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const [totalSaved, weeklyNew, words, sourceGroups] = await Promise.all([
+    prisma.word.count({
+      where: { userId }
+    }),
+    prisma.word.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: weekAgo
+        }
+      }
+    }),
+    prisma.word.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            encounters: true
+          }
+        }
+      }
+    }),
+    prisma.wordEncounter.groupBy({
+      by: ["sourceType"],
+      where: {
+        word: {
+          userId
+        }
+      },
+      _count: {
+        _all: true
+      }
+    })
+  ]);
+
+  const encounterBuckets = VOCAB_ENCOUNTER_BUCKETS.map((bucket) => ({
+    label: bucket.label,
+    min: bucket.min,
+    max: bucket.max,
+    count: words.filter((word) => {
+      const encounterCount = word._count.encounters;
+      if (encounterCount < bucket.min) return false;
+      if (bucket.max !== null && encounterCount > bucket.max) return false;
+      return true;
+    }).length
+  }));
+
+  const groupedCounts = new Map(
+    sourceGroups.map((group) => [group.sourceType, group._count._all] as const)
+  );
+
+  const bySource = VOCAB_SOURCE_ORDER.flatMap((type) => {
+    const count = groupedCounts.get(type) ?? 0;
+    if (count <= 0) return [];
+
+    return [
+      {
+        type,
+        label: VOCAB_SOURCE_LABELS[type],
+        count
+      }
+    ];
+  });
+
+  return {
+    totalSaved,
+    encounterBuckets,
+    weeklyNew,
+    bySource
+  };
 }

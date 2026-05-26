@@ -38,7 +38,7 @@ test("WEB-009 site header exposes primary navigation", async () => {
   assert.match(nav, /text-brand-600/);
 });
 
-test("WEB-009 homepage renders logged-out hero with CTA contract", async () => {
+test("WEB-009 homepage hero follows the current CTA contract", async () => {
   const heroPath = "src/app/components/web/HomeHero.tsx";
   const pagePath = "src/app/page.tsx";
   assert.ok(existsSync(heroPath), `${heroPath} should exist`);
@@ -49,11 +49,12 @@ test("WEB-009 homepage renders logged-out hero with CTA contract", async () => {
 
   assert.match(page, /getServerSession/);
   assert.match(page, /getAuthOptions/);
-  assert.match(page, /!\s*session\?\.user\s*\?\s*<HomeHero/);
-  assert.match(hero, /用真实的西语视频/);
-  assert.match(hero, /\/auth\/sign-up/);
-  assert.match(hero, /video-sections/);
-  assert.match(hero, /\/extension/);
+  assert.match(page, /<HomeHero isLoggedIn=\{!!userId\} \/>/);
+  assert.match(hero, /西班牙语，从听懂开始/);
+  assert.match(hero, /\/phonics/);
+  assert.match(hero, /#tools/);
+  assert.doesNotMatch(hero, /InstallPrompt/);
+  assert.doesNotMatch(hero, /\/extension/);
   assert.match(hero, /rounded-hero/);
   assert.match(hero, /shadow-card/);
 });
