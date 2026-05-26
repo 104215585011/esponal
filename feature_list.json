@@ -1105,7 +1105,7 @@
     "area": "vocab",
     "title": "词汇仪表盘",
     "user_visible_behavior": "词库页顶部展示：已收藏总数、遇到 3+ 次的词数、本周新增数、遭遇分布条形、来源分布 badge。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "GET /api/vocab/stats 返回正确数据结构",
       "词库页顶部 3 个数字卡片正确渲染",
@@ -1115,7 +1115,7 @@
       "加载中有骨架态",
       "npm test 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-26 00:37: implemented VOCAB-011 vocab dashboard with shared server-side stats. Added src/app/api/vocab/stats/route.ts for auth-protected stats JSON, added getVocabStats(userId) plus VocabStats/VocabEncounterBucket/VocabSourceStat types in src/lib/vocab.ts, added src/app/vocab/VocabDashboard.tsx with the reviewed compact 3-card layout, 4 encounter bucket bars, and lightweight source text separators, and updated src/app/vocab/page.tsx to fetch stats inside the existing Promise.all and mount the dashboard above VocabAccordion with border-b border-gray-100 mb-6 pb-6 separation. Added tests/vocab011.test.mjs. Verification: TDD red node --test tests/vocab011.test.mjs -> 0/4 pass before implementation; green node --test tests/vocab011.test.mjs -> 4/4 pass; regression slice node --test tests/vocab011.test.mjs tests/vocab010.test.mjs tests/vocab004.test.mjs tests/vocab005.test.mjs tests/web010.test.mjs tests/read001.test.mjs -> 27/27 pass; npm test -> 244/244 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-26 00:37: PASS for functional QA. Re-ran the same 27-test regression slice, full npm test 244/244, and build passed. Because VOCAB-011 is a UI ticket, status remains ready_for_qa pending Claude2 UI acceptance.",
+    "evidence": "Claude2 UI 验收 2026-05-26: PASS。3 个数字卡片 grid-cols-3 text-2xl 正确；分布条 bg-brand-100/bg-brand-500 h-1.5 正确；来源分隔符修复为 · (从编码损坏的「路」字修正)；测试 249/249 通过。",
     "notes": "Ticket: docs/tickets/VOCAB-011.md。预估 1 天。需要 Claude2 UI 评审。"
   },
   {
@@ -1124,7 +1124,7 @@
     "area": "lectura",
     "title": "阅读记录（数据库绑定）",
     "user_visible_behavior": "用户阅读 lectura 滚动至 90% 自动标记已读；列表页已读文章显示 ✓ 徽章；顶部显示「已读 X / 35 篇」。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "Prisma migration 创建 lectura_reads 表",
       "POST /api/lectura/[slug]/read 幂等写入",
@@ -1136,7 +1136,7 @@
       "未登录无报错",
       "npm test 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-26 01:10: implemented READ-001 database-backed lectura read tracking. Added Prisma LecturaRead model plus migration 20260526010500_add_lectura_reads, auth-protected POST /api/lectura/[slug]/read with idempotent upsert, GET /api/lectura/reads, LecturaReadStatus manual marker, 90% scroll auto-marking in LecturaReader, read badges/progress on /lectura, and read-state rendering on /lectura/[slug]. Expanded tests/read001.test.mjs to cover schema, APIs, scroll/manual UI contract, and list progress. Verification: TDD red node --test tests/read001.test.mjs failed before implementation; green node --test tests/read001.test.mjs -> 9/9 pass; combined feature slice node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs -> 16/16 pass; npm test -> 249/249 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-26 01:20: PASS functional QA for READ-001. Status remains ready_for_qa pending Claude2 UI acceptance.",
+    "evidence": "Claude2 UI 验收 2026-05-26: PASS。列表页 border-emerald-100 + ✓ 在时长后正确；进度行 已读 X / N 篇 仅登录显示；LecturaReadStatus 已读态 bg-emerald-50 text-emerald-600 cursor-default 正确；手动按钮「标记为已读」→「已读 ✓」状态切换正确；90% scroll POST 逻辑存在；测试 249/249 通过。",
     "notes": "Ticket: docs/tickets/READ-001.md。预估 1 天。需要 Claude2 UI 评审。"
   },
   {
@@ -1145,7 +1145,7 @@
     "area": "web",
     "title": "首页 + 学习路径",
     "user_visible_behavior": "首页有 Hero 区块说明产品、5 步学习路径卡片（各自链接正确）、工具介绍区块；已登录用户 Step 卡片显示真实进度。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "首页 Hero 区块含标题 + 副标题 + 2 个 CTA 按钮",
       "学习路径 5 个 Step 卡片，链接正确",
@@ -1155,7 +1155,7 @@
       "移动端 / 桌面布局正确",
       "npm test 通过，npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-26 01:18: implemented HOME-001 homepage and learning path. Reworked HomeHero into a logged-in aware client hero without InstallPrompt/extension CTA, rewired src/app/page.tsx to fetch getVocabStats(userId), prisma.lecturaRead.count, and curated video sections, added 5-step learning path links for phonics/learn/lectura/watch/talk with logged-in progress text, added tools section links for dissect/vocab, and retained video channel sections below. Added tests/home001.test.mjs and updated homepage-related regression tests for the new contract. Verification: TDD red node --test tests/home001.test.mjs failed before implementation; green node --test tests/home001.test.mjs -> 3/3 pass; regression slice node --test tests/web009.test.mjs tests/web010.test.mjs tests/ext005.test.mjs tests/pwa001.test.mjs -> 16/16 pass; combined feature slice node --test tests/read001.test.mjs tests/home001.test.mjs tests/vocab011.test.mjs -> 16/16 pass; npm test -> 249/249 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-26 01:20: PASS functional QA for HOME-001. Status remains ready_for_qa pending Claude2 UI acceptance.",
+    "evidence": "Claude2 UI 验收 2026-05-26: PASS。HomeHero isLoggedIn prop 正确，已登录文案「欢迎回来，继续你的西语之旅」；主 CTA rounded-full bg-brand-600 → /phonics，次 CTA → #tools；5 Step 卡片 flex lg:flex-row + hidden lg:block → 分隔符；工具区 id=tools grid-cols-2；YouTube 频道区保留；footer · 分隔符编码修复；测试 249/249 通过。",
     "notes": "Ticket: docs/tickets/HOME-001.md。预估 1.5 天。需要 Claude2 UI 评审。执行顺序最后，依赖 VOCAB-010/011 和 READ-001 完成后进度数据才准确。"
   }
 ]

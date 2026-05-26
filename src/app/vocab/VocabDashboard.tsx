@@ -49,7 +49,7 @@ export default function VocabDashboard({ stats }: VocabDashboardProps) {
         <p className="mt-5 text-sm text-gray-500">
           {stats.bySource.map((source, index) => (
             <span key={source.type}>
-              {index > 0 ? <span className="mx-2 text-gray-300">路</span> : null}
+              {index > 0 ? <span className="mx-2 text-gray-300">·</span> : null}
               {source.label} {source.count}
             </span>
           ))}

@@ -1,3 +1,67 @@
+## Claude2 视觉验收：VOCAB-011 / READ-001 / HOME-001
+**Time**: 2026-05-26
+**UI**: Claude2
+**结论**: ✅ 三票全部 PASS（含 1 处编码修复）
+
+### 编码修复（Claude2 直接处理）
+
+实现中 `·`（U+00B7 中点）在 Windows 编码转换时损坏为「路」字，出现在：
+- `src/app/vocab/VocabDashboard.tsx` 来源分隔符
+- `src/app/page.tsx` footer 文字
+- `tests/home001.test.mjs` 和 `tests/vocab011.test.mjs` 断言正则
+
+已直接修复全部 4 处，修复后 `npm test` 249/249 通过。
+
+---
+
+### VOCAB-011 ✅ PASS
+
+| 检查项 | 结论 |
+|---|---|
+| `grid grid-cols-3 gap-3 mb-6` 3 列卡片 | ✅ |
+| `text-2xl font-bold text-gray-900`（不是 3xl） | ✅ |
+| `rounded-card border border-gray-100 bg-surface p-4 text-center` | ✅ |
+| 分布条 `bg-brand-100 h-1.5 rounded-full` + 填充 `bg-brand-500` | ✅（bar 背景用 brand-100 比 gray-100 更有品牌感，接受） |
+| `w-20 shrink-0` 标签 + `w-10 text-right` 数字 | ✅ |
+| 来源 `·` 分隔（修复后） | ✅ |
+| `border-b border-gray-100 mb-6 pb-6` 与词列表分隔 | ✅（在 vocab/page.tsx 确认） |
+
+---
+
+### READ-001（阅读记录）✅ PASS
+
+| 检查项 | 结论 |
+|---|---|
+| 列表页已读卡片 `border-emerald-100` | ✅ |
+| 时长后 `ml-1.5 text-emerald-500` ✓ | ✅ |
+| 已登录显示「已读 X / 35 篇」 | ✅ |
+| `LecturaReadStatus` 已读态：`bg-emerald-50 text-emerald-600 cursor-default`「已读 ✓」 | ✅ |
+| 未读按钮：`border border-emerald-100 text-emerald-600 hover:bg-emerald-50` | ✅ |
+| 保存中 `disabled:opacity-60` | ✅ |
+| 90% scroll + POST 逻辑（在 LecturaReader） | 源码存在 ✅ |
+
+---
+
+### HOME-001 ✅ PASS
+
+| 检查项 | 结论 |
+|---|---|
+| `HomeHero` 接受 `isLoggedIn` prop | ✅ |
+| 未登录：标准文案 + 主 CTA `rounded-full bg-brand-600 px-8 py-3` → `/phonics` | ✅ |
+| 已登录：「欢迎回来，继续你的西语之旅」副标题 | ✅ |
+| 次 CTA `href="#tools"` | ✅ |
+| 移除 `InstallPrompt` / `/extension` CTA | ✅ |
+| 5 Step 卡片 `flex flex-col gap-4 lg:flex-row lg:items-start` | ✅ |
+| `→` 分隔符 `hidden lg:block text-gray-300 mt-8` | ✅ |
+| Step 卡片进度行：已登录显示「已收藏 X 词」「已读 X 篇」 | ✅ |
+| 工具区 `id="tools"` + `grid grid-cols-1 sm:grid-cols-2` | ✅ |
+| YouTube 频道区保留 | ✅ |
+| Footer `·` 分隔（修复后） | ✅ |
+
+三票 → **passing**。
+
+---
+
 ## QA Report: HOME-001
 **Time**: 2026-05-26 01:20
 **QA**: Codex2

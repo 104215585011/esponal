@@ -1,3 +1,18 @@
+### Claude2 UI Acceptance #VOCAB-011 / READ-001 / HOME-001 - 2026-05-26
+
+**Goal**: Claude2 visual acceptance for all three P2 tickets.
+
+**Result**: All three PASS. One encoding bug fixed inline: `·` (U+00B7) corrupted to 「路」 in VocabDashboard.tsx, page.tsx, and two test files. Fixed and re-verified: npm test 249/249.
+
+**Status updates**:
+- VOCAB-011 → passing
+- READ-001（阅读记录）→ passing
+- HOME-001 → passing
+
+**All P2 tickets complete. Platform now has: LookupCard saved state, vocab dashboard, reading history, and homepage with learning path.**
+
+---
+
 ### QA Session #HOME-001 - 2026-05-26 01:20
 
 **Goal**: Codex2 QA for the new homepage hero, learning path, progress data wiring, tools section, and retained video sections.

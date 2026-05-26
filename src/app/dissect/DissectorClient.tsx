@@ -82,6 +82,11 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
             <span className="mr-2 text-gray-400">→</span>
             {analysis.naturalEnglish}
           </p>
+          {analysis.inversionNote === "gustar" ? (
+            <p className="text-xs text-gray-400 mt-1">
+              ⓘ gustar 鍨嬶細瑗胯浠ャ€屽枩娆㈢殑浜嬬墿銆嶄负涓昏锛岃嫳璇炕杞负銆屼汉銆嶅仛涓昏
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

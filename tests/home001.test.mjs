@@ -39,7 +39,8 @@ test("HOME-001 homepage adds learning path and tools while keeping curated video
   assert.match(page, /\/vocab/);
   assert.match(page, /curatedChannels/);
   assert.match(page, /video-sections/);
-  assert.match(page, /Esponal 路 为中文母语者设计的西语学习平台/);
+  assert.match(page, /Esponal · 为中文母语者设计的西语学习平台/);
+  assert.doesNotMatch(page, /Esponal 路 为中文母语者设计的西语学习平台/);
 });
 
 test("HOME-001 learning path uses desktop arrows and logged-in-only progress lines", async () => {

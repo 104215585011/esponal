@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
   buildFallbackDissectionAnalysis,
-  type DissectAnalysisResult
+  type DissectAnalysisResult,
+  type DissectImpliedSubject,
+  type ImpliedSubjectType
 } from "@/app/dissect/analysis";
 import { getDeepseekConfig, isConfiguredSecret } from "@/lib/talk/env";
 
@@ -15,9 +17,32 @@ type RawModelResponse = {
     pronoun?: string;
     english?: string;
     insertBeforeIndex?: number;
+    type?: ImpliedSubjectType;
   } | null;
+  inversionNote?: "gustar";
   naturalEnglish?: string;
 };
+
+function normalizeImpliedSubject(
+  impliedSubject: RawModelResponse["impliedSubject"]
+): DissectImpliedSubject | null {
+  if (
+    !impliedSubject ||
+    typeof impliedSubject.pronoun !== "string" ||
+    typeof impliedSubject.english !== "string" ||
+    typeof impliedSubject.insertBeforeIndex !== "number" ||
+    !impliedSubject.type
+  ) {
+    return null;
+  }
+
+  return {
+    pronoun: impliedSubject.pronoun.trim(),
+    english: impliedSubject.english.trim(),
+    insertBeforeIndex: impliedSubject.insertBeforeIndex,
+    type: impliedSubject.type
+  };
+}
 
 function normalizeModelResponse(payload: RawModelResponse): DissectAnalysisResult | null {
   if (!Array.isArray(payload.tokens) || typeof payload.naturalEnglish !== "string") {
@@ -37,21 +62,10 @@ function normalizeModelResponse(payload: RawModelResponse): DissectAnalysisResul
     return null;
   }
 
-  const impliedSubject =
-    payload.impliedSubject &&
-    typeof payload.impliedSubject.pronoun === "string" &&
-    typeof payload.impliedSubject.english === "string" &&
-    typeof payload.impliedSubject.insertBeforeIndex === "number"
-      ? {
-          pronoun: payload.impliedSubject.pronoun.trim(),
-          english: payload.impliedSubject.english.trim(),
-          insertBeforeIndex: payload.impliedSubject.insertBeforeIndex
-        }
-      : null;
-
   return {
     tokens,
-    impliedSubject,
+    impliedSubject: normalizeImpliedSubject(payload.impliedSubject),
+    inversionNote: payload.inversionNote === "gustar" ? "gustar" : undefined,
     naturalEnglish: payload.naturalEnglish.trim()
   };
 }
@@ -78,10 +92,16 @@ async function analyzeWithDeepseek(sentence: string) {
           role: "system",
           content: [
             "You are a Spanish interlinear gloss assistant for Chinese beginners.",
-            "Return JSON only with keys: tokens, impliedSubject, naturalEnglish.",
+            "Return JSON only with keys: tokens, impliedSubject, inversionNote, naturalEnglish.",
             "Each token must include form, english, isPunctuation.",
-            "If the sentence omits a subject pronoun, infer it and return pronoun, english, insertBeforeIndex.",
-            "If no subject is omitted, impliedSubject must be null.",
+            "Identify ALL cases where Spanish omits or inverts a subject that English requires:",
+            'CASE 1 - Personal pro-drop: verb conjugation implies yo/tú/él/ella/nosotros/vosotros/ellos/ellas -> impliedSubject: { pronoun: "yo"|"tú"|..., english: "I"|"you"|..., insertBeforeIndex: <verb idx>, type: "prodrop" }',
+            'CASE 2 - Impersonal weather: hace calor/frío/viento, llueve, nieva, hay + weather noun -> impliedSubject: { pronoun: "ello", english: "it", insertBeforeIndex: <verb idx>, type: "impersonal" }',
+            'CASE 3 - Impersonal es/parece/resulta + adj/clause -> impliedSubject: { pronoun: "ello", english: "it", insertBeforeIndex: <verb idx>, type: "impersonal" }',
+            'CASE 4 - Existential hay (there is/are) -> impliedSubject: { pronoun: "there", english: "there", insertBeforeIndex: <hay idx>, type: "existential" }',
+            'CASE 5 - Se impersonal / pasiva refleja -> impliedSubject: { pronoun: "se", english: "one", insertBeforeIndex: <verb idx>, type: "se_impersonal" }',
+            'CASE 6 - Gustar-type inversion (me gusta, me duele, me parece...) -> impliedSubject: null -> inversionNote: "gustar"',
+            "If none apply, impliedSubject must be null and inversionNote must be absent.",
             "naturalEnglish must be a fluent English translation."
           ].join(" ")
         },
@@ -94,7 +114,8 @@ async function analyzeWithDeepseek(sentence: string) {
               impliedSubject: {
                 pronoun: "tú",
                 english: "you",
-                insertBeforeIndex: 3
+                insertBeforeIndex: 3,
+                type: "prodrop"
               },
               naturalEnglish: "Where are you from?"
             }

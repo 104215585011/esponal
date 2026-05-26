@@ -216,7 +216,7 @@ export default async function HomePage() {
         </div>
 
         <footer className="mt-16 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
-          Esponal 路 为中文母语者设计的西语学习平台
+          Esponal · 为中文母语者设计的西语学习平台
         </footer>
       </div>
     </main>
