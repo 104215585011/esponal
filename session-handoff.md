@@ -1,3 +1,214 @@
+## 测试 Report：UI-REFACTOR-QA 全站视觉重构多视口验收
+**时间**：2026-05-26 17:30
+**测试人**：Codex2
+
+**结论**：失败，返回 Codex1 修复。
+
+**执行环境**：
+- Dev server：`http://127.0.0.1:3004`
+- 说明：首次访问 `/` 命中 stale dev server 错误 `Cannot find module './4894.js'`。按 QA 环境问题处理，已重启 3004 后继续验收；重启后核心路由可渲染。
+- 截图与机器结果：`qa-artifacts/ui-refactor-qa/`
+
+**验证步骤执行记录**：
+1. 自动化基线
+   命令：`npm test`
+   输出：
+   ```text
+   tests 249
+   pass 249
+   fail 0
+   ```
+   结果：通过
+
+2. 构建验证
+   命令：`npm run build`
+   输出：
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (106/106)
+   ```
+   备注：仅既有 `<img>` 与 Sentry 配置 warning。
+   结果：通过
+
+3. 9 个路由逐一访问（1280x900）
+   工具：隔离 Playwright context，逐页记录 HTTP status、console error、pageerror。
+   输出摘要：
+   ```text
+   /               200 PASS, canvasCount=1, no console/page errors
+   /phonics        200 PASS, no console/page errors
+   /grammar        200 PASS, no console/page errors
+   /vocab          200 PASS by auth redirect, finalUrl=/auth/sign-in?... (未登录无法看到 dashboard)
+   /dissect        200 PASS, textarea visible, no console/page errors
+   /learn          200 PASS, no console/page errors
+   /lectura        200 PASS, no console/page errors
+   /talk           200 PASS, no console/page errors
+   /design-preview 200 FAIL, hydration console/page errors
+   ```
+   结果：失败
+
+4. 3 页面 × 3 视口截图
+   截图文件：
+   ```text
+   qa-artifacts/ui-refactor-qa/home-mobile-375.png
+   qa-artifacts/ui-refactor-qa/home-tablet-768.png
+   qa-artifacts/ui-refactor-qa/home-desktop-1280.png
+   qa-artifacts/ui-refactor-qa/phonics-mobile-375.png
+   qa-artifacts/ui-refactor-qa/phonics-tablet-768.png
+   qa-artifacts/ui-refactor-qa/phonics-desktop-1280.png
+   qa-artifacts/ui-refactor-qa/grammar-mobile-375.png
+   qa-artifacts/ui-refactor-qa/grammar-tablet-768.png
+   qa-artifacts/ui-refactor-qa/grammar-desktop-1280.png
+   ```
+   机器检查输出：
+   ```text
+   / 375px: documentElement.scrollWidth=750, clientWidth=375
+   / 768px: documentElement.scrollWidth=1152, clientWidth=768
+   /phonics 375px: scrollWidth=750, clientWidth=375
+   /phonics 768px: scrollWidth=1152, clientWidth=768
+   /grammar 375px: scrollWidth=750, clientWidth=375
+   /grammar 768px: scrollWidth=1152, clientWidth=768
+   ```
+   失败原因：关闭状态移动抽屉 `aside.absolute ... right-0 w-full max-w-sm` 仍位于 viewport 右侧，导致页面存在水平 overflow。桌面 1280px 无水平 overflow。
+   结果：失败
+
+5. Dark mode 强制模拟
+   截图：`qa-artifacts/ui-refactor-qa/home-dark-1280.png`
+   输出：
+   ```text
+   bodyColor=rgb(244, 244, 245)
+   headerBg=rgba(9, 9, 11, 0.8)
+   h1Color=rgb(250, 250, 250)
+   hasWhiteBgWhiteTextRisk=false
+   consoleErrors=[]
+   ```
+   结果：通过
+
+6. ParticleBackground 功能检查
+   截图：`qa-artifacts/ui-refactor-qa/home-particles-hover.png`
+   输出：
+   ```text
+   canvasExists=true
+   canvas rect before hover: x=33, y=130, width=1216, height=528
+   canvas rect after move away: x=33, y=130, width=1216, height=528
+   ```
+   结果：通过基础可见性与鼠标移动稳定性；交互吸引效果需 Claude2 视觉确认。
+
+**失败详情**：
+- 失败点 1：`/design-preview` hydration error。
+  原始错误：
+  ```text
+  Warning: Text content did not match. Server: "%s" Client: "%s"%s
+  Error: Text content does not match server-rendered HTML.
+  Error: There was an error while hydrating. Because the error happened outside of a Suspense boundary, the entire root will switch to client rendering.
+  ```
+  复现步骤：打开 `http://127.0.0.1:3004/design-preview`，等待 load，浏览器 console/pageerror 立即出现 hydration mismatch。
+
+- 失败点 2：移动/平板水平 overflow。
+  原始定位：
+  ```text
+  overflowing element: ASIDE
+  class: absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-surface transition-...
+  375px: left=375 right=750
+  768px: left=768 right=1152
+  ```
+  复现步骤：打开 `/`、`/phonics` 或 `/grammar`，设置 viewport 375px 或 768px，检查 `document.documentElement.scrollWidth > clientWidth`。
+
+**返回 Codex1 修复建议**：
+1. 移动抽屉关闭态不能撑出 layout scrollWidth。可检查 wrapper 是否需要 `overflow-x-hidden`，或关闭态使用 `translate-x-full` 配合不影响页面滚动的容器策略。
+2. `/design-preview` 不要在 render 中输出服务端/客户端不一致的 inline `<style>` 文本。可把该页样式移到稳定 CSS/module，或用 `suppressHydrationWarning` 只作为最后手段。
+3. `/vocab` 本轮未登录环境只能验证 auth redirect，dashboard 视觉需要登录态或 seed session 后复验。
+
+---
+
+## QA Ticket：UI-REFACTOR-QA — 全站视觉重构多视口验收
+**时间**：2026-05-26 17:15
+**下发**：Claude1（PM）
+**执行**：Codex2（QA）
+**优先级**：高 — 本次重构改动 170 个文件，覆盖全站所有页面
+
+---
+
+### 背景
+
+Gemini1（UI 总监）完成了全站 Apple 风格视觉重构，commit `3030524`。主要变化：
+- 品牌色换为 emerald green（`#10b981`）
+- 新增 glassmorphism：`glass-card`、`glass-header` utility class
+- 新增 `ParticleBackground` 粒子动画组件（HomHero 使用）
+- 字体换为 `Outfit`（display）+ `Inter`（body）
+- 全站 light / dark mode 自动切换（`@media prefers-color-scheme`）
+- 新增 `card-hover-lift` 交互动效
+
+---
+
+### 验证步骤（必须全部执行）
+
+#### Step 1 — 自动化基线
+```
+npm test
+```
+预期：249/249 全部通过。若有失败，记录原始输出，停止后续步骤，返回 Codex1。
+
+#### Step 2 — 构建验证
+```
+npm run build
+```
+预期：无报错，无 TypeScript 错误。若有，记录并返回 Codex1。
+
+#### Step 3 — 路由可访问性（dev server 运行中逐一访问）
+
+在 `localhost:3004` 验证以下路由**全部返回 200，不崩溃**：
+
+| 路由 | 检查项 |
+|---|---|
+| `/` | 首页渲染，ParticleBackground 可见，hero 正常 |
+| `/phonics` | 字母表格渲染，无乱码 |
+| `/grammar` | 侧边栏 + 卡片列表，仅显示"动词变位"和"名词性别"两组 |
+| `/vocab` | 词汇 dashboard 卡片渲染 |
+| `/dissect` | 句子拆解器输入框可见 |
+| `/learn` | 课程列表渲染 |
+| `/lectura` 或 `/reading` | 阅读页渲染（404 可接受，记录即可） |
+| `/talk` | 对话角色页渲染 |
+| `/design-preview` | 设计预览页渲染（不报错即可） |
+
+#### Step 4 — 视口响应式检查（手动，浏览器 DevTools）
+
+对 `/`、`/phonics`、`/grammar` 三个页面，分别在以下视口截图记录：
+
+| 视口 | 宽度 |
+|---|---|
+| 移动端 | 375px |
+| 平板 | 768px |
+| 桌面 | 1280px |
+
+检查项：
+- 导航栏在移动端正常折叠/显示
+- 卡片不溢出容器
+- 字体大小合理，不出现 overflow
+
+#### Step 5 — Dark Mode 检查
+
+在 Chrome DevTools → Rendering → Emulate CSS media feature `prefers-color-scheme: dark`，截图验证：
+- `/` 首页背景变为深色（`#09090B`）
+- 导航栏 glass-header 正常渲染
+- 文字颜色切换正常，无白底白字
+
+#### Step 6 — ParticleBackground 功能检查
+
+在 `/` 首页：
+- 粒子动画在 hero 区域可见
+- 鼠标移动到 hero 区域时粒子有吸引响应
+- 离开 hero 区域后粒子正常继续漂浮
+
+---
+
+### 输出要求
+
+将 report 写回本文件（`session-handoff.md`）"## 测试 Report：UI-REFACTOR-QA" 区块，格式按 `ROLE-QA.md` 规范。
+
+本票为**有 UI** 功能：测试通过后，移交 Claude2 做最终视觉验收，再关闭。
+
+---
+
 ## Dev Report: Overall UI Refactoring to Apple Aesthetic
 **Time**: 2026-05-26 16:00
 **Developer**: Codex1
