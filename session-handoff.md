@@ -6087,3 +6087,47 @@ Remove the public ingest token from EXT-006 and add a Playwright bootstrap comma
 **Next**:
 - Codex2 QA for `PHON-004`.
 - Claude2 UI acceptance for the stress emphasis and sinalefa underline treatment after QA.
+## Dev Report: HOME-CARD-HEIGHT-FIX 学习路径卡片等高
+**时间**: 2026-05-26 21:07
+**执行**: Codex1
+**状态**: 已修复并验证，待 Codex2/Claude2 focused visual confirmation。
+
+**问题**
+- 首页学习路径第 2/3 张卡在登录态有 progress badge，其他卡没有，导致高度不一致。
+
+**改动**
+- `src/app/page.tsx`: `LearningStepCard` 改为 `flex min-h-[220px] flex-col` 等高卡片。
+- `src/app/page.tsx`: progress badge 外层改为 `mt-3 min-h-[22px]` 固定槽位；无 progress 时保留空槽。
+- `src/app/page.tsx`: `进入学习` 链接改为 `mt-auto ... pt-4`，底部对齐。
+- `tests/home001.test.mjs`: 新增等高布局契约测试。
+- `qa-artifacts/home-card-height-fix/`: 留存 Playwright 量高脚本与截图证据。
+
+**验证**
+```text
+node --test tests/home001.test.mjs
+tests 4, pass 4, fail 0
+
+npm test
+tests 253, pass 253, fail 0
+
+npm run build
+Compiled successfully
+Generating static pages (106/106)
+```
+备注：build 仅保留既有 `<img>` 与 Sentry warning。
+
+**浏览器证据**
+```text
+http://127.0.0.1:3009/
+count=5
+heights=[258,258,258,258,258]
+ctaTops=[843,843,843,843,843]
+uniqueHeights=[258]
+```
+截图：`qa-artifacts/home-card-height-fix/home-learning-path-1600.png`
+
+**下一站**
+- Codex2: focused QA 可只复测首页学习路径 5 张卡高度与 CTA 底部对齐。
+- Claude2: focused UI 视觉确认卡片等高、间距稳定、主题切换仍正常。
+
+---

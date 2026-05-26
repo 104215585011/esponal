@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 15:48
+// Timestamp: 2026-05-26 21:07
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { HomeHero } from "@/app/components/web/HomeHero";
@@ -72,18 +72,23 @@ async function fetchChannelVideos(channelId: string) {
 
 function LearningStepCard({ step, title, description, href, progress }: LearningStep) {
   return (
-    <div className="group glass-card card-hover-lift min-w-0 flex-1 rounded-card border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm">
+    <div
+      className="group glass-card card-hover-lift flex min-h-[220px] min-w-0 flex-1 flex-col rounded-card border border-zinc-200/50 bg-white/70 p-6 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/70"
+      data-testid="learning-step-card"
+    >
       <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/50 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold font-display group-hover:scale-110 transition-transform">
         0{step}
       </div>
       <h3 className="mt-5 text-base font-semibold font-display text-zinc-800 dark:text-zinc-200">{title}</h3>
       <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed min-h-[50px]">{description}</p>
-      {progress ? (
-        <div className="mt-3 text-[10px] font-medium px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 w-fit">
-          {progress}
-        </div>
-      ) : null}
-      <Link className="mt-4 inline-flex items-center text-xs font-semibold text-brand-500 hover:text-brand-600 dark:hover:text-brand-400" href={href}>
+      <div className="mt-3 min-h-[22px]">
+        {progress ? (
+          <div className="w-fit rounded bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
+            {progress}
+          </div>
+        ) : null}
+      </div>
+      <Link className="mt-auto inline-flex items-center pt-4 text-xs font-semibold text-brand-500 hover:text-brand-600 dark:hover:text-brand-400" href={href}>
         进入学习 <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
       </Link>
     </div>

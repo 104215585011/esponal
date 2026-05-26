@@ -1,3 +1,23 @@
+### Session #HOME-CARD-HEIGHT-FIX - 2026-05-26 21:07
+
+**Goal**: Fix the homepage learning path visual regression where logged-in progress badges made cards 2/3 taller than the other steps.
+
+**Completed**:
+- Updated `LearningStepCard` to use an equal-height flex column layout.
+- Reserved a fixed progress-badge slot for every card, including cards without progress text.
+- Anchored the `进入学习` CTA to the bottom of each card.
+- Added a regression test for the equal-height layout contract.
+
+**Verification**:
+- `node --test tests/home001.test.mjs`: 4/4 pass.
+- `npm test`: 253/253 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+- Browser check on `http://127.0.0.1:3009/`: 5 cards measured `258px`; all 5 CTA top positions measured `843px`.
+
+**Status**: Fixed and ready for focused visual confirmation.
+
+---
+
 ### Session #UI-REFACTOR-THEME-FIX - 2026-05-26 20:59
 
 **Goal**: Restore the intended UI refactor day/night theme toggle and fix the broken mixed dark/light production state.

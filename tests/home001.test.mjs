@@ -50,3 +50,12 @@ test("HOME-001 learning path uses desktop arrows and logged-in-only progress lin
   assert.match(page, /userId && stats \? `已收藏 \$\{stats\.totalSaved\} 词` : undefined/);
   assert.match(page, /userId \? `已读 \$\{readCount\} 篇` : undefined/);
 });
+
+test("HOME-001 learning path cards reserve progress space and keep equal heights", async () => {
+  const page = await readText("src/app/page.tsx");
+
+  assert.match(page, /data-testid="learning-step-card"/);
+  assert.match(page, /flex min-h-\[220px\] min-w-0 flex-1 flex-col/);
+  assert.match(page, /mt-3 min-h-\[22px\]/);
+  assert.match(page, /className="mt-auto inline-flex/);
+});
