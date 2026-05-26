@@ -1,3 +1,44 @@
+## Dev Report：UI-REFACTOR-THEME-FIX 日夜切换修复
+**时间**：2026-05-26 20:59
+**执行**：Codex1
+**状态**：已修复并推回 QA/Claude2 视觉确认。
+
+**问题**
+- UI 重构 mockup 中有日/夜主题按钮，但真实 Next 实现漏掉了 `ThemeToggle`。
+- Tailwind 仍按系统 `prefers-color-scheme: dark` 自动套用 `dark:` 样式，且 `bg-app` 等页面底色没有同步变暗，导致生产上出现“header/hero/card 变黑，页面底仍浅色”的断裂视觉。
+
+**改动**
+- `tailwind.config.ts`：改为 `darkMode: "class"`。
+- `src/app/components/web/ThemeToggle.tsx`：新增客户端主题按钮，读写 `localStorage.color-theme`，并切换 `document.documentElement.classList.toggle("dark")`。
+- `src/app/components/web/SiteHeader.tsx`：在 header 控制区挂载 `ThemeToggle`。
+- `src/app/globals.css`：移除自动 `@media (prefers-color-scheme: dark)`；改为 `.dark` 下统一设置根色、`glass-card`、`glass-header`、`bg-app`、`bg-surface`、`bg-muted`。
+- `tests/web009.test.mjs`：锁住 class-based dark mode、主题按钮存在、按钮会写 localStorage 并切换 html.dark。
+
+**验证**
+```text
+node --test tests/web009.test.mjs
+tests 5, pass 5, fail 0
+
+npm test
+tests 252, pass 252, fail 0
+
+npm run build
+✓ Compiled successfully
+✓ Generating static pages (106/106)
+```
+备注：build 仅保留既有 `<img>` 与 Sentry warning。
+
+**浏览器验证（dev server: http://127.0.0.1:3004）**
+- 系统暗色首次进入：`html.dark=true`，`mainBg=rgb(9, 9, 11)`，`headerBg=rgba(9, 9, 11, 0.8)`，`heroBg=rgb(24, 24, 27)`，主题按钮 1 个。
+- 点击切换日间：`html.dark=false`，`localStorage.color-theme=light`，`mainBg=rgb(249, 250, 251)`，页面恢复浅色重构版。
+- 证据：`qa-artifacts/theme-toggle-fix/home-system-dark-initial.png`、`qa-artifacts/theme-toggle-fix/home-after-toggle.png`、`qa-artifacts/theme-toggle-fix/result.json`
+
+**下一站**
+- Codex2：focused QA 复测主题按钮和日/夜切换。
+- Claude2：视觉确认暗色/浅色是否符合 UI 重构目标。
+
+---
+
 ## 测试 Report：UI-REFACTOR-QA-FIX Codex2 复测
 **时间**：2026-05-26 20:18
 **测试人**：Codex2

@@ -1,3 +1,22 @@
+### Session #UI-REFACTOR-THEME-FIX - 2026-05-26 20:59
+
+**Goal**: Restore the intended UI refactor day/night theme toggle and fix the broken mixed dark/light production state.
+
+**Completed**:
+- Added `ThemeToggle` as a client component mounted in `SiteHeader`.
+- Switched Tailwind dark mode to explicit `class` mode and moved global dark colors under `.dark`.
+- Added test coverage so the public UI no longer auto-darkens from OS preference without the `dark` class, and the header exposes the theme toggle contract.
+
+**Verification**:
+- `node --test tests/web009.test.mjs`: 5/5 pass.
+- `npm test`: 252/252 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+- Browser check on `http://127.0.0.1:3004`: system dark enters coherent dark theme; clicking the button stores `color-theme=light` and returns to the light refactor UI.
+
+**Status**: Ready for Codex2 focused QA and Claude2 visual confirmation.
+
+---
+
 ### QA Session #UI-REFACTOR-QA-FIX - 2026-05-26 20:18
 
 **Goal**: Codex2 focused re-test for the two `UI-REFACTOR-QA` blockers fixed by Codex1.

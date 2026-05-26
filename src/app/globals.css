@@ -11,12 +11,10 @@
   color: #1f2933;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    background: #09090B; /* Dark obsidian background */
-    color: #f4f4f5;
-  }
+.dark {
+  color-scheme: dark;
+  background: #09090B;
+  color: #f4f4f5;
 }
 
 body {
@@ -32,10 +30,9 @@ body {
   background-color: rgba(255, 255, 255, 0.7);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-@media (prefers-color-scheme: dark) {
-  .glass-card {
-    background-color: rgba(24, 24, 27, 0.7);
-  }
+
+.dark .glass-card {
+  background-color: rgba(24, 24, 27, 0.7);
 }
 
 .glass-header {
@@ -43,10 +40,21 @@ body {
   -webkit-backdrop-filter: blur(16px);
   background-color: rgba(255, 255, 255, 0.75);
 }
-@media (prefers-color-scheme: dark) {
-  .glass-header {
-    background-color: rgba(9, 9, 11, 0.8);
-  }
+
+.dark .glass-header {
+  background-color: rgba(9, 9, 11, 0.8);
+}
+
+.dark .bg-app {
+  background-color: #09090B;
+}
+
+.dark .bg-surface {
+  background-color: #18181B;
+}
+
+.dark .bg-muted {
+  background-color: #27272A;
 }
 
 /* Interactive card hover lift effect */

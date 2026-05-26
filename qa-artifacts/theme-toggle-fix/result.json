@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "initial": {
+    "hasDarkClass": true,
+    "storedTheme": null,
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "mainBg": "rgb(9, 9, 11)",
+    "headerBg": "rgba(9, 9, 11, 0.8)",
+    "heroBg": "rgb(24, 24, 27)",
+    "toggleCount": 1
+  },
+  "afterToggle": {
+    "hasDarkClass": false,
+    "storedTheme": "light",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "mainBg": "rgb(249, 250, 251)",
+    "headerBg": "rgba(234, 234, 234, 0.753)",
+    "heroBg": "rgb(237, 237, 237)"
+  }
+}

@@ -17,18 +17,29 @@ test("WEB-009 tailwind config exposes unified design tokens", async () => {
   assert.match(config, /boxShadow:\s*\{/);
   assert.match(config, /elevated:/);
   assert.match(config, /app:\s*"#F9FAFB"/);
+  assert.match(config, /darkMode:\s*"class"/);
+});
+
+test("WEB-009 does not auto-darken the public UI from OS preference", async () => {
+  const globals = await readText("src/app/globals.css");
+
+  assert.doesNotMatch(globals, /prefers-color-scheme:\s*dark/);
 });
 
 test("WEB-009 site header exposes primary navigation", async () => {
   const headerPath = "src/app/components/web/SiteHeader.tsx";
   const navPath = "src/app/components/web/SiteNav.tsx";
+  const themeTogglePath = "src/app/components/web/ThemeToggle.tsx";
   assert.ok(existsSync(headerPath), `${headerPath} should exist`);
   assert.ok(existsSync(navPath), `${navPath} should exist`);
+  assert.ok(existsSync(themeTogglePath), `${themeTogglePath} should exist`);
 
   const header = await readText(headerPath);
   const nav = await readText(navPath);
+  const themeToggle = await readText(themeTogglePath);
 
   assert.match(header, /SiteNav/);
+  assert.match(header, /ThemeToggle/);
   assert.match(nav, /href:\s*"\/"/);
   assert.match(nav, /href:\s*"\/learn"/);
   assert.match(nav, /href:\s*"\/grammar"/);
@@ -36,6 +47,9 @@ test("WEB-009 site header exposes primary navigation", async () => {
   assert.match(header, /\/auth\/sign-in\?callbackUrl=\/vocab/);
   assert.match(nav, /border-brand-500/);
   assert.match(nav, /text-brand-600/);
+  assert.match(themeToggle, /localStorage\.setItem\(storageKey, nextTheme\)/);
+  assert.match(themeToggle, /document\.documentElement\.classList\.toggle\("dark"/);
+  assert.match(themeToggle, /prefers-color-scheme:\s*dark/);
 });
 
 test("WEB-009 homepage hero follows the current CTA contract", async () => {

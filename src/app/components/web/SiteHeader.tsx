@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
 import { SiteNav } from "@/app/components/web/SiteNav";
+import { ThemeToggle } from "@/app/components/web/ThemeToggle";
 import { getAuthOptions } from "@/lib/auth";
 
 type SiteHeaderProps = {
@@ -60,6 +61,7 @@ export async function SiteHeader({
         </form>
 
         <PlaybackRateControl className="shrink-0" />
+        <ThemeToggle />
 
         <div className="shrink-0">
           {session?.user ? (
