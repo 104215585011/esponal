@@ -119,7 +119,25 @@ export const SPANISH_ALPHABET: AlphabetLetter[] = [
     ]
   },
   { letter: "E", letterLower: "e", name: "e", example: "escuela", exampleZh: "学校", slug: "e" },
-  { letter: "F", letterLower: "f", name: "efe", example: "familia", exampleZh: "家庭", slug: "f" },
+  {
+    letter: "F",
+    letterLower: "f",
+    name: "efe",
+    example: "familia",
+    exampleZh: "家庭",
+    slug: "f",
+    rules: [
+      {
+        condition: "所有位置",
+        sound: "[f]，和英语 f 相同，上齿轻触下唇",
+        syllables: ["fa", "fe", "fi", "fo", "fu"],
+        words: [
+          { text: "familia", zh: "家庭", audioSlug: "f" },
+          { text: "fácil", zh: "容易", audioSlug: "facil" }
+        ]
+      }
+    ]
+  },
   {
     letter: "G",
     letterLower: "g",
@@ -168,8 +186,45 @@ export const SPANISH_ALPHABET: AlphabetLetter[] = [
     ]
   },
   { letter: "I", letterLower: "i", name: "i", example: "isla", exampleZh: "岛", slug: "i" },
-  { letter: "J", letterLower: "j", name: "jota", example: "jamón", exampleZh: "火腿", slug: "j" },
-  { letter: "K", letterLower: "k", name: "ka", example: "kilo", exampleZh: "公斤", slug: "k" },
+  {
+    letter: "J",
+    letterLower: "j",
+    name: "jota",
+    example: "jamón",
+    exampleZh: "火腿",
+    slug: "j",
+    rules: [
+      {
+        condition: "所有位置（注意：和英语 J 完全不同）",
+        sound: "[x]，像用力呼出一口气，喉咙收紧，不是「扎」",
+        syllables: ["ja", "je", "ji", "jo", "ju"],
+        words: [
+          { text: "jamón", zh: "火腿", audioSlug: "j" },
+          { text: "hijo", zh: "儿子", audioSlug: "hijo" },
+          { text: "mujer", zh: "女人", audioSlug: "mujer" }
+        ]
+      }
+    ]
+  },
+  {
+    letter: "K",
+    letterLower: "k",
+    name: "ka",
+    example: "kilo",
+    exampleZh: "公斤",
+    slug: "k",
+    rules: [
+      {
+        condition: "只出现在外来词和专有名词",
+        sound: "[k]，发音和 ca/co/cu 的 c 相同",
+        syllables: ["ka", "ke", "ki", "ko"],
+        words: [
+          { text: "kilo", zh: "公斤", audioSlug: "k" },
+          { text: "karate", zh: "空手道", audioSlug: "karate" }
+        ]
+      }
+    ]
+  },
   {
     letter: "L",
     letterLower: "l",
@@ -198,11 +253,102 @@ export const SPANISH_ALPHABET: AlphabetLetter[] = [
       }
     ]
   },
-  { letter: "M", letterLower: "m", name: "eme", example: "mesa", exampleZh: "桌子", slug: "m" },
-  { letter: "N", letterLower: "n", name: "ene", example: "noche", exampleZh: "夜晚", slug: "n" },
-  { letter: "Ñ", letterLower: "ñ", name: "eñe", example: "niño", exampleZh: "男孩", slug: "n-tilde" },
+  {
+    letter: "M",
+    letterLower: "m",
+    name: "eme",
+    example: "mesa",
+    exampleZh: "桌子",
+    slug: "m",
+    rules: [
+      {
+        condition: "多数位置",
+        sound: "[m]，嘴唇合拢，和中文「妈」开头一样",
+        syllables: ["ma", "me", "mi", "mo", "mu"],
+        words: [
+          { text: "mesa", zh: "桌子", audioSlug: "m" },
+          { text: "mano", zh: "手", audioSlug: "mano" }
+        ]
+      }
+    ]
+  },
+  {
+    letter: "N",
+    letterLower: "n",
+    name: "ene",
+    example: "noche",
+    exampleZh: "夜晚",
+    slug: "n",
+    rules: [
+      {
+        condition: "一般位置",
+        sound: "[n]，舌尖贴上颚，和中文「那」开头一样",
+        syllables: ["na", "ne", "ni", "no", "nu"],
+        words: [
+          { text: "noche", zh: "夜晚", audioSlug: "n" },
+          { text: "nombre", zh: "名字", audioSlug: "nombre" }
+        ]
+      },
+      {
+        condition: "在 b / p 前",
+        sound: "[m]，嘴唇自然合拢，如 un poco → 「um poco」",
+        syllables: ["nb", "np", "mb", "mp"],
+        words: [
+          { text: "un poco", zh: "一点", audioSlug: "un-poco" },
+          { text: "también", zh: "也", audioSlug: "tambien" }
+        ]
+      },
+      {
+        condition: "在 g / k / c(a/o/u) 前",
+        sound: "[ŋ]，鼻音从喉咙出，像「英」结尾的 ng",
+        syllables: ["ng", "nk", "nc"],
+        words: [
+          { text: "tengo", zh: "我有", audioSlug: "tengo" },
+          { text: "banco", zh: "银行", audioSlug: "banco" }
+        ]
+      }
+    ]
+  },
+  {
+    letter: "Ñ",
+    letterLower: "ñ",
+    name: "eñe",
+    example: "niño",
+    exampleZh: "男孩",
+    slug: "n-tilde",
+    rules: [
+      {
+        condition: "所有位置（西语独有字母）",
+        sound: "[ɲ]，像说「你」的鼻音延长，舌面贴上颚，不是 n+i",
+        syllables: ["ña", "ñe", "ñi", "ño", "ñu"],
+        words: [
+          { text: "niño", zh: "男孩", audioSlug: "n-tilde" },
+          { text: "mañana", zh: "明天", audioSlug: "manana" },
+          { text: "español", zh: "西班牙语", audioSlug: "espanol" }
+        ]
+      }
+    ]
+  },
   { letter: "O", letterLower: "o", name: "o", example: "oso", exampleZh: "熊", slug: "o" },
-  { letter: "P", letterLower: "p", name: "pe", example: "pan", exampleZh: "面包", slug: "p" },
+  {
+    letter: "P",
+    letterLower: "p",
+    name: "pe",
+    example: "pan",
+    exampleZh: "面包",
+    slug: "p",
+    rules: [
+      {
+        condition: "所有位置（无送气）",
+        sound: "[p]，嘴唇爆破，但不像英语 p 那样带气流，更干净短促",
+        syllables: ["pa", "pe", "pi", "po", "pu"],
+        words: [
+          { text: "pan", zh: "面包", audioSlug: "p" },
+          { text: "pelo", zh: "头发", audioSlug: "pelo" }
+        ]
+      }
+    ]
+  },
   {
     letter: "Q",
     letterLower: "q",
@@ -259,8 +405,44 @@ export const SPANISH_ALPHABET: AlphabetLetter[] = [
       }
     ]
   },
-  { letter: "S", letterLower: "s", name: "ese", example: "sol", exampleZh: "太阳", slug: "s" },
-  { letter: "T", letterLower: "t", name: "te", example: "taza", exampleZh: "杯子", slug: "t" },
+  {
+    letter: "S",
+    letterLower: "s",
+    name: "ese",
+    example: "sol",
+    exampleZh: "太阳",
+    slug: "s",
+    rules: [
+      {
+        condition: "拉美西语所有位置",
+        sound: "[s]，轻而清晰，和「丝」开头相同",
+        syllables: ["sa", "se", "si", "so", "su"],
+        words: [
+          { text: "sol", zh: "太阳", audioSlug: "s" },
+          { text: "casa", zh: "房子", audioSlug: "c" }
+        ]
+      }
+    ]
+  },
+  {
+    letter: "T",
+    letterLower: "t",
+    name: "te",
+    example: "taza",
+    exampleZh: "杯子",
+    slug: "t",
+    rules: [
+      {
+        condition: "所有位置（齿音，无送气）",
+        sound: "[t]，舌尖贴上齿，比英语 t 更靠前，不带气流",
+        syllables: ["ta", "te", "ti", "to", "tu"],
+        words: [
+          { text: "taza", zh: "杯子", audioSlug: "t" },
+          { text: "tiempo", zh: "时间 / 天气", audioSlug: "tiempo" }
+        ]
+      }
+    ]
+  },
   { letter: "U", letterLower: "u", name: "u", example: "uno", exampleZh: "一", slug: "u" },
   {
     letter: "V",
@@ -271,7 +453,33 @@ export const SPANISH_ALPHABET: AlphabetLetter[] = [
     slug: "v",
     rules: B_V_RULES
   },
-  { letter: "W", letterLower: "w", name: "uve doble", example: "web", exampleZh: "网站", slug: "w" },
+  {
+    letter: "W",
+    letterLower: "w",
+    name: "uve doble",
+    example: "web",
+    exampleZh: "网站",
+    slug: "w",
+    rules: [
+      {
+        condition: "外来词里（源自英语）",
+        sound: "[w]，圆唇滑音，像「屋」快速过去",
+        syllables: ["wa", "we", "wi"],
+        words: [
+          { text: "web", zh: "网站", audioSlug: "w" },
+          { text: "wifi", zh: "无线网", audioSlug: "wifi" }
+        ]
+      },
+      {
+        condition: "外来词里（源自德语、纳瓦特尔语等）",
+        sound: "有时读成 [b]，和 B/V 相同",
+        syllables: ["wa", "wo"],
+        words: [
+          { text: "Wágner", zh: "瓦格纳", audioSlug: "w" }
+        ]
+      }
+    ]
+  },
   {
     letter: "X",
     letterLower: "x",

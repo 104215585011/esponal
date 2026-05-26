@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-26 16:18
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -47,7 +48,7 @@ export default async function TalkCharacterPage({ params, searchParams }: Props)
     <main className="min-h-screen bg-app">
       <SiteHeader />
       <section className="mx-auto flex h-[calc(100vh-64px)] w-full max-w-app-shell lg:flex">
-        <div className="border-r border-gray-200 px-4 pt-4 lg:w-[260px] lg:shrink-0">
+        <div className="border-r border-gray-200 dark:border-zinc-800/80 px-4 pt-4 lg:w-[260px] lg:shrink-0">
           <TalkSidebar characterId={character.id} characterName={character.name} />
         </div>
 
@@ -59,10 +60,10 @@ export default async function TalkCharacterPage({ params, searchParams }: Props)
                 {LANG_FLAG[character.id] ?? "🌐"}
               </span>
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-gray-900">
+                <h1 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 font-display">
                   {character.name}
                 </h1>
-                <p className="text-[13px] text-gray-500">
+                <p className="text-[13px] text-zinc-500 dark:text-zinc-400 font-light">
                   {character.language} · {character.style}
                 </p>
               </div>

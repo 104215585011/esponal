@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-26 15:48
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { HomeHero } from "@/app/components/web/HomeHero";
@@ -71,15 +72,19 @@ async function fetchChannelVideos(channelId: string) {
 
 function LearningStepCard({ step, title, description, href, progress }: LearningStep) {
   return (
-    <div className="min-w-0 flex-1 rounded-card border border-gray-100 bg-surface p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">
-        Step {step}
-      </p>
-      <h3 className="mt-1 text-sm font-semibold text-gray-800">{title}</h3>
-      <p className="mt-1 text-xs leading-relaxed text-gray-400">{description}</p>
-      {progress ? <p className="mt-2 text-xs font-medium text-brand-600">{progress}</p> : null}
-      <Link className="mt-3 inline-block text-xs text-brand-600 hover:underline" href={href}>
-        进入 →
+    <div className="group glass-card card-hover-lift min-w-0 flex-1 rounded-card border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm">
+      <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/50 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold font-display group-hover:scale-110 transition-transform">
+        0{step}
+      </div>
+      <h3 className="mt-5 text-base font-semibold font-display text-zinc-800 dark:text-zinc-200">{title}</h3>
+      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed min-h-[50px]">{description}</p>
+      {progress ? (
+        <div className="mt-3 text-[10px] font-medium px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 w-fit">
+          {progress}
+        </div>
+      ) : null}
+      <Link className="mt-4 inline-flex items-center text-xs font-semibold text-brand-500 hover:text-brand-600 dark:hover:text-brand-400" href={href}>
+        进入学习 <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
       </Link>
     </div>
   );
@@ -88,12 +93,12 @@ function LearningStepCard({ step, title, description, href, progress }: Learning
 function ToolCard({ title, description, href }: ToolItem) {
   return (
     <Link
-      className="flex gap-3 rounded-card border border-gray-100 bg-surface p-5 transition hover:border-brand-200"
+      className="group glass-card card-hover-lift flex gap-4 rounded-card border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm hover:border-brand-300 dark:hover:border-brand-700/50"
       href={href}
     >
       <div className="min-w-0">
-        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-gray-500">{description}</p>
+        <h3 className="text-base font-semibold font-display text-zinc-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
       </div>
     </Link>
   );

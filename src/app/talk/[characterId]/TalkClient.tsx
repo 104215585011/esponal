@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-26 16:20
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -579,9 +580,9 @@ export function TalkClient({
         ref={listRef}
       >
         {messages.length === 0 ? (
-          <div className="rounded-surface border border-dashed border-gray-200 bg-white/50 p-6 text-center text-sm text-gray-500">
-            <p>开始一段对话吧。你可以打字，也可以点麦克风按钮说话。</p>
-            <p className="mt-2 text-[12px] text-gray-400">
+          <div className="rounded-hero border border-dashed border-zinc-200 dark:border-zinc-800/80 bg-white/30 dark:bg-zinc-900/30 p-6 text-center text-sm text-zinc-500 dark:text-zinc-400 glass-card">
+            <p className="font-display">开始一段对话吧。你可以打字，也可以点麦克风按钮说话。</p>
+            <p className="mt-2 text-[12px] text-zinc-450 dark:text-zinc-500 font-light">
               {characterName} 会用对应语言回复你，并自动朗读出来。
             </p>
           </div>
@@ -602,10 +603,10 @@ export function TalkClient({
                 key={index}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
                     isUser
-                      ? "bg-brand-500 text-white"
-                      : "border border-gray-100 bg-white text-gray-800 shadow-card"
+                      ? "bg-brand-600 dark:bg-brand-500 text-white"
+                      : "border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 text-zinc-800 dark:text-zinc-100 glass-card"
                   }`}
                 >
                   <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
@@ -623,13 +624,13 @@ export function TalkClient({
                         }}
                       />
                     ) : message.content || (
-                      <span className="text-gray-400">…</span>
+                      <span className="text-zinc-400 dark:text-zinc-650">…</span>
                     )}
                   </p>
 
                   {!isUser && message.corrections && message.corrections.length > 0 ? (
-                    <div className="mt-3 rounded-card border border-amber-100 bg-amber-50/60 p-2 text-[12px] text-amber-800">
-                      <p className="font-semibold">修正建议</p>
+                    <div className="mt-3 rounded-card border border-amber-200/50 dark:border-amber-900/30 bg-amber-50/60 dark:bg-amber-950/20 p-2.5 text-[12px] text-amber-800 dark:text-amber-300 font-light">
+                      <p className="font-semibold font-display">修正建议</p>
                       <ul className="mt-1 list-disc space-y-0.5 pl-4">
                         {message.corrections.map((item, idx) => (
                           <li key={idx}>{item}</li>
@@ -642,7 +643,7 @@ export function TalkClient({
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {message.newWords.map((word, idx) => (
                         <span
-                          className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700"
+                          className="rounded-full bg-brand-50 dark:bg-brand-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:text-brand-300"
                           key={idx}
                         >
                           {word}
@@ -653,7 +654,7 @@ export function TalkClient({
 
                   {!isUser && message.content ? (
                     <button
-                      className="mt-2 text-[11px] text-gray-400 hover:text-brand-600"
+                      className="mt-2 text-[11px] text-zinc-400 dark:text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-300"
                       onClick={() => void playTTS(message.content)}
                       type="button"
                     >
@@ -669,25 +670,25 @@ export function TalkClient({
 
       {/* 输入 + 麦克风 */}
       <form
-        className="border-t border-gray-100 pb-4 pt-3"
+        className="border-t border-zinc-100 dark:border-zinc-800/80 pb-4 pt-3"
         onSubmit={handleSubmit}
       >
         {statusMessage ? (
           <p className="mb-2 text-[12px] text-red-500">{statusMessage}</p>
         ) : null}
         {recording ? (
-          <p className="mb-2 text-[12px] text-brand-600">
+          <p className="mb-2 text-[12px] text-brand-650 dark:text-brand-400">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500 align-middle" />
             {" "}正在录音 {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}{" "}
-            <span className="italic text-gray-500">{interimTranscript}</span>
+            <span className="italic text-zinc-500 dark:text-zinc-400">{interimTranscript}</span>
           </p>
         ) : null}
         {recognizing ? (
-          <p className="mb-2 text-[12px] text-brand-600">识别中...</p>
+          <p className="mb-2 text-[12px] text-brand-650 dark:text-brand-400">识别中...</p>
         ) : null}
         <div className="flex items-end gap-2">
           <textarea
-            className="min-h-[48px] max-h-32 flex-1 resize-none rounded-card border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            className="min-h-[48px] max-h-32 flex-1 resize-none rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-100 outline-none transition focus:border-brand-500 dark:focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900/20"
             disabled={streaming || recognizing}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => {
@@ -705,8 +706,8 @@ export function TalkClient({
             aria-label={recording ? "停止录音" : "开始录音"}
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition ${
               recording
-                ? "border-red-400 bg-red-50 text-red-600 animate-pulse"
-                : "border-gray-200 bg-white text-gray-500 hover:border-brand-400 hover:text-brand-600"
+                ? "border-red-400 bg-red-50 dark:bg-red-950/30 text-red-600 animate-pulse"
+                : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:border-brand-450 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
             }`}
             disabled={streaming || recognizing}
             onClick={recording ? stopRecording : () => void startRecording()}
@@ -717,7 +718,7 @@ export function TalkClient({
 
           <button
             aria-label="发送"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600"
             disabled={!input.trim() || streaming || recognizing}
             type="submit"
           >

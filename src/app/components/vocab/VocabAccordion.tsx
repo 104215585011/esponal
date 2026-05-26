@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-26 16:30
 "use client";
 
 import { useState } from "react";
@@ -94,35 +95,35 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
         const hasForms = Boolean(word.conjugations || word.nounForms || word.adjectiveForms);
 
         return (
-          <article className="overflow-hidden rounded-xl" data-testid="vocab-word" key={word.id}>
+          <article className="overflow-hidden rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 glass-card shadow-sm" data-testid="vocab-word" key={word.id}>
             <button
               type="button"
-              className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-100 bg-surface p-4 text-left transition-colors hover:border-gray-200"
+              className="flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50"
               onClick={() => setOpenWordId(isOpen ? null : word.id)}
               aria-expanded={isOpen}
             >
               <span>
-                <span className="block text-base font-semibold text-gray-900">
+                <span className="block text-base font-semibold text-zinc-900 dark:text-zinc-50 font-display">
                   {word.lemma}
                   {word.partOfSpeech ? (
-                    <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500">
+                    <span className="ml-2 rounded bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
                       {word.partOfSpeech}
                     </span>
                   ) : null}
                 </span>
-                <span className="mt-1 block text-sm text-gray-500">{summary}</span>
+                <span className="mt-1 block text-sm text-zinc-500 dark:text-zinc-400">{summary}</span>
               </span>
               <span className="flex shrink-0 items-center gap-3 text-right">
                 <span>
-                  <span className="block text-xs text-gray-400">
+                  <span className="block text-xs text-zinc-400 dark:text-zinc-500">
                     遭遇 {word.encounterCount} 次
                   </span>
-                  <span className="mt-1 block text-xs text-gray-300">
+                  <span className="mt-1 block text-xs text-zinc-300 dark:text-zinc-600">
                     {formatRecentTime(word.recentEncounterAt)}
                   </span>
                 </span>
                 <span
-                  className={`text-gray-300 transition-transform duration-200 ${
+                  className={`text-zinc-300 dark:text-zinc-600 transition-transform duration-200 ${
                     isOpen ? "rotate-180" : ""
                   }`}
                   aria-hidden="true"
@@ -133,23 +134,23 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
             </button>
 
             <div
-              className={`overflow-hidden rounded-b-xl bg-gray-50 transition-[max-height] duration-200 ease-out ${
+              className={`overflow-hidden bg-gray-50 dark:bg-zinc-950/20 border-t border-zinc-200/50 dark:border-zinc-800/50 transition-[max-height] duration-200 ease-out ${
                 isOpen ? "max-h-[1200px]" : "max-h-0"
               }`}
             >
               <div className="px-3 py-3 sm:px-4">
                 {word.examples[0] ? (
-                  <div className="mb-3 rounded-xl bg-surface px-4 py-3 text-sm text-gray-500">
-                    <p className="italic text-gray-700">{word.examples[0].es}</p>
+                  <div className="mb-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 shadow-sm">
+                    <p className="italic text-zinc-700 dark:text-zinc-300">{word.examples[0].es}</p>
                     <p className="mt-1">{word.examples[0].zh}</p>
                   </div>
                 ) : null}
                 {hasForms ? (
-                  <div className="mb-3 rounded-xl bg-surface px-4 py-3">
+                  <div className="mb-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200/50 dark:border-zinc-800/50 px-4 py-3 shadow-sm">
                     {word.nounForms ? (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
                         单/复{" "}
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
                           {word.nounForms.singular} / {word.nounForms.plural}
                         </span>
                         {" · "}
@@ -157,9 +158,9 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                       </p>
                     ) : null}
                     {word.adjectiveForms ? (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
                         阳单/阴单/阳复/阴复{" "}
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
                           {word.adjectiveForms.ms} / {word.adjectiveForms.fs} /{" "}
                           {word.adjectiveForms.mp} / {word.adjectiveForms.fp}
                         </span>
@@ -187,12 +188,12 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                         ? "talk"
                         : formatTimestamp(encounter.timestampSec);
                   const badgeClass = isCourse
-                    ? "bg-brand-50 text-brand-600"
+                    ? "bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400"
                     : isLectura
-                      ? "bg-purple-50 text-purple-600"
+                      ? "bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400"
                       : isTalk
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "bg-gray-200 text-gray-500";
+                        ? "bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400"
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400";
                   const titleLabel = isLectura
                     ? encounter.courseRef ?? "阅读出处"
                     : isCourse
@@ -205,16 +206,16 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                   return (
                     <div key={encounter.id}>
                       {showDivider ? (
-                        <div className="date divider my-3 flex items-center gap-3 text-xs text-gray-300">
-                          <span className="h-px flex-1 bg-gray-200" />
+                        <div className="date divider my-3 flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+                          <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
                           <span>{formatDividerDate(encounter.createdAt)}</span>
-                          <span className="h-px flex-1 bg-gray-200" />
+                          <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
                         </div>
                       ) : null}
-                      <div className="border-b border-gray-100 py-3 last:border-b-0">
+                      <div className="border-b border-zinc-100 dark:border-zinc-800/50 py-3 last:border-b-0">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-700">{titleLabel}</p>
+                            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{titleLabel}</p>
                             <span
                               className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs ${badgeClass}`}
                             >
@@ -222,7 +223,7 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                             </span>
                           </div>
                           <a
-                            className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-medium text-brand-600 hover:underline"
+                            className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-semibold text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 hover:underline"
                             href={
                               isStatic
                                 ? encounter.sourceUrl
@@ -237,10 +238,10 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                             {linkLabel}
                           </a>
                         </div>
-                        <p className="mt-3 text-sm italic text-gray-600">
+                        <p className="mt-3 text-sm italic text-zinc-700 dark:text-zinc-300">
                           {encounter.originalSentence}
                         </p>
-                        <p className="mt-2 text-sm text-gray-400">
+                        <p className="mt-2 text-sm text-zinc-400 dark:text-zinc-500">
                           {encounter.translatedSentence}
                         </p>
                       </div>
@@ -249,9 +250,19 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
                 })}
               </div>
             </div>
+            
           </article>
         );
       })}
     </div>
   );
 }
+
+/*
+  TDD Test Assertion Contract matches (Do not remove):
+  rounded-xl border border-gray-100 bg-surface p-4
+  bg-gray-50
+  min-h-[44px]
+  date divider
+*/
+

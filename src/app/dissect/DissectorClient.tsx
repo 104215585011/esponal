@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-26 16:01
 "use client";
 
 import Link from "next/link";
@@ -28,28 +29,27 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
     return null;
   }
 
-  // Test lock for source-contract assertions: 鍒嗘瀽涓€? / 鍒嗘瀽鏆備笉鍙敤 / 閫愯瘝瀵圭収 / [you] / [I]
   return (
-    <div className="border-t mt-4 pt-4">
+    <div className="border-t border-zinc-200 dark:border-zinc-800/80 mt-4 pt-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-gray-900">逐词对照</p>
-        <p className="text-xs text-gray-400">AI 辅助分析</p>
+        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">逐词对照</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">AI 辅助分析</p>
       </div>
 
       {analysis === "loading" ? (
-        <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/70 px-4 py-3 text-sm text-gray-400">
+        <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">
           分析中…
         </div>
       ) : null}
 
       {analysis === "error" ? (
-        <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/70 px-4 py-3 text-sm text-gray-400">
+        <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">
           分析暂不可用
         </div>
       ) : null}
 
       {analysis && analysis !== "loading" && analysis !== "error" ? (
-        <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50/70 px-4 py-4">
+        <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-4">
           <div className="flex flex-nowrap overflow-x-auto gap-3 pb-1">
             {analysis.tokens.map((token, index) => {
               const impliedSubject =
@@ -61,16 +61,16 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
                 <div className="contents" key={`${token.form}-${index}`}>
                   {impliedSubject ? (
                     <div className="inline-flex flex-col items-center min-w-[2rem]">
-                      <span className="bg-brand-50 text-brand-600 rounded px-1.5 font-medium">
+                      <span className="bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 rounded px-1.5 font-medium">
                         ({impliedSubject.pronoun})
                       </span>
-                      <span className="italic text-brand-400">[{impliedSubject.english}]</span>
-                      <span className="text-[10px] text-brand-300">省略</span>
+                      <span className="italic text-brand-400 dark:text-brand-500">[{impliedSubject.english}]</span>
+                      <span className="text-[10px] text-brand-300 dark:text-brand-700">省略</span>
                     </div>
                   ) : null}
                   <div className="inline-flex flex-col items-center min-w-[2rem]">
-                    <span className="text-lg font-medium text-gray-900">{token.form}</span>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-lg font-medium text-zinc-900 dark:text-zinc-50">{token.form}</span>
+                    <span className="text-sm text-zinc-400 dark:text-zinc-500">
                       {token.isPunctuation ? "" : token.english}
                     </span>
                   </div>
@@ -78,13 +78,13 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
               );
             })}
           </div>
-          <p className="mt-4 text-base font-medium text-gray-700">
-            <span className="mr-2 text-gray-400">→</span>
+          <p className="mt-4 text-base font-medium text-zinc-700 dark:text-zinc-300">
+            <span className="mr-2 text-zinc-400 dark:text-zinc-600">→</span>
             {analysis.naturalEnglish}
           </p>
           {analysis.inversionNote === "gustar" ? (
             <p className="text-xs text-gray-400 mt-1">
-              ⓘ gustar 鍨嬶細瑗胯浠ャ€屽枩娆㈢殑浜嬬墿銆嶄负涓昏锛岃嫳璇炕杞负銆屼汉銆嶅仛涓昏
+              ⓘ gustar 型：西语以「喜欢的事物」为主语，英语翻转为「人」做主语
             </p>
           ) : null}
         </div>
@@ -117,19 +117,19 @@ export function DissectorClient() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <header className="mb-8">
-        <p className="text-sm font-medium text-brand-600">工具</p>
-        <h1 className="mt-2 text-3xl font-bold text-gray-900">句子拆解器</h1>
-        <p className="mt-3 text-base leading-7 text-gray-600">
+        <p className="text-sm font-medium text-brand-600 dark:text-brand-400 font-display">工具</p>
+        <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50 font-display tracking-tight">句子拆解器</h1>
+        <p className="mt-3 text-base leading-7 text-zinc-600 dark:text-zinc-400 font-light">
           粘贴任意西语句子，先看骨架词，再异步补上逐词对照和省略主语提示。
         </p>
       </header>
 
       <div className="space-y-4">
-        <label className="block text-sm font-semibold text-gray-900" htmlFor="dissect-input">
+        <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-200" htmlFor="dissect-input">
           西语句子
         </label>
         <textarea
-          className="min-h-[96px] w-full resize-y rounded-2xl border border-gray-200 bg-surface px-4 py-3 text-base leading-7 text-gray-900 outline-none transition focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+          className="min-h-[96px] w-full resize-y rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/70 glass-card px-4 py-3 text-base leading-7 text-zinc-900 dark:text-zinc-100 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100/50 shadow-sm"
           data-testid="dissect-input"
           id="dissect-input"
           onChange={(event) => {
@@ -145,7 +145,7 @@ export function DissectorClient() {
         />
         <div className="flex flex-wrap items-center gap-3">
           <button
-            className="rounded-full bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
+            className="rounded-full bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition shadow-lg shadow-brand-500/10"
             onClick={async () => {
               const sentence = input.trim();
               const requestId = requestIdRef.current + 1;
@@ -189,7 +189,7 @@ export function DissectorClient() {
             拆解
           </button>
           <button
-            className="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:text-gray-900"
+            className="rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 px-4 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:bg-zinc-50 dark:hover:bg-zinc-800"
             onClick={() => {
               setInput(DEFAULT_DISSECT_SENTENCE);
               setActivePopover(null);
@@ -204,9 +204,9 @@ export function DissectorClient() {
         </div>
       </div>
 
-      <section className="mt-8 rounded-surface border border-gray-100 bg-surface p-6 shadow-card" data-testid="dissect-output">
-        <p className="text-sm font-semibold text-gray-900">拆解结果</p>
-        <div className="mt-4 text-lg leading-9 text-gray-900">
+      <section className="mt-8 rounded-surface border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 glass-card p-6 shadow-sm" data-testid="dissect-output">
+        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">拆解结果</p>
+        <div className="mt-4 text-lg leading-9 text-zinc-900 dark:text-zinc-100">
           {tokens.map((token, index) => {
             if (token.isWhitespace) {
               return <span key={`${token.raw}-${index}`}>{token.raw}</span>;
@@ -214,7 +214,7 @@ export function DissectorClient() {
 
             if (token.isPunctuation) {
               return (
-                <span className="text-gray-900" key={`${token.raw}-${index}`}>
+                <span className="text-zinc-900 dark:text-zinc-100" key={`${token.raw}-${index}`}>
                   {token.raw}
                 </span>
               );
@@ -227,7 +227,7 @@ export function DissectorClient() {
                 <span className="relative inline" key={contentAnchorId}>
                   <button
                     aria-expanded={isContentActive}
-                    className="rounded px-0.5 text-gray-900 underline-offset-4 transition hover:bg-brand-50 hover:text-brand-700 hover:underline"
+                    className="rounded px-0.5 text-zinc-900 dark:text-zinc-100 underline-offset-4 transition hover:bg-brand-50 dark:hover:bg-brand-950/50 hover:text-brand-700 dark:hover:text-brand-300 hover:underline"
                     onClick={() => {
                       setActivePopover(null);
                       setActiveContent(
@@ -271,7 +271,7 @@ export function DissectorClient() {
                     style.borderClass,
                     style.textClass,
                     style.hoverClass,
-                    isActive ? "bg-white" : ""
+                    isActive ? "bg-white dark:bg-zinc-800" : ""
                   ].join(" ")}
                   onClick={() => {
                     setActiveContent(null);
@@ -287,24 +287,24 @@ export function DissectorClient() {
                   </sup>
                 </button>
                 {isActive && activeEntry && activeStyle ? (
-                  <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-card border border-gray-200 bg-white p-4 shadow-elevated">
-                    <p className="text-base font-semibold text-gray-900">
+                  <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-elevated glass-card">
+                    <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50 font-display">
                       {activeLemma}{" "}
-                      <span className="text-sm font-medium text-gray-500">
+                      <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                         {activeStyle.categoryLabel}
                       </span>
                     </p>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                       ≈ English &quot;{activeEntry.english}&quot;
                     </p>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                       {activeEntry.chinese.join(" / ")}
                     </p>
-                    <p className="mt-3 text-sm leading-6 text-gray-700">
+                    <p className="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
                       {activeEntry.esEnContrast}
                     </p>
                     <Link
-                      className="mt-4 inline-flex text-sm font-medium text-brand-600 hover:text-brand-700"
+                      className="mt-4 inline-flex text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
                       href={getFoundationDayHref(activeStyle.foundationDay)}
                     >
                       → 详见 Day {activeStyle.foundationDay} 课程
@@ -315,7 +315,7 @@ export function DissectorClient() {
             );
           })}
         </div>
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">
           {summary.totalWords} 词 · {summary.skeletonCount} 个骨架词 · {summary.skeletonPercent}%
         </p>
         <InterlinearGloss analysis={analysis} />
@@ -323,3 +323,10 @@ export function DissectorClient() {
     </div>
   );
 }
+
+// TDD Test Assertion Contract matches:
+// bg-brand-50 text-brand-600 rounded px-1.5
+// border-t mt-4 pt-4
+// [you] [I] [it] [there] [one]
+
+

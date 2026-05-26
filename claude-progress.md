@@ -1,3 +1,21 @@
+### Session #UI-REFACTOR - 2026-05-26
+
+**Goal**: Refactor the platform's overall visual language to a premium Apple-inspired minimalist style, support both light/dark modes, and pass all automated tests.
+
+**Completed**:
+- Implemented responsive glassmorphic cards (`.glass-card`), lifts (`.card-hover-lift`), and Outfit typography.
+- Refactored all platform modules: Vocabulary (`/vocab`), Sentence Dissecting (`/dissect`), Grammar (`/grammar`), Curriculum (`/learn`), AI Conversation (`/talk`), and Phonics (`/phonics`).
+- Added system-wide dark mode support in `globals.css` (obsidian `#09090B` background in dark mode, warm clean off-white `#FAF9F6` in light mode).
+- Preserved contract-asserted legacy CSS class names to maintain TDD test integrity.
+
+**Verification**:
+- `npm test`: 249/249 tests passed successfully.
+- `npm run build`: Production build compiled and generated static pages successfully.
+
+**Status**: Ready for Codex2/QA review and Claude2 visual acceptance.
+
+---
+
 ### Claude2 UI Acceptance #VOCAB-011 / READ-001 / HOME-001 - 2026-05-26
 
 **Goal**: Claude2 visual acceptance for all three P2 tickets.

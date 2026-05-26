@@ -1,6 +1,20 @@
+// Timestamp: 2026-05-26 15:46
 import type { Metadata, Viewport } from "next";
+import { Inter, Outfit } from "next/font/google";
 import { ServiceWorkerRegister } from "@/app/components/web/ServiceWorkerRegister";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Esponal",
@@ -26,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body>
+    <html lang="zh-CN" className={`${inter.variable} ${outfit.variable}`}>
+      <body className="font-sans antialiased">
         <ServiceWorkerRegister />
         {children}
       </body>

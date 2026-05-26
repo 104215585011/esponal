@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-26 16:30
 "use client";
 
 import { useRef, useState } from "react";
@@ -27,20 +28,22 @@ function AudioChip({
 }) {
   const idleClass =
     tone === "brand"
-      ? "bg-brand-50 text-brand-700 hover:bg-brand-100"
-      : "bg-gray-50 text-gray-700 hover:bg-gray-100";
+      ? "bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900/40"
+      : "bg-zinc-50 dark:bg-zinc-800/40 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700/50";
   const activeClass =
-    tone === "brand" ? "bg-brand-100 text-brand-700" : "bg-gray-100 text-gray-900";
+    tone === "brand"
+      ? "bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300"
+      : "bg-zinc-100 dark:bg-zinc-750 text-zinc-900 dark:text-zinc-100";
 
   return (
     <button
-      className={`inline-flex h-9 items-center rounded-full px-4 text-sm font-medium transition ${
+      className={`inline-flex h-9 items-center rounded-full px-4 text-sm font-medium transition duration-300 ${
         playing ? activeClass : idleClass
       }`}
       onClick={onClick}
       type="button"
     >
-      馃攰 {label}
+      🔊 {label}
     </button>
   );
 }
@@ -72,8 +75,8 @@ export function PhonicsIntro() {
   return (
     <section className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold tracking-normal text-gray-950">发音基础</h2>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
+        <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 font-display">发音基础</h2>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 font-light">
           先把元音听稳，再看后面的字母变音规则。西语的元音比英语更固定，听熟以后拼读会轻松很多。
         </p>
       </div>
@@ -81,10 +84,10 @@ export function PhonicsIntro() {
       <div className="space-y-4">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-gray-900">Vocales</p>
-            <p className="mt-1 text-sm text-gray-500">西语元音发音固定，每个字母基本只有一种核心读法。</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-display">Vocales</p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 font-light">西语元音发音固定，每个字母基本只有一种核心读法。</p>
           </div>
-          <p className="hidden text-xs text-gray-400 sm:block">阿 / 诶 / 衣 / 哦 / 乌</p>
+          <p className="hidden text-xs text-zinc-400 dark:text-zinc-500 sm:block font-light">阿 / 诶 / 衣 / 哦 / 乌</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {PHONICS_VOWELS.map((vowel) => {
@@ -103,9 +106,9 @@ export function PhonicsIntro() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-card border border-brand-100 bg-brand-50/70 p-4">
-          <p className="text-sm font-medium text-brand-700">Vocales fuertes</p>
-          <p className="mt-1 text-sm text-brand-700/80">a / e / o 比较能撑住一个完整音节。</p>
+        <section className="rounded-hero border border-brand-100 dark:border-brand-900/40 bg-brand-50/40 dark:bg-brand-950/10 p-5 glass-card">
+          <p className="text-sm font-semibold text-brand-800 dark:text-brand-300 font-display">Vocales fuertes</p>
+          <p className="mt-1 text-sm text-brand-700/80 dark:text-brand-400 font-light">a / e / o 比较能撑住一个完整音节。</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {PHONICS_STRONG_VOWELS.map((example) => {
               const key: AudioKey = `example:${example.audioSlug}`;
@@ -122,9 +125,9 @@ export function PhonicsIntro() {
           </div>
         </section>
 
-        <section className="rounded-card border border-gray-200 bg-gray-50 p-4">
-          <p className="text-sm font-medium text-gray-700">Vocales débiles</p>
-          <p className="mt-1 text-sm text-gray-500">i / u 靠近强元音时常会“让位”，和它们并进同一个音节。</p>
+        <section className="rounded-hero border border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-950/20 p-5 glass-card">
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">Vocales débiles</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 font-light font-light">i / u 靠近强元音时常会“让位”，和它们并进同一个音节。</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {PHONICS_WEAK_VOWELS.map((example) => {
               const key: AudioKey = `example:${example.audioSlug}`;
@@ -141,15 +144,15 @@ export function PhonicsIntro() {
         </section>
       </div>
 
-      <section className="rounded-card border border-gray-200 bg-white p-4">
+      <section className="rounded-hero border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm glass-card">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-gray-900">Diptongo</p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">Diptongo</p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 font-light">
               强 + 弱、弱 + 强、弱 + 弱，常常会并进同一个音节，听起来更顺更连。
             </p>
           </div>
-          <p className="hidden text-xs text-gray-400 sm:block">
+          <p className="hidden text-xs text-zinc-400 dark:text-zinc-500 sm:block font-light">
             Consonantes：其余 22 个字母都是辅音，具体变音规则见各字母详情。
           </p>
         </div>
@@ -158,13 +161,13 @@ export function PhonicsIntro() {
           {PHONICS_DIPHTHONGS.map((word) => {
             const key: AudioKey = `diphthong:${word.audioSlug}`;
             return (
-              <div className="rounded-card bg-gray-50 p-3" key={word.audioSlug}>
-                <div className="text-lg text-gray-900">
+              <div className="rounded-surface bg-zinc-50/50 dark:bg-zinc-950/20 p-4 border border-zinc-100/50 dark:border-zinc-850/20" key={word.audioSlug}>
+                <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-200 font-display">
                   {word.before}
                   <span className="text-brand-600 font-semibold">{word.highlight}</span>
                   {word.after}
                 </div>
-                <p className="mt-1 text-sm text-gray-500">{word.zh}</p>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-450 font-light">{word.zh}</p>
                 <div className="mt-3">
                   <AudioChip
                     label={word.text}
@@ -178,7 +181,7 @@ export function PhonicsIntro() {
           })}
         </div>
 
-        <p className="mt-4 text-xs text-gray-400 sm:hidden">
+        <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-500 sm:hidden font-light">
           Consonantes：其余 22 个字母都是辅音，具体变音规则见各字母详情。
         </p>
       </section>

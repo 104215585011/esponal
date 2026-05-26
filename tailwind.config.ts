@@ -1,9 +1,14 @@
+// Timestamp: 2026-05-26 15:47
 import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "sans-serif"],
+        display: ["var(--font-outfit)", "sans-serif"],
+      },
       colors: {
         brand: {
           50: "#ecfdf5",

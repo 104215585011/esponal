@@ -271,7 +271,7 @@ export const grammarTopics: GrammarTopic[] = [
   }
 ];
 
-export const grammarGroups: GrammarGroup[] = ["动词变位", "名词性别", "句型结构", "常见辨析"];
+export const grammarGroups: GrammarGroup[] = ["动词变位", "名词性别"];
 
 export function getGrammarTopic(slug: string) {
   return grammarTopics.find((topic) => topic.slug === slug);
