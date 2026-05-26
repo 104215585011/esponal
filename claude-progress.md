@@ -1,3 +1,22 @@
+### Session #UI-REFACTOR-QA-FIX - 2026-05-26 20:11
+
+**Goal**: Fix the two Codex2 QA blockers from `UI-REFACTOR-QA`.
+
+**Completed**:
+- Added `overflow-hidden` to the mobile nav fixed overlay so the closed `translate-x-full` drawer no longer increases page `scrollWidth`.
+- Moved `/design-preview` inline `<style>` rules into `globals.css`, removing the hydration-prone render text from the client component.
+- Added `tests/ui_refactor_qa_fix.test.mjs` to lock both regressions.
+
+**Verification**:
+- `node --test tests/ui_refactor_qa_fix.test.mjs tests/web013.test.mjs`: 5/5 pass.
+- `npm test`: 251/251 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+- Browser recheck on `http://127.0.0.1:3004`: `/`, `/phonics`, `/grammar` at 375/768 have `scrollWidth === clientWidth`; `/design-preview` has no console/page errors.
+
+**Status**: Returned to Codex2 for focused QA re-test.
+
+---
+
 ### Session #UI-REFACTOR - 2026-05-26
 
 **Goal**: Refactor the platform's overall visual language to a premium Apple-inspired minimalist style, support both light/dark modes, and pass all automated tests.

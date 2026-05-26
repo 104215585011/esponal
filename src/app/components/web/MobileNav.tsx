@@ -79,7 +79,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
 
       <div
         aria-hidden={!open}
-        className={`fixed inset-0 z-50 bg-surface transition-opacity duration-200 ${
+        className={`fixed inset-0 z-50 overflow-hidden bg-surface transition-opacity duration-200 ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

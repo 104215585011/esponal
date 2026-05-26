@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "route": "/",
+      "viewport": "mobile",
+      "pass": true,
+      "clientWidth": 375,
+      "scrollWidth": 375
+    },
+    {
+      "route": "/phonics",
+      "viewport": "mobile",
+      "pass": true,
+      "clientWidth": 375,
+      "scrollWidth": 375
+    },
+    {
+      "route": "/grammar",
+      "viewport": "mobile",
+      "pass": true,
+      "clientWidth": 375,
+      "scrollWidth": 375
+    },
+    {
+      "route": "/",
+      "viewport": "tablet",
+      "pass": true,
+      "clientWidth": 768,
+      "scrollWidth": 768
+    },
+    {
+      "route": "/phonics",
+      "viewport": "tablet",
+      "pass": true,
+      "clientWidth": 768,
+      "scrollWidth": 768
+    },
+    {
+      "route": "/grammar",
+      "viewport": "tablet",
+      "pass": true,
+      "clientWidth": 768,
+      "scrollWidth": 768
+    },
+    {
+      "route": "/design-preview",
+      "viewport": "mobile",
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    }
+  ]
+}

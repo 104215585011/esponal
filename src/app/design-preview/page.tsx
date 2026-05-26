@@ -17,92 +17,10 @@ export default function DesignPreviewV2() {
   const [flipped, setFlipped] = useState(false);
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap');
-
-        /* ── 字体 ── */
-        .ed-display  { font-family: 'Playfair Display', Georgia, serif; }
-        .ed-body     { font-family: 'EB Garamond', Georgia, serif; }
-        .ed-sans     { font-family: 'Inter', system-ui, sans-serif; }
-
-        /* ── 文字选中色 ── */
-        ::selection { background: rgba(217,119,6,0.25); }
-
-        /* ── 细线 ── */
-        .ed-rule { border: none; border-top: 1px solid rgba(245,240,232,0.12); }
-        .ed-rule-amber { border: none; border-top: 1px solid rgba(217,119,6,0.4); }
-
-        /* ── 动画 ── */
-        @keyframes ed-reveal {
-          from { opacity:0; transform:translateY(20px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        @keyframes ed-specimen-breathe {
-          0%,100% { opacity: 0.06; }
-          50%     { opacity: 0.11; }
-        }
-        .ed-reveal        { animation: ed-reveal 0.8s ease-out both; }
-        .ed-reveal-d1     { animation: ed-reveal 0.8s 0.15s ease-out both; }
-        .ed-reveal-d2     { animation: ed-reveal 0.8s 0.30s ease-out both; }
-        .ed-specimen-bg   { animation: ed-specimen-breathe 6s ease-in-out infinite; }
-
-        /* ── 翻卡 ── */
-        .ed-flip-scene  { perspective: 1200px; }
-        .ed-flip-inner  {
-          position:relative; width:100%; height:100%;
-          transform-style: preserve-3d;
-          transition: transform 0.6s cubic-bezier(.4,0,.2,1);
-        }
-        .ed-flip-inner.flipped { transform: rotateY(180deg); }
-        .ed-flip-face {
-          position:absolute; inset:0;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-          display:flex; flex-direction:column;
-          align-items:center; justify-content:center;
-          padding: 2.5rem;
-        }
-        .ed-flip-back { transform: rotateY(180deg); }
-
-        /* ── 杂志式链接 ── */
-        .ed-link {
-          color: #A89880;
-          text-decoration: none;
-          border-bottom: 1px solid rgba(168,152,128,0.3);
-          transition: color 0.15s, border-color 0.15s;
-        }
-        .ed-link:hover { color: #F5F0E8; border-color: rgba(245,240,232,0.5); }
-
-        /* ── 边注 (margin note) ── */
-        .ed-marginnote {
-          font-family: 'Inter', system-ui, sans-serif;
-          font-size: 0.65rem;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: #5C544A;
-          writing-mode: horizontal-tb;
-        }
-
-        /* ── 目录 hover ── */
-        .ed-toc-item {
-          border-top: 1px solid rgba(245,240,232,0.07);
-          transition: background-color 0.2s;
-        }
-        .ed-toc-item:hover { background-color: rgba(245,240,232,0.03); }
-        .ed-toc-item:hover .ed-toc-arrow { opacity: 1 !important; }
-
-        /* ── 引语块 ── */
-        .ed-pullquote {
-          border-left: 2px solid #D97706;
-          padding-left: 1.25rem;
-        }
-      `}</style>
-
-      <div
-        className="ed-sans"
-        style={{ backgroundColor: "#0F0C08", color: "#F5F0E8", minHeight: "100vh" }}
-      >
+    <div
+      className="ed-sans"
+      style={{ backgroundColor: "#0F0C08", color: "#F5F0E8", minHeight: "100vh" }}
+    >
 
         {/* ══════════════════════════════════════════
             MASTHEAD — 像杂志封面的刊头
@@ -524,7 +442,6 @@ export default function DesignPreviewV2() {
           </div>
         </footer>
 
-      </div>
-    </>
+    </div>
   );
 }

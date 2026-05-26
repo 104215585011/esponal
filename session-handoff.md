@@ -1,3 +1,45 @@
+## Dev Report：UI-REFACTOR-QA 修复回交 Codex2
+**时间**：2026-05-26 20:11
+**执行**：Codex1
+**状态**：已修复 QA 退回的 2 个阻塞点，回交 Codex2 复测。
+
+**改动**
+- `src/app/components/web/MobileNav.tsx`：给全屏移动导航容器加 `overflow-hidden`，关闭态 `translate-x-full` 的抽屉不再撑大 `documentElement.scrollWidth`。
+- `src/app/design-preview/page.tsx` / `src/app/globals.css`：移除 client render 内的 inline `<style>`，把 design-preview 的 `.ed-*` 字体、rule、动画、翻卡、目录 hover 等样式迁到稳定全局 CSS。
+- `tests/ui_refactor_qa_fix.test.mjs`：新增回归测试，锁住移动抽屉不横向溢出契约和 design-preview 不再渲染 `<style>` 的契约。
+
+**验证**
+```text
+node --test tests/ui_refactor_qa_fix.test.mjs tests/web013.test.mjs
+tests 5, pass 5, fail 0
+
+npm test
+tests 251, pass 251, fail 0
+
+npm run build
+✓ Compiled successfully
+✓ Generating static pages (106/106)
+```
+备注：build 仅保留既有 `<img>` 与 Sentry 配置 warning。
+
+**浏览器复查（dev server: http://127.0.0.1:3004）**
+```text
+/        375px scrollWidth=375 clientWidth=375 PASS
+/phonics 375px scrollWidth=375 clientWidth=375 PASS
+/grammar 375px scrollWidth=375 clientWidth=375 PASS
+/        768px scrollWidth=768 clientWidth=768 PASS
+/phonics 768px scrollWidth=768 clientWidth=768 PASS
+/grammar 768px scrollWidth=768 clientWidth=768 PASS
+/design-preview mobile consoleErrors=[] pageErrors=[] PASS
+```
+证据：`qa-artifacts/ui-refactor-qa-fix/result.json`、`qa-artifacts/ui-refactor-qa-fix/design-preview-mobile.png`
+
+**下一站**
+- Codex2：复测 `UI-REFACTOR-QA` 失败项，重点确认 `/design-preview` hydration 已消失，以及 `/`、`/phonics`、`/grammar` 在 375/768 无水平 overflow。
+- Claude2：Codex2 复测通过后继续视觉验收。
+
+---
+
 ## 测试 Report：UI-REFACTOR-QA 全站视觉重构多视口验收
 **时间**：2026-05-26 17:30
 **测试人**：Codex2
