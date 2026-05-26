@@ -1,3 +1,61 @@
+## 测试 Report：UI-REFACTOR-QA-FIX Codex2 复测
+**时间**：2026-05-26 20:18
+**测试人**：Codex2
+
+**结论**：通过。Codex1 修复的两个退回点均已复测通过，移交 Claude2 做 UI 视觉验收。
+
+**验证步骤执行记录**：
+1. Focused source regression
+   命令：`node --test tests/ui_refactor_qa_fix.test.mjs tests/web013.test.mjs`
+   输出：
+   ```text
+   tests 5
+   pass 5
+   fail 0
+   ```
+   结果：通过
+
+2. 全量自动化基线
+   命令：`npm test`
+   输出：
+   ```text
+   tests 251
+   pass 251
+   fail 0
+   ```
+   结果：通过
+
+3. 构建验证
+   命令：`npm run build`
+   输出：
+   ```text
+   ✓ Compiled successfully
+   ✓ Generating static pages (106/106)
+   ```
+   备注：仅既有 `<img>` 与 Sentry 配置 warning。
+   结果：通过
+
+4. 浏览器复测（dev server: `http://127.0.0.1:3004`，build 后重启）
+   工具：Playwright，独立 page/context 逐路由复查。
+   输出：
+   ```text
+   /        mobile-375 scrollWidth=375 clientWidth=375 consoleErrors=[] pageErrors=[] PASS
+   /phonics mobile-375 scrollWidth=375 clientWidth=375 consoleErrors=[] pageErrors=[] PASS
+   /grammar mobile-375 scrollWidth=375 clientWidth=375 consoleErrors=[] pageErrors=[] PASS
+   /        tablet-768 scrollWidth=768 clientWidth=768 consoleErrors=[] pageErrors=[] PASS
+   /phonics tablet-768 scrollWidth=768 clientWidth=768 consoleErrors=[] pageErrors=[] PASS
+   /grammar tablet-768 scrollWidth=768 clientWidth=768 consoleErrors=[] pageErrors=[] PASS
+   /design-preview mobile-375 consoleErrors=[] pageErrors=[] PASS
+   ```
+   证据：`qa-artifacts/ui-refactor-qa-retest/result.json` 以及同目录 7 张截图。
+   结果：通过
+
+**移交**
+- UI ticket：不改 `feature_list.json` 为 `passing`。
+- 下一站：Claude2 视觉验收 `UI-REFACTOR-QA`，重点看原全站视觉重构的多视口视觉质量；Codex2 功能/技术复测已通过。
+
+---
+
 ## Dev Report：UI-REFACTOR-QA 修复回交 Codex2
 **时间**：2026-05-26 20:11
 **执行**：Codex1

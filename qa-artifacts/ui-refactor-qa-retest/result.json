@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "route": "/",
+      "viewport": "mobile-375",
+      "pass": true,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "route": "/phonics",
+      "viewport": "mobile-375",
+      "pass": true,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "route": "/grammar",
+      "viewport": "mobile-375",
+      "pass": true,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "route": "/",
+      "viewport": "tablet-768",
+      "pass": true,
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "route": "/phonics",
+      "viewport": "tablet-768",
+      "pass": true,
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "route": "/grammar",
+      "viewport": "tablet-768",
+      "pass": true,
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "consoleErrors": [],
+      "pageErrors": []
+    },
+    {
+      "route": "/design-preview",
+      "viewport": "mobile-375",
+      "pass": true,
+      "consoleErrors": [],
+      "pageErrors": []
+    }
+  ]
+}

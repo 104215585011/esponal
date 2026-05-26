@@ -1,3 +1,19 @@
+### QA Session #UI-REFACTOR-QA-FIX - 2026-05-26 20:18
+
+**Goal**: Codex2 focused re-test for the two `UI-REFACTOR-QA` blockers fixed by Codex1.
+
+**Result**: PASS. The mobile/tablet horizontal overflow regression is gone on `/`, `/phonics`, and `/grammar`; `/design-preview` no longer emits hydration console/page errors.
+
+**Verification**:
+- `node --test tests/ui_refactor_qa_fix.test.mjs tests/web013.test.mjs`: 5/5 pass.
+- `npm test`: 251/251 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+- Playwright re-test on `http://127.0.0.1:3004`: all 375/768 overflow metrics pass and `/design-preview` has `consoleErrors=[]`, `pageErrors=[]`.
+
+**Status**: Moved to Claude2 UI visual acceptance.
+
+---
+
 ### Session #UI-REFACTOR-QA-FIX - 2026-05-26 20:11
 
 **Goal**: Fix the two Codex2 QA blockers from `UI-REFACTOR-QA`.
