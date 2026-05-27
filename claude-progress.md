@@ -1,3 +1,17 @@
+### Session #UI-DARK-MODE-CONTRAST - 2026-05-27 14:30
+
+**Goal**: Resolve contrast and legibility issues in night mode for the Lectura list and reading detail pages.
+
+**Completed**:
+- Modified `src/app/lectura/page.tsx`, `src/app/lectura/[slug]/page.tsx`, `LecturaReader.tsx` and `LecturaReadStatus.tsx` to add tailwind `dark:` class text modifiers.
+- Custom styled playback buttons, manual completeness button and hover outlines for the reader module under dark themes.
+
+**Verification**:
+- `npm test`: 253/253 passed successfully.
+- `npm run build`: built successfully.
+
+---
+
 ### Session #UI-SCROLLBAR-STYLE - 2026-05-27 14:20
 
 **Goal**: Customize and beautify default scrollbars across scrollable containers (like word detail popups) to match the premium UI style.

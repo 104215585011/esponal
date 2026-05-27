@@ -207,7 +207,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   return (
     <>
       <div
-        className="font-serif text-[17px] leading-[1.85] text-gray-800"
+        className="font-serif text-[17px] leading-[1.85] text-gray-800 dark:text-zinc-250"
         data-testid="lectura-reader"
         ref={containerRef}
       >
@@ -228,8 +228,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                 aria-label={isPlaying ? "Stop paragraph audio" : "Play paragraph audio"}
                 className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition sm:opacity-0 sm:group-hover:opacity-100 ${
                   isPlaying
-                    ? "border-brand-500 bg-brand-50 text-brand-600 opacity-100"
-                    : "border-gray-200 bg-white text-gray-400 hover:border-brand-500 hover:text-brand-600"
+                    ? "border-brand-500 bg-brand-50 text-brand-600 dark:border-brand-500 dark:bg-brand-950/30 dark:text-brand-400 opacity-100"
+                    : "border-gray-200 bg-white text-gray-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500 hover:border-brand-500 hover:text-brand-600 dark:hover:border-brand-500 dark:hover:text-brand-400"
                 }`}
                 onClick={() => toggleParagraphAudio(paragraphIndex)}
                 type="button"
@@ -245,7 +245,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
 
                   return (
                     <span
-                      className={`cursor-pointer rounded-sm transition hover:bg-brand-50 ${
+                      className={`cursor-pointer rounded-sm transition hover:bg-brand-50 dark:hover:bg-brand-950/30 ${
                         savedSet.has(normalized) ? "saved-word" : ""
                       }`}
                       key={tokenIndex}

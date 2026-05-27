@@ -38,14 +38,14 @@ export default async function LecturaIndexPage() {
       <SiteHeader />
       <section className="mx-auto max-w-app-shell px-4 py-10">
         <header className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100">
             Lectura · 西语短文阅读
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
             适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
           </p>
           {userId ? (
-            <p className="mt-3 text-sm text-gray-500">已读 {readSlugs.size} / {sortedStories.length} 篇</p>
+            <p className="mt-3 text-sm text-gray-500 dark:text-zinc-400">已读 {readSlugs.size} / {sortedStories.length} 篇</p>
           ) : null}
         </header>
 
@@ -55,8 +55,10 @@ export default async function LecturaIndexPage() {
 
             return (
               <Link
-                className={`group flex flex-col gap-3 rounded-surface border bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 hover:shadow-elevated ${
-                  isRead ? "border-emerald-100" : "border-gray-100"
+                className={`group flex flex-col gap-3 rounded-surface border bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-elevated ${
+                  isRead 
+                    ? "border-emerald-100 dark:border-emerald-900/40" 
+                    : "border-gray-100 dark:border-zinc-800/80"
                 }`}
                 href={`/lectura/${story.slug}`}
                 key={story.slug}
@@ -67,26 +69,26 @@ export default async function LecturaIndexPage() {
                   >
                     {story.level}
                   </span>
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-[11px] text-gray-400 dark:text-zinc-500">
                     {story.durationMin} min
                     {isRead ? <span className="ml-1.5 text-emerald-500">✓</span> : null}
                   </span>
                 </div>
 
                 <div>
-                  <p className="text-base font-semibold text-gray-900 group-hover:text-brand-700">
+                  <p className="text-base font-semibold text-gray-900 dark:text-zinc-100 group-hover:text-brand-700 dark:group-hover:text-brand-400">
                     {story.titleZh}
                   </p>
-                  <p className="mt-0.5 text-[13px] italic text-gray-500">
+                  <p className="mt-0.5 text-[13px] italic text-gray-500 dark:text-zinc-400">
                     {story.title}
                   </p>
                 </div>
 
-                <p className="text-sm leading-6 text-gray-600 line-clamp-3">
+                <p className="text-sm leading-6 text-gray-600 dark:text-zinc-350 line-clamp-3">
                   {story.summaryZh}
                 </p>
 
-                <p className="mt-auto text-[11px] text-gray-400">{story.source}</p>
+                <p className="mt-auto text-[11px] text-gray-400 dark:text-zinc-550">{story.source}</p>
               </Link>
             );
           })}

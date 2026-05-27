@@ -46,7 +46,7 @@ export function LecturaReadStatus({ slug, isRead }: LecturaReadStatusProps) {
 
   if (isMarked) {
     return (
-      <span className="inline-flex min-h-[36px] items-center rounded-full bg-emerald-50 px-3 text-sm font-medium text-emerald-600 cursor-default">
+      <span className="inline-flex min-h-[36px] items-center rounded-full bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 cursor-default">
         已读 ✓
       </span>
     );
@@ -54,7 +54,7 @@ export function LecturaReadStatus({ slug, isRead }: LecturaReadStatusProps) {
 
   return (
     <button
-      className="inline-flex min-h-[36px] items-center rounded-full border border-emerald-100 px-3 text-sm font-medium text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-default disabled:opacity-60"
+      className="inline-flex min-h-[36px] items-center rounded-full border border-emerald-100 dark:border-emerald-900/50 px-3 text-sm font-medium text-emerald-600 dark:text-emerald-400 transition hover:bg-emerald-50 dark:hover:bg-emerald-950/30 disabled:cursor-default disabled:opacity-60"
       disabled={isSaving}
       onClick={() => {
         setIsSaving(true);

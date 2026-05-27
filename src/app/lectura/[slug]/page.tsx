@@ -58,12 +58,12 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
           {userId ? <LecturaReadStatus isRead={isRead} slug={story.slug} /> : null}
         </div>
 
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100 sm:text-4xl">
           {story.title}
         </h1>
-        <p className="mt-1 text-base text-gray-500">{story.titleZh}</p>
+        <p className="mt-1 text-base text-gray-500 dark:text-zinc-400">{story.titleZh}</p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${levelStyle[story.level]}`}
           >
@@ -72,14 +72,14 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
           <span>·</span>
           <span>{story.durationMin} min</span>
           <span>·</span>
-          <span className="text-[12px] text-gray-400">{story.source}</span>
+          <span className="text-[12px] text-gray-400 dark:text-zinc-500">{story.source}</span>
         </div>
 
         <div className="mt-10">
           <LecturaReader story={story} isRead={isRead} />
         </div>
 
-        <footer className="mt-16 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
+        <footer className="mt-16 border-t border-gray-100 dark:border-zinc-800/60 pt-6 text-center text-xs text-gray-400 dark:text-zinc-500">
           <p>约 {story.durationMin} 分钟 · 点任意单词查义</p>
           {!userId ? <p className="mt-2">登录后可保存阅读记录</p> : null}
         </footer>

@@ -1,3 +1,32 @@
+## Dev/QA Report: UI-DARK-MODE-CONTRAST 暗黑模式下阅读文本对比度修复
+**时间**：2026-05-27 14:30
+**测试/开发**：Codex1 & Codex2
+**状态**：已全面修复 Lectura（短文阅读）列表页和详情页在暗黑模式下的文本与交互按钮对比度，保证极致对比清晰度。
+
+**问题**
+- 暗黑模式（Night Mode）下，短文阅读列表卡片内的标题、摘要、出处以及详情页内的标题、西语正文和段落播放按钮等，由于缺乏对应的 `dark:text-xxxx` 样式类，沿用了 Light 模式下的深灰色/暗蓝色设计，导致与纯黑背景融为一体，难以阅读。
+
+**改动**
+- `src/app/lectura/page.tsx`：
+  - 为列表标题添加 `dark:text-zinc-100 dark:group-hover:text-brand-400`。
+  - 为原标题、摘要、出处等文本添加 `dark:text-zinc-400` / `dark:text-zinc-350` / `dark:text-zinc-550`。
+  - 调整卡片边框在暗黑模式下的对比度为 `dark:border-zinc-800/80`，已读边框为 `dark:border-emerald-900/40`。
+- `src/app/lectura/[slug]/page.tsx`：
+  - 为详情页大标题和中文字幕添加 `dark:text-zinc-100` / `dark:text-zinc-400`。
+  - 为元数据（等级、时长、来源等）和页脚说明添加 `dark:text-zinc-400` / `dark:text-zinc-500`。
+- `src/app/lectura/LecturaReader.tsx`：
+  - 为西班牙语正文段落添加 `dark:text-zinc-250`。
+  - 为每个段落的播放按钮增加暗黑模式下的专属高亮和非激活边框/背景/文本色，如 `dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500`。
+  - 将单词悬浮 hover 背景从 `hover:bg-brand-50` 改进为暗黑模式专用的 `dark:hover:bg-brand-950/30`。
+- `src/app/lectura/LecturaReadStatus.tsx`：
+  - 优化手动标记按钮与“已读 ✓”状态徽章的暗黑模式类，如 `dark:bg-emerald-950/30 dark:text-emerald-400`。
+
+**验证**
+1. 自动化回归测试：`npm test` 253/253 全部通过。
+2. 生产构建：`npm run build` 成功。
+
+---
+
 ## Dev/QA Report: UI-SCROLLBAR-STYLE 滚动条样式美化
 **时间**：2026-05-27 14:20
 **测试/开发**：Codex1 & Codex2
