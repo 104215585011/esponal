@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 16:01
+// Timestamp: 2026-05-27 08:45
 "use client";
 
 import Link from "next/link";
@@ -324,9 +324,6 @@ export function DissectorClient() {
   );
 }
 
-// TDD Test Assertion Contract matches:
-// bg-brand-50 text-brand-600 rounded px-1.5
-// border-t mt-4 pt-4
-// [you] [I] [it] [there] [one]
+
 
 

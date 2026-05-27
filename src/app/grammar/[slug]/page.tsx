@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 16:08
+// Timestamp: 2026-05-27 08:45
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SpanishText } from "@/app/components/vocab/SpanishText";
@@ -255,7 +255,5 @@ function ComparisonColumn({
   );
 }
 
-// TDD Test Assertion Contract matches:
-// <p className="mt-3 text-base leading-7 text-gray-500">{topic.intro}</p>
-// <p className="mt-2 text-sm leading-7 text-gray-700">{topic.analogy}</p>
+
 

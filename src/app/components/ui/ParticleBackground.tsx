@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 15:48
+// Timestamp: 2026-05-27 08:45
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -64,6 +64,30 @@ export function ParticleBackground({
       }
 
       update(isDark: boolean) {
+        // Mouse attraction physics with organic acceleration
+        if (mouse.x !== null && mouse.y !== null) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius && distance > 5) {
+            const force = (mouse.radius - distance) / mouse.radius;
+            this.directionX += (dx / distance) * force * 0.08;
+            this.directionY += (dy / distance) * force * 0.08;
+          }
+        }
+
+        // Speed limiters to keep movements smooth and premium
+        const maxSpeed = 1.8;
+        const speed = Math.sqrt(this.directionX * this.directionX + this.directionY * this.directionY);
+        if (speed > maxSpeed) {
+          this.directionX = (this.directionX / speed) * maxSpeed;
+          this.directionY = (this.directionY / speed) * maxSpeed;
+        }
+
+        // Apply constant friction to decay excessive speed injection
+        this.directionX *= 0.98;
+        this.directionY *= 0.98;
+
         this.x += this.directionX;
         this.y += this.directionY;
 
@@ -73,18 +97,6 @@ export function ParticleBackground({
         }
         if (this.y > canvas!.height || this.y < 0) {
           this.directionY = -this.directionY;
-        }
-
-        // Mouse attraction physics
-        if (mouse.x !== null && mouse.y !== null) {
-          const dx = mouse.x - this.x;
-          const dy = mouse.y - this.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < mouse.radius) {
-            const force = (mouse.radius - distance) / mouse.radius;
-            this.x += (dx / distance) * force * 1.2;
-            this.y += (dy / distance) * force * 1.2;
-          }
         }
 
         this.draw(isDark);

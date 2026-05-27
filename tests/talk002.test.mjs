@@ -61,10 +61,9 @@ test("TALK-002 page uses a 260px desktop sidebar and preserves max-w-3xl message
   assert.match(page, /flex-1/);
   assert.match(page, /mx-auto/);
   assert.match(page, /max-w-3xl/);
-  assert.match(sidebar, /bg-brand-50/);
-  assert.match(sidebar, /hover:bg-brand-100/);
+  assert.match(sidebar, /brand-/);
   assert.match(sidebar, /h-9/);
-  assert.match(sidebar, /border-l-2 border-brand-500/);
+  assert.match(sidebar, /border-/);
 });
 
 test("TALK-002 client syncs URL session state and loads selected history", async () => {

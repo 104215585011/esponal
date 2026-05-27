@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 15:46
+// Timestamp: 2026-05-27 08:39
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { ServiceWorkerRegister } from "@/app/components/web/ServiceWorkerRegister";
@@ -41,6 +41,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className={`${inter.variable} ${outfit.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('color-theme');
+                  var isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  document.documentElement.classList.toggle('dark', isDark);
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
+      </head>
       <body className="font-sans antialiased">
         <ServiceWorkerRegister />
         {children}

@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 16:30
+// Timestamp: 2026-05-27 08:45
 "use client";
 
 import { useState } from "react";
@@ -258,11 +258,5 @@ export default function VocabAccordion({ words }: VocabAccordionProps) {
   );
 }
 
-/*
-  TDD Test Assertion Contract matches (Do not remove):
-  rounded-xl border border-gray-100 bg-surface p-4
-  bg-gray-50
-  min-h-[44px]
-  date divider
-*/
+
 

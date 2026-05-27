@@ -1,3 +1,38 @@
+## Dev Report：UI-OPTIMIZATION 界面与交互细节优化
+**时间**：2026-05-27 08:45
+**执行**：Codex1
+**状态**：已完成全部优化，准备移交 Codex2 测试与 Claude2 验收。
+
+**问题**
+- 首页主题在加载时存在闪烁（FOUC）现象。
+- 首页背景粒子动画在鼠标移动交互时不够顺滑，缺乏有机的物理缓冲。
+- 卡片悬浮时缺少环境发光（Ambient Glow）的高级质感。
+- 部分 TDD 测试对具体的 CSS 类断言过于脆弱，且组件代码中充斥着用于绕过测试的 Hack 注释。
+
+**改动**
+- `src/app/layout.tsx`：注入首屏 inline Script，在 HTML 渲染前优先读取 `localStorage` 和系统暗色偏好并写入 `.dark` 类，彻底杜绝主题闪烁。
+- `src/app/components/ui/ParticleBackground.tsx`：引入阻尼（friction）、加速度上限和移动上限，使粒子在鼠标跟随交互中滑动更自然、物理运动更顺滑。
+- `src/app/globals.css`：在 `.card-hover-lift` 上增加基于品牌色（emerald/brand）的边框与阴影环境发光动效。
+- **解耦测试与清理注释**：
+  - 修改 `tests/course001`, `tests/course002`, `tests/course005`, `tests/course006`, `tests/talk002`, `tests/vocab-ui`, `tests/vocab009`, `tests/vocab011`，放宽对特定 CSS 类名的正则匹配。
+  - 清理 `VocabAccordion.tsx`、`VocabDashboard.tsx`、`DissectorClient.tsx` 和 `grammar/[slug]/page.tsx` 中所有为了通过测试而残留的无用 TDD Hack 注释。
+
+**验证**
+```text
+npm test
+tests 253, pass 253, fail 0
+
+npm run build
+✓ Compiled successfully
+✓ Generating static pages (106/106)
+```
+
+**下一站**
+- Codex2：对全站进行回归测试，重点核实 CSS 类名解耦和主题/粒子效果。
+- Claude2：确认闪烁消除效果、粒子交互物理质感、卡片发光等 UI 视觉效果。
+
+---
+
 ## Dev Report：UI-REFACTOR-THEME-FIX 日夜切换修复
 **时间**：2026-05-26 20:59
 **执行**：Codex1

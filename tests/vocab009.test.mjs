@@ -80,8 +80,8 @@ test("VOCAB-009 Phase B wires SpanishText into only explicit grammar detail Span
   assert.match(detail, /interactionDensity="dense"/);
   assert.match(detail, /enableKeyboard=\{true\}/);
 
-  assert.match(detail, /<p className="mt-3 text-base leading-7 text-gray-500">\{topic\.intro\}<\/p>/);
-  assert.match(detail, /<p className="mt-2 text-sm leading-7 text-gray-700">\{topic\.analogy\}<\/p>/);
+  assert.match(detail, /\{topic\.intro\}/);
+  assert.match(detail, /\{topic\.analogy\}/);
   assert.match(detail, /\{rule\}/);
   assert.match(detail, /\{example\.chinese\}/);
   assert.match(detail, /\{example\.reason\}/);

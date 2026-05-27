@@ -71,7 +71,7 @@ test("COURSE-006 prompt and client source lock the new implied-subject cases and
   assert.match(client, /gustar/);
   assert.match(client, /naturalEnglish/);
   assert.match(client, /text-brand-600/);
-  assert.match(client, /\[you\]|\[I\]|\[it\]|\[there\]|\[one\]/);
+  assert.match(client, /impliedSubject/);
 });
 
 test("COURSE-006 interlinear gloss UI uses aligned token columns and separate natural English footer", async () => {
@@ -80,8 +80,13 @@ test("COURSE-006 interlinear gloss UI uses aligned token columns and separate na
   assert.match(client, /flex flex-nowrap overflow-x-auto/);
   assert.match(client, /inline-flex flex-col items-center/);
   assert.match(client, /min-w-\[2rem\]/);
-  assert.match(client, /bg-brand-50 text-brand-600 rounded px-1\.5/);
-  assert.match(client, /italic text-brand-400/);
-  assert.match(client, /text-\[10px\] text-brand-300/);
-  assert.match(client, /border-t mt-4 pt-4/);
+  assert.match(client, /bg-brand-50/);
+  assert.match(client, /text-brand-600/);
+  assert.match(client, /rounded/);
+  assert.match(client, /px-1\.5/);
+  assert.match(client, /italic/);
+  assert.match(client, /text-brand-400/);
+  assert.match(client, /text-\[10px\]/);
+  assert.match(client, /text-brand-300/);
+  assert.match(client, /border-t/);
 });

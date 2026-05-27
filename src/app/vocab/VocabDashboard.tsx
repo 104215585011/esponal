@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 15:58
+// Timestamp: 2026-05-27 08:45
 import type { VocabStats } from "@/lib/vocab";
 
 type VocabDashboardProps = {
@@ -57,14 +57,7 @@ export default function VocabDashboard({ stats }: VocabDashboardProps) {
         </p>
       ) : null}
 
-      {/* 
-        TDD Test Assertion Contract matches (Do not remove):
-        rounded-card border border-gray-100 bg-surface p-4 text-center
-        text-2xl font-bold text-gray-900
-        bg-brand-100 rounded-full h-1.5
-        mx-2 text-gray-300
-        bg-brand-500
-      */}
+
     </div>
   );
 }

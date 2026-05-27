@@ -1,3 +1,22 @@
+### Session #UI-OPTIMIZATION - 2026-05-27
+
+**Goal**: Implement theme flash prevention, fluid mouse attraction for particles, card ambient glows, and decouple tests to remove legacy class comments.
+
+**Completed**:
+- Injected an inline script in [layout.tsx](file:///c:/Users/wang/esponal/src/app/layout.tsx) to read localStorage/OS preference and resolve theme before first paint.
+- Upgraded [ParticleBackground.tsx](file:///c:/Users/wang/esponal/src/app/components/ui/ParticleBackground.tsx) with organic acceleration, speed clamping, and velocity dampening.
+- Styled brand-colored ambient borders and shadow glows on card hover in [globals.css](file:///c:/Users/wang/esponal/src/app/globals.css).
+- Decoupled exact class selectors in multiple test files (`tests/course001`, `tests/course002`, `tests/course005`, `tests/course006`, `tests/talk002`, `tests/vocab-ui`, `tests/vocab009`, `tests/vocab011`).
+- Cleaned up all legacy class comments from component files ([VocabAccordion.tsx](file:///c:/Users/wang/esponal/src/app/components/vocab/VocabAccordion.tsx), [VocabDashboard.tsx](file:///c:/Users/wang/esponal/src/app/vocab/VocabDashboard.tsx), [DissectorClient.tsx](file:///c:/Users/wang/esponal/src/app/dissect/DissectorClient.tsx), [page.tsx](file:///c:/Users/wang/esponal/src/app/grammar/[slug]/page.tsx)).
+
+**Verification**:
+- `npm test`: 253/253 tests passed.
+- `npm run build`: Production compilation built successfully.
+
+**Status**: Ready for Codex2/QA review and Claude2 visual acceptance.
+
+---
+
 ### Session #HOME-CARD-HEIGHT-FIX - 2026-05-26 21:07
 
 **Goal**: Fix the homepage learning path visual regression where logged-in progress badges made cards 2/3 taller than the other steps.

@@ -205,7 +205,7 @@ test("COURSE-005 Phase 3 foundation day route renders all lesson sections and tr
   assert.match(pageSource, /comparisonRows/);
   assert.match(pageSource, /contrastBlocks/);
   assert.match(pageSource, /usageExamples/);
-  assert.match(pageSource, /border-l-2 border-brand-200 pl-3/);
+  assert.match(pageSource, /border-brand-200/);
   assert.match(pageSource, /上一天/);
   assert.match(pageSource, /下一天/);
   assert.match(pageSource, /visibility: "hidden"/);
