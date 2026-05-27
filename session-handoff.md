@@ -1,3 +1,132 @@
+## QA Report: UI-OPTIMIZATION + HOME-CARD-HEIGHT-FIX Codex2 Retest
+**Time**: 2026-05-27 09:04
+**Tester**: Codex2
+
+**Conclusion**: PASS for Codex2 functional/technical QA. Next stop can be Claude2 UI/UX visual acceptance for final taste-level review of theme flash removal, particle easing, and card glow quality.
+
+**Git state at start**
+- `git status --short --branch`: `## main...origin/main [ahead 1]`
+- Latest local commit under test: `da253a4 feat(UI-OPTIMIZATION): Implement theme flash resolver, smooth particles, glow hover states, and test decoupling`
+
+**Verification run**
+1. Full automated regression
+   Command: `npm test`
+   Result: PASS
+   Output summary:
+   ```text
+   tests 253
+   pass 253
+   fail 0
+   ```
+
+2. Production build
+   Command: `npm run build`
+   Result: PASS
+   Output summary:
+   ```text
+   Compiled successfully
+   Generating static pages (106/106)
+   ```
+   Notes: existing `<img>` warnings in `SiteHeader.tsx` and `learn/[slug]/page.tsx`, plus existing Sentry config warnings only.
+
+3. Clean dev server browser QA
+   Server: `http://127.0.0.1:3010/`
+   Result: PASS
+   Notes: `3009` had a stale/incorrect process returning a Next 404 for `/`, so QA used clean port `3010` as requested.
+
+4. Homepage theme and layout checks
+   Tool: Playwright
+   Result: PASS
+   Evidence:
+   ```json
+   {
+     "themeButtonCount": 1,
+     "themeButtonLabels": ["切换到夜间模式"],
+     "initialMainBg": "rgb(249, 250, 251)",
+     "initialHeaderBg": "rgba(255, 255, 255, 0.75)",
+     "afterFirstToggle": {
+       "htmlDark": true,
+       "storedTheme": "dark",
+       "mainBg": "rgb(9, 9, 11)",
+       "headerBg": "rgba(11, 11, 13, 0.8)"
+     },
+     "afterSecondToggle": {
+       "htmlDark": false,
+       "storedTheme": "light",
+       "mainBg": "rgb(249, 250, 251)",
+       "headerBg": "rgba(251, 251, 251, 0.75)"
+     },
+     "cardCount": 5,
+     "cardHeights": [258, 258, 258, 258, 258],
+     "ctaTops": [998, 998, 998, 998, 998],
+     "ctaBottoms": [1030, 1030, 1030, 1030, 1030],
+     "desktopScrollWidth": 1600,
+     "desktopClientWidth": 1600,
+     "consoleErrors": [],
+     "pageErrors": []
+   }
+   ```
+
+5. Theme flash prevention smoke
+   Tool: Playwright with `localStorage.color-theme=dark` before navigation
+   Result: PASS
+   Evidence:
+   ```json
+   {
+     "domcontentloaded": {
+       "htmlDark": true,
+       "mainBg": "rgb(9, 9, 11)",
+       "headerBg": "rgba(9, 9, 11, 0.8)"
+     },
+     "networkidle": {
+       "htmlDark": true,
+       "mainBg": "rgb(9, 9, 11)",
+       "headerBg": "rgba(9, 9, 11, 0.8)"
+     }
+   }
+   ```
+
+6. ParticleBackground smoke
+   Tool: Playwright canvas pixel sampling before/after mouse movement
+   Result: PASS
+   Evidence:
+   ```json
+   {
+     "canvasRect": { "width": 1472, "height": 528, "x": 65, "y": 130 },
+     "beforeAlphaPixels": 25955,
+     "afterMouseAlphaPixels": 27845
+   }
+   ```
+
+7. Mobile homepage smoke
+   Viewport: `375x900`
+   Result: PASS with note
+   Evidence:
+   ```json
+   {
+     "scrollWidth": 378,
+     "clientWidth": 375,
+     "themeButtonCount": 1,
+     "consoleErrors": []
+   }
+   ```
+   Note: the 3px delta comes from the existing horizontal video card rail/offscreen items near the bottom of the homepage, not from the learning path cards, theme toggle, or the previously fixed full-width mobile drawer overflow. No local black/gray mixed theme state reproduced.
+
+**Artifacts**
+- `qa-artifacts/codex2-ui-optimization-qa/result.json`
+- `qa-artifacts/codex2-ui-optimization-qa/home-light-1600.png`
+- `qa-artifacts/codex2-ui-optimization-qa/home-particles-after-mouse-1600.png`
+- `qa-artifacts/codex2-ui-optimization-qa/home-after-first-toggle-1600.png`
+- `qa-artifacts/codex2-ui-optimization-qa/home-after-second-toggle-1600.png`
+- `qa-artifacts/codex2-ui-optimization-qa/home-mobile-375.png`
+
+**Changed by QA**
+- `session-handoff.md`
+- `claude-progress.md`
+- `qa-artifacts/codex2-ui-optimization-qa/*`
+
+---
+
 ## Dev Report：UI-OPTIMIZATION 界面与交互细节优化
 **时间**：2026-05-27 08:45
 **执行**：Codex1
@@ -6164,5 +6293,3 @@ uniqueHeights=[258]
 **下一站**
 - Codex2: focused QA 可只复测首页学习路径 5 张卡高度与 CTA 底部对齐。
 - Claude2: focused UI 视觉确认卡片等高、间距稳定、主题切换仍正常。
-
----

@@ -1,3 +1,25 @@
+### QA Session #UI-OPTIMIZATION + HOME-CARD-HEIGHT-FIX - 2026-05-27 09:04
+
+**Goal**: Codex2 QA retest for the current UI/style optimization plus homepage learning-card equal-height fix.
+
+**Result**: PASS for Codex2 functional/technical QA. Next stop: Claude2 UI/UX visual acceptance for final visual judgment on theme flash removal, particle easing, and ambient card glow quality.
+
+**Verification**:
+- `npm test`: 253/253 pass.
+- `npm run build`: pass; only existing `<img>` warnings and Sentry config warnings.
+- Browser QA used clean dev server `http://127.0.0.1:3010/` because `3009` had a stale/incorrect process returning a Next 404 for `/`.
+- Homepage Playwright evidence: theme button count 1; initial light `mainBg=rgb(249, 250, 251)`; after first toggle `html.dark=true`, `localStorage.color-theme=dark`, `mainBg=rgb(9, 9, 11)`; after second toggle `html.dark=false`, `localStorage.color-theme=light`.
+- Theme-flash smoke with `localStorage.color-theme=dark` before navigation: at `domcontentloaded`, `html.dark=true`, `mainBg=rgb(9, 9, 11)`, `headerBg=rgba(9, 9, 11, 0.8)`.
+- Learning path card evidence: 5 cards measured `[258, 258, 258, 258, 258]`; CTA tops `[998, 998, 998, 998, 998]`; CTA bottoms `[1030, 1030, 1030, 1030, 1030]`.
+- Particle smoke: canvas `1472x528`; alpha pixels changed from `25955` to `27845` after mouse movement; no console/page errors.
+
+**Notes**:
+- Local git state at start was `main...origin/main [ahead 1]`; latest local commit under test was `da253a4`.
+- Mobile `375x900` homepage measured `scrollWidth=378`, `clientWidth=375`; source was existing horizontal video card rail/offscreen items near the bottom of the homepage, not the learning cards/theme toggle/mobile drawer. No mixed black/gray theme state reproduced.
+- Artifacts: `qa-artifacts/codex2-ui-optimization-qa/result.json` and five screenshots in the same folder.
+
+---
+
 ### Session #UI-OPTIMIZATION - 2026-05-27
 
 **Goal**: Implement theme flash prevention, fluid mouse attraction for particles, card ambient glows, and decouple tests to remove legacy class comments.

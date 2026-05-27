@@ -30,7 +30,8 @@ export async function SiteHeader({
   const vocabHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
 
   return (
-    <header className="sticky top-0 z-50 glass-header border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-300">
+      <div className="absolute inset-0 z-[-1] glass-header" />
       <div className="mx-auto flex h-16 w-full max-w-app-shell items-center gap-4 px-6">
         <Link className="flex shrink-0 items-center gap-2.5" href="/">
           <span className="flex h-9 w-9 items-center justify-center rounded-card bg-brand-500 text-base font-bold text-white shadow-lg shadow-brand-500/20">

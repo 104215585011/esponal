@@ -1,0 +1,91 @@
+{
+  "baseUrl": "http://127.0.0.1:3010/",
+  "initial": {
+    "htmlDark": false,
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "mainBg": "rgb(249, 250, 251)",
+    "headerBg": "rgba(255, 255, 255, 0.75)",
+    "themeButtonCount": 1,
+    "themeButtonLabels": [
+      "切换到夜间模式"
+    ],
+    "cardCount": 5,
+    "cardHeights": [
+      258,
+      258,
+      258,
+      258,
+      258
+    ],
+    "ctaTops": [
+      998,
+      998,
+      998,
+      998,
+      998
+    ],
+    "ctaBottoms": [
+      1030,
+      1030,
+      1030,
+      1030,
+      1030
+    ],
+    "scrollWidth": 1600,
+    "clientWidth": 1600,
+    "canvas": {
+      "width": 1472,
+      "height": 528,
+      "x": 65,
+      "y": 130
+    }
+  },
+  "particleCanvas": {
+    "beforeSample": {
+      "width": 1472,
+      "height": 528,
+      "alphaPixels": 25955
+    },
+    "afterSample": {
+      "width": 1472,
+      "height": 528,
+      "alphaPixels": 27845,
+      "rect": {
+        "width": 1472,
+        "height": 528,
+        "x": 65,
+        "y": 130
+      }
+    }
+  },
+  "afterFirstToggle": {
+    "htmlDark": true,
+    "storedTheme": "dark",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "mainBg": "rgb(9, 9, 11)",
+    "headerBg": "rgba(11, 11, 13, 0.8)"
+  },
+  "afterSecondToggle": {
+    "htmlDark": false,
+    "storedTheme": "light",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "mainBg": "rgb(249, 250, 251)",
+    "headerBg": "rgba(251, 251, 251, 0.75)"
+  },
+  "mobile": {
+    "scrollWidth": 378,
+    "clientWidth": 375,
+    "themeButtonCount": 1,
+    "bodyBg": "rgba(0, 0, 0, 0)"
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "mobileErrors": [],
+  "screenshots": [
+    "qa-artifacts/codex2-ui-optimization-qa/home-light-1600.png",
+    "qa-artifacts/codex2-ui-optimization-qa/home-particles-after-mouse-1600.png",
+    "qa-artifacts/codex2-ui-optimization-qa/home-after-first-toggle-1600.png",
+    "qa-artifacts/codex2-ui-optimization-qa/home-after-second-toggle-1600.png",
+    "qa-artifacts/codex2-ui-optimization-qa/home-mobile-375.png"
+  ]
+}
