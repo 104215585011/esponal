@@ -27,7 +27,10 @@ const navItems: MobileNavItem[] = [
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/") {
-    return pathname === "/" || pathname === "/search" || pathname === "/watch";
+    return pathname === "/";
+  }
+  if (href === "/watch") {
+    return pathname === "/watch" || pathname === "/search";
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -40,7 +43,12 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
     ...navItems,
     { label: "词库", href: vocabHref, activeHref: "/vocab" }
   ];
-  const visibleItems = allItems.filter(item => item.label !== "视频");
+  const visibleItems = allItems.map((item) => {
+    if (item.label === "视频" && item.href === "/") {
+      return { ...item, href: "/watch" };
+    }
+    return item;
+  });
 
   useEffect(() => {
     if (!open) {

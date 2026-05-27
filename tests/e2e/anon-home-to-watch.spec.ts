@@ -6,6 +6,9 @@ test("anonymous visitor lands on hero and can open the first video card", async 
   // Logged-out hero copy from HomeHero (WEB-009)
   await expect(page.getByText(/真实的西语视频/)).toBeVisible();
 
+  // Go to the dedicated videos page
+  await page.goto("/watch");
+
   const firstVideoCard = page.locator("[data-testid='video-card']").first();
   await expect(firstVideoCard).toBeVisible({ timeout: 15_000 });
 

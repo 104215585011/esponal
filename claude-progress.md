@@ -1,3 +1,19 @@
+### Session #HOME-NAVIGATION-VIDEOS-MIGRATION - 2026-05-27 13:30
+
+**Goal**: Migrate video channels from the homepage to a dedicated videos page under `/watch`.
+
+**Completed**:
+- Modified `src/app/page.tsx` to remove YouTube video fetches and sections rendering from the homepage.
+- Updated `src/app/watch/page.tsx` to query and render the three YouTube channels when no video ID parameter is provided.
+- Modified `SiteNav.tsx` and `MobileNav.tsx` to map "视频" navigation links to `/watch` in the UI while keeping static string contracts.
+- Updated E2E tests in `tests/e2e/anon-home-to-watch.spec.ts` to navigate to `/watch` when locating video cards.
+
+**Verification**:
+- `npm test`: 253/253 passed successfully.
+- `npm run build`: built successfully.
+
+---
+
 ### QA Session #HOME-NAVIGATION - 2026-05-27 11:25
 
 **Goal**: Codex2 QA retest for the homepage navigation text adjustments and logo redirect behavior.
