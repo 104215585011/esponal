@@ -9,6 +9,7 @@ import { curatedChannels } from "@/lib/channels";
 import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
 import { getVocabStats } from "@/lib/vocab";
+import { lecturaStories } from "@/../content/lectura";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ type LearningStep = {
   description: string;
   href: string;
   progress?: string;
+  percentage?: number;
 };
 
 type ToolItem = {
@@ -70,7 +72,7 @@ async function fetchChannelVideos(channelId: string) {
   return Array.isArray(payload) ? payload : payload.videos ?? [];
 }
 
-function LearningStepCard({ step, title, description, href, progress }: LearningStep) {
+function LearningStepCard({ step, title, description, href, progress, percentage }: LearningStep) {
   return (
     <div
       className="group glass-card card-hover-lift flex min-h-[220px] min-w-0 flex-1 flex-col rounded-card border border-zinc-200/50 bg-white/70 p-6 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/70"
@@ -83,8 +85,33 @@ function LearningStepCard({ step, title, description, href, progress }: Learning
       <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed min-h-[50px]">{description}</p>
       <div className="mt-3 min-h-[22px]">
         {progress ? (
-          <div className="w-fit rounded bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
-            {progress}
+          <div className="flex items-center gap-1.5 w-fit rounded bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
+            {percentage !== undefined ? (
+              <svg className="w-3.5 h-3.5 -rotate-90 shrink-0" viewBox="0 0 36 36">
+                <circle
+                  className="text-brand-200/50 dark:text-brand-900/35"
+                  strokeWidth="4"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="16"
+                  cx="18"
+                  cy="18"
+                />
+                <circle
+                  className="text-brand-600 dark:text-brand-400 transition-all duration-500 ease-out"
+                  strokeWidth="4"
+                  pathLength="100"
+                  strokeDasharray={`${percentage} 100`}
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="16"
+                  cx="18"
+                  cy="18"
+                />
+              </svg>
+            ) : null}
+            <span>{progress}</span>
           </div>
         ) : null}
       </div>
@@ -133,14 +160,16 @@ export default async function HomePage() {
       title: "骨架课程",
       description: "按阶段把高频词、基础句型和最早该学的规则串起来。",
       href: "/learn",
-      progress: userId && stats ? `已收藏 ${stats.totalSaved} 词` : undefined
+      progress: userId && stats ? `已收藏 ${stats.totalSaved} 词` : undefined,
+      percentage: userId && stats ? Math.min(100, Math.round((stats.totalSaved / 50) * 100)) : undefined
     },
     {
       step: 3,
       title: "阅读",
       description: "短篇分级小故事，适合通勤和碎片时间反复读。",
       href: "/lectura",
-      progress: userId ? `已读 ${readCount} 篇` : undefined
+      progress: userId ? `已读 ${readCount} 篇` : undefined,
+      percentage: userId && lecturaStories.length > 0 ? Math.min(100, Math.round((readCount / lecturaStories.length) * 100)) : undefined
     },
     {
       step: 4,

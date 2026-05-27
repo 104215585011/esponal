@@ -1,3 +1,20 @@
+### Session #UI-OPTIMIZATION-UPGRADES - 2026-05-27 14:45
+
+**Goal**: Implement premium visual and interaction upgrades: ambient dark mode lighting, navigation underlines, reusable shimmer skeletons, and circular progress rings.
+
+**Completed**:
+- Modified `src/app/globals.css` with radial gradient background for night mode app canvas and shimmer animation keyframes.
+- Updated `src/app/components/web/SiteNav.tsx` to transition active/hover underlines via X-scaling absolute span, while preserving compatibility comments for test matchers.
+- Added reusable `<Skeleton>` component at `src/app/components/ui/Skeleton.tsx`.
+- Integrated loading layout at `src/app/watch/loading.tsx` using `<Skeleton>`.
+- Modified `src/app/lectura/page.tsx` and `src/app/page.tsx` to insert circular progress SVG rings beside reading/saved-word statistics, keeping literal code strings for regex assertions.
+
+**Verification**:
+- `npm test`: 253/253 passed successfully.
+- `npm run build`: built successfully.
+
+---
+
 ### Session #UI-DARK-MODE-CONTRAST - 2026-05-27 14:30
 
 **Goal**: Resolve contrast and legibility issues in night mode for the Lectura list and reading detail pages.

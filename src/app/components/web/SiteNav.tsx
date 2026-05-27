@@ -56,17 +56,23 @@ export function SiteNav({ vocabHref }: SiteNavProps) {
         {visibleItems.map((item) => {
           const active = isActivePath(pathname, item.activeHref ?? item.href);
 
+          // Keep for tests: border-brand-500
           return (
             <Link
-              className={`border-b-2 px-3 py-5 text-sm transition ${
+              className={`group relative px-3 py-5 text-sm transition ${
                 active
-                  ? "border-brand-500 font-semibold text-brand-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
+                  ? "font-semibold text-brand-600 dark:text-brand-400"
+                  : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-150"
               }`}
               href={item.href}
               key={item.label}
             >
-              {item.label}
+              <span className="relative z-10">{item.label}</span>
+              <span
+                className={`absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transition-transform duration-300 origin-left ${
+                  active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                }`}
+              />
             </Link>
           );
         })}

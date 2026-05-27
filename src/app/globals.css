@@ -47,6 +47,8 @@ body {
 
 .dark .bg-app {
   background-color: #09090B;
+  background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.035) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.035) 0px, transparent 50%);
 }
 
 .dark .bg-surface {
@@ -251,4 +253,35 @@ body {
 
 .dark * {
   scrollbar-color: rgba(161, 161, 170, 0.25) transparent;
+}
+
+/* Shimmer animation for loading placeholders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(228, 228, 231, 0.15) 25%,
+    rgba(228, 228, 231, 0.35) 37%,
+    rgba(228, 228, 231, 0.15) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(39, 39, 42, 0.2) 25%,
+    rgba(39, 39, 42, 0.45) 37%,
+    rgba(39, 39, 42, 0.2) 63%
+  );
+  background-size: 200% 100%;
 }

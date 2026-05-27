@@ -33,18 +33,33 @@ export async function SiteHeader({
     <header className="sticky top-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-300">
       <div className="absolute inset-0 z-[-1] glass-header" />
       <div className="mx-auto flex h-16 w-full max-w-app-shell items-center gap-4 px-6">
-        <Link className="flex shrink-0 items-center gap-2.5" href="/">
-          <span className="flex h-9 w-9 items-center justify-center rounded-card bg-brand-500 text-base font-bold text-white shadow-lg shadow-brand-500/20">
-            E
+        <Link className="flex shrink-0 items-center gap-2.5 group" href="/">
+          <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 dark:from-brand-600 dark:to-teal-400 text-white shadow-md shadow-brand-500/20 dark:shadow-brand-950/20 group-hover:scale-105 transition-transform duration-300">
+            <svg className="h-4.5 w-4.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M18 6H8.5C6.567 6 5 7.567 5 9.5V14.5C5 16.433 6.567 18 8.5 18H18"
+                stroke="currentColor"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M5 12H15"
+                stroke="currentColor"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <span className="text-[17px] font-bold font-display tracking-tight text-zinc-900 dark:text-zinc-50 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+            Esponal
           </span>
-          <span className="text-xl font-bold font-display tracking-tight text-zinc-900 dark:text-zinc-50">Esponal</span>
         </Link>
 
         <SiteNav vocabHref={vocabHref} />
 
         <form
           action={searchAction}
-          className="hidden lg:flex mx-auto w-full max-w-md flex-1 items-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100/50 transition-all duration-300"
+          className="hidden lg:flex mx-auto w-full max-w-md flex-1 items-center rounded-full border border-zinc-200/60 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-950/20 focus-within:border-brand-500/80 focus-within:bg-white dark:focus-within:bg-zinc-900/50 focus-within:ring-2 focus-within:ring-brand-100/30 transition-all duration-300"
         >
           <span aria-hidden="true" className="px-3 text-zinc-400">
             <svg className="h-4 w-4 fill-none stroke-current stroke-2" viewBox="0 0 20 20">
@@ -53,7 +68,7 @@ export async function SiteHeader({
             </svg>
           </span>
           <input
-            className="h-10 w-full rounded-full border-0 bg-transparent pr-4 text-sm text-zinc-700 dark:text-zinc-300 outline-none placeholder:text-zinc-400"
+            className="h-9 w-full rounded-full border-0 bg-transparent pr-4 text-xs text-zinc-700 dark:text-zinc-300 outline-none placeholder:text-zinc-450"
             defaultValue={initialQuery}
             name="q"
             placeholder="搜索西语视频..."
@@ -67,17 +82,18 @@ export async function SiteHeader({
         <div className="shrink-0">
           {session?.user ? (
             <details className="relative">
-              <summary className="flex list-none cursor-pointer items-center gap-2 rounded-full p-1 text-sm text-gray-600 hover:text-gray-900">
+              <summary className="flex list-none cursor-pointer items-center gap-2 rounded-full p-0.5 text-sm text-gray-600 hover:text-gray-900">
                 {session.user.image ? (
                   <img
                     alt={displayName}
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="h-8.5 w-8.5 rounded-full object-cover ring-2 ring-zinc-100 dark:ring-zinc-800 transition-transform duration-300 hover:scale-105"
                     referrerPolicy="no-referrer"
                     src={session.user.image}
                   />
                 ) : (
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
+                  <span className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-brand-500 dark:from-indigo-600 dark:to-brand-650 text-[11px] font-bold text-white shadow-md shadow-brand-500/10 ring-2 ring-white dark:ring-zinc-900 transition-transform duration-300 hover:scale-105">
                     {initials}
+                    <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-brand-400 ring-1.5 ring-white dark:ring-zinc-900" />
                   </span>
                 )}
               </summary>

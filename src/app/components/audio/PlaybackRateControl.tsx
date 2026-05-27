@@ -19,7 +19,7 @@ export function PlaybackRateControl({ className = "" }: PlaybackRateControlProps
       </span>
       <select
         aria-label="TTS 朗读倍速"
-        className="cursor-pointer rounded-full border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 outline-none transition hover:border-brand-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+        className="cursor-pointer rounded-full border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 px-2.5 py-0.5 text-xs text-zinc-700 dark:text-zinc-300 outline-none transition-all hover:border-zinc-350 dark:hover:border-zinc-700 focus:border-brand-500 focus:ring-2 focus:ring-brand-100/30"
         onChange={(event) => setRate(Number(event.target.value))}
         value={rate}
       >

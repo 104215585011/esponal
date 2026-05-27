@@ -45,7 +45,32 @@ export default async function LecturaIndexPage() {
             适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
           </p>
           {userId ? (
-            <p className="mt-3 text-sm text-gray-500 dark:text-zinc-400">已读 {readSlugs.size} / {sortedStories.length} 篇</p>
+            <div className="mt-3 flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-400">
+              <svg className="w-5 h-5 -rotate-90" viewBox="0 0 36 36">
+                <circle
+                  className="text-zinc-250 dark:text-zinc-800"
+                  strokeWidth="4.5"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="16"
+                  cx="18"
+                  cy="18"
+                />
+                <circle
+                  className="text-brand-500 dark:text-brand-400 transition-all duration-500 ease-out"
+                  strokeWidth="4.5"
+                  pathLength="100"
+                  strokeDasharray={`${sortedStories.length > 0 ? Math.round((readSlugs.size / sortedStories.length) * 100) : 0} 100`}
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="transparent"
+                  r="16"
+                  cx="18"
+                  cy="18"
+                />
+              </svg>
+              <span>已读 {readSlugs.size} / {sortedStories.length} 篇</span>
+            </div>
           ) : null}
         </header>
 
