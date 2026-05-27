@@ -78,6 +78,69 @@
 
 ---
 
+## Dev Report: VOCAB-012-BE 查询已收藏词时记录 encounter（后端）
+**时间**：2026-05-27 15:10
+**执行**：Codex1
+**状态**：已实现，`feature_list.json` 已标记 `ready_for_qa`，下一站 Codex2 跑 focused QA。无 UI，不需要 Claude2。
+
+**改动**
+- `src/app/api/vocab/encounter/route.ts` [NEW]：
+  - 新增 `POST /api/vocab/encounter`。
+  - 使用 `getServerSession(getAuthOptions())` 鉴权，未登录返回 401。
+  - 复用 `addLimiter + checkRateLimit`，触发限流返回 429 与 `Retry-After`。
+  - 校验 `wordId` / `sourceType` / `sourceUrl` / `originalSentence` 必填。
+  - `sourceType` 仅允许 `video` / `course` / `lectura` / `dissect` / `grammar` / `talk`。
+  - 用 `prisma.word.findFirst({ where: { id: wordId, userId: session.user.id } })` 做所有权检查；不存在或越权返回 404。
+  - 通过 `prisma.wordEncounter.create` 记录 encounter，返回 `{ ok, encounterId, totalEncounters }`。
+- `tests/vocab012-be.test.mjs` [NEW]：
+  - 覆盖 protected endpoint、必填校验、sourceType allowlist、限流契约、越权 404、创建 encounter 和返回总次数。
+- `feature_list.json`：
+  - `VOCAB-012-BE` → `ready_for_qa`，写入 evidence。
+
+**验证**
+```text
+node --test tests/vocab012-be.test.mjs
+red before implementation: tests 3, pass 0, fail 3
+
+node --test tests/vocab012-be.test.mjs
+tests 3, pass 3, fail 0
+
+npm test
+tests 256, pass 256, fail 0
+
+npm run build
+Compiled successfully
+Generating static pages (107/107)
+/api/vocab/encounter present in route table
+```
+备注：build 仅保留既有 `<img>` 与 Sentry warning。
+
+**下一站**
+- Codex2：跑 `node --test tests/vocab012-be.test.mjs`、`npm test`、`npm run build`，重点检查 401/404/429/400/200 source contract。
+- QA 通过后：PM 可解锁 `VOCAB-012-FE`。
+
+---
+
+## Dev Report: VOCAB-012-BE 记录已收藏词 encounter 后端端点
+**时间**：2026-05-27 15:03
+**执行**：Codex1
+**状态**：已完成 POST /api/vocab/encounter 接口实现，支持添加单词相遇记录并更新总次数统计，通过全部自动化测试。
+
+**改动**
+- `src/app/api/vocab/encounter/route.ts` [NEW]：
+  - 实现 `POST` 端点，对请求校验进行限流（addLimiter）及 NextAuth 权限校验。
+  - 支持 `wordId` 校验，限制只能添加当前登录用户自己收藏的单词（跨用户访问返回 404）。
+  - 对 `sourceType`, `sourceUrl`, `originalSentence` 等必填字段进行检验，检查 `sourceType` 是否处于允许的来源列表（video/course/lectura/dissect/grammar/talk）。
+  - 创建新的 `WordEncounter` 数据库记录，并查询更新该单词的总遇到次数（totalEncounters），返回 `{ ok: true, encounterId, totalEncounters }`。
+- `tests/vocab012-be.test.mjs` [NEW]：
+  - 实现对 `/api/vocab/encounter` 的全面接口行为及验证规则的 TDD 测试（保护校验、越权校验、参数检验及返回值检验）。
+
+**验证**
+1. 自动化回归测试：`npm test` 256/256 全部通过（包括新增的 `vocab012-be.test.mjs`）。
+2. 生产构建：`npm run build` 成功。
+
+---
+
 ## Dev Report: UI-OPTIMIZATION-UPGRADES 高级界面与交互体验升级
 **时间**：2026-05-27 14:50
 **执行**：Codex1

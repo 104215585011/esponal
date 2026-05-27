@@ -1,3 +1,40 @@
+### Session #VOCAB-012-BE - 2026-05-27 15:10
+
+**Goal**: Add the backend endpoint that records a new encounter when a signed-in user opens an already-saved word.
+
+**Completed**:
+- Added `POST /api/vocab/encounter`.
+- Reused session auth and `addLimiter` rate limiting.
+- Validated `wordId`, `sourceType`, `sourceUrl`, and `originalSentence`.
+- Enforced ownership with `wordId + session.user.id`, returning 404 for another user's word.
+- Created `WordEncounter` rows and returned `{ ok, encounterId, totalEncounters }`.
+- Added `tests/vocab012-be.test.mjs`.
+
+**Verification**:
+- TDD red `node --test tests/vocab012-be.test.mjs`: 0/3 pass before implementation.
+- Green `node --test tests/vocab012-be.test.mjs`: 3/3 pass.
+- `npm test`: 256/256 pass.
+- `npm run build`: pass; route table includes `/api/vocab/encounter`.
+
+**Status**: `VOCAB-012-BE` is ready for Codex2 QA. `VOCAB-012-FE` remains blocked until QA accepts this backend endpoint.
+
+---
+
+### Session #VOCAB-012-BE - 2026-05-27 15:03
+
+**Goal**: Implement auth-protected encounter recording backend endpoint for saved words.
+
+**Completed**:
+- Created `src/app/api/vocab/encounter/route.ts` implementing a `POST` handler for registering word encounters.
+- Integrated auth checks, request validation (allowlisted sourceType), ownership query checking via Prisma, and `WordEncounter` creation + count tracking.
+- Created regression test at `tests/vocab012-be.test.mjs` verifying authentication protection, rate limit response, parameters check, user scoping, and returned fields structure.
+
+**Verification**:
+- `npm test`: 256/256 passed successfully.
+- `npm run build`: built successfully.
+
+---
+
 ### Session #UI-OPTIMIZATION-UPGRADES - 2026-05-27 14:45
 
 **Goal**: Implement premium visual and interaction upgrades: ambient dark mode lighting, navigation underlines, reusable shimmer skeletons, and circular progress rings.

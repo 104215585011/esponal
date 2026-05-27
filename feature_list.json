@@ -1,5 +1,5 @@
-[
-  {
+{
+  "0": {
     "id": "INFRA-001",
     "priority": 0,
     "area": "infrastructure",
@@ -14,7 +14,7 @@
     "evidence": "Scaffold tests passed and the initial app/router structure is in place.",
     "notes": "NextAuth、Prisma、Redis 基础接线已完成。"
   },
-  {
+  "1": {
     "id": "VOCAB-001",
     "priority": 1,
     "area": "vocabulary",
@@ -29,7 +29,7 @@
     "evidence": "Codex2 QA on 2026-05-13 verified migrations, npm test 8/8, and a real Prisma CRUD script returning forms [ir, fui, fueron, vas].",
     "notes": "依赖 INFRA-001。"
   },
-  {
+  "2": {
     "id": "COURSE-001",
     "priority": 2,
     "area": "curriculum",
@@ -44,7 +44,7 @@
     "evidence": "Codex2 QA on 2026-05-13 verified targetCount=300, 300 WAV files in public/audio/words, tests/course001.test.mjs 3/3, npm test 21/21, and build success.",
     "notes": "音频资产当前为真实可播放 WAV。"
   },
-  {
+  "3": {
     "id": "COURSE-002",
     "priority": 3,
     "area": "curriculum",
@@ -59,7 +59,7 @@
     "evidence": "Codex2 QA on 2026-05-13 confirmed grammar pages, conjugation content, and responsive layout requirements with npm test 21/21 and build success.",
     "notes": "内容以静态内容文件维护。"
   },
-  {
+  "4": {
     "id": "VOCAB-002",
     "priority": 4,
     "area": "vocabulary",
@@ -74,7 +74,7 @@
     "evidence": "Codex2 QA on 2026-05-13 verified auth redirect, server data loading shape, accordion structure, npm test 21/21, and build success.",
     "notes": "依赖 VOCAB-001。"
   },
-  {
+  "5": {
     "id": "EXT-001",
     "priority": 5,
     "area": "extension",
@@ -89,7 +89,7 @@
     "evidence": "Codex2 QA on 2026-05-13 loaded the extension in Playwright Chromium, detected the service worker, and verified esponalExtensionReady=true with pageErrorCount=0.",
     "notes": "Manifest V3，位于 /extension。"
   },
-  {
+  "6": {
     "id": "EXT-002",
     "priority": 6,
     "area": "extension",
@@ -104,7 +104,7 @@
     "evidence": "Codex2 QA on 2026-05-13 reran the fixture after chrome guards were added and confirmed pageErrors=[], overlayExists=true, readyDataset=true, with baseline npm test 25/25 and successful extension build.",
     "notes": "翻译服务后续已切到腾讯 TMT，但功能验收状态保持通过。"
   },
-  {
+  "7": {
     "id": "EXT-003",
     "priority": 7,
     "area": "extension",
@@ -119,7 +119,7 @@
     "evidence": "Codex2 QA on 2026-05-13 confirmed fui -> ir and hablan -> hablar, fixture spanCount=2, and npm test 30/30 with build success.",
     "notes": "依赖 EXT-002 与 VOCAB-001。"
   },
-  {
+  "8": {
     "id": "EXT-004",
     "priority": 8,
     "area": "extension",
@@ -134,7 +134,7 @@
     "evidence": "Codex2 QA on 2026-05-13 verified /api/vocab/highlight, extension highlight colors, top-level chrome guards, npm test 32/32, and build success.",
     "notes": "依赖 EXT-002、VOCAB-001、COURSE-001。"
   },
-  {
+  "9": {
     "id": "VOCAB-003",
     "priority": 9,
     "area": "vocabulary",
@@ -148,7 +148,7 @@
     "evidence": "Codex2 QA on 2026-05-13 confirmed buildVideoJumpHref logic and node --test tests/vocab003.test.mjs 1/1.",
     "notes": "依赖 VOCAB-002 与 EXT-003。"
   },
-  {
+  "10": {
     "id": "WEB-001",
     "priority": 10,
     "area": "web",
@@ -163,7 +163,7 @@
     "evidence": "Codex2 QA on 2026-05-14 reverified real channel data rendering with npm test 39/39, build success, and live HTML confirming search plus channel sections.",
     "notes": "依赖 WEB-002。"
   },
-  {
+  "11": {
     "id": "WEB-002",
     "priority": 11,
     "area": "web",
@@ -178,7 +178,7 @@
     "evidence": "Codex2 QA on 2026-05-14 reverified live API calls for channel and search endpoints with HTTP 200 top-level arrays and npm test 39/39.",
     "notes": "生产/开发都需要可访问 Google APIs 的网络环境。"
   },
-  {
+  "12": {
     "id": "WEB-003",
     "priority": 12,
     "area": "web",
@@ -193,7 +193,7 @@
     "evidence": "Codex2 QA on 2026-05-14 confirmed /watch returns 200 and includes youtube.com/embed shell; structural tests remain green after the later WEB-007 redesign.",
     "notes": "后续 WEB-007 在此基础上重构布局。"
   },
-  {
+  "13": {
     "id": "WEB-004",
     "priority": 13,
     "area": "web",
@@ -208,7 +208,7 @@
     "evidence": "Codex2 QA on 2026-05-14 validated subtitle route structure, SubtitlePanel polling contract, HTTP 200 empty-array fallback, npm test 39/39, and build success. Subtitle backend has since been upgraded to the Apify-based route while preserving behavior.",
     "notes": "依赖 WEB-003。"
   },
-  {
+  "14": {
     "id": "WEB-005",
     "priority": 14,
     "area": "web",
@@ -223,7 +223,7 @@
     "evidence": "Codex2 QA on 2026-05-14 verified LookupCard routes, SubtitlePanel word spans, npm test 41/41, and build success.",
     "notes": "依赖 WEB-004。"
   },
-  {
+  "15": {
     "id": "WEB-006",
     "priority": 15,
     "area": "web",
@@ -238,7 +238,7 @@
     "evidence": "Codex2 QA on 2026-05-14 verified /api/vocab/highlight integration, reviewed colors, 401 silent degrade branch, npm test 42/42, and build success.",
     "notes": "依赖 WEB-005。"
   },
-  {
+  "16": {
     "id": "WEB-007",
     "priority": 16,
     "area": "web",
@@ -256,7 +256,7 @@
     "evidence": "Codex2 QA 2026-05-15 09:06: npm test passed 49/49; npm run build passed; src/app/watch/page.tsx mounts TranscriptPanel and RelatedPanel and has no SubtitlePanel/WatchSidebar import or render; TranscriptPanel contains /api/subtitle, /api/translate, /api/vocab/highlight, LookupCard, seekTo, scrollIntoView, display modes ES + 中 / 仅西语 / 仅中文, and highlight colors #86EFAC/#93C5FD; RelatedPanel contains relatedVideos prop, 120ms open, 300ms close, pinned/pin toggle logic, and right-edge overlay/tab styling; node tests/web004.test.mjs passed 2/2; node tests/web007.test.mjs passed 2/2; feature_list.json parsed via PowerShell ConvertFrom-Json and Node require with WEB-007 previously ready_for_qa.",
     "notes": "依赖 WEB-004/005/006。mockup-watch.html 为已批准样稿；本票仅交付桌面布局与 mock chapters，不含真实章节后端或移动端适配。"
   },
-  {
+  "17": {
     "id": "COURSE-003",
     "priority": 18,
     "area": "curriculum",
@@ -276,7 +276,7 @@
     "evidence": "Codex2 QA 2026-05-15 14:43: npm test passed 61/61 including COURSE-003 assertions; npm run build passed and prerender output listed /learn plus /learn/unidad-1 through /learn/unidad-9; src/app/learn/page.tsx renders 9-card overview from getAllUnits with href `/learn/${unit.slug}`; src/app/learn/[slug]/page.tsx contains generateStaticParams, sticky TOC, vocab/phrases/dialogues/grammar/compare/exercises sections, <details>/<summary> answers, recommended video thumbnail from img.youtube.com, /watch?v= jump, and prev/next unit nav; src/app/components/audio/AudioButton.tsx returns immediately when src is empty, satisfying silent degrade.",
     "notes": "数据源：content/curriculum/units-manifest.json + unidad-N.json（已全部就绪）。UI 规范：mockup-unidad-1.html。等待 Codex2 进行页面与结构验收。"
   },
-  {
+  "18": {
     "id": "COURSE-004",
     "priority": 19,
     "area": "curriculum",
@@ -294,7 +294,7 @@
     "evidence": "Codex2 QA 2026-05-15 17:11: npm test passed 64/64; node tests/course004.test.mjs passed 3/3; npm run build passed; verified 362 MP3 files across public/audio/units/unidad-1 through unidad-9 with minimum size 8352 bytes and zero files <= 1KB; verified 361/361 vocab, phrase, and dialogue audioSrc fields are populated with /audio/units/unidad-N/*.mp3 paths and zero missing/invalid entries; reran node scripts/generate-unit-audio.mjs --unit=unidad-9 and all outputs hit the idempotent skip branch; served /learn/unidad-1 locally on port 3006 and confirmed HTTP 200 for both the lesson page and /audio/units/unidad-1/hola.mp3 with audio/mpeg content type, plus rendered audio button markup referencing generated MP3 assets.",
     "notes": "使用 msedge-tts，声音 es-ES-AlvaroNeural，约340条音频，脚本路径 scripts/generate-unit-audio.mjs。可与 COURSE-003 并行。"
   },
-  {
+  "19": {
     "id": "VOCAB-004",
     "priority": 20,
     "area": "vocabulary",
@@ -314,7 +314,7 @@
     "evidence": "Codex2 QA 2026-05-16 14:29: npm test passed 76/76; npm run build passed; node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs passed 12/12; verified Prisma/schema/tests cover Word dictData/partOfSpeech and WordEncounter sourceType/courseRef; dictionary helper uses DASHSCOPE_API_KEY, DASHSCOPE_MODEL, Redis key vocab:dict:${lemma}, degraded fallback, and vivir coverage; /api/vocab/add persists source metadata; LookupCard renders partOfSpeech, meanings, examples, and source metadata; /vocab page and VocabAccordion render video/course encounters and video jump links. Local smoke confirmed /vocab unauth redirects 307 to /api/auth/signin.",
     "notes": "词典数据源：有道智云 API（需新增 YOUDAO_APP_KEY / YOUDAO_APP_SECRET 到 .env）。降级：有道不可用时用腾讯 TMT。依赖 VOCAB-001/002、WEB-005。课文点词需 COURSE-003 完成后接入。"
   },
-  {
+  "20": {
     "id": "AUTH-001",
     "priority": 17,
     "area": "auth",
@@ -333,7 +333,7 @@
     "evidence": "Codex2 QA 2026-05-15 10:42: npm test passed 55/55; npm run build passed with existing SiteHeader img warning and Node url.parse deprecation warnings only; verified User.password String?, migration 20260515022642_add_user_password SQL adds password TEXT, bcryptjs and @types/bcryptjs dependencies, register route email/password validation + duplicate check + bcrypt.hash(password, 10) + prisma.user.create + status 201, auth CredentialsProvider + bcrypt.compare + Google password-null credentials rejection + jwt session + session.user.id callbacks and no database strategy, sign-in Google/credentials flows + CredentialsSignin error text, sign-up register fetch + credentials sign-in + sign-in link and no Google registration button; dev server smoke on port 3004 returned HTTP 200 for /auth/sign-in and /auth/sign-up.",
     "notes": "Codex2 functional QA passed. Google OAuth provider configuration and real external OAuth consent flow still depend on environment variables and provider setup."
   },
-  {
+  "21": {
     "id": "WEB-008",
     "priority": 21,
     "area": "web",
@@ -352,7 +352,7 @@
     "evidence": "Codex2 QA 2026-05-16 14:29: npm test passed 76/76; npm run build passed; node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs passed 12/12; verified TranscriptPanel has virtual renderStart/renderEnd window, INITIAL_RENDER_COUNT/LOAD_MORE_BATCH, mergeSubtitleCues, data-cue-index rows, IntersectionObserver top/bottom sentinels, upward scrollTop compensation, followMode, user wheel/touchmove/pointerdown browse detection, return-to-current scrollIntoView center, and cue click player.seekTo.",
     "notes": "Ready for Codex2 QA. Ticket: docs/tickets/WEB-008.md. QA should verify DOM cue count <=35 on first screen, sentinel expansion, browse mode not seeking video, return-to-current follow restore, and cue click seek behavior. Known unrelated blocker: VOCAB-004 test still expects YOUDAO_APP_KEY while implementation uses DASHSCOPE_API_KEY."
   },
-  {
+  "22": {
     "id": "WEB-009",
     "priority": 22,
     "area": "web",
@@ -372,7 +372,7 @@
     "evidence": "Codex2 QA 2026-05-16 14:29: npm test passed 76/76; npm run build passed; node --test tests/vocab004.test.mjs tests/web008.test.mjs tests/web009.test.mjs passed 12/12; rg check for green/emerald utilities in src returned zero matches; verified tailwind brand/app/surface/muted tokens plus card/surface/hero radius and card/elevated/hero shadows; SiteNav exposes 视频/课程/语法/词库 with brand active styles and unauth vocab callback; HomeHero renders sign-up, video-section scroll, and extension CTAs; local dev smoke returned / HTTP 200 with Esponal, Hero copy, and search box.",
     "notes": "依赖：无。Ticket: docs/tickets/WEB-009.md。触发：Claude2 全站 UI 评审 2026-05-16 发现 design system 割裂 + 首页对未登录用户无价值主张。后续相关 ticket：WEB-010（继续学习卡片）、EXT-005（/extension 介绍页）、WEB-011（空/错误态统一组件）。"
   },
-  {
+  "23": {
     "id": "WEB-010",
     "priority": 23,
     "area": "web",
@@ -391,7 +391,7 @@
     "evidence": "Codex2 QA 2026-05-16 14:51: npm test passed 80/80; npm run build passed; node --test tests/web010.test.mjs passed 4/4; source verification confirmed HomeHero only for logged-out users, ContinueLearning only for logged-in users, null render for logged-in users without encounters, fallback card when encounter lookup fails, video card href via buildVideoJumpHref(`/watch?v=${videoId}`, timestampSec), course href `/learn/${courseEncounter.slug}`, two-card lg grid, recent video/course helpers querying WordEncounter by sourceType and current user words ordered by createdAt desc, and WordEncounter @@index([sourceType, createdAt]). Local dev smoke on port 3011 returned / HTTP 200 with Esponal and HomeHero present and ContinueLearning absent for unauthenticated request.",
     "notes": "依赖 WEB-009。Ticket: docs/tickets/WEB-010.md。复用 WordEncounter 表，无需新表。注意：可能需要为 WordEncounter 加 (userId, createdAt desc) 复合索引。"
   },
-  {
+  "24": {
     "id": "EXT-005",
     "priority": 24,
     "area": "extension",
@@ -409,7 +409,7 @@
     "evidence": "Codex2 QA 2026-05-16 15:07: npm test passed 83/83; npm run build passed and listed /extension; node --test tests/ext005.test.mjs passed 3/3; tar -tf public/extension/esponal-extension.zip listed manifest.json, popup.html, lemma-dict.json, dist/background.js, dist/content.js, and dist/popup.js; zip size is 10993 bytes. Local dev smoke on port 3013 returned /extension HTTP 200 with hero and FAQ present, plus /extension/esponal-extension.zip HTTP 200 with 10993 bytes. Source checks confirmed HomeHero CTA href=\"/extension\", page uses WEB-009 brand/radius/shadow tokens, and extension package script exists. Codex1 Dev 2026-05-16 15:00: implemented /extension landing page and dependency-free extension zip packaging.",
     "notes": "依赖 WEB-009（共享 design token + Hero CTA 落地点）。Ticket: docs/tickets/EXT-005.md。新增 extension/scripts/package.mjs 打包脚本。.pem 私钥不入 git。"
   },
-  {
+  "25": {
     "id": "OPS-002",
     "priority": 25,
     "area": "infrastructure",
@@ -428,7 +428,7 @@
     "evidence": "Codex2 QA 2026-05-16 21:51: npm test passed 93/93; npm run build passed with existing <img> lint warnings and Node url.parse deprecation warnings only; node --test tests/ops002.test.mjs tests/infra002.test.mjs passed 10/10; source verification confirmed src/lib/ratelimit.ts exports translate/lookup/add/search/channel limiters, getClientIp, checkRateLimit fail-open, and getRetryAfterSec; /api/translate, /api/vocab/lookup, /api/vocab/add, /api/youtube/search, and /api/youtube/channel all call checkRateLimit and return 429 with Retry-After; TranscriptPanel and LookupCard handle response.status === 429 with retry/friendly state.",
     "notes": "依赖：无（复用现有 Upstash Redis）。Ticket: docs/tickets/OPS-002.md。P0 因为可被外部薅垮配额。"
   },
-  {
+  "26": {
     "id": "INFRA-002",
     "priority": 26,
     "area": "infrastructure",
@@ -446,7 +446,7 @@
     "evidence": "Codex2 QA 2026-05-16 21:51: npm test passed 93/93; npm run build passed with existing warnings only; npm run lint:encoding returned Encoding check passed; node --test tests/ops002.test.mjs tests/infra002.test.mjs passed 10/10; INFRA-002 targeted tests verified full repository encoding scan, temporary mojibake/UTF-16/CRLF rejection, .gitattributes eol=lf, .githooks/pre-commit running npm run lint:encoding and npm test, git config core.hooksPath=.githooks, and allowlist entries for claude-progress.md, docs/tickets/INFRA-002.md, extension/lemma-dict.json, and src/lib/dictionary.ts.",
     "notes": "依赖：无。Ticket: docs/tickets/INFRA-002.md。基于历史教训（lemma-dict 全 ?、VocabAccordion 乱码注释）。"
   },
-  {
+  "27": {
     "id": "WEB-011",
     "priority": 27,
     "area": "web",
@@ -464,7 +464,7 @@
     "evidence": "Codex1 Dev 2026-05-16 22:00: added shared src/app/components/ui/EmptyState.tsx with empty/error/loading-failed kinds, action href/onClick, and sm/md/lg sizes; migrated VocabAccordion, watch/page, TranscriptPanel, LookupCard, learn/page, and search/page to the shared component; updated vocab-ui expectations and added tests/web011.test.mjs. Verification: red test node --test tests/web011.test.mjs failed before implementation because EmptyState was missing and old hard-coded copy remained; node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs passed 15/15; npm test passed 96/96; npm run build passed with existing <img> and Node url.parse warnings only; npx tsc --noEmit passed after build regenerated .next/types; npm run lint:encoding passed. Codex2 QA 2026-05-16 22:20: functional QA passed; npm test passed 96/96; targeted node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web003.test.mjs tests/web007.test.mjs tests/course003.test.mjs passed 15/15; npm run build passed with existing <img> and Node url.parse warnings only; source contract check confirmed EmptyState API plus six target imports/renders; rg confirmed old hard-coded strings absent from the six target files; local HTTP smoke on port 3015 returned /watch 200 with empty-state copy, /search 200 with empty-result copy, /learn 200, and /vocab 307 unauth redirect. Because WEB-011 is a UI ticket, status remains ready_for_qa pending Claude2 visual acceptance. Codex1 Dev fix 2026-05-16 22:55: implemented WEB-011-FIX P1 feedback; TranscriptPanel no-subtitle EmptyState now uses kind=empty and the neutral no-subtitle title requested in WEB-011-FIX; EmptyState error/loading-failed SVG strokes are unified to strokeWidth=3 with the error dot rendered as a filled circle. Added regression coverage in tests/web011.test.mjs. Verification: node --test tests/web011.test.mjs failed before the fix, then passed 4/4; node --test tests/web011.test.mjs tests/vocab-ui.test.mjs tests/web007.test.mjs passed 9/9; npm test passed 97/97; npm run build passed with existing <img> and Node url.parse warnings only; npm run lint:encoding passed. | Claude2 UI 最终验收 2026-05-16: 两处 P1 全部修复确认 — TranscriptPanel kind=empty 且 title 去除「暂时」；EmptyIcon 三档 SVG 描边统一 strokeWidth=3（error 感叹号点改用 circle fill=currentColor，比加粗描边更克制）。视觉一致性达成，WEB-011 关闭。两项 P2 polish 入下一轮。",
     "notes": "依赖 WEB-009 ✅。Ticket: docs/tickets/WEB-011.md。Claude2 UI 评审里点名的不一致问题。 | Claude2 UI 验收 2026-05-16: 结构通过，文案/token/一致性 OK；2 处 P1 视觉问题待修：(1) TranscriptPanel 无字幕场景错用 kind=error 橙色叹号 → 应改 kind=empty 并去掉「暂时」(2) EmptyIcon 三档 strokeWidth 不一致 (3/5/7) → 统一为 3。回修 ticket: docs/tickets/WEB-011-FIX.md。两项 P2 polish 延后。"
   },
-  {
+  "28": {
     "id": "OPS-001",
     "priority": 28,
     "area": "infrastructure",
@@ -483,7 +483,7 @@
     "evidence": "Dev 2026-05-16 (PM 接手 Codex1): @sentry/nextjs ^10 已安装；sentry.client/server/edge.config.ts + src/lib/monitor.ts + src/app/global-error.tsx 已创建；next.config.mjs 包了 withSentryConfig；reportTranslateFailure/reportLookupFailure/reportSubtitleFailure 三个 helper 已接入 src/app/api/translate/route.ts、src/app/api/vocab/lookup/route.ts、src/app/api/subtitle/route.ts、src/lib/dictionary.ts 共四个错误路径；.env.example 含 5 个 Sentry 变量；本地无 DSN 时 SDK 自动 no-op 不阻塞。验证：node --test tests/ops001.test.mjs 4/4 通过；npm test 101/101 通过；npm run build 通过（38 个静态页），仅保留既有 img 警告 + url.parse deprecation。 | Codex2 QA 2026-05-16: 复验通过。node --test tests/ops001.test.mjs 4/4；npm test 111/111；npm run build 通过；npm run lint:encoding 通过。结构核对：三个 sentry config 均 Sentry.init + DSN-guarded enabled (Boolean(process.env.*_SENTRY_DSN))；next.config.mjs 第 8 行 withSentryConfig 包装确认；monitor.ts 隐私核查通过 —— reportTranslateFailure 只上报 textLength + textPreview.slice(0,40)，reportLookupFailure 上报 word（短）、reportSubtitleFailure 上报 videoId，无任何原始字幕/句子整段；4 个调用点（translate/vocab.lookup/subtitle/dictionary）均 import @/lib/monitor；.env.example 含 SENTRY_DSN/AUTH_TOKEN/ORG/PROJECT/NEXT_PUBLIC_SENTRY_DSN 共 5 个；global-error.tsx 存在并在 useEffect 里 Sentry.captureException(error)。",
     "notes": "依赖：无。Ticket: docs/tickets/OPS-001.md。免费额度 5K errors/month 单人项目足够。"
   },
-  {
+  "29": {
     "id": "INFRA-003",
     "priority": 29,
     "area": "infrastructure",
@@ -501,7 +501,7 @@
     "evidence": "Dev 2026-05-16 (PM 接手): @playwright/test ^1.60 已装为 devDep；playwright.config.ts 启用 chromium project + webServer (npm run dev, port 3000)；3 个 E2E spec 已写：anon-home-to-watch（首页→视频卡片→iframe + transcript-cue 渲染）、login-lookup-save（登录→点词→加入→/vocab 看到）、anon-save-prompts-login（未登录点保存→弹登录 CTA 含 callbackUrl）；scripts/seed-e2e-user.mjs 用 PrismaClient + bcrypt upsert 测试账号，幂等；VideoCard / TranscriptPanel / LookupCard / VocabAccordion 加了 data-testid 钩子；.env.example 含 E2E_USER_EMAIL / E2E_USER_PASSWORD / E2E_TEST_VIDEO_ID；.gitignore 添加 test-results/ + playwright-report/。验证：node --test tests/infra003.test.mjs 5/5；npm test 111/111；npm run build 通过。注意：E2E spec 本身需要 dev server + seed 用户 + playwright install chromium，本地/CI 单独跑 npm run test:e2e；CI 接入留给后续 INFRA-004 升级或独立 ticket。 | Codex2 QA 2026-05-16: 复验通过（scaffold + contracts 范围）。node --test tests/infra003.test.mjs 5/5；npm test 111/111；npm run build 通过。结构核对：@playwright/test ^1.60.0 在 devDependencies；playwright.config.ts testDir=./tests/e2e + webServer (npm run dev) + chromium project 全部确认；3 个 spec 文件全部存在且 import @playwright/test；scripts/seed-e2e-user.mjs 引入 PrismaClient + bcryptjs + 调用 upsert；4 个 data-testid 钩子 grep 命中：video-card (VideoCard.tsx) / transcript-cue (TranscriptPanel.tsx) / lookup-card (LookupCard.tsx) / vocab-word (VocabAccordion.tsx)；.env.example 含 E2E_USER_EMAIL / E2E_USER_PASSWORD / E2E_TEST_VIDEO_ID；.gitignore 含 test-results/ + playwright-report/。未执行 npm run test:e2e（按 ticket 验收范围：需 dev server + 浏览器安装 + GLM-5 quota，留作后续）。",
     "notes": "依赖：无。Ticket: docs/tickets/INFRA-003.md。E2E 慢且耗 quota，CI 上按 label 触发。"
   },
-  {
+  "30": {
     "id": "INFRA-004",
     "priority": 30,
     "area": "infrastructure",
@@ -519,7 +519,7 @@
     "evidence": "Dev 2026-05-16 (PM 接手): .github/workflows/ci.yml 已创建，触发 PR + push:main，job 步骤 actions/checkout@v4 → setup-node@v4(node:20,cache:npm) → npm ci → npm run lint:encoding → npm test → npm run build；env 注入 placeholder DATABASE_URL/NEXTAUTH_SECRET 避免 Prisma/Next build 报错；concurrency 取消并发同 PR 旧 run。package.json 新增 ci:local 串行跑 lint:encoding + test + build，本地一把过。验证：node --test tests/infra004.test.mjs 5/5 通过；npm test 106/106 通过；workflow YAML 合法（actions/setup-node + npm ci + npm test + npm run build + lint:encoding 全部 grep 到）。branch protection 由 PM 手动开启。 | Codex2 QA 2026-05-16: 复验通过。node --test tests/infra004.test.mjs 5/5；npm test 111/111；npm run lint:encoding 通过；npm run ci:local 完整链路（lint:encoding → test → build）跑通无错。结构核对：.github/workflows/ci.yml 存在；on.pull_request.branches=[main] + on.push.branches=[main] 确认；steps 顺序 actions/checkout@v4 → actions/setup-node@v4 (node-version:20, cache:npm) → npm ci → npm run lint:encoding → npm test → npm run build 全部齐全；env 注入 DATABASE_URL/NEXTAUTH_SECRET/NEXTAUTH_URL placeholder；package.json ci:local 脚本 = npm run lint:encoding && npm test && npm run build。未推 PR 触发真实 CI（QA 范围内最强行为检查 = ci:local，已通过）。",
     "notes": "依赖：无（INFRA-002 / INFRA-003 完成后自动接入）。Ticket: docs/tickets/INFRA-004.md。branch protection 手动开启。"
   },
-  {
+  "31": {
     "id": "WEB-012",
     "priority": 31,
     "area": "web",
@@ -538,7 +538,7 @@
     "evidence": "Codex1 Dev 2026-05-17 22:30: added local Whisper fallback for /api/subtitle using C:\\Users\\10421\\model\\.venv\\Scripts\\python.exe and C:\\Users\\10421\\model\\models\\whisper\\large-v3-turbo.pt in local .env; node --test tests\\web012-whisper.test.mjs passed 3/3; node --test tests\\web004.test.mjs tests\\web007.test.mjs tests\\web012-whisper.test.mjs passed 7/7; npm run lint:encoding passed; npm test passed 114/114; npm run build passed with existing img/Sentry/Redis warnings only; local smoke transcribed public\\audio\\units\\unidad-1\\hola.mp3 and returned JSON cues. Follow-up 2026-05-17 22:55: added scripts/local-whisper-api.py for Vercel access through LOCAL_WHISPER_API_URL; node --test tests\\web012-whisper.test.mjs passed 3/3; npm test passed 114/114; npm run build passed; npm run lint:encoding passed; local-whisper-api.py --help printed usage.",
     "notes": "Local .env enables Whisper on this machine. Vercel needs a public tunnel URL pointing to the local Whisper API. The .env file is intentionally ignored and not committed."
   },
-  {
+  "32": {
     "id": "READ-001",
     "priority": 34,
     "area": "reading",
@@ -559,7 +559,7 @@
     "evidence": "PM Dev+QA 2026-05-19: 实现 /lectura 列表页（响应式 grid，level badge 配色 brand/sky/purple）+ /lectura/[slug] 阅读页（max-w-3xl + font-serif + 段落 mb-6 + level/时长/source meta）+ LecturaReader 客户端组件（tokenize + 点词唤 LookupCard 浮层 + Escape 关 + 外击关）。SiteNav 加「阅读」一级入口。LookupCard.LookupSource 扩展 lectura 变体（storySlug + paragraphIndex），handleAddToVocab 把 sourceUrl 拼成 /lectura/<slug>#p<i>、courseRef 拼成 lectura:<slug>/p<i>。VocabAccordion 处理 sourceType=lectura（紫色 badge「阅读」+ sourceUrl 直跳）。tests/read001.test.mjs 7/7 通过；全套 npm test 121/121 通过；npm run build 通过（44 静态页 = 旧 38 + /lectura + 5 个 /lectura/[slug]）；npx tsc --noEmit 通过；encoding lint 通过。 | Codex1 Dev 2026-05-19 10:28: READ-001-FIX ? src/app/lectura/page.tsx ? src/app/lectura/[slug]/page.tsx ? dynamic ? force-static ?? force-dynamic??? tests/read001.test.mjs ?? 4 ? dynamic ??????TDD ????? node --test tests/read001.test.mjs??????? 2/7????? force-static???? 7/7 ????????npm test 121/121 ???npm run build ???????? /lectura ? /lectura/[slug] ?? ? (Dynamic)????? <img> lint warning ? Sentry instrumentation warning??????? | PM 复验 2026-05-19: /lectura 和 /lectura/[slug] 均改为 export const dynamic = \"force-dynamic\"，tests/read001.test.mjs 加 2 条反断言（不再含 force-static）+ 2 条正断言。npm test 129/129 通过。PM 需在 Vercel 部署后真机点确认头像/词库链接正确。",
     "notes": "依赖：无（复用 LookupCard / WEB-009 token / SiteHeader）。Ticket: docs/tickets/READ-001.md。触发：PM 自用反馈 2026-05-19 — Aula 太重 + 上班不便开。本票是 Esponal 第二条腿（视频之外）的基础。PM 需在 dev 开工前把 5 篇短文 TS 写好放 content/lectura/。 | 2026-05-19 线上 bug: /lectura 和 /lectura/[slug] 用了 force-static, SiteHeader 内 getServerSession 在 build 时永远拿不到 session, 登录用户线上被当游客显示。Fix ticket: docs/tickets/READ-001-FIX.md. | 2026-05-19 10:28 Codex1 ?? READ-001-FIX ?????? Codex2 ???? + PM ? Vercel ??????"
   },
-  {
+  "33": {
     "id": "WEB-013",
     "priority": 35,
     "area": "web",
@@ -578,7 +578,7 @@
     "evidence": "Codex1 Dev 2026-05-19 11:02: implemented mobile hamburger navigation for sub-1024px screens. Added src/app/components/web/MobileNav.tsx with useState drawer control, Escape-close listener on document, body scroll lock via useEffect, overlay close, and five primary nav links including auth-aware vocabHref. Updated src/app/components/web/SiteNav.tsx to keep desktop nav as hidden lg:flex and render a lg:hidden MobileNav branch. Updated src/app/components/web/SiteHeader.tsx so the desktop search form is hidden below lg, leaving the header usable on mobile/tablet. TDD: node --test tests/web013.test.mjs initially failed 3/3 for missing MobileNav and missing mobile wiring; after implementation node --test tests/web013.test.mjs tests/web009.test.mjs passed 7/7. Full verification: npm test passed 129/129; npm run build passed with only existing <img> lint warnings and existing Sentry instrumentation warnings. | Codex2 QA 2026-05-19 12:10: passed. Targeted node --test tests/web013.test.mjs tests/pwa001.test.mjs tests/web009.test.mjs passed 12/12; npm test passed 129/129; npm run lint:encoding passed; npm run build passed with existing <img> and Sentry warnings only. Source contract verified MobileNav use client, five entries, Escape close, body scroll lock, overlay/link close, SiteNav hidden lg:flex plus lg:hidden branch, and SiteHeader hidden lg:flex search. | PM Dev+QA 2026-05-19: MobileNav.tsx 实现含 useState open + Escape 关闭 + body overflow lock + 5 个 nav item 链接。SiteNav.tsx 拆成桌面 hidden lg:flex + 移动 lg:hidden 包 MobileNav。tests/web013.test.mjs 通过。npm test 129/129; npm run build 通过。",
     "notes": "依赖 WEB-009 brand token。Ticket: docs/tickets/WEB-013.md。PWA-001 的前置——手机没顶栏菜单装成 PWA 也没用。"
   },
-  {
+  "34": {
     "id": "PWA-001",
     "priority": 36,
     "area": "web",
@@ -599,7 +599,7 @@
     "evidence": "Codex1 Dev 2026-05-19 11:34: implemented PWA install surface and offline shell without introducing extra runtime dependencies. Added public/manifest.webmanifest, public/sw.js, src/sw.ts, src/app/offline/page.tsx, src/app/components/web/ServiceWorkerRegister.tsx, src/app/components/web/InstallPrompt.tsx, and scripts/generate-icons.mjs. Generated four PNG icons under public/icons/: icon-192.png, icon-512.png, icon-maskable-192.png, and icon-maskable-512.png. Updated src/app/layout.tsx with manifest metadata, Apple web app metadata, viewport themeColor, and service worker registration; updated src/app/components/web/HomeHero.tsx to render InstallPrompt. TDD: node --test tests/pwa001.test.mjs failed 5/5 before implementation; after implementation node --test tests/pwa001.test.mjs passed 5/5. Full verification: node --test tests/pwa001.test.mjs tests/web013.test.mjs tests/web009.test.mjs passed 12/12; npm test passed 129/129; npm run lint:encoding passed; npm run build passed and prerender output now includes /offline. Remaining warnings are the existing <img> lint warning and existing Sentry instrumentation warnings. | Codex2 QA 2026-05-19 12:10: passed against the current PWA-001 contract. Targeted node --test tests/web013.test.mjs tests/pwa001.test.mjs tests/web009.test.mjs passed 12/12; npm test passed 129/129; npm run lint:encoding passed; npm run build passed and listed /offline. Source/file contract verified manifest valid JSON with required install fields, four icons exist and are >1KB, ServiceWorkerRegister registers /sw.js, public/sw.js and src/sw.ts exist, /offline exists, InstallPrompt listens for beforeinstallprompt and calls prompt(), HomeHero mounts InstallPrompt, and layout exports manifest, viewport themeColor, Apple web app metadata, and ServiceWorkerRegister. | PM Dev+QA 2026-05-19: public/manifest.webmanifest + 4 个 icon (192/512 + maskable) + src/sw.ts (serwist) + scripts/generate-icons.mjs + src/app/offline/page.tsx + InstallPrompt.tsx + ServiceWorkerRegister.tsx 全到位。layout.tsx 注入 manifest + appleWebApp meta。tests/pwa001.test.mjs 通过。npm test 129/129; npm run build 通过（45 静态页 = 旧 44 + /offline）。Lighthouse PWA + Android Chrome 真装验证留 PM 部署后做。",
     "notes": "依赖 WEB-013。Ticket: docs/tickets/PWA-001.md。Phase 1 移动端方案，等本票上线 + PM 真用 3 天后决定是否做 PWA-002（TWA + Play Store）。"
   },
-  {
+  "35": {
     "id": "AUDIO-001",
     "priority": 37,
     "area": "audio",
@@ -620,7 +620,7 @@
     "evidence": "Codex1 Dev 2026-05-19 11:33: implemented AUDIO-001. Added scripts/generate-lectura-audio.mjs using msedge-tts es-MX-DaliaNeural with sequential temp-file generation and size guard; generated 35 committed MP3 files under public/audio/lectura with min size 23040 bytes. Added src/lib/speak.ts with speak() and useSpeechAvailable() for browser Web Speech. Updated LecturaReader with one-at-a-time paragraph playback via new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`) and active paragraph border; updated LookupCard with lemma and example speech buttons hidden when Spanish speech voices are unavailable. Updated src/sw.ts and public/sw.js with cache-first /audio/lectura/*.mp3 handling. Verification: red node --test tests/audio001.test.mjs failed 5/5 before implementation; npm run audio:lectura generated 35 MP3s; node --test tests/audio001.test.mjs tests/read001.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/pwa001.test.mjs passed 25/25; npm test passed 134/134; npm run lint:encoding passed; npm run build passed with only existing <img> and Sentry warnings. | PM 结构 QA 2026-05-19: 35 个 lectura MP3 全生成（5 篇 × 平均 7 段）; src/lib/speak.ts + useSpeechAvailable 到位; LecturaReader 段落 ▶ 按钮 + 互斥播放; LookupCard lemma + example 旁 🔊; audio001 测试 5/5。但 PM 真机测试发现手机版 Android Chrome 无西语 voice 时词语按钮全部隐藏 — 这是 Web Speech API 方案的固有缺陷，不是本票实现 bug，由 AUDIO-002 通过迁移到服务端 msedge-tts 修。",
     "notes": "依赖 READ-001 ✅ + COURSE-004 ✅。Ticket: docs/tickets/AUDIO-001.md。两层方案：Lectura 预生成 MP3 = 质量稳定 + 可离线；词语 Web Speech API = 零后端成本 + 动态。35 个 MP3 约 3MB，入 git 合理。Service Worker 需要把 /audio/lectura/** 加进 cache 策略。"
   },
-  {
+  "36": {
     "id": "AUDIO-002",
     "priority": 38,
     "area": "audio",
@@ -640,7 +640,7 @@
     "evidence": "PM 结构 QA 2026-05-19: /api/tts route + ttsLimiter + speak.ts 服务端 fetch 重写 + sw.ts CacheFirst 全到位（commit 67310e8）。audio002 测试 5/5 通过；npm test 139/139；npm run build 通过。手机真机验证（点 LookupCard 🔊 听到声音 + PWA 离线复听）由 PM 部署后做。",
     "notes": "依赖 AUDIO-001 ✅。Ticket: docs/tickets/AUDIO-002.md。触发：PM 真机测试 2026-05-19 — Android Chrome 国内默认无西语 voice 包，AUDIO-001 的 Web Speech 方案 useSpeechAvailable 检测失败导致按钮全部隐藏。本票把词语发音从客户端 Web Speech 迁到服务端 msedge-tts，设备一致性 100%。Lectura 段落不动（已是预生成 MP3）。"
   },
-  {
+  "37": {
     "id": "VOCAB-005",
     "priority": 39,
     "area": "vocabulary",
@@ -661,7 +661,7 @@
     "evidence": "Codex1 Dev 2026-05-19 15:10: implemented deterministic vocab conjugation/forms for /vocab. Added local spanish-verbs package dependency plus vendor shim and src/lib/conjugate.ts with tryConjugateVerb covering regular verbs and irregular ser/ir. Extended src/lib/dictionary.ts with conjugations, nounForms, adjectiveForms, v2 cache namespace, 30-day TTL, GLM prompt expansion, and noun/adjective form validation. Added src/app/components/vocab/ConjugationTable.tsx and updated VocabAccordion plus src/app/vocab/page.tsx to render 7 tense tabs for verbs and inline forms for nouns/adjectives. Updated LookupCard to persist conjugations/nounForms/adjectiveForms into dictData and preserved lightweight card UI. Also fixed sourceType passthrough for lectura encounters in /api/vocab/add and src/lib/vocab.ts. TDD: node --test tests/vocab005.test.mjs failed 4/4 before implementation, then passed 4/4. Related regressions: node --test tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs passed 19/19. Full verification: npm test passed 143/143; npm run lint:encoding passed; npm run build passed. Remaining warnings only: existing <img> lint warnings in SiteHeader and learn/[slug], existing Sentry instrumentation migration warnings, and existing Node MODULE_TYPELESS_PACKAGE_JSON warnings during node --test imports. | Codex2 QA 2026-05-19 16:01: passed. node --test tests/vocab005.test.mjs passed 4/4; npm test passed 143/143; npm run build passed. Source contract verified package.json includes spanish-verbs file dependency, tryConjugateVerb(\"vivir\") -> vivo/vivimos, tryConjugateVerb(\"ser\") -> soy/fui, tryConjugateVerb(\"xyzfake123\") -> null, dictionary cache key uses vocab:dict:v2:, LookupCard persists conjugations/nounForms/adjectiveForms without importing ConjugationTable, VocabAccordion imports ConjugationTable and renders noun/adjective inline forms, and /vocab serialization preserves richer dictData fields.",
     "notes": "依赖：无（GLM-5 已在用）。Ticket: docs/tickets/VOCAB-005.md。触发：PM 反馈 2026-05-19 — 西语动词变位是核心难点。架构决定：变位用 spanish-verbs（MIT,~12k verbs）确定性输出，避免 AI 在不规则动词上翻车；名词/形容词形态依然走 GLM-5 但加校验。老缓存自然过渡（v2 namespace + 30 天 TTL）。"
   },
-  {
+  "38": {
     "id": "VOCAB-006",
     "priority": 40,
     "area": "vocabulary",
@@ -682,7 +682,7 @@
     "evidence": "Codex1 Dev 2026-05-20: implemented VOCAB-006 SRS review flow and moved it to ready_for_qa. Installed ts-fsrs, added prisma migration add_srs_fields with 9 SRS columns plus @@index([userId, srsDue]), regenerated Prisma Client with npx prisma generate, and added src/lib/srs.ts helpers (initCard/toFsrsCard/scheduleCard). Extended src/lib/vocab.ts with getDueReviewCount/getDueReviewWords, added GET /api/vocab/review and POST /api/vocab/review/[wordId], built /vocab/review with ReviewClient flashcard flow (fetch queue, showBack flip, speak(), four rating buttons, completion state), and added the due-review badge to /vocab. Verification: node --test tests/vocab006.test.mjs passed 5/5; node --test tests/vocab006.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs passed 17/17; npm test passed 148/148; npm run build passed. Remaining warnings are unchanged existing <img> and Sentry instrumentation warnings, plus existing MODULE_TYPELESS_PACKAGE_JSON warnings during node --test.",
     "notes": "依赖 VOCAB-005 ✅。Ticket: docs/tickets/VOCAB-006.md。触发：PM 规划 2026-05-20 — 词库只收集不复习，遗忘率极高；FSRS 是当前最优 SRS 算法（ts-fsrs MIT 许可）。设计原则：复习可选触发，不强制提醒；首日上限 10 新词防压垮。不含统计图/推送/参数设置（后续票）。"
   },
-  {
+  "39": {
     "id": "VOCAB-007",
     "priority": 40,
     "area": "vocabulary",
@@ -697,7 +697,7 @@
     "evidence": "Codex1 Dev 2026-05-20 15:52: implemented VOCAB-007 AI lemmatizer in src/lib/dictionary.ts and added tests/vocab007.test.mjs. Expanded RawAIEntry with lemma/morphInfo, rewrote fetchAIEntry so the AI identifies lemma from the surface form and returns dictionary data in one response, and upgraded lookupDictionary to use vocab:dict:v3 cache keys with a second safeCacheGet on the AI-returned lemma before writing. Also updated tests/vocab005.test.mjs cache namespace assertion from v2 to v3 so the existing contract matches current dictionary behavior. TDD: node --test tests/vocab007.test.mjs failed 5/5 before implementation, then passed 5/5 after implementation. Codex2 QA 2026-05-20 13:33: passed. npm run lint:encoding returned Encoding check passed; node --test tests/vocab007.test.mjs passed 5/5; node --test tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs passed 15/15; npm test passed 153/153; npm run build passed with only existing img and Sentry warnings; npx tsc --noEmit passed after build generated .next/types. Source contract verified prompt uses surface word and Identify its lemma, RawAIEntry has lemma/morphInfo, parsed.lemma has string guard and hintLemma fallback, dictionary cache keys are v3 with no v2 in implementation, lookupDictionary has hint and ai safeCacheGet calls, and degraded fallback still uses lemma-dict translation with degraded: true. Live DashScope behavior sampling skipped because DASHSCOPE_API_KEY was not present in the shell environment.",
     "notes": "Ticket: docs/superpowers/specs/2026-05-20-ai-lemmatizer-design.md 銆?docs/superpowers/plans/2026-05-20-ai-lemmatizer.md銆傛敼鍔ㄨ寖鍥达細src/lib/dictionary.ts銆乼ests/vocab007.test.mjs锛堝強涓€澶勫繀瑕佺殑鏃ф祴璇曟柇瑷€鍚屾锛歵ests/vocab005.test.mjs 灏?v2 鏀逛负 v3锛夈€備緷璧栫幇鏈?VOCAB-004/005 璇嶅吀绠＄嚎锛屽墠绔笉闇€鏇存敼鍗冲彲鍙楃泭銆?"
   },
-  {
+  "40": {
     "id": "VOCAB-008",
     "priority": 42,
     "area": "vocabulary",
@@ -717,7 +717,7 @@
     "evidence": "Codex1 Dev 2026-05-20 15:14: implemented saved-word underline marking for Lectura and course pages. Added tests/vocab008.test.mjs with TDD red/green coverage; updated createWord to store tryConjugateVerb forms for verb POS entries; added idempotent scripts/backfill-verb-forms.mjs and npm run backfill:verb-forms; extended GET /api/vocab/highlight to return savedForms with private max-age=60; wired LecturaReader and CourseLookupText to load savedSet and apply .saved-word without breaking LookupCard click behavior; added shared #4b5563 underline styling. Codex2 QA 2026-05-20 15:20: passed. npm run lint:encoding returned Encoding check passed; node --test tests/vocab008.test.mjs passed 6/6; node --test tests/vocab008.test.mjs tests/vocab007.test.mjs tests/vocab005.test.mjs tests/vocab004.test.mjs tests/read001.test.mjs passed 28/28; npm test passed 159/159; npm run build passed with only existing img and Sentry warnings; node --check scripts/backfill-verb-forms.mjs passed. Source contract verified: createWord gates verb POS with isVerbPos and merges tryConjugateVerb forms into normalizedForms; backfill script and package command exist; GET /api/vocab/highlight returns lowercase deduped savedForms for logged-in users and [] for guests; LecturaReader and CourseLookupText fetch /api/vocab/highlight, apply saved-word, and preserve LookupCard click paths; .saved-word uses #4b5563 underline, 1.5px thickness, and 3px offset. Runtime backfill was attempted during QA, but local Prisma DB connection failed with Windows TLS credential error: 安全包中没有可用的凭证. Deploy/ops must run npm run backfill:verb-forms in an environment with working DATABASE_URL before rollout so historical verb entries receive conjugation forms.",
     "notes": "Ticket: docs/tickets/VOCAB-008.md。依赖 VOCAB-005（变位数据）、VOCAB-007（AI 词形还原）。设计决定：方案 Y - 保存动词时把全部变位灌入 Word.forms，运行时高亮就是 set 查表，不需要运行时 AI 调用。需要一次性 backfill 现有 verb 词条。颜色用 #4b5563（深灰）而非绿色，白底下更醒目。不在范围：SRS 状态颜色梯度、字幕样式调整、名词/形容词复数性数自动灌入、hover tooltip。"
   },
-  {
+  "41": {
     "id": "WEB-014",
     "priority": 43,
     "area": "web",
@@ -738,7 +738,7 @@
     "evidence": "Codex1 Dev 2026-05-20 16:16: implemented shared BackLink for detail pages. Added src/app/components/web/BackLink.tsx with href/label props, data-testid=back-link, min-h-[44px], text-gray-600, hover:text-gray-900, aria-label 返回${label}, and focus-visible ring. Wired BackLink into /lectura/[slug] -> /lectura label 阅读, /learn/[slug] -> /learn label 课程, /watch -> / label 视频, /vocab/review -> /vocab label 词库, and /grammar/[slug] -> /grammar label 语法. Removed legacy Lectura 返回 Lectura link and legacy grammar 返回语法话题 link. Added tests/web014.test.mjs. TDD: node --test tests/web014.test.mjs failed 5/6 before implementation, then passed 6/6. Codex2 QA 2026-05-20 16:31: npm run lint:encoding passed; node --test tests/web014.test.mjs passed 6/6; node --test tests/web014.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/read001.test.mjs passed 20/20; npm test passed 165/165; npm run build passed with existing <img> and Sentry warnings only. Accessibility check: aria-label present true, aria-hidden present true. Source contract verified BackLink class/focus/aria/testid requirements, five detail-page mappings, legacy Lectura/Grammar return copy removed, and list pages /vocab /learn /lectura /grammar have no BackLink import. | PM 2026-05-21 sync: Codex2 QA pass on 2026-05-20 was in session-handoff but feature_list status was not updated; corrected to passing.",
     "notes": "Ticket: docs/tickets/WEB-014.md。触发：用户反馈 PWA standalone 模式下点进详情页出不来。设计决定：固定回上级（方案 X），不依赖 history.back，首次直开链接也能用。Claude2 UI 评审通过（2 处 P1 已修：/watch 文案改 视频 与 SiteNav 对齐；Lectura 旧链接需删除替换；text-gray-500 → 600；加 aria-label 与 focus-visible ring）。"
   },
-  {
+  "42": {
     "id": "EXT-008",
     "priority": 44,
     "area": "extension",
@@ -761,7 +761,7 @@
     "evidence": "Codex1 Dev + PM production E2E summary: base EXT-008 delivered extension harvester and /watch fallback; FIX commit bcf5b0a switched from direct track.baseUrl fetch to MAIN-world hook-timedtext capture of YouTube /api/timedtext via fetch/XHR; FIX2 commit 85093a2 added ingest OPTIONS/CORS headers and production preflight + YouTube ingest E2E; FIX3 commits 2c7c6a8/fbd3583 added strict isSpanishLang, capturedVideoId guard, removed normalizeLang non-es coercion, and made token ingest overwrite polluted cache; production E2E recorded in b0e5c28 observed non-target en/ar timedtext rejected, target v=1A9kpjdYJUg lang=es ingest 200 with cueCount 808 written true, and /api/subtitle returned Spanish cues beginning ¿Cómo cambió tu vida aprender español?. Codex2 final QA 2026-05-21 14:11: source contract verified hook-timedtext.js hooks fetch + XHR and matches /api/timedtext; background.js injects dist/hook-timedtext.js with chrome.scripting.executeScript world MAIN; harvest.js has no fetch(track.baseUrl), has strict isSpanishLang/langParam and capturedVideoId=current video guard, and no normalizeLang coercion; ingest route has OPTIONS, four CORS headers, all JSON responses via CORS helper, no redis.get/write-once written:false path. Commands passed: npm run lint:encoding (Encoding check passed); node --test tests/ext008.test.mjs tests/extension.test.mjs (12/12); node --test tests/ext008.test.mjs tests/extension.test.mjs tests/web004.test.mjs (14/14); npm test (173/173); npm run build (compiled successfully, only existing <img> and Sentry warnings). Production probes passed: OPTIONS https://esponalsssssss.vercel.app/api/subtitle/ingest from Origin https://www.youtube.com returned 204 with Access-Control-Allow-Origin *, Allow-Methods POST, OPTIONS, Allow-Headers Content-Type, X-Esponal-Ingest-Token, Max-Age 86400; GET https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es returned 200 and first 300 chars include Spanish text ¿Cómo cambió tu vida aprender español?.",
     "notes": "Ticket: docs/tickets/EXT-008.md。背景：HAR 分析确认 Eudic 西语助手字幕质量好的本质是浏览器内带 PO Token 抓 timedtext；服务器端 PO Token spike 测试证明对教学类视频普遍返回 LOGIN_REQUIRED 不可行；用户安装扩展 + 浏览 YouTube 时自动采集是唯一稳定路径。三个 PM 决策：(1) 保留 ingest token 视作垃圾流量过滤；(2) /watch 三段式 fallback Redis → Apify → 提示；(3) 扩展在任意 youtube.com/watch* 自动触发只采集 es-* 轨道。不复活 EXT-007 Playwright 批量预采集（Chrome 138+ 限制依然存在）。流程：先过 Claude2 UI 评审再给 Codex1。"
   },
-  {
+  "43": {
     "id": "WEB-015",
     "priority": 45,
     "area": "web",
@@ -781,7 +781,7 @@
     "evidence": "Codex1 Dev 2026-05-21 14:31: implemented WEB-015 app shell width token. Added Tailwind maxWidth token app-shell=96rem, migrated SiteHeader and target app shells to max-w-app-shell, and constrained /watch only on the inner lg:flex-row shell while keeping the outer main bg-app lg:h-screen lg:overflow-hidden. Added tests/web015.test.mjs with TDD red/green coverage for the token, target shell pages, /watch inner/outer contract, and narrow reading-page regressions. TDD red: node --test tests/web015.test.mjs failed 3/4 before implementation. Verification passed: npm run lint:encoding (Encoding check passed); node --test tests/web015.test.mjs (4/4); npm test (177/177); npm run build (compiled successfully; existing <img> and Sentry warnings only). 1920px regression via Playwright on dev server port 3001: /, /watch?v=1A9kpjdYJUg, /extension, /learn, and /lectura all had header/content bounds left 192 right 1728 width 1536, scrollWidth=clientWidth=1920, and no horizontal scroll; card grids remained multi-column and non-collapsed. | Codex2 QA 2026-05-22 10:36: PASS. Verified npm run lint:encoding -> Encoding check passed; npm test -> 195/195 pass; npm run build -> compiled successfully with existing <img>/Sentry warnings only. Source contract checked: app-shell token exists, SiteHeader/home/learn/learn detail/lectura/extension use max-w-app-shell, /watch constrains only inner lg:flex-row shell, and grammar/lectura detail/learn phase-1 retain narrow widths. | Hotfix 2026-05-22 10:56: PM reported /watch player became too large and video appeared cropped after widening app shell. Root cause: /watch inner shell widened to 96rem while player still filled 63% left column, growing to ~900px+ wide. Added desktop player cap lg:max-w-[48rem] while preserving aspect-video and BackLink breathing. TDD red: node --test tests/web015.test.mjs failed 1/5 before fix; after: tests/web015 5/5, watch/layout regression set 14/14, npm run lint:encoding pass, npm test 196/196, npm run build pass with existing warnings.",
     "notes": "Ticket: docs/tickets/WEB-015.md. Claude2 UI review approved semantic token app-shell, /watch inner-shell-only handling, and preserving narrow reading pages. /search retains max-w-screen-xl because it is outside the WEB-015 target file list."
   },
-  {
+  "44": {
     "id": "COURSE-005",
     "priority": 45,
     "area": "course",
@@ -802,7 +802,7 @@
     "evidence": "Codex1 Dev 2026-05-21 15:24: Phase 1 dictionary (83 entries). PM QC 2026-05-22 (e5ad0a4): 95 entries, 3 new categories (indefinite_pronoun/quantifier/adverb_function), validator synced. Codex1 Dev 2026-05-22 10:15: Phase 2 /dissect complete. Added src/lib/functionWords.ts with 6-group aggregation (blue pronoun, indigo object_pronoun, amber limiter, emerald prep/conj, violet relative, slate adverb_function), src/app/dissect/page.tsx + DissectorClient.tsx + tokenize.ts with textarea, default live dissection, underline+badge rendering, popover with esEnContrast and Day N links, and summary stats. TDD: course005 Phase 2 tests failed before implementation; after: node --test tests/course005.test.mjs 8/8; npm test 185/185; npm run lint:encoding passed; npm run build passed with /dissect route. Phase 3 (/learn/foundation) not started. COURSE-005 remains in_progress. Codex1 Dev 2026-05-21 20:46: Phase 3 /learn/foundation complete. Added src/content/foundation.ts with 7 Chinese reading lessons, overview route /learn/foundation, day route /learn/foundation/day-1..day-7 with intro/comparison/contrast/usage sections and tri-link nav, plus amber /learn banner below hero. TDD: Phase 3 tests failed before implementation on missing content/routes/banner; after: node --test tests/course005.test.mjs 12/12; npm run lint:encoding passed; npm test 189/189; npm run build passed with existing <img> and Sentry warnings. COURSE-005 remains in_progress pending PM readthrough of 7-day content before ready_for_qa. | PM 2026-05-22 review pass: Phase 1 字典 95 条 + Phase 2 /dissect 拆解器 + Phase 3 七天课 + 多轮 fix（QC 翻译、BackLinks、SiteNav 拆解 tab、内容词查词、foundation 例句接入 CourseLookupText）。在 Vercel 上实测：/learn/foundation 总览 + 七天课页面渲染正确、对照表 3 列、拆解器 5 色聚合 + popover + Day 链接、骨架词内容词都可点。剩余 Phase C（contrastBlocks 改对象数组）拆出独立 ticket VOCAB-009-C。 | Codex2 QA 2026-05-22 10:36: PASS. Verified npm run lint:encoding -> pass; npm test -> 195/195 pass; npm run build -> pass. Source contract checked: function-words has 95 entries and 13 categories including indefinite_pronoun/quantifier/adverb_function; /dissect has popover, Day links, and content-word LookupCard; /learn/foundation overview has BackLink, 7-card map, Day 1 col-span, and /dissect CTA; foundation day route has BackLink, Day N/7, comparison/contrast/usage structure and tri-nav; /learn has foundation banner; SiteNav and MobileNav include 拆解.",
     "notes": "Ticket: docs/tickets/COURSE-005.md。PM 教学洞察：从英语过来学西语的人无需被当成完全零基础对待，先把\"功能词\"骨架剥离讲清楚，用英语对照打底，效率比直接当词汇硬记高数倍。设计决定：(1) C+D 组合 - 七天课建立认知 + 拆解器即时验证；(2) 共享 function-words.json 词典数据源用 Wiktionary (CC-BY-SA)，不用 AI 自由生成防杜撰；(3) 课程纯静态阅读不加测验/翻牌/音频；(4) 中文长文讲解 800-1500 字/节。分 3 期 - 词典 → 拆解器 → 七天课。Codex1 不熟西语就保留 TODO 等 PM 校对。 Phase 1 contains TODO markers for por/para, aunque/subjunctive, and qu?/cu?l where PM grammar wording should be checked before publishing. Phase 3 content is implemented but should be read by PM before moving COURSE-005 to ready_for_qa, per ticket requirement."
   },
-  {
+  "45": {
     "id": "VOCAB-009",
     "priority": 46,
     "area": "vocabulary",
@@ -823,7 +823,7 @@
     "evidence": "2026-05-21 23:02 Codex1 Phase A complete only: extracted SpanishText shared component, deleted CourseLookupText, migrated existing /learn/[slug] and /learn/foundation/[day] lookup call sites, extended LookupSource and /api/vocab/add sourceType for dissect/grammar, added LookupCard viewport max width, and added savedForms cache invalidation after save. Verification: TDD red node --test tests/vocab009.test.mjs failed 4/4 before implementation; node --test tests/vocab009.test.mjs -> 4/4 pass; node --test tests/vocab009.test.mjs tests/vocab008.test.mjs tests/vocab004.test.mjs tests/course005.test.mjs -> 28/28 pass; npm run lint:encoding -> pass; npm test -> 193/193 pass; npm run build -> pass with existing img and Sentry warnings only.\n2026-05-21 23:18 Codex1 Phase B complete only: wired SpanishText into /grammar/[slug] explicit Spanish fields (conjugation row.pronoun, row.form, examples, ser/estar comparison items), kept topic intro/analogy/rules/chinese/reason/sidebar/list page as plain text. Verification: baseline npm test -> 193/193 pass; TDD red node --test tests/vocab009.test.mjs failed 1/6 before implementation; node --test tests/vocab009.test.mjs -> 6/6 pass; node --test tests/vocab009.test.mjs tests/course002.test.mjs tests/web014.test.mjs tests/web015.test.mjs -> 19/19 pass; npm run lint:encoding -> pass; npm test -> 195/195 pass; npm run build -> pass with existing img and Sentry warnings only. | PM 2026-05-22 review pass: Phase A SpanishText 抽出 + LookupCard source 扩展 + lib/vocab 接受 dissect/grammar + CourseLookupText 删除 + 迁移 /learn/[slug] 和 /learn/foundation/[day]。Phase B /grammar/[slug] 按死清单接入（变位 cell 和例句包，混排中文不包）。npm test 195/195 pass，build pass。Phase C foundation contrastBlocks 改对象数组拆出独立 ticket VOCAB-009-C。 | Codex2 QA 2026-05-22 10:36: PASS. Verified npm run lint:encoding -> pass; npm test -> 195/195 pass; npm run build -> pass. Source contract checked: SpanishText exists; CourseLookupText deleted; /learn/[slug] and /learn/foundation/[day] use SpanishText; /grammar/[slug] wraps explicit Spanish fields only; LookupSource and src/lib/vocab.ts accept dissect/grammar; SpanishText has viewport boundary, mobile bg-brand-50/40, and no hover:underline.",
     "notes": "Ticket: docs/tickets/VOCAB-009.md。背景：PM 反馈\"所有西语词应该都能点击查词\"。COURSE-005 P0 已经在 dissector 内容词 + foundation 课例句接入查词，但散落实现 + grammar 等页面仍缺。本票抽 SpanishText 通用组件统一行为，覆盖现有遗漏，并建立\"未来新页面 default 接入\"的惯例。Claude2 UI review 2026-05-21: PASS WITH CHANGES，已并入 ticket。分 3 阶段：Phase A 收窄为只抽 CourseLookupText -> SpanishText，并只迁移 /learn/[slug] 与 /learn/foundation/[day] 已有调用；不动 /lectura、/watch、DissectorClient。Phase A 2026-05-21 complete. Phase B 2026-05-21 complete: /grammar/[slug] 明确西语字段已接入；/grammar 列表页按二审不接入。Phase C 改 foundation contrastBlocks 数据结构，需 PM content readthrough。"
   },
-  {
+  "46": {
     "id": "VOCAB-009-C",
     "priority": 47,
     "area": "vocabulary",
@@ -840,7 +840,7 @@
     "evidence": "",
     "notes": "Ticket: docs/tickets/VOCAB-009-C.md（待写）。从 VOCAB-009 Phase C 拆出来。原因：改 contrastBlocks 数据结构需要 PM readthrough 校对 7 天 × 平均 3 条 block = 21 条手工拆解 es/en/zh/note，PM 时间未确认前不强推。可选择继续延后。"
   },
-  {
+  "47": {
     "id": "WEB-016",
     "priority": 48,
     "area": "web",
@@ -860,7 +860,7 @@
     "evidence": "Codex1 Dev 2026-05-22 11:35: implemented fixed 3-column /watch layout. Left column changed to lg:basis-[48rem] lg:shrink-0, player keeps lg:max-w-[48rem] without lg:mx-auto, transcript remains flex middle column, and related videos now render as a persistent aside with lg:w-[260px] lg:shrink-0. RelatedPanel hover/pin state machine removed (no useState/useRef/useEffect, timers, edge trigger, pin button, or translate slide classes); compact cards use 96x54 thumbnails, px-2 py-2 list padding, and py-1.5 rows. Verification: baseline npm test 196/196 before changes; TDD red node --test tests/web016.test.mjs tests/web007.test.mjs failed 5/6 before implementation; after implementation focused tests 6/6 pass; regression slice tests/web016 + web007 + web015 + web003 12/12 pass; npm run lint:encoding pass; npm test 200/200 pass; npm run build pass with existing <img>/Sentry warnings only. Layout evidence by source contract: at app-shell 1536px with lg:pl-7=28, fixed columns produce left 768px, related 260px, and remaining transcript 480px at 1920/2560; mobile keeps h-[60vh] transcript and related aside hidden below lg. Browser Playwright attempts were blocked by local Next static asset 404 on the ad-hoc server, so final visual screenshots should be taken by Codex2/Claude2 after deploy. | Codex2 QA 2026-05-23 12:31: structure/function QA passed. Commands: npm run lint:encoding -> Encoding check passed; node --test tests/web016.test.mjs tests/web007.test.mjs tests/web015.test.mjs tests/web003.test.mjs -> 12/12 pass; npm test -> 200/200 pass; npm run build -> compiled successfully with existing <img>/Sentry warnings only. Source contract script checked 16/16: left 48rem + shrink-0, no 63%/51rem basis, player 48rem cap without mx-auto, right persistent 260px aside, mobile h-[60vh] transcript, no RelatedPanel state/effects/timers/slide overlay, 96x54 thumbnails, compact padding, MOCK_CHAPTERS and A1 placeholder untouched. Because WEB-016 is UI work, status remains ready_for_qa pending Claude2 visual acceptance. || PM 视觉验收 2026-05-25：1920px 截图确认三列对齐（视频左 + 字幕中 + 相关视频右）。",
     "notes": "Ticket: docs/tickets/WEB-016.md。Claude2 二审 PASS WITH CHANGES：PM 初版字幕宽算错（漏算 pl-7=28px），调整为左列 48rem + 右列 260px 救回字幕 480px。已知占位（MOCK_CHAPTERS、A1 标签写死、移动端无相关视频入口）不在本票范围。Claude2 源码级 PASS 2026-05-23 15:10，等部署后人类截图（1920/2560/375 三视口）补 evidence 再改 passing。"
   },
-  {
+  "48": {
     "id": "TALK-001",
     "priority": 49,
     "area": "talk",
@@ -878,7 +878,7 @@
     "evidence": "Codex1 Dev 2026-05-23 13:46: implemented clickable Spanish lookup for completed Carlos/es-* assistant messages in /talk/[characterId]. User messages, non-Spanish characters, and the currently streaming assistant message remain plain text until done. Extended LookupSource, /api/vocab/add, and src/lib/vocab.ts to accept sourceType=talk with courseRef metadata shaped like talk:{characterId}:{sessionId}:m{messageIndex}; /vocab now displays talk encounters as talk · Carlos. Verification: TDD red node --test tests/talk001.test.mjs failed 4/4 before implementation; after implementation node --test tests/talk001.test.mjs -> 4/4 pass; node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 16/16 pass; npm run lint:encoding -> pass; npm test -> 204/204 pass; npm run build -> pass with existing <img>/Sentry warnings only. | Codex2 QA 2026-05-23 14:05: PASS. Confirmed source contract: completed assistant messages for Carlos or es-* characters use SpanishText; user messages, non-Spanish characters, and the streaming assistant message remain plain text; LookupCard, /api/vocab/add, and src/lib/vocab.ts accept sourceType=talk with courseRef talk:{characterId}:{sessionId}:m{messageIndex}; /vocab displays talk encounters as talk · Carlos and links back to the talk URL. Commands: npm run lint:encoding -> Encoding check passed; node --test tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 16/16 pass; npm test -> 204/204 pass; npm run build -> compiled successfully with existing <img>/Sentry warnings only.",
     "notes": "Ticket: docs/tickets/TALK-001.md。优先级 P2，预估 0.5-1 天。可复用 VOCAB-009 抽出的统一查词组件（如已有）。Claude2 源码级 PASS 2026-05-23 15:05（SpanishText 复用、非西语角色纯文本、streaming guard、LookupCard 视口防溢出、source 标注 talk·Carlos 均验证）；Codex2 QA 2026-05-23 14:05 已通过并改为 passing。"
   },
-  {
+  "49": {
     "id": "TALK-002",
     "priority": 50,
     "area": "talk",
@@ -898,7 +898,7 @@
     "evidence": "Codex1 Dev 2026-05-23 14:23: implemented TALK-002 multi-session list and switching. Added GET/POST /api/talk/sessions, POST /api/talk/sessions/[id]/retitle, src/lib/talk/session-service.ts, and generateSessionTitle in src/lib/talk/model-client.ts. Chat sessions now create draft \"新会话\" rows, first-message fallback titles use 30 characters, ACTIVE sessions list by character updatedAt desc with lastMessagePreview, and retitle runs after 4 turns (8 messages) with DeepSeek/fallback title generation. Reworked /talk/[characterId] to max-w-app-shell flex layout with 260px desktop sidebar and right-side mx-auto max-w-3xl chat area; added TalkSidebar with full-width brand-50 new-chat button, brand-50 active row + 2px brand-500 rail, 80vw mobile drawer + 20vw bg-black/30 overlay, empty state, and 150ms title opacity transition. TalkClient now reads ?session=, loads selected history via /api/talk/history, updates the URL when a session is created by sending, dispatches sidebar refresh events, and posts retitle after the fourth round. Verification: baseline npm test -> 204/204 pass; TDD red node --test tests/talk002.test.mjs -> 6/6 fail before implementation; after implementation node --test tests/talk002.test.mjs -> 6/6 pass; node --test tests/talk002.test.mjs tests/talk001.test.mjs tests/vocab009.test.mjs tests/vocab004.test.mjs -> 22/22 pass; npm run lint:encoding -> pass; npm test -> 210/210 pass; npm run build -> pass with existing <img>/Sentry warnings only. Browser smoke on http://127.0.0.1:3001/talk/carlos reached the expected auth redirect when unauthenticated, so logged-in visual smoke remains for Codex2/Claude2. Codex1 Fix 2026-05-24 01:16: closed cross-character session overreach while keeping TALK-002 ready_for_qa. Added characterId scoping to listUserHistory findMany/count, required characterId in /api/talk/history, added characterId to /api/talk/message preflight session ownership check, and added characterId: character.id to streamChatMessage existing-session lookup. TalkClient now requests history with characterId and rejects mismatched item.characterId by clearing session/messages, removing ?session= from the URL, and showing a small status message. Added regression coverage in tests/talk002.test.mjs. Verification: red check node --test tests\\talk002.test.mjs failed 1/7 before fix; after fix node --test tests\\talk002.test.mjs passed 7/7; node --test tests\\talk002.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab004.test.mjs passed 23/23; npm run lint:encoding passed; npm test passed 211/211; npx prisma generate refreshed local Prisma Client after pull; npm run build passed with existing <img>, Sentry, and Redis warnings only. Codex2 QA 2026-05-24 01:24: re-tested Codex1 commit 27c1036 cross-character scope fix and PASS for functional QA; status intentionally remains ready_for_qa pending Claude2 UI acceptance. Source contract verified: src/lib/talk/history-service.ts findMany/count filter by userId + characterId; src/app/api/talk/history/route.ts requires/validates characterId and passes it to listUserHistory; src/app/api/talk/message/route.ts preflight ownership check uses id + userId + characterId; src/lib/talk/chat-service.ts continuation lookup uses id + userId + character.id and preserves SESSION_NOT_FOUND; TalkClient fetches history with characterId and rejects item.characterId mismatches by clearing session/messages, removing ?session=, and showing a status message. Regression test tests/talk002.test.mjs locks cross-character history and continuation boundaries. Verification: node --test tests\\talk002.test.mjs -> 7/7 pass; node --test tests\\talk002.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab004.test.mjs -> 23/23 pass; npm test -> 211/211 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only. || PM 视觉验收 2026-05-25：1440px 截图确认 260px 左侧栏 + 「+ 新对话」brand-50 按钮 + 激活态左侧 brand-500 竖条 + 「Hola.」会话列表呈现正确。",
     "notes": "Ticket: docs/tickets/TALK-002.md。优先级 P1，预估 1.5-2 天。ChatSession schema 已就绪，无 migration 需要。Claude2 设计评审 PASS 2026-05-23 14:55，附 6 条约束：(1) 侧栏 lg:w-[260px] + 整页 flex，对话区改在右半放 mx-auto max-w-3xl，不再让 max-w-3xl 与侧栏争宽度；(2)「+ 新对话」全宽按钮 bg-brand-50/text-brand-700；(3) 激活态用 bg-brand-50+左侧 2px brand-500 竖条，不要整块 brand-500 填充；(4) 移动端从左推入 80vw 抽屉 + 半透明遮罩，不全屏覆盖；(5) 标题刷新 150ms opacity 淡入淡出；(6) 空状态文字+指向「+ 新对话」的小箭头，不用空插画。详见 session-handoff.md。"
   },
-  {
+  "50": {
     "id": "TALK-003",
     "priority": 51,
     "area": "talk",
@@ -920,7 +920,7 @@
     "evidence": "Codex1 实现完整（PM 误推 commit f9686b3 时一并合并，源码事后追认）：prisma migration 20260525142000_add_chat_session_archived_at 加 archivedAt 列；DELETE /api/talk/sessions/[id] 写 status=ARCHIVED + archivedAt=now()；POST /api/talk/sessions/[id]/restore 清空 archivedAt；scripts/cleanup-archived-sessions.mjs deleteMany WHERE status=ARCHIVED AND archivedAt < now()-7d；新 cron route /api/talk/cron/cleanup-archived 验证 Authorization: Bearer CRON_SECRET 后调 cleanupArchivedSessions；vercel.json 配 0 3 * * * cron；tests/talk003.test.mjs 含 6/8 天边界 + archivedAt 列校验。npm test 全套通过（含 talk003）。 Claude2 视觉验收 2026-05-25：8 项中 7 项直接通过，1 项确认对话框正文 copy 偏差（缺「从列表移除」+「归档抽屉」说明）→ Codex1 一行修正 TalkSidebar.tsx:323 → Claude2 二次确认通过。TALK-003 closing。",
     "notes": "Ticket: docs/tickets/TALK-003.md。优先级 P2，预估 1 天。依赖 TALK-002 完成（需要会话列表 UI 才能放归档按钮）。新增 CRON_SECRET env。Claude2 设计评审 PASS 2026-05-23 15:00：(1) 🗑按钮 hover 显示（group-hover:opacity-100），移动端策略待 PM 拍板（建议 < lg 永久显示）；(2) 确认对话框文案扩写为「归档此对话？/ 归档后会从列表移除。7 天内可在「归档」抽屉里恢复，之后将永久删除。」按钮配色用 brand 不用红色 destructive；(3) 归档抽屉灰阶降级 bg-gray-50/text-gray-500，每条带「恢复」小链接。如 v1 跳过抽屉，需在确认文案里删掉「抽屉恢复」一句免误导。详见 session-handoff.md。**PM 澄清 2026-05-25**：7 天倒计时从归档时刻算（archivedAt），不是 updatedAt。必须新增 ChatSession.archivedAt 列，不要复用 updatedAt（updatedAt 被任何 SQL 改动都会重置倒计时）。恢复时清空 archivedAt。"
   },
-  {
+  "51": {
     "id": "TALK-004",
     "priority": 52,
     "area": "talk",
@@ -940,7 +940,7 @@
     "evidence": "",
     "notes": "Ticket: docs/tickets/TALK-004.md。优先级 P3，预估 3-5 天 + 运营成本（DeepSeek 几乎免费 → GPT-4o-audio 几十倍价格）。**PM 2026-05-25 决定：暂缓**——目前用 Whisper STT + DeepSeek 文字过渡（TALK-006 已上线），等用户规模起来再启动原型脚本验证多模态 audio LLM。状态从 blocked 转 backlog 表示这不是 fix 循环、不是临时阻塞，而是有意推迟。DeepSeek 无 audio input 能力，必须换模型。PM 二次澄清 UX 走微信式音频气泡——按住说话、松开发送，气泡里只有🔊+时长不显示转写，AI 接原始 audio 并在回复里给发音反馈。ChatMessage 需 audioUrl 列 migration。"
   },
-  {
+  "52": {
     "id": "TALK-005",
     "priority": 53,
     "area": "talk",
@@ -958,7 +958,7 @@
     "evidence": "2026-05-24 01:46 Codex1: implemented source-aware LookupCard anchor clamp in SpanishText for talk desktop sidebar (minLeft=260+8), viewport edges, and non-talk 8px lower bound. Red test node --test tests\\talk005.test.mjs failed before fix; focused 2/2 pass; regression slice node --test tests\\talk005.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab008.test.mjs tests\\read001.test.mjs 25/25 pass; npm test 213/213 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings. Codex2 QA 2026-05-24 01:50: PASS functional QA for commit c8a86f6; status intentionally remains ready_for_qa pending Claude2 UI acceptance. Source contract verified in src/app/components/vocab/SpanishText.tsx: talk desktop uses minLeft=260+8, right edge clamps to window.innerWidth - 320 - 8, non-talk/mobile lower bound remains 8, and existing LookupCard visual classes in src/app/watch/LookupCard.tsx were not redesigned. tests/talk005.test.mjs covers the talk clamp and non-talk behavior. /lectura regression covered through READ-001 and VOCAB-008 SpanishText tests. Verification: node --test tests\\talk005.test.mjs -> 2/2 pass; node --test tests\\talk005.test.mjs tests\\talk001.test.mjs tests\\vocab009.test.mjs tests\\vocab008.test.mjs tests\\read001.test.mjs -> 25/25 pass; npm test -> 213/213 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only. || PM 视觉验收 2026-05-25：1440px 截图（/talk/carlos 中点击 quedar 弹 LookupCard）确认卡片在 sidebar 右侧正常居中显示，未被裁剪。",
     "notes": "Ticket: docs/tickets/TALK-005.md。优先级 P1，预估 2-4 小时。原因：TALK-002 重构 page.tsx 整页 flex + 260px sidebar 后，LookupCard 的 left 计算只夹了 max（防右溢出）没夹 min（防左溢出 + 避开 sidebar）。PM 截图复现 2026-05-23。Claude2 评审 PASS 2026-05-25 10:38（clamp 算法、320px 卡片宽、阴影/边框、/lectura 不回归均无顾虑）。"
   },
-  {
+  "53": {
     "id": "TALK-006",
     "priority": 54,
     "area": "talk",
@@ -978,7 +978,7 @@
     "evidence": "2026-05-24 01:58 Codex1: /api/talk/recognize now forwards to WHISPER_TUNNEL_URL/transcribe via src/lib/talk/whisper-client.ts with 20s timeout and fail-open provider=unavailable; TalkClient uses MediaRecorder -> recognize as primary path and Web Speech API only as fallback; docs/talk-whisper-tunnel.md and .env.example updated. Red test node --test tests\\talk006.test.mjs failed 3/3 before implementation; focused 3/3 pass; talk regression slice 20/20 pass; npm test 216/216 pass; npm run lint:encoding pass; npm run build pass with existing img/Sentry/Redis warnings. Codex2 re-QA 2026-05-24 02:06: PASS for Codex1 fix commit 8310ee2; build blocker from e89a237 is closed by narrowing recorder cleanup to recorder && recorder.state !== \"inactive\". TALK-006 remains ready_for_qa pending Claude2/UI acceptance. Original source contract re-verified: whisper-client still posts to WHISPER_TUNNEL_URL/transcribe with audio_base64/language/suffix and 20s fail-open unavailable; recognize route still returns transcript/language/provider/segments with auth and empty-audio validation; TalkClient still uses MediaRecorder primary path with Web Speech fallback, recognizing state, and timer; no TALK-004 press-and-hold/audio bubbles found. Verification: node --test tests\\talk006.test.mjs -> 3/3 pass; node --test tests\\talk006.test.mjs tests\\talk001.test.mjs tests\\talk002.test.mjs tests\\vocab009.test.mjs -> 20/20 pass; npm test -> 216/216 pass; npm run build -> pass with existing <img>, Sentry, and local Redis ECONNREFUSED warnings only. Live Whisper tunnel smoke not executed because it requires PM local whisper_service.py/cloudflared/current tunnel URL. Codex1 Dev 2026-05-25 14:03: aligned the fallback UI copy with PM/Claude2 review by replacing both user-visible downgrade messages with 「本机识别不可用，已切换到浏览器识别」, moving unavailableReason details to console.warn, and keeping 「没听到声音，再试一次」 as the no-speech fallback. Added a focused guard in tests/talk006.test.mjs so user-visible status strings do not contain \"Whisper\" or \"missing_env\". Verification: TDD red node --test tests\\talk006.test.mjs -> 2/3 pass 1/3 fail before fix; green node --test tests\\talk006.test.mjs -> 3/3 pass; npm test -> 222/222 pass; npm run build -> pass with existing <img>/Sentry warnings only. || PM 视觉验收 2026-05-25：本机 Whisper 关闭场景下，UI 自动降级到 Web Speech，PM 现场确认行为符合预期。",
     "notes": "Ticket: docs/tickets/TALK-006.md。优先级 P1，预估 0.5-1 天。隧道 URL: https://thoroughly-ashley-pediatric-collaborative.trycloudflare.com（trycloudflare 临时域名，cloudflared 重启会变；PM 个人用 OK，产品化不可行——见 TALK-004 长期方案）。建议 PM 后续给本机 service 加 WHISPER_AUTH_TOKEN，但本票不强求。Claude2 评审 PASS 2026-05-25 10:35（补充 UX 建议：录音脉冲点 + 一次性降级提示文案 + 兜底「没听清，再试一次」，已在 session-handoff 留档）。**PM 真机 smoke 2026-05-25 已通过**：本地 Whisper 服务 + cloudflared 起着的时候录音转写正常；目前 PM 关机所以隧道暂时离线，UI 降级到 Web Speech 兜底——这是设计内行为。Claude2 视觉验收可同时进行，不必等服务重启。"
   },
-  {
+  "54": {
     "id": "PHON-001",
     "priority": 55,
     "area": "phonics",
@@ -1000,7 +1000,7 @@
     "evidence": "Codex1 Dev 2026-05-25 11:01: PHON-001 ready for QA. Implemented /phonics Stage 0 alphabet page with SiteHeader, 27-entry static content/phonics/alphabet.ts, client AlphabetGrid with 3/4/5 responsive columns, 3-line card hierarchy, labeled audio buttons (letter name + example word), getPlaybackRate() playback integration, and Ñ bg-brand-50/text-brand-700 with 「西语独有」 badge. Added scripts/generate-phonics-audio.mjs and npm script audio:phonics; generated 54 mp3 assets under public/audio/phonics/letters and public/audio/phonics/words using es-MX-DaliaNeural. Added 「字母」 as the first SiteNav and MobileNav item. Updated VISION.md Stage 0 to 🟢 部分完成. Verification: baseline npm test -> 216/216 pass; TDD red node --test tests/phon001.test.mjs -> 0/6 pass before implementation; after implementation node --test tests/phon001.test.mjs -> 6/6 pass; node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs -> 18/18 pass; npm run lint:encoding -> pass; npm run build -> pass with existing <img>/Sentry/Redis warnings only; npm test -> 222/222 pass. Browser smoke on http://127.0.0.1:3006/phonics confirmed title/subtitle, nav first link 字母, 27 cards, desktop 5-column grid, and Ñ brand background/badge. Codex1 Dev 2026-05-25 14:03: corrected the three reviewed accent errors in content/phonics/alphabet.ts from dia/jamon/xilofono to día/jamón/xilófono, added focused test coverage for the accented examples, and updated scripts/generate-phonics-audio.mjs so reruns only skip mp3 files whose cached source text still matches. Re-ran node scripts/generate-phonics-audio.mjs to regenerate the affected phonics word audio and verified public/audio/phonics/words/d.mp3, j.mp3, and x.mp3 plus matching .txt text-cache markers. Verification: TDD red node --test tests/phon001.test.mjs -> 5/6 pass 1/6 fail before fix; green node --test tests/phon001.test.mjs -> 6/6 pass; node scripts/generate-phonics-audio.mjs regenerated assets, then a second run skipped cached files; npm test -> 222/222 pass; npm run build -> pass with existing <img>/Sentry warnings only. || PM 视觉验收 2026-05-25：截图确认 lg 5 列字母网格 + 巨字母 serif + 字母名/例词 3 行 + 文字标签按钮（🔊 a / 🔊 amigo）+ Ñ 格 brand-50 背景 + 「西语独有」徽章 + 导航首位「字母」入口。",
     "notes": "Ticket: docs/tickets/PHON-001.md。优先级 P1，预估 1-2 天。从 eslearn (C:\\Users\\wang\\Documents\\New project 2\\eslearn) 移植 phonicsSeed + AlphabetGrid + LetterCard 三个文件，去掉 Supabase 改静态数据。拼读规则页与练习模式留作 PHON-002 / PHON-003。Claude2 评审 NEEDS REVISION 2026-05-25 10:30 + PM 拍板 2026-05-25 10:55：(1) 3 行+按钮区 ✅；(2) 🔊 按钮带文字标签 ✅；(3) lg 改 5 列 ✅；(4) Ñ brand-50 + 「西语独有」小标签 ✅；(5) 未登录提示条 ❌ 推迟到 PHON-002（v1 无进度可记录，提示是卖空）。Hero 副标改「27 个字母 · 听一遍，就开始」。ticket 已落实修订，可交 Codex1。"
   },
-  {
+  "55": {
     "id": "PHON-002",
     "priority": 56,
     "area": "phonics",
@@ -1019,7 +1019,7 @@
     "evidence": "Codex1 Dev 2026-05-25 15:12: implemented PHON-002 phonics foundations module above the alphabet grid. Added content/phonics/foundations.ts with 5 vowels, strong/weak vowel example sets, and 3 diphthong examples; added src/app/phonics/PhonicsIntro.tsx with three vertical sections matching Claude2 review (Vocales buttons, strong vs weak vowel split cards, Diptongo examples with brand-highlighted merged syllables, and a one-line consonant explanation); inserted the module above AlphabetGrid in src/app/phonics/page.tsx with mb-10 border-b border-gray-100 pb-10. Extended scripts/generate-phonics-audio.mjs to read PHONICS_FOUNDATION_AUDIO_WORDS and generated public/audio/phonics/words/bueno.mp3, ciudad.mp3, and aire.mp3 plus .txt text caches. Added tests/phon002.test.mjs and relaxed tests/phon001.test.mjs so the original 27 core word files remain required while allowing PHON-002 expansion. Verification: baseline npm test -> 225/225 pass; TDD red node --test tests/phon002.test.mjs -> 0/3 pass before implementation; green node --test tests/phon001.test.mjs tests/phon002.test.mjs -> 9/9 pass; node scripts/generate-phonics-audio.mjs generated bueno/ciudad/aire assets while skipping unchanged files; npm test -> 228/228 pass; npm run build -> pass with existing <img> and Sentry warnings only; local /phonics HTTP smoke returned 200 after start on port 3007. Codex2 QA 2026-05-25 15:57: PASS for functional QA. Focused tests phon002/003/004 passed 9/9; full npm test passed 237/237; build passed. Source contract checks confirmed foundations data exports, intro module placement above AlphabetGrid, and audio-generation coverage for bueno/ciudad/aire. Because PHON-002 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：全部检查项通过。PHON-002 → passing。",
     "notes": "Ticket: docs/tickets/PHON-002.md。PHON-003 和 PHON-004 的前置知识。预估 0.5 天。Claude2 设计评审 PASS 2026-05-25：新增 PhonicsIntro，置于 AlphabetGrid 上方，三段式纵向布局；Vocales 用 rounded-full brand-50 按钮；强/弱元音分两组并排；Diptongo 用 text-brand-600 font-semibold 高亮合并音节；缺失词 bueno / ciudad / aire 补入 generate-phonics-audio.mjs。当前状态 ready_for_qa，下一站 Codex2 功能 QA。"
   },
-  {
+  "56": {
     "id": "PHON-003",
     "priority": 57,
     "area": "phonics",
@@ -1039,7 +1039,7 @@
     "evidence": "Codex1 Dev 2026-05-25 16:02: implemented PHON-003 pronunciation-rule teaching layer on top of the Stage 0 alphabet grid. Extended content/phonics/alphabet.ts with PronunciationRule / PronunciationRuleWord types plus rules data for the 12 variable letters B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z, including condition labels, syllable lists, and audio-backed example words. Reworked src/app/phonics/AlphabetGrid.tsx from a static card grid into a modal rule viewer: letters with rules now show a small brand dot and a 查看发音 trigger, then open a mobile bottom sheet / desktop centered modal with per-rule chips, syllable audio buttons, and word rows. Extended scripts/generate-phonics-audio.mjs to derive pronunciation syllables and rule words from SPANISH_ALPHABET, then generated the new assets under public/audio/phonics/syllables plus the expanded rule-word inventory in public/audio/phonics/words. Updated tests/phon001.test.mjs to assert the shared AudioButton contract instead of the previous inline literal, and added tests/phon003.test.mjs to lock the rule-data, modal-UI, and audio-generation contracts. Verification: TDD red node --test tests/phon003.test.mjs -> 1/3 pass, 2/3 fail before implementation; node scripts/generate-phonics-audio.mjs generated the new syllable set and rule-word assets including ce.mp3, gue.mp3, rr.mp3, uva.mp3, quiero.mp3, and y-conjunction.mp3; focused node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs -> 12/12 pass; npm test -> 231/231 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:57: PASS for functional QA. Focused tests phon002/003/004 passed 9/9; full npm test passed 237/237; build passed. Source contract checks confirmed reviewed modal interaction, 12 rule-backed variable letters, and 84 generated syllable mp3 assets plus rule-word inventory. Because PHON-003 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：全部检查项通过。PHON-003 → passing。",
     "notes": "Ticket: docs/tickets/PHON-003.md。依赖 PHON-002。预估 1.5 天。Claude2 设计评审 PASS 2026-05-25：放弃 inline collapse，改为有规则字母右上角 brand dot + 查看发音按钮；桌面端居中 modal、移动端底部 sheet；规则项内含条件标签、发音说明、音节按钮和例词列表。当前状态 ready_for_qa，下一站 Codex2 功能 QA。"
   },
-  {
+  "57": {
     "id": "PHON-004",
     "priority": 58,
     "area": "phonics",
@@ -1058,7 +1058,7 @@
     "evidence": "Codex1 Dev 2026-05-25 16:28: implemented the bottom-of-page prosody module for PHON-004. Added content/phonics/prosody.ts with three stress rules (each with two clickable examples and explicit stressed-syllable indices) plus three sinalefa sentences with pronunciation strings and highlighted merge spans. Added src/app/phonics/PhonicsProsody.tsx and mounted it below AlphabetGrid in src/app/phonics/page.tsx using the reviewed mt-12 pt-10 border-t border-gray-100 section split. The UI renders stacked Acentuación and Sinalefa blocks, bold brand-colored stressed syllables, border-b-2 brand underline treatment for merged vowels, and shared playback-rate-aware audio buttons for every word and sentence. Extended scripts/generate-phonics-audio.mjs to load prosody data and generate the new assets under public/audio/phonics/stress and public/audio/phonics/sinalefa. Added tests/phon004.test.mjs to lock the bottom module, highlight treatment, and audio-generation contract. Verification: TDD red node --test tests/phon004.test.mjs -> 0/3 pass before implementation; node scripts/generate-phonics-audio.mjs generated stress audio for casa/comen/ciudad/trabajar/cafe/musica and sinalefa audio for mi-amigo/la-escuela/todo-el-dia; focused node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs -> 15/15 pass; npm test -> 234/234 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:57: PASS for functional QA. Focused tests phon002/003/004 passed 9/9; full npm test passed 237/237; build passed. Source contract checks confirmed bottom-of-page prosody placement, stress highlight and sinalefa underline treatments, plus 6 stress mp3 and 3 sinalefa mp3 assets. Because PHON-004 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：全部检查项通过。PHON-004 → passing。",
     "notes": "Ticket: docs/tickets/PHON-004.md。依赖 PHON-002（强/弱元音概念）。Claude2 设计评审 PASS 2026-05-25：模块放在页面底部，重音用小写音节 `font-bold text-brand-600`，Sinalefa 合并位用 `border-b-2 border-brand-400`，两块上下堆叠不做 tab。当前状态 ready_for_qa，下一站 Codex2 功能 QA。"
   },
-  {
+  "58": {
     "id": "COURSE-006",
     "priority": 59,
     "area": "course",
@@ -1080,7 +1080,7 @@
     "evidence": "Codex1 Dev 2026-05-25 15:44: implemented COURSE-006 on /dissect with a new shared src/app/dissect/analysis.ts model, a POST /api/dissect/analyze route, and a DissectorClient async gloss panel. The existing skeleton-word highlight path stays immediate; clicking 拆解 now also posts the sentence to /api/dissect/analyze, shows 分析中… during the request, renders a separate 逐词对照 card with horizontal token alignment, inserts omitted subjects in brand styling, and shows a natural-English footer. The route reuses DeepSeek config when available and falls back to local gloss assembly via function-word + dictionary lookups so the feature degrades without crashing. Verification: TDD red node --test tests/course006.test.mjs -> 0/3 pass before implementation; green node --test tests/course006.test.mjs -> 3/3 pass; focused node --test tests/course005.test.mjs tests/course006.test.mjs -> 15/15 pass; npm test -> 237/237 pass; npm run build -> pass with existing <img> and Sentry warnings only. Codex2 QA 2026-05-25 15:44: PASS for functional QA. Source contract checks confirmed route JSON fields sentence/tokens/impliedSubject/naturalEnglish/insertBeforeIndex plus 400 validation, client async fetch('/api/dissect/analyze'), loading/error states, and aligned token-column classes. Because COURSE-006 is a UI ticket, status stays ready_for_qa pending Claude2 UI acceptance. Claude2 视觉验收 2026-05-25：10 项全部通过。结构微调（border-t + 内层 bg-gray-50/70 代替独立卡片）经评估视觉效果更优，保留。COURSE-006 passing。Codex1 Dev 2026-05-25 23:16: COURSE-006-FIX expanded implied-subject handling beyond simple pro-drop. Added ImpliedSubjectType plus inversionNote?: \"gustar\", extended fallback heuristics for impersonal weather, impersonal es/parece/resulta clauses, existential hay, and se impersonal, and taught the DeepSeek prompt plus normalizer to emit type and inversionNote. Updated /dissect UI to show the gray gustar helper line under the natural English translation. Verification: red node --test tests/course006.test.mjs -> 2/4 fail before implementation; green node --test tests/course006.test.mjs -> 4/4 pass; focused node --test tests/course005.test.mjs tests/course006.test.mjs -> 16/16 pass; npm test -> 238/238 pass; npm run build -> pass with existing <img> and Sentry warnings only. Next stop: Codex2 QA, then Claude2 focused UI acceptance. Codex2 QA 2026-05-25 23:25: PASS for functional QA. Focused node --test tests/course006.test.mjs passed 4/4; course regression slice node --test tests/course005.test.mjs tests/course006.test.mjs passed 16/16; npm test passed 238/238; npm run build passed with existing <img> and Sentry warnings only. Because COURSE-006 is a UI ticket, status remains ready_for_qa pending Claude2 focused UI acceptance. COURSE-006-FIX Claude2 视觉验收 2026-05-25：六类省略/倒置场景全部实现，gustar ⓘ 提示行样式正确，11 项全部通过。passing。",
     "notes": "Ticket: docs/tickets/COURSE-006.md。渐进加载：客户端骨架词即时 + AI 异步。新 API POST /api/dissect/analyze 调 DeepSeek，返回 tokens + impliedSubject + naturalEnglish。Claude2 设计评审 PASS 2026-05-25；当前状态 ready_for_qa，下一站 Claude2 UI 验收。"
   },
-  {
+  "59": {
     "id": "VOCAB-010",
     "priority": 60,
     "area": "vocab",
@@ -1099,7 +1099,7 @@
     "evidence": "Codex1 Dev 2026-05-26 00:27: implemented VOCAB-010 saved-word state across LookupCard entry points. Updated src/app/api/vocab/lookup/route.ts to derive session userId and return isSaved: boolean by checking getWordWithEncounters(userId, entry.lemma); updated src/app/watch/LookupCard.tsx to extend LookupResponse with isSaved, add already_saved to ButtonState, switch ready-state handling to setButtonState(\"already_saved\") for saved lemmas, render the reviewed amber disabled style bg-amber-50 text-amber-600 cursor-default, and disable the button for already_saved alongside loading/success. Added tests/vocab010.test.mjs. Verification: red node --test tests/vocab010.test.mjs failed 2/2 before implementation; green node --test tests/vocab010.test.mjs passed 2/2; regression slice node --test tests/vocab010.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs tests/course006.test.mjs tests/talk005.test.mjs passed 23/23; npm run build passed with existing <img> and Sentry warnings only. Codex2 QA 2026-05-26 00:27: PASS. Re-ran node --test tests/vocab010.test.mjs tests/vocab004.test.mjs tests/web005.test.mjs tests/read001.test.mjs tests/course006.test.mjs tests/talk005.test.mjs -> 23/23 pass; npm test -> 240/240 pass after fixing CRLF-only encoding noise in src/app/watch/LookupCard.tsx and tests/vocab010.test.mjs; npm run build had already passed on the implementation tree. Because VOCAB-010 does not require Claude2 review, status moved directly to passing.",
     "notes": "Ticket: docs/tickets/VOCAB-010.md。预估 0.5 天。无需 Claude2 评审（按钮颜色规格已在票里写明）。"
   },
-  {
+  "60": {
     "id": "VOCAB-011",
     "priority": 61,
     "area": "vocab",
@@ -1118,7 +1118,7 @@
     "evidence": "Claude2 UI 验收 2026-05-26: PASS。3 个数字卡片 grid-cols-3 text-2xl 正确；分布条 bg-brand-100/bg-brand-500 h-1.5 正确；来源分隔符修复为 · (从编码损坏的「路」字修正)；测试 249/249 通过。",
     "notes": "Ticket: docs/tickets/VOCAB-011.md。预估 1 天。需要 Claude2 UI 评审。"
   },
-  {
+  "61": {
     "id": "READ-001",
     "priority": 62,
     "area": "lectura",
@@ -1139,7 +1139,7 @@
     "evidence": "Claude2 UI 验收 2026-05-26: PASS。列表页 border-emerald-100 + ✓ 在时长后正确；进度行 已读 X / N 篇 仅登录显示；LecturaReadStatus 已读态 bg-emerald-50 text-emerald-600 cursor-default 正确；手动按钮「标记为已读」→「已读 ✓」状态切换正确；90% scroll POST 逻辑存在；测试 249/249 通过。",
     "notes": "Ticket: docs/tickets/READ-001.md。预估 1 天。需要 Claude2 UI 评审。"
   },
-  {
+  "62": {
     "id": "HOME-001",
     "priority": 63,
     "area": "web",
@@ -1157,5 +1157,44 @@
     ],
     "evidence": "Claude2 UI 验收 2026-05-26: PASS。HomeHero isLoggedIn prop 正确，已登录文案「欢迎回来，继续你的西语之旅」；主 CTA rounded-full bg-brand-600 → /phonics，次 CTA → #tools；5 Step 卡片 flex lg:flex-row + hidden lg:block → 分隔符；工具区 id=tools grid-cols-2；YouTube 频道区保留；footer · 分隔符编码修复；测试 249/249 通过。",
     "notes": "Ticket: docs/tickets/HOME-001.md。预估 1.5 天。需要 Claude2 UI 评审。执行顺序最后，依赖 VOCAB-010/011 和 READ-001 完成后进度数据才准确。"
+  },
+  "63": {
+    "id": "VOCAB-012-BE",
+    "priority": 64,
+    "area": "api",
+    "title": "查询已收藏词时记录 encounter（后端）",
+    "user_visible_behavior": "当用户在任意页面打开已收藏词的 LookupCard，后端记录一次新的 WordEncounter，使得「遇到 N 次」的统计能真实反映用户对该词的不熟悉次数。",
+    "status": "ready_for_qa",
+    "verification": [
+      "新建 POST /api/vocab/encounter 端点",
+      "未登录调用 → 401",
+      "调用别人的 wordId → 404（防越权）",
+      "正常调用 → encounter +1，返回 { ok, encounterId, totalEncounters }",
+      "复用 addLimiter 限流，触发 → 429",
+      "入参校验：wordId / sourceType / sourceUrl / originalSentence 必填",
+      "新增 tests/vocab012-be.test.mjs 覆盖以上场景",
+      "npm test 全部通过"
+    ],
+    "evidence": "Codex1 Dev 2026-05-27: implemented VOCAB-012-BE. Added POST /api/vocab/encounter with session auth, addLimiter rate limiting, required wordId/sourceType/sourceUrl/originalSentence validation, sourceType allowlist, ownership check via prisma.word.findFirst({ id: wordId, userId: session.user.id }), 404 for cross-user/missing words, WordEncounter creation, and { ok, encounterId, totalEncounters } response. Added tests/vocab012-be.test.mjs. Verification: red node --test tests/vocab012-be.test.mjs failed 3/3 before route existed; green node --test tests/vocab012-be.test.mjs passed 3/3; npm test passed 256/256; npm run build passed and listed /api/vocab/encounter.",
+    "notes": "PM 派单 2026-05-27。前置：无。后续 VOCAB-012-FE 依赖此 API。Codex1 实现，Codex2 跑单测，无 UI 不需要 Claude2 验收。"
+  },
+  "64": {
+    "id": "VOCAB-012-FE",
+    "priority": 65,
+    "area": "ui",
+    "title": "查询已收藏词时记录 encounter（前端）",
+    "user_visible_behavior": "用户在阅读/视频/拆解/语法/对话等任意页面点开已收藏词的 LookupCard 时，系统静默调用 /api/vocab/encounter +1，并在已收藏徽章旁显示「第 N 次遇到 · 已记录」。",
+    "status": "blocked",
+    "verification": [
+      "LookupCard 显示已收藏状态时自动 POST /api/vocab/encounter",
+      "同一 wordId 5 秒内不重复触发（debounce）",
+      "徽章旁显示「第 N 次遇到 · 已记录」灰色小字，N 来自 API 返回",
+      "API 调用失败时静默 console.warn，不阻塞 UI",
+      "加载态：N 显示前不要先闪「第 1 次」",
+      "覆盖入口：/lectura/[slug], /watch, /dissect, /grammar/[slug], /talk",
+      "Claude2 视觉验收：文案不抢戏"
+    ],
+    "evidence": "",
+    "notes": "PM 派单 2026-05-27。Blocked by VOCAB-012-BE。Gemini1（UI 总监）出设计/实现，Codex2 端到端验收，Claude2 视觉验收。"
   }
-]
+}
