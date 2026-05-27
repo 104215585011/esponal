@@ -1,3 +1,23 @@
+## Dev/QA Report: UI-SCROLLBAR-STYLE 滚动条样式美化
+**时间**：2026-05-27 14:20
+**测试/开发**：Codex1 & Codex2
+**状态**：已美化系统滚动条，替换原生 chunky 滚动条为 6px Translucent 极简呼吸条。
+
+**问题**
+- 单词卡片（如字母详情弹窗）以及系统内其他滚动容器默认显示 Windows 原生滚动条，既宽又粗，与精致的 Glassmorphism UI 极其不搭。
+
+**改动**
+- `src/app/globals.css`：
+  - 添加了 Webkit 滚动条定制，将滚动条宽度限制为 `6px`，轨道设为透明，滑块（thumb）为带半透明圆角胶囊状，并增加了 hover 交互高亮状态。
+  - 添加了暗黑模式下的滑块透明度适配，使用 `rgba(161, 161, 170, 0.25)`（zinc-400）确保暗色背景下也能清晰看到指示。
+  - 为 Firefox 添加了 `scrollbar-width: thin` 及半透明的滑块配置。
+
+**验证**
+1. 自动化回归测试：`npm test` 253/253 全部通过。
+2. 生产构建：`npm run build` 成功。
+
+---
+
 ## Dev/QA Report: HOME-NAVIGATION 视频栏目迁移至独立视频页
 **时间**：2026-05-27 13:30
 **测试/开发**：Codex1 & Codex2

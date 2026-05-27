@@ -1,3 +1,17 @@
+### Session #UI-SCROLLBAR-STYLE - 2026-05-27 14:20
+
+**Goal**: Customize and beautify default scrollbars across scrollable containers (like word detail popups) to match the premium UI style.
+
+**Completed**:
+- Modified `src/app/globals.css` to add custom 6px Webkit scrollbars with rounded, semi-translucent hover-active thumbs (light and dark mode specific).
+- Configured Firefox thin scrollbars with match colors.
+
+**Verification**:
+- `npm test`: 253/253 passed successfully.
+- `npm run build`: built successfully.
+
+---
+
 ### Session #HOME-NAVIGATION-VIDEOS-MIGRATION - 2026-05-27 13:30
 
 **Goal**: Migrate video channels from the homepage to a dedicated videos page under `/watch`.
