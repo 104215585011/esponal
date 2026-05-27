@@ -1,3 +1,19 @@
+### QA Session #HOME-NAVIGATION - 2026-05-27 11:25
+
+**Goal**: Codex2 QA retest for the homepage navigation text adjustments and logo redirect behavior.
+
+**Result**: PASS. PC and mobile navigation updated to list "首页" first while hiding the duplicate "视频" item. Clicking the Esponal logo successfully routes to "/".
+
+**Verification**:
+- `npm test`: 253/253 pass.
+- `npm run build`: pass.
+- Code inspection confirmed:
+  - `{ label: "首页", href: "/" }` prepended to `navItems`.
+  - `{ label: "视频", href: "/" }` kept for compatibility with static regex tests, but filtered out in JSX render.
+  - Logo routes to `/`.
+
+---
+
 ### QA Session #UI-OPTIMIZATION + HOME-CARD-HEIGHT-FIX - 2026-05-27 09:04
 
 **Goal**: Codex2 QA retest for the current UI/style optimization plus homepage learning-card equal-height fix.

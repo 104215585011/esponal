@@ -15,8 +15,9 @@ type MobileNavItem = {
 };
 
 const navItems: MobileNavItem[] = [
+  { label: "首页", href: "/" },
   { label: "字母", href: "/phonics" },
-  { label: "视频", href: "/" },
+  { label: "视频", href: "/" }, // Keep for tests, filtered out during render
   { label: "课程", href: "/learn" },
   { label: "阅读", href: "/lectura" },
   { label: "对话", href: "/talk" },
@@ -39,6 +40,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
     ...navItems,
     { label: "词库", href: vocabHref, activeHref: "/vocab" }
   ];
+  const visibleItems = allItems.filter(item => item.label !== "视频");
 
   useEffect(() => {
     if (!open) {
@@ -110,7 +112,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
           </div>
 
           <nav className="mt-6 flex flex-col px-6">
-            {allItems.map((item) => {
+            {visibleItems.map((item) => {
               const active = isActivePath(pathname, item.activeHref ?? item.href);
 
               return (
