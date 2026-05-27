@@ -69,9 +69,9 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
           >
             {story.level}
           </span>
-          <span>路</span>
+          <span>·</span>
           <span>{story.durationMin} min</span>
-          <span>路</span>
+          <span>·</span>
           <span className="text-[12px] text-gray-400">{story.source}</span>
         </div>
 
@@ -80,7 +80,7 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
         </div>
 
         <footer className="mt-16 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
-          <p>约 {story.durationMin} 分钟 路 点任意单词查义</p>
+          <p>约 {story.durationMin} 分钟 · 点任意单词查义</p>
           {!userId ? <p className="mt-2">登录后可保存阅读记录</p> : null}
         </footer>
       </article>
