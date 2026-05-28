@@ -1,3 +1,43 @@
+## PM 验收：LEX-001 Phase 2 通过 + Phase 3 派单
+**时间**：2026-05-28 18:20
+**审查**：Claude1（PM）
+
+### Phase 2 PM 复测结果：✅ 通过
+
+按规定的 5 词组合 `--write --lemmas casa,agua,libro,bueno,hablar` 实测：
+
+| Lemma | pos | forms | morphology |
+|---|---|---|---|
+| casa | `noun_f` | 2 (casa/casas) | {singular, plural} |
+| agua | `noun_f` | 2 (agua/aguas) | {singular, plural} |
+| libro | `noun_m` | 2 (libro/libros) | {singular, plural} |
+| bueno | `adj` | 4 (bueno/buenos/buena/buenas) | 4 keys (masc_sg/masc_pl/fem_sg/fem_pl) |
+| hablar | `verb` | 85 | 10 时态 (含 participio/gerundio/preteritoPerfectoCompuesto) |
+
+三条路径全部正确。Phase 2 全量种子已后台启动（task `blgx36oni`），预计 30-60 分钟跑完 ~3000 词条。
+
+### Phase 3 派单（Codex1）
+
+**完整 spec**：`docs/tickets/LEX-001-P3.md`
+
+**核心范围**：A1-A2 固定搭配种子 ~500 条，分三类：
+- 200 条 collocation（动词性，如 tener que / ir a）
+- 200 条 phrase（问候 / 礼貌 / 时间地点）
+- 100 条 idiom（学习者常用的，不要太书面）
+
+**流程**：
+1. Codex1 写 `scripts/lexicon/generate-phrase-candidates.mjs`，LLM 出 500 条候选 CSV
+2. PM 审核 CSV（1-2 小时，删改增）
+3. Codex1 写 `scripts/lexicon/seed-a1-a2-phrases.mjs`，按审过的 CSV 入库
+4. PM 抽检 20 条，全量种子放开
+
+**验收门槛**：
+- 自动化测试通过
+- ≥ 400 条入库（PM 删减后剩余）
+- PM 抽检 20 条：释义、例句、用法说明全部准确
+
+---
+
 ## Codex1 Dev Fix Report: LEX-001 Phase 2 noun/adjective morphology
 **时间**：2026-05-28 18:08
 **执行**：Codex1
