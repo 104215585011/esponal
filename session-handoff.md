@@ -1,3 +1,115 @@
+## PM 派单：LEX-001 Phase 2 — Tatoeba 摄取 + 动词形态扩展 + A1-A2 单词种子
+**时间**：2026-05-28 16:10
+**下发**：Claude1（PM）
+**执行**：Codex1（实现）→ Codex2（测试）→ Claude1（验收）
+**前置**：Phase 1 已完成（commit `397c2be`，260/260 测试通过，PM 认可）
+**完整 spec**：`docs/tickets/LEX-001.md`「Phase 2：Tatoeba 数据导入脚本」节 + 「形态覆盖要求」节
+
+---
+
+### 本次范围（Phase 2 全量）
+
+#### 2.1 扩展 `src/lib/conjugate.ts`（前置基建）
+
+加三个新形态到 `tryConjugateVerb`：
+- `participio`（过去分词，如 `hablado` / `comido` / `vivido`）
+- `gerundio`（现在分词，如 `hablando` / `comiendo` / `viviendo`）
+- `preteritoPerfectoCompuesto`（haber 现在时 + participio：`he hablado` / `has hablado` / ...）
+
+同时给 `VerbConjugations` 类型加这三个字段。
+
+单元测试覆盖 5 个典型动词：
+- `hablar`（规则一类）
+- `comer`（规则二类）
+- `vivir`（规则三类）
+- `ser`（不规则）
+- `tener`（不规则）
+
+#### 2.2 Tatoeba 下载脚本 `scripts/lexicon/download-tatoeba.mjs`
+
+- 从 https://tatoeba.org/en/downloads 拉取 `sentences.csv.bz2` 和 `links.csv.bz2`
+- 解压到 `data/tatoeba/`
+- 输出文件大小、行数、最小完整性校验
+- 支持 `--skip-if-exists` 避免重复下载
+- `.gitignore` 添加 `data/tatoeba/` 排除规则
+- ⚠️ PM 本机预留 5GB 磁盘
+
+#### 2.3 Tatoeba 解析脚本 `scripts/lexicon/parse-tatoeba.mjs`
+
+输入：`data/tatoeba/sentences.csv` + `data/tatoeba/links.csv`
+输出：`data/tatoeba-es-zh.jsonl`，每行：
+```json
+{ "es": "Hablo español.", "zh": "我说西语。", "esId": 12345, "zhId": 67890 }
+```
+
+- 流式读 CSV（避免全量加载到内存）
+- 每 10 万行打一次进度
+- 预期产出 ≥ 5 万条 ES-ZH 配对
+
+#### 2.4 单词种子脚本 `scripts/lexicon/seed-a1-a2-words.mjs`
+
+**输入 lemma 候选来源**（按优先级合并去重）：
+- a) `src/content/foundation.ts` 7 天课程的 seedWords（PM 已校对，最可信）
+- b) `src/content/**/*.json` 课程数据里的词条
+- c) 可选：PM 后续补 CSV（本 ticket 不强制）
+
+**每条 lemma 的处理流程**：
+1. **词性 + 释义**：DeepSeek V3 返回结构化 JSON
+   ```json
+   {
+     "partOfSpeech": "noun_m|noun_f|noun_mf|verb|adj|adv|prep|conj|interjection",
+     "level": "A1|A2|B1|...",
+     "translationZh": "...",
+     "translationEn": "...",
+     "explanationZh": "用法说明（含语法点）",
+     "ipa": "..."
+   }
+   ```
+2. **形态生成**：
+   - 动词 → 调扩展后的 `tryConjugateVerb`，展平所有时态人称进 `forms` 数组，结构化表写入 `morphology` JSON
+   - 名词 → DeepSeek 返回 `{ gender, plural }`，`forms: [singular, plural]`
+   - 形容词 → DeepSeek 返回 4 形态，`forms: [masc_sg, masc_pl, fem_sg, fem_pl]`
+3. **例句**：在 `data/tatoeba-es-zh.jsonl` 搜含该 lemma 或其 forms 的 ES-ZH 对，取 1-3 条
+4. **入库**：`LexiconEntry`，`sources: ["tatoeba", "llm-deepseek"]`，`licenseCode: "CC-BY-2.0-FR"`
+
+**控制参数**：
+- `--limit N` — 先跑 N 条，便于抽检
+- `--resume` — 断点续传，用 `data/lexicon-progress.json` 持久化
+- `--concurrency 3` — DeepSeek 并发上限
+- `--dry-run` — 只打印不写库
+
+LLM client 复用 `src/lib/talk/model-client.ts` 或新建 `src/lib/lexicon/llm-client.ts`，使用现有 `DEEPSEEK_API_KEY` / `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL`。
+
+---
+
+### 验收标准
+
+#### 自动化（Codex2）
+- [ ] `npm test` 通过
+- [ ] 新增 `tests/lex001-conjugate.test.mjs`：5 个典型动词的 participio / gerundio / preteritoPerfectoCompuesto 输出正确
+- [ ] `npm run build` 无错误
+
+#### 工具脚本（PM 本机跑）
+- [ ] `scripts/lexicon/download-tatoeba.mjs` 跑通
+- [ ] `scripts/lexicon/parse-tatoeba.mjs` 产出 ≥ 50000 行 jsonl
+- [ ] `scripts/lexicon/seed-a1-a2-words.mjs --limit 100` 成功写入 100 条
+- [ ] 脚本可中途 Ctrl+C 再 `--resume` 继续
+
+#### PM 抽样验收（Claude1）
+- [ ] 10 条 LexiconEntry：translationZh 准确率 ≥ 90%
+- [ ] 5 条动词：morphology JSON 含所有时态，forms 数组含变位（含新加的完成时）
+- [ ] 5 个变位形态（如 `hablaba` / `comimos` / `he hablado`）可通过 forms 反查命中对应 lemma
+- [ ] 3 条名词：gender + plural 正确
+- [ ] 3 条形容词：4 形态自洽
+
+---
+
+### 下一步预告
+
+Phase 2 关闭后进入 **Phase 3**（500 条 A1-A2 固定搭配种子）。PM 需要审一份 CSV，Codex1 先用 DeepSeek 生成第一稿候选。
+
+---
+
 ## QA Report: LEX-001 Phase 1 schema + lib
 **Time**: 2026-05-28 15:56
 **Tester**: Codex2
