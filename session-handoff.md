@@ -1,3 +1,37 @@
+## Codex1 Dev Report: LEX-001 Phase 1 schema + lib
+**Time**: 2026-05-28 15:50
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 focused QA. `LEX-001` is now `ready_for_qa` for Phase 1 only.
+
+**Implemented**:
+- Prisma `LexiconEntry` model with `LexiconKind` (`word`, `phrase`, `collocation`, `idiom`) and `CefrLevel` (`A1`-`C2`) enums.
+- Migration `prisma/migrations/20260528112500_add_lexicon_entry/migration.sql` creating the enum types, table, `(kind, lemma)` unique index, and level/frequency/lookupCount indexes.
+- `src/lib/lexicon.ts` exposing:
+  - `getLexiconEntry(lemma, kind?)`
+  - `upsertLexiconEntry(input)`
+  - `incrementLookupCount(id)`
+- `tests/lex001.test.mjs` locking the schema, migration, and helper contract.
+
+**Verification**:
+- TDD red: `node --test tests/lex001.test.mjs` failed 3/3 before implementation.
+- Focused green: `node --test tests/lex001.test.mjs` passed 3/3.
+- `npx prisma validate`: pass.
+- `npx prisma generate`: pass after stopping stale local Node servers that held the Prisma query engine DLL.
+- `npm test`: 260/260 pass.
+- `npm run build`: pass; existing `<img>` lint warnings and Sentry instrumentation notices only.
+
+**Codex2 QA checklist**:
+1. Run `node --test tests/lex001.test.mjs`.
+2. Run `npx prisma validate`.
+3. Run `npm test`.
+4. Run `npm run build`.
+5. Source-check `prisma/schema.prisma`, the new migration, and `src/lib/lexicon.ts` against the Phase 1 ticket contract.
+
+**Next**: If QA passes, leave `LEX-001` at Phase 1 accepted / ready for PM decision before Phase 2 scripts.
+
+---
+
 ## Dev Report: User Avatar Enhancement & Mink Design Integration
 **Time**: 2026-05-28 14:15
 **Developer/Designer**: Antigravity (Gemini/Codex)

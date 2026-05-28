@@ -119,6 +119,52 @@ model LecturaRead {
   @@map("lectura_reads")
 }
 
+enum LexiconKind {
+  word
+  phrase
+  collocation
+  idiom
+}
+
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+model LexiconEntry {
+  id            String      @id @default(cuid())
+  kind          LexiconKind
+  lemma         String
+  displayForm   String
+  forms         String[]    @default([])
+  partOfSpeech  String?
+  level         CefrLevel?
+  frequency     Int?
+  ipa           String?
+  audioUrl      String?
+  translationZh String?
+  translationEn String?
+  explanationZh String?
+  examples      Json?
+  morphology    Json?
+  collocations  String[]    @default([])
+  sources       String[]    @default([])
+  licenseCode   String
+  qualityScore  Int         @default(0)
+  lookupCount   Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([kind, lemma])
+  @@index([level])
+  @@index([frequency])
+  @@index([lookupCount])
+}
+
 // === Talk 集成（口语训练）===
 // Character: 5 个 AI 对话角色（Emma 英、Jake 美、Sophie 法、Kenji 日、Carlos 西）
 // ChatSession: 用户 × 角色的一次对话会话（避开 NextAuth 的 Session）

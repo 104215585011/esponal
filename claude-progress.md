@@ -1,3 +1,25 @@
+### Session #LEX-001-PHASE-1 - 2026-05-28 15:50
+
+**Goal**: Implement LEX-001 Phase 1 schema + library foundation for the local lexicon cache.
+
+**Completed**:
+- Added `LexiconEntry`, `LexiconKind`, and `CefrLevel` to Prisma schema with lookup indexes and a `(kind, lemma)` unique key.
+- Added migration `20260528112500_add_lexicon_entry`.
+- Added `src/lib/lexicon.ts` with `getLexiconEntry`, `upsertLexiconEntry`, and `incrementLookupCount`.
+- Added `tests/lex001.test.mjs` to lock the Phase 1 schema/migration/helper contract.
+
+**Verification**:
+- Red check: `node --test tests/lex001.test.mjs` failed 3/3 before implementation.
+- Focused check: `node --test tests/lex001.test.mjs` passed 3/3 after implementation.
+- `npx prisma validate`: pass.
+- `npx prisma generate`: pass after stopping stale local Node servers that held the Prisma query engine DLL.
+- `npm test`: 260/260 pass.
+- `npm run build`: pass; existing `<img>` lint warnings and Sentry instrumentation notices only.
+
+**Status**: `LEX-001` is `ready_for_qa` for Phase 1. Next station: Codex2 focused QA on schema, migration, lib contract, tests, and build.
+
+---
+
 ### Session #AVATAR-MINK-ENHANCEMENT - 2026-05-28 14:15
 
 **Goal**: Upgrade the user profile avatar in the site header with a custom European mink design and re-integrate/style Google login images properly to fit the menu bar.
