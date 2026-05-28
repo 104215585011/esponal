@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { LookupCard, type LookupSource } from "@/app/watch/LookupCard";
+import { useEffect, useMemo, useState } from "react";
+import { LookupCardStack, type LookupSource } from "@/app/watch/LookupCard";
+import {
+  PHRASE_HIGHLIGHT_CLASSES,
+  buildPhraseSegments,
+  usePhraseSpans,
+  type PhraseSpan,
+  type TextToken
+} from "@/app/components/vocab/PhraseText";
 
 type SpanishTextProps = {
   text: string;
@@ -11,12 +18,20 @@ type SpanishTextProps = {
   wordClassName?: string;
   interactionDensity?: "inline" | "dense" | "readOnly";
   enableKeyboard?: boolean;
+  enablePhrases?: boolean;
 };
 
-type ActiveWord = {
+type ActiveLookupCard = {
+  id: string;
   form: string;
-  index: number;
+  lookupKind: "word" | "phrase";
+  phraseKind?: PhraseSpan["kind"];
+};
+
+type ActiveLookupStack = {
+  index: string;
   anchorX: number;
+  cards: ActiveLookupCard[];
 };
 
 const wordPattern = /([\p{L}áéíóúüñÁÉÍÓÚÜÑ]+)/gu;
@@ -27,8 +42,8 @@ let savedFormsPromise: Promise<Set<string>> | null = null;
 
 // TODO: Replace opt-in per-word tab stops with roving tabindex when long-form keyboard lookup is needed.
 
-function splitText(text: string) {
-  const parts: { text: string; isWord: boolean }[] = [];
+function splitText(text: string): TextToken[] {
+  const parts: TextToken[] = [];
   let lastIndex = 0;
 
   for (const match of text.matchAll(wordPattern)) {
@@ -121,13 +136,20 @@ export function SpanishText({
   className,
   wordClassName,
   interactionDensity = "inline",
-  enableKeyboard = false
+  enableKeyboard = false,
+  enablePhrases = false
 }: SpanishTextProps) {
-  const [activeWord, setActiveWord] = useState<ActiveWord | null>(null);
+  const [activeLookup, setActiveLookup] = useState<ActiveLookupStack | null>(null);
+  const setActiveWord = setActiveLookup;
   const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
   const [savedVersion, setSavedVersion] = useState(0);
-  const parts = splitText(text);
+  const parts = useMemo(() => splitText(text), [text]);
   const isReadOnly = interactionDensity === "readOnly";
+  const phraseSpans = usePhraseSpans(text, enablePhrases && !isReadOnly);
+  const phraseSegments = useMemo(
+    () => buildPhraseSegments(parts, phraseSpans),
+    [parts, phraseSpans]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -146,6 +168,135 @@ export function SpanishText({
     setSavedVersion((version) => version + 1);
   };
 
+  const openLookup = ({
+    anchorX,
+    form,
+    index,
+    lookupKind = "word",
+    phraseKind
+  }: {
+    anchorX: number;
+    form: string;
+    index: string;
+    lookupKind?: "word" | "phrase";
+    phraseKind?: PhraseSpan["kind"];
+  }) => {
+    setActiveLookup((previous) =>
+      previous?.index === index && previous.cards[0]?.form === form
+        ? null
+        : {
+            index,
+            anchorX,
+            cards: [
+              {
+                id: `${lookupKind}-${form}`,
+                form,
+                lookupKind,
+                phraseKind
+              }
+            ]
+          }
+    );
+  };
+
+  const openNestedWord = (form: string) => {
+    setActiveLookup((previous) => {
+      if (!previous || previous.cards.length >= 2) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        cards: [
+          ...previous.cards,
+          {
+            id: `word-${form}`,
+            form,
+            lookupKind: "word"
+          }
+        ]
+      };
+    });
+  };
+
+  const closeStackCard = (id: string) => {
+    setActiveLookup((previous) => {
+      if (!previous) return previous;
+      const nextCards = previous.cards.filter((card) => card.id !== id);
+      if (nextCards.length === 0) return null;
+      return { ...previous, cards: nextCards };
+    });
+  };
+
+  const renderStack = (index: string) =>
+    activeLookup?.index === index ? (
+      <span
+        className="absolute top-full z-50"
+        style={{ left: getLookupAnchorOffset(activeLookup.anchorX, source) }}
+      >
+        <LookupCardStack
+          cards={activeLookup.cards.slice(-2).map((card) => ({
+            ...card,
+            onClose: () => closeStackCard(card.id),
+            onExampleWordClick: openNestedWord,
+            onSaved: handleSaved,
+            originalSentence: text,
+            translatedSentence: translation,
+            source
+          }))}
+          onCloseCard={closeStackCard}
+        />
+      </span>
+    ) : null;
+
+  const renderWordToken = ({
+    index,
+    text: tokenText
+  }: {
+    index: string;
+    text: string;
+  }) => {
+    const normalized = normalizeLookupWord(tokenText);
+    const isSaved = savedSet.has(normalized);
+
+    if (isReadOnly) {
+      return (
+        <span
+          className={isSaved ? `saved-word ${wordClassName ?? ""}` : wordClassName}
+          key={index}
+        >
+          {tokenText}
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className={`relative inline-block max-w-[min(20rem,calc(100vw-2rem))] ${
+          activeLookup?.index === index ? "z-50" : ""
+        }`}
+        key={index}
+      >
+        <button
+          className={getWordClassName({ isSaved, interactionDensity, wordClassName })}
+          onClick={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            openLookup({
+              anchorX: rect.left,
+              form: normalized || tokenText,
+              index
+            });
+          }}
+          tabIndex={enableKeyboard ? 0 : -1}
+          type="button"
+        >
+          {tokenText}
+        </button>
+        {renderStack(index)}
+      </span>
+    );
+  };
+
   return (
     <span className={className}>
       <style jsx>{`
@@ -160,55 +311,77 @@ export function SpanishText({
           }
         }
       `}</style>
-      {parts.map((part, index) => {
-        if (!part.isWord) return <span key={`${part.text}-${index}`}>{part.text}</span>;
-
-        const normalized = normalizeLookupWord(part.text);
-        const isSaved = savedSet.has(normalized);
-        const isActive = activeWord?.index === index;
-
-        if (isReadOnly) {
-          return (
-            <span
-              className={isSaved ? `saved-word ${wordClassName ?? ""}` : wordClassName}
-              key={`${part.text}-${index}`}
-            >
-              {part.text}
-            </span>
-          );
+      {phraseSegments.map((segment, segmentIndex) => {
+        if (segment.type === "text") {
+          if (!segment.token.isWord) {
+            return <span key={`text-${segmentIndex}`}>{segment.token.text}</span>;
+          }
+          return renderWordToken({
+            index: `text-${segmentIndex}`,
+            text: segment.token.text
+          });
         }
+
+        const phraseIndex = `phrase-${segment.span.start}-${segment.span.end}`;
 
         return (
           <span
-            className={`relative inline-block max-w-[min(20rem,calc(100vw-2rem))] ${isActive ? "z-50" : ""}`}
-            key={`${part.text}-${index}`}
+            className="relative inline-block max-w-[min(20rem,calc(100vw-2rem))]"
+            key={phraseIndex}
           >
-            <button
-              className={getWordClassName({ isSaved, interactionDensity, wordClassName })}
+            <span
+              className={PHRASE_HIGHLIGHT_CLASSES}
               onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
-                setActiveWord(isActive ? null : { form: part.text, index, anchorX: rect.left });
+                openLookup({
+                  anchorX: rect.left,
+                  form: segment.span.lemma,
+                  index: phraseIndex,
+                  lookupKind: "phrase",
+                  phraseKind: segment.span.kind
+                });
               }}
-              tabIndex={enableKeyboard ? 0 : -1}
-              type="button"
+              role="button"
+              tabIndex={0}
             >
-              {part.text}
-            </button>
-            {isActive ? (
-              <span
-                className="absolute top-full z-50"
-                style={{ left: getLookupAnchorOffset(activeWord.anchorX, source) }}
-              >
-                <LookupCard
-                  form={activeWord.form}
-                  onClose={() => setActiveWord(null)}
-                  onSaved={handleSaved}
-                  originalSentence={text}
-                  translatedSentence={translation}
-                  source={source}
-                />
-              </span>
-            ) : null}
+              {segment.tokens.map((token, tokenIndex) => {
+                if (!token.isWord) {
+                  return <span key={`${token.text}-${tokenIndex}`}>{token.text}</span>;
+                }
+                const normalized = normalizeLookupWord(token.text);
+                const isSaved = savedSet.has(normalized);
+                if (isReadOnly) {
+                  return (
+                    <span
+                      className={isSaved ? `saved-word ${wordClassName ?? ""}` : wordClassName}
+                      key={`${token.text}-${tokenIndex}`}
+                    >
+                      {token.text}
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    className={getWordClassName({ isSaved, interactionDensity, wordClassName })}
+                    key={`${token.text}-${tokenIndex}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      openLookup({
+                        anchorX: rect.left,
+                        form: normalized,
+                        index: phraseIndex
+                      });
+                    }}
+                    tabIndex={enableKeyboard ? 0 : -1}
+                    type="button"
+                  >
+                    {token.text}
+                  </button>
+                );
+              })}
+            </span>
+            {renderStack(phraseIndex)}
           </span>
         );
       })}

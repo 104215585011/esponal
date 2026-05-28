@@ -1,3 +1,24 @@
+### Session #PHRASE-001-FRONTEND - 2026-05-29 02:25
+
+**Goal**: Implement PHRASE-001 frontend integration after Gemini1 design and Codex1 backend were ready.
+
+**Completed**:
+- Added a shared phrase text helper/hook for `/api/lexicon/detect-phrases`, positioned token grouping, and Gemini1 amber highlight classes.
+- Extended `LookupCard` with phrase mode, amber top accent, phrase kind badge, clickable example words, and a max-two-card `LookupCardStack`.
+- Enabled phrase highlighting for grammar `SpanishText` while leaving talk opt-out.
+- Wired phrase detection/highlighting into lectura, watch subtitles, watch transcript, and dissect surfaces without removing existing single-word lookup.
+- Added frontend PHRASE-001 regression tests covering design classes, stack depth, four-surface integration, and talk exclusion.
+
+**Verification**:
+- Red check: `node --test tests\phrase001-frontend.test.mjs` failed before frontend implementation.
+- Focused green: `node --test tests\phrase001-frontend.test.mjs tests\phrase001.test.mjs`: 9/9 pass.
+- Full suite: `npm test`: 291/291 pass.
+- Build: `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `PHRASE-001` is `ready_for_qa`; next station is Codex2 QA, then Gemini1 visual review.
+
+---
+
 ### Session #WATCH-002-FIX - 2026-05-28 17:30
 
 **Goal**: Restore inline lookup behavior, enable word-level timing highlight under video/fullscreen overlay, and fix the pause/resume sync when closing the lookup cards.

@@ -46,12 +46,19 @@ export type LookupSource =
 type LookupCardProps = {
   currentTimeSec?: number;
   form: string;
+  lookupKind?: "word" | "phrase";
+  phraseKind?: "collocation" | "phrase" | "idiom";
+  onExampleWordClick?: (form: string) => void;
   onClose: () => void;
   onSaved?: () => void;
   originalSentence: string;
   translatedSentence: string;
   source?: LookupSource;
   useStaticLayout?: boolean;
+};
+
+type LookupCardStackCard = LookupCardProps & {
+  id: string;
 };
 
 type LookupResponse = {
@@ -98,6 +105,57 @@ const LEGACY_LEMMATIZE_ROUTE = "/api/lemmatize";
 
 const globalRecentEncounters = new Map<string, number>();
 
+function getPhraseKindLabel(kind?: "collocation" | "phrase" | "idiom") {
+  if (kind === "idiom") return "习语";
+  if (kind === "phrase") return "短语";
+  return "固定搭配";
+}
+
+function splitExampleTokens(text: string) {
+  return text.match(/[\p{L}áéíóúüñÁÉÍÓÚÜÑ]+|\s+|[^\s\p{L}áéíóúüñÁÉÍÓÚÜÑ]+/gu) ?? [];
+}
+
+function normalizeExampleWord(token: string) {
+  return token
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/^[^a-záéíóúüñ]+|[^a-záéíóúüñ]+$/gi, "")
+    .trim();
+}
+
+export function LookupCardStack({
+  cards,
+  onCloseCard
+}: {
+  cards: LookupCardStackCard[];
+  onCloseCard: (id: string) => void;
+}) {
+  const visibleCards = cards.slice(-2);
+
+  return (
+    <div className="relative w-full min-h-[360px]">
+      {visibleCards.map((card, index) => {
+        const isBottom = index === 0 && visibleCards.length > 1;
+        const { id, ...cardProps } = card;
+
+        return (
+          <div
+            className={`transition-all duration-300 ${
+              isBottom
+                ? "absolute inset-x-0 bottom-0 z-10 scale-[0.96] -translate-y-3 opacity-40 blur-[0.5px] pointer-events-none select-none"
+                : "relative z-20"
+            }`}
+            key={id}
+          >
+            <LookupCard {...cardProps} onClose={() => onCloseCard(id)} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function getCurrentUrl() {
   if (typeof window === "undefined") return "";
   return window.location.href;
@@ -121,6 +179,9 @@ function getDefaultVideoSource(currentTimeSec: number | undefined, sentence: str
 export function LookupCard({
   currentTimeSec,
   form,
+  lookupKind = "word",
+  phraseKind,
+  onExampleWordClick,
   onClose,
   onSaved,
   originalSentence,
@@ -135,6 +196,7 @@ export function LookupCard({
   const [totalEncounters, setTotalEncounters] = useState<number | null>(null);
   const normalizedForm = useMemo(() => form.trim().toLowerCase(), [form]);
   const speechAvailable = useSpeechAvailable();
+  const isPhraseLookup = lookupKind === "phrase";
 
   useEffect(() => {
     const controller = new AbortController();
@@ -416,14 +478,22 @@ export function LookupCard({
       className={
         useStaticLayout
           ? "w-full bg-transparent text-gray-900 dark:text-zinc-100"
-          : "absolute left-1/2 top-full z-20 mt-3 w-[300px] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated"
+          : `absolute left-1/2 top-full z-20 mt-3 w-[300px] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated ${isPhraseLookup ? "overflow-hidden pt-5" : ""}`
       }
       data-testid="lookup-card"
     >
+      {isPhraseLookup ? (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500 dark:bg-amber-600" />
+      ) : null}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="truncate text-[17px] font-bold text-gray-900">{lemma}</p>
+            {isPhraseLookup ? (
+              <span className="rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                {getPhraseKindLabel(phraseKind)}
+              </span>
+            ) : null}
             {partOfSpeech ? (
               <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500">
                 {partOfSpeech}
@@ -487,7 +557,27 @@ export function LookupCard({
       {example ? (
         <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2">
           <div className="flex items-start gap-2">
-            <p className="min-w-0 flex-1 text-xs italic text-gray-600">{example.es}</p>
+            <p className="min-w-0 flex-1 text-xs italic text-gray-600">
+              {onExampleWordClick
+                ? splitExampleTokens(example.es).map((token, index) => {
+                    const normalized = normalizeExampleWord(token);
+                    if (!normalized) return <span key={`${token}-${index}`}>{token}</span>;
+                    return (
+                      <button
+                        className="rounded px-0.5 text-left transition hover:bg-brand-50 hover:text-brand-700"
+                        key={`${token}-${index}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onExampleWordClick(normalized);
+                        }}
+                        type="button"
+                      >
+                        {token}
+                      </button>
+                    );
+                  })
+                : example.es}
+            </p>
             {speechAvailable ? (
               <button
                 aria-label="Play example sentence"

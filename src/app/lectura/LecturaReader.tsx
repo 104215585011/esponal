@@ -3,6 +3,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LookupCard } from "@/app/watch/LookupCard";
+import {
+  PHRASE_HIGHLIGHT_CLASSES,
+  buildPhraseSegments,
+  type PhraseSpan
+} from "@/app/components/vocab/PhraseText";
 import { getPlaybackRate, usePlaybackRate } from "@/lib/playback-rate";
 import { ReadingPreferences, type ReadingFontSize, type ReadingLookupMode } from "./ReadingPreferences";
 import { ReadingDock } from "./ReadingDock";
@@ -19,6 +24,8 @@ type ActiveLookup = {
   form: string;
   anchorX: number;
   anchorY: number;
+  lookupKind?: "word" | "phrase";
+  phraseKind?: PhraseSpan["kind"];
 };
 
 function splitParagraphTokens(text: string) {
@@ -45,6 +52,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
   const [isMarked, setIsMarked] = useState(isRead);
   const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
+  const [phraseSpansByParagraph, setPhraseSpansByParagraph] = useState<Record<number, PhraseSpan[]>>({});
   const [playbackRate] = usePlaybackRate();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -99,13 +107,21 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     setPlayingParagraphIndex(null);
   };
 
-  const openLookup = (target: HTMLElement, paragraphIndex: number, form: string) => {
+  const openLookup = (
+    target: HTMLElement,
+    paragraphIndex: number,
+    form: string,
+    lookupKind: "word" | "phrase" = "word",
+    phraseKind?: PhraseSpan["kind"]
+  ) => {
     const rect = target.getBoundingClientRect();
     setActiveLookup({
       paragraphIndex,
       form,
       anchorX: rect.left,
-      anchorY: rect.bottom + 6
+      anchorY: rect.bottom + 6,
+      lookupKind,
+      phraseKind
     });
   };
 
@@ -224,6 +240,39 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadPhraseSpans() {
+      const entries = await Promise.all(
+        story.paragraphs.map(async (paragraph, paragraphIndex) => {
+          try {
+            const response = await fetch("/api/lexicon/detect-phrases", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: paragraph })
+            });
+            if (!response.ok) return [paragraphIndex, []] as const;
+            const payload = (await response.json()) as { spans?: PhraseSpan[] };
+            return [paragraphIndex, Array.isArray(payload.spans) ? payload.spans : []] as const;
+          } catch {
+            return [paragraphIndex, []] as const;
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setPhraseSpansByParagraph(Object.fromEntries(entries));
+      }
+    }
+
+    void loadPhraseSpans();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [story.paragraphs]);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (isMarked) {
         return;
@@ -274,6 +323,10 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
         >
           {story.paragraphs.map((paragraph, paragraphIndex) => {
             const tokens = splitParagraphTokens(paragraph);
+            const phraseSegments = buildPhraseSegments(
+              tokens.map((token) => ({ text: token, isWord: !!normalizeLookupWord(token) })),
+              phraseSpansByParagraph[paragraphIndex] ?? []
+            );
             const isPlaying = playingParagraphIndex === paragraphIndex;
 
             return (
@@ -298,7 +351,52 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                   {isPlaying ? "||" : ">"}
                 </button>
                 <p className="min-w-0 flex-1">
-                  {tokens.map((token, tokenIndex) => {
+                  {phraseSegments.map((segment, tokenIndex) => {
+                    if (segment.type === "phrase") {
+                      return (
+                        <span
+                          className={PHRASE_HIGHLIGHT_CLASSES}
+                          key={`phrase-${segment.span.start}-${segment.span.end}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openLookup(
+                              event.currentTarget as HTMLElement,
+                              paragraphIndex,
+                              segment.span.lemma,
+                              "phrase",
+                              segment.span.kind
+                            );
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          {segment.tokens.map((phraseToken, phraseTokenIndex) => {
+                            const normalized = normalizeLookupWord(phraseToken.text);
+                            if (!normalized) {
+                              return <span key={`${phraseToken.text}-${phraseTokenIndex}`}>{phraseToken.text}</span>;
+                            }
+                            return (
+                              <span
+                                className={`cursor-pointer rounded-sm transition hover:bg-brand-50 dark:hover:bg-brand-950/30 ${
+                                  savedSet.has(normalized) ? "saved-word" : ""
+                                }`}
+                                key={`${phraseToken.text}-${phraseTokenIndex}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
+                                }}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {phraseToken.text}
+                              </span>
+                            );
+                          })}
+                        </span>
+                      );
+                    }
+
+                    const token = segment.token.text;
                     const normalized = normalizeLookupWord(token);
                     if (!normalized) {
                       return <span key={tokenIndex}>{token}</span>;
@@ -376,8 +474,10 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
               >
                 <LookupCard
                   form={activeLookup.form}
+                  lookupKind={activeLookup.lookupKind}
                   onClose={() => setActiveLookup(null)}
                   originalSentence={paragraph}
+                  phraseKind={activeLookup.phraseKind}
                   source={{
                     type: "lectura",
                     storySlug: story.slug,
@@ -393,4 +493,3 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     </div>
   );
 }
-

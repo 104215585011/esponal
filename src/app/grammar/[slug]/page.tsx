@@ -107,6 +107,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
                       <tr className="border-b border-gray-100 dark:border-zinc-800/80 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors" key={row.pronoun}>
                         <td className="sticky left-0 bg-white dark:bg-zinc-900 px-4 py-4 text-sm text-zinc-600 dark:text-zinc-400">
                           <SpanishText
+                            enablePhrases={true}
                             enableKeyboard={true}
                             interactionDensity="dense"
                             source={{
@@ -122,6 +123,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
                         <td className="px-4 py-4 text-sm text-zinc-600 dark:text-zinc-400">{row.person}</td>
                         <td className="px-4 py-4 text-base font-semibold text-zinc-900 dark:text-zinc-100 font-display">
                           <SpanishText
+                            enablePhrases={true}
                             enableKeyboard={true}
                             interactionDensity="dense"
                             source={{
@@ -181,6 +183,7 @@ export default function GrammarDetailPage({ params }: GrammarDetailPageProps) {
                 {topic.examples.map((example) => (
                   <div className="rounded-xl border border-gray-100 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 glass-card p-5 shadow-sm" key={example.spanish}>
                     <SpanishText
+                      enablePhrases={true}
                       className="text-base font-bold text-zinc-900 dark:text-zinc-50 font-display"
                       enableKeyboard={true}
                       source={{
@@ -235,6 +238,7 @@ function ComparisonColumn({
         {items.map((item) => (
           <div className="border-b border-zinc-100 dark:border-zinc-800/50 pb-3 last:border-b-0 last:pb-0" key={item.spanish}>
             <SpanishText
+              enablePhrases={true}
               className="text-base font-bold text-zinc-900 dark:text-zinc-50 font-display"
               enableKeyboard={true}
               source={{
@@ -254,6 +258,5 @@ function ComparisonColumn({
     </div>
   );
 }
-
 
 

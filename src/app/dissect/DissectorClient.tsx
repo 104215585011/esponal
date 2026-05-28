@@ -10,6 +10,11 @@ import {
   getFoundationDayHref
 } from "@/lib/functionWords";
 import { summarizeDissection, tokenizeSentence } from "@/app/dissect/tokenize";
+import {
+  PHRASE_HIGHLIGHT_CLASSES,
+  usePhraseSpans,
+  type PhraseSpan
+} from "@/app/components/vocab/PhraseText";
 import { LookupCard } from "@/app/watch/LookupCard";
 
 type ActivePopover = {
@@ -20,6 +25,8 @@ type ActivePopover = {
 type ActiveContentWord = {
   form: string;
   anchorId: string;
+  lookupKind?: "word" | "phrase";
+  phraseKind?: PhraseSpan["kind"];
 };
 
 type AnalysisState = DissectAnalysisResult | "loading" | "error" | null;
@@ -101,6 +108,7 @@ export function DissectorClient() {
   const requestIdRef = useRef(0);
 
   const tokens = useMemo(() => tokenizeSentence(input), [input]);
+  const phraseSpans = usePhraseSpans(input, true);
   const summary = useMemo(() => summarizeDissection(tokens), [tokens]);
 
   const activeMatch = activePopover
@@ -206,6 +214,44 @@ export function DissectorClient() {
 
       <section className="mt-8 rounded-surface border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 glass-card p-6 shadow-sm" data-testid="dissect-output">
         <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">拆解结果</p>
+        {phraseSpans.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {phraseSpans.map((span) => (
+              <span className="relative inline-block" key={`${span.start}-${span.end}`}>
+                <button
+                  className={PHRASE_HIGHLIGHT_CLASSES}
+                  onClick={() => {
+                    setActivePopover(null);
+                    setActiveContent({
+                      form: span.lemma,
+                      anchorId: `phrase-${span.start}-${span.end}`,
+                      lookupKind: "phrase",
+                      phraseKind: span.kind
+                    });
+                  }}
+                  type="button"
+                >
+                  {span.surface}
+                </button>
+                {activeContent?.anchorId === `phrase-${span.start}-${span.end}` ? (
+                  <LookupCard
+                    form={activeContent.form}
+                    lookupKind={activeContent.lookupKind}
+                    onClose={() => setActiveContent(null)}
+                    originalSentence={input}
+                    phraseKind={activeContent.phraseKind}
+                    source={{
+                      type: "dissect",
+                      url: "/dissect",
+                      sentence: input
+                    }}
+                    translatedSentence=""
+                  />
+                ) : null}
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div className="mt-4 text-lg leading-9 text-zinc-900 dark:text-zinc-100">
           {tokens.map((token, index) => {
             if (token.isWhitespace) {
@@ -323,7 +369,5 @@ export function DissectorClient() {
     </div>
   );
 }
-
-
 
 

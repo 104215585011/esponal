@@ -3,6 +3,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LookupCard } from "./LookupCard";
+import {
+  PHRASE_HIGHLIGHT_CLASSES,
+  buildPhraseSegments,
+  type PhraseSpan
+} from "@/app/components/vocab/PhraseText";
 
 type SubtitleCue = {
   start: number;
@@ -81,7 +86,13 @@ export function SubtitlePanel({
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const settingsRef = useRef<HTMLDivElement | null>(null);
 
-  const [activeLookup, setActiveLookup] = useState<{ form: string; sentence: string } | null>(null);
+  const [activeLookup, setActiveLookup] = useState<{
+    form: string;
+    sentence: string;
+    lookupKind?: "word" | "phrase";
+    phraseKind?: PhraseSpan["kind"];
+  } | null>(null);
+  const [phraseSpans, setPhraseSpans] = useState<PhraseSpan[]>([]);
 
   // Initialize subtitle settings from localStorage
   useEffect(() => {
@@ -243,10 +254,49 @@ export function SubtitlePanel({
     return wordIndices[wordProgressIndex] ?? -1;
   }, [activeCue, subtitleTokens, currentTimeSec]);
 
+  const phraseSegments = useMemo(
+    () =>
+      buildPhraseSegments(
+        subtitleTokens.map((token) => ({ text: token, isWord: !!normalizeLookupWord(token) })),
+        phraseSpans
+      ),
+    [phraseSpans, subtitleTokens]
+  );
+
   // Report changes back to parent
   useEffect(() => {
     onCueChange?.(spanishLine, chineseLine, activeCue);
   }, [spanishLine, chineseLine, activeCue, onCueChange]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPhraseSpans() {
+      if (!spanishLine.trim()) {
+        setPhraseSpans([]);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/lexicon/detect-phrases", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: spanishLine })
+        });
+        if (!response.ok) throw new Error(`Phrase detection failed: ${response.status}`);
+        const payload = (await response.json()) as { spans?: PhraseSpan[] };
+        if (!cancelled) setPhraseSpans(Array.isArray(payload.spans) ? payload.spans : []);
+      } catch {
+        if (!cancelled) setPhraseSpans([]);
+      }
+    }
+
+    void loadPhraseSpans();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spanishLine]);
 
   useEffect(() => {
     let cancelled = false;
@@ -434,10 +484,64 @@ export function SubtitlePanel({
                   textSize === "large" ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
                 }`}
               >
-                {subtitleTokens.map((token, index) => {
+                {phraseSegments.map((segment, index) => {
+                  if (segment.type === "phrase") {
+                    return (
+                      <span
+                        className={PHRASE_HIGHLIGHT_CLASSES}
+                        key={`phrase-${segment.span.start}-${segment.span.end}`}
+                        onClick={() => {
+                          setActiveLookup({
+                            form: segment.span.lemma,
+                            sentence: spanishLine,
+                            lookupKind: "phrase",
+                            phraseKind: segment.span.kind
+                          });
+                          onLookup({
+                            form: segment.span.lemma,
+                            originalSentence: spanishLine,
+                            translatedSentence: chineseLine
+                          });
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        {segment.tokens.map((phraseToken, phraseTokenIndex) => {
+                          const normalizedWord = normalizeLookupWord(phraseToken.text);
+                          if (!normalizedWord) {
+                            return <span key={`${phraseToken.text}-${phraseTokenIndex}`}>{phraseToken.text}</span>;
+                          }
+                          return (
+                            <span
+                              className="cursor-pointer rounded px-0.5 transition hover:bg-zinc-150 dark:hover:bg-zinc-800/80"
+                              key={`${phraseToken.text}-${phraseTokenIndex}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setActiveLookup({
+                                  form: normalizedWord,
+                                  sentence: spanishLine
+                                });
+                                onLookup({
+                                  form: normalizedWord,
+                                  originalSentence: spanishLine,
+                                  translatedSentence: chineseLine
+                                });
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              {phraseToken.text}
+                            </span>
+                          );
+                        })}
+                      </span>
+                    );
+                  }
+
+                  const token = segment.token.text;
                   const normalizedWord = normalizeLookupWord(token);
                   const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
-                  const isWordActive = index === activeWordIndex;
+                  const isWordActive = subtitleTokens.findIndex((item) => item === token) === activeWordIndex;
 
                   // In light mode, #86EFAC (light green) and #93C5FD (light blue) have poor contrast
                   // We map them to premium high-contrast accessible styling
@@ -512,11 +616,13 @@ export function SubtitlePanel({
           <LookupCard
             currentTimeSec={currentTimeSec}
             form={activeLookup.form}
+            lookupKind={activeLookup.lookupKind}
             onClose={() => {
               setActiveLookup(null);
               onCloseLookup?.();
             }}
             originalSentence={activeLookup.sentence}
+            phraseKind={activeLookup.phraseKind}
             translatedSentence={chineseLine}
           />
         </div>

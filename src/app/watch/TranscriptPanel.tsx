@@ -3,6 +3,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import EmptyState from "@/app/components/ui/EmptyState";
+import {
+  PHRASE_HIGHLIGHT_CLASSES,
+  buildPhraseSegments,
+  type PhraseSpan
+} from "@/app/components/vocab/PhraseText";
 import { LookupCard } from "./LookupCard";
 
 type SubtitleCue = {
@@ -161,12 +166,18 @@ export function TranscriptPanel({
   videoId
 }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
-  const [activeLookup, setActiveLookup] = useState<{ cueIndex: number; form: string } | null>(null);
+  const [activeLookup, setActiveLookup] = useState<{
+    cueIndex: number;
+    form: string;
+    lookupKind?: "word" | "phrase";
+    phraseKind?: PhraseSpan["kind"];
+  } | null>(null);
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
   const [subtitleHint, setSubtitleHint] = useState<SubtitleHint | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [hasLoadedSubtitles, setHasLoadedSubtitles] = useState(false);
   const [highlightMap, setHighlightMap] = useState<Record<string, HighlightStatus>>({});
+  const [phraseSpansByCue, setPhraseSpansByCue] = useState<Record<number, PhraseSpan[]>>({});
   const [extensionInstalled, setExtensionInstalled] = useState(false);
   const [followMode, setFollowMode] = useState(true);
   const [renderStart, setRenderStart] = useState(0);
@@ -622,6 +633,40 @@ export function TranscriptPanel({
     };
   }, [visibleCues]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPhraseSpans() {
+      const entries = await Promise.all(
+        visibleCues.map(async (cue, offset) => {
+          const index = visibleCueRange.start + offset;
+          try {
+            const response = await fetch("/api/lexicon/detect-phrases", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text: cue.text })
+            });
+            if (!response.ok) return [index, []] as const;
+            const payload = (await response.json()) as { spans?: PhraseSpan[] };
+            return [index, Array.isArray(payload.spans) ? payload.spans : []] as const;
+          } catch {
+            return [index, []] as const;
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setPhraseSpansByCue((previous) => ({ ...previous, ...Object.fromEntries(entries) }));
+      }
+    }
+
+    void loadPhraseSpans();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visibleCueRange.start, visibleCues]);
+
   // Keep sliding window centered around active cue
   useEffect(() => {
     if (activeCueIndex < 0 || transcriptCues.length === 0) {
@@ -767,6 +812,10 @@ export function TranscriptPanel({
             {renderedCues.map((cue, offset) => {
               const index = visibleCueRange.start + offset;
               const tokens = splitSubtitleTokens(cue.text);
+              const phraseSegments = buildPhraseSegments(
+                tokens.map((token) => ({ text: token, isWord: !!normalizeLookupWord(token) })),
+                phraseSpansByCue[index] ?? []
+              );
               const translation = translations[index] ?? "…";
               const isActive = index === activeCueIndex;
 
@@ -802,7 +851,62 @@ export function TranscriptPanel({
                             isActive ? "font-bold text-brand-600 dark:text-brand-400" : "font-medium text-zinc-800 dark:text-zinc-200"
                           }`}
                         >
-                          {tokens.map((token, tokenIndex) => {
+                          {phraseSegments.map((segment, tokenIndex) => {
+                            if (segment.type === "phrase") {
+                              return (
+                                <span
+                                  className={PHRASE_HIGHLIGHT_CLASSES}
+                                  key={`phrase-${segment.span.start}-${segment.span.end}`}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setActiveLookup({
+                                      cueIndex: index,
+                                      form: segment.span.lemma,
+                                      lookupKind: "phrase",
+                                      phraseKind: segment.span.kind
+                                    });
+                                    onLookup({
+                                      form: segment.span.lemma,
+                                      originalSentence: cue.text.trim(),
+                                      translatedSentence: translation
+                                    });
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                >
+                                  {segment.tokens.map((phraseToken, phraseTokenIndex) => {
+                                    const normalizedWord = normalizeLookupWord(phraseToken.text);
+                                    if (!normalizedWord) {
+                                      return <span key={`${phraseToken.text}-${phraseTokenIndex}`}>{phraseToken.text}</span>;
+                                    }
+                                    return (
+                                      <span
+                                        className="cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
+                                        key={`${phraseToken.text}-${phraseTokenIndex}`}
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setActiveLookup({
+                                            cueIndex: index,
+                                            form: normalizedWord
+                                          });
+                                          onLookup({
+                                            form: normalizedWord,
+                                            originalSentence: cue.text.trim(),
+                                            translatedSentence: translation
+                                          });
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
+                                      >
+                                        {phraseToken.text}
+                                      </span>
+                                    );
+                                  })}
+                                </span>
+                              );
+                            }
+
+                            const token = segment.token.text;
                             const normalizedWord = normalizeLookupWord(token);
                             const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
 
@@ -873,11 +977,13 @@ export function TranscriptPanel({
                       <LookupCard
                         currentTimeSec={currentTimeSec}
                         form={activeLookup.form}
+                        lookupKind={activeLookup.lookupKind}
                         onClose={() => {
                           setActiveLookup(null);
                           onCloseLookup?.();
                         }}
                         originalSentence={cue.text.trim()}
+                        phraseKind={activeLookup.phraseKind}
                         translatedSentence={translation}
                       />
                     </div>

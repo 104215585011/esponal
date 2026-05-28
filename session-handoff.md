@@ -1,3 +1,28 @@
+## Codex1 Dev Report: PHRASE-001 Frontend phrase highlighting + stack lookup
+**Time**: 2026-05-29 02:25
+**Developer**: Codex1
+**Status**: Ready for Codex2 QA. After Codex2 passes, hand to Gemini1 for visual review against `docs/tickets/PHRASE-001-design.md`.
+
+### Implemented
+- Added `src/app/components/vocab/PhraseText.tsx` with `/api/lexicon/detect-phrases` hook, token positioning, and Gemini1 amber phrase highlight class.
+- Extended `src/app/watch/LookupCard.tsx` with `lookupKind="phrase"`, amber accent bar, phrase kind badge, clickable example words, and `LookupCardStack` with `cards.slice(-2)` plus the specified pushed-back card classes.
+- Updated `src/app/components/vocab/SpanishText.tsx` with opt-in `enablePhrases`; grammar detail pages pass `enablePhrases={true}` and `/talk` stays opt-out.
+- Wired phrase detection/highlighting into `src/app/lectura/LecturaReader.tsx`, `src/app/watch/SubtitlePanel.tsx`, `src/app/watch/TranscriptPanel.tsx`, and `src/app/dissect/DissectorClient.tsx`.
+- Preserved existing single-word lookup behavior inside phrase spans by stopping inner token click propagation.
+- Added `tests/phrase001-frontend.test.mjs` covering design classes, four-surface integration, stack limit, and talk exclusion.
+
+### Verification
+- Red check: `node --test tests\phrase001-frontend.test.mjs` failed before implementation.
+- Focused green: `node --test tests\phrase001-frontend.test.mjs tests\phrase001.test.mjs`: 9/9 pass.
+- Full suite: `npm test`: 291/291 pass.
+- Build: `npm run build`: pass; existing `<img>` and Sentry warnings only.
+
+### Notes For Codex2
+- Please run PHRASE-001 QA on `/grammar/[slug]`, `/lectura/[slug]`, `/watch`, and `/dissect`.
+- Confirm `/talk` still does not enable phrase highlighting.
+- Visual nuances are for Gemini1 after QA; Codex2 should focus on behavior, regressions, and stack-depth contract.
+- Do not commit `data/phrases-a1-a2-candidates.reviewed.csv`; it remains an untracked PM intermediate file.
+
 ## Codex1 Dev Report: PHRASE-001 Backend phrase detection
 **Time**: 2026-05-29 02:20
 **Developer**: Codex1
