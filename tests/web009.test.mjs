@@ -45,6 +45,9 @@ test("WEB-009 site header exposes primary navigation", async () => {
   assert.match(nav, /href:\s*"\/grammar"/);
   assert.match(nav, /activeHref:\s*"\/vocab"/);
   assert.match(header, /\/auth\/sign-in\?callbackUrl=\/vocab/);
+  assert.match(header, /DEFAULT_AVATAR_SRC/);
+  assert.match(header, /href="\/auth\/sign-in"/);
+  assert.match(header, /src=\{DEFAULT_AVATAR_SRC\}/);
   assert.match(nav, /border-brand-500/);
   assert.match(nav, /text-brand-600/);
   assert.match(themeToggle, /localStorage\.setItem\(storageKey, nextTheme\)/);

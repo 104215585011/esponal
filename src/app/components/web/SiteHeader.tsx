@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 10:50
+// Timestamp: 2026-05-28 11:05
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -12,14 +12,9 @@ type SiteHeaderProps = {
   initialQuery?: string;
 };
 
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
+const DEFAULT_AVATAR_SRC = "/images/default-avatar.png";
+const avatarClassName =
+  "h-7 w-7 rounded-full object-cover ring-1.5 ring-zinc-200/80 dark:ring-zinc-700/80 transition-transform duration-300 hover:scale-105";
 
 export async function SiteHeader({
   searchAction = "/search",
@@ -27,7 +22,6 @@ export async function SiteHeader({
 }: SiteHeaderProps) {
   const session = await getServerSession(getAuthOptions());
   const displayName = session?.user?.name?.trim() || "Esponal User";
-  const initials = getInitials(displayName) || "ES";
   const vocabHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
 
   return (
@@ -86,20 +80,11 @@ export async function SiteHeader({
           {session?.user ? (
             <details className="relative">
               <summary className="flex list-none cursor-pointer items-center gap-2 rounded-full p-0.5 text-sm text-gray-600 hover:text-gray-900">
-              {session.user.image ? (
-                  <img
-                    alt={displayName}
-                    className="h-7 w-7 rounded-full object-cover ring-1.5 ring-zinc-200/80 dark:ring-zinc-700/80 transition-transform duration-300 hover:scale-105"
-                    referrerPolicy="no-referrer"
-                    src={session.user.image}
-                  />
-                ) : (
-                  <img
-                    alt={displayName}
-                    className="h-7 w-7 rounded-full object-cover ring-1.5 ring-zinc-200/80 dark:ring-zinc-700/80 transition-transform duration-300 hover:scale-105"
-                    src="/images/default-avatar.png"
-                  />
-                )}
+                <img
+                  alt={displayName}
+                  className={avatarClassName}
+                  src={DEFAULT_AVATAR_SRC}
+                />
               </summary>
               <div className="absolute right-0 mt-2 w-40 rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-elevated">
                 <Link
@@ -118,10 +103,15 @@ export async function SiteHeader({
             </details>
           ) : (
             <Link
-              className="text-sm font-medium text-zinc-600 dark:text-zinc-400 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+              aria-label="登录"
+              className="block rounded-full p-0.5"
               href="/auth/sign-in"
             >
-              登录
+              <img
+                alt="登录"
+                className={avatarClassName}
+                src={DEFAULT_AVATAR_SRC}
+              />
             </Link>
           )}
         </div>
