@@ -1,5 +1,5 @@
-// Timestamp: 2026-05-28 18:08
-import { mkdir, rm, writeFile } from "node:fs/promises";
+// Timestamp: 2026-05-28 18:40
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import assert from "node:assert/strict";
@@ -201,6 +201,102 @@ test("LEX-001 Phase 2 seed normalizes AI noun and adjective morphology", async (
       fem_sg: "buena",
       fem_pl: "buenas"
     });
+  });
+});
+
+test("LEX-001 Phase 2 seed falls back to LLM examples when Tatoeba has no match", async () => {
+  await withTatoebaFixture("llm-example-fallback", async (fixturePath) => {
+    const mockResponses = {
+      video: {
+        partOfSpeech: "noun_m",
+        level: "A1",
+        translationZh: "video",
+        translationEn: "video",
+        explanationZh: "masculine noun",
+        ipa: "bideo",
+        forms: ["video", "videos"]
+      }
+    };
+    const mockExamples = {
+      video: [
+        { es: "Veo un video corto.", zh: "我看一个短视频。" },
+        { es: "El video es interesante.", zh: "这个视频很有趣。" }
+      ]
+    };
+
+    const { stdout } = await runNode([
+      "scripts/lexicon/seed-a1-a2-words.mjs",
+      "--lemmas",
+      "video",
+      "--tatoeba",
+      fixturePath,
+      "--limit",
+      "1",
+      "--concurrency",
+      "1"
+    ], {
+      env: {
+        ...process.env,
+        LEXICON_SEED_MOCK_RESPONSES: JSON.stringify(mockResponses),
+        LEXICON_SEED_MOCK_EXAMPLES: JSON.stringify(mockExamples)
+      }
+    });
+
+    const entry = stdout
+      .split(/\r?\n/)
+      .find((line) => line.startsWith("{"));
+    assert.ok(entry);
+    const parsed = JSON.parse(entry);
+    assert.equal(parsed.lemma, "video");
+    assert.equal(parsed.examples.length, 2);
+    assert.ok(parsed.examples.every((example) => example.source === "llm-generated"));
+    assert.match(stdout, /skipped=0/);
+  });
+});
+
+test("LEX-001 Phase 2 seed skips a lemma when all example sources fail", async () => {
+  await withTatoebaFixture("skip-missing-examples", async (fixturePath) => {
+    const skippedPath = ".tmp-lex001/skip-missing-examples/lexicon-skipped.json";
+    const mockResponses = {
+      video: {
+        partOfSpeech: "noun_m",
+        level: "A1",
+        translationZh: "video",
+        translationEn: "video",
+        explanationZh: "masculine noun",
+        ipa: "bideo",
+        forms: ["video", "videos"]
+      }
+    };
+
+    const { stdout, stderr } = await runNode([
+      "scripts/lexicon/seed-a1-a2-words.mjs",
+      "--lemmas",
+      "video",
+      "--tatoeba",
+      fixturePath,
+      "--skipped",
+      skippedPath,
+      "--limit",
+      "1",
+      "--concurrency",
+      "1"
+    ], {
+      env: {
+        ...process.env,
+        LEXICON_SEED_MOCK_RESPONSES: JSON.stringify(mockResponses),
+        LEXICON_SEED_MOCK_EXAMPLES: JSON.stringify({ video: [] })
+      }
+    });
+
+    assert.doesNotMatch(stdout, /"lemma":"video"/);
+    assert.match(stdout, /skipped=1/);
+    assert.match(stderr, /\[skip\] video:/);
+
+    const skipped = JSON.parse(await readFile(skippedPath, "utf8"));
+    assert.equal(skipped.skipped.length, 1);
+    assert.equal(skipped.skipped[0].lemma, "video");
+    assert.match(skipped.skipped[0].reason, /No examples found/);
   });
 });
 

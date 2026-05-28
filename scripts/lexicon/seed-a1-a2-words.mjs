@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Timestamp: 2026-05-28 16:44
+// Timestamp: 2026-05-28 18:40
 import { createReadStream } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
@@ -8,6 +8,7 @@ import { PrismaClient } from "@prisma/client";
 
 const DEFAULT_TATOEBA_PAIRS_PATH = "data/tatoeba-es-zh.jsonl";
 const PROGRESS_PATH = "data/lexicon-progress.json";
+const SKIPPED_PATH = "data/lexicon-skipped.json";
 const PHASE_ONE_WORDS_PATH = "content/curriculum/phase1-words.json";
 const DEFAULT_CONCURRENCY = 3;
 const ALLOWED_SINGLE_LETTER = new Set(["y", "e", "o", "u"]);
@@ -46,6 +47,7 @@ Options:
   --concurrency N         DeepSeek/write concurrency. Default: 3.
   --lemmas a,b,c          Override candidates with explicit lemmas for QA.
   --tatoeba PATH          Path to tatoeba-es-zh.jsonl. Default: data/tatoeba-es-zh.jsonl.
+  --skipped PATH          Path to skipped lemma report. Default: data/lexicon-skipped.json.
   --help, -h              Show this help text.`);
 }
 
@@ -133,6 +135,16 @@ async function readProgress() {
 async function writeProgress(progress) {
   await mkdir(dirname(PROGRESS_PATH), { recursive: true });
   await writeFile(PROGRESS_PATH, `${JSON.stringify(progress, null, 2)}\n`, "utf8");
+}
+
+async function writeSkipped(path, skipped) {
+  if (skipped.length === 0) return;
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(
+    path,
+    `${JSON.stringify({ updatedAt: new Date().toISOString(), skipped }, null, 2)}\n`,
+    "utf8"
+  );
 }
 
 async function requireTatoebaPairs(path) {
@@ -296,6 +308,75 @@ async function describeWithDeepSeek(lemma) {
   return JSON.parse(content);
 }
 
+async function generateExamplesWithDeepSeek(lemma) {
+  const mockExamples = process.env.LEXICON_SEED_MOCK_EXAMPLES;
+  if (mockExamples) {
+    const examples = JSON.parse(mockExamples)[lemma] ?? [];
+    return normalizeGeneratedExamples(examples);
+  }
+
+  const apiKey = process.env.DEEPSEEK_API_KEY ?? "";
+  const baseUrl = (process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com").replace(/\/+$/, "");
+  const model = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
+
+  if (!apiKey || apiKey.includes("your-") || apiKey.includes("placeholder")) {
+    throw new Error("DEEPSEEK_API_KEY is required to generate fallback examples");
+  }
+
+  const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "Return strict JSON with key examples. Generate exactly 2 simple A1-A2 Spanish-Chinese sentence pairs for the given Spanish lemma. Each example must have es and zh. Avoid complex grammar."
+        },
+        { role: "user", content: lemma }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`DeepSeek examples API ${response.status}: ${(await response.text()).slice(0, 300)}`);
+  }
+
+  const payload = await response.json();
+  const content = payload.choices?.[0]?.message?.content ?? "{}";
+  const parsed = JSON.parse(content);
+  return normalizeGeneratedExamples(parsed.examples ?? parsed);
+}
+
+function normalizeGeneratedExamples(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((example) => typeof example?.es === "string" && typeof example?.zh === "string")
+    .map((example) => ({
+      es: example.es.trim(),
+      zh: example.zh.trim(),
+      source: "llm-generated"
+    }))
+    .filter((example) => example.es && example.zh)
+    .slice(0, 3);
+}
+
+async function resolveExamples(lemma, forms, tatoebaPath) {
+  const tatoebaExamples = await findExamples(forms, tatoebaPath);
+  if (tatoebaExamples.length > 0) return tatoebaExamples;
+
+  const generatedExamples = await generateExamplesWithDeepSeek(lemma);
+  if (generatedExamples.length > 0) return generatedExamples;
+
+  throw new Error(`No examples found for ${lemma} from Tatoeba or DeepSeek fallback`);
+}
+
 function normalizePartOfSpeech(ai, candidate, verb) {
   const raw = normalizeText(ai.partOfSpeech);
   const candidatePos = normalizeText(candidate.partOfSpeech);
@@ -422,6 +503,7 @@ async function main() {
   const limit = Number(readOption("--limit", "0"));
   const concurrency = Number(readOption("--concurrency", String(DEFAULT_CONCURRENCY)));
   const tatoebaPath = readOption("--tatoeba", DEFAULT_TATOEBA_PAIRS_PATH);
+  const skippedPath = readOption("--skipped", SKIPPED_PATH);
   await requireTatoebaPairs(tatoebaPath);
   const { tryConjugateVerb } = await import("../../src/lib/conjugate.ts");
 
@@ -430,58 +512,71 @@ async function main() {
   const candidates = (await collectLemmaCandidates()).filter((entry) => !done.has(entry.lemma));
   const selected = limit > 0 ? candidates.slice(0, limit) : candidates;
   console.log(`Seed candidates=${candidates.length} selected=${selected.length} dryRun=${dryRun}`);
+  const skipped = [];
+  const stats = { written: 0, dryRun: 0, skipped: 0 };
 
   await runPool(selected, Math.max(1, concurrency), async (candidate) => {
     const lemma = candidate.lemma;
-    const verb = tryConjugateVerb(lemma);
-    const useMockAi = Boolean(process.env.LEXICON_SEED_MOCK_RESPONSES);
-    const ai = dryRun && !useMockAi
-      ? {
-          partOfSpeech: verb ? "verb" : candidate.partOfSpeech,
-          level: candidate.level ?? "A1",
-          translationZh: candidate.translationZh ?? "",
-          translationEn: candidate.translationEn ?? "",
-          explanationZh: candidate.explanationZh ?? "",
-          ipa: candidate.ipa ?? "",
-          forms: candidate.forms ?? [lemma]
-        }
-      : { ...candidate, ...await describeWithDeepSeek(lemma) };
+    try {
+      const verb = tryConjugateVerb(lemma);
+      const useMockAi = Boolean(process.env.LEXICON_SEED_MOCK_RESPONSES);
+      const ai = dryRun && !useMockAi
+        ? {
+            partOfSpeech: verb ? "verb" : candidate.partOfSpeech,
+            level: candidate.level ?? "A1",
+            translationZh: candidate.translationZh ?? "",
+            translationEn: candidate.translationEn ?? "",
+            explanationZh: candidate.explanationZh ?? "",
+            ipa: candidate.ipa ?? "",
+            forms: candidate.forms ?? [lemma]
+          }
+        : { ...candidate, ...await describeWithDeepSeek(lemma) };
 
-    const shape = finalizeLexiconShape({ lemma, ai, candidate, verb });
-    const forms = shape.forms;
-    const examples = await findExamples(forms, tatoebaPath);
-    if (examples.length === 0) {
-      throw new Error(`No Tatoeba examples found for ${lemma}; refusing to write an empty examples array`);
-    }
+      const shape = finalizeLexiconShape({ lemma, ai, candidate, verb });
+      const forms = shape.forms;
+      const examples = await resolveExamples(lemma, forms, tatoebaPath);
 
-    const input = {
-      kind: "word",
-      lemma,
-      displayForm: lemma,
-      forms,
-      partOfSpeech: shape.partOfSpeech,
-      level: ai.level,
-      ipa: ai.ipa,
-      translationZh: ai.translationZh,
-      translationEn: ai.translationEn,
-      explanationZh: ai.explanationZh,
-      examples,
-      morphology: shape.morphology,
-      collocations: [],
-      sources: ["tatoeba", "llm-deepseek"],
-      licenseCode: "CC-BY-2.0-FR",
-      qualityScore: 1
-    };
+      const input = {
+        kind: "word",
+        lemma,
+        displayForm: lemma,
+        forms,
+        partOfSpeech: shape.partOfSpeech,
+        level: ai.level,
+        ipa: ai.ipa,
+        translationZh: ai.translationZh,
+        translationEn: ai.translationEn,
+        explanationZh: ai.explanationZh,
+        examples,
+        morphology: shape.morphology,
+        collocations: [],
+        sources: unique(["tatoeba", "llm-deepseek", ...examples.map((example) => example.source)]),
+        licenseCode: "CC-BY-2.0-FR",
+        qualityScore: 1
+      };
 
-    if (dryRun) console.log(JSON.stringify(input));
-    else {
-      await upsertLexiconEntry(input);
-      console.log(`Wrote LexiconEntry ${lemma}`);
-      done.add(lemma);
-      progress.done = [...done];
-      await writeProgress(progress);
+      if (dryRun) {
+        console.log(JSON.stringify(input));
+        stats.dryRun += 1;
+      } else {
+        await upsertLexiconEntry(input);
+        console.log(`Wrote LexiconEntry ${lemma}`);
+        done.add(lemma);
+        progress.done = [...done];
+        await writeProgress(progress);
+        stats.written += 1;
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(`[skip] ${lemma}: ${reason}`);
+      stats.skipped += 1;
+      skipped.push({ lemma, reason, at: new Date().toISOString() });
     }
   });
+
+  await writeSkipped(skippedPath, skipped);
+  console.log(`Seed summary written=${stats.written} dryRun=${stats.dryRun} skipped=${stats.skipped}`);
+  if (skipped.length > 0) console.log(`Skipped report: ${skippedPath}`);
 }
 
 main().catch((error) => {
