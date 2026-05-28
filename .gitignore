@@ -29,4 +29,6 @@ data/tatoeba/
 data/tatoeba-es-zh.jsonl
 data/lexicon-progress.json
 data/lexicon-skipped.json
+data/lexicon-phrase-progress.json
 .tmp-lex001/
+.tmp-lex001-phase3/

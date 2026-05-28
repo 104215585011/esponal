@@ -1,3 +1,33 @@
+## Codex1 Dev Report: LEX-001 Phase 3 phrase candidates + seed tooling
+**Time**: 2026-05-28 22:05
+**Developer**: Codex1
+**Status**: Ready for Codex2 QA on tooling; PM review is required before phrase DB seeding. `LEX-001` remains `ready_for_qa`, not `passing`.
+
+### Implemented
+- Added `scripts/lexicon/generate-phrase-candidates.mjs`, a DeepSeek V3-backed CSV generator for A1-A2 collocations, phrases, and idioms. Default output is stdout/dry preview; `--write --output data/phrases-a1-a2-candidates.csv` writes the review file.
+- Added `scripts/lexicon/seed-a1-a2-phrases.mjs`, a safe dry-run-by-default seed script for the reviewed CSV (`data/phrases-a1-a2-seed.csv`). It supports `--write`, `--limit`, `--resume`, `--concurrency`, `--csv`, and `--help`.
+- Added shared phrase CSV parsing/deduping helpers in `scripts/lexicon/phrase-utils.mjs`.
+- Added `scripts/lexicon/env-loader.mjs` and wired `seed-a1-a2-words.mjs` to it so raw Node scripts can load `.env.local` / `.env` without committing secrets or overriding existing env vars.
+- Generated `data/phrases-a1-a2-candidates.csv` for PM review: 501 rows total, with 201 `collocation`, 200 `phrase`, and 100 `idiom` candidates.
+
+### Seed behavior
+- Reviewed CSV rows with `keep=0` are skipped.
+- Phrase kinds map into lexicon `kind` values `collocation`, `phrase`, or `idiom`.
+- The seed script prefers Tatoeba ES-ZH examples and falls back to DeepSeek-generated simple ES-ZH examples with `source: "llm-generated"` when needed.
+- DB writes remain explicit-only via `--write`; no phrase rows were written in this implementation pass because PM must review the candidate CSV first.
+
+### Verification
+- Red checks: new Phase 3 script tests failed before the generator/seed/env-loader files existed.
+- `npm run lint:encoding -- --files scripts/lexicon/env-loader.mjs scripts/lexicon/phrase-utils.mjs scripts/lexicon/generate-phrase-candidates.mjs scripts/lexicon/seed-a1-a2-phrases.mjs scripts/lexicon/seed-a1-a2-words.mjs tests/lex001-env-loader.test.mjs tests/lex001-phase3.test.mjs data/phrases-a1-a2-candidates.csv`: pass.
+- `node --test tests\lex001-env-loader.test.mjs tests\lex001-phase3.test.mjs tests\lex001-phase2-scripts.test.mjs tests\lex001-pos-normalize.test.mjs tests\lex001-pos-cleanup.test.mjs`: 16/16 pass.
+- `node --check scripts\lexicon\generate-phrase-candidates.mjs`, `node --check scripts\lexicon\seed-a1-a2-phrases.mjs`, `node --check scripts\lexicon\seed-a1-a2-words.mjs`: pass.
+- `node scripts\lexicon\generate-phrase-candidates.mjs --write --output data\phrases-a1-a2-candidates.csv`: `Phrase candidates=501 written=501`.
+- `npm test`: 278/278 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+### Next
+PM should review `data/phrases-a1-a2-candidates.csv`, edit `keep`, and save the approved file as `data/phrases-a1-a2-seed.csv`. After that, Codex1/PM can run `node scripts\lexicon\seed-a1-a2-phrases.mjs --csv data\phrases-a1-a2-seed.csv --write --concurrency 5`, then Codex2 and PM can sample the inserted phrase entries.
+
 ## Codex1 Dev Fix Report: LEX-001 Phase 2.5 POS normalization cleanup
 **Time**: 2026-05-28 19:15
 **Developer**: Codex1

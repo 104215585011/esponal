@@ -5,6 +5,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import readline from "node:readline";
 import { PrismaClient } from "@prisma/client";
+import { loadEnvFiles } from "./env-loader.mjs";
 import { normalizeLexiconPartOfSpeech } from "./pos-normalize.mjs";
 
 const DEFAULT_TATOEBA_PAIRS_PATH = "data/tatoeba-es-zh.jsonl";
@@ -500,6 +501,7 @@ async function main() {
   const concurrency = Number(readOption("--concurrency", String(DEFAULT_CONCURRENCY)));
   const tatoebaPath = readOption("--tatoeba", DEFAULT_TATOEBA_PAIRS_PATH);
   const skippedPath = readOption("--skipped", SKIPPED_PATH);
+  await loadEnvFiles();
   await requireTatoebaPairs(tatoebaPath);
   const { tryConjugateVerb } = await import("../../src/lib/conjugate.ts");
 
