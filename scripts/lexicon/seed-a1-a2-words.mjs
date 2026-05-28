@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Timestamp: 2026-05-28 18:40
+// Timestamp: 2026-05-28 19:08
 import { createReadStream } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import readline from "node:readline";
 import { PrismaClient } from "@prisma/client";
+import { normalizeLexiconPartOfSpeech } from "./pos-normalize.mjs";
 
 const DEFAULT_TATOEBA_PAIRS_PATH = "data/tatoeba-es-zh.jsonl";
 const PROGRESS_PATH = "data/lexicon-progress.json";
@@ -381,12 +382,7 @@ function normalizePartOfSpeech(ai, candidate, verb) {
   const raw = normalizeText(ai.partOfSpeech);
   const candidatePos = normalizeText(candidate.partOfSpeech);
 
-  if (raw === "verb" && verb) return "verb";
-  if (raw === "adj" || raw === "adjective") return "adj";
-  if (raw === "adv" || raw === "adverb") return "adv";
-  if (raw === "prep" || raw === "preposition") return "prep";
-  if (raw === "conj" || raw === "conjunction") return "conj";
-  if (raw === "interjection") return "interjection";
+  if (normalizeLexiconPartOfSpeech(raw) === "verb" && verb) return "verb";
 
   if (raw === "noun" || raw === "sustantivo" || raw.startsWith("noun_")) {
     if (raw === "noun_m" || raw === "noun_f" || raw === "noun_mf") return raw;
@@ -400,7 +396,7 @@ function normalizePartOfSpeech(ai, candidate, verb) {
     return "noun_mf";
   }
 
-  return raw || candidatePos || null;
+  return normalizeLexiconPartOfSpeech(raw) ?? normalizeLexiconPartOfSpeech(candidatePos);
 }
 
 function finalizeLexiconShape({ lemma, ai, candidate, verb }) {

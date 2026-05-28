@@ -1,3 +1,38 @@
+## Codex1 Dev Fix Report: LEX-001 Phase 2.5 POS normalization cleanup
+**Time**: 2026-05-28 19:15
+**Developer**: Codex1
+**Status**: Ready for Codex2/PM re-QA. Phase 2 word seed pipe now normalizes DeepSeek POS variants before output/write.
+
+### Fixed
+- Added `scripts/lexicon/pos-normalize.mjs` with a word POS whitelist and mapper for DeepSeek variants such as `adjective/adverb`, `adjective/noun`, `determinante`, and `determinante posesivo`.
+- Wired `seed-a1-a2-words.mjs` to use the shared mapper before producing payloads or writing `LexiconEntry`.
+- Added `scripts/lexicon/normalize-lexicon-pos.mjs`, safe dry-run by default, to clean existing `LexiconEntry.kind="word"` rows.
+- Ran the cleanup against the current DB: 359 rows scanned, 8 dirty rows updated, final dry-run reported `valid=359 updates=0 unknown=0`.
+
+### DB rows cleaned
+- `aquel`: `determinante` -> `determiner`
+- `ese`: `determinante` -> `determiner`
+- `este`: `determinante` -> `determiner`
+- `nuestro`: `determinante posesivo` -> `determiner`
+- `derecho`: `adjective/noun` -> `adj`
+- `mexicano`: `adjective/noun` -> `adj`
+- `primero`: `adjective/adverb` -> `adj`
+- `rápido`: `adjective/adverb` -> `adj`
+
+### Verification
+- Red checks: new POS normalizer and cleanup planner tests failed before implementation.
+- `node --test tests\lex001-phase2-scripts.test.mjs tests\lex001-pos-cleanup.test.mjs tests\lex001-pos-normalize.test.mjs`: 12/12 pass.
+- `node --check scripts\lexicon\seed-a1-a2-words.mjs`: pass.
+- `node --check scripts\lexicon\normalize-lexicon-pos.mjs`: pass.
+- `npm run lint:encoding -- --files scripts/lexicon/seed-a1-a2-words.mjs scripts/lexicon/pos-normalize.mjs scripts/lexicon/normalize-lexicon-pos.mjs tests/lex001-phase2-scripts.test.mjs tests/lex001-pos-normalize.test.mjs tests/lex001-pos-cleanup.test.mjs`: pass.
+- `node scripts\lexicon\normalize-lexicon-pos.mjs --write`: updated 8 rows.
+- `node scripts\lexicon\normalize-lexicon-pos.mjs`: `rows=359 valid=359 updates=0 unknown=0 dryRun=true`.
+- `npm test`: 274/274 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+### Next
+Phase 3 can start on top of a clean Phase 2 word lexicon. Codex2 can focus QA on POS whitelist coverage, seed behavior with mocked dirty DeepSeek labels, cleanup planner behavior, and DB dry-run showing zero pending updates.
+
 ## Codex1 Dev Fix Report: LEX-001 Phase 2 batch resilience + LLM example fallback
 **Time**: 2026-05-28 18:40
 **Developer**: Codex1

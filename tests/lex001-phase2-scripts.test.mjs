@@ -28,7 +28,8 @@ async function withTatoebaFixture(name, fn) {
       { es: "He hablado con Ana.", zh: "he hablado", esId: 3, zhId: 4 },
       { es: "Bebo agua.", zh: "bebo agua", esId: 5, zhId: 6 },
       { es: "La casa es buena.", zh: "casa buena", esId: 7, zhId: 8 },
-      { es: "Leo un libro bueno.", zh: "libro bueno", esId: 9, zhId: 10 }
+      { es: "Leo un libro bueno.", zh: "libro bueno", esId: 9, zhId: 10 },
+      { es: "Mi casa es pequena.", zh: "mi casa", esId: 11, zhId: 12 }
     ].map((item) => JSON.stringify(item)).join("\n") + "\n",
     "utf8"
   );
@@ -44,7 +45,8 @@ test("LEX-001 Phase 2 scripts expose --help without running main work", async ()
   for (const script of [
     "scripts/lexicon/download-tatoeba.mjs",
     "scripts/lexicon/parse-tatoeba.mjs",
-    "scripts/lexicon/seed-a1-a2-words.mjs"
+    "scripts/lexicon/seed-a1-a2-words.mjs",
+    "scripts/lexicon/normalize-lexicon-pos.mjs"
   ]) {
     const { stdout, stderr } = await runNode([script, "--help"]);
     assert.match(stdout, /Usage:/);
@@ -201,6 +203,59 @@ test("LEX-001 Phase 2 seed normalizes AI noun and adjective morphology", async (
       fem_sg: "buena",
       fem_pl: "buenas"
     });
+  });
+});
+
+test("LEX-001 Phase 2 seed maps DeepSeek part-of-speech variants before output", async () => {
+  await withTatoebaFixture("pos-variants", async (fixturePath) => {
+    const mockResponses = {
+      bueno: {
+        partOfSpeech: "adjective/adverb",
+        level: "A1",
+        translationZh: "good",
+        translationEn: "good",
+        explanationZh: "adjective",
+        ipa: "bueno",
+        forms: ["bueno"]
+      },
+      mi: {
+        partOfSpeech: "determinante posesivo",
+        level: "A1",
+        translationZh: "my",
+        translationEn: "my",
+        explanationZh: "possessive determiner",
+        ipa: "mi",
+        forms: ["mi"]
+      }
+    };
+
+    const { stdout } = await runNode([
+      "scripts/lexicon/seed-a1-a2-words.mjs",
+      "--lemmas",
+      "bueno,mi",
+      "--tatoeba",
+      fixturePath,
+      "--limit",
+      "2",
+      "--concurrency",
+      "1"
+    ], {
+      env: {
+        ...process.env,
+        LEXICON_SEED_MOCK_RESPONSES: JSON.stringify(mockResponses)
+      }
+    });
+
+    const entries = stdout
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("{"))
+      .map((line) => JSON.parse(line));
+    const bueno = entries.find((entry) => entry.lemma === "bueno");
+    const mi = entries.find((entry) => entry.lemma === "mi");
+
+    assert.equal(bueno.partOfSpeech, "adj");
+    assert.equal(mi.partOfSpeech, "determiner");
+    assert.doesNotMatch(stdout, /adjective\/adverb|determinante posesivo/);
   });
 });
 
