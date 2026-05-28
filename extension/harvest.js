@@ -9,7 +9,11 @@ const ESPONAL_INGEST_TOKEN =
 const MIN_HARVEST_CUES = 5;
 
 function getVideoId() {
-  return new URLSearchParams(location.search).get("v")?.trim() || "";
+  const v = new URLSearchParams(location.search).get("v")?.trim();
+  if (v) return v;
+
+  const match = location.pathname.match(/\/embed\/([^/?#]+)/);
+  return match ? match[1].trim() : "";
 }
 
 function isSpanishLang(code) {
@@ -155,15 +159,12 @@ async function startHarvest() {
 
   window.__esponalHarvested = videoId;
 
-  const tracks = await getPlayerCaptionTracks();
-  const spanishTracks = tracks.filter((track) => track?.languageCode?.startsWith("es"));
-
-  if (spanishTracks.length === 0) {
-    return;
-  }
-
+  // Always listen and install hook for subtitle capturing on matched pages
   listenForTimedtextCaptures();
   await installTimedtextHook();
+
+  // Query tracks asynchronously for compatibility and telemetry
+  void getPlayerCaptionTracks().catch(() => {});
 }
 
 startHarvest().catch((error) => {

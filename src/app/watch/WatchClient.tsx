@@ -81,6 +81,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const [videoEnded, setVideoEnded] = useState(false);
   const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "lookup" | "related">("subtitle");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<number | null>(null);
@@ -241,6 +242,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
         {/* Subtitle Panel (Directly below player on desktop, hidden on mobile in tabs) */}
         <div className="hidden lg:block mt-3 shrink-0">
           <SubtitlePanel
+            key={`subtitle-${videoId}-${refreshKey}`}
             currentTimeSec={currentTimeSec}
             onLookup={handleLookup}
             playbackRate={playbackRate}
@@ -265,18 +267,32 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
               <span>{videoInfo.channelTitle}</span>
             </div>
 
-            {/* YouTube Login Link */}
-            <a
-              href="https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/20 px-3 py-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:border-red-200 hover:bg-red-50/30 hover:text-red-650 dark:hover:border-red-950/50 dark:hover:bg-red-950/10 dark:hover:text-red-400 transition-all duration-200"
-            >
-              <svg className="h-3.5 w-3.5 fill-current text-red-600 dark:text-red-400" viewBox="0 0 24 24">
-                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.5 12 3.5 12 3.5s-7.518 0-9.388.553a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.553 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.553 9.388.553 9.388.553s7.518 0 9.388-.553a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-              登录 YouTube
-            </a>
+            <div className="flex items-center gap-2">
+              {/* Refresh Subtitles Button */}
+              <button
+                onClick={() => setRefreshKey((prev) => prev + 1)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/20 px-3 py-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:border-brand-200 hover:bg-brand-50/30 hover:text-brand-700 dark:hover:border-brand-950/50 dark:hover:bg-brand-950/10 dark:hover:text-brand-400 transition-all duration-200"
+                type="button"
+              >
+                <svg className="h-3.5 w-3.5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                刷新字幕
+              </button>
+
+              {/* YouTube Login Link */}
+              <a
+                href="https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/20 px-3 py-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:border-red-200 hover:bg-red-50/30 hover:text-red-650 dark:hover:border-red-950/50 dark:hover:bg-red-950/10 dark:hover:text-red-400 transition-all duration-200"
+              >
+                <svg className="h-3.5 w-3.5 fill-current text-red-600 dark:text-red-400" viewBox="0 0 24 24">
+                  <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.5 12 3.5 12 3.5s-7.518 0-9.388.553a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.553 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.553 9.388.553 9.388.553s7.518 0 9.388-.553a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                登录 YouTube
+              </a>
+            </div>
           </div>
         </div>
 
@@ -304,6 +320,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
         <div className="mt-4 lg:hidden">
           {mobileTab === "subtitle" && (
             <SubtitlePanel
+              key={`subtitle-mobile-${videoId}-${refreshKey}`}
               currentTimeSec={currentTimeSec}
               onLookup={handleLookup}
               playbackRate={playbackRate}
@@ -314,6 +331,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           {mobileTab === "transcript" && (
             <div className="h-[450px] border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-surface">
               <TranscriptPanel
+                key={`transcript-mobile-${videoId}-${refreshKey}`}
                 currentTimeSec={currentTimeSec}
                 onLookup={handleLookup}
                 onSeek={handleSeek}
@@ -438,6 +456,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       {/* Desktop Transcript Panel (inline, below subtitle on desktop) */}
       <section className="hidden lg:block lg:w-[340px] lg:shrink-0 border-l border-zinc-200 dark:border-zinc-800 h-full bg-surface">
         <TranscriptPanel
+          key={`transcript-${videoId}-${refreshKey}`}
           currentTimeSec={currentTimeSec}
           onLookup={handleLookup}
           onSeek={handleSeek}
