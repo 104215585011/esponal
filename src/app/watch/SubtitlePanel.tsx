@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 09:20
+// Timestamp: 2026-05-28 17:30
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -18,9 +18,11 @@ type SubtitlePanelProps = {
     translatedSentence?: string;
     source?: any;
   }) => void;
+  onCloseLookup?: () => void;
   playbackRate: number;
   onSpeedChange: (speed: number) => void;
   videoId: string;
+  onCueChange?: (spanish: string, chinese: string, activeCue: SubtitleCue | null) => void;
 };
 
 type HighlightStatus = "course" | "saved" | "unknown";
@@ -56,9 +58,11 @@ function splitSubtitleTokens(text: string) {
 export function SubtitlePanel({
   currentTimeSec,
   onLookup,
+  onCloseLookup,
   playbackRate,
   onSpeedChange,
-  videoId
+  videoId,
+  onCueChange
 }: SubtitlePanelProps) {
   // Constants kept for WEB-006 test assertions
   const COURSE_HIGHLIGHT = "#86EFAC";
@@ -77,8 +81,7 @@ export function SubtitlePanel({
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const settingsRef = useRef<HTMLDivElement | null>(null);
 
-  // Kept for WEB-005 test assertion compatibility
-  const [dummyActiveLookup, setActiveLookup] = useState<any>(null);
+  const [activeLookup, setActiveLookup] = useState<{ form: string; sentence: string } | null>(null);
 
   // Initialize subtitle settings from localStorage
   useEffect(() => {
@@ -224,6 +227,26 @@ export function SubtitlePanel({
 
   // Fetch vocabulary highlights
   const subtitleTokens = useMemo(() => splitSubtitleTokens(spanishLine), [spanishLine]);
+
+  const activeWordIndex = useMemo(() => {
+    if (!activeCue || activeCue.dur <= 0) return -1;
+    const wordIndices: number[] = [];
+    subtitleTokens.forEach((token, idx) => {
+      if (normalizeLookupWord(token)) {
+        wordIndices.push(idx);
+      }
+    });
+    if (wordIndices.length === 0) return -1;
+    const elapsed = currentTimeSec - activeCue.start;
+    const progress = Math.min(Math.max(0, elapsed / activeCue.dur), 0.99);
+    const wordProgressIndex = Math.floor(progress * wordIndices.length);
+    return wordIndices[wordProgressIndex] ?? -1;
+  }, [activeCue, subtitleTokens, currentTimeSec]);
+
+  // Report changes back to parent
+  useEffect(() => {
+    onCueChange?.(spanishLine, chineseLine, activeCue);
+  }, [spanishLine, chineseLine, activeCue, onCueChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -414,6 +437,7 @@ export function SubtitlePanel({
                 {subtitleTokens.map((token, index) => {
                   const normalizedWord = normalizeLookupWord(token);
                   const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+                  const isWordActive = index === activeWordIndex;
 
                   // In light mode, #86EFAC (light green) and #93C5FD (light blue) have poor contrast
                   // We map them to premium high-contrast accessible styling
@@ -430,11 +454,15 @@ export function SubtitlePanel({
                     <span
                       className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-150 dark:hover:bg-zinc-800/80 ${colorClass} ${
                         highlightStatus === "saved"
-                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
+                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-550"
                           : ""
-                      }`}
+                      } ${isWordActive ? "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold" : ""}`}
                       key={`${token}-${index}`}
                       onClick={() => {
+                        setActiveLookup({
+                          form: normalizedWord,
+                          sentence: spanishLine
+                        });
                         onLookup({
                           form: normalizedWord,
                           originalSentence: spanishLine,
@@ -444,6 +472,10 @@ export function SubtitlePanel({
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
+                          setActiveLookup({
+                            form: normalizedWord,
+                            sentence: spanishLine
+                          });
                           onLookup({
                             form: normalizedWord,
                             originalSentence: spanishLine,
@@ -475,14 +507,16 @@ export function SubtitlePanel({
         )}
       </div>
 
-      {/* Hidden dummy components and logic for WEB-005/WEB-006 test compatibility */}
-      {dummyActiveLookup && (
-        <div className="hidden" data-testid="dummy-active-lookup-card">
+      {activeLookup && (
+        <div className="mt-4 flex justify-center" data-testid="dummy-active-lookup-card">
           <LookupCard
             currentTimeSec={currentTimeSec}
-            form={dummyActiveLookup.form}
-            onClose={() => setActiveLookup(null)}
-            originalSentence={dummyActiveLookup.sentence}
+            form={activeLookup.form}
+            onClose={() => {
+              setActiveLookup(null);
+              onCloseLookup?.();
+            }}
+            originalSentence={activeLookup.sentence}
             translatedSentence={chineseLine}
           />
         </div>

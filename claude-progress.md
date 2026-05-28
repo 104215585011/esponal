@@ -1,3 +1,49 @@
+### Session #WATCH-002-FIX - 2026-05-28 17:30
+
+**Goal**: Restore inline lookup behavior, enable word-level timing highlight under video/fullscreen overlay, and fix the pause/resume sync when closing the lookup cards.
+
+**Completed**:
+- Removed word lookup tab from desktop `WatchSidebar.tsx` and mobile tabs in `WatchClient.tsx` to restore inline popover behavior.
+- Added local `activeLookup` state to both `SubtitlePanel.tsx` and `TranscriptPanel.tsx` so clicking a word pops up the `LookupCard` directly below the subtitle line or active transcript cue.
+- Introduced `onCloseLookup` prop in `SubtitlePanel` and `TranscriptPanel` and wired it to `handleCloseLookup` in `WatchClient` to resume video playback automatically when the inline card is closed.
+- Implemented fullscreen overlay subtitles in `WatchClient.tsx` with active word spoken-level highlighting, supporting fullscreen interactive lookups.
+- Verified all changes through static code check, full test suite (`npm test`), and production build.
+
+**Verification**:
+- `npm test`: 267/267 tests pass.
+- `npm run build`: Build succeeded.
+- Visual inspection confirms local/fullscreen active word highlighting and inline lookup cards.
+
+**Status**: `WATCH-002` is fully `passing` and ready for QA / PM final sign-off.
+
+---
+
+### Session #LEX-001-PHASE-2-NOUN-FIX - 2026-05-28 18:08
+
+**Goal**: Fix PM-rejected noun/adjective morphology in the LEX-001 Phase 2 seed `--write` path.
+
+**Completed**:
+- Added final seed payload normalization for noun/adjective/verb shapes before dry-run output or Prisma upsert.
+- Preserved structured course metadata when DeepSeek returns generic `partOfSpeech: "noun"`, so nouns keep `noun_m` / `noun_f`.
+- Added deterministic noun plural and `{ singular, plural }` morphology.
+- Added deterministic adjective four-form morphology for `bueno`-style adjectives.
+- Kept verb morphology path unchanged and verified `hablar` still writes 85 forms.
+- Added mock DeepSeek behavior coverage for `casa/libro/bueno` and fixed LEX fixture isolation for concurrent test runs.
+
+**Verification**:
+- `node --test tests\lex001-phase2-scripts.test.mjs`: 6/6 pass.
+- `node --test tests\lex001-conjugate.test.mjs tests\lex001-phase2-scripts.test.mjs`: 7/7 pass.
+- `node --check scripts\lexicon\seed-a1-a2-words.mjs`: pass.
+- `npm run lint:encoding -- --files scripts/lexicon/seed-a1-a2-words.mjs tests/lex001-phase2-scripts.test.mjs`: pass.
+- Real write smoke: `node scripts\lexicon\seed-a1-a2-words.mjs --write --lemmas casa,agua,libro,bueno,hablar --limit 5 --concurrency 1` wrote all 5 rows after rerun outside the sandbox.
+- DB spot check confirmed `casa/agua/libro` have gendered noun POS, plural forms, noun morphology; `bueno` has four adjective forms; `hablar` remains 85 forms with full verb morphology; all five have 3 examples.
+- `npm test`: 268/268 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `LEX-001` is `ready_for_qa`; Codex2/PM can rerun seed `--write --limit 10/100`. DB currently contains the 5 smoke rows unless PM clears them first.
+
+---
+
 ### Session #LEX-001-PHASE-2-FIX - 2026-05-28 16:44
 
 **Goal**: Repair the PM-rejected LEX-001 Phase 2 seed tooling bugs before Codex2/PM re-QA.

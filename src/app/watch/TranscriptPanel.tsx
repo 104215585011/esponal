@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 09:30
+// Timestamp: 2026-05-28 17:30
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -28,6 +28,7 @@ type TranscriptPanelProps = {
     translatedSentence?: string;
     source?: any;
   }) => void;
+  onCloseLookup?: () => void;
   onSeek: (seconds: number) => void;
   videoId: string;
 };
@@ -155,10 +156,12 @@ function chunkWords(words: string[]) {
 export function TranscriptPanel({
   currentTimeSec,
   onLookup,
+  onCloseLookup,
   onSeek,
   videoId
 }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
+  const [activeLookup, setActiveLookup] = useState<{ cueIndex: number; form: string } | null>(null);
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
   const [subtitleHint, setSubtitleHint] = useState<SubtitleHint | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
@@ -376,6 +379,7 @@ export function TranscriptPanel({
       setFollowMode(true);
       setRenderStart(0);
       setRenderEnd(INITIAL_RENDER_COUNT);
+      setActiveLookup(null);
 
       try {
         const response = await fetch(
@@ -821,6 +825,10 @@ export function TranscriptPanel({
                                 key={`${token}-${tokenIndex}`}
                                 onClick={(event) => {
                                   event.stopPropagation();
+                                  setActiveLookup({
+                                    cueIndex: index,
+                                    form: normalizedWord
+                                  });
                                   onLookup({
                                     form: normalizedWord,
                                     originalSentence: cue.text.trim(),
@@ -831,6 +839,10 @@ export function TranscriptPanel({
                                   if (event.key === "Enter" || event.key === " ") {
                                     event.preventDefault();
                                     event.stopPropagation();
+                                    setActiveLookup({
+                                      cueIndex: index,
+                                      form: normalizedWord
+                                    });
                                     onLookup({
                                       form: normalizedWord,
                                       originalSentence: cue.text.trim(),
@@ -855,6 +867,21 @@ export function TranscriptPanel({
                       </p>
                     ) : null}
                   </button>
+
+                  {activeLookup?.cueIndex === index && (
+                    <div className="relative mt-3 z-10" data-testid="dummy-active-lookup-card">
+                      <LookupCard
+                        currentTimeSec={currentTimeSec}
+                        form={activeLookup.form}
+                        onClose={() => {
+                          setActiveLookup(null);
+                          onCloseLookup?.();
+                        }}
+                        originalSentence={cue.text.trim()}
+                        translatedSentence={translation}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}

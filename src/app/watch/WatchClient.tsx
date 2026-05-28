@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 16:50
+// Timestamp: 2026-05-28 17:30
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -10,6 +10,19 @@ import { WatchSidebar } from "./WatchSidebar";
 import { LookupCard } from "./LookupCard";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { getPlaybackRate, setPlaybackRate as globalSetPlaybackRate } from "@/lib/playback-rate";
+
+function normalizeLookupWord(token: string) {
+  return token
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/^[^a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00fc]+|[^a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00fc]+$/gi, "")
+    .trim();
+}
+
+function splitSubtitleTokens(text: string) {
+  return text.match(/\S+|\s+/g) ?? [];
+}
 
 type WatchClientProps = {
   videoId: string;
@@ -79,9 +92,34 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [videoEnded, setVideoEnded] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "lookup" | "related">("subtitle");
+  const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "related">("subtitle");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentSpanish, setCurrentSpanish] = useState("");
+  const [currentChinese, setCurrentChinese] = useState("");
+  const [activeCue, setActiveCue] = useState<any>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = () => {
+    if (!playerContainerRef.current) return;
+    if (!document.fullscreenElement) {
+      playerContainerRef.current.requestFullscreen().catch((err) => {
+        console.error("Error attempting to enable fullscreen", err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
 
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<number | null>(null);
@@ -178,8 +216,6 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   // Handle word clicked lookup triggering pause
   const handleLookup = useCallback((lookup: ActiveLookup) => {
     setActiveLookup(lookup);
-    setMobileTab("lookup");
-    setIsSidebarOpen(true);
     try {
       if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
         playerRef.current.pauseVideo();
@@ -225,18 +261,108 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       <section className="flex flex-1 min-w-0 flex-col px-4 py-4 lg:justify-start lg:overflow-y-auto lg:pr-6 lg:py-8">
         <BackLink href="/" label="视频" />
 
-        {/* Video Player */}
-        <div className="w-full shrink-0 overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2">
-          <div className="aspect-video w-full">
+        {/* Video Player wrapper (relative container for fullscreen subtitles and custom fullscreen button) */}
+        <div
+          ref={playerContainerRef}
+          className={`relative w-full shrink-0 overflow-hidden bg-black shadow-elevated lg:mt-2 ${
+            isFullscreen ? "w-screen h-screen flex items-center justify-center rounded-none" : "rounded-surface aspect-video"
+          }`}
+        >
+          <div className={`${isFullscreen ? "w-full h-full max-w-7xl aspect-video relative flex items-center justify-center" : "aspect-video w-full"}`}>
             <iframe
               allow="autoplay; encrypted-media; fullscreen"
               allowFullScreen
               className="h-full w-full border-0"
               id={PLAYER_IFRAME_ID}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1`}
+              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=0`}
               title={videoInfo.title}
             />
           </div>
+
+          {/* Fullscreen Subtitle Overlay and floating LookupCard */}
+          {isFullscreen && currentSpanish && (
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-11/12 max-w-4xl pointer-events-none z-30 flex flex-col items-center">
+              {activeLookup && (
+                <div className="pointer-events-auto mb-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-elevated w-[300px]">
+                  <LookupCard
+                    currentTimeSec={currentTimeSec}
+                    form={activeLookup.form}
+                    onClose={handleCloseLookup}
+                    originalSentence={activeLookup.originalSentence}
+                    translatedSentence={activeLookup.translatedSentence ?? ""}
+                  />
+                </div>
+              )}
+
+              <div className="pointer-events-auto bg-black/75 backdrop-blur-md px-6 py-3 rounded-xl text-center shadow-lg border border-white/10 select-none">
+                <p className="text-white text-lg md:text-xl font-semibold tracking-wide leading-relaxed font-sans">
+                  {splitSubtitleTokens(currentSpanish).map((token, index, arr) => {
+                    const normalizedWord = normalizeLookupWord(token);
+                    if (!normalizedWord) {
+                      return <span key={`${token}-${index}`}>{token}</span>;
+                    }
+
+                    // Highlight currently spoken word
+                    let isWordActive = false;
+                    if (activeCue && activeCue.dur > 0) {
+                      const wordIndices: number[] = [];
+                      arr.forEach((t, idx) => {
+                        if (normalizeLookupWord(t)) {
+                          wordIndices.push(idx);
+                        }
+                      });
+                      const elapsed = currentTimeSec - activeCue.start;
+                      const progress = Math.min(Math.max(0, elapsed / activeCue.dur), 0.99);
+                      const activeWordIndex = wordIndices[Math.floor(progress * wordIndices.length)] ?? -1;
+                      isWordActive = index === activeWordIndex;
+                    }
+
+                    return (
+                      <span
+                        key={`${token}-${index}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLookup({
+                            form: normalizedWord,
+                            originalSentence: currentSpanish,
+                            translatedSentence: currentChinese
+                          });
+                        }}
+                        className={`cursor-pointer rounded px-0.5 transition hover:bg-white/20 ${
+                          isWordActive ? "bg-brand-500/30 text-brand-400 font-bold" : ""
+                        }`}
+                      >
+                        {token}
+                      </span>
+                    );
+                  })}
+                </p>
+                {currentChinese && (
+                  <p className="text-zinc-300 text-sm mt-1.5 font-medium">
+                    {currentChinese}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Custom Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            className="absolute bottom-4 right-4 z-20 p-2 rounded-lg bg-black/50 hover:bg-black/80 text-white transition-all duration-200"
+            type="button"
+            title={isFullscreen ? "退出全屏" : "全屏播放"}
+          >
+            {isFullscreen ? (
+              <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4.5 4.5M9 9H4.5M9 9V4.5M15 9l4.5-4.5M15 9h4.5M15 9V4.5M9 15l-4.5 4.5M9 15H4.5M9 15v4.5M15 15l4.5 4.5M15 15h4.5M15 15v-4.5" />
+              </svg>
+            ) : (
+              <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h-4.5m4.5 0L15 9M20.25 20.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* Subtitle Panel (Directly below player on desktop, hidden on mobile in tabs) */}
@@ -245,9 +371,15 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
             key={`subtitle-${videoId}-${refreshKey}`}
             currentTimeSec={currentTimeSec}
             onLookup={handleLookup}
+            onCloseLookup={handleCloseLookup}
             playbackRate={playbackRate}
             onSpeedChange={handleSpeedChange}
             videoId={videoId}
+            onCueChange={(spanish, chinese, cue) => {
+              setCurrentSpanish(spanish);
+              setCurrentChinese(chinese);
+              setActiveCue(cue);
+            }}
           />
         </div>
 
@@ -298,7 +430,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
 
         {/* Mobile Tab Switcher Options */}
         <div className="flex border-b border-zinc-200 dark:border-zinc-800 mt-6 lg:hidden shrink-0">
-          {(["subtitle", "transcript", "lookup", "related"] as const).map((tab) => (
+          {(["subtitle", "transcript", "related"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setMobileTab(tab)}
@@ -310,7 +442,6 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
             >
               {tab === "subtitle" && "字幕"}
               {tab === "transcript" && "转写"}
-              {tab === "lookup" && "查词"}
               {tab === "related" && "推荐"}
             </button>
           ))}
@@ -323,9 +454,15 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
               key={`subtitle-mobile-${videoId}-${refreshKey}`}
               currentTimeSec={currentTimeSec}
               onLookup={handleLookup}
+              onCloseLookup={handleCloseLookup}
               playbackRate={playbackRate}
               onSpeedChange={handleSpeedChange}
               videoId={videoId}
+              onCueChange={(spanish, chinese, cue) => {
+                setCurrentSpanish(spanish);
+                setCurrentChinese(chinese);
+                setActiveCue(cue);
+              }}
             />
           )}
           {mobileTab === "transcript" && (
@@ -334,37 +471,10 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
                 key={`transcript-mobile-${videoId}-${refreshKey}`}
                 currentTimeSec={currentTimeSec}
                 onLookup={handleLookup}
+                onCloseLookup={handleCloseLookup}
                 onSeek={handleSeek}
                 videoId={videoId}
               />
-            </div>
-          )}
-          {mobileTab === "lookup" && (
-            <div className="h-full min-h-[300px]">
-              {activeLookup ? (
-                <div className="relative rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/80 p-4 shadow-sm" data-testid="watch-mobile-lookup-card">
-                  <button
-                    onClick={handleCloseLookup}
-                    className="absolute right-4 top-4 text-xs text-zinc-400 hover:text-zinc-600 z-10"
-                  >
-                    关闭
-                  </button>
-                  <div className="pt-2">
-                    <LookupCard
-                      currentTimeSec={currentTimeSec}
-                      form={activeLookup.form}
-                      onClose={handleCloseLookup}
-                      originalSentence={activeLookup.originalSentence}
-                      translatedSentence={activeLookup.translatedSentence ?? ""}
-                      useStaticLayout={true}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex h-60 flex-col items-center justify-center text-center p-6 text-zinc-400">
-                  <p className="text-sm">点击字幕或转写中的单词进行查询</p>
-                </div>
-              )}
             </div>
           )}
           {mobileTab === "related" && (
@@ -459,6 +569,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           key={`transcript-${videoId}-${refreshKey}`}
           currentTimeSec={currentTimeSec}
           onLookup={handleLookup}
+          onCloseLookup={handleCloseLookup}
           onSeek={handleSeek}
           videoId={videoId}
         />
@@ -486,10 +597,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
         }`}
       >
         <WatchSidebar
-          activeLookup={activeLookup}
-          onCloseLookup={handleCloseLookup}
           relatedVideos={relatedVideos}
-          currentTimeSec={currentTimeSec}
         />
       </aside>
 
