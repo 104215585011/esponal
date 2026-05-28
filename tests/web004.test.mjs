@@ -47,3 +47,10 @@ test("WEB-004 transcript panel exists and watch page no longer mounts SubtitlePa
   assert.doesNotMatch(watchPage, /<SubtitlePanel/);
   assert.doesNotMatch(watchPage, /from\s+["']\.\/SubtitlePanel["']/);
 });
+
+test("WEB-004 bottom subtitle panel accepts object subtitle payloads", async () => {
+  const subtitlePanel = await readText("src/app/watch/SubtitlePanel.tsx");
+
+  assert.match(subtitlePanel, /payload\.cues\s*\?\?\s*\[\]/);
+  assert.match(subtitlePanel, /setSubtitleCues\(cues\)/);
+});

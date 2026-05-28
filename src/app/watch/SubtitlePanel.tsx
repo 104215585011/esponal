@@ -139,8 +139,9 @@ export function SubtitlePanel({
         }
 
         const payload = await response.json();
+        const cues = Array.isArray(payload) ? payload : payload.cues ?? [];
         if (cancelled) return;
-        setSubtitleCues(Array.isArray(payload) ? payload : []);
+        setSubtitleCues(cues);
       } catch (error) {
         console.error("Subtitle load failed", error);
         if (!cancelled) setSubtitleCues([]);

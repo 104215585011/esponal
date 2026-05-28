@@ -6,7 +6,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const exec = promisify(execFile);
-const fixturePath = ".tmp-lex001/tatoeba-es-zh.jsonl";
 
 async function runNode(args, options = {}) {
   return exec("node", args, {
@@ -17,8 +16,11 @@ async function runNode(args, options = {}) {
   });
 }
 
-async function withTatoebaFixture(fn) {
-  await mkdir(".tmp-lex001", { recursive: true });
+async function withTatoebaFixture(name, fn) {
+  const fixtureDir = `.tmp-lex001/${name}`;
+  const fixturePath = `${fixtureDir}/tatoeba-es-zh.jsonl`;
+
+  await mkdir(fixtureDir, { recursive: true });
   await writeFile(
     fixturePath,
     [
@@ -30,9 +32,9 @@ async function withTatoebaFixture(fn) {
   );
 
   try {
-    await fn();
+    await fn(fixturePath);
   } finally {
-    await rm(fixturePath, { force: true });
+    await rm(fixtureDir, { recursive: true, force: true });
   }
 }
 
@@ -51,7 +53,7 @@ test("LEX-001 Phase 2 scripts expose --help without running main work", async ()
 });
 
 test("LEX-001 Phase 2 seed defaults to dry-run and requires --write for DB writes", async () => {
-  await withTatoebaFixture(async () => {
+  await withTatoebaFixture("dry-run", async (fixturePath) => {
     const { stdout } = await runNode([
       "scripts/lexicon/seed-a1-a2-words.mjs",
       "--lemmas",
@@ -72,7 +74,8 @@ test("LEX-001 Phase 2 seed defaults to dry-run and requires --write for DB write
 });
 
 test("LEX-001 Phase 2 seed rejects missing Tatoeba examples before producing entries", async () => {
-  await rm(fixturePath, { force: true });
+  const fixturePath = ".tmp-lex001/missing/tatoeba-es-zh.jsonl";
+  await rm(".tmp-lex001/missing", { recursive: true, force: true });
 
   await assert.rejects(
     runNode([
@@ -89,7 +92,7 @@ test("LEX-001 Phase 2 seed rejects missing Tatoeba examples before producing ent
 });
 
 test("LEX-001 Phase 2 seed produces isolated verb and noun forms", async () => {
-  await withTatoebaFixture(async () => {
+  await withTatoebaFixture("isolated-forms", async (fixturePath) => {
     const { stdout } = await runNode([
       "scripts/lexicon/seed-a1-a2-words.mjs",
       "--lemmas",
