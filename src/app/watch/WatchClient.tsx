@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 11:00
+// Timestamp: 2026-05-28 14:26
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -221,11 +221,11 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   return (
     <div className="relative mx-auto flex w-full max-w-app-shell flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden">
       {/* Main Column: Player & Subtitles & Transcript */}
-      <section className="flex flex-1 min-w-0 flex-col px-4 py-4 lg:justify-start lg:overflow-y-auto lg:px-6 lg:py-8">
+      <section className="flex flex-1 min-w-0 flex-col px-4 py-4 lg:justify-start lg:overflow-y-auto lg:px-6 lg:py-8 lg:max-w-[60rem]">
         <BackLink href="/" label="视频" />
 
         {/* Video Player */}
-        <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2">
+        <div className="w-full shrink-0 overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2">
           <div className="aspect-video w-full">
             <iframe
               allow="autoplay; encrypted-media; fullscreen"
