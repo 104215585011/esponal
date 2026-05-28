@@ -80,17 +80,17 @@ export function AlphabetGrid({ letters }: AlphabetGridProps) {
 
     return (
       <div className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm px-0 sm:items-center sm:justify-center sm:px-4">
-        <div className="w-full rounded-t-card bg-surface dark:bg-zinc-900 shadow-elevated border border-zinc-250/20 dark:border-zinc-800/50 sm:max-w-lg sm:rounded-card p-5 glass-card">
-          <div className="flex items-start justify-between border-b border-zinc-150 dark:border-zinc-850 pb-4 mb-4">
+        <div className="w-full rounded-t-card bg-surface dark:bg-zinc-900 shadow-elevated border border-zinc-200/20 dark:border-zinc-800/50 sm:max-w-lg sm:rounded-card p-5 glass-card">
+          <div className="flex items-start justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4 mb-4">
             <div>
-              <div className="font-serif text-4xl leading-none text-zinc-950 dark:text-zinc-55">
+              <div className="font-serif text-4xl leading-none text-zinc-950 dark:text-zinc-100">
                 {selectedLetter.letter}
                 <span className="ml-1 text-[0.55em] font-sans font-normal text-zinc-500">{selectedLetter.letterLower}</span>
               </div>
               <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 font-display">{selectedLetter.name}</p>
             </div>
             <button
-              className="rounded-full border border-zinc-200 dark:border-zinc-800 px-4 py-1.5 text-sm text-zinc-650 dark:text-zinc-450 transition hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-brand-500"
+              className="rounded-full border border-zinc-200 dark:border-zinc-800 px-4 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 transition hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-brand-500"
               onClick={() => setSelectedLetter(null)}
               type="button"
             >
@@ -101,11 +101,11 @@ export function AlphabetGrid({ letters }: AlphabetGridProps) {
           <div className="max-h-[60vh] overflow-y-auto space-y-4 pr-1">
             {selectedLetter.rules.map((rule, index) => (
               <section
-                className={`${index === 0 ? "" : "border-t border-zinc-150 dark:border-zinc-800/80 pt-4"} ${index === selectedLetter.rules!.length - 1 ? "" : "pb-4"}`}
+                className={`${index === 0 ? "" : "border-t border-zinc-200 dark:border-zinc-800/80 pt-4"} ${index === selectedLetter.rules!.length - 1 ? "" : "pb-4"}`}
                 key={`${selectedLetter.slug}-${rule.condition}`}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-zinc-100 dark:bg-zinc-850 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                  <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                     {rule.condition}
                   </span>
                   <p className="text-sm text-zinc-700 dark:text-zinc-300 font-light">{rule.sound}</p>
@@ -134,8 +134,8 @@ export function AlphabetGrid({ letters }: AlphabetGridProps) {
                   {rule.words.map((word) => {
                     const key = `rule-word:${word.audioSlug}`;
                     return (
-                      <div className="flex items-center justify-between gap-3 rounded-card bg-zinc-50/50 dark:bg-zinc-950/20 px-3 py-2 border border-zinc-100/50 dark:border-zinc-850/20" key={word.audioSlug}>
-                        <p className="min-w-0 text-sm text-zinc-750 dark:text-zinc-350 font-light font-display">
+                      <div className="flex items-center justify-between gap-3 rounded-card bg-zinc-50/50 dark:bg-zinc-950/20 px-3 py-2 border border-zinc-100/50 dark:border-zinc-800/20" key={word.audioSlug}>
+                        <p className="min-w-0 text-sm text-zinc-700 dark:text-zinc-300 font-light font-display">
                           {word.text} · {word.zh}
                         </p>
                         <AudioButton

@@ -1,4 +1,4 @@
-/* Timestamp: 2026-05-27 08:45 */
+/* Timestamp: 2026-05-28 08:53 */
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap");
 
 @tailwind base;
@@ -78,6 +78,10 @@ body {
   text-decoration-color: #4b5563;
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+.dark .saved-word {
+  text-decoration-color: #9ca3af;
 }
 
 .ed-display {

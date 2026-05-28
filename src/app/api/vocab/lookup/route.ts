@@ -56,7 +56,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       ...entry,
-      isSaved: Boolean(savedWord)
+      isSaved: Boolean(savedWord),
+      wordId: savedWord?.id ?? null,
+      totalEncounters: savedWord ? savedWord.encounters.length : null
     });
   } catch (error) {
     reportLookupFailure(word, error);

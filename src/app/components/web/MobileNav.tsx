@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-28 08:40
 "use client";
 
 import Link from "next/link";
@@ -50,6 +51,13 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
     return item;
   });
 
+  const learningVisibleItems = visibleItems.filter(
+    (item) => item.label !== "拆解" && item.label !== "词库"
+  );
+  const toolVisibleItems = visibleItems.filter(
+    (item) => item.label === "拆解" || item.label === "词库"
+  );
+
   useEffect(() => {
     if (!open) {
       document.body.style.overflow = "";
@@ -76,7 +84,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
       <button
         aria-expanded={open}
         aria-label="打开导航菜单"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-card text-gray-500 transition hover:bg-muted hover:text-gray-900"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-card text-zinc-500 dark:text-zinc-400 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
         onClick={() => setOpen(true)}
         type="button"
       >
@@ -89,26 +97,47 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
 
       <div
         aria-hidden={!open}
-        className={`fixed inset-0 z-50 overflow-hidden bg-surface transition-opacity duration-200 ${
+        className={`fixed inset-0 z-50 overflow-hidden transition-opacity duration-300 ${
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         <button
           aria-label="关闭导航菜单"
-          className="absolute inset-0"
+          className="absolute inset-0 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setOpen(false)}
           type="button"
         />
 
         <aside
-          className={`absolute inset-y-0 right-0 flex w-full max-w-sm flex-col bg-surface transition-transform duration-200 ${
+          className={`absolute inset-y-0 right-0 flex w-full max-w-[280px] flex-col bg-white dark:bg-zinc-900 shadow-2xl border-l border-zinc-200/50 dark:border-zinc-800/50 transition-transform duration-300 ease-out ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-end px-4 pt-4">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800/50">
+            <Link className="flex items-center gap-2.5 group" href="/" onClick={() => setOpen(false)}>
+              <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 dark:from-brand-600 dark:to-teal-400 text-white shadow-md shadow-brand-500/20 dark:shadow-brand-950/20">
+                <svg className="h-4.5 w-4.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M18 6H8.5C6.567 6 5 7.567 5 9.5V14.5C5 16.433 6.567 18 8.5 18H18"
+                    stroke="currentColor"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M5 12H15"
+                    stroke="currentColor"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <span className="text-[17px] font-bold font-display tracking-tight text-zinc-900 dark:text-zinc-50">
+                Esponal
+              </span>
+            </Link>
             <button
               aria-label="关闭菜单"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-card text-gray-500 transition hover:text-gray-900"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 dark:text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200"
               onClick={() => setOpen(false)}
               type="button"
             >
@@ -119,26 +148,62 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
             </button>
           </div>
 
-          <nav className="mt-6 flex flex-col px-6">
-            {visibleItems.map((item) => {
-              const active = isActivePath(pathname, item.activeHref ?? item.href);
+          <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+            <div>
+              <div className="px-3 mb-2 text-[10px] font-bold tracking-wider uppercase text-zinc-400 dark:text-zinc-500">
+                学习
+              </div>
+              <div className="space-y-1">
+                {learningVisibleItems.map((item) => {
+                  const active = isActivePath(pathname, item.activeHref ?? item.href);
 
-              return (
-                <Link
-                  className={`border-b border-gray-100 px-0 py-4 text-xl font-medium transition ${
-                    active ? "text-brand-600" : "text-gray-800 hover:text-gray-900"
-                  }`}
-                  href={item.href}
-                  key={item.label}
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+                  return (
+                    <Link
+                      className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        active
+                          ? "bg-brand-50/60 dark:bg-brand-950/20 text-brand-600 dark:text-brand-400 border-l-2 border-brand-500 rounded-l-none"
+                          : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      }`}
+                      href={item.href}
+                      key={item.label}
+                      onClick={() => setOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <div className="px-3 mb-2 text-[10px] font-bold tracking-wider uppercase text-zinc-400 dark:text-zinc-500">
+                工具
+              </div>
+              <div className="space-y-1">
+                {toolVisibleItems.map((item) => {
+                  const active = isActivePath(pathname, item.activeHref ?? item.href);
+
+                  return (
+                    <Link
+                      className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        active
+                          ? "bg-brand-50/60 dark:bg-brand-950/20 text-brand-600 dark:text-brand-400 border-l-2 border-brand-500 rounded-l-none"
+                          : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      }`}
+                      href={item.href}
+                      key={item.label}
+                      onClick={() => setOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </nav>
         </aside>
       </div>
     </div>
   );
 }
+

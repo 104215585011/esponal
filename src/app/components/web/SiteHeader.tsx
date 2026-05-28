@@ -1,9 +1,10 @@
-// Timestamp: 2026-05-26 15:50
+// Timestamp: 2026-05-28 08:40
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
 import { SiteNav } from "@/app/components/web/SiteNav";
 import { ThemeToggle } from "@/app/components/web/ThemeToggle";
+import { GlobalSearchOverlay } from "@/app/components/web/GlobalSearchOverlay";
 import { getAuthOptions } from "@/lib/auth";
 
 type SiteHeaderProps = {
@@ -71,10 +72,12 @@ export async function SiteHeader({
             className="h-9 w-full rounded-full border-0 bg-transparent pr-4 text-xs text-zinc-700 dark:text-zinc-300 outline-none placeholder:text-zinc-450"
             defaultValue={initialQuery}
             name="q"
-            placeholder="搜索西语视频..."
+            placeholder="搜索内容..."
             type="search"
           />
         </form>
+
+        <GlobalSearchOverlay searchAction={searchAction} initialQuery={initialQuery} />
 
         <PlaybackRateControl className="shrink-0" />
         <ThemeToggle />
@@ -125,3 +128,4 @@ export async function SiteHeader({
     </header>
   );
 }
+

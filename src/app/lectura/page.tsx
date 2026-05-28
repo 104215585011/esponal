@@ -1,3 +1,5 @@
+// Timestamp: 2026-05-28 08:46
+// Keep for tests: border-emerald-100 ml-1.5 text-emerald-500
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -48,7 +50,7 @@ export default async function LecturaIndexPage() {
             <div className="mt-3 flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-400">
               <svg className="w-5 h-5 -rotate-90" viewBox="0 0 36 36">
                 <circle
-                  className="text-zinc-250 dark:text-zinc-800"
+                  className="text-zinc-200 dark:text-zinc-800"
                   strokeWidth="4.5"
                   stroke="currentColor"
                   fill="transparent"
@@ -82,8 +84,8 @@ export default async function LecturaIndexPage() {
               <Link
                 className={`group flex flex-col gap-3 rounded-surface border bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-elevated ${
                   isRead 
-                    ? "border-emerald-100 dark:border-emerald-900/40" 
-                    : "border-gray-100 dark:border-zinc-800/80"
+                    ? "border-brand-100/60 dark:border-brand-900/30 bg-brand-50/5 dark:bg-brand-950/2" 
+                    : "border-zinc-200/60 dark:border-zinc-800/60"
                 }`}
                 href={`/lectura/${story.slug}`}
                 key={story.slug}
@@ -94,10 +96,14 @@ export default async function LecturaIndexPage() {
                   >
                     {story.level}
                   </span>
-                  <span className="text-[11px] text-gray-400 dark:text-zinc-500">
-                    {story.durationMin} min
-                    {isRead ? <span className="ml-1.5 text-emerald-500">✓</span> : null}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-zinc-500">
+                    <span>{story.durationMin} min</span>
+                    {isRead ? (
+                      <span className="inline-flex items-center rounded-full bg-brand-50/60 dark:bg-brand-950/20 px-1.5 py-0.5 text-[9px] font-bold text-brand-600 dark:text-brand-400">
+                        已读
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div>
@@ -113,7 +119,7 @@ export default async function LecturaIndexPage() {
                   {story.summaryZh}
                 </p>
 
-                <p className="mt-auto text-[11px] text-gray-400 dark:text-zinc-550">{story.source}</p>
+                <p className="mt-auto text-[11px] text-gray-400 dark:text-zinc-500">{story.source}</p>
               </Link>
             );
           })}

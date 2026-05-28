@@ -319,7 +319,7 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
 
       {confirmingSession ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-          <div className="w-full max-w-sm rounded-hero bg-surface dark:bg-zinc-900 p-6 shadow-elevated border border-zinc-250/30 dark:border-zinc-800/50 glass-card">
+          <div className="w-full max-w-sm rounded-hero bg-surface dark:bg-zinc-900 p-6 shadow-elevated border border-zinc-200/30 dark:border-zinc-800/50 glass-card">
             <h2 className="text-base font-semibold text-gray-900 dark:text-zinc-50 font-display">归档此对话？</h2>
             <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-zinc-400 font-light">
               归档后会从列表移除。7 天内可在底部「归档」抽屉里恢复，之后将永久删除。

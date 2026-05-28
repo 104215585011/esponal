@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-28 08:40
 "use client";
 
 import Link from "next/link";
@@ -50,10 +51,17 @@ export function SiteNav({ vocabHref }: SiteNavProps) {
     return item;
   });
 
+  const learningVisibleItems = visibleItems.filter(
+    (item) => item.label !== "拆解" && item.label !== "词库"
+  );
+  const toolVisibleItems = visibleItems.filter(
+    (item) => item.label === "拆解" || item.label === "词库"
+  );
+
   return (
     <>
       <nav className="hidden lg:flex items-center gap-1">
-        {visibleItems.map((item) => {
+        {learningVisibleItems.map((item) => {
           const active = isActivePath(pathname, item.activeHref ?? item.href);
 
           // Keep for tests: border-brand-500
@@ -62,7 +70,34 @@ export function SiteNav({ vocabHref }: SiteNavProps) {
               className={`group relative px-3 py-5 text-sm transition ${
                 active
                   ? "font-semibold text-brand-600 dark:text-brand-400"
-                  : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-150"
+                  : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+              }`}
+              href={item.href}
+              key={item.label}
+            >
+              <span className="relative z-10">{item.label}</span>
+              <span
+                className={`absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transition-transform duration-300 origin-left ${
+                  active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                }`}
+              />
+            </Link>
+          );
+        })}
+
+        {/* Visual divider */}
+        <span className="h-4 w-[1px] bg-zinc-200 dark:bg-zinc-800 mx-2" aria-hidden="true" />
+
+        {toolVisibleItems.map((item) => {
+          const active = isActivePath(pathname, item.activeHref ?? item.href);
+
+          // Keep for tests: border-brand-500
+          return (
+            <Link
+              className={`group relative px-3 py-5 text-sm transition ${
+                active
+                  ? "font-semibold text-brand-600 dark:text-brand-400"
+                  : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
               }`}
               href={item.href}
               key={item.label}
@@ -83,3 +118,4 @@ export function SiteNav({ vocabHref }: SiteNavProps) {
     </>
   );
 }
+

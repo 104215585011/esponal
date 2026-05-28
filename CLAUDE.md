@@ -9,37 +9,43 @@ Esponal 是面向中文母语者的西班牙语学习平台（A1-A2）。
 
 ## 角色分工
 
-| 角色 | 身份 | 读哪个文件 |
+| 角色 | 身份 | 启动配置 |
 |---|---|---|
-| Claude1 | PM（产品经理）| `roles/ROLE-PM.md` |
-| Claude2 | UI 总监 | `roles/ROLE-UI.md` |
-| Codex1 | 开发 | `roles/ROLE-DEV.md` |
-| Codex2 | 测试 | `roles/ROLE-QA.md` |
+| **Claude1**（你）| PM（产品经理）| `CLAUDE.md`（本文件）+ `roles/ROLE-PM.md` |
+| Gemini1 | UI 设计师 + UI 验收 | `GEMINI.md` + `roles/ROLE-UI.md` |
+| Codex1 | 全栈开发（前 + 后端） | `AGENTS.md` + `roles/ROLE-DEV.md` |
+| Codex2 | 测试 | `AGENTS.md` + `roles/ROLE-QA.md` |
+
+> **角色演变史**：Claude2（最初 UI 设计/评审）→ Gemini1 v1（设计 + 前端实现）→ **Gemini1 v2（当前，只做设计 + 评审，不写代码）**。改回去的原因：Gemini 代码实现容易卡住，但设计能力强；让 Codex1 实现所有代码（前 + 后端）更稳定。
 
 **开工第一步**：确认自己的角色，读对应角色文件，再读 `claude-progress.md` 了解当前进展。
 
 ## 协作工作流
 
-### 无 UI 任务
+### 无 UI 任务（纯后端 / 纯逻辑）
 ```
-Claude1（需求 + ticket）→ Codex1（实现）→ Codex2（测试）
+Claude1（需求 + ticket）→ Codex1（实现）→ Codex2（测试）→ 关闭
 ```
 
 ### 有 UI 任务
 ```
-Claude1（需求 + ticket）
-  → Claude2（设计评审）
-    → [不通过] 回 Claude1 修改
-    → [通过] Codex1（实现）
-      → Codex2（测试，出 report）
+Claude1（需求 + ticket，含禁区清单引用）
+  → Gemini1（出设计稿 docs/tickets/<ID>-design.md，含具体 class/参数）
+    → Codex1（照设计稿实现前端 + 必要后端）
+      → Codex2（端到端测试）
         → [失败] 回 Codex1 修复
-        → [通过] Claude2（UI 验收，出 report）
-          → [不通过] 回 Codex1 修改
-          → [通过] 功能关闭
+        → [通过] Gemini1（UI 评审，对照设计稿截图比对）
+          → [需调整] 列具体修改给 Codex1
+          → [符合] Claude1 最终验收 → 关闭
 ```
 
+### 前后端协同任务（如 VOCAB-012）
+- 后端 ticket：Claude1 → Codex1 → Codex2
+- 前端 ticket：Claude1 → Gemini1 设计 → Codex1 实现 → Codex2 → Gemini1 评审
+- 前端 ticket status 标 `blocked`，等后端跑通再 unblock
+
 ### 开发遇到障碍
-Codex1 不理解需求或遇到阻塞 → 写明问题 → 反馈给 Claude1（PM）
+任何 Agent 不理解需求 → 在 `session-handoff.md` 写明问题 → 反馈给 Claude1（PM）
 
 ## 工作规则
 

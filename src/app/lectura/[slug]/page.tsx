@@ -1,3 +1,4 @@
+// Timestamp: 2026-05-28 08:54
 import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/app/components/web/BackLink";
@@ -58,12 +59,12 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
           {userId ? <LecturaReadStatus isRead={isRead} slug={story.slug} /> : null}
         </div>
 
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100 sm:text-4xl">
+        <h1 className="mt-8 text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100 sm:text-4xl">
           {story.title}
         </h1>
-        <p className="mt-1 text-base text-gray-500 dark:text-zinc-400">{story.titleZh}</p>
+        <p className="mt-2 text-base text-gray-500 dark:text-zinc-400">{story.titleZh}</p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${levelStyle[story.level]}`}
           >
@@ -87,3 +88,4 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
     </main>
   );
 }
+
