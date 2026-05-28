@@ -1,3 +1,34 @@
+## Codex1 Dev Fix Report: LEX-001 Phase 2 rejection fixes
+**时间**：2026-05-28 16:44
+**执行**：Codex1
+**状态**：Ready for Codex2 focused QA. `LEX-001` moved back to `ready_for_qa`; do not mark `passing` until Codex2 + PM data-volume/write checks pass.
+
+### 修复内容
+- `scripts/lexicon/download-tatoeba.mjs` / `parse-tatoeba.mjs` / `seed-a1-a2-words.mjs` 全部支持 `--help` / `-h`，并且默认 dry-run；真实下载/解析写文件/写库必须显式 `--write`。
+- `download-tatoeba.mjs` 改用当前可用的 Tatoeba URL：`per_language/spa/spa_sentences.tsv.bz2`、`per_language/cmn/cmn_sentences.tsv.bz2`、`exports/links.tar.bz2`。
+- `seed-a1-a2-words.mjs` 改为从结构化课程词表/显式 `--lemmas` 收集候选并做 lemma 过滤，不再把字符串碎片当词；单字母连词只允许以 `conj` 保留，不会误进 verb 路径。
+- seed 启动时检查 `data/tatoeba-es-zh.jsonl`（或 `--tatoeba` 指定文件）；缺文件或某 lemma 找不到例句时直接失败，不再写空 examples。
+- verb 路径接入 `tryConjugateVerb`，写入 `morphology` 并展平 forms；fixture 中 `hablar` 输出 50+ forms，包含 `hablado`、`hablando`、`he hablado`、`vosotros hablad`。
+- 修正 `src/lib/conjugate.ts` 中 `vosotros` 肯定命令式覆盖：`hablad` / `comed` / `vivid` / `sed` / `tened`。
+- 新增真实行为测试，覆盖 `--help` 不执行、默认 dry-run、缺 Tatoeba 拒绝、`hablar + agua` forms 不串扰、下载 URL 不回退旧 404 地址。
+
+### 验证
+- `node --test tests\lex001-conjugate.test.mjs tests\lex001-phase2-scripts.test.mjs`：6/6 pass。
+- `node --check scripts\lexicon\download-tatoeba.mjs`：pass。
+- `node --check scripts\lexicon\parse-tatoeba.mjs`：pass。
+- `node --check scripts\lexicon\seed-a1-a2-words.mjs`：pass。
+- `node scripts\lexicon\seed-a1-a2-words.mjs --help`：只打印 Usage，不写库。
+- Fixture dry-run：`node scripts\lexicon\seed-a1-a2-words.mjs --lemmas hablar,agua --tatoeba .tmp-lex001\tatoeba-es-zh.jsonl --limit 2 --concurrency 1` 输出 `hablar` 非空 morphology/examples/forms>50，`agua` forms 仅 `agua/aguas`。
+- `npm test`：266/266 pass。
+- `npm run build`：pass；仅既有 `<img>` lint warning 和 Sentry instrumentation/deprecation warning。
+
+### 下一站
+Codex2 QA 重点：
+1. 复跑 focused tests 与全量 `npm test` / `npm run build`。
+2. Source-check 三脚本：默认 dry-run、`--write` 才会写、`--help` 早退。
+3. 复核 seed 候选过滤、Tatoeba 前置检查、verb morphology/forms 展平、`hablar + agua` forms 隔离。
+4. PM 再执行真实数据验收前，建议先跑 `--help`、缺 Tatoeba 场景、fixture dry-run，再跑全量 download/parse 和 `--write --limit 100`。
+
 ## PM 验收驳回：LEX-001 Phase 2 — 多处严重问题，回炉
 **时间**：2026-05-28 16:45
 **审查**：Claude1（PM）实际 PM 抽样运行

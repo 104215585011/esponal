@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Timestamp: 2026-05-28 16:24
+// Timestamp: 2026-05-28 16:44
 import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, stat, unlink } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -10,21 +10,41 @@ import readline from "node:readline";
 const DATA_DIR = "data/tatoeba";
 const FILES = [
   {
-    name: "sentences.csv",
-    archive: "sentences.csv.bz2",
-    url: "https://downloads.tatoeba.org/exports/sentences.csv.bz2",
-    minBytes: 50_000_000
+    name: "spa_sentences.tsv",
+    archive: "spa_sentences.tsv.bz2",
+    url: "https://downloads.tatoeba.org/exports/per_language/spa/spa_sentences.tsv.bz2",
+    minBytes: 1_000_000,
+    kind: "bz2"
+  },
+  {
+    name: "cmn_sentences.tsv",
+    archive: "cmn_sentences.tsv.bz2",
+    url: "https://downloads.tatoeba.org/exports/per_language/cmn/cmn_sentences.tsv.bz2",
+    minBytes: 1_000_000,
+    kind: "bz2"
   },
   {
     name: "links.csv",
-    archive: "links.csv.bz2",
-    url: "https://downloads.tatoeba.org/exports/links.csv.bz2",
-    minBytes: 10_000_000
+    archive: "links.tar.bz2",
+    url: "https://downloads.tatoeba.org/exports/links.tar.bz2",
+    minBytes: 10_000_000,
+    kind: "tar.bz2"
   }
 ];
 
 function hasFlag(flag) {
   return process.argv.includes(flag);
+}
+
+function printUsage() {
+  console.log(`Usage: node scripts/lexicon/download-tatoeba.mjs [--write] [--skip-if-exists]
+
+Downloads Tatoeba Spanish, Chinese, and links exports into data/tatoeba/.
+
+Options:
+  --write            Actually download files. Omit for a dry-run preview.
+  --skip-if-exists   Reuse existing extracted files that pass the size check.
+  --help, -h         Show this help text.`);
 }
 
 async function exists(path) {
@@ -45,6 +65,19 @@ async function downloadFile(url, destination) {
   await pipeline(response.body, createWriteStream(destination));
 }
 
+function runPython(code, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn("python", ["-c", code, ...args], {
+      stdio: "inherit"
+    });
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`python extraction failed with exit code ${code}`));
+    });
+  });
+}
+
 function createBunzip(sourcePath, destinationPath) {
   const code = [
     "import bz2, shutil, sys",
@@ -53,16 +86,25 @@ function createBunzip(sourcePath, destinationPath) {
     "    shutil.copyfileobj(src, dst)"
   ].join("\n");
 
-  return new Promise((resolve, reject) => {
-    const child = spawn("python", ["-c", code, sourcePath, destinationPath], {
-      stdio: "inherit"
-    });
-    child.on("error", reject);
-    child.on("exit", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`bunzip failed for ${sourcePath} with exit code ${code}`));
-    });
-  });
+  return runPython(code, [sourcePath, destinationPath]);
+}
+
+function extractTarBz2(sourcePath, destinationDir, memberName) {
+  const code = [
+    "import os, shutil, sys, tarfile",
+    "source, destination_dir, member_name = sys.argv[1], sys.argv[2], sys.argv[3]",
+    "with tarfile.open(source, 'r:bz2') as archive:",
+    "    member = next((item for item in archive.getmembers() if os.path.basename(item.name) == member_name), None)",
+    "    if member is None:",
+    "        raise SystemExit(f'missing member {member_name}')",
+    "    extracted = archive.extractfile(member)",
+    "    if extracted is None:",
+    "        raise SystemExit(f'cannot extract {member_name}')",
+    "    with open(os.path.join(destination_dir, member_name), 'wb') as output:",
+    "        shutil.copyfileobj(extracted, output)"
+  ].join("\n");
+
+  return runPython(code, [sourcePath, destinationDir, memberName]);
 }
 
 async function countLines(path) {
@@ -74,17 +116,28 @@ async function countLines(path) {
 }
 
 async function main() {
+  if (hasFlag("--help") || hasFlag("-h")) {
+    printUsage();
+    return;
+  }
+
+  const write = hasFlag("--write");
   const skipIfExists = hasFlag("--skip-if-exists");
   await mkdir(DATA_DIR, { recursive: true });
 
   for (const file of FILES) {
     const archivePath = join(DATA_DIR, file.archive);
-    const csvPath = join(DATA_DIR, file.name);
-    const existingCsv = await exists(csvPath);
+    const outputPath = join(DATA_DIR, file.name);
+    const existingOutput = await exists(outputPath);
 
-    if (skipIfExists && existingCsv && existingCsv.size >= file.minBytes) {
-      const lines = await countLines(csvPath);
-      console.log(`${file.name}: exists, ${existingCsv.size} bytes, ${lines} lines`);
+    if (skipIfExists && existingOutput && existingOutput.size >= file.minBytes) {
+      const lines = await countLines(outputPath);
+      console.log(`${file.name}: exists, ${existingOutput.size} bytes, ${lines} lines`);
+      continue;
+    }
+
+    if (!write) {
+      console.log(`[dry-run] would download ${file.url} -> ${outputPath}`);
       continue;
     }
 
@@ -92,15 +145,16 @@ async function main() {
     await downloadFile(file.url, archivePath);
 
     console.log(`Extracting ${file.archive}...`);
-    await createBunzip(archivePath, csvPath);
+    if (file.kind === "tar.bz2") await extractTarBz2(archivePath, DATA_DIR, file.name);
+    else await createBunzip(archivePath, outputPath);
 
-    const csvStat = await stat(csvPath);
-    if (csvStat.size < file.minBytes) {
-      throw new Error(`${file.name} looks incomplete: ${csvStat.size} bytes`);
+    const outputStat = await stat(outputPath);
+    if (outputStat.size < file.minBytes) {
+      throw new Error(`${file.name} looks incomplete: ${outputStat.size} bytes`);
     }
 
-    const lines = await countLines(csvPath);
-    console.log(`${file.name}: ${csvStat.size} bytes, ${lines} lines`);
+    const lines = await countLines(outputPath);
+    console.log(`${file.name}: ${outputStat.size} bytes, ${lines} lines`);
     await unlink(archivePath).catch(() => {});
   }
 }
@@ -109,4 +163,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-

@@ -73,6 +73,30 @@ const IRREGULAR_GERUNDS: Record<string, string> = {
   venir: "viniendo"
 };
 
+function buildVosotrosImperative(lemma: string) {
+  if (lemma === "ser") {
+    return "sed";
+  }
+
+  if (lemma === "ir") {
+    return "id";
+  }
+
+  if (lemma.endsWith("ar")) {
+    return `${lemma.slice(0, -2)}ad`;
+  }
+
+  if (lemma.endsWith("er")) {
+    return `${lemma.slice(0, -2)}ed`;
+  }
+
+  if (lemma.endsWith("ir")) {
+    return `${lemma.slice(0, -2)}id`;
+  }
+
+  return null;
+}
+
 function buildTense(lemma: string, tense: (typeof TENSES)[keyof typeof TENSES]) {
   return PEOPLE.reduce<Record<Person, string>>((result, person, index) => {
     result[person] = getConjugation(lemma, tense, index);
@@ -83,6 +107,14 @@ function buildTense(lemma: string, tense: (typeof TENSES)[keyof typeof TENSES]) 
 function buildImperative(lemma: string) {
   return PEOPLE.reduce<Partial<Record<Person, string>>>((result, person, index) => {
     if (person === "yo") {
+      return result;
+    }
+
+    if (person === "vosotros") {
+      const vosotrosValue = buildVosotrosImperative(lemma);
+      if (vosotrosValue) {
+        result[person] = vosotrosValue;
+      }
       return result;
     }
 

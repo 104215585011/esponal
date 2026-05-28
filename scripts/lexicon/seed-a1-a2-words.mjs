@@ -1,18 +1,25 @@
 #!/usr/bin/env node
-// Timestamp: 2026-05-28 16:24
+// Timestamp: 2026-05-28 16:44
 import { createReadStream } from "node:fs";
-import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import readline from "node:readline";
 import { PrismaClient } from "@prisma/client";
 
-import { foundationLessons } from "../../src/content/foundation.ts";
-import { tryConjugateVerb } from "../../src/lib/conjugate.ts";
-
-const TATOEBA_PAIRS_PATH = "data/tatoeba-es-zh.jsonl";
+const DEFAULT_TATOEBA_PAIRS_PATH = "data/tatoeba-es-zh.jsonl";
 const PROGRESS_PATH = "data/lexicon-progress.json";
+const PHASE_ONE_WORDS_PATH = "content/curriculum/phase1-words.json";
 const DEFAULT_CONCURRENCY = 3;
-const prisma = new PrismaClient();
+const ALLOWED_SINGLE_LETTER = new Set(["y", "e", "o", "u"]);
+const PERSON_LABELS = {
+  yo: "yo",
+  tu: "tú",
+  el: "él",
+  nosotros: "nosotros",
+  vosotros: "vosotros",
+  ellos: "ellos"
+};
+let prisma;
 
 function readOption(name, fallback = undefined) {
   const index = process.argv.indexOf(name);
@@ -24,12 +31,74 @@ function hasFlag(name) {
   return process.argv.includes(name);
 }
 
+function printUsage() {
+  console.log(`Usage: node scripts/lexicon/seed-a1-a2-words.mjs [options]
+
+Builds LexiconEntry seed payloads from curated A1-A2 course vocabulary.
+
+Safe by default: this script runs as a dry-run unless --write is provided.
+
+Options:
+  --write                 Actually write LexiconEntry rows to the database.
+  --dry-run               Print payloads only. This is also the default.
+  --limit N               Process at most N candidates.
+  --resume                Skip lemmas recorded in data/lexicon-progress.json.
+  --concurrency N         DeepSeek/write concurrency. Default: 3.
+  --lemmas a,b,c          Override candidates with explicit lemmas for QA.
+  --tatoeba PATH          Path to tatoeba-es-zh.jsonl. Default: data/tatoeba-es-zh.jsonl.
+  --help, -h              Show this help text.`);
+}
+
 function normalizeText(value) {
   return String(value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+function stripLeadingArticle(value) {
+  return normalizeText(value).replace(/^(el|la|los|las|un|una|unos|unas)\s+/, "");
+}
+
+function splitVariants(value) {
+  return normalizeText(value)
+    .split(/\s*\/\s*|,\s*/)
+    .map(stripLeadingArticle)
+    .filter(Boolean);
+}
+
 function unique(values) {
   return [...new Set(values.map(normalizeText).filter(Boolean))];
+}
+
+function isValidLemma(value) {
+  const lemma = normalizeText(value);
+  if (!lemma) return false;
+  if (lemma.length === 1 && !ALLOWED_SINGLE_LETTER.has(lemma)) return false;
+  if (lemma.length < 2 && !ALLOWED_SINGLE_LETTER.has(lemma)) return false;
+  if (lemma.split(/\s+/).length > 3) return false;
+  return /^[a-záéíóúüñ]+(?:[ -][a-záéíóúüñ]+)*$/i.test(lemma);
+}
+
+function buildPlural(lemma) {
+  if (lemma.endsWith("z")) return `${lemma.slice(0, -1)}ces`;
+  if (/[aeiouáéíóú]$/i.test(lemma)) return `${lemma}s`;
+  return `${lemma}es`;
+}
+
+function mapPhaseOnePartOfSpeech(entry) {
+  const raw = normalizeText(entry.partOfSpeech);
+  if (raw === "verb") return "verb";
+  if (raw === "adjective" || raw === "adj") return "adj";
+  if (raw === "adverb" || raw === "adv") return "adv";
+  if (raw === "noun") {
+    if (entry.gender === "feminine") return "noun_f";
+    if (entry.gender === "masculine") return "noun_m";
+    return "noun_mf";
+  }
+  return raw || undefined;
+}
+
+function getPrisma() {
+  prisma ??= new PrismaClient();
+  return prisma;
 }
 
 async function readProgress() {
@@ -46,80 +115,120 @@ async function writeProgress(progress) {
   await writeFile(PROGRESS_PATH, `${JSON.stringify(progress, null, 2)}\n`, "utf8");
 }
 
-async function walkJsonFiles(dir, output = []) {
-  let entries = [];
+async function requireTatoebaPairs(path) {
   try {
-    entries = await readdir(dir, { withFileTypes: true });
+    const info = await stat(path);
+    if (info.size > 0) return;
   } catch {
-    return output;
+    // fall through
   }
-
-  for (const entry of entries) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) await walkJsonFiles(path, output);
-    if (entry.isFile() && entry.name.endsWith(".json")) output.push(path);
-  }
-  return output;
+  throw new Error(`Please run parse-tatoeba.mjs first: missing ${path}`);
 }
 
-function collectStrings(value, output = []) {
-  if (typeof value === "string") output.push(value);
-  else if (Array.isArray(value)) value.forEach((item) => collectStrings(item, output));
-  else if (value && typeof value === "object") Object.values(value).forEach((item) => collectStrings(item, output));
-  return output;
+async function readPhaseOneWordEntries() {
+  const payload = JSON.parse(await readFile(PHASE_ONE_WORDS_PATH, "utf8"));
+  return (payload.words ?? []).flatMap((entry) =>
+    splitVariants(entry.spanish).filter(isValidLemma).map((lemma) => ({
+      lemma,
+      partOfSpeech: mapPhaseOnePartOfSpeech(entry),
+      level: "A1",
+      translationZh: entry.chinese ?? "",
+      translationEn: "",
+      explanationZh: "",
+      ipa: "",
+      forms: entry.partOfSpeech === "noun" ? [lemma, buildPlural(lemma)] : [lemma]
+    }))
+  );
+}
+
+function buildFoundationEntries(foundationLessons) {
+  return foundationLessons.flatMap((lesson) =>
+    (lesson.words ?? []).filter(isValidLemma).map((lemma) => ({
+      lemma: normalizeText(lemma),
+      partOfSpeech: ALLOWED_SINGLE_LETTER.has(normalizeText(lemma)) ? "conj" : undefined,
+      level: "A1",
+      translationZh: "",
+      translationEn: "",
+      explanationZh: "",
+      ipa: "",
+      forms: [lemma]
+    }))
+  );
 }
 
 async function collectLemmaCandidates() {
-  const words = [];
-  for (const lesson of foundationLessons) {
-    words.push(...(lesson.words ?? []));
-  }
+  const explicit = readOption("--lemmas");
+  const { foundationLessons } = await import("../../src/content/foundation.ts");
+  const phaseOneEntries = await readPhaseOneWordEntries();
+  const foundationEntries = buildFoundationEntries(foundationLessons);
+  const knownEntries = [...phaseOneEntries, ...foundationEntries];
+  const knownByLemma = new Map(knownEntries.map((entry) => [normalizeText(entry.lemma), entry]));
+  const entries = explicit
+    ? splitVariants(explicit).filter(isValidLemma).map((lemma) => ({
+        ...(knownByLemma.get(lemma) ?? {}),
+        lemma,
+        forms: knownByLemma.get(lemma)?.forms ?? [lemma]
+      }))
+    : knownEntries;
 
-  for (const file of await walkJsonFiles("src/content")) {
-    const payload = JSON.parse(await readFile(file, "utf8"));
-    const strings = collectStrings(payload);
-    for (const value of strings) {
-      if (/^[a-záéíóúüñ -]{2,}$/i.test(value.trim()) && value.split(/\s+/).length <= 3) {
-        words.push(value);
-      }
-    }
+  const byLemma = new Map();
+  for (const entry of entries) {
+    const lemma = normalizeText(entry.lemma);
+    if (!isValidLemma(lemma)) continue;
+    const existing = byLemma.get(lemma);
+    byLemma.set(lemma, {
+      ...existing,
+      ...entry,
+      lemma,
+      forms: unique([...(existing?.forms ?? []), ...(entry.forms ?? [lemma])])
+    });
   }
-
-  return unique(words);
+  return [...byLemma.values()];
 }
 
 function flattenVerbForms(conjugations) {
   if (!conjugations) return [];
+  const personForms = Object.values(conjugations)
+    .filter((value) => value && typeof value === "object")
+    .flatMap((record) =>
+      Object.entries(record).flatMap(([person, form]) => {
+        if (!form || typeof form !== "string") return [];
+        const label = PERSON_LABELS[person];
+        return label ? [`${label} ${form}`] : [];
+      })
+    );
+
   return unique([
     conjugations.participio,
     conjugations.gerundio,
     ...Object.values(conjugations)
-      .flatMap((value) => typeof value === "string" ? [value] : Object.values(value ?? {}))
+      .flatMap((value) => typeof value === "string" ? [value] : Object.values(value ?? {})),
+    ...personForms
   ]);
 }
 
-async function findExamples(forms, limit = 3) {
-  try {
-    await stat(TATOEBA_PAIRS_PATH);
-  } catch {
-    return [];
-  }
-
+async function findExamples(forms, path, limit = 3) {
   const formSet = forms.map((form) => normalizeText(form));
-  const input = createReadStream(TATOEBA_PAIRS_PATH);
+  const input = createReadStream(path);
   const rl = readline.createInterface({ input, crlfDelay: Infinity });
   const examples = [];
 
   for await (const line of rl) {
     if (examples.length >= limit) break;
-    const pair = JSON.parse(line);
+    const cleanLine = line.replace(/^\uFEFF/, "").trim();
+    if (!cleanLine) continue;
+    const pair = JSON.parse(cleanLine);
     const es = normalizeText(pair.es);
-    if (formSet.some((form) => es.includes(form))) {
+    if (formSet.some((form) => new RegExp(`(^|[^a-záéíóúüñ])${escapeRegExp(form)}([^a-záéíóúüñ]|$)`, "i").test(es))) {
       examples.push({ es: pair.es, zh: pair.zh, source: "tatoeba", esId: pair.esId, zhId: pair.zhId });
     }
   }
 
   return examples;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function describeWithDeepSeek(lemma) {
@@ -128,7 +237,7 @@ async function describeWithDeepSeek(lemma) {
   const model = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
 
   if (!apiKey || apiKey.includes("your-") || apiKey.includes("placeholder")) {
-    throw new Error("DEEPSEEK_API_KEY is required unless --dry-run is used");
+    throw new Error("DEEPSEEK_API_KEY is required for --write");
   }
 
   const response = await fetch(`${baseUrl}/v1/chat/completions`, {
@@ -174,7 +283,7 @@ async function runPool(items, concurrency, worker) {
 }
 
 async function upsertLexiconEntry(input) {
-  return prisma.lexiconEntry.upsert({
+  return getPrisma().lexiconEntry.upsert({
     where: {
       kind_lemma: {
         kind: input.kind,
@@ -206,44 +315,64 @@ async function upsertLexiconEntry(input) {
 }
 
 async function main() {
+  if (hasFlag("--help") || hasFlag("-h")) {
+    printUsage();
+    return;
+  }
+
+  const write = hasFlag("--write");
+  const dryRun = !write;
   const limit = Number(readOption("--limit", "0"));
-  const dryRun = hasFlag("--dry-run");
   const concurrency = Number(readOption("--concurrency", String(DEFAULT_CONCURRENCY)));
+  const tatoebaPath = readOption("--tatoeba", DEFAULT_TATOEBA_PAIRS_PATH);
+  await requireTatoebaPairs(tatoebaPath);
+  const { tryConjugateVerb } = await import("../../src/lib/conjugate.ts");
+
   const progress = await readProgress();
   const done = new Set(progress.done ?? []);
-
-  const candidates = (await collectLemmaCandidates()).filter((lemma) => !done.has(lemma));
+  const candidates = (await collectLemmaCandidates()).filter((entry) => !done.has(entry.lemma));
   const selected = limit > 0 ? candidates.slice(0, limit) : candidates;
   console.log(`Seed candidates=${candidates.length} selected=${selected.length} dryRun=${dryRun}`);
 
-  await runPool(selected, Math.max(1, concurrency), async (lemma) => {
+  await runPool(selected, Math.max(1, concurrency), async (candidate) => {
+    const lemma = candidate.lemma;
     const verb = tryConjugateVerb(lemma);
     const ai = dryRun
       ? {
-          partOfSpeech: verb ? "verb" : "noun_m",
-          level: "A1",
-          translationZh: "",
-          translationEn: "",
-          explanationZh: "",
-          ipa: ""
+          partOfSpeech: verb ? "verb" : candidate.partOfSpeech,
+          level: candidate.level ?? "A1",
+          translationZh: candidate.translationZh ?? "",
+          translationEn: candidate.translationEn ?? "",
+          explanationZh: candidate.explanationZh ?? "",
+          ipa: candidate.ipa ?? "",
+          forms: candidate.forms ?? [lemma]
         }
-      : await describeWithDeepSeek(lemma);
+      : { ...candidate, ...await describeWithDeepSeek(lemma) };
 
-    const forms = unique([lemma, ...(Array.isArray(ai.forms) ? ai.forms : []), ...flattenVerbForms(verb)]);
-    const examples = await findExamples(forms);
+    const isVerb = ai.partOfSpeech === "verb" && verb;
+    const forms = unique([
+      lemma,
+      ...(Array.isArray(ai.forms) ? ai.forms : []),
+      ...(isVerb ? flattenVerbForms(verb) : [])
+    ]);
+    const examples = await findExamples(forms, tatoebaPath);
+    if (examples.length === 0) {
+      throw new Error(`No Tatoeba examples found for ${lemma}; refusing to write an empty examples array`);
+    }
+
     const input = {
       kind: "word",
       lemma,
       displayForm: lemma,
       forms,
-      partOfSpeech: ai.partOfSpeech,
+      partOfSpeech: isVerb ? "verb" : ai.partOfSpeech,
       level: ai.level,
       ipa: ai.ipa,
       translationZh: ai.translationZh,
       translationEn: ai.translationEn,
       explanationZh: ai.explanationZh,
       examples,
-      morphology: verb ?? null,
+      morphology: isVerb ? verb : null,
       collocations: [],
       sources: ["tatoeba", "llm-deepseek"],
       licenseCode: "CC-BY-2.0-FR",
@@ -251,9 +380,9 @@ async function main() {
     };
 
     if (dryRun) console.log(JSON.stringify(input));
-    else await upsertLexiconEntry(input);
-
-    if (!dryRun) {
+    else {
+      await upsertLexiconEntry(input);
+      console.log(`Wrote LexiconEntry ${lemma}`);
       done.add(lemma);
       progress.done = [...done];
       await writeProgress(progress);
@@ -265,5 +394,5 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 }).finally(async () => {
-  await prisma.$disconnect();
+  if (prisma) await prisma.$disconnect();
 });

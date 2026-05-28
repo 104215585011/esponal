@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 16:18
+// Timestamp: 2026-05-28 16:44
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -8,6 +8,7 @@ const EXPECTED = {
   hablar: {
     participio: "hablado",
     gerundio: "hablando",
+    vosotrosImperativo: "hablad",
     perfecto: {
       yo: "he hablado",
       tu: "has hablado",
@@ -20,6 +21,7 @@ const EXPECTED = {
   comer: {
     participio: "comido",
     gerundio: "comiendo",
+    vosotrosImperativo: "comed",
     perfecto: {
       yo: "he comido",
       tu: "has comido",
@@ -32,6 +34,7 @@ const EXPECTED = {
   vivir: {
     participio: "vivido",
     gerundio: "viviendo",
+    vosotrosImperativo: "vivid",
     perfecto: {
       yo: "he vivido",
       tu: "has vivido",
@@ -44,6 +47,7 @@ const EXPECTED = {
   ser: {
     participio: "sido",
     gerundio: "siendo",
+    vosotrosImperativo: "sed",
     perfecto: {
       yo: "he sido",
       tu: "has sido",
@@ -56,6 +60,7 @@ const EXPECTED = {
   tener: {
     participio: "tenido",
     gerundio: "teniendo",
+    vosotrosImperativo: "tened",
     perfecto: {
       yo: "he tenido",
       tu: "has tenido",
@@ -73,7 +78,7 @@ test("LEX-001 Phase 2 adds participio, gerundio, and preteritoPerfectoCompuesto"
     assert.ok(conjugations, `${lemma} should conjugate`);
     assert.equal(conjugations.participio, expected.participio);
     assert.equal(conjugations.gerundio, expected.gerundio);
+    assert.equal(conjugations.imperativo?.vosotros, expected.vosotrosImperativo);
     assert.deepEqual(conjugations.preteritoPerfectoCompuesto, expected.perfecto);
   }
 });
-

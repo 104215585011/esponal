@@ -1,3 +1,28 @@
+### Session #LEX-001-PHASE-2-FIX - 2026-05-28 16:44
+
+**Goal**: Repair the PM-rejected LEX-001 Phase 2 seed tooling bugs before Codex2/PM re-QA.
+
+**Completed**:
+- Hardened all three lexicon scripts so `--help` / `-h` exits before work and default execution is dry-run; writes require explicit `--write`.
+- Fixed Tatoeba download URLs to the current per-language TSV archives plus `links.tar.bz2`.
+- Reworked seed candidate extraction and filtering so string fragments such as `e/o/os` are not treated as lemmas, while valid one-letter conjunctions remain tagged as `conj`.
+- Added Tatoeba preflight behavior: missing JSONL or missing examples fail fast instead of writing empty examples.
+- Wired verb entries through `tryConjugateVerb`, writing non-null `morphology` and flattened forms, and added a real `hablar + agua` isolation test.
+- Fixed `vosotros` affirmative imperative generation in `src/lib/conjugate.ts` for regular verbs plus `ser`/`ir`.
+- Moved `LEX-001` back to `ready_for_qa` with evidence and wrote the Codex2 handoff at the top of `session-handoff.md`.
+
+**Verification**:
+- `node --test tests\lex001-conjugate.test.mjs tests\lex001-phase2-scripts.test.mjs`: 6/6 pass.
+- `node --check scripts\lexicon\download-tatoeba.mjs`, `parse-tatoeba.mjs`, `seed-a1-a2-words.mjs`: pass.
+- `node scripts\lexicon\seed-a1-a2-words.mjs --help`: usage only, no DB path.
+- Fixture dry-run for `hablar,agua`: `hablar` has morphology/examples/forms>50 and `agua` forms stay isolated as `agua/aguas`.
+- `npm test`: 266/266 pass.
+- `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `LEX-001` is `ready_for_qa`. Next station: Codex2 focused QA, then PM can rerun real download/parse/`--write --limit 100` data acceptance.
+
+---
+
 ### Session #LEX-001-PHASE-2 - 2026-05-28 16:05
 
 **Goal**: Implement LEX-001 Phase 2: verb morphology expansion plus Tatoeba download/parse and A1-A2 word seed scripts.
