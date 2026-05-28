@@ -51,6 +51,7 @@ type LookupCardProps = {
   originalSentence: string;
   translatedSentence: string;
   source?: LookupSource;
+  useStaticLayout?: boolean;
 };
 
 type LookupResponse = {
@@ -62,6 +63,8 @@ type LookupResponse = {
   examples: { es: string; zh: string }[];
   phonetic: string | null;
   isSaved?: boolean;
+  wordId?: string | null;
+  totalEncounters?: number | null;
   conjugations?: unknown;
   nounForms?: unknown;
   adjectiveForms?: unknown;
@@ -83,12 +86,17 @@ type LookupState =
       meanings: string[];
       examples: { es: string; zh: string }[];
       phonetic: string | null;
+      isSaved?: boolean;
+      wordId?: string | null;
+      totalEncounters?: number | null;
       conjugations?: LookupResponse["conjugations"];
       nounForms?: LookupResponse["nounForms"];
       adjectiveForms?: LookupResponse["adjectiveForms"];
     };
 
 const LEGACY_LEMMATIZE_ROUTE = "/api/lemmatize";
+
+const globalRecentEncounters = new Map<string, number>();
 
 function getCurrentUrl() {
   if (typeof window === "undefined") return "";
@@ -117,12 +125,14 @@ export function LookupCard({
   onSaved,
   originalSentence,
   translatedSentence,
-  source
+  source,
+  useStaticLayout
 }: LookupCardProps) {
   const [lookupState, setLookupState] = useState<LookupState>({ kind: "loading" });
   const [buttonState, setButtonState] = useState<ButtonState>("disabled");
   const [showLoginHint, setShowLoginHint] = useState(false);
   const [speakingText, setSpeakingText] = useState<string | null>(null);
+  const [totalEncounters, setTotalEncounters] = useState<number | null>(null);
   const normalizedForm = useMemo(() => form.trim().toLowerCase(), [form]);
   const speechAvailable = useSpeechAvailable();
 
@@ -134,6 +144,7 @@ export function LookupCard({
       setLookupState({ kind: "loading" });
       setButtonState("disabled");
       setShowLoginHint(false);
+      setTotalEncounters(null);
 
       try {
         const response = await fetch(`/api/vocab/lookup?word=${encodeURIComponent(normalizedForm)}`, {
@@ -167,12 +178,18 @@ export function LookupCard({
           meanings: payload.meanings,
           examples: payload.examples ?? [],
           phonetic: payload.phonetic,
+          isSaved: payload.isSaved,
+          wordId: payload.wordId,
+          totalEncounters: payload.totalEncounters,
           conjugations: payload.conjugations,
           nounForms: payload.nounForms,
           adjectiveForms: payload.adjectiveForms
         });
         if (payload.isSaved === true) {
           setButtonState("already_saved");
+          if (typeof payload.totalEncounters === "number") {
+            setTotalEncounters(payload.totalEncounters);
+          }
           return;
         }
         setButtonState("default");
@@ -199,6 +216,89 @@ export function LookupCard({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
+
+  useEffect(() => {
+    if (lookupState.kind !== "ready" || !lookupState.isSaved || !lookupState.wordId) {
+      return;
+    }
+
+    const wordId = lookupState.wordId;
+    const translation = lookupState.translation;
+    const now = Date.now();
+    const lastTriggered = globalRecentEncounters.get(wordId);
+
+    if (lastTriggered && now - lastTriggered < 5000) {
+      return;
+    }
+
+    globalRecentEncounters.set(wordId, now);
+
+    let cancelled = false;
+
+    async function recordEncounter() {
+      const resolvedSource = source ?? getDefaultVideoSource(currentTimeSec, originalSentence);
+      const sourceSentence = resolvedSource.sentence || originalSentence;
+
+      try {
+        const response = await fetch("/api/vocab/encounter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            wordId,
+            sourceType: resolvedSource.type,
+            sourceUrl:
+              resolvedSource.type === "lectura"
+                ? `/lectura/${resolvedSource.storySlug}#p${resolvedSource.paragraphIndex}`
+                : resolvedSource.type === "video"
+                  ? resolvedSource.url ?? getCurrentUrl()
+                  : resolvedSource.url,
+            originalSentence: sourceSentence,
+            translatedSentence: translatedSentence || translation,
+            timestampSec:
+              resolvedSource.type === "video"
+                ? Math.max(0, Math.floor(resolvedSource.timestampSec ?? currentTimeSec ?? 0))
+                : 0,
+            courseRef:
+              resolvedSource.type === "course"
+                ? resolvedSource.courseRef
+                : resolvedSource.type === "lectura"
+                  ? `lectura:${resolvedSource.storySlug}/p${resolvedSource.paragraphIndex}`
+                  : resolvedSource.type === "grammar"
+                    ? `grammar:${resolvedSource.topicSlug}`
+                    : resolvedSource.type === "dissect"
+                      ? "dissect"
+                      : resolvedSource.type === "talk"
+                        ? `talk:${resolvedSource.characterId}:${resolvedSource.sessionId}:m${resolvedSource.messageIndex}`
+                        : null
+          })
+        });
+
+        if (cancelled) return;
+
+        if (response.status === 401) {
+          console.warn("Unauthenticated encounter recording attempt.");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Encounter API returned ${response.status}`);
+        }
+
+        const data = (await response.json()) as { ok: boolean; totalEncounters: number };
+        if (data.ok && typeof data.totalEncounters === "number") {
+          setTotalEncounters(data.totalEncounters);
+        }
+      } catch (error) {
+        console.warn("Failed to record word encounter:", error);
+      }
+    }
+
+    void recordEncounter();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [lookupState, source, currentTimeSec, originalSentence, translatedSentence]);
 
   async function handleAddToVocab() {
     if (lookupState.kind !== "ready") return;
@@ -312,7 +412,14 @@ export function LookupCard({
   };
 
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-3 w-[300px] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated" data-testid="lookup-card">
+    <div
+      className={
+        useStaticLayout
+          ? "w-full bg-transparent text-gray-900 dark:text-zinc-100"
+          : "absolute left-1/2 top-full z-20 mt-3 w-[300px] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-black/5 bg-surface p-4 shadow-elevated"
+      }
+      data-testid="lookup-card"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -445,6 +552,11 @@ export function LookupCard({
                     ? "无法查词"
                     : "加入我的词库"}
           </button>
+        )}
+        {buttonState === "already_saved" && totalEncounters !== null && (
+          <p className="mt-2 text-center text-xs text-gray-400 dark:text-zinc-500 font-light" data-testid="encounter-badge">
+            第 {totalEncounters} 次遇到 · 已记录
+          </p>
         )}
       </div>
     </div>

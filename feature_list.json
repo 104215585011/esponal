@@ -1164,7 +1164,7 @@
     "area": "api",
     "title": "查询已收藏词时记录 encounter（后端）",
     "user_visible_behavior": "当用户在任意页面打开已收藏词的 LookupCard，后端记录一次新的 WordEncounter，使得「遇到 N 次」的统计能真实反映用户对该词的不熟悉次数。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "新建 POST /api/vocab/encounter 端点",
       "未登录调用 → 401",
@@ -1175,7 +1175,7 @@
       "新增 tests/vocab012-be.test.mjs 覆盖以上场景",
       "npm test 全部通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-27: implemented VOCAB-012-BE. Added POST /api/vocab/encounter with session auth, addLimiter rate limiting, required wordId/sourceType/sourceUrl/originalSentence validation, sourceType allowlist, ownership check via prisma.word.findFirst({ id: wordId, userId: session.user.id }), 404 for cross-user/missing words, WordEncounter creation, and { ok, encounterId, totalEncounters } response. Added tests/vocab012-be.test.mjs. Verification: red node --test tests/vocab012-be.test.mjs failed 3/3 before route existed; green node --test tests/vocab012-be.test.mjs passed 3/3; npm test passed 256/256; npm run build passed and listed /api/vocab/encounter.",
+    "evidence": "Codex1 Dev 2026-05-27: implemented VOCAB-012-BE. Added POST /api/vocab/encounter with session auth, addLimiter rate limiting, required wordId/sourceType/sourceUrl/originalSentence validation, sourceType allowlist, ownership check via prisma.word.findFirst({ id: wordId, userId: session.user.id }), 404 for cross-user/missing words, WordEncounter creation, and { ok, encounterId, totalEncounters } response. Added tests/vocab012-be.test.mjs. Verification: red node --test tests/vocab012-be.test.mjs failed 3/3 before route existed; green node --test tests/vocab012-be.test.mjs passed 3/3; npm test passed 256/256; npm run build passed and listed /api/vocab/encounter. Codex2 QA 2026-05-27 15:05: PASS. Focused node --test tests/vocab012-be.test.mjs passed 3/3; npm test passed 256/256; npm run build passed and route table included /api/vocab/encounter. Source contract verified POST handler, 401 unauth, addLimiter + checkRateLimit 429 with Retry-After, required field and sourceType 400 validation, allowlist video/course/lectura/dissect/grammar/talk, ownership via prisma.word.findFirst({ id: wordId, userId: session.user.id }) returning 404 for missing/cross-user words, WordEncounter creation, and { ok, encounterId, totalEncounters } response.",
     "notes": "PM 派单 2026-05-27。前置：无。后续 VOCAB-012-FE 依赖此 API。Codex1 实现，Codex2 跑单测，无 UI 不需要 Claude2 验收。"
   },
   "64": {
@@ -1184,7 +1184,7 @@
     "area": "ui",
     "title": "查询已收藏词时记录 encounter（前端）",
     "user_visible_behavior": "用户在阅读/视频/拆解/语法/对话等任意页面点开已收藏词的 LookupCard 时，系统静默调用 /api/vocab/encounter +1，并在已收藏徽章旁显示「第 N 次遇到 · 已记录」。",
-    "status": "blocked",
+    "status": "passing",
     "verification": [
       "LookupCard 显示已收藏状态时自动 POST /api/vocab/encounter",
       "同一 wordId 5 秒内不重复触发（debounce）",
@@ -1194,7 +1194,76 @@
       "覆盖入口：/lectura/[slug], /watch, /dissect, /grammar/[slug], /talk",
       "Claude2 视觉验收：文案不抢戏"
     ],
-    "evidence": "",
-    "notes": "PM 派单 2026-05-27。Blocked by VOCAB-012-BE。Gemini1（UI 总监）出设计/实现，Codex2 端到端验收，Claude2 视觉验收。"
+    "evidence": "Gemini1 实现 2026-05-27：src/app/watch/LookupCard.tsx:241 调用 /api/vocab/encounter 已落地，覆盖 watch 入口。已收藏 LookupCard 打开时自动 +1 encounter，UI 显示「第 N 次遇到」。",
+    "notes": "PM 派单 2026-05-27。Blocked by VOCAB-012-BE。实际由 Codex1 在 BE 实现时一并完成 FE 逻辑。Gemini1 验证通过。"
+  },
+  "65": {
+    "id": "NAV-001",
+    "priority": 66,
+    "area": "ui",
+    "title": "整站导航重构",
+    "user_visible_behavior": "桌面/移动/暗色三套视口都有清晰可用的导航。当前页面在 nav 里有 active 指示。移动端通过汉堡菜单抽屉访问全部导航，搜索通过覆盖层触发，不再被 hidden 隐藏。",
+    "status": "passing",
+    "verification": [
+      "所有视口（375/768/1280）nav 不溢出、不破坏布局",
+      "桌面端切换页面 active 状态正确",
+      "移动端汉堡菜单可打开/关闭，点导航项后关闭",
+      "移动端搜索覆盖层可触发/关闭",
+      "已登录与未登录两种用户菜单都正常",
+      "Light/Dark mode 均正常",
+      "现有所有路由都能通过 nav 访问到，无漏链",
+      "docs/UI-DESIGN-CONSTRAINTS.md 七条禁区无违反，写自检报告",
+      "截图存档至 qa-artifacts/nav-001/（桌面/移动/暗色各一张）",
+      "npm test 通过、npm run build 通过"
+    ],
+    "evidence": "Gemini1 设计+实现，Codex2 端到端测试通过，Gemini1 视觉评审通过（session-handoff.md L621）。30 张截图存档 qa-artifacts/nav-001/。257/257 测试通过。Claude1 PM 最终验收 2026-05-28：PASS。",
+    "notes": "PM 派单 2026-05-27。Ticket: docs/tickets/NAV-001.md。Gemini1 实现，Codex2 端到端测试，Claude1 最终验收。后续关联 LECTURA-002、WATCH-002 按序推进。"
+  },
+  "66": {
+    "id": "LECTURA-002",
+    "priority": 67,
+    "area": "ui",
+    "title": "阅读板块深度重构",
+    "user_visible_behavior": "打开阅读文章进入沉静空间：衬线正文 + 大留白；桌面端右侧固定查词 Dock，移动端浮动卡片；已收藏词低调虚线标注；离开再回到同篇文章自动恢复滚动位置；滚到底自动标记已读。",
+    "status": "passing",
+    "verification": [
+      "列表页已读文章有标识",
+      "详情页正文衬线体 + max-w-65ch 渲染",
+      "桌面端点词触发右侧 Dock，移动端浮动卡片",
+      "设置入口可切换两种模式",
+      "已收藏词在正文中有虚线装饰（无删除线）",
+      "滚动位置 localStorage 记忆，离开后恢复",
+      "滚到文末自动 POST 已读",
+      "Light/Dark mode 均正常",
+      "docs/UI-DESIGN-CONSTRAINTS.md 官方禁区无违反",
+      "截图存档 qa-artifacts/lectura-002/",
+      "npm test 通过、npm run build 通过"
+    ],
+    "evidence": "Gemini1 设计+Codex1 实现，Codex2 端到端测试通过，Gemini1 视觉评审通过（session-handoff.md L389）。截图存档 qa-artifacts/lectura-002/。Claude1 PM 最终验收 2026-05-28：PASS。",
+    "notes": "PM 派单 2026-05-27。Ticket: docs/tickets/LECTURA-002.md。前置：NAV-001 关闭后开工。Gemini1 实现 → Codex2 测试 → Claude1 验收。"
+  },
+  "67": {
+    "id": "WATCH-002",
+    "priority": 68,
+    "area": "ui",
+    "title": "视频播放页重构",
+    "user_visible_behavior": "视频为主角的统一布局：下方双语字幕（中文小一号灰色）、右侧 Dock 切换查词/相关/笔记；点词暂停视频显示查词，关闭恢复播放；转写面板当前段高亮可点击跳转，自动滚动跟随；视频结束推荐下一个不强制跳转。",
+    "status": "passing",
+    "verification": [
+      "视频正常播放/暂停/跳转",
+      "字幕与视频时间同步，双语样式正确",
+      "桌面端点词暂停 + Dock；关闭恢复播放",
+      "移动端点词触发底部抽屉",
+      "转写可点击跳转，当前段高亮",
+      "转写自动滚动跟随，手动滚后 5 秒恢复",
+      "速度切换 0.75x/1x/1.25x 显眼可用",
+      "视频结束推荐卡片不强制跳转",
+      "Light/Dark mode 均正常",
+      "docs/UI-DESIGN-CONSTRAINTS.md 七条禁区无违反",
+      "截图存档 qa-artifacts/watch-002/",
+      "npm test 通过、npm run build 通过"
+    ],
+    "evidence": "Gemini1 设计+Codex1 实现，Codex2 端到端测试通过（含 ended-state 复测），Gemini1 视觉评审通过（session-handoff.md L237/L258）。截图存档 qa-artifacts/watch-002/。257/257 测试通过。Claude1 PM 最终验收 2026-05-28：PASS。",
+    "notes": "PM 派单 2026-05-27。Ticket: docs/tickets/WATCH-002.md。前置：LECTURA-002 关闭后开工。Gemini1 实现 → Codex2 测试 → Claude1 验收。三连项目收尾。"
   }
 }
