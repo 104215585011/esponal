@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 14:26
+// Timestamp: 2026-05-28 14:38
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -219,9 +219,9 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   }, []);
 
   return (
-    <div className="relative mx-auto flex w-full max-w-app-shell flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden">
+    <div className="relative mx-auto flex w-full max-w-7xl flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:px-6">
       {/* Main Column: Player & Subtitles & Transcript */}
-      <section className="flex flex-1 min-w-0 flex-col px-4 py-4 lg:justify-start lg:overflow-y-auto lg:px-6 lg:py-8 lg:max-w-[60rem]">
+      <section className="flex flex-1 min-w-0 flex-col px-4 py-4 lg:justify-start lg:overflow-y-auto lg:pr-6 lg:py-8">
         <BackLink href="/" label="视频" />
 
         {/* Video Player */}
@@ -239,7 +239,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
         </div>
 
         {/* Subtitle Panel (Directly below player on desktop, hidden on mobile in tabs) */}
-        <div className="hidden lg:block mt-3">
+        <div className="hidden lg:block mt-3 shrink-0">
           <SubtitlePanel
             currentTimeSec={currentTimeSec}
             onLookup={handleLookup}
