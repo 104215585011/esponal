@@ -23,3 +23,8 @@ playwright/.cache/
 .npm-cache/
 Userswangesponal.npm-cache/
 .cache/
+
+# LEX-001 local corpus artifacts
+data/tatoeba/
+data/tatoeba-es-zh.jsonl
+data/lexicon-progress.json

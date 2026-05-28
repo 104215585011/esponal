@@ -1,3 +1,28 @@
+### Session #LEX-001-PHASE-2 - 2026-05-28 16:05
+
+**Goal**: Implement LEX-001 Phase 2: verb morphology expansion plus Tatoeba download/parse and A1-A2 word seed scripts.
+
+**Completed**:
+- Extended `tryConjugateVerb` with `participio`, `gerundio`, and `preteritoPerfectoCompuesto`.
+- Added `tests/lex001-conjugate.test.mjs` covering `hablar`, `comer`, `vivir`, `ser`, and `tener`.
+- Added `scripts/lexicon/download-tatoeba.mjs` with `--skip-if-exists`, local extraction, file-size checks, and line counts.
+- Added `scripts/lexicon/parse-tatoeba.mjs` to stream `sentences.csv` / `links.csv` and produce `data/tatoeba-es-zh.jsonl`.
+- Added `scripts/lexicon/seed-a1-a2-words.mjs` with `--limit`, `--resume`, `--concurrency`, and `--dry-run`; it collects seed words from course content, uses DeepSeek for metadata, searches Tatoeba examples, and writes `LexiconEntry`.
+- Added `.gitignore` rules for large local Tatoeba/progress artifacts.
+
+**Verification**:
+- Red check: new LEX-001 Phase 2 tests failed before implementation.
+- Focused check: `node --test tests/lex001-conjugate.test.mjs tests/lex001-phase2-scripts.test.mjs` passed 4/4.
+- Script syntax checks: `node --check` passed for all three lexicon scripts.
+- Smoke check: `node scripts/lexicon/seed-a1-a2-words.mjs --dry-run --limit 1 --concurrency 1` produced one seed payload without DB writes.
+- Encoding check passed for changed files.
+- `npm test`: 264/264 pass.
+- `npm run build`: pass; existing `<img>` lint warnings and Sentry instrumentation notices only.
+
+**Status**: `LEX-001` remains `ready_for_qa`. Phase 2 implementation is ready for Codex2 automated QA; PM still needs to run the large Tatoeba download/parse/seed flow locally for data-volume acceptance.
+
+---
+
 ### Session #LEX-001-PHASE-1 - 2026-05-28 15:50
 
 **Goal**: Implement LEX-001 Phase 1 schema + library foundation for the local lexicon cache.

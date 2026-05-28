@@ -7616,3 +7616,60 @@ uniqueHeights=[258]
 - `VOCAB-012-FE` is no longer blocked by backend readiness and can be assigned next.
 
 ---
+## Codex1 Dev Report: LEX-001 Phase 2 Tatoeba + morphology + seed scripts
+**Time**: 2026-05-28 16:05
+**Developer**: Codex1
+
+**Status**: Ready for Codex2 QA. `LEX-001` remains `ready_for_qa`; Phase 2 code is implemented, but PM local data-volume checks still need to run before Phase 2 can be accepted end to end.
+
+**Implemented**:
+- `src/lib/conjugate.ts`
+  - Added `participio`, `gerundio`, and `preteritoPerfectoCompuesto` to `VerbConjugations`.
+  - Covered regular `-ar/-er/-ir` output and common irregular participles/gerunds.
+  - Perfecto compuesto uses present-tense `haber` + participio.
+- `tests/lex001-conjugate.test.mjs`
+  - Covers `hablar`, `comer`, `vivir`, `ser`, and `tener`.
+- `scripts/lexicon/download-tatoeba.mjs`
+  - Downloads `sentences.csv.bz2` and `links.csv.bz2` from Tatoeba.
+  - Extracts into `data/tatoeba/`, supports `--skip-if-exists`, reports bytes and line counts, and checks minimum file sizes.
+- `scripts/lexicon/parse-tatoeba.mjs`
+  - Streams `sentences.csv` and `links.csv`.
+  - Writes ES-ZH pairs to `data/tatoeba-es-zh.jsonl`.
+  - Logs progress every 100000 rows.
+- `scripts/lexicon/seed-a1-a2-words.mjs`
+  - Collects candidates from `foundationLessons` and `src/content/**/*.json`.
+  - Supports `--limit`, `--resume`, `--concurrency`, and `--dry-run`.
+  - Uses DeepSeek env (`DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`) for structured metadata.
+  - Flattens verb morphology into `forms`, searches local Tatoeba examples, and writes `LexiconEntry` with sources `["tatoeba", "llm-deepseek"]` and license `CC-BY-2.0-FR`.
+- `.gitignore`
+  - Ignores `data/tatoeba/`, `data/tatoeba-es-zh.jsonl`, and `data/lexicon-progress.json`.
+
+**Verification**:
+- Red check: `node --test tests/lex001-conjugate.test.mjs` and `node --test tests/lex001-phase2-scripts.test.mjs` failed before implementation.
+- Focused green: `node --test tests/lex001-conjugate.test.mjs tests/lex001-phase2-scripts.test.mjs` passed 4/4.
+- Script syntax:
+  - `node --check scripts/lexicon/download-tatoeba.mjs`: pass.
+  - `node --check scripts/lexicon/parse-tatoeba.mjs`: pass.
+  - `node --check scripts/lexicon/seed-a1-a2-words.mjs`: pass.
+- Smoke check: `node scripts/lexicon/seed-a1-a2-words.mjs --dry-run --limit 1 --concurrency 1` emitted one seed payload and did not write DB rows.
+- Encoding check: pass.
+- `npm test`: 264/264 pass.
+- `npm run build`: pass; existing `<img>` lint warnings and Sentry instrumentation notices only.
+
+**Codex2 QA checklist**:
+1. Run `node --test tests/lex001-conjugate.test.mjs tests/lex001-phase2-scripts.test.mjs`.
+2. Run `node --check` for all three `scripts/lexicon/*.mjs` files.
+3. Run `node scripts/lexicon/seed-a1-a2-words.mjs --dry-run --limit 1 --concurrency 1`.
+4. Run `npm test`.
+5. Run `npm run build`.
+6. Source-check the three scripts against the Phase 2 ticket contract.
+
+**PM local checklist after Codex2**:
+1. Ensure at least 5GB free disk.
+2. Run `node scripts/lexicon/download-tatoeba.mjs --skip-if-exists`.
+3. Run `node scripts/lexicon/parse-tatoeba.mjs` and confirm `data/tatoeba-es-zh.jsonl` has at least 50000 rows.
+4. Run `node scripts/lexicon/seed-a1-a2-words.mjs --limit 100 --concurrency 3`.
+5. Interrupt once and rerun with `--resume` to confirm continuation.
+6. Sample-check generated `LexiconEntry` rows for translation, morphology, forms reverse lookup, noun gender/plural, and adjective forms.
+
+---
