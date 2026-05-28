@@ -1265,5 +1265,29 @@
     ],
     "evidence": "Gemini1 设计+Codex1 实现，Codex2 端到端测试通过（含 ended-state 复测），Gemini1 视觉评审通过（session-handoff.md L237/L258）。截图存档 qa-artifacts/watch-002/。257/257 测试通过。Claude1 PM 最终验收 2026-05-28：PASS。",
     "notes": "PM 派单 2026-05-27。Ticket: docs/tickets/WATCH-002.md。前置：LECTURA-002 关闭后开工。Gemini1 实现 → Codex2 测试 → Claude1 验收。三连项目收尾。"
+  },
+  "68": {
+    "id": "LEX-001",
+    "priority": 69,
+    "area": "backend",
+    "title": "自有语料库基础设施 + A1-A2 试点",
+    "user_visible_behavior": "用户查询常用 A1-A2 单词和固定搭配时，结果从本地语料库直接返回（< 50ms），不再每次调外部 API。短语查询不再返回空。LLM 兜底未命中的词时结果回写本地语料库，缓存命中率持续提升。",
+    "status": "todo",
+    "verification": [
+      "Phase 1：LexiconEntry Prisma schema + migration + src/lib/lexicon.ts 三个函数有单测",
+      "Phase 2：PM 本机能跑 download-tatoeba.mjs / parse-tatoeba.mjs / seed-a1-a2-words.mjs 全流程",
+      "Phase 2：产出 tatoeba-es-zh.jsonl ≥ 5 万条平行句对",
+      "Phase 2：seed-a1-a2-words.mjs --limit 100 写入 100 条 LexiconEntry，PM 抽查 10 条准确率 ≥ 90%",
+      "Phase 2：脚本支持断点续传",
+      "Phase 3：PM 500 条短语 CSV 处理完成，kind:collocation/phrase 入库 ≥ 400 条",
+      "Phase 3：PM 抽查 20 条短语释义和用法说明准确",
+      "Phase 4：/api/vocab/lookup 改造，命中本地 < 50ms",
+      "Phase 4：未命中仍走外部 API 兜底，结果异步回写 LexiconEntry",
+      "Phase 4：response header 含 X-Lexicon-Hit / X-Lookup-Source / X-Lookup-Latency-Ms",
+      "PM 本机连续运行抓取脚本 24 小时无 crash",
+      "npm test 通过、npm run build 通过"
+    ],
+    "evidence": "",
+    "notes": "PM 派单 2026-05-28。Ticket: docs/tickets/LEX-001.md。战略：未来计划包装成计费制公开 API。试点 A1-A2 验证流程，约 3000 单词 + 500 固定搭配。Codex1 全栈实现（脚本 + schema + API 改造），Codex2 + PM 联合验收。每 Phase 独立 ship。"
   }
 }
