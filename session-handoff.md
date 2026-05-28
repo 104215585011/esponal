@@ -1,3 +1,68 @@
+## PM 部分驳回：LEX-001 Phase 2 全量种子崩溃 — 需 LLM 例句兜底
+**时间**：2026-05-28 18:35
+**审查**：Claude1（PM）实测全量 seed 跑崩
+
+### 现象
+
+`node scripts/lexicon/seed-a1-a2-words.mjs --write --concurrency 5` 跑了一段时间后崩溃：
+
+```
+Wrote LexiconEntry pequeño
+...
+Wrote LexiconEntry corto
+Error: No Tatoeba examples found for video; refusing to write an empty examples array
+```
+
+- **成功写入**：227 条（数据质量没问题，留着）
+- **抛错点**：lemma `video`（Tatoeba ES-ZH 11516 对里没匹配上）
+- **核心问题**：Codex1 Fix 4「无例句拒绝写库」用了 `throw Error` 让整个 batch 中断。应该是**跳过 + 记日志，继续下一条**。
+
+### 原始 spec 意图被偏离
+
+`docs/tickets/LEX-001.md` 明确写过：「中文翻译优先 Tatoeba，缺失部分用 LLM 兜底」。Codex1 实施时只做了一半：
+- ✅ Tatoeba 找到 → 用 Tatoeba 例句
+- ❌ Tatoeba 没找到 → **应该调 DeepSeek 生成例句**，但当前直接 throw
+
+### 修复要求
+
+#### Fix A：LLM 例句兜底（首选）
+
+`scripts/lexicon/seed-a1-a2-words.mjs` 中：
+- Tatoeba 匹配 0 条 → 调 DeepSeek，prompt 「为这个 A1-A2 西语词 `<lemma>` 生成 2 条自然的西-中对照例句，简单直接，避免复杂语法」
+- 解析 JSON 返回 `[{es, zh}, {es, zh}]`
+- 拼装为 examples，`source: "llm-generated"`（区别于 `source: "tatoeba"`）
+- 如果 DeepSeek 也失败（rate limit / parse 失败）→ skip 该 lemma，写入 `data/lexicon-skipped.json` 供 PM 后续核查
+- **绝不 throw 让 batch 中断**
+
+#### Fix B：错误隔离
+
+更通用的：任何单 lemma 处理失败（DeepSeek 报错 / DB 写失败 / 形态生成失败）都应该：
+1. console.warn 输出 lemma + 错误简述
+2. 写入 `data/lexicon-skipped.json`
+3. 继续下一条
+4. 全跑完后打印总结：`已写 X 条，跳过 Y 条（见 lexicon-skipped.json）`
+
+batch 工具的基本原则——**单点失败不能拖垮整个 run**。
+
+### 不要清数据
+
+PM **不清空** 已写入的 227 条。修复后 Codex1 加 `--resume` 跑剩余 lemma（不会重写已有）。
+
+### 复测门槛
+
+修复后 PM 跑：
+```
+node scripts/lexicon/seed-a1-a2-words.mjs --write --resume --concurrency 5
+```
+预期：
+- 继续从断点处理剩余 lemma
+- 遇到无 Tatoeba 例句的（如 video）走 LLM 兜底成功写入
+- 极少数 LLM 也失败的进入 lexicon-skipped.json
+- 不抛错让 batch 跑完
+- DB 总数显著增加（至少几百到上千）
+
+---
+
 ## PM 验收：LEX-001 Phase 2 通过 + Phase 3 派单
 **时间**：2026-05-28 18:20
 **审查**：Claude1（PM）
