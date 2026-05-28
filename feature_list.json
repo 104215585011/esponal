@@ -1287,7 +1287,7 @@
       "PM 本机连续运行抓取脚本 24 小时无 crash",
       "npm test 通过、npm run build 通过"
     ],
-    "evidence": "Codex1 2026-05-28 15:50 Phase 1 complete: added LexiconEntry Prisma schema/enums/migration, src/lib/lexicon.ts helpers, and tests/lex001.test.mjs. TDD evidence: node --test tests/lex001.test.mjs failed 3/3 before implementation, then passed 3/3 after implementation. Verification: npx prisma validate passed; npx prisma generate passed after stopping stale local Node servers that held the Prisma query engine DLL; npm test passed 260/260; npm run build passed with existing img/Sentry warnings only.",
+    "evidence": "Codex1 2026-05-28 15:50 Phase 1 complete: added LexiconEntry Prisma schema/enums/migration, src/lib/lexicon.ts helpers, and tests/lex001.test.mjs. TDD evidence: node --test tests/lex001.test.mjs failed 3/3 before implementation, then passed 3/3 after implementation. Verification: npx prisma validate passed; npx prisma generate passed after stopping stale local Node servers that held the Prisma query engine DLL; npm test passed 260/260; npm run build passed with existing img/Sentry warnings only. Codex2 QA 2026-05-28 15:56 Phase 1 PASS: node --test tests/lex001.test.mjs passed 3/3; npx prisma validate passed; npm test passed 260/260; npm run build passed with existing img/Sentry warnings only; source contract checked against schema, migration, and src/lib/lexicon.ts. Overall LEX-001 remains open for Phase 2-4.",
     "notes": "PM 派单 2026-05-28。Ticket: docs/tickets/LEX-001.md。战略：未来计划包装成计费制公开 API。试点 A1-A2 验证流程，约 3000 单词 + 500 固定搭配。Codex1 全栈实现（脚本 + schema + API 改造），Codex2 + PM 联合验收。每 Phase 独立 ship。"
   }
 }

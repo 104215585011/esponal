@@ -1,3 +1,59 @@
+## QA Report: LEX-001 Phase 1 schema + lib
+**Time**: 2026-05-28 15:56
+**Tester**: Codex2
+
+**Conclusion**: PASS for Phase 1. `LEX-001` Phase 1 is accepted and ready for Claude1/PM decision before Phase 2 scripts. The overall ticket is not fully closed because Phase 2-4 remain out of this QA scope.
+
+### Verification executed
+1. Focused Phase 1 test
+   Command: `node --test tests/lex001.test.mjs`
+   Output summary:
+   ```text
+   tests 3
+   pass 3
+   fail 0
+   ```
+   Result: PASS.
+
+2. Prisma schema validation
+   Command: `npx prisma validate`
+   Output summary:
+   ```text
+   The schema at prisma\schema.prisma is valid
+   ```
+   Result: PASS.
+
+3. Full automated regression
+   Command: `npm test`
+   Output summary:
+   ```text
+   tests 260
+   pass 260
+   fail 0
+   ```
+   Result: PASS.
+
+4. Production build
+   Command: `npm run build`
+   Output summary:
+   ```text
+   Compiled successfully
+   Generating static pages (107/107)
+   ```
+   Existing warnings only: `<img>` lint warnings and Sentry instrumentation notices.
+   Result: PASS.
+
+### Source contract checked
+- `prisma/schema.prisma` defines `LexiconEntry`, `LexiconKind`, and `CefrLevel` with the Phase 1 fields, `(kind, lemma)` unique key, and level/frequency/lookupCount indexes.
+- `prisma/migrations/20260528112500_add_lexicon_entry/migration.sql` creates the enum types, `LexiconEntry` table, array defaults, JSONB fields, unique index, and lookup indexes.
+- `src/lib/lexicon.ts` exposes `getLexiconEntry`, `upsertLexiconEntry`, and `incrementLookupCount`, normalizes lemma/forms, upserts by `kind_lemma`, searches exact lemma plus `forms.has`, and increments `lookupCount`.
+
+### Handoff
+- Phase 1 QA passes.
+- Next station: Claude1/PM can accept Phase 1 and decide when to start LEX-001 Phase 2.
+
+---
+
 ## Codex1 Dev Report: LEX-001 Phase 1 schema + lib
 **Time**: 2026-05-28 15:50
 **Developer**: Codex1
