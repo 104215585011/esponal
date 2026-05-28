@@ -1296,7 +1296,7 @@
     "area": "fullstack",
     "title": "阅读/字幕里的固定搭配高亮 + 短语 lookup + 嵌套查询",
     "user_visible_behavior": "阅读文章 / 视频字幕 / 拆解器 / 语法例句里的固定搭配（如 tener que / por favor）会用暖色淡底高亮。点击高亮区域弹短语 lookup card 显示释义、用法、例句。短语卡例句里的西语词可继续点击叠加单词卡（最深 2 层）。单字点击不变。",
-    "status": "todo",
+    "status": "in_progress",
     "verification": [
       "段 1 Gemini1：4 个 mock（高亮 / 卡对比 / 双层叠卡 / 与已收藏词叠加）通过禁区清单核查",
       "段 2 后端：/api/lexicon/detect-phrases 检测正确（5 个场景：字面 / 动词归并 / 多短语 / 嵌入式 / 无匹配）",
@@ -1312,7 +1312,7 @@
       "npm test 通过、npm run build 通过",
       "PM 实测 5 个真实页面流程完整"
     ],
-    "evidence": "",
+    "evidence": " Codex1 backend segment 2026-05-29 02:20: added src/lib/lexicon-phrases.ts and POST /api/lexicon/detect-phrases. Detection reuses LexiconEntry collocation/phrase/idiom rows, supports literal matching, greedy longest match, multiple non-overlapping phrases, embedded collocations, and verb-form matching for first-token collocations such as Tengo que -> tener que and Voy a -> ir a. Verification: red node --test tests\\phrase001.test.mjs failed before implementation; green node --test tests\\phrase001.test.mjs -> 6/6 pass; encoding pass; npm test -> 288/288 pass; npm run build -> pass with existing warnings and route table includes /api/lexicon/detect-phrases.",
     "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/PHRASE-001.md。前置 LEX-001 已完成（795 LexiconEntry）。流程：Gemini1 设计稿 + Codex1 后端并行 → Codex1 前端按设计稿 → Codex2 测试 → Gemini1 视觉评审 → Claude1 验收。"
   }
 }

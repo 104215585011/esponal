@@ -1,3 +1,40 @@
+## Codex1 Dev Report: PHRASE-001 Backend phrase detection
+**Time**: 2026-05-29 02:20
+**Developer**: Codex1
+**Status**: Backend segment ready for Codex2 QA. Frontend integration can start because Gemini1 design is now available at `docs/tickets/PHRASE-001-design.md`.
+
+### Implemented
+- Added `src/lib/lexicon-phrases.ts` with `detectPhrasesInText(text)` and pure `detectPhrasesFromEntries(text, entries)` helpers.
+- Detection loads existing `LexiconEntry` rows where `kind in ["collocation","phrase","idiom"]`; no new database table was introduced.
+- Matching supports literal phrase/idiom matching, greedy longest match, multiple non-overlapping matches, embedded collocations, and verb-form matching for collocation first tokens.
+- Added common irregular first-token handling for `tener` (`Tengo que` -> `tener que`) and `ir` (`Voy a` -> `ir a`) on top of `tryConjugateVerb` forms.
+- Added `POST /api/lexicon/detect-phrases` returning `{ spans }` and `X-Phrase-Detect-Latency-Ms`; it reuses `addLimiter` with fail-open behavior.
+
+### Verification
+- Red check: `node --test tests\phrase001.test.mjs` failed before implementation because `src/lib/lexicon-phrases.ts` did not exist.
+- Focused green: `node --test tests\phrase001.test.mjs`: 6/6 pass.
+- Encoding: `npm run lint:encoding -- --files src/lib/lexicon-phrases.ts src/app/api/lexicon/detect-phrases/route.ts tests/phrase001.test.mjs docs/tickets/PHRASE-001.md`: pass.
+- Full suite: `npm test`: 288/288 pass.
+- Build: `npm run build`: pass; route table includes `/api/lexicon/detect-phrases`; existing `<img>` and Sentry warnings only.
+
+### Next
+Codex1 frontend segment should integrate phrase spans into the four approved surfaces (`/lectura`, `/watch`, `/dissect`, `/grammar`) following `docs/tickets/PHRASE-001-design.md`. `/talk` remains out of scope.
+
+## 设计交付 Report：PHRASE-001
+**时间**：2026-05-29 02:05
+**设计人**：Gemini1
+
+**设计稿位置**：docs/tickets/PHRASE-001-design.md
+**关键设计决策**：
+- 采用背景填充方案：使用 `bg-amber-100/50` (Light) 和 `dark:bg-amber-950/30` (Dark) 进行短语高亮，不使用下划线，完美避开已收藏词 `.saved-word` 下划线信号。
+- 短语卡片增加顶部 Accent Bar 和 `[固定搭配]` 徽章：使用 `absolute top-0 h-1 bg-amber-500` 与 amber 语义徽章，使短语卡在统一的设计骨架下呈现明显的视觉差异。
+- 采用 3D 式纸牌层叠效果实现双层 Stack：底层卡片通过 `scale-[0.96] -translate-y-3 opacity-40 blur-[0.5px]` 虚化压后，顶层卡片通过 `shadow-elevated z-20` 高度悬浮，保证层级关系极其清晰，最多展示 2 层。
+- 事件冒泡隔离：设计了嵌套 of span 结构，内层单字 token 点击事件调用 `e.stopPropagation()` 隔离冒泡，使用户既能点击高亮背景查短语，又能点击内层单字查词，体验和谐。
+
+**禁区清单核查**：✅ 全部七条已对照，无违反
+
+**移交**：Codex1 实施
+
 ## Codex1 Dev Report: LEX-001 Phase 4 lookup API integration
 **Time**: 2026-05-29 01:45
 **Developer**: Codex1
