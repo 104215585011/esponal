@@ -20,6 +20,12 @@
       "matches": ["http://localhost:3000/*", "https://*.vercel.app/*"],
       "js": ["dist/esponal-site.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.youtube.com/embed/*"],
+      "js": ["content.js", "dist/harvest.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [

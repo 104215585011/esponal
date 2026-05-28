@@ -32,7 +32,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     chrome.scripting
       .executeScript({
-        target: { tabId },
+        target: {
+          tabId,
+          frameIds: sender.frameId !== undefined ? [sender.frameId] : [0]
+        },
         world: "MAIN",
         files: ["dist/hook-timedtext.js"]
       })
@@ -58,7 +61,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // YouTube's CSP + Trusted Types since 2025.
     chrome.scripting
       .executeScript({
-        target: { tabId },
+        target: {
+          tabId,
+          frameIds: sender.frameId !== undefined ? [sender.frameId] : [0]
+        },
         world: "MAIN",
         func: readPlayerCaptionTracks
       })

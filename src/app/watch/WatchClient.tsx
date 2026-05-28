@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 14:38
+// Timestamp: 2026-05-28 16:50
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -257,11 +257,26 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           <h1 className="line-clamp-2 text-[17px] font-semibold leading-7 text-gray-900 dark:text-zinc-100">
             {videoInfo.title}
           </h1>
-          <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-sky-500 text-[10px] font-bold text-white">
-              ES
+          <div className="mt-2 flex items-center justify-between gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-sky-500 text-[10px] font-bold text-white">
+                ES
+              </div>
+              <span>{videoInfo.channelTitle}</span>
             </div>
-            <span>{videoInfo.channelTitle}</span>
+
+            {/* YouTube Login Link */}
+            <a
+              href="https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/20 px-3 py-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:border-red-200 hover:bg-red-50/30 hover:text-red-650 dark:hover:border-red-950/50 dark:hover:bg-red-950/10 dark:hover:text-red-400 transition-all duration-200"
+            >
+              <svg className="h-3.5 w-3.5 fill-current text-red-600 dark:text-red-400" viewBox="0 0 24 24">
+                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.5 12 3.5 12 3.5s-7.518 0-9.388.553a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.553 5.837a3.003 3.003 0 0 0 2.11 2.11c1.87.553 9.388.553 9.388.553s7.518 0 9.388-.553a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              登录 YouTube
+            </a>
           </div>
         </div>
 
