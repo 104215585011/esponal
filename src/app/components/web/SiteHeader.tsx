@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 08:40
+// Timestamp: 2026-05-28 10:50
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -86,18 +86,19 @@ export async function SiteHeader({
           {session?.user ? (
             <details className="relative">
               <summary className="flex list-none cursor-pointer items-center gap-2 rounded-full p-0.5 text-sm text-gray-600 hover:text-gray-900">
-                {session.user.image ? (
+              {session.user.image ? (
                   <img
                     alt={displayName}
-                    className="h-8.5 w-8.5 rounded-full object-cover ring-2 ring-zinc-100 dark:ring-zinc-800 transition-transform duration-300 hover:scale-105"
+                    className="h-7 w-7 rounded-full object-cover ring-1.5 ring-zinc-200/80 dark:ring-zinc-700/80 transition-transform duration-300 hover:scale-105"
                     referrerPolicy="no-referrer"
                     src={session.user.image}
                   />
                 ) : (
-                  <span className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-brand-500 dark:from-indigo-600 dark:to-brand-650 text-[11px] font-bold text-white shadow-md shadow-brand-500/10 ring-2 ring-white dark:ring-zinc-900 transition-transform duration-300 hover:scale-105">
-                    {initials}
-                    <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-brand-400 ring-1.5 ring-white dark:ring-zinc-900" />
-                  </span>
+                  <img
+                    alt={displayName}
+                    className="h-7 w-7 rounded-full object-cover ring-1.5 ring-zinc-200/80 dark:ring-zinc-700/80 transition-transform duration-300 hover:scale-105"
+                    src="/images/default-avatar.png"
+                  />
                 )}
               </summary>
               <div className="absolute right-0 mt-2 w-40 rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-elevated">
