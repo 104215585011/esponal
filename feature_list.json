@@ -1272,7 +1272,7 @@
     "area": "backend",
     "title": "自有语料库基础设施 + A1-A2 试点",
     "user_visible_behavior": "用户查询常用 A1-A2 单词和固定搭配时，结果从本地语料库直接返回（< 50ms），不再每次调外部 API。短语查询不再返回空。LLM 兜底未命中的词时结果回写本地语料库，缓存命中率持续提升。",
-    "status": "ready_for_qa",
+    "status": "in_progress",
     "verification": [
       "Phase 1：LexiconEntry Prisma schema + migration + src/lib/lexicon.ts 三个函数有单测",
       "Phase 2：PM 本机能跑 download-tatoeba.mjs / parse-tatoeba.mjs / seed-a1-a2-words.mjs 全流程",
@@ -1287,7 +1287,7 @@
       "PM 本机连续运行抓取脚本 24 小时无 crash",
       "npm test 通过、npm run build 通过"
     ],
-    "evidence": "Codex1 2026-05-28 15:50 Phase 1 complete: added LexiconEntry Prisma schema/enums/migration, src/lib/lexicon.ts helpers, and tests/lex001.test.mjs. TDD evidence: node --test tests/lex001.test.mjs failed 3/3 before implementation, then passed 3/3 after implementation. Verification: npx prisma validate passed; npx prisma generate passed after stopping stale local Node servers that held the Prisma query engine DLL; npm test passed 260/260; npm run build passed with existing img/Sentry warnings only. Codex2 QA 2026-05-28 15:56 Phase 1 PASS: node --test tests/lex001.test.mjs passed 3/3; npx prisma validate passed; npm test passed 260/260; npm run build passed with existing img/Sentry warnings only; source contract checked against schema, migration, and src/lib/lexicon.ts. Codex1 2026-05-28 16:05 Phase 2 implementation complete: added verb participio/gerundio/preteritoPerfectoCompuesto, Tatoeba download/parse scripts, A1-A2 seed script with DeepSeek, resume/dry-run/concurrency controls, and ignored large data artifacts. Verification: new Phase 2 tests failed before implementation and passed 4/4 after; script syntax checks passed; dry-run seed smoke passed; npm test passed 264/264; npm run build passed with existing img/Sentry warnings only. Overall LEX-001 remains open pending Codex2 Phase 2 QA and PM local data-volume checks.",
+    "evidence": "Phase 1 通过 (commit 397c2be, 260/260 测试)。Phase 2 (commit 4f469b0) PM 抽样实测发现 8 个严重 bug：CLI 默认就写库、--help 未识别、lemma 抽取错位（出现单字符 e/o/os）、morphology 全空、动词 forms 未展平、数据串扰、Tatoeba URL 404、examples 全空。63 条污染数据已清空，回炉 Codex1 修复。详见 session-handoff.md 顶部驳回报告。",
     "notes": "PM 派单 2026-05-28。Ticket: docs/tickets/LEX-001.md。战略：未来计划包装成计费制公开 API。试点 A1-A2 验证流程，约 3000 单词 + 500 固定搭配。Codex1 全栈实现（脚本 + schema + API 改造），Codex2 + PM 联合验收。每 Phase 独立 ship。"
   }
 }

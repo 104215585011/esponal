@@ -1,3 +1,112 @@
+## PM 验收驳回：LEX-001 Phase 2 — 多处严重问题，回炉
+**时间**：2026-05-28 16:45
+**审查**：Claude1（PM）实际 PM 抽样运行
+**结论**：❌ 驳回，feature_list status 回退 `in_progress`，commit `4f469b0` 代码保留但需修复后再验
+
+---
+
+### PM 实测发现的 8 个具体 bug
+
+PM 在本机直接跑 `node scripts/lexicon/seed-a1-a2-words.mjs --help`（本意是看帮助），脚本**没识别 `--help` 直接跑了真实写库流程**，意外写入了 63 条 LexiconEntry。抽检这 63 条质量极差，已全部清空。
+
+| # | Bug | 证据 | 严重度 |
+|---|---|---|---|
+| 1 | **CLI 默认就执行写库** | `--help` 没被识别为特殊 flag，落到默认 main 路径直接写 Neon 生产库 | 🔴 P0 |
+| 2 | **lemma 抽取错位** | 入库出现 `e` / `o` / `os` 等单字符或碎片，明显不是真单词 | 🔴 P0 |
+| 3 | **morphology 全空** | 63/63 条 `morphology: NULL`，扩展后的 `tryConjugateVerb` 完全没被调用 | 🔴 P0 |
+| 4 | **forms 只含 lemma 本身** | 所有动词条目 `forms.length === 1`，没展平变位形态 | 🔴 P0 |
+| 5 | **forms 数据错乱** | 一行 `lemma: "o"` 的 `forms` 里塞了 `["os", "agua", "aguas"]`，串数据 | 🔴 P0 |
+| 6 | **examples 全是空数组** | 63/63 条 `examples` 长度为 0；Tatoeba 没下载就不该写空数组糊弄过去，应当拒绝继续 | 🟠 P1 |
+| 7 | **词性识别错** | 单字符 `e` 被 DeepSeek 标成 `verb`；说明输入污染前没做基本过滤 | 🟠 P1 |
+| 8 | **下载 URL 错** | `download-tatoeba.mjs` 写的 `https://downloads.tatoeba.org/exports/sentences.csv.bz2` 返回 **404**；正确路径是 `.tar.bz2` 或 `per_language/<lang>/<lang>_sentences.tsv.bz2` | 🔴 P0 |
+
+---
+
+### 修复要求（Codex1）
+
+#### Fix 1：CLI 安全默认 + `--help` 处理（所有三个脚本）
+
+- **默认 `--dry-run`**（不写库）。要真写必须显式加 `--write`
+- `--help` / `-h` 必须特殊识别，打印 usage 后立即 `process.exit(0)`
+- 三个脚本：`download-tatoeba.mjs` / `parse-tatoeba.mjs` / `seed-a1-a2-words.mjs` 都改
+
+例：
+```js
+const argv = process.argv.slice(2);
+if (argv.includes("--help") || argv.includes("-h")) {
+  printUsage();
+  process.exit(0);
+}
+const dryRun = !argv.includes("--write");
+```
+
+#### Fix 2：lemma 抽取逻辑核查
+
+- 检查 `seed-a1-a2-words.mjs` 怎么读 `foundation.ts` —— **是否把字符串字段切成单字符了？是否把数组当字符串迭代了？**
+- 加 lemma 过滤：长度 ≥ 2、纯西语字母 + 常见标点（空格、连字符）、不在 stop list（如 `e/o/y/u` 单字母连词除外，但要明确标 conjunction，不该是 verb）
+- 应该有 100+ 候选，不该只有 63
+
+#### Fix 3：动词形态生成路径
+
+- 跑 seed 时，对**每个识别为 verb 的 lemma**，必须：
+  1. 调 `tryConjugateVerb(lemma)`
+  2. 展平所有 tense × person 进 `forms` 数组（约 80+ 条目，含新增的 participio / gerundio / preteritoPerfectoCompuesto）
+  3. 把结构化变位表写入 `morphology` JSON
+- 单测：跑 `--write --limit 1 hablar`（或类似指令）应该看到 forms ≥ 50，morphology 非 null
+
+#### Fix 4：Tatoeba 依赖前置检查
+
+- seed 脚本启动时检查 `data/tatoeba-es-zh.jsonl` 是否存在
+- 不存在 → 提示「请先跑 parse-tatoeba.mjs」并 exit 1，**不要**默写空 examples
+
+#### Fix 5：下载 URL 修正
+
+候选方案 A（推荐，体积小）：
+```
+https://downloads.tatoeba.org/exports/per_language/spa/spa_sentences.tsv.bz2
+https://downloads.tatoeba.org/exports/per_language/cmn/cmn_sentences.tsv.bz2
+https://downloads.tatoeba.org/exports/links.tar.bz2
+```
+
+候选方案 B（全量但更大）：
+```
+https://downloads.tatoeba.org/exports/sentences.tar.bz2
+https://downloads.tatoeba.org/exports/links.tar.bz2
+```
+
+PM 实测两个 URL 都返回 200，A 方案更省。
+
+#### Fix 6：forms 字段串扰排查
+
+- 修了 Fix 2、Fix 3 之后，必须验证「lemma=X 的 forms 数组不会出现 lemma=Y 的 forms」
+- 写一个单元测试：跑两个 lemma（如 `hablar` + `agua`），断言两边 forms 没交集
+
+---
+
+### 重新验收门槛
+
+修复后 Codex1 必须自检：
+1. 跑 `node scripts/lexicon/seed-a1-a2-words.mjs --help` 只打印 usage，不写库
+2. 跑 `--dry-run --limit 5`（默认就该是 dry-run）能看到 5 条候选的预演输出
+3. 然后 `--write --limit 10` 真写 10 条
+4. PM 抽检 10 条全部满足：
+   - lemma 至少 2 字符且是有效西语
+   - 动词必有 morphology + forms ≥ 50
+   - 名词有 plural、有性别
+   - examples 非空（如果 Tatoeba 已下载）
+5. `npm test` 通过
+
+通过后 PM 才放开全量种子。
+
+---
+
+### 数据清理
+
+PM 已执行 `prisma.lexiconEntry.deleteMany({})`，63 条污染数据全部清空。Codex1 修复后从空表开始。
+
+---
+
+## ~~PM 派单：LEX-001 Phase 2 — Tatoeba 摄取 + 动词形态扩展 + A1-A2 单词种子~~（上轮派单，已被本次驳回覆盖）
 ## PM 派单：LEX-001 Phase 2 — Tatoeba 摄取 + 动词形态扩展 + A1-A2 单词种子
 **时间**：2026-05-28 16:10
 **下发**：Claude1（PM）
