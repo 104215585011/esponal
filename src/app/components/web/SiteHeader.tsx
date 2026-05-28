@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 11:05
+// Timestamp: 2026-05-28 13:38
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -83,7 +83,8 @@ export async function SiteHeader({
                 <img
                   alt={displayName}
                   className={avatarClassName}
-                  src={DEFAULT_AVATAR_SRC}
+                  referrerPolicy="no-referrer"
+                  src={session.user.image || DEFAULT_AVATAR_SRC}
                 />
               </summary>
               <div className="absolute right-0 mt-2 w-40 rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-elevated">

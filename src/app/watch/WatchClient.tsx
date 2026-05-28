@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 09:35
+// Timestamp: 2026-05-28 11:00
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -80,6 +80,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "lookup" | "related">("subtitle");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<number | null>(null);
@@ -176,8 +177,8 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   // Handle word clicked lookup triggering pause
   const handleLookup = useCallback((lookup: ActiveLookup) => {
     setActiveLookup(lookup);
-    setVideoEnded(false);
     setMobileTab("lookup");
+    setIsSidebarOpen(true);
     try {
       if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
         playerRef.current.pauseVideo();
@@ -218,13 +219,13 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   }, []);
 
   return (
-    <div className="relative mx-auto flex w-full max-w-app-shell flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:pl-7">
-      {/* Left Column: Player & Subtitles & Controls (Desktop) */}
-      <section className="flex flex-col px-4 py-4 lg:basis-[48rem] lg:shrink-0 lg:justify-start lg:overflow-y-auto lg:px-0 lg:py-8 lg:pr-6">
+    <div className="relative mx-auto flex w-full max-w-app-shell flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden">
+      {/* Main Column: Player & Subtitles & Transcript */}
+      <section className="flex flex-1 min-w-0 flex-col px-4 py-4 lg:justify-start lg:overflow-y-auto lg:px-6 lg:py-8">
         <BackLink href="/" label="视频" />
 
         {/* Video Player */}
-        <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2 lg:max-w-[48rem]">
+        <div className="w-full overflow-hidden rounded-surface bg-black shadow-elevated lg:mt-2">
           <div className="aspect-video w-full">
             <iframe
               allow="autoplay; encrypted-media; fullscreen"
@@ -419,25 +420,52 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
         </div>
       ) : null}
 
-      {/* Desktop Right Panel: Transcript (Left part) & WatchSidebar (Right part) */}
-      <section className="hidden lg:flex flex-1 min-w-0 border-l border-zinc-200 dark:border-zinc-800">
-        <div className="flex-1 min-w-0 h-full bg-surface">
-          <TranscriptPanel
-            currentTimeSec={currentTimeSec}
-            onLookup={handleLookup}
-            onSeek={handleSeek}
-            videoId={videoId}
-          />
-        </div>
-        <div className="w-[320px] shrink-0 h-full">
-          <WatchSidebar
-            activeLookup={activeLookup}
-            onCloseLookup={handleCloseLookup}
-            relatedVideos={relatedVideos}
-            currentTimeSec={currentTimeSec}
-          />
-        </div>
+      {/* Desktop Transcript Panel (inline, below subtitle on desktop) */}
+      <section className="hidden lg:block lg:w-[340px] lg:shrink-0 border-l border-zinc-200 dark:border-zinc-800 h-full bg-surface">
+        <TranscriptPanel
+          currentTimeSec={currentTimeSec}
+          onLookup={handleLookup}
+          onSeek={handleSeek}
+          videoId={videoId}
+        />
       </section>
+
+      {/* Desktop Slide-out Sidebar Trigger (Small arrow on the right edge) */}
+      <button
+        aria-label={isSidebarOpen ? "关闭侧栏" : "打开侧栏"}
+        className={`hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 h-16 w-5 items-center justify-center rounded-l-lg border border-r-0 border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 shadow-sm backdrop-blur-sm text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-200 ${
+          isSidebarOpen ? "right-[340px]" : "right-0"
+        }`}
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        style={{ right: isSidebarOpen ? 340 : 0 }}
+        type="button"
+      >
+        <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${isSidebarOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      {/* Desktop Slide-out Sidebar Drawer */}
+      <aside
+        className={`hidden lg:flex fixed right-0 top-[65px] bottom-0 z-30 w-[340px] flex-col border-l border-zinc-200/80 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-950/95 shadow-xl backdrop-blur-md transition-transform duration-300 ease-out ${
+          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <WatchSidebar
+          activeLookup={activeLookup}
+          onCloseLookup={handleCloseLookup}
+          relatedVideos={relatedVideos}
+          currentTimeSec={currentTimeSec}
+        />
+      </aside>
+
+      {/* Backdrop overlay when sidebar is open */}
+      {isSidebarOpen && (
+        <div
+          className="hidden lg:block fixed inset-0 z-20 bg-black/10 dark:bg-black/30 transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

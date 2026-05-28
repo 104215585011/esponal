@@ -1,6 +1,16 @@
-### Session #WATCH-002-END-FIX - 2026-05-28 09:55
+### Session #AVATAR-MINK-ENHANCEMENT - 2026-05-28 14:15
 
-**Goal**: Close Codex2's WATCH-002 blocker for the missing video-ended recommendation card.
+**Goal**: Upgrade the user profile avatar in the site header with a custom European mink design and re-integrate/style Google login images properly to fit the menu bar.
+
+**Completed**:
+- Generated a custom minimalist vector-style profile picture featuring a cute European mink using the platform's brand colors. Copied it to `public/images/default-avatar.png` as the default user fallback.
+- Re-enabled `session.user.image` in `SiteHeader.tsx` for logged-in users, with `referrerPolicy="no-referrer"` to ensure Google avatars load correctly.
+- Styled the profile image avatar with `h-7 w-7` circle format to guarantee it fits the sticky navigation menu bar perfectly.
+- Verified that all 257 automated tests and the production build are passing perfectly.
+
+---
+
+### Session #WATCH-002-END-FIX - 2026-05-28 09:55
 
 **Completed**:
 - Updated `src/app/watch/WatchClient.tsx` to track `videoEnded`.

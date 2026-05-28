@@ -180,7 +180,7 @@ export function SpanishText({
 
         return (
           <span
-            className="relative inline-block max-w-[min(20rem,calc(100vw-2rem))]"
+            className={`relative inline-block max-w-[min(20rem,calc(100vw-2rem))] ${isActive ? "z-50" : ""}`}
             key={`${part.text}-${index}`}
           >
             <button
@@ -196,7 +196,7 @@ export function SpanishText({
             </button>
             {isActive ? (
               <span
-                className="absolute top-full"
+                className="absolute top-full z-50"
                 style={{ left: getLookupAnchorOffset(activeWord.anchorX, source) }}
               >
                 <LookupCard

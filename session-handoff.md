@@ -1,3 +1,21 @@
+## Dev Report: User Avatar Enhancement & Mink Design Integration
+**Time**: 2026-05-28 14:15
+**Developer/Designer**: Antigravity (Gemini/Codex)
+**Status**: Completed. All tests (257/257) and production build are passing perfectly.
+
+### Implemented:
+1. **European Mink Default Avatar**: Designed and generated a premium minimalist vector-style profile picture featuring a cute European mink using the platform's brand colors. Copied it to `public/images/default-avatar.png` as the default user fallback.
+2. **Google Avatar Integration & Sizing Fix**:
+   - Re-enabled `session.user.image || DEFAULT_AVATAR_SRC` in `SiteHeader.tsx` for logged-in users.
+   - Added `referrerPolicy="no-referrer"` to the profile `<img>` to prevent rendering issues and broken images.
+   - Maintained the compact `h-7 w-7` round layout to guarantee that the avatar fits the sticky navigation menu bar perfectly without stretching or scaling layout issues.
+3. **Verification**:
+   - Verified that `npm test` runs successfully with 257/257 tests passing.
+   - Verified `npm run build` succeeds completely.
+   - Documented the updates in the [walkthrough.md](file:///C:/Users/wang/.gemini/antigravity/brain/7bac0d5a-3e94-46d5-9839-17e9ebbf0f49/walkthrough.md) artifact.
+
+---
+
 ## QA Report: WATCH-002 focused re-QA after ended-state fix
 **Time**: 2026-05-28 10:35
 **Tester**: Codex2
