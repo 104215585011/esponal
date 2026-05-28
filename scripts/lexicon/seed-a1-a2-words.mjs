@@ -83,6 +83,26 @@ function buildPlural(lemma) {
   return `${lemma}es`;
 }
 
+function buildAdjectiveForms(lemma) {
+  if (lemma.endsWith("o")) {
+    const feminine = `${lemma.slice(0, -1)}a`;
+    return {
+      masc_sg: lemma,
+      masc_pl: buildPlural(lemma),
+      fem_sg: feminine,
+      fem_pl: buildPlural(feminine)
+    };
+  }
+
+  const plural = buildPlural(lemma);
+  return {
+    masc_sg: lemma,
+    masc_pl: plural,
+    fem_sg: lemma,
+    fem_pl: plural
+  };
+}
+
 function mapPhaseOnePartOfSpeech(entry) {
   const raw = normalizeText(entry.partOfSpeech);
   if (raw === "verb") return "verb";
@@ -232,6 +252,12 @@ function escapeRegExp(value) {
 }
 
 async function describeWithDeepSeek(lemma) {
+  const mockResponses = process.env.LEXICON_SEED_MOCK_RESPONSES;
+  if (mockResponses) {
+    const responses = JSON.parse(mockResponses);
+    return responses[lemma] ?? {};
+  }
+
   const apiKey = process.env.DEEPSEEK_API_KEY ?? "";
   const baseUrl = (process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com").replace(/\/+$/, "");
   const model = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
@@ -268,6 +294,77 @@ async function describeWithDeepSeek(lemma) {
   const payload = await response.json();
   const content = payload.choices?.[0]?.message?.content ?? "{}";
   return JSON.parse(content);
+}
+
+function normalizePartOfSpeech(ai, candidate, verb) {
+  const raw = normalizeText(ai.partOfSpeech);
+  const candidatePos = normalizeText(candidate.partOfSpeech);
+
+  if (raw === "verb" && verb) return "verb";
+  if (raw === "adj" || raw === "adjective") return "adj";
+  if (raw === "adv" || raw === "adverb") return "adv";
+  if (raw === "prep" || raw === "preposition") return "prep";
+  if (raw === "conj" || raw === "conjunction") return "conj";
+  if (raw === "interjection") return "interjection";
+
+  if (raw === "noun" || raw === "sustantivo" || raw.startsWith("noun_")) {
+    if (raw === "noun_m" || raw === "noun_f" || raw === "noun_mf") return raw;
+    if (candidatePos === "noun_m" || candidatePos === "noun_f" || candidatePos === "noun_mf") {
+      return candidatePos;
+    }
+
+    const gender = normalizeText(ai.gender);
+    if (gender === "masculine" || gender === "masc" || gender === "m") return "noun_m";
+    if (gender === "feminine" || gender === "fem" || gender === "f") return "noun_f";
+    return "noun_mf";
+  }
+
+  return raw || candidatePos || null;
+}
+
+function finalizeLexiconShape({ lemma, ai, candidate, verb }) {
+  const partOfSpeech = normalizePartOfSpeech(ai, candidate, verb);
+  const isVerb = partOfSpeech === "verb" && verb;
+  const baseForms = unique([
+    lemma,
+    ...(Array.isArray(candidate.forms) ? candidate.forms : []),
+    ...(Array.isArray(ai.forms) ? ai.forms : [])
+  ]);
+
+  if (isVerb) {
+    return {
+      partOfSpeech: "verb",
+      forms: unique([...baseForms, ...flattenVerbForms(verb)]),
+      morphology: verb
+    };
+  }
+
+  if (partOfSpeech?.startsWith("noun_")) {
+    const plural = normalizeText(ai.plural) || baseForms.find((form) => form !== lemma) || buildPlural(lemma);
+    return {
+      partOfSpeech,
+      forms: unique([lemma, plural]),
+      morphology: {
+        singular: lemma,
+        plural
+      }
+    };
+  }
+
+  if (partOfSpeech === "adj") {
+    const morphology = buildAdjectiveForms(lemma);
+    return {
+      partOfSpeech,
+      forms: unique([...baseForms, ...Object.values(morphology)]),
+      morphology
+    };
+  }
+
+  return {
+    partOfSpeech,
+    forms: baseForms,
+    morphology: null
+  };
 }
 
 async function runPool(items, concurrency, worker) {
@@ -337,7 +434,8 @@ async function main() {
   await runPool(selected, Math.max(1, concurrency), async (candidate) => {
     const lemma = candidate.lemma;
     const verb = tryConjugateVerb(lemma);
-    const ai = dryRun
+    const useMockAi = Boolean(process.env.LEXICON_SEED_MOCK_RESPONSES);
+    const ai = dryRun && !useMockAi
       ? {
           partOfSpeech: verb ? "verb" : candidate.partOfSpeech,
           level: candidate.level ?? "A1",
@@ -349,12 +447,8 @@ async function main() {
         }
       : { ...candidate, ...await describeWithDeepSeek(lemma) };
 
-    const isVerb = ai.partOfSpeech === "verb" && verb;
-    const forms = unique([
-      lemma,
-      ...(Array.isArray(ai.forms) ? ai.forms : []),
-      ...(isVerb ? flattenVerbForms(verb) : [])
-    ]);
+    const shape = finalizeLexiconShape({ lemma, ai, candidate, verb });
+    const forms = shape.forms;
     const examples = await findExamples(forms, tatoebaPath);
     if (examples.length === 0) {
       throw new Error(`No Tatoeba examples found for ${lemma}; refusing to write an empty examples array`);
@@ -365,14 +459,14 @@ async function main() {
       lemma,
       displayForm: lemma,
       forms,
-      partOfSpeech: isVerb ? "verb" : ai.partOfSpeech,
+      partOfSpeech: shape.partOfSpeech,
       level: ai.level,
       ipa: ai.ipa,
       translationZh: ai.translationZh,
       translationEn: ai.translationEn,
       explanationZh: ai.explanationZh,
       examples,
-      morphology: isVerb ? verb : null,
+      morphology: shape.morphology,
       collocations: [],
       sources: ["tatoeba", "llm-deepseek"],
       licenseCode: "CC-BY-2.0-FR",

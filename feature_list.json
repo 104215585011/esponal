@@ -1272,7 +1272,7 @@
     "area": "backend",
     "title": "自有语料库基础设施 + A1-A2 试点",
     "user_visible_behavior": "用户查询常用 A1-A2 单词和固定搭配时，结果从本地语料库直接返回（< 50ms），不再每次调外部 API。短语查询不再返回空。LLM 兜底未命中的词时结果回写本地语料库，缓存命中率持续提升。",
-    "status": "in_progress",
+    "status": "ready_for_qa",
     "verification": [
       "Phase 1：LexiconEntry Prisma schema + migration + src/lib/lexicon.ts 三个函数有单测",
       "Phase 2：PM 本机能跑 download-tatoeba.mjs / parse-tatoeba.mjs / seed-a1-a2-words.mjs 全流程",
@@ -1287,7 +1287,7 @@
       "PM 本机连续运行抓取脚本 24 小时无 crash",
       "npm test 通过、npm run build 通过"
     ],
-    "evidence": "Phase 2 修复版 (97abead) PM 复测 2026-05-28 17:45：动词路径完美（hablar forms=85 + morphology 10 时态），但名词路径回归——agua/día/familia 等 10 个名词全部 pos=noun（缺 gender 后缀）、forms.length=1（缺 plural）、morphology=NULL。dry-run 路径正确（casa → noun_f + [casa,casas]），但 --write 路径丢了形态。已清空 11 条样本，等 Codex1 修名词分支后复测。Tatoeba 下载 + parse 已就绪（11516 ES-ZH pairs，jsonl 1.2MB）。",
+    "evidence": "Phase 2 修复版 (97abead) PM 复测 2026-05-28 17:45：动词路径完美（hablar forms=85 + morphology 10 时态），但名词路径回归——agua/día/familia 等 10 个名词全部 pos=noun（缺 gender 后缀）、forms.length=1（缺 plural）、morphology=NULL。Codex1 fix 2026-05-28 18:08：seed 写库前统一 normalize noun/adj/verb 形态；AI 返回 noun 时保留候选词表 noun_m/noun_f，补 plural forms 和 morphology={singular,plural}；adj 补 masc_sg/masc_pl/fem_sg/fem_pl 四形态；新增 mock DeepSeek 行为测试覆盖 casa/libro/bueno，并修复 LEX fixture 并发隔离。真实 --write 自验：node scripts/lexicon/seed-a1-a2-words.mjs --write --lemmas casa,agua,libro,bueno,hablar --limit 5 --concurrency 1 写入成功；DB 抽检确认 casa noun_f forms=[casa,casas] morphology 非空，agua noun_f forms=[agua,aguas]，libro noun_m forms=[libro,libros]，bueno adj forms=[bueno,buenos,buena,buenas]，hablar verb forms=85/morphology 10 keys，全部 examplesLength=3。Verification：node --test tests\\lex001-conjugate.test.mjs tests\\lex001-phase2-scripts.test.mjs -> 7/7 pass；npm test -> 268/268 pass；npm run build -> pass（仅既有 <img>/Sentry warnings）。Tatoeba 下载 + parse 已就绪（11516 ES-ZH pairs，jsonl 1.2MB）。",
     "notes": "PM 派单 2026-05-28。Ticket: docs/tickets/LEX-001.md。战略：未来计划包装成计费制公开 API。试点 A1-A2 验证流程，约 3000 单词 + 500 固定搭配。Codex1 全栈实现（脚本 + schema + API 改造），Codex2 + PM 联合验收。每 Phase 独立 ship。"
   }
 }

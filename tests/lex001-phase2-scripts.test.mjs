@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 16:44
+// Timestamp: 2026-05-28 18:08
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -24,9 +24,11 @@ async function withTatoebaFixture(name, fn) {
   await writeFile(
     fixturePath,
     [
-      { es: "Yo quiero hablar espanol.", zh: "我想说西班牙语。", esId: 1, zhId: 2 },
-      { es: "He hablado con Ana.", zh: "我和 Ana 说过话。", esId: 3, zhId: 4 },
-      { es: "Bebo agua.", zh: "我喝水。", esId: 5, zhId: 6 }
+      { es: "Yo quiero hablar espanol.", zh: "quiero hablar", esId: 1, zhId: 2 },
+      { es: "He hablado con Ana.", zh: "he hablado", esId: 3, zhId: 4 },
+      { es: "Bebo agua.", zh: "bebo agua", esId: 5, zhId: 6 },
+      { es: "La casa es buena.", zh: "casa buena", esId: 7, zhId: 8 },
+      { es: "Leo un libro bueno.", zh: "libro bueno", esId: 9, zhId: 10 }
     ].map((item) => JSON.stringify(item)).join("\n") + "\n",
     "utf8"
   );
@@ -121,10 +123,84 @@ test("LEX-001 Phase 2 seed produces isolated verb and noun forms", async () => {
     assert.ok(hablar.forms.includes("hablando"));
     assert.equal(agua.partOfSpeech, "noun_f");
     assert.deepEqual(agua.forms, ["agua", "aguas"]);
+    assert.deepEqual(agua.morphology, { singular: "agua", plural: "aguas" });
     assert.ok(hablar.examples.length > 0);
     assert.ok(agua.examples.length > 0);
     assert.ok(!agua.forms.some((form) => hablar.forms.includes(form) && form !== "agua"));
     assert.ok(!hablar.forms.includes("aguas"));
+  });
+});
+
+test("LEX-001 Phase 2 seed normalizes AI noun and adjective morphology", async () => {
+  await withTatoebaFixture("noun-adj-morphology", async (fixturePath) => {
+    const mockResponses = {
+      casa: {
+        partOfSpeech: "noun",
+        level: "A1",
+        translationZh: "house",
+        translationEn: "house",
+        explanationZh: "feminine noun",
+        ipa: "kasa",
+        forms: ["casa"]
+      },
+      libro: {
+        partOfSpeech: "noun",
+        level: "A1",
+        translationZh: "book",
+        translationEn: "book",
+        explanationZh: "masculine noun",
+        ipa: "libro",
+        forms: ["libro"]
+      },
+      bueno: {
+        partOfSpeech: "adj",
+        level: "A1",
+        translationZh: "good",
+        translationEn: "good",
+        explanationZh: "adjective",
+        ipa: "bueno",
+        forms: ["bueno"]
+      }
+    };
+    const { stdout } = await runNode([
+      "scripts/lexicon/seed-a1-a2-words.mjs",
+      "--lemmas",
+      "casa,libro,bueno",
+      "--tatoeba",
+      fixturePath,
+      "--limit",
+      "3",
+      "--concurrency",
+      "1"
+    ], {
+      env: {
+        ...process.env,
+        LEXICON_SEED_MOCK_RESPONSES: JSON.stringify(mockResponses)
+      }
+    });
+
+    const entries = stdout
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("{"))
+      .map((line) => JSON.parse(line));
+    const casa = entries.find((entry) => entry.lemma === "casa");
+    const libro = entries.find((entry) => entry.lemma === "libro");
+    const bueno = entries.find((entry) => entry.lemma === "bueno");
+
+    assert.equal(casa.partOfSpeech, "noun_f");
+    assert.deepEqual(casa.forms, ["casa", "casas"]);
+    assert.deepEqual(casa.morphology, { singular: "casa", plural: "casas" });
+    assert.equal(libro.partOfSpeech, "noun_m");
+    assert.deepEqual(libro.forms, ["libro", "libros"]);
+    assert.deepEqual(libro.morphology, { singular: "libro", plural: "libros" });
+    assert.equal(bueno.partOfSpeech, "adj");
+    assert.deepEqual(bueno.forms, ["bueno", "buenos", "buena", "buenas"]);
+    assert.deepEqual(bueno.morphology, {
+      masc_sg: "bueno",
+      masc_pl: "buenos",
+      fem_sg: "buena",
+      fem_pl: "buenas"
+    });
   });
 });
 
