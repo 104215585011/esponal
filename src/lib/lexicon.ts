@@ -53,6 +53,52 @@ export async function getLexiconEntry(
   });
 }
 
+export async function findLexiconLookupEntry(lemma: string): Promise<LexiconEntry | null> {
+  const normalized = normalizeLexiconText(lemma);
+  if (!normalized) return null;
+
+  const word = await prisma.lexiconEntry.findFirst({
+    where: {
+      kind: "word",
+      OR: [
+        { lemma: normalized },
+        { forms: { has: normalized } }
+      ]
+    }
+  });
+  if (word) return word;
+
+  return prisma.lexiconEntry.findFirst({
+    where: {
+      kind: { in: ["collocation", "phrase", "idiom"] },
+      OR: [
+        { lemma: normalized },
+        { forms: { has: normalized } }
+      ]
+    }
+  });
+}
+
+export async function findRelatedPhraseEntries(lemma: string): Promise<LexiconEntry[]> {
+  const normalized = normalizeLexiconText(lemma);
+  if (!normalized) return [];
+
+  const candidates = await prisma.lexiconEntry.findMany({
+    where: {
+      kind: { in: ["collocation", "phrase", "idiom"] },
+      lemma: { contains: normalized }
+    },
+    orderBy: [
+      { frequency: "asc" },
+      { qualityScore: "desc" }
+    ],
+    take: 20
+  });
+
+  const tokenPattern = new RegExp(`(^|\\s)${normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`);
+  return candidates.filter((entry) => tokenPattern.test(entry.lemma)).slice(0, 5);
+}
+
 export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<LexiconEntry> {
   const kind = input.kind ?? "word";
   const lemma = normalizeLexiconText(input.lemma);

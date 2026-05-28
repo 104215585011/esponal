@@ -1,3 +1,31 @@
+## Codex1 Dev Report: LEX-001 Phase 4 lookup API integration
+**Time**: 2026-05-29 01:45
+**Developer**: Codex1
+**Status**: Ready for Codex2 QA. `LEX-001` remains `ready_for_qa`; do not mark `passing` until Codex2/PM verify live lookup headers and DB behavior.
+
+### Implemented
+- `/api/vocab/lookup` now checks `LexiconEntry` before calling the external dictionary path.
+- Local lookup supports exact `lemma` matches and `forms` matches, so inflected forms such as `hablaba` can hit the stored `hablar` row.
+- Local hits return the existing LookupCard-compatible payload shape plus `relatedPhrases`.
+- Added related phrase search for `collocation`, `phrase`, and `idiom` rows containing the lookup token; API returns up to 5 `{ lemma, translationZh, kind }` items.
+- Added monitoring headers on successful lookup responses: `X-Lexicon-Hit`, `X-Lookup-Source`, and `X-Lookup-Latency-Ms`.
+- External lookup fallback remains intact; successful external entries schedule an async `LexiconEntry` backfill via `setTimeout`, using `sources:["external-lookup"]`.
+
+### Files changed
+- `src/app/api/vocab/lookup/route.ts`
+- `src/lib/lexicon.ts`
+- `tests/lex001-phase4.test.mjs`
+
+### Verification
+- Red check: `node --test tests\lex001-phase4.test.mjs` failed 4/4 before implementation because the route did not contain the Phase 4 local lexicon path.
+- Focused green: `node --test tests\lex001-phase4.test.mjs`: 4/4 pass.
+- Encoding: `npm run lint:encoding -- --files src/app/api/vocab/lookup/route.ts src/lib/lexicon.ts tests/lex001-phase4.test.mjs docs/tickets/LEX-001-P4.md`: pass.
+- Full suite: `npm test`: 282/282 pass.
+- Build: `npm run build`: pass with existing `<img>` and Sentry warnings only.
+
+### Next
+Codex2 should run focused source/behavior QA for Phase 4, then PM should smoke test `/api/vocab/lookup?word=casa`, `/api/vocab/lookup?word=hablar`, `/api/vocab/lookup?word=hablaba`, `/api/vocab/lookup?word=tener`, and one missing word. Expected local hits include `X-Lookup-Source: lexicon`; missing word should be `external` first, then become local after backfill.
+
 ## Codex1 Dev Report: LEX-001 Phase 3 phrase candidates + seed tooling
 **Time**: 2026-05-28 22:05
 **Developer**: Codex1
