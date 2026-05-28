@@ -1272,7 +1272,7 @@
     "area": "backend",
     "title": "自有语料库基础设施 + A1-A2 试点",
     "user_visible_behavior": "用户查询常用 A1-A2 单词和固定搭配时，结果从本地语料库直接返回（< 50ms），不再每次调外部 API。短语查询不再返回空。LLM 兜底未命中的词时结果回写本地语料库，缓存命中率持续提升。",
-    "status": "ready_for_qa",
+    "status": "in_progress",
     "verification": [
       "Phase 1：LexiconEntry Prisma schema + migration + src/lib/lexicon.ts 三个函数有单测",
       "Phase 2：PM 本机能跑 download-tatoeba.mjs / parse-tatoeba.mjs / seed-a1-a2-words.mjs 全流程",
@@ -1287,7 +1287,7 @@
       "PM 本机连续运行抓取脚本 24 小时无 crash",
       "npm test 通过、npm run build 通过"
     ],
-    "evidence": "Phase 1 通过 (commit 397c2be, 260/260 测试)。Phase 2 初版 (commit 4f469b0) 被 PM 抽样驳回：CLI 默认写库、--help 未识别、lemma 抽取错位、morphology/forms/examples 缺失、forms 串扰、Tatoeba URL 404。Codex1 fix 2026-05-28 16:44：三脚本支持 --help/-h 且默认 dry-run，真实写入必须 --write；seed 改为结构化 lemma 候选与过滤，缺 data/tatoeba-es-zh.jsonl 或 lemma 无例句时拒绝继续；动词路径接入 tryConjugateVerb，写入 morphology 并展平 50+ forms；修正 Tatoeba per-language/links URL；补真实 CLI 行为测试与 hablar+agua forms 隔离测试；修正 vosotros 命令式（hablad/comed/vivid/sed/tened）。验证：node --test tests\\lex001-conjugate.test.mjs tests\\lex001-phase2-scripts.test.mjs -> 6/6 pass；node --check 三个 scripts/lexicon/*.mjs -> pass；node scripts\\lexicon\\seed-a1-a2-words.mjs --help 只打印 Usage；fixture dry-run --lemmas hablar,agua 输出 hablar morphology/examples/forms>50 且 agua forms 仅 agua/aguas；npm test -> 266/266 pass；npm run build -> pass（仅既有 <img>/Sentry 提醒）。PM 全量 download/parse/--write --limit 100 数据验收仍待执行。",
+    "evidence": "Phase 2 修复版 (97abead) PM 复测 2026-05-28 17:45：动词路径完美（hablar forms=85 + morphology 10 时态），但名词路径回归——agua/día/familia 等 10 个名词全部 pos=noun（缺 gender 后缀）、forms.length=1（缺 plural）、morphology=NULL。dry-run 路径正确（casa → noun_f + [casa,casas]），但 --write 路径丢了形态。已清空 11 条样本，等 Codex1 修名词分支后复测。Tatoeba 下载 + parse 已就绪（11516 ES-ZH pairs，jsonl 1.2MB）。",
     "notes": "PM 派单 2026-05-28。Ticket: docs/tickets/LEX-001.md。战略：未来计划包装成计费制公开 API。试点 A1-A2 验证流程，约 3000 单词 + 500 固定搭配。Codex1 全栈实现（脚本 + schema + API 改造），Codex2 + PM 联合验收。每 Phase 独立 ship。"
   }
 }
