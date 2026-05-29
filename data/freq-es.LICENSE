@@ -1,0 +1,6 @@
+LEX-002 frequency source trail
+source: https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/es/es_50k.txt
+repo: https://github.com/hermitdave/FrequencyWords
+commit: master
+license: MIT
+note: Source word-frequency list reused under MIT; lexicon meanings/examples are generated separately.

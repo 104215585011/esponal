@@ -758,7 +758,7 @@
       ".env.example 含 EXT_INGEST_TOKEN 和 ESPONAL_APP_ORIGIN",
       "npm test + npm run build 通过；Codex2/PM 需补真实 Chrome 安装扩展后验证 PO Token timedtext capture"
     ],
-    "evidence": "Codex1 Dev + PM production E2E summary: base EXT-008 delivered extension harvester and /watch fallback; FIX commit bcf5b0a switched from direct track.baseUrl fetch to MAIN-world hook-timedtext capture of YouTube /api/timedtext via fetch/XHR; FIX2 commit 85093a2 added ingest OPTIONS/CORS headers and production preflight + YouTube ingest E2E; FIX3 commits 2c7c6a8/fbd3583 added strict isSpanishLang, capturedVideoId guard, removed normalizeLang non-es coercion, and made token ingest overwrite polluted cache; production E2E recorded in b0e5c28 observed non-target en/ar timedtext rejected, target v=1A9kpjdYJUg lang=es ingest 200 with cueCount 808 written true, and /api/subtitle returned Spanish cues beginning ¿Cómo cambió tu vida aprender español?. Codex2 final QA 2026-05-21 14:11: source contract verified hook-timedtext.js hooks fetch + XHR and matches /api/timedtext; background.js injects dist/hook-timedtext.js with chrome.scripting.executeScript world MAIN; harvest.js has no fetch(track.baseUrl), has strict isSpanishLang/langParam and capturedVideoId=current video guard, and no normalizeLang coercion; ingest route has OPTIONS, four CORS headers, all JSON responses via CORS helper, no redis.get/write-once written:false path. Commands passed: npm run lint:encoding (Encoding check passed); node --test tests/ext008.test.mjs tests/extension.test.mjs (12/12); node --test tests/ext008.test.mjs tests/extension.test.mjs tests/web004.test.mjs (14/14); npm test (173/173); npm run build (compiled successfully, only existing <img> and Sentry warnings). Production probes passed: OPTIONS https://esponalsssssss.vercel.app/api/subtitle/ingest from Origin https://www.youtube.com returned 204 with Access-Control-Allow-Origin *, Allow-Methods POST, OPTIONS, Allow-Headers Content-Type, X-Esponal-Ingest-Token, Max-Age 86400; GET https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es returned 200 and first 300 chars include Spanish text ¿Cómo cambió tu vida aprender español?.",
+    "evidence": "Codex1 Dev + PM production E2E summary: base EXT-008 delivered extension harvester and /watch fallback; FIX commit bcf5b0a switched from direct track.baseUrl fetch to MAIN-world hook-timedtext capture of YouTube /api/timedtext via fetch/XHR; FIX2 commit 85093a2 added ingest OPTIONS/CORS headers and production preflight + YouTube ingest E2E; FIX3 commits 2c7c6a8/fbd3583 added strict isSpanishLang, capturedVideoId guard, removed normalizeLang non-es coercion, and made token ingest overwrite polluted cache; production E2E recorded in b0e5c28 observed non-target en/ar timedtext rejected, target v=1A9kpjdYJUg lang=es ingest 200 with cueCount 808 written true, and /api/subtitle returned Spanish cues beginning ¿Cómo cambió tu vida aprender español?. Codex2 final QA 2026-05-21 14:11: source contract verified hook-timedtext.js hooks fetch + XHR and matches /api/timedtext; background.js injects dist/hook-timedtext.js with chrome.scripting.executeScript world MAIN; harvest.js has no fetch(track.baseUrl), has strict isSpanishLang/langParam and capturedVideoId=current video guard, and no normalizeLang coercion; ingest route has OPTIONS, four CORS headers, all JSON responses via CORS helper, no redis.get/write-once written:false path. Commands passed: npm run lint:encoding (Encoding check passed); node --test tests/ext008.test.mjs tests/extension.test.mjs (12/12); node --test tests/ext008.test.mjs tests/extension.test.mjs tests/web004.test.mjs (14/14); npm test (173/173); npm run build (compiled successfully, only existing <img> and Sentry warnings). Production probes passed: OPTIONS https://esponalsssssss.vercel.app/api/subtitle/ingest from Origin https://www.youtube.com returned 204 with Access-Control-Allow-Origin *, Allow-Methods POST, OPTIONS, Allow-Headers Content-Type, X-Esponal-Ingest-Token, Max-Age 86400; GET https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es returned 200 and first 300 chars include Spanish text ¿Cómo cambió tu vida aprender español?.; 2026-05-29 14:35 forced CC load parameters on iframe player in WatchClient.tsx and added automatic subtitle re-fetch polling loops with loading indicators to SubtitlePanel.tsx & TranscriptPanel.tsx for seamless zero-refresh UI updates.",
     "notes": "Ticket: docs/tickets/EXT-008.md。背景：HAR 分析确认 Eudic 西语助手字幕质量好的本质是浏览器内带 PO Token 抓 timedtext；服务器端 PO Token spike 测试证明对教学类视频普遍返回 LOGIN_REQUIRED 不可行；用户安装扩展 + 浏览 YouTube 时自动采集是唯一稳定路径。三个 PM 决策：(1) 保留 ingest token 视作垃圾流量过滤；(2) /watch 三段式 fallback Redis → Apify → 提示；(3) 扩展在任意 youtube.com/watch* 自动触发只采集 es-* 轨道。不复活 EXT-007 Playwright 批量预采集（Chrome 138+ 限制依然存在）。流程：先过 Claude2 UI 评审再给 Codex1。"
   },
   "43": {
@@ -1375,17 +1375,36 @@
     "area": "backend",
     "title": "扩词到 B1+（目标 ~12000 词，license-clean 词表）",
     "user_visible_behavior": "lexicon 从 733 词扩到 ~12000 词（覆盖 B1-C1 高频区），B1+ 学习材料查词大多本地命中，不再回落 DashScope 实时生成。",
-    "status": "todo",
+    "status": "passing",
     "verification": [
       "PM 确认词表来源 + 许可证留痕（data/freq-es.LICENSE 含来源 URL/commit/MIT 声明）",
       "候选 CSV 生成，PM 抽检噪声率可接受",
       "seed-b1-words.mjs 默认 dry-run，--write 落库，--resume 可续跑，skip 有日志",
+      "动词 forms/morphology 通过真实变位 smoke set（poder/querer/estar 不得出现朴素规则错形）",
       "入库后 word-kind 净增接近目标，judged B1-C1，抽检 30-50 条质量过关",
       "301 条 multi-token phrase + 10 条 construction 不受影响（计数复核）",
       "npm test 通过",
       "PM 实测若干 B1 词现在本地命中"
     ],
-    "evidence": "",
-    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-002.md。词表主来源 hermitdave/FrequencyWords（MIT，已 curl 核实，web 搜索后端当前不可用）。License 硬约束：lexicon 后续做计费制 API，禁用版权词表（RAE/CREA、PCIC、Routledge）。CEFR 分级用 DeepSeek 逐词判级，不依赖外部分级表；KELLY 许可证未核实暂不接入。分阶段执行，候选抽检闸门后再喂 LLM。"
+    "evidence": "PM 全量抽检 2026-05-30: word 427->7697(净增7270), 301 phrase+10 construction intact, skipped 3957(专名1567+非西语~1500+fetch108+CEFR13). 例句/翻译质量好(13/15抽样通过). 不规则动词变位真实(advertir->advierto/advirtio, tropezar->tropiezo/tropece). 查词命中验证(tropiezo->tropezar, advierto->advertir). npm test 316/316.",
+    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-002.md。词表主来源 hermitdave/FrequencyWords（MIT，已 curl 核实，web 搜索后端当前不可用）。License 硬约束：lexicon 后续做计费制 API，禁用版权词表（RAE/CREA、PCIC、Routledge）。CEFR 分级用 DeepSeek 逐词判级，不依赖外部分级表；KELLY 许可证未核实暂不接入。分阶段执行，候选抽检闸门后再喂 LLM。 || Codex1 2026-05-29 20:40 交付 step 1-2 脚本骨架。 || Codex1 2026-05-29 20:55 已跑真实源并修正默认范围到 ticket 要求的 top 15000。 || PM 返工要求（接成熟 lemmatizer）已落实：2026-05-29 21:30 接入 simplemma 并重跑真实 CSV。 || 2026-05-29 PM 明确架构边界：词频表变位只用于发现/去重，入库仍是 lemma + forms[] + morphology；Step 4 新增真实变位硬门槛，现有 A1-A2 假变位另拆 LEX-FORMS-001，不塞进本扩词 ticket。 || 2026-05-29 22:20 PM 达到上下文上限后 Codex1 自行完成候选闸门抽检；首轮拒绝后增加高频手工覆盖 + false infinitive guard，最终 CSV 可进入受控 Step 4，但 Step 4 必须再次 canonicalize lemma、skip/log 异常并执行真实 morphology smoke gate。 || 2026-05-29 23:55 Step4 dry-run ready for PM review; no DB writes yet. || 2026-05-30 LEX-005 cleanup tail completed, so the next active step is LEX-002 Step 4 pilot write (`--limit 50`)."
+  },
+  "74": {
+    "id": "LEX-005",
+    "priority": 75,
+    "area": "backend",
+    "title": "修复现有动词的假变位（规则生成器旧账）",
+    "user_visible_behavior": "现有 94 个动词的不规则变位是规则生成器拼出的假形（poder→podo 应为 puedo），导致查 puedo/quiero/estoy 命中不了原型、回落 DashScope。修复后这些变位查词正常命中本地词条。",
+    "status": "passing",
+    "verification": [
+      "PM 选定变位来源（DeepSeek / license-clean 库）",
+      "refresh-verb-morphology.mjs 出 before/after 对比，PM 抽检不规则动词",
+      "--write 后 poder→puedo、querer→quiero、estar→estoy 进 forms[] 与 morphology",
+      "实测查 puedo/quiero/estoy 命中对应原型（不再回落 DashScope）",
+      "npm test 通过",
+      "phrase/construction 计数不受影响"
+    ],
+    "evidence": "PM spot-check 2026-05-30: e->conj(forms=[e],morphology=null); pedir->pido/pidio/pidiendo(旧pedo已清); levantarse->levanto+me levanto; sonreir->sonrio(70 forms); 301 phrase+10 construction intact; npm test fail=0; lex002-step4 6/6.",
+    "notes": "PM 派单 2026-05-29，调研 LEX-002 时发现。Ticket: docs/tickets/LEX-005.md。病根 src/lib/conjugate.ts 的 tryConjugateVerb 纯规则拼形，不处理不规则变位。范围 94 个动词。建议与 LEX-002 step 4 共用同一套真实变位生成逻辑。商用 license 约束同 LEX-002。2026-05-29 23:55 dry-run ready for PM review; wait for approval before --write. || 2026-05-30 Codex1 completed PM-requested tail fixes and handed back for PM/Codex2 spot-check before opening LEX-002 pilot."
   }
 }

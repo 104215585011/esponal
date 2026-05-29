@@ -1,3 +1,164 @@
+### Session #LEX-005-WRITE-TAIL - 2026-05-30 00:40
+
+**Goal**: Finish the post-write cleanup items PM sent back after the main LEX-005 refresh.
+
+**Completed**:
+- Hardened `scripts/lexicon/refresh-verb-morphology.mjs` so one-letter dirty rows such as `e` are filtered out before refresh.
+- Added reflexive lookup expansion in `scripts/lexicon/real-morphology.mjs`, so reflexive verbs now keep natural forms like `me levanto` while also exposing bare lookup forms like `levanto`.
+- Strengthened refresh context notes for reflexive and accented verbs.
+- Expanded `tests/lex002-step4.test.mjs` to lock the one-letter dirty-row guard and reflexive bare-form lookup behavior.
+- Repaired the live `e` row from bad verb data to `partOfSpeech="conj"`, `translationZh="和（元音前）"`, `forms=["e"]`, `morphology=null`.
+- Reran the skipped verbs with real writes:
+  - `pedir`, `levantarse`, `sentarse` refreshed on the first targeted rerun
+  - `sonreír` refreshed on a final single-lemma retry after confirming DeepSeek could return a full paradigm
+
+**Verification**:
+- Focused tests: `node --test tests\lex002-step4.test.mjs` -> 6/6 pass.
+- Encoding: `npm run lint:encoding -- --files scripts/lexicon/real-morphology.mjs scripts/lexicon/refresh-verb-morphology.mjs tests/lex002-step4.test.mjs` -> pass.
+- Full suite: `npm test` -> 316/316 pass.
+- Live DB checks:
+  - `e` now reads as conjunction with only `["e"]`
+  - `pedir` now includes `pido`, `pidió`, `pidiendo`
+  - `levantarse` / `sentarse` now include both reflexive and bare forms (`me levanto` + `levanto`, `me siento` + `siento`)
+  - `sonreír` now has a full real morphology payload
+
+**Status**: LEX-005 is back to handoff-ready for PM/Codex2 spot-check. LEX-002 remains the active `in_progress` ticket, and the next dev step is the Step 4 pilot write.
+
+---
+
+### Session #LEX-002-STEP-4-DRY-RUN - 2026-05-29 23:55
+
+**Goal**: Implement LEX-002 Step 4 and LEX-005 as one shared real-morphology pipeline, then produce dry-run samples for PM review without writing the database.
+
+**Completed**:
+- Added `scripts/lexicon/real-morphology.mjs` shared DeepSeek + morphology helper:
+  - strict JSON call path with `LEXICON_B1_MOCK_RESPONSES` test override
+  - canonical lemma normalization, CEFR / POS normalization, example normalization
+  - real verb morphology flattening and smoke gate for `poder`, `querer`, `estar`, `tener`, `ir`, `ser`, and `hacer`
+  - person-key normalization for `tú`, `él/ella/usted`, `ellos/ellas/ustedes`, and numeric array-style keys
+- Added `scripts/lexicon/seed-b1-words.mjs` for LEX-002 Step 4:
+  - default dry-run, `--write`, `--input`, `--skipped`, `--limit`, `--resume`, `--concurrency`
+  - skips proper nouns / non-Spanish / outside B1-C1 entries into skipped JSON
+  - only writes B1-C1 word entries when required fields and real morphology pass
+- Added `scripts/lexicon/refresh-verb-morphology.mjs` for LEX-005:
+  - default dry-run, `--write`, `--lemmas`, `--limit`, `--resume`, `--skipped`, `--concurrency`
+  - reuses the same DeepSeek real morphology gate
+  - prints before/after forms and morphology for PM review
+- Added `tests/lex002-step4.test.mjs` covering help contract, proper noun skip, B1 verb seed shape, fake irregular rejection, and refresh before/after output.
+
+**Dry-run evidence**:
+- Real Step 4 sample from a temporary CSV:
+  - kept: `aprovechar` B1 verb with `aprovecho/aproveché/aprovecharé/aprovechando`; `entorno` B1 noun; `desafío` B1 noun
+  - skipped: `johnny` as English proper noun; `poder` as A1/outside target
+- Real LEX-005 sample against Neon:
+  - `poder`: before `podo/podes/podió/poderé`; after `puedo/puedes/pudo/podré/pudiendo`
+  - `querer`: before `quero/querió/quereré`; after `quiero/quiso/querré`
+  - `estar`: before `esto/estó`; after `estoy/está/estuvo`
+
+**Verification**:
+- Red check: `node --test tests\lex002-step4.test.mjs` failed 4/4 before scripts existed.
+- Focused green: `node --test tests\lex002-step4.test.mjs` -> 4/4 pass.
+- `npm test`: 314/314 pass.
+- `npm run lint:encoding -- --files scripts/lexicon/real-morphology.mjs scripts/lexicon/seed-b1-words.mjs scripts/lexicon/refresh-verb-morphology.mjs tests/lex002-step4.test.mjs`: pass.
+
+**Status**: LEX-002 remains `in_progress`. No `--write` has been run. Waiting for PM review of dry-run samples before DB writes.
+
+---
+
+### Session #LEX-002-LEMMATIZER-CRASH-FIX - 2026-05-29 22:45
+
+**Goal**: Fix the confirmed lemmatizer crash before LEX-002 Step 4 starts.
+
+**Completed**:
+- Added `scripts/lexicon/requirements.txt` with `simplemma==1.1.2`.
+- Hardened `runPythonLemmatizer` in `scripts/lexicon/build-wordlist-candidates.mjs`:
+  - supports a test-only `LEXICON_LEMMATIZER_SCRIPT` override
+  - handles `child.stdin` errors so a dead Python child cannot crash Node with `write EOF` / `EPIPE`
+  - surfaces Python stderr directly on non-zero exit
+  - includes the actionable install command: `python -m pip install -r scripts/lexicon/requirements.txt`
+  - runs a one-word preflight before sending the full word list
+- Added a regression test that simulates `ModuleNotFoundError: No module named 'simplemma'` and verifies the stderr is visible without `write EOF`.
+- Updated `docs/tickets/LEX-002.md` with the completion note.
+
+**Verification**:
+- Red check: the new startup-failure test failed before implementation because the production script ignored the failing lemmatizer and did not expose the requested error path.
+- Focused green: `node --test tests\lex002-phase1.test.mjs` -> 9/9 pass.
+- Real source write: `node scripts\lexicon\build-wordlist-candidates.mjs --write` -> 15000 candidates, `lemmatized=14480 deduped_existing=2621 filtered_noise=1062 manual_overrides=64 guarded_lemma=1572`.
+- Dry-run smoke: `node scripts\lexicon\build-wordlist-candidates.mjs --limit 5` printed the stats line and five candidate rows.
+
+**Status**: The lemmatizer crash blocker is fixed locally. LEX-002 remains `in_progress`; Step 4 can now be implemented with the real-morphology gate.
+
+---
+
+### Session #LEX-002-SELF-REVIEW - 2026-05-29 22:20
+
+**Goal**: PM hit the context limit, so Codex1 took over the step-3 candidate CSV review gate and decided whether the rebuilt CSV could move toward Step 4.
+
+**Completed**:
+- Sampled `data/wordlist-b1-candidates.csv` head and stratified ranks. First self-review rejected the CSV: high-frequency forms such as `está/estás/están` were still standalone candidates, and simplemma projected several obvious nominal/adjectival forms into false infinitives (`esposa -> esposar`, `hermana -> hermanar`, `segura -> segurar`).
+- Added a conservative guard layer to `scripts/lexicon/build-wordlist-candidates.mjs`:
+  - manual high-frequency form overrides for common existing verbs/constructions (`estar`, `haber`, `ser/ir`, `tener`, `poder`, `querer`, `hacer`, `decir`, `saber`, `sentir`, `gustar`, etc.)
+  - false-infinitive projection guard for obvious nominal/adjectival `-ar` projections
+  - new stats: `manual_overrides` and `guarded_lemma`
+- Added a focused regression test covering `está`, `siento`, `gusta`, and `esposa`.
+- Regenerated `data/wordlist-b1-candidates.csv` from the real source.
+
+**Verification**:
+- Focused: `node --test tests\lex002-phase1.test.mjs` -> 8/8 pass.
+- Real regeneration: `node scripts\lexicon\build-wordlist-candidates.mjs --write` -> `candidates=15000 lemmatized=14480 deduped_existing=2614 filtered_noise=1062 manual_overrides=64 guarded_lemma=1572`.
+- Self-review after regeneration:
+  - top 200: `multiNoLemma=0`, `shortNoise=0`
+  - ranks 201-1000: `multiNoLemma=2`
+  - ranks 1001-5000: `multiNoLemma=21`
+  - ranks 5001-15000: `multiNoLemma=74`
+  - probe forms `está/estás/están/creo/gusta/debe/debería/puedo/quiero/hizo/siento/he/hay/ven` no longer appear as candidates.
+- `npm test`: 309/309 pass.
+- `npm run lint:encoding -- --files ...`: pass.
+
+**Status**: LEX-002 remains `in_progress`. Step 1-3 is now self-reviewed enough to proceed to Step 4 design/implementation, but Step 4 must canonicalize lemma again via DeepSeek and enforce the real-morphology smoke gate before any write.
+
+---
+
+### Session #LEX-002-MORPHOLOGY-BOUNDARY - 2026-05-29 21:50
+
+**Goal**: Record PM's morphology architecture decision before LEX-002 moves into DeepSeek seed work.
+
+**Completed**:
+- Updated `docs/tickets/LEX-002.md` Step 4 with a hard gate: verb `forms[]` + `morphology` must be real and verifiable, not generated from the old naive conjugator unless it passes irregular smoke checks.
+- Added required smoke examples for `poder` (`puedo/puedes/pude/pudo/pudiendo/podré`), `querer` (`quiero/quieres/quise/querré`), and `estar` (`estoy/está/estuvo`).
+- Added independent backlog ticket `docs/tickets/LEX-FORMS-001.md` for repairing existing A1-A2 word-kind verb morphology. This keeps the historical data cleanup separate from LEX-002's B1+ expansion.
+- Registered `LEX-FORMS-001` in `feature_list.json` as `todo`.
+
+**Status**: LEX-002 remains `in_progress`; next gate is still PM's second candidate CSV review. LEX-FORMS-001 is now available for later scheduling and should not block the LEX-002 candidate pipeline.
+
+---
+
+### Session #LEX-002-STEP-1-2 - 2026-05-29 20:40
+
+**Goal**: Deliver the first two LEX-002 pipeline steps: source/license intake plus clean candidate CSV generation, without touching the DeepSeek seed stage yet.
+
+**Completed**:
+- Added `scripts/lexicon/download-frequency-words.mjs` with `--help`, default dry-run, `--write`, and explicit `source/output/license/commit` options so we can leave a clean MIT source trail in `data/freq-es.LICENSE`.
+- Added `scripts/lexicon/build-wordlist-candidates.mjs` with default dry-run, optional `--existing` / `--lemma-dict` fixtures for deterministic QA, and candidate aggregation into `lemma,freq_rank,raw_freq,source_forms,source_count`.
+- Reused the local lemma-dict path and simple singularization heuristics to merge obvious inflected/plural forms before the PM review CSV gate.
+- Added `tests/lex002-phase1.test.mjs` to lock the step 1-2 command contract, dry-run safety, MIT trail output, candidate dedupe, and CSV shape.
+
+**Verification**:
+- Red check: `node --test tests\lex002-phase1.test.mjs` failed 5/5 before the scripts existed.
+- While running the real source, I found a gap: the candidate builder defaulted to the full cleaned set instead of the PM top-15k gate. I added a failing default-limit test first.
+- Focused green (v1): `node --test tests\lex002-phase1.test.mjs` passed 6/6 after setting the default candidate cap to `15000`.
+- PM then rejected the first candidate CSV and explicitly required a mature lemmatizer; I added new failing tests for lemmatization stats, old orthography normalization, and short-noise filtering before changing the implementation.
+- Installed `simplemma` into the local Python runtime and added `scripts/lexicon/simplemma_lemmatize.py`.
+- Focused green (rework): `node --test tests\lex002-phase1.test.mjs` passed 7/7.
+- Real source run: `node scripts\lexicon\download-frequency-words.mjs --write` wrote `data/freq-es.txt` and `data/freq-es.LICENSE`.
+- Real candidate build after simplemma rework: `node scripts\lexicon\build-wordlist-candidates.mjs --write` wrote `data/wordlist-b1-candidates.csv` with `15000` candidates (`15001` lines including header), plus stats `lemmatized=16019 deduped_existing=2626 filtered_noise=1062`.
+- `npm test`: 308/308 pass.
+- `npm run lint:encoding -- --files scripts/lexicon/build-wordlist-candidates.mjs scripts/lexicon/simplemma_lemmatize.py tests/lex002-phase1.test.mjs`: pass.
+
+**Status**: `LEX-002` remains `in_progress`. The mature lemmatizer rework is in place and the structural failure from v1 is much improved, but the candidate head still shows semantic over-merges such as `uno <- una/unos`, `gracia <- gracias`, `mucho <- muy`, and `sentar <- siento`. This should go to PM step-3 re-sampling before any DeepSeek spend; if PM rejects these ambiguities, the next move is a conservative protection layer on top of simplemma rather than another hand-rolled suffix system.
+
+---
+
 ### Session #LEX-CLEANUP-001-IDEMPOTENT - 2026-05-29 19:30
 
 **Goal**: Make reruns of the cleanup script quiet and trustworthy once the database is already in the target state.
