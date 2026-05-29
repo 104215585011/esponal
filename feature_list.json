@@ -1352,5 +1352,21 @@
     ],
     "evidence": "Claude1 PM 验收 2026-05-29：commit 956f02d 实现 + f1508ba(Gemini1 视觉评审报告)。代码审查确认 LookupCard.tsx 新增 RelatedPhrase 类型/onRelatedPhraseClick 回调/relatedPhrases+usageNote 字段；相关搭配区仅 lookupKind=word 且非空渲染（空则不渲染），badge 复用 getPhraseKindLabel(amber)，文案克制；用法提示块渲染 usageNote。叠卡接线 dissect/lectura/watch 三处 onRelatedPhraseClick→openNestedPhrase，带 cards.length>=2 上限保护。npm test 300/300 通过 exit=0；tests/lex003-frontend.test.mjs 3/3 通过。Gemini1 明暗模式视觉评审符合设计稿。注：usageNote 对 gustar 的可见效果依赖 LEX-CLEANUP-001 --write 把 gustar 迁为 construction，代码路径已就绪。",
     "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-003.md。后端 P4 已返回 relatedPhrases + usageNote(construction)，本 ticket 只做前端呈现。UI 任务：Gemini1 设计→Codex1 实现→Codex2 测试→Gemini1 评审→Claude1 验收。"
+  },
+  "72": {
+    "id": "LEX-004",
+    "priority": 73,
+    "area": "backend",
+    "title": "回补 seed 阶段 skipped 的 23 条短语（backlog）",
+    "user_visible_behavior": "seed 阶段因 Tatoeba 无例句被跳过的 23 条多 token 短语（7 实用搭配 + 3 课堂问句 + 11 习语）目前不在库。补全后这些短语可被查询/高亮。",
+    "status": "todo",
+    "verification": [
+      "PM 选定补全范围（A+B / 全部）",
+      "脚本 backfill-skipped-phrases.mjs 支持 --dry-run + --write",
+      "目标条目入库且有 LLM 生成例句/用法",
+      "npm test 通过"
+    ],
+    "evidence": "",
+    "notes": "PM 记录 backlog 2026-05-29。Ticket: docs/tickets/LEX-004.md。低优先：301 条短语已在线够用，缺的多为 B1+ 习语。缺失清单已固化在 ticket 内（PM 对比 seed CSV↔DB 重建，无 skip 日志）。建议跳过 Tatoeba 直接用 DeepSeek 生成例句。等 LEX-002 扩 B1+ 时可一并处理。"
   }
 }
