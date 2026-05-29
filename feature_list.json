@@ -1321,7 +1321,7 @@
     "area": "backend",
     "title": "清理 phrase-kind 里的 135 条单 token 误分类",
     "user_visible_behavior": "数据层清理：LexiconEntry 中 kind=collocation/phrase/idiom 但 lemma 是单个词的 135 条 (poder/querer/gustar 等) 需迁移或删除。当前 PHRASE-001 detect 已加过滤兜底。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "PM 选定方案 (A 合并 / B 删除 / C 新 kind=construction)",
       "脚本支持 --dry-run + --write",
@@ -1330,8 +1330,8 @@
       "npm test 通过",
       "PM 实测一个之前误分类的词 (如 gustar) 查询体验"
     ],
-    "evidence": "Codex1 Dev 2026-05-29 18:35: implemented PM-recommended scheme C. Added LexiconKind.construction enum + migration 20260529183000_add_lexicon_construction; added scripts/lexicon/cleanup-single-token-phrases.mjs with --help, default dry-run, and explicit --write; lookup now recognizes construction entries and exposes usageNote from explanationZh for construction-style guidance. Focused TDD: red node --test tests/lex-cleanup001.test.mjs failed 3/3 before implementation; green node --test tests/lex-cleanup001.test.mjs passed 3/3. Extra verification: node --check scripts/lexicon/cleanup-single-token-phrases.mjs pass; node scripts/lexicon/cleanup-single-token-phrases.mjs --help usage only; dry-run against DB found 135 candidates and reported remaining_single_token_phrase_kind=135 before write. Pending QA/PM: run --write, confirm SQL count returns 0, and smoke-check gustar lookup UX.",
-    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-CLEANUP-001.md。从 PHRASE-001 验收抽样发现。优先级中，不阻塞用户。Codex1 2026-05-29 18:35 已交付 ready_for_qa，等待 Codex2/PM 跑 --write + SQL + gustar 体验验收。"
+    "evidence": "Codex1 Dev 2026-05-29 18:35: implemented PM-recommended scheme C. Added LexiconKind.construction enum + migration 20260529183000_add_lexicon_construction; added scripts/lexicon/cleanup-single-token-phrases.mjs with --help, default dry-run, and explicit --write; lookup now recognizes construction entries and exposes usageNote from explanationZh for construction-style guidance. Focused TDD: red node --test tests/lex-cleanup001.test.mjs failed 3/3 before implementation; green node --test tests/lex-cleanup001.test.mjs passed 3/3. Extra verification: node --check scripts/lexicon/cleanup-single-token-phrases.mjs pass; node scripts/lexicon/cleanup-single-token-phrases.mjs --help usage only; dry-run against DB found 135 candidates and reported remaining_single_token_phrase_kind=135 before write. Pending QA/PM: run --write, confirm SQL count returns 0, and smoke-check gustar lookup UX. || Codex1 Rework 2026-05-29 19:05: rewrote cleanup script to read data/lexicon-cleanup-001.reviewed.csv and execute PM-reviewed decision buckets instead of blindly migrating all rows to construction. New TDD: red node --test tests/lex-cleanup001.test.mjs failed 1/4 on missing CSV-driven behavior; green node --test tests/lex-cleanup001.test.mjs passed 4/4. Dry-run now reports reviewed-counts/planned-counts construction=10 delete-dup=60 migrate-word=61 delete=4, with special upgrade path for gustar/quedar and zero missing phrase rows. Full npm test passed 300/300; encoding lint passed for script + test. Awaiting PM dry-run review before any --write. || Claude1 PM 验收+落库 2026-05-29：脚本改读 data/lexicon-cleanup-001.reviewed.csv 按 decision 执行。PM 验收时发现 Codex1 脚本事务超时 bug（135 串行 await 超 Prisma 默认 5s 交互事务超时，对远程 Neon 报 Transaction not found 整体回滚），已修复：给 $transaction 加 {maxWait:15000,timeout:120000}。--write 成功：updated=71 deleted=66 construction_with_usage=10 missing_phrase_rows=0 remaining_single_token_phrase_kind=0 exit=0。DB 核验：单token phrase-kind 残留=0；多token真短语 301 条原样未动；construction=10(doler/encantar/faltar/gustar/importar/interesar/parecer/quedar/sobrar/soler)均有 explanationZh；gustar 单条 construction 带用法说明；casa 仅剩 word。npm test 300/300 通过 exit=0。",
+    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-CLEANUP-001.md。从 PHRASE-001 验收抽样发现。优先级中，不阻塞用户。Codex1 2026-05-29 18:35 已交付 ready_for_qa，等待 Codex2/PM 跑 --write + SQL + gustar 体验验收。 || PM 复核 2026-05-29：首版脚本全迁 construction 是误判，仅 10 条配得上。已生成决策清单 data/lexicon-cleanup-001.reviewed.csv（construction=10/delete-dup=60/migrate-word=61/delete=4），退回 Codex1 改脚本按 CSV decision 执行。详见 ticket 的「PM 复核结论」段。 || Codex1 返工完成 2026-05-29 19:05：脚本已改为 CSV 决策驱动并通过 dry-run 计数核对；状态暂保持 in_progress，等待 PM 审看 dry-run 后决定是否执行 --write。"
   },
   "71": {
     "id": "LEX-003",
@@ -1339,7 +1339,7 @@
     "area": "frontend",
     "title": "LookupCard 显示相关短语 + construction 用法说明",
     "user_visible_behavior": "查单词时词卡底部出现「相关短语」区，列出含该词的固定搭配（最多5条，带 kind badge），点击叠出短语卡（复用2层上限）；construction 词（如 gustar）显示 usageNote 用法说明。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "Gemini1 出设计稿 docs/tickets/LEX-003-design.md，PM 选定",
       "通过禁区清单核查、不引入新 token",
@@ -1350,7 +1350,7 @@
       "Light/Dark mode 正常",
       "npm test 通过、npm run build 通过"
     ],
-    "evidence": "Codex1 Dev 2026-05-29 09:39: Implemented Segment 2. Updated LookupResponse, LookupState, and LookupCardProps types; populated relatedPhrases/usageNote in LookupCard state; rendered relatedPhrases and usageNote in LookupCard component; wired onRelatedPhraseClick callback across all 6 surfaces (SpanishText, LecturaReader, ReadingDock, SubtitlePanel, TranscriptPanel, DissectorClient) supporting 2-layer stacking. Focused tests under tests/lex003-frontend.test.mjs verify structure, conditional rendering, callbacks, and surface integrations. All 299 tests pass; production build succeeds.",
+    "evidence": "Claude1 PM 验收 2026-05-29：commit 956f02d 实现 + f1508ba(Gemini1 视觉评审报告)。代码审查确认 LookupCard.tsx 新增 RelatedPhrase 类型/onRelatedPhraseClick 回调/relatedPhrases+usageNote 字段；相关搭配区仅 lookupKind=word 且非空渲染（空则不渲染），badge 复用 getPhraseKindLabel(amber)，文案克制；用法提示块渲染 usageNote。叠卡接线 dissect/lectura/watch 三处 onRelatedPhraseClick→openNestedPhrase，带 cards.length>=2 上限保护。npm test 300/300 通过 exit=0；tests/lex003-frontend.test.mjs 3/3 通过。Gemini1 明暗模式视觉评审符合设计稿。注：usageNote 对 gustar 的可见效果依赖 LEX-CLEANUP-001 --write 把 gustar 迁为 construction，代码路径已就绪。",
     "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-003.md。后端 P4 已返回 relatedPhrases + usageNote(construction)，本 ticket 只做前端呈现。UI 任务：Gemini1 设计→Codex1 实现→Codex2 测试→Gemini1 评审→Claude1 验收。"
   }
 }

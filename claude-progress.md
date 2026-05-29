@@ -1,3 +1,26 @@
+### Session #LEX-CLEANUP-001-REWORK - 2026-05-29 19:05
+
+**Goal**: Rework the cleanup script after PM review showed that only 10/135 single-token phrase-kind rows belong in `construction`.
+
+**Completed**:
+- Replaced the all-to-construction script path with a CSV-driven workflow that reads `data/lexicon-cleanup-001.reviewed.csv`.
+- Added decision-aware handling for `delete-dup`, `migrate-word`, `delete`, and `construction`.
+- Added the special `gustar` / `quedar` path: delete the duplicate collocation row, then upgrade the existing `word` row to `construction` with `usage_note_zh -> explanationZh`.
+- Expanded `tests/lex-cleanup001.test.mjs` to lock the reviewed decision counts and require CSV-driven script behavior.
+
+**Verification**:
+- Red check: `node --test tests\lex-cleanup001.test.mjs` failed 1/4 before the script rewrite because it still used the old all-to-construction flow.
+- Focused green: `node --test tests\lex-cleanup001.test.mjs` passed 4/4.
+- `node --check scripts\lexicon\cleanup-single-token-phrases.mjs`: pass.
+- `node scripts\lexicon\cleanup-single-token-phrases.mjs --help`: usage only.
+- Dry-run: `reviewed-counts construction=10 delete-dup=60 migrate-word=61 delete=4` and `planned-counts construction=10 delete-dup=60 migrate-word=61 delete=4`; `missing_phrase_rows=0`.
+- `npm test`: 300/300 pass.
+- `npm run lint:encoding -- --files scripts/lexicon/cleanup-single-token-phrases.mjs tests/lex-cleanup001.test.mjs`: pass.
+
+**Status**: `LEX-CLEANUP-001` remains `in_progress` pending PM review of the dry-run output. `--write` has not been executed.
+
+---
+
 ### Session #LEX-CLEANUP-001 - 2026-05-29 18:35
 
 **Goal**: Implement the PM-approved cleanup for single-token phrase-kind misclassifications without mutating production data by default.

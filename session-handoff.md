@@ -8398,3 +8398,44 @@ uniqueHeights=[258]
 - Expected SQL result after write: `0`
 - Please smoke-check one migrated item such as `gustar` through `/api/vocab/lookup` and confirm the construction `usageNote` is visible and useful.
 - Do not commit `data/phrases-a1-a2-candidates.reviewed.csv`; it remains a PM intermediate file.
+## Codex1 Dev Rework Report: LEX-CLEANUP-001 CSV-driven cleanup
+**Time**: 2026-05-29 19:05
+**Developer**: Codex1
+**Status**: Pending PM review of dry-run output. `--write` has not been executed.
+
+### Reworked
+- Replaced the first-pass "migrate every single-token phrase-kind row to construction" behavior.
+- `scripts/lexicon/cleanup-single-token-phrases.mjs` now reads `data/lexicon-cleanup-001.reviewed.csv` and executes per-row `decision`.
+- Supported actions:
+  - `delete-dup`: delete the duplicate phrase-kind row
+  - `migrate-word`: change the phrase-kind row to `kind="word"`
+  - `delete`: remove imperative-form noise rows
+  - `construction`: move only the 10 PM-reviewed lemmas into `construction`
+- Special handling for `gustar` and `quedar`:
+  - delete the collocation duplicate row
+  - upgrade the already-existing `word` row to `kind="construction"`
+  - write CSV `usage_note_zh` into `explanationZh`
+- Kept the prior lookup-side support so `construction` entries surface `usageNote`.
+
+### Verification
+- Red check: `node --test tests\lex-cleanup001.test.mjs` failed 1/4 before the script rewrite because the old script did not read the reviewed CSV.
+- Focused green: `node --test tests\lex-cleanup001.test.mjs` passed 4/4.
+- `node --check scripts\lexicon\cleanup-single-token-phrases.mjs`: pass.
+- `node scripts\lexicon\cleanup-single-token-phrases.mjs --help`: usage only, no DB write.
+- Dry-run against the real DB:
+  - `reviewed-counts construction=10 delete-dup=60 migrate-word=61 delete=4`
+  - `planned-counts construction=10 delete-dup=60 migrate-word=61 delete=4`
+  - special cases emitted `would-upgrade-word-to-construction gustar` and `would-upgrade-word-to-construction quedar`
+  - summary ended with `missing_phrase_rows=0 remaining_single_token_phrase_kind=135`
+- Full regression: `npm test` passed 300/300.
+- Encoding check passed for the changed script and test.
+
+### PM Review Payload
+- Dry-run counts match the reviewed CSV exactly:
+  - `construction=10`
+  - `delete-dup=60`
+  - `migrate-word=61`
+  - `delete=4`
+- No drift was detected between CSV and current DB phrase-kind rows (`missing_phrase_rows=0`).
+- Waiting for PM decision on whether to run:
+  - `node scripts\lexicon\cleanup-single-token-phrases.mjs --write`
