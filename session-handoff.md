@@ -8817,3 +8817,39 @@ uniqueHeights=[258]
   - `summary ... construction_with_usage=10 missing_phrase_rows=0 remaining_single_token_phrase_kind=0`
 - Full suite: `npm test` passed 301/301.
 - Encoding check passed for the changed script and test.
+## Codex1 Dev Report: WEB-002 watch channel quota fallback
+**Time**: 2026-05-30 02:05
+**Developer**: Codex1
+**Status**: Ready for Codex2 / PM recheck on `/watch`.
+
+### What I fixed
+1. Root cause
+- Reproduced the broken middle section against the live deployment and traced it to `YouTube Data API quotaExceeded`.
+- This was producing a 500 from `/api/youtube/channel`, which `src/app/watch/page.tsx` translated into `[]`, so the page showed the dashed empty state box.
+- The channel itself was still valid; `Spanish Okay` public YouTube pages and feed were healthy.
+
+2. Route fallback
+- Updated `src/app/api/youtube/channel/route.ts` so the existing Data API flow remains primary.
+- When the Data API path throws, the route now falls back to the public channel RSS feed:
+  - `https://www.youtube.com/feeds/videos.xml?channel_id=...`
+- The feed parser maps entries into the existing `YouTubeVideoPayload` shape, so `/watch` keeps rendering normal cards during quota outages.
+
+3. UI polish for fallback cards
+- Updated `src/app/components/web/VideoCard.tsx` and `src/app/watch/RelatedPanel.tsx` to hide the duration badge when `duration === ""`, so RSS-backed cards do not show a fake `00:00`.
+
+### Verification
+- `node --test tests\web002.test.mjs tests\web007.test.mjs` -> 5/5 pass
+- `npm test` -> 316/316 pass
+- `npm run build` -> pass
+- Live local end-to-end check while the Data API was still quota-exhausted:
+  - `GET /api/youtube/channel?id=UCW1FQuVy10_biDAxAj1iTEQ&maxResults=3`
+  - returned 3 `Spanish Okay` items from RSS fallback instead of an error:
+    - `KTTJxqL8kps` / `31 July 2025`
+    - `CcgdEmT3m-E` / `25 July 2025`
+    - `6a78gVnkNbs` / `17 July 2025`
+
+### QA ask
+- Revisit `/watch` with no `v=` and confirm the previously empty middle section now renders cards again under quota pressure.
+- Spot-check that feed-backed cards simply omit the duration badge instead of showing `00:00`.
+
+---

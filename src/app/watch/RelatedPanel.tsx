@@ -33,9 +33,11 @@ export function RelatedPanel({ relatedVideos }: RelatedPanelProps) {
                   loading="lazy"
                   src={video.thumbnail || "https://placehold.co/320x180?text=Esponal"}
                 />
-                <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  {formatVideoDurationBadge(video.duration)}
-                </span>
+                {video.duration ? (
+                  <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    {formatVideoDurationBadge(video.duration)}
+                  </span>
+                ) : null}
               </div>
               <div className="min-w-0 pt-0.5">
                 <p className="line-clamp-2 text-[12.5px] font-medium leading-5 text-gray-900">

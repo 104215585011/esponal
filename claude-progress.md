@@ -1,3 +1,27 @@
+### Session #WEB-002-QUOTA-FALLBACK - 2026-05-30 02:05
+
+**Goal**: Fix the `/watch` curated channel sections so they do not collapse to an empty state when the YouTube Data API quota is exhausted.
+
+**Completed**:
+- Confirmed the live failure mode: `/api/youtube/channel` returned `{"error":"youtube channel fetch failed"}` while direct YouTube Data API calls reported `quotaExceeded`.
+- Verified `Spanish Okay` itself was not stale by checking the public YouTube handle/channel pages and feed.
+- Added a quota-free fallback path in `src/app/api/youtube/channel/route.ts`:
+  - keep the current Data API flow as primary
+  - fall back to `https://www.youtube.com/feeds/videos.xml?channel_id=...` when the API path throws
+  - parse RSS entries into the existing `YouTubeVideoPayload` shape so `/watch` keeps rendering cards instead of the empty dashed box
+- Updated `VideoCard` and `RelatedPanel` so cards with feed-backed items do not show a fake `00:00` duration badge when no duration is available.
+- Locked the new contract in `tests/web002.test.mjs` and `tests/web007.test.mjs`.
+
+**Verification**:
+- `node --test tests\web002.test.mjs tests\web007.test.mjs`: 5/5 pass.
+- `npm test`: 316/316 pass.
+- `npm run build`: pass.
+- Live local request under current quota exhaustion:
+  - `GET /api/youtube/channel?id=UCW1FQuVy10_biDAxAj1iTEQ&maxResults=3`
+  - returned 3 `Spanish Okay` items via RSS fallback (`KTTJxqL8kps`, `CcgdEmT3m-E`, `6a78gVnkNbs`) instead of an error payload.
+
+**Status**: WEB-002 remains `passing` with a resilience fix applied. Ready for QA/visual recheck on `/watch`.
+
 ### Session #LEX-005-WRITE-TAIL - 2026-05-30 00:40
 
 **Goal**: Finish the post-write cleanup items PM sent back after the main LEX-005 refresh.

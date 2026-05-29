@@ -22,9 +22,11 @@ export function VideoCard({ video, compact = false }: VideoCardProps) {
             loading="lazy"
             src={video.thumbnail || "https://placehold.co/320x180?text=Esponal"}
           />
-          <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white">
-            {formatVideoDurationBadge(video.duration)}
-          </span>
+          {video.duration ? (
+            <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white">
+              {formatVideoDurationBadge(video.duration)}
+            </span>
+          ) : null}
         </div>
         <div className="min-w-0">
           <p className="line-clamp-2 text-sm font-medium text-gray-800">{video.title}</p>
@@ -50,9 +52,11 @@ export function VideoCard({ video, compact = false }: VideoCardProps) {
             src={video.thumbnail || "https://placehold.co/480x270?text=Esponal"}
           />
           <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/10" />
-          <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 text-xs text-white">
-            {formatVideoDurationBadge(video.duration)}
-          </span>
+          {video.duration ? (
+            <span className="absolute bottom-2 right-2 rounded bg-black/75 px-1.5 py-0.5 text-xs text-white">
+              {formatVideoDurationBadge(video.duration)}
+            </span>
+          ) : null}
         </div>
       </div>
       <p className="mt-2 line-clamp-2 text-sm font-medium text-gray-800">{video.title}</p>

@@ -175,8 +175,8 @@
       "/api/youtube/search 返回数组结果",
       "npm test 通过"
     ],
-    "evidence": "Codex2 QA on 2026-05-14 reverified live API calls for channel and search endpoints with HTTP 200 top-level arrays and npm test 39/39.",
-    "notes": "生产/开发都需要可访问 Google APIs 的网络环境。"
+    "evidence": "Codex2 QA on 2026-05-14 reverified live API calls for channel and search endpoints with HTTP 200 top-level arrays and npm test 39/39. 2026-05-30 Codex1 added an RSS fallback for /api/youtube/channel after YouTube quota exhaustion caused /watch curated sections to render empty; verified with node --test tests/web002.test.mjs tests/web007.test.mjs (5/5), npm test (316/316), npm run build, and a live local request to /api/youtube/channel?id=UCW1FQuVy10_biDAxAj1iTEQ&maxResults=3 returning Spanish Okay feed items while the Data API was quotaExceeded.",
+    "notes": "生产/开发都需要可访问 Google APIs 的网络环境；频道列表在 Data API 配额耗尽时会退回 YouTube 公开 RSS feed。"
   },
   "12": {
     "id": "WEB-003",

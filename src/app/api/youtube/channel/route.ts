@@ -56,6 +56,64 @@ type VideosResponse = {
   }>;
 };
 
+function decodeXmlText(value: string) {
+  return value
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&#39;", "'");
+}
+
+function matchXmlTag(block: string, tagName: string) {
+  const escapedTagName = tagName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(new RegExp(`<${escapedTagName}>([\\s\\S]*?)</${escapedTagName}>`));
+
+  return match?.[1]?.trim() ?? "";
+}
+
+function matchXmlAttribute(block: string, tagName: string, attributeName: string) {
+  const escapedTagName = tagName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedAttributeName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(
+    new RegExp(`<${escapedTagName}[^>]*${escapedAttributeName}="([^"]+)"`, "i")
+  );
+
+  return match?.[1]?.trim() ?? "";
+}
+
+function parseChannelFeed(xml: string, maxResults: number) {
+  const channelTitle = decodeXmlText(matchXmlTag(xml, "title")) || "YouTube Channel";
+
+  return Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g))
+    .slice(0, maxResults)
+    .map((match) => match[1])
+    .map((entryXml) => {
+      const videoId = matchXmlTag(entryXml, "yt:videoId");
+
+      if (!videoId) {
+        return null;
+      }
+
+      const title =
+        decodeXmlText(matchXmlTag(entryXml, "media:title")) ||
+        decodeXmlText(matchXmlTag(entryXml, "title")) ||
+        "YouTube 视频";
+      const thumbnail = matchXmlAttribute(entryXml, "media:thumbnail", "url");
+      const publishedAt = matchXmlTag(entryXml, "published");
+
+      return {
+        id: videoId,
+        title,
+        thumbnail,
+        duration: "",
+        channelTitle,
+        publishedAt
+      } satisfies YouTubeVideoPayload;
+    })
+    .filter((video): video is YouTubeVideoPayload => Boolean(video));
+}
+
 async function fetchUploadPlaylistId(channelId: string) {
   const response = await fetchYouTubeJson<ChannelsResponse>("channels", {
     part: "contentDetails",
@@ -65,7 +123,7 @@ async function fetchUploadPlaylistId(channelId: string) {
   return response.items?.[0]?.contentDetails?.relatedPlaylists?.uploads ?? "";
 }
 
-async function fetchChannelVideos(channelId: string, maxResults: number) {
+async function fetchChannelVideosFromApi(channelId: string, maxResults: number) {
   const uploadsPlaylistId = await fetchUploadPlaylistId(channelId);
 
   if (!uploadsPlaylistId) {
@@ -123,6 +181,32 @@ async function fetchChannelVideos(channelId: string, maxResults: number) {
   }
 
   return videos;
+}
+
+async function fetchChannelVideosFromFeed(channelId: string, maxResults: number) {
+  const response = await fetch(
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`,
+    {
+      cache: "no-store"
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`YouTube channel feed request failed: ${response.status}`);
+  }
+
+  const xml = await response.text();
+
+  return parseChannelFeed(xml, maxResults);
+}
+
+async function fetchChannelVideos(channelId: string, maxResults: number) {
+  try {
+    return await fetchChannelVideosFromApi(channelId, maxResults);
+  } catch (error) {
+    console.warn("YouTube channel API fetch failed, falling back to feed", error);
+    return fetchChannelVideosFromFeed(channelId, maxResults);
+  }
 }
 
 export async function GET(request: Request) {

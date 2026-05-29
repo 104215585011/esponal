@@ -14,6 +14,7 @@ test("WEB-002 channel route exists and uses YouTube playlistItems plus Redis cac
 
   assert.match(route, /export\s+async\s+function\s+GET/);
   assert.match(route, /playlistItems/);
+  assert.match(route, /feeds\/videos\.xml/);
   assert.match(route, /maxResults/);
   assert.match(route, /NextResponse\.json\(videos\)/);
   assert.match(route, /60\s*\*\s*60/);

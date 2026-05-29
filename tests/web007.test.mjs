@@ -37,6 +37,7 @@ test("WEB-007 related panel exposes a simple persistent list contract", async ()
   assert.match(relatedPanel, /relatedVideos:\s*YouTubeVideoPayload\[\]/);
   assert.match(relatedPanel, /flex-1 overflow-y-auto/);
   assert.match(relatedPanel, /formatVideoDurationBadge/);
+  assert.match(relatedPanel, /video\.duration\s*\?/);
   assert.doesNotMatch(relatedPanel, /useState|useRef|useEffect/);
   assert.doesNotMatch(relatedPanel, /setTimeout|pinned|scheduleOpen|scheduleClose/);
   assert.doesNotMatch(relatedPanel, /translate-x-full|absolute bottom-0 right-0/);
