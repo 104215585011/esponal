@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 17:30
+// Timestamp: 2026-05-29 14:35
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -202,9 +202,11 @@ export function SubtitlePanel({
     };
   }, []);
 
-  // Load subtitles
+  // Load subtitles with polling for auto-ingestion support
   useEffect(() => {
     let cancelled = false;
+    let pollCount = 0;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     async function loadSubtitles() {
       if (!videoId) {
@@ -228,18 +230,37 @@ export function SubtitlePanel({
         const payload = await response.json();
         const cues = Array.isArray(payload) ? payload : payload.cues ?? [];
         if (cancelled) return;
-        setSubtitleCues(cues);
+
+        if (cues.length > 0) {
+          setSubtitleCues(cues);
+          setHasLoadedSubtitles(true);
+        } else if (pollCount < 5) {
+          pollCount += 1;
+          timeoutId = setTimeout(loadSubtitles, 2000);
+        } else {
+          setSubtitleCues([]);
+          setHasLoadedSubtitles(true);
+        }
       } catch (error) {
         console.error("Subtitle load failed", error);
-        if (!cancelled) setSubtitleCues([]);
-      } finally {
-        if (!cancelled) setHasLoadedSubtitles(true);
+        if (!cancelled) {
+          if (pollCount < 5) {
+            pollCount += 1;
+            timeoutId = setTimeout(loadSubtitles, 2000);
+          } else {
+            setSubtitleCues([]);
+            setHasLoadedSubtitles(true);
+          }
+        }
       }
     }
 
     loadSubtitles();
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [videoId]);
 
@@ -542,7 +563,11 @@ export function SubtitlePanel({
 
       {/* Subtitles Area */}
       <div className="text-center w-full px-8 py-2">
-        {showEmptyState ? (
+        {!hasLoadedSubtitles ? (
+          <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display animate-pulse">
+            （字幕加载中…）
+          </p>
+        ) : showEmptyState ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display">暂无字幕</p>
         ) : !spanishLine ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display">

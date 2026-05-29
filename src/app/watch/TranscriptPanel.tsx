@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 17:30
+// Timestamp: 2026-05-29 14:35
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -451,9 +451,11 @@ export function TranscriptPanel({
     };
   }, [resetAutoFollowTimer]);
 
-  // Load subtitles
+  // Load subtitles with polling for auto-ingestion support
   useEffect(() => {
     let cancelled = false;
+    let pollCount = 0;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     async function loadSubtitles() {
       if (!videoId) {
@@ -464,14 +466,16 @@ export function TranscriptPanel({
         return;
       }
 
-      setHasLoadedSubtitles(false);
-      setSubtitleHint(null);
-      setTranslations({});
-      setHighlightMap({});
-      setFollowMode(true);
-      setRenderStart(0);
-      setRenderEnd(INITIAL_RENDER_COUNT);
-      setActiveLookup(null);
+      if (pollCount === 0) {
+        setHasLoadedSubtitles(false);
+        setSubtitleHint(null);
+        setTranslations({});
+        setHighlightMap({});
+        setFollowMode(true);
+        setRenderStart(0);
+        setRenderEnd(INITIAL_RENDER_COUNT);
+        setActiveLookup(null);
+      }
 
       try {
         const response = await fetch(
@@ -484,25 +488,37 @@ export function TranscriptPanel({
         }
 
         const payload = await response.json();
+        const cues = Array.isArray(payload) ? payload : payload.cues ?? [];
+        const hint = Array.isArray(payload) ? null : payload.hint ?? null;
 
-        if (!cancelled) {
-          const cues = Array.isArray(payload) ? payload : payload.cues ?? [];
+        if (cancelled) return;
+
+        if (cues.length > 0) {
           const initialTranscriptCues = mergeSubtitleCues(cues);
-          const hint = Array.isArray(payload) ? null : payload.hint ?? null;
           setSubtitleCues(cues);
           setSubtitleHint(hint);
           setRenderStart(0);
           setRenderEnd(Math.min(initialTranscriptCues.length, INITIAL_RENDER_COUNT));
+          setHasLoadedSubtitles(true);
+        } else if (pollCount < 5) {
+          pollCount += 1;
+          timeoutId = setTimeout(loadSubtitles, 2000);
+        } else {
+          setSubtitleCues([]);
+          setSubtitleHint(hint || { reason: "no_subtitle" });
+          setHasLoadedSubtitles(true);
         }
       } catch (error) {
         console.error("Transcript subtitle load failed", error);
         if (!cancelled) {
-          setSubtitleCues([]);
-          setSubtitleHint({ reason: "no_subtitle" });
-        }
-      } finally {
-        if (!cancelled) {
-          setHasLoadedSubtitles(true);
+          if (pollCount < 5) {
+            pollCount += 1;
+            timeoutId = setTimeout(loadSubtitles, 2000);
+          } else {
+            setSubtitleCues([]);
+            setSubtitleHint({ reason: "no_subtitle" });
+            setHasLoadedSubtitles(true);
+          }
         }
       }
     }
@@ -510,6 +526,9 @@ export function TranscriptPanel({
     loadSubtitles();
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [videoId]);
 
@@ -853,7 +872,15 @@ export function TranscriptPanel({
         ref={scrollContainerRef}
         tabIndex={0}
       >
-        {showEmptyState && showHarvestHint ? (
+        {!hasLoadedSubtitles ? (
+          <div className="flex flex-col items-center justify-center h-48 text-zinc-400 dark:text-zinc-500 font-display">
+            <svg className="animate-spin h-5 w-5 text-brand-500 mb-3" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span className="text-xs">字幕加载中…</span>
+          </div>
+        ) : showEmptyState && showHarvestHint ? (
           <EmptyState
             action={
               extensionInstalled

@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 17:30
+// Timestamp: 2026-05-29 14:35
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -274,7 +274,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
               allowFullScreen
               className="h-full w-full border-0"
               id={PLAYER_IFRAME_ID}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=0`}
+              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=0&cc_load_policy=1&hl=es&cc_lang_pref=es`}
               title={videoInfo.title}
             />
           </div>
