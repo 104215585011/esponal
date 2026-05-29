@@ -38,6 +38,30 @@ type ApifyVideoItem = {
   subtitles?: ApifySubtitleTrack[] | null;
 };
 
+/**
+ * YouTube auto-caption (ASR) tracks use a rolling format where each cue's
+ * duration overlaps the next cue (so lines "scroll" on screen). With
+ * overlapping cues, time-based active-cue lookup picks the wrong (earlier)
+ * line and the subtitle appears out of sync. Clamp each cue's end to the
+ * next cue's start so cues are sequential and non-overlapping, while
+ * preserving genuine gaps (silence/music).
+ */
+function clampOverlappingCues(cues: SubtitleCue[]): SubtitleCue[] {
+  const sorted = [...cues]
+    .filter((cue) => Number.isFinite(cue?.start) && Number.isFinite(cue?.dur))
+    .sort((a, b) => a.start - b.start);
+
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const nextStart = sorted[i + 1].start;
+    const end = sorted[i].start + sorted[i].dur;
+    if (end > nextStart) {
+      sorted[i] = { ...sorted[i], dur: Math.max(0, nextStart - sorted[i].start) };
+    }
+  }
+
+  return sorted;
+}
+
 function parseSrtTime(timeStr: string): number {
   const [timePart, msPart] = timeStr.split(",");
   const [h, m, s] = timePart.split(":").map(Number);
@@ -284,7 +308,7 @@ export async function GET(request: Request) {
 
     if (cached) {
       return NextResponse.json(
-        { cues: JSON.parse(cached) as SubtitleCue[] } satisfies SubtitleResponse,
+        { cues: clampOverlappingCues(JSON.parse(cached) as SubtitleCue[]) } satisfies SubtitleResponse,
         {
         headers: { "Cache-Control": "no-store" }
         }
@@ -306,7 +330,9 @@ export async function GET(request: Request) {
     }
 
     const payload: SubtitleResponse =
-      cues.length > 0 ? { cues } : { cues: [], hint: { reason: "no_subtitle" } };
+      cues.length > 0
+        ? { cues: clampOverlappingCues(cues) }
+        : { cues: [], hint: { reason: "no_subtitle" } };
 
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store" }
