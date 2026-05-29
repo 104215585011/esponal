@@ -1,0 +1,502 @@
+lemma,kind,level,category,translation_zh,keep,review_note
+tener que,collocation,A1,verb_collocation,必须,1,
+ir a,collocation,A1,verb_collocation,将要,1,
+hay que,collocation,A1,verb_collocation,必须（无人称）,1,
+acabar de,collocation,A1,verb_collocation,刚刚,1,
+poder,collocation,A1,verb_collocation,能够,1,
+querer,collocation,A1,verb_collocation,想要,1,REVIEW: 与 tener ganas de 同译
+deber,collocation,A1,verb_collocation,应该,1,
+soler,collocation,A1,verb_collocation,通常,1,
+volver a,collocation,A1,verb_collocation,再次,1,
+empezar a,collocation,A1,verb_collocation,开始,1,
+terminar de,collocation,A1,verb_collocation,结束,1,REVIEW: 与 poner fin 同译
+dejar de,collocation,A1,verb_collocation,停止,1,
+tratar de,collocation,A1,verb_collocation,试图,1,
+necesitar,collocation,A1,verb_collocation,需要,1,REVIEW: 与 hacer falta 同译
+gustar,collocation,A1,verb_collocation,喜欢,1,
+encantar,collocation,A1,verb_collocation,非常喜欢,1,
+interesar,collocation,A1,verb_collocation,感兴趣,1,
+importar,collocation,A1,verb_collocation,在意,1,
+parecer,collocation,A1,verb_collocation,看起来,1,
+costar,collocation,A1,verb_collocation,花费,1,
+quedar,collocation,A1,verb_collocation,剩下/约定,1,
+faltar,collocation,A1,verb_collocation,缺少,1,
+sobrar,collocation,A1,verb_collocation,多余,1,
+doler,collocation,A1,verb_collocation,疼痛,1,
+hacer falta,collocation,A1,verb_collocation,需要,1,REVIEW: 与 necesitar 同译
+tener ganas de,collocation,A1,verb_collocation,想要,1,REVIEW: 与 querer 同译
+tener prisa,collocation,A1,verb_collocation,匆忙,1,
+tener razón,collocation,A1,verb_collocation,有道理,1,REVIEW: 与 llevar razón 同译
+tener cuidado,collocation,A1,verb_collocation,小心,1,
+tener éxito,collocation,A1,verb_collocation,成功,1,
+tener hambre,collocation,A1,verb_collocation,饿,1,
+tener sed,collocation,A1,verb_collocation,渴,1,
+tener sueño,collocation,A1,verb_collocation,困,1,
+tener frío,collocation,A1,verb_collocation,冷,1,
+tener calor,collocation,A1,verb_collocation,热,1,
+tener miedo,collocation,A1,verb_collocation,害怕,1,"REVIEW: 与 dar miedo, tener miedo de 同译"
+tener vergüenza,collocation,A1,verb_collocation,羞愧,1,
+tener suerte,collocation,A1,verb_collocation,幸运,1,
+dar miedo,collocation,A1,verb_collocation,使害怕,1,
+dar vergüenza,collocation,A1,verb_collocation,使羞愧,1,
+dar pena,collocation,A1,verb_collocation,使难过,1,
+dar asco,collocation,A1,verb_collocation,使恶心,1,
+dar igual,collocation,A1,verb_collocation,无所谓,1,
+dar la vuelta,collocation,A1,verb_collocation,转身,1,
+echar de menos,collocation,A1,verb_collocation,想念,1,
+ponerse a,collocation,A1,verb_collocation,开始做,1,
+llegar a ser,collocation,A1,verb_collocation,成为,1,REVIEW: 与 hacerse + adj 同译
+acabar por,collocation,A1,verb_collocation,最终,1,
+deber de,collocation,A1,verb_collocation,可能,1,
+conseguir,collocation,A2,verb_collocation,获得,1,
+lograr,collocation,A2,verb_collocation,实现,1,
+preferir,collocation,A1,verb_collocation,更喜欢,1,
+pensar,collocation,A1,verb_collocation,打算,1,
+esperar,collocation,A1,verb_collocation,希望,1,
+saber,collocation,A1,verb_collocation,知道,1,
+conocer,collocation,A1,verb_collocation,认识,1,
+recordar,collocation,A2,verb_collocation,记得,1,REVIEW: 与 acordarse de 同译
+olvidar,collocation,A2,verb_collocation,忘记,1,REVIEW: 与 olvidarse de 同译
+ayudar a,collocation,A1,verb_collocation,帮助,1,
+invitar a,collocation,A1,verb_collocation,邀请,1,
+enseñar a,collocation,A1,verb_collocation,教,1,REVIEW: 与 enseñar 同译
+aprender a,collocation,A1,verb_collocation,学习,1,"REVIEW: 与 aprender, estudiar 同译"
+acostumbrarse a,collocation,A2,verb_collocation,习惯于,1,
+dedicarse a,collocation,A2,verb_collocation,致力于,1,
+seguir,collocation,A2,verb_collocation,继续,1,REVIEW: 与 continuar 同译
+continuar,collocation,A2,verb_collocation,继续,1,REVIEW: 与 seguir 同译
+insistir en,collocation,A2,verb_collocation,坚持,1,
+consistir en,collocation,A2,verb_collocation,在于,1,
+pensar en,collocation,A1,verb_collocation,考虑,1,REVIEW: 与 tener en cuenta 同译
+soñar con,collocation,A2,verb_collocation,梦想,1,
+contar con,collocation,A2,verb_collocation,依靠,1,
+depender de,collocation,A2,verb_collocation,取决于,1,
+quejarse de,collocation,A2,verb_collocation,抱怨,1,
+olvidarse de,collocation,A2,verb_collocation,忘记,1,REVIEW: 与 olvidar 同译
+acordarse de,collocation,A2,verb_collocation,记得,1,REVIEW: 与 recordar 同译
+arrepentirse de,collocation,A2,verb_collocation,后悔,1,
+tratarse de,collocation,A2,verb_collocation,关于,1,
+encargarse de,collocation,A2,verb_collocation,负责,1,
+ocuparse de,collocation,A2,verb_collocation,处理,1,
+preocuparse por,collocation,A2,verb_collocation,担心,1,
+interesarse por,collocation,A2,verb_collocation,对...感兴趣,1,
+enamorarse de,collocation,A2,verb_collocation,爱上,1,
+casarse con,collocation,A2,verb_collocation,与...结婚,1,
+divorciarse de,collocation,A2,verb_collocation,与...离婚,1,
+ponerse de acuerdo,collocation,A2,verb_collocation,达成一致,1,
+estar a punto de,collocation,A2,fixed_structure,即将,1,
+hacer caso,collocation,A2,verb_collocation,注意,1,"REVIEW: 与 atención, estar al loro, fijarse en, poner atención 同译"
+poner la mesa,collocation,A1,verb_collocation,摆桌子,1,
+quedar bien,collocation,A2,verb_collocation,合适,1,
+estar de acuerdo,collocation,A1,verb_collocation,同意,1,"REVIEW: 与 dar la razón, de acuerdo 同译"
+hacer daño,collocation,A2,verb_collocation,伤害,1,
+dar las gracias,collocation,A1,verb_collocation,感谢,1,
+echar una mano,collocation,A2,verb_collocation,帮忙,1,
+ponerse nervioso,collocation,A2,verb_collocation,紧张,1,
+quedarse con,collocation,A2,fixed_structure,保留,1,
+llevarse bien,collocation,A2,verb_collocation,相处得好,1,
+hacer el favor de,collocation,A2,fixed_structure,请帮忙,1,
+dar un paseo,collocation,A1,verb_collocation,散步,1,
+estar de moda,collocation,A2,verb_collocation,流行,1,
+poner en práctica,collocation,A2,verb_collocation,实践,1,
+tener la culpa,collocation,A2,verb_collocation,有错,1,
+hacer cola,collocation,A1,verb_collocation,排队,1,REVIEW: 与 ponerse en fila 同译
+dar un abrazo,collocation,A1,verb_collocation,拥抱,1,
+echar un vistazo,collocation,A2,verb_collocation,看一眼,1,
+poner atención,collocation,A2,verb_collocation,注意,1,"REVIEW: 与 atención, estar al loro, fijarse en, hacer caso 同译"
+quedar en,collocation,A2,fixed_structure,约定,1,
+llevar a cabo,collocation,A2,fixed_structure,执行,1,
+hacer deporte,collocation,A1,verb_collocation,做运动,1,
+dar un beso,collocation,A1,verb_collocation,亲吻,1,
+estar de viaje,collocation,A2,verb_collocation,旅行,1,
+poner en marcha,collocation,A2,verb_collocation,启动,1,REVIEW: 与 ponerse en marcha 同译
+tener en cuenta,collocation,A2,fixed_structure,考虑,1,REVIEW: 与 pensar en 同译
+hacer la compra,collocation,A1,verb_collocation,购物,1,
+dar la bienvenida,collocation,A2,verb_collocation,欢迎,1,REVIEW: 与 bienvenido 同译
+echar la culpa,collocation,A2,verb_collocation,责怪,1,
+poner fin,collocation,A2,verb_collocation,结束,1,REVIEW: 与 terminar de 同译
+quedar claro,collocation,A2,verb_collocation,清楚,1,
+llevar razón,collocation,A2,verb_collocation,有道理,1,REVIEW: 与 tener razón 同译
+hacer la cama,collocation,A1,verb_collocation,铺床,1,
+creer,collocation,A1,verb_collocation,相信,1,
+dar la lata,collocation,A2,verb_collocation,烦扰,1,
+ponerse en contacto,collocation,A2,verb_collocation,联系,1,
+ponerse contento,collocation,A2,verb_collocation,高兴,1,
+ponerse triste,collocation,A2,verb_collocation,悲伤,1,
+ponerse enfermo,collocation,A2,verb_collocation,生病,1,
+ponerse rojo,collocation,A2,verb_collocation,脸红,1,
+ponerse de pie,collocation,A2,verb_collocation,站起来,1,REVIEW: 与 pónganse de pie 同译
+ponerse en fila,collocation,A2,verb_collocation,排队,1,REVIEW: 与 hacer cola 同译
+ponerse al día,collocation,A2,verb_collocation,更新,1,
+ponerse en marcha,collocation,A2,verb_collocation,启动,1,REVIEW: 与 poner en marcha 同译
+ponerse a prueba,collocation,A2,verb_collocation,考验,1,
+ponerse en forma,collocation,A2,verb_collocation,健身,1,
+ponerse en peligro,collocation,A2,verb_collocation,冒险,1,
+ponerse en camino,collocation,A2,verb_collocation,上路,1,
+intentar,collocation,A2,verb_collocation,尝试,1,REVIEW: 与 probar 同译
+probar,collocation,A2,verb_collocation,尝试,1,REVIEW: 与 intentar 同译
+decidir,collocation,A2,verb_collocation,决定,1,
+prometer,collocation,A2,verb_collocation,承诺,1,
+negarse a,collocation,A2,verb_collocation,拒绝,1,
+darse cuenta de,collocation,A2,verb_collocation,意识到,1,
+tener miedo de,collocation,A1,verb_collocation,害怕,1,"REVIEW: 与 dar miedo, tener miedo 同译"
+dar la razón,collocation,A1,verb_collocation,同意,1,"REVIEW: 与 de acuerdo, estar de acuerdo 同译"
+llegar a,collocation,A2,verb_collocation,达到,1,REVIEW: 与 alcanzar 同译
+alcanzar,collocation,A2,verb_collocation,达到,1,REVIEW: 与 llegar a 同译
+entender,collocation,A1,verb_collocation,理解,1,
+comprender,collocation,A1,verb_collocation,明白,1,
+ponerse + adj,collocation,A2,verb_collocation,变得,1,
+volverse + adj,collocation,A2,verb_collocation,变成,1,
+hacerse + adj,collocation,A2,verb_collocation,成为,1,REVIEW: 与 llegar a ser 同译
+acabar + gerundio,collocation,A2,verb_collocation,最终做,1,
+seguir + gerundio,collocation,A2,verb_collocation,继续做,1,
+llevar + gerundio,collocation,A2,verb_collocation,一直在做,1,REVIEW: 与 venir + gerundio 同译
+ir + gerundio,collocation,A2,verb_collocation,逐渐做,1,
+venir + gerundio,collocation,A2,verb_collocation,一直在做,1,REVIEW: 与 llevar + gerundio 同译
+estar para,collocation,A2,verb_collocation,准备做,1,
+estar por,collocation,A2,verb_collocation,尚未做,1,
+aprender,collocation,A1,verb_collocation,学习,1,"REVIEW: 与 aprender a, estudiar 同译"
+enseñar,collocation,A1,verb_collocation,教,1,REVIEW: 与 enseñar a 同译
+estudiar,collocation,A1,verb_collocation,学习,1,"REVIEW: 与 aprender, aprender a 同译"
+trabajar,collocation,A1,verb_collocation,工作,1,
+vivir,collocation,A1,verb_collocation,生活,1,
+comer,collocation,A1,verb_collocation,吃,1,
+beber,collocation,A1,verb_collocation,喝,1,
+dormir,collocation,A1,verb_collocation,睡觉,1,REVIEW: 与 acostarse 同译
+despertarse,collocation,A1,verb_collocation,醒来,1,
+levantarse,collocation,A1,verb_collocation,起床,1,
+acostarse,collocation,A1,verb_collocation,睡觉,1,REVIEW: 与 dormir 同译
+ducharse,collocation,A1,verb_collocation,淋浴,1,
+vestirse,collocation,A1,verb_collocation,穿衣,1,
+lavarse,collocation,A1,verb_collocation,洗,1,
+peinarse,collocation,A1,verb_collocation,梳头,1,
+mirar,collocation,A1,verb_collocation,看,1,
+ver,collocation,A1,verb_collocation,看见,1,
+escuchar,collocation,A1,verb_collocation,听,1,REVIEW: 与 escuchen 同译
+hablar,collocation,A1,verb_collocation,说话,1,
+decir,collocation,A1,verb_collocation,说,1,
+preguntar,collocation,A1,verb_collocation,问,1,
+responder,collocation,A1,verb_collocation,回答,1,
+dar,collocation,A1,verb_collocation,给,1,
+recibir,collocation,A1,verb_collocation,收到,1,
+comprar,collocation,A1,verb_collocation,买,1,
+vender,collocation,A1,verb_collocation,卖,1,
+pagar,collocation,A1,verb_collocation,支付,1,
+parecerse a,collocation,A2,verb_collocation,像,1,
+echarse a,collocation,A2,verb_collocation,开始（哭/笑）,1,
+bastar con,collocation,A2,verb_collocation,足够,1,
+tardar en,collocation,A2,verb_collocation,花费时间,1,
+meterse en,collocation,A2,verb_collocation,介入,1,
+fijarse en,collocation,A2,verb_collocation,注意,1,"REVIEW: 与 atención, estar al loro, hacer caso, poner atención 同译"
+enterarse de,collocation,A2,verb_collocation,得知,1,
+hablar de,collocation,A1,verb_collocation,谈论,1,
+desear,collocation,A1,verb_collocation,渴望,1,
+tener que ver con,collocation,A1,verb_collocation,与...有关,1,
+dar gusto,collocation,A1,verb_collocation,使高兴,1,
+hacer ilusión,collocation,A1,verb_collocation,使兴奋,1,
+llevar,collocation,A1,verb_collocation,携带,1,
+tener,collocation,A1,verb_collocation,有,1,REVIEW: 与 haber 同译
+haber,collocation,A1,verb_collocation,有,1,REVIEW: 与 tener 同译
+ser,collocation,A1,verb_collocation,是,1,REVIEW: 与 sí 同译
+estar,collocation,A1,verb_collocation,在,1,
+hacer,collocation,A1,verb_collocation,做,1,
+hola,phrase,A1,greetings,你好,1,
+buenos días,phrase,A1,greetings,早上好,1,
+buenas tardes,phrase,A1,greetings,下午好,1,
+buenas noches,phrase,A1,greetings,晚上好/晚安,1,
+adiós,phrase,A1,greetings,再见,1,REVIEW: 与 nos vemos 同译
+hasta luego,phrase,A1,greetings,回头见,1,REVIEW: 与 hasta pronto 同译
+hasta mañana,phrase,A1,greetings,明天见,1,
+nos vemos,phrase,A1,greetings,再见,1,REVIEW: 与 adiós 同译
+mucho gusto,phrase,A1,greetings,很高兴认识你,1,
+encantado,phrase,A1,greetings,很高兴认识你（男性）,1,
+encantada,phrase,A1,greetings,很高兴认识你（女性）,1,
+¿cómo estás?,phrase,A1,greetings,你好吗？,1,
+¿cómo está usted?,phrase,A1,greetings,您好吗？,1,REVIEW: 与 ¿cómo está? 同译
+bien,phrase,A1,greetings,好,1,
+muy bien,phrase,A1,greetings,很好,1,
+gracias,phrase,A1,courtesy_phrases,谢谢,1,
+muchas gracias,phrase,A1,courtesy_phrases,非常感谢,1,
+de nada,phrase,A1,courtesy_phrases,不客气,1,
+por favor,phrase,A1,courtesy_phrases,请,1,
+perdón,phrase,A1,courtesy_phrases,对不起/打扰了,1,
+disculpe,phrase,A1,courtesy_phrases,对不起（正式）,1,
+lo siento,phrase,A1,courtesy_phrases,对不起,1,
+sí,phrase,A1,courtesy_phrases,是,1,REVIEW: 与 ser 同译
+no,phrase,A1,courtesy_phrases,不,1,
+vale,phrase,A1,courtesy_phrases,好的,1,
+de acuerdo,phrase,A1,courtesy_phrases,同意,1,"REVIEW: 与 dar la razón, estar de acuerdo 同译"
+clase,phrase,A1,classroom_phrases,班级/课堂,1,
+profesor,phrase,A1,classroom_phrases,老师（男性）,1,
+profesora,phrase,A1,classroom_phrases,老师（女性）,1,
+alumno,phrase,A1,classroom_phrases,学生（男性）,1,
+alumna,phrase,A1,classroom_phrases,学生（女性）,1,
+libro,phrase,A1,classroom_phrases,书,1,REVIEW: 与 el libro 同译
+cuaderno,phrase,A1,classroom_phrases,笔记本,1,REVIEW: 与 el cuaderno 同译
+bolígrafo,phrase,A1,classroom_phrases,圆珠笔,1,REVIEW: 与 el bolígrafo 同译
+lápiz,phrase,A1,classroom_phrases,铅笔,1,REVIEW: 与 el lápiz 同译
+pizarra,phrase,A1,classroom_phrases,黑板,1,REVIEW: 与 la pizarra 同译
+mesa,phrase,A1,classroom_phrases,桌子,1,
+silla,phrase,A1,classroom_phrases,椅子,1,
+puerta,phrase,A1,classroom_phrases,门,1,
+ventana,phrase,A1,classroom_phrases,窗户,1,
+hoy,phrase,A1,common_time_place_phrases,今天,1,
+mañana,phrase,A1,common_time_place_phrases,明天/早上,1,
+ayer,phrase,A1,common_time_place_phrases,昨天,1,
+ahora,phrase,A1,common_time_place_phrases,现在,1,
+después,phrase,A1,common_time_place_phrases,之后,1,
+antes,phrase,A1,common_time_place_phrases,之前,1,
+aquí,phrase,A1,common_time_place_phrases,这里,1,
+allí,phrase,A1,common_time_place_phrases,那里,1,
+casa,phrase,A1,common_time_place_phrases,家,1,REVIEW: 与 la casa 同译
+escuela,phrase,A1,common_time_place_phrases,学校,1,REVIEW: 与 la escuela 同译
+¿qué tal?,phrase,A1,greetings,怎么样？,1,
+"muy bien, gracias",phrase,A1,courtesy_phrases,很好，谢谢,1,"REVIEW: 与 bien, gracias 同译"
+disculpa,phrase,A1,courtesy_phrases,抱歉/打扰一下,1,
+igualmente,phrase,A1,courtesy_phrases,我也一样,1,
+¿cómo te llamas?,phrase,A1,classroom_phrases,你叫什么名字？,1,
+me llamo...,phrase,A1,classroom_phrases,我叫...,1,
+¿de dónde eres?,phrase,A1,classroom_phrases,你从哪里来？,1,
+soy de...,phrase,A1,classroom_phrases,我来自...,1,
+¿qué significa?,phrase,A1,classroom_phrases,什么意思？,1,
+no entiendo,phrase,A1,classroom_phrases,我不明白,1,
+"repite, por favor",phrase,A1,classroom_phrases,请重复一遍,1,
+más despacio,phrase,A1,classroom_phrases,慢一点,1,
+¿cómo se dice...?,phrase,A1,classroom_phrases,...怎么说？,1,
+¿puedo ir al baño?,phrase,A1,classroom_phrases,我可以去洗手间吗？,1,
+tengo una pregunta,phrase,A1,classroom_phrases,我有一个问题,1,
+más tarde,phrase,A1,common_time_place_phrases,稍后,1,
+temprano,phrase,A1,common_time_place_phrases,早,1,
+tarde,phrase,A1,common_time_place_phrases,晚/下午,1,
+noche,phrase,A1,common_time_place_phrases,晚上,1,REVIEW: 与 la noche 同译
+día,phrase,A1,common_time_place_phrases,天/日,1,
+semana,phrase,A1,common_time_place_phrases,星期/周,1,
+mes,phrase,A1,common_time_place_phrases,月,1,
+año,phrase,A1,common_time_place_phrases,年,1,
+cerca,phrase,A1,common_time_place_phrases,近,1,
+lejos,phrase,A1,common_time_place_phrases,远,1,
+derecha,phrase,A1,common_time_place_phrases,右边,1,REVIEW: 与 a la derecha 同译
+izquierda,phrase,A1,common_time_place_phrases,左边,1,REVIEW: 与 a la izquierda 同译
+enfrente,phrase,A1,common_time_place_phrases,对面,1,
+detrás,phrase,A1,common_time_place_phrases,后面,1,
+al lado,phrase,A1,common_time_place_phrases,旁边,1,
+encima,phrase,A1,common_time_place_phrases,上面,1,
+debajo,phrase,A1,common_time_place_phrases,下面,1,
+entre,phrase,A1,common_time_place_phrases,在...之间,1,
+¿y tú?,phrase,A1,greetings,你呢？,1,
+señor,phrase,A1,courtesy_phrases,先生,1,
+señora,phrase,A1,courtesy_phrases,女士,1,
+señorita,phrase,A1,courtesy_phrases,小姐,1,
+con permiso,phrase,A1,courtesy_phrases,借过,1,
+¿cómo se dice?,phrase,A1,classroom_phrases,怎么说？,1,
+"más despacio, por favor",phrase,A1,classroom_phrases,请慢一点,1,
+"repita, por favor",phrase,A1,classroom_phrases,请重复,1,
+¿cómo se escribe?,phrase,A1,classroom_phrases,怎么写？,1,
+la tarea,phrase,A1,classroom_phrases,作业,1,
+el examen,phrase,A1,classroom_phrases,考试,1,
+la mañana,phrase,A1,common_time_place_phrases,早上,1,
+la tarde,phrase,A1,common_time_place_phrases,下午,1,
+la noche,phrase,A1,common_time_place_phrases,晚上,1,REVIEW: 与 noche 同译
+la clase,phrase,A1,common_time_place_phrases,教室/课,1,
+la escuela,phrase,A1,common_time_place_phrases,学校,1,REVIEW: 与 escuela 同译
+la casa,phrase,A1,common_time_place_phrases,家,1,REVIEW: 与 casa 同译
+el baño,phrase,A1,common_time_place_phrases,洗手间,1,
+la biblioteca,phrase,A1,common_time_place_phrases,图书馆,1,
+el parque,phrase,A1,common_time_place_phrases,公园,1,
+"bien, gracias",phrase,A1,greeting,很好，谢谢,1,"REVIEW: 与 muy bien, gracias 同译"
+más o menos,phrase,A1,greeting,一般般,1,
+¿qué hay?,phrase,A1,greeting,有什么新鲜事？,1,
+¿cómo te va?,phrase,A1,greeting,你怎么样？,1,
+¿qué pasa?,phrase,A1,greeting,发生什么事了？,1,
+mucho placer,phrase,A1,greeting,很高兴,1,
+bienvenido,phrase,A1,greeting,欢迎,1,REVIEW: 与 dar la bienvenida 同译
+"silencio, por favor",phrase,A1,classroom,请安静,1,
+escuchen,phrase,A1,classroom,听,1,REVIEW: 与 escuchar 同译
+repitan,phrase,A1,classroom,重复,1,
+lean,phrase,A1,classroom,读,1,
+escriban,phrase,A1,classroom,写,1,
+abran el libro,phrase,A1,classroom,打开书,1,
+cierren el libro,phrase,A1,classroom,合上书,1,
+levanten la mano,phrase,A1,classroom,举手,1,
+siéntense,phrase,A1,classroom,坐下,1,
+pónganse de pie,phrase,A1,classroom,站起来,1,REVIEW: 与 ponerse de pie 同译
+vengan aquí,phrase,A1,classroom,过来这里,1,
+pasen a la pizarra,phrase,A1,classroom,到黑板前来,1,
+¿qué significa...?,phrase,A1,classroom,...是什么意思？,1,
+salud,phrase,A1,courtesy_phrases,干杯,1,
+feliz cumpleaños,phrase,A1,courtesy_phrases,生日快乐,1,
+feliz año nuevo,phrase,A1,courtesy_phrases,新年快乐,1,
+feliz navidad,phrase,A1,courtesy_phrases,圣诞快乐,1,
+buen provecho,phrase,A1,courtesy_phrases,请慢用,1,
+regular,phrase,A1,greetings,还行,1,
+mal,phrase,A1,greetings,不好,1,
+¿y usted?,phrase,A1,greetings,您呢？,1,
+hasta pronto,phrase,A1,greetings,回头见,1,REVIEW: 与 hasta luego 同译
+chao,phrase,A1,greetings,再见（非正式）,1,
+¿puedo abrir la ventana?,phrase,A1,classroom_phrases,我可以开窗吗？,1,
+¿puedo cerrar la puerta?,phrase,A1,classroom_phrases,我可以关门吗？,1,
+¿puede repetir?,phrase,A1,classroom_phrases,您能重复一遍吗？,1,
+¿qué página?,phrase,A1,classroom_phrases,哪一页？,1,
+¿cuándo es el examen?,phrase,A1,classroom_phrases,考试是什么时候？,1,
+¿cuál es la tarea?,phrase,A1,classroom_phrases,作业是什么？,1,
+¿a qué hora es la clase?,phrase,A1,classroom_phrases,课是几点？,1,
+¿cómo está?,phrase,A1,greetings,您好吗？,1,REVIEW: 与 ¿cómo está usted? 同译
+no importa,phrase,A1,courtesy_phrases,没关系,1,REVIEW: 与 no pasa nada 同译
+¿cómo se dice... en español?,phrase,A1,classroom_phrases,...用西班牙语怎么说？,1,
+¿en qué página estamos?,phrase,A1,classroom_phrases,我们在哪一页？,1,
+en silencio,phrase,A1,classroom_phrases,安静,1,
+atención,phrase,A1,classroom_phrases,注意,1,"REVIEW: 与 estar al loro, fijarse en, hacer caso, poner atención 同译"
+¿qué hora es?,phrase,A1,common_time_place_phrases,几点了？,1,
+es la una,phrase,A1,common_time_place_phrases,一点钟,1,
+son las dos,phrase,A1,common_time_place_phrases,两点钟,1,
+en la clase,phrase,A1,common_time_place_phrases,在教室里,1,
+¿cuántos años tienes?,phrase,A1,greetings,你几岁？,1,
+tengo... años,phrase,A1,greetings,我...岁,1,
+hoy en día,phrase,A1,common_time_place_phrases,如今,1,
+por la mañana,phrase,A1,common_time_place_phrases,在早上,1,
+por la tarde,phrase,A1,common_time_place_phrases,在下午,1,
+por la noche,phrase,A1,common_time_place_phrases,在晚上,1,
+en clase,phrase,A1,classroom_phrases,在课堂上,1,
+la página,phrase,A1,classroom_phrases,页,1,
+el libro,phrase,A1,classroom_phrases,书,1,REVIEW: 与 libro 同译
+el cuaderno,phrase,A1,classroom_phrases,笔记本,1,REVIEW: 与 cuaderno 同译
+el lápiz,phrase,A1,classroom_phrases,铅笔,1,REVIEW: 与 lápiz 同译
+el bolígrafo,phrase,A1,classroom_phrases,圆珠笔,1,REVIEW: 与 bolígrafo 同译
+la pizarra,phrase,A1,classroom_phrases,黑板,1,REVIEW: 与 pizarra 同译
+a la izquierda,phrase,A1,common_time_place_phrases,左边,1,REVIEW: 与 izquierda 同译
+a la derecha,phrase,A1,common_time_place_phrases,右边,1,REVIEW: 与 derecha 同译
+enfrente de,phrase,A1,common_time_place_phrases,在...对面,1,
+claro,phrase,A1,courtesy_phrases,当然,1,REVIEW: 与 por supuesto 同译
+no pasa nada,phrase,A1,courtesy_phrases,没关系,1,REVIEW: 与 no importa 同译
+por supuesto,phrase,A1,courtesy_phrases,当然,1,REVIEW: 与 claro 同译
+el ejercicio,phrase,A1,classroom_phrases,练习,1,
+la semana que viene,phrase,A1,common_time_place_phrases,下周,1,
+el mes pasado,phrase,A1,common_time_place_phrases,上个月,1,
+el año que viene,phrase,A1,common_time_place_phrases,明年,1,
+al lado de,phrase,A1,common_time_place_phrases,在...旁边,1,
+detrás de,phrase,A1,common_time_place_phrases,在...后面,1,
+delante de,phrase,A1,common_time_place_phrases,在...前面,1,
+encima de,phrase,A1,common_time_place_phrases,在...上面,1,
+debajo de,phrase,A1,common_time_place_phrases,在...下面,1,
+cerca de,phrase,A1,common_time_place_phrases,在...附近,1,
+lejos de,phrase,A1,common_time_place_phrases,远离,1,
+en el centro,phrase,A1,common_time_place_phrases,在市中心,1,
+en las afueras,phrase,A1,common_time_place_phrases,在郊区,1,
+al final de,phrase,A1,common_time_place_phrases,在...尽头,1,
+al principio de,phrase,A1,common_time_place_phrases,在...开头,1,
+en la esquina,phrase,A1,common_time_place_phrases,在拐角处,1,
+en la parada,phrase,A1,common_time_place_phrases,在车站,1,
+en la estación,phrase,A1,common_time_place_phrases,在火车站,1,
+en el aeropuerto,phrase,A1,common_time_place_phrases,在机场,1,
+en la playa,phrase,A1,common_time_place_phrases,在海滩,1,
+en el campo,phrase,A1,common_time_place_phrases,在乡下,1,
+en la ciudad,phrase,A1,common_time_place_phrases,在城市,1,
+en el pueblo,phrase,A1,common_time_place_phrases,在村庄,1,
+en la montaña,phrase,A1,common_time_place_phrases,在山上,1,
+en el mar,phrase,A1,common_time_place_phrases,在海里,1,
+en la calle,phrase,A1,common_time_place_phrases,在街上,1,
+en la plaza,phrase,A1,common_time_place_phrases,在广场,1,
+en el parque,phrase,A1,common_time_place_phrases,在公园,1,
+en el museo,phrase,A1,common_time_place_phrases,在博物馆,1,
+en el cine,phrase,A1,common_time_place_phrases,在电影院,1,
+en el teatro,phrase,A1,common_time_place_phrases,在剧院,1,
+dar la lata,idiom,A2,everyday,烦人，唠叨,0,AUTO-DROP: 与 collocation 重复
+echar una mano,idiom,A1,everyday,帮忙,0,AUTO-DROP: 与 collocation 重复
+estar hasta las narices,idiom,A2,everyday,忍无可忍,1,REVIEW: 长度可能超 A2，请确认难度
+hacer la vista gorda,idiom,A2,everyday,视而不见,1,
+irse por las ramas,idiom,A2,everyday,跑题，拐弯抹角,1,
+meter la pata,idiom,A1,everyday,犯错，出丑,1,
+no tener pelos en la lengua,idiom,A2,everyday,直言不讳,1,REVIEW: 长度可能超 A2，请确认难度
+ponerse las pilas,idiom,A2,everyday,打起精神，加油,1,
+ser pan comido,idiom,A1,everyday,小菜一碟,1,
+tomar el pelo,idiom,A1,everyday,开玩笑，捉弄,1,
+caer bien/mal,idiom,A1,everyday,给人好/坏印象,1,
+dar igual,idiom,A1,everyday,无所谓,0,AUTO-DROP: 与 collocation 重复
+estar de buen humor,idiom,A1,everyday,心情好,1,
+hacer falta,idiom,A1,everyday,需要,0,AUTO-DROP: 与 collocation 重复 | REVIEW: 与 necesitar 同译
+tener ganas de,idiom,A1,everyday,想要,0,AUTO-DROP: 与 collocation 重复 | REVIEW: 与 querer 同译
+dar la vuelta,idiom,A1,everyday,转身，掉头,0,AUTO-DROP: 与 collocation 重复
+echar de menos,idiom,A1,everyday,想念,0,AUTO-DROP: 与 collocation 重复
+ponerse de acuerdo,idiom,A2,everyday,达成一致,0,AUTO-DROP: 与 collocation 重复
+tener razón,idiom,A1,everyday,有道理,0,AUTO-DROP: 与 collocation 重复 | REVIEW: 与 llevar razón 同译
+valer la pena,idiom,A1,everyday,值得,1,
+dar miedo,idiom,A1,everyday,害怕,0,"AUTO-DROP: 与 collocation 重复 | REVIEW: 与 tener miedo, tener miedo de 同译"
+estar de acuerdo,idiom,A1,everyday,同意,0,"AUTO-DROP: 与 collocation 重复 | REVIEW: 与 dar la razón, de acuerdo 同译"
+hacer caso,idiom,A1,everyday,注意，理会,0,AUTO-DROP: 与 collocation 重复
+tener cuidado,idiom,A1,everyday,小心,0,AUTO-DROP: 与 collocation 重复
+dar las gracias,idiom,A1,everyday,感谢,0,AUTO-DROP: 与 collocation 重复
+estar de moda,idiom,A1,everyday,流行,0,AUTO-DROP: 与 collocation 重复
+hacer ilusión,idiom,A2,everyday,令人期待,0,AUTO-DROP: 与 collocation 重复
+tener prisa,idiom,A1,everyday,赶时间,0,AUTO-DROP: 与 collocation 重复
+dar un paseo,idiom,A1,everyday,散步,0,AUTO-DROP: 与 collocation 重复
+estar de viaje,idiom,A1,everyday,在旅行,0,AUTO-DROP: 与 collocation 重复
+hacer la compra,idiom,A1,everyday,购物,0,AUTO-DROP: 与 collocation 重复
+tener sueño,idiom,A1,everyday,困了,0,AUTO-DROP: 与 collocation 重复
+dar un abrazo,idiom,A1,everyday,拥抱,0,AUTO-DROP: 与 collocation 重复
+estar de vuelta,idiom,A1,everyday,回来了,1,
+hacer las paces,idiom,A2,everyday,和好,1,
+tener hambre,idiom,A1,everyday,饿了,0,AUTO-DROP: 与 collocation 重复
+dar un consejo,idiom,A1,everyday,给建议,1,
+estar de broma,idiom,A2,everyday,开玩笑,1,
+hacer el ridículo,idiom,A2,everyday,出洋相,1,
+tener la culpa,idiom,A2,everyday,有错，怪,0,AUTO-DROP: 与 collocation 重复
+dar la bienvenida,idiom,A1,everyday,欢迎,0,AUTO-DROP: 与 collocation 重复 | REVIEW: 与 bienvenido 同译
+estar de mal humor,idiom,A1,everyday,心情不好,1,
+hacer un favor,idiom,A1,everyday,帮个忙,1,
+tener éxito,idiom,A2,everyday,成功,0,AUTO-DROP: 与 collocation 重复
+hacer una pregunta,idiom,A1,everyday,提问,1,
+tener miedo,idiom,A1,everyday,害怕,0,"AUTO-DROP: 与 collocation 重复 | REVIEW: 与 dar miedo, tener miedo de 同译"
+dar un salto,idiom,A1,everyday,跳一下,1,
+estar de fiesta,idiom,A1,everyday,在聚会,1,
+dar en el clavo,idiom,A2,idiom,说到点子上,1,
+estar en las nubes,idiom,A2,idiom,心不在焉,1,
+costar un ojo de la cara,idiom,A2,idiom,价格昂贵,1,REVIEW: 长度可能超 A2，请确认难度
+no dar pie con bola,idiom,A2,idiom,一事无成,1,
+poner cara de póker,idiom,A2,idiom,面无表情,1,
+quedarse de piedra,idiom,A2,idiom,目瞪口呆,1,
+sacar las castañas del fuego,idiom,A2,idiom,替人解围,1,REVIEW: 长度可能超 A2，请确认难度
+tener mala leche,idiom,A2,idiom,脾气坏,1,
+ver todo de color de rosa,idiom,A2,idiom,乐观看待,1,REVIEW: 长度可能超 A2，请确认难度
+andar con rodeos,idiom,A2,idiom,拐弯抹角,1,
+estar al loro,idiom,A2,idiom,注意,1,"REVIEW: 与 atención, fijarse en, hacer caso, poner atención 同译"
+hacer buenas migas,idiom,A2,idiom,相处融洽,1,
+irse la olla,idiom,A2,idiom,糊涂,1,
+no pegar ojo,idiom,A2,idiom,睡不着,1,
+poner el grito en el cielo,idiom,A2,idiom,大声抗议,1,REVIEW: 长度可能超 A2，请确认难度
+quedarse en blanco,idiom,A2,idiom,脑子一片空白,1,
+ser un cero a la izquierda,idiom,A2,idiom,无足轻重,1,REVIEW: 长度可能超 A2，请确认难度
+tener mano izquierda,idiom,A2,idiom,有手腕,1,
+venir como anillo al dedo,idiom,A2,idiom,恰到好处,1,REVIEW: 长度可能超 A2，请确认难度
+abrir la caja de los truenos,idiom,A2,idiom,引发麻烦,1,REVIEW: 长度可能超 A2，请确认难度
+caer como un jarro de agua fría,idiom,A2,idiom,泼冷水,1,REVIEW: 长度可能超 A2，请确认难度
+dar la vuelta a la tortilla,idiom,A2,idiom,扭转局面,1,REVIEW: 长度可能超 A2，请确认难度
+estar en el ajo,idiom,A2,idiom,参与其中,1,
+hacer de tripas corazón,idiom,A2,idiom,鼓起勇气,1,REVIEW: 长度可能超 A2，请确认难度
+irse al traste,idiom,A2,idiom,失败,1,
+no tener ni idea,idiom,A2,idiom,一无所知,1,
+poner los puntos sobre las íes,idiom,A2,idiom,明确说明,1,REVIEW: 长度可能超 A2，请确认难度
+quitarse un peso de encima,idiom,A2,idiom,如释重负,1,REVIEW: 长度可能超 A2，请确认难度
+ser la oveja negra,idiom,A2,idiom,害群之马,1,
+tener la sartén por el mango,idiom,A2,idiom,掌握主动权,1,REVIEW: 长度可能超 A2，请确认难度
+a buenas horas,idiom,A2,idiom,太晚了,1,
+dar la cara,idiom,A2,idiom,面对,1,
+estar como una cabra,idiom,A2,idiom,疯了,1,
+hacer el agosto,idiom,A2,idiom,大赚一笔,1,
+irse de la lengua,idiom,A2,idiom,说漏嘴,1,
+no dar crédito,idiom,A2,idiom,难以置信,1,
+poner toda la carne en el asador,idiom,A2,idiom,全力以赴,1,REVIEW: 长度可能超 A2，请确认难度
+saber de buena tinta,idiom,A2,idiom,从可靠渠道得知,1,
+tener un humor de perros,idiom,A2,idiom,心情很糟,1,REVIEW: 长度可能超 A2，请确认难度
+estar en la luna,idiom,A2,idiomatic,走神,1,
+ser la leche,idiom,A2,idiomatic,太棒了/太糟了,1,
+echar un vistazo,idiom,A1,idiomatic,看一眼,0,AUTO-DROP: 与 collocation 重复
+ser un trozo de pan,idiom,A2,idiomatic,心地善良,1,
+poner el dedo en la llaga,idiom,A2,idiomatic,触及痛处,1,REVIEW: 长度可能超 A2，请确认难度
+ser un lince,idiom,A2,idiomatic,眼尖,1,
+no ver tres en un burro,idiom,A2,idiomatic,视力差,1,REVIEW: 长度可能超 A2，请确认难度
+poner una pica en flandes,idiom,A2,idiomatic,完成壮举,1,REVIEW: 长度可能超 A2，请确认难度
+ser un paquete,idiom,A2,idiomatic,笨手笨脚,1,
+tener la cabeza llena de pájaros,idiom,A2,idiomatic,异想天开,1,REVIEW: 长度可能超 A2，请确认难度
+dar gato por liebre,idiom,A2,idiomatic,以次充好,1,
+ser un gallina,idiom,A2,idiomatic,胆小,1,
+no tener abuela,idiom,A2,idiomatic,自夸,1,

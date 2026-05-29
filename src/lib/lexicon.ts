@@ -70,7 +70,22 @@ export async function findLexiconLookupEntry(lemma: string): Promise<LexiconEntr
 
   return prisma.lexiconEntry.findFirst({
     where: {
-      kind: { in: ["collocation", "phrase", "idiom"] },
+      kind: { in: ["construction", "collocation", "phrase", "idiom"] },
+      OR: [
+        { lemma: normalized },
+        { forms: { has: normalized } }
+      ]
+    }
+  });
+}
+
+export async function findConstructionEntry(lemma: string): Promise<LexiconEntry | null> {
+  const normalized = normalizeLexiconText(lemma);
+  if (!normalized) return null;
+
+  return prisma.lexiconEntry.findFirst({
+    where: {
+      kind: "construction",
       OR: [
         { lemma: normalized },
         { forms: { has: normalized } }

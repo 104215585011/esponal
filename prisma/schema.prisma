@@ -121,6 +121,7 @@ model LecturaRead {
 
 enum LexiconKind {
   word
+  construction
   phrase
   collocation
   idiom

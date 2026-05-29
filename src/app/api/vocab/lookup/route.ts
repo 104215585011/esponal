@@ -4,6 +4,7 @@ import { getAuthOptions } from "@/lib/auth";
 import { type DictionaryEntry, lookupDictionary } from "@/lib/dictionary";
 import {
   findLexiconLookupEntry,
+  findConstructionEntry,
   findRelatedPhraseEntries,
   incrementLookupCount,
   upsertLexiconEntry
@@ -94,6 +95,7 @@ function mapLexiconEntryToLookupPayload(entry: LexiconEntry, word: string, relat
     examples: getExamples(entry.examples),
     phonetic: entry.ipa,
     morphInfo: entry.explanationZh,
+    usageNote: entry.kind === "construction" ? entry.explanationZh : null,
     conjugations: isVerb && morphology ? morphology : undefined,
     nounForms: entry.partOfSpeech?.startsWith("noun") ? nounForms(entry) : undefined,
     adjectiveForms: entry.partOfSpeech?.startsWith("adj") ? adjectiveForms(entry) : undefined,
@@ -170,6 +172,7 @@ export async function GET(request: Request) {
         ? session.user.id
         : null;
     const relatedEntries = await findRelatedPhraseEntries(word);
+    const constructionEntry = await findConstructionEntry(word);
     const relatedPhrases = relatedEntries.map((entry) => ({
       lemma: entry.lemma,
       translationZh: entry.translationZh,
@@ -178,7 +181,12 @@ export async function GET(request: Request) {
     const lexiconEntry = await findLexiconLookupEntry(word);
     if (lexiconEntry) {
       await incrementLookupCount(lexiconEntry.id);
-      const payload = mapLexiconEntryToLookupPayload(lexiconEntry, word, relatedPhrases);
+      const payload = {
+        ...mapLexiconEntryToLookupPayload(lexiconEntry, word, relatedPhrases),
+        usageNote:
+          constructionEntry?.explanationZh ??
+          (lexiconEntry.kind === "construction" ? lexiconEntry.explanationZh : null)
+      };
       return NextResponse.json(
         await withSavedState(payload, userId),
         { headers: lexiconHeaders(true, "lexicon", startedAt) }
