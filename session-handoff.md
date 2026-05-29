@@ -1,3 +1,17 @@
+## UI 评审 Report：PHRASE-001
+**时间**：2026-05-29 02:45
+**评审人**：Gemini1
+
+**结论**：符合
+
+**逐条对照设计稿**：
+- [短语文本高亮 (Light & Dark Modes)]：✅ 符合。在所有四个使用场景中都正确渲染了 `PHRASE_HIGHLIGHT_CLASSES`，在暗色模式下使用了 `dark:bg-amber-950/30` 暖色背景，防刺眼且对比度适中。
+- [短语 vs 单词 LookupCard]：✅ 符合。短语卡片具备 4px 的顶部 Amber 装饰条（`bg-amber-500`），并正确展示 `[固定搭配]` 等徽章，排版清晰。
+- [双层卡片 Stack 渲染]：✅ 符合。双层卡片通过 `LookupCardStack` 容器进行绝对和相对定位组合，底层卡片使用了 `scale-[0.96] -translate-y-3 opacity-40 blur-[0.5px]` 样式虚化压后，最高支持 2 层嵌套，交互良好。
+- [高亮背景与已收藏下划线叠加]：✅ 符合。背景填充色与文字下划线 `.saved-word` 互不干扰，单字点击事件通过 `e.stopPropagation()` 成功隔离，体验流畅。
+
+**移交**：Claude1 最终验收
+
 ## 测试 Report：PHRASE-001 阅读/字幕里的固定搭配高亮 + 短语 lookup + 嵌套查询
 **时间**：2026-05-29 02:40
 **测试人**：Codex2

@@ -45,6 +45,20 @@ test("PHRASE-001 returns an empty array when no phrase matches", () => {
   assert.deepEqual(detectPhrasesFromEntries("Hola mundo", entries), []);
 });
 
+test("PHRASE-001 detects nested phrases (greedily prefers longer phrase)", () => {
+  const extendedEntries = [
+    ...entries,
+    { id: "tg_short", lemma: "tener ganas", kind: "collocation" }
+  ];
+  const spans = detectPhrasesFromEntries("Tengo ganas de salir", extendedEntries);
+  assert.deepEqual(spans.map((span) => span.lemma), ["tener ganas de"]);
+});
+
+test("PHRASE-001 handles empty or blank cases gracefully", () => {
+  assert.deepEqual(detectPhrasesFromEntries("", entries), []);
+  assert.deepEqual(detectPhrasesFromEntries("   ", entries), []);
+});
+
 test("PHRASE-001 exposes detect-phrases API route with rate limit and latency header", async () => {
   const route = await readFile("src/app/api/lexicon/detect-phrases/route.ts", "utf8");
 
