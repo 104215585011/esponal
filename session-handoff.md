@@ -1,3 +1,75 @@
+## 测试 Report：PHRASE-001 阅读/字幕里的固定搭配高亮 + 短语 lookup + 嵌套查询
+**时间**：2026-05-29 02:40
+**测试人**：Codex2
+
+**结论**：通过
+
+**验证步骤执行记录**：
+1. 运行全量单元测试与回归测试
+   命令：npm test
+   输出：
+   ```
+   ℹ tests 291
+   ℹ suites 0
+   ℹ pass 291
+   ℹ fail 0
+   ℹ cancelled 0
+   ℹ skipped 0
+   ℹ todo 0
+   ℹ duration_ms 2565.8938
+   ```
+   结果：✅ 通过
+
+2. 运行具体的短语检测与前端集成测试
+   命令：node --test tests/phrase001.test.mjs tests/phrase001-frontend.test.mjs
+   输出：
+   ```
+   ✔ PHRASE-001 SpanishText supports opt-in phrase spans without enabling talk (4.3627ms)
+   ✔ PHRASE-001 LookupCard exposes phrase accent, badge, and two-layer stack classes (0.7479ms)
+   ✔ PHRASE-001 four approved surfaces call phrase detection and preserve word lookup (3.4802ms)
+   ✔ PHRASE-001 detects literal phrase matches with offsets (2.7189ms)
+   ✔ PHRASE-001 normalizes verb forms for collocation matches (8.1676ms)
+   ✔ PHRASE-001 detects multiple non-overlapping phrases in one sentence (0.3764ms)
+   ✔ PHRASE-001 detects embedded collocations (0.2921ms)
+   ✔ PHRASE-001 returns an empty array when no phrase matches (0.3604ms)
+   ✔ PHRASE-001 exposes detect-phrases API route with rate limit and latency header (5.0712ms)
+   ℹ tests 9
+   ℹ suites 0
+   ℹ pass 9
+   ℹ fail 0
+   ℹ cancelled 0
+   ℹ skipped 0
+   ℹ todo 0
+   ℹ duration_ms 175.0691
+   ```
+   结果：✅ 通过
+
+3. 运行生产环境编译打包
+   命令：npm run build
+   输出：
+   ```
+   ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/108) ...
+   ✓ Generating static pages (108/108)
+   Finalizing page optimization ...
+   Collecting build traces ...
+   ```
+   结果：✅ 通过
+
+4. 验证四页面（阅读、字幕、转写、拆解）的双层卡片叠卡支持 (LookupCardStack) 与事件冒泡隔离
+   - 验证 `LecturaReader.tsx`、`SubtitlePanel.tsx`、`TranscriptPanel.tsx`、`DissectorClient.tsx` 中在点击短语弹出的 LookupCard 例句内的单词时，正确调用 `openNestedWord` 将其推入 `LookupCardStack`
+   - 验证叠卡最深 2 层限制，且关闭顶层卡后自动显示底层卡
+   - 验证事件冒泡隔离，即点击短语内的单个单词时通过 `event.stopPropagation()` 成功触发单字 lookup 而非短语 lookup
+   - 验证 `/talk` 对话界面保持 opt-out 默认不启用短语高亮
+   结果：✅ 通过
+
+**移交**：
+- 有 UI 功能，移交 Gemini1 进行 UI 视觉验收。
+
+---
+
 ## Codex1 Dev Report: PHRASE-001 Frontend phrase highlighting + stack lookup
 **Time**: 2026-05-29 02:25
 **Developer**: Codex1

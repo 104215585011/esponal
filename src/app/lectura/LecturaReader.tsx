@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LookupCard } from "@/app/watch/LookupCard";
+import { LookupCard, LookupCardStack } from "@/app/watch/LookupCard";
 import {
   PHRASE_HIGHLIGHT_CLASSES,
   buildPhraseSegments,
@@ -19,13 +19,18 @@ type LecturaReaderProps = {
   isRead: boolean;
 };
 
+type ActiveLookupCard = {
+  id: string;
+  form: string;
+  lookupKind: "word" | "phrase";
+  phraseKind?: PhraseSpan["kind"];
+};
+
 type ActiveLookup = {
   paragraphIndex: number;
-  form: string;
   anchorX: number;
   anchorY: number;
-  lookupKind?: "word" | "phrase";
-  phraseKind?: PhraseSpan["kind"];
+  cards: ActiveLookupCard[];
 };
 
 function splitParagraphTokens(text: string) {
@@ -115,13 +120,54 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     phraseKind?: PhraseSpan["kind"]
   ) => {
     const rect = target.getBoundingClientRect();
-    setActiveLookup({
-      paragraphIndex,
-      form,
-      anchorX: rect.left,
-      anchorY: rect.bottom + 6,
-      lookupKind,
-      phraseKind
+    setActiveLookup((prev) => {
+      if (
+        prev &&
+        prev.paragraphIndex === paragraphIndex &&
+        prev.cards[0]?.form === form &&
+        prev.cards.length === 1
+      ) {
+        return null;
+      }
+      return {
+        paragraphIndex,
+        anchorX: rect.left,
+        anchorY: rect.bottom + 6,
+        cards: [
+          {
+            id: `${lookupKind}-${form}`,
+            form,
+            lookupKind,
+            phraseKind
+          }
+        ]
+      };
+    });
+  };
+
+  const openNestedWord = (form: string) => {
+    setActiveLookup((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `word-${form}`,
+            form,
+            lookupKind: "word"
+          }
+        ]
+      };
+    });
+  };
+
+  const closeStackCard = (id: string) => {
+    setActiveLookup((prev) => {
+      if (!prev) return null;
+      const nextCards = prev.cards.filter((card) => card.id !== id);
+      if (nextCards.length === 0) return null;
+      return { ...prev, cards: nextCards };
     });
   };
 
@@ -298,8 +344,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   const dockLookup = activeLookup
     ? {
         paragraphIndex: activeLookup.paragraphIndex,
-        form: activeLookup.form,
-        originalSentence: story.paragraphs[activeLookup.paragraphIndex] ?? ""
+        cards: activeLookup.cards
       }
     : null;
 
@@ -447,7 +492,10 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
           <ReadingDock
             activeLookup={dockLookup}
             onClose={() => setActiveLookup(null)}
+            onCloseCard={closeStackCard}
+            onExampleWordClick={openNestedWord}
             storySlug={story.slug}
+            paragraphs={story.paragraphs}
           />
         </aside>
       )}
@@ -472,19 +520,21 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                 }`}
                 style={{ left, top, width: 320 }}
               >
-                <LookupCard
-                  form={activeLookup.form}
-                  lookupKind={activeLookup.lookupKind}
-                  onClose={() => setActiveLookup(null)}
-                  originalSentence={paragraph}
-                  phraseKind={activeLookup.phraseKind}
-                  source={{
-                    type: "lectura",
-                    storySlug: story.slug,
-                    paragraphIndex: activeLookup.paragraphIndex,
-                    sentence: paragraph
-                  }}
-                  translatedSentence=""
+                <LookupCardStack
+                  cards={activeLookup.cards.map((card) => ({
+                    ...card,
+                    onClose: () => closeStackCard(card.id),
+                    onExampleWordClick: openNestedWord,
+                    originalSentence: paragraph,
+                    translatedSentence: "",
+                    source: {
+                      type: "lectura",
+                      storySlug: story.slug,
+                      paragraphIndex: activeLookup.paragraphIndex,
+                      sentence: paragraph
+                    }
+                  }))}
+                  onCloseCard={closeStackCard}
                 />
               </div>
             );

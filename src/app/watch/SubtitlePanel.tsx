@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LookupCard } from "./LookupCard";
+import { LookupCard, LookupCardStack } from "./LookupCard";
 import {
   PHRASE_HIGHLIGHT_CLASSES,
   buildPhraseSegments,
@@ -86,12 +86,67 @@ export function SubtitlePanel({
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const settingsRef = useRef<HTMLDivElement | null>(null);
 
-  const [activeLookup, setActiveLookup] = useState<{
+  type ActiveLookupCard = {
+    id: string;
     form: string;
-    sentence: string;
-    lookupKind?: "word" | "phrase";
+    lookupKind: "word" | "phrase";
     phraseKind?: PhraseSpan["kind"];
+  };
+
+  const [activeLookup, setActiveLookup] = useState<{
+    sentence: string;
+    cards: ActiveLookupCard[];
   } | null>(null);
+
+  const openLookup = (
+    form: string,
+    sentence: string,
+    lookupKind: "word" | "phrase" = "word",
+    phraseKind?: PhraseSpan["kind"]
+  ) => {
+    setActiveLookup((prev) => {
+      if (prev && prev.cards[0]?.form === form && prev.cards.length === 1) {
+        return null;
+      }
+      return {
+        sentence,
+        cards: [
+          {
+            id: `${lookupKind}-${form}`,
+            form,
+            lookupKind,
+            phraseKind
+          }
+        ]
+      };
+    });
+  };
+
+  const openNestedWord = (form: string) => {
+    setActiveLookup((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `word-${form}`,
+            form,
+            lookupKind: "word"
+          }
+        ]
+      };
+    });
+  };
+
+  const closeStackCard = (id: string) => {
+    setActiveLookup((prev) => {
+      if (!prev) return null;
+      const nextCards = prev.cards.filter((card) => card.id !== id);
+      if (nextCards.length === 0) return null;
+      return { ...prev, cards: nextCards };
+    });
+  };
   const [phraseSpans, setPhraseSpans] = useState<PhraseSpan[]>([]);
 
   // Initialize subtitle settings from localStorage
@@ -491,12 +546,12 @@ export function SubtitlePanel({
                         className={PHRASE_HIGHLIGHT_CLASSES}
                         key={`phrase-${segment.span.start}-${segment.span.end}`}
                         onClick={() => {
-                          setActiveLookup({
-                            form: segment.span.lemma,
-                            sentence: spanishLine,
-                            lookupKind: "phrase",
-                            phraseKind: segment.span.kind
-                          });
+                          openLookup(
+                            segment.span.lemma,
+                            spanishLine,
+                            "phrase",
+                            segment.span.kind
+                          );
                           onLookup({
                             form: segment.span.lemma,
                             originalSentence: spanishLine,
@@ -517,10 +572,7 @@ export function SubtitlePanel({
                               key={`${phraseToken.text}-${phraseTokenIndex}`}
                               onClick={(event) => {
                                 event.stopPropagation();
-                                setActiveLookup({
-                                  form: normalizedWord,
-                                  sentence: spanishLine
-                                });
+                                openLookup(normalizedWord, spanishLine);
                                 onLookup({
                                   form: normalizedWord,
                                   originalSentence: spanishLine,
@@ -563,10 +615,7 @@ export function SubtitlePanel({
                       } ${isWordActive ? "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold" : ""}`}
                       key={`${token}-${index}`}
                       onClick={() => {
-                        setActiveLookup({
-                          form: normalizedWord,
-                          sentence: spanishLine
-                        });
+                        openLookup(normalizedWord, spanishLine);
                         onLookup({
                           form: normalizedWord,
                           originalSentence: spanishLine,
@@ -576,10 +625,7 @@ export function SubtitlePanel({
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          setActiveLookup({
-                            form: normalizedWord,
-                            sentence: spanishLine
-                          });
+                          openLookup(normalizedWord, spanishLine);
                           onLookup({
                             form: normalizedWord,
                             originalSentence: spanishLine,
@@ -612,18 +658,17 @@ export function SubtitlePanel({
       </div>
 
       {activeLookup && (
-        <div className="mt-4 flex justify-center" data-testid="dummy-active-lookup-card">
-          <LookupCard
-            currentTimeSec={currentTimeSec}
-            form={activeLookup.form}
-            lookupKind={activeLookup.lookupKind}
-            onClose={() => {
-              setActiveLookup(null);
-              onCloseLookup?.();
-            }}
-            originalSentence={activeLookup.sentence}
-            phraseKind={activeLookup.phraseKind}
-            translatedSentence={chineseLine}
+        <div className="mt-4 flex justify-center w-full max-w-[300px] mx-auto" data-testid="dummy-active-lookup-card">
+          <LookupCardStack
+            cards={activeLookup.cards.map((card) => ({
+              ...card,
+              onClose: () => closeStackCard(card.id),
+              onExampleWordClick: openNestedWord,
+              originalSentence: activeLookup.sentence,
+              translatedSentence: chineseLine,
+              currentTimeSec
+            }))}
+            onCloseCard={closeStackCard}
           />
         </div>
       )}

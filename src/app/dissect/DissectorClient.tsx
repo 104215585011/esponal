@@ -15,18 +15,23 @@ import {
   usePhraseSpans,
   type PhraseSpan
 } from "@/app/components/vocab/PhraseText";
-import { LookupCard } from "@/app/watch/LookupCard";
+import { LookupCard, LookupCardStack } from "@/app/watch/LookupCard";
 
 type ActivePopover = {
   lemma: string;
   anchorId: string;
 };
 
-type ActiveContentWord = {
+type ActiveLookupCard = {
+  id: string;
   form: string;
-  anchorId: string;
-  lookupKind?: "word" | "phrase";
+  lookupKind: "word" | "phrase";
   phraseKind?: PhraseSpan["kind"];
+};
+
+type ActiveContentWord = {
+  anchorId: string;
+  cards: ActiveLookupCard[];
 };
 
 type AnalysisState = DissectAnalysisResult | "loading" | "error" | null;
@@ -104,6 +109,61 @@ export function DissectorClient() {
   const [input, setInput] = useState(DEFAULT_DISSECT_SENTENCE);
   const [activePopover, setActivePopover] = useState<ActivePopover | null>(null);
   const [activeContent, setActiveContent] = useState<ActiveContentWord | null>(null);
+
+  const openLookup = (
+    anchorId: string,
+    form: string,
+    lookupKind: "word" | "phrase" = "word",
+    phraseKind?: PhraseSpan["kind"]
+  ) => {
+    setActiveContent((prev) => {
+      if (
+        prev &&
+        prev.anchorId === anchorId &&
+        prev.cards[0]?.form === form &&
+        prev.cards.length === 1
+      ) {
+        return null;
+      }
+      return {
+        anchorId,
+        cards: [
+          {
+            id: `${lookupKind}-${form}`,
+            form,
+            lookupKind,
+            phraseKind
+          }
+        ]
+      };
+    });
+  };
+
+  const openNestedWord = (form: string) => {
+    setActiveContent((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `word-${form}`,
+            form,
+            lookupKind: "word"
+          }
+        ]
+      };
+    });
+  };
+
+  const closeStackCard = (id: string) => {
+    setActiveContent((prev) => {
+      if (!prev) return null;
+      const nextCards = prev.cards.filter((card) => card.id !== id);
+      if (nextCards.length === 0) return null;
+      return { ...prev, cards: nextCards };
+    });
+  };
   const [analysis, setAnalysis] = useState<AnalysisState>(null);
   const requestIdRef = useRef(0);
 
@@ -222,31 +282,35 @@ export function DissectorClient() {
                   className={PHRASE_HIGHLIGHT_CLASSES}
                   onClick={() => {
                     setActivePopover(null);
-                    setActiveContent({
-                      form: span.lemma,
-                      anchorId: `phrase-${span.start}-${span.end}`,
-                      lookupKind: "phrase",
-                      phraseKind: span.kind
-                    });
+                    openLookup(
+                      `phrase-${span.start}-${span.end}`,
+                      span.lemma,
+                      "phrase",
+                      span.kind
+                    );
                   }}
                   type="button"
                 >
                   {span.surface}
                 </button>
                 {activeContent?.anchorId === `phrase-${span.start}-${span.end}` ? (
-                  <LookupCard
-                    form={activeContent.form}
-                    lookupKind={activeContent.lookupKind}
-                    onClose={() => setActiveContent(null)}
-                    originalSentence={input}
-                    phraseKind={activeContent.phraseKind}
-                    source={{
-                      type: "dissect",
-                      url: "/dissect",
-                      sentence: input
-                    }}
-                    translatedSentence=""
-                  />
+                  <div className="absolute left-0 top-full z-20 mt-2">
+                    <LookupCardStack
+                      cards={activeContent.cards.map((card) => ({
+                        ...card,
+                        onClose: () => closeStackCard(card.id),
+                        onExampleWordClick: openNestedWord,
+                        originalSentence: input,
+                        translatedSentence: "",
+                        source: {
+                          type: "dissect",
+                          url: "/dissect" as const,
+                          sentence: input
+                        }
+                      }))}
+                      onCloseCard={closeStackCard}
+                    />
+                  </div>
                 ) : null}
               </span>
             ))}
@@ -276,29 +340,31 @@ export function DissectorClient() {
                     className="rounded px-0.5 text-zinc-900 dark:text-zinc-100 underline-offset-4 transition hover:bg-brand-50 dark:hover:bg-brand-950/50 hover:text-brand-700 dark:hover:text-brand-300 hover:underline"
                     onClick={() => {
                       setActivePopover(null);
-                      setActiveContent(
-                        isContentActive
-                          ? null
-                          : { form: token.raw, anchorId: contentAnchorId }
-                      );
+                      openLookup(contentAnchorId, token.raw);
                     }}
                     type="button"
                   >
                     {token.raw}
                   </button>
                   {isContentActive ? (
-                    <LookupCard
-                      form={activeContent.form}
-                      onClose={() => setActiveContent(null)}
-                      originalSentence={input}
-                      translatedSentence=""
-                      source={{
-                        type: "course",
-                        url: "/dissect",
-                        courseRef: "dissect",
-                        sentence: input
-                      }}
-                    />
+                    <div className="absolute left-0 top-full z-20 mt-2">
+                      <LookupCardStack
+                        cards={activeContent.cards.map((card) => ({
+                          ...card,
+                          onClose: () => closeStackCard(card.id),
+                          onExampleWordClick: openNestedWord,
+                          originalSentence: input,
+                          translatedSentence: "",
+                          source: {
+                            type: "course",
+                            url: "/dissect",
+                            courseRef: "dissect",
+                            sentence: input
+                          }
+                        }))}
+                        onCloseCard={closeStackCard}
+                      />
+                    </div>
                   ) : null}
                 </span>
               );

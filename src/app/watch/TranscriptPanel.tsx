@@ -8,7 +8,7 @@ import {
   buildPhraseSegments,
   type PhraseSpan
 } from "@/app/components/vocab/PhraseText";
-import { LookupCard } from "./LookupCard";
+import { LookupCard, LookupCardStack } from "./LookupCard";
 
 type SubtitleCue = {
   start: number;
@@ -166,12 +166,75 @@ export function TranscriptPanel({
   videoId
 }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
+  type ActiveLookupCard = {
+    id: string;
+    form: string;
+    lookupKind: "word" | "phrase";
+    phraseKind?: PhraseSpan["kind"];
+  };
+
   const [activeLookup, setActiveLookup] = useState<{
     cueIndex: number;
-    form: string;
-    lookupKind?: "word" | "phrase";
-    phraseKind?: PhraseSpan["kind"];
+    cards: ActiveLookupCard[];
   } | null>(null);
+
+  const openLookup = (
+    cueIndex: number,
+    form: string,
+    lookupKind: "word" | "phrase" = "word",
+    phraseKind?: PhraseSpan["kind"]
+  ) => {
+    setActiveLookup((prev) => {
+      if (
+        prev &&
+        prev.cueIndex === cueIndex &&
+        prev.cards[0]?.form === form &&
+        prev.cards.length === 1
+      ) {
+        return null;
+      }
+      return {
+        cueIndex,
+        cards: [
+          {
+            id: `${lookupKind}-${form}`,
+            form,
+            lookupKind,
+            phraseKind
+          }
+        ]
+      };
+    });
+  };
+
+  const openNestedWord = (form: string) => {
+    setActiveLookup((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `word-${form}`,
+            form,
+            lookupKind: "word"
+          }
+        ]
+      };
+    });
+  };
+
+  const closeStackCard = (id: string) => {
+    setActiveLookup((prev) => {
+      if (!prev) return null;
+      const nextCards = prev.cards.filter((card) => card.id !== id);
+      if (nextCards.length === 0) {
+        onCloseLookup?.();
+        return null;
+      }
+      return { ...prev, cards: nextCards };
+    });
+  };
   const [subtitleCues, setSubtitleCues] = useState<SubtitleCue[]>([]);
   const [subtitleHint, setSubtitleHint] = useState<SubtitleHint | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
@@ -859,12 +922,12 @@ export function TranscriptPanel({
                                   key={`phrase-${segment.span.start}-${segment.span.end}`}
                                   onClick={(event) => {
                                     event.stopPropagation();
-                                    setActiveLookup({
-                                      cueIndex: index,
-                                      form: segment.span.lemma,
-                                      lookupKind: "phrase",
-                                      phraseKind: segment.span.kind
-                                    });
+                                    openLookup(
+                                      index,
+                                      segment.span.lemma,
+                                      "phrase",
+                                      segment.span.kind
+                                    );
                                     onLookup({
                                       form: segment.span.lemma,
                                       originalSentence: cue.text.trim(),
@@ -885,10 +948,7 @@ export function TranscriptPanel({
                                         key={`${phraseToken.text}-${phraseTokenIndex}`}
                                         onClick={(event) => {
                                           event.stopPropagation();
-                                          setActiveLookup({
-                                            cueIndex: index,
-                                            form: normalizedWord
-                                          });
+                                          openLookup(index, normalizedWord);
                                           onLookup({
                                             form: normalizedWord,
                                             originalSentence: cue.text.trim(),
@@ -929,10 +989,7 @@ export function TranscriptPanel({
                                 key={`${token}-${tokenIndex}`}
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  setActiveLookup({
-                                    cueIndex: index,
-                                    form: normalizedWord
-                                  });
+                                  openLookup(index, normalizedWord);
                                   onLookup({
                                     form: normalizedWord,
                                     originalSentence: cue.text.trim(),
@@ -943,10 +1000,7 @@ export function TranscriptPanel({
                                   if (event.key === "Enter" || event.key === " ") {
                                     event.preventDefault();
                                     event.stopPropagation();
-                                    setActiveLookup({
-                                      cueIndex: index,
-                                      form: normalizedWord
-                                    });
+                                    openLookup(index, normalizedWord);
                                     onLookup({
                                       form: normalizedWord,
                                       originalSentence: cue.text.trim(),
@@ -973,18 +1027,17 @@ export function TranscriptPanel({
                   </button>
 
                   {activeLookup?.cueIndex === index && (
-                    <div className="relative mt-3 z-10" data-testid="dummy-active-lookup-card">
-                      <LookupCard
-                        currentTimeSec={currentTimeSec}
-                        form={activeLookup.form}
-                        lookupKind={activeLookup.lookupKind}
-                        onClose={() => {
-                          setActiveLookup(null);
-                          onCloseLookup?.();
-                        }}
-                        originalSentence={cue.text.trim()}
-                        phraseKind={activeLookup.phraseKind}
-                        translatedSentence={translation}
+                    <div className="relative mt-3 z-10 w-full max-w-[300px]" data-testid="dummy-active-lookup-card">
+                      <LookupCardStack
+                        cards={activeLookup.cards.map((card) => ({
+                          ...card,
+                          onClose: () => closeStackCard(card.id),
+                          onExampleWordClick: openNestedWord,
+                          originalSentence: cue.text.trim(),
+                          translatedSentence: translation,
+                          currentTimeSec
+                        }))}
+                        onCloseCard={closeStackCard}
                       />
                     </div>
                   )}

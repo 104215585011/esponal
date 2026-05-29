@@ -1,37 +1,59 @@
-// Timestamp: 2026-05-28 08:46
+// Timestamp: 2026-05-29 02:38
 "use client";
 
-import { LookupCard } from "@/app/watch/LookupCard";
+import { LookupCardStack } from "@/app/watch/LookupCard";
+
+type ActiveLookupCard = {
+  id: string;
+  form: string;
+  lookupKind: "word" | "phrase";
+  phraseKind?: "collocation" | "phrase" | "idiom";
+};
 
 type ActiveLookup = {
   paragraphIndex: number;
-  form: string;
-  originalSentence: string;
+  cards: ActiveLookupCard[];
 };
 
 type ReadingDockProps = {
   activeLookup: ActiveLookup | null;
   onClose: () => void;
+  onCloseCard: (id: string) => void;
+  onExampleWordClick: (form: string) => void;
   storySlug: string;
+  paragraphs: string[];
 };
 
-export function ReadingDock({ activeLookup, onClose, storySlug }: ReadingDockProps) {
+export function ReadingDock({
+  activeLookup,
+  onClose,
+  onCloseCard,
+  onExampleWordClick,
+  storySlug,
+  paragraphs
+}: ReadingDockProps) {
+  const paragraphText = activeLookup ? (paragraphs[activeLookup.paragraphIndex] ?? "") : "";
+
   return (
     <div className="w-full h-full min-h-[360px] rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/60 dark:bg-zinc-900/60 p-4 shadow-sm backdrop-blur-md transition-all duration-300">
       {activeLookup ? (
         <div data-testid="reading-dock-card">
-          <LookupCard
-            form={activeLookup.form}
-            onClose={onClose}
-            originalSentence={activeLookup.originalSentence}
-            source={{
-              type: "lectura",
-              storySlug: storySlug,
-              paragraphIndex: activeLookup.paragraphIndex,
-              sentence: activeLookup.originalSentence
-            }}
-            translatedSentence=""
-            useStaticLayout={true}
+          <LookupCardStack
+            cards={activeLookup.cards.map((card) => ({
+              ...card,
+              onClose: () => onCloseCard(card.id),
+              onExampleWordClick,
+              originalSentence: paragraphText,
+              translatedSentence: "",
+              useStaticLayout: true,
+              source: {
+                type: "lectura",
+                storySlug: storySlug,
+                paragraphIndex: activeLookup.paragraphIndex,
+                sentence: paragraphText
+              }
+            }))}
+            onCloseCard={onCloseCard}
           />
         </div>
       ) : (
