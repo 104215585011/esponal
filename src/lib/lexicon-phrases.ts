@@ -170,9 +170,15 @@ export function detectPhrasesFromEntries(text: string, entries: PhraseEntry[]): 
 }
 
 export async function detectPhrasesInText(text: string): Promise<PhraseSpan[]> {
+  // Only multi-token phrases qualify for highlighting. Single-token entries that
+  // happen to live under kind=collocation/phrase/idiom (legacy data from Phase 3
+  // seed where LLM mis-classified bare verbs like `poder`, `querer`, `gustar`)
+  // would otherwise pollute the highlighted regions. Tracked for cleanup as
+  // LEX-CLEANUP-001.
   const entries = await prisma.lexiconEntry.findMany({
     where: {
-      kind: { in: ["collocation", "phrase", "idiom"] }
+      kind: { in: ["collocation", "phrase", "idiom"] },
+      lemma: { contains: " " }
     },
     select: {
       id: true,
