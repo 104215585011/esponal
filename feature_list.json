@@ -1321,7 +1321,7 @@
     "area": "backend",
     "title": "清理 phrase-kind 里的 135 条单 token 误分类",
     "user_visible_behavior": "数据层清理：LexiconEntry 中 kind=collocation/phrase/idiom 但 lemma 是单个词的 135 条 (poder/querer/gustar 等) 需迁移或删除。当前 PHRASE-001 detect 已加过滤兜底。",
-    "status": "todo",
+    "status": "ready_for_qa",
     "verification": [
       "PM 选定方案 (A 合并 / B 删除 / C 新 kind=construction)",
       "脚本支持 --dry-run + --write",
@@ -1330,7 +1330,27 @@
       "npm test 通过",
       "PM 实测一个之前误分类的词 (如 gustar) 查询体验"
     ],
+    "evidence": "Codex1 Dev 2026-05-29 18:35: implemented PM-recommended scheme C. Added LexiconKind.construction enum + migration 20260529183000_add_lexicon_construction; added scripts/lexicon/cleanup-single-token-phrases.mjs with --help, default dry-run, and explicit --write; lookup now recognizes construction entries and exposes usageNote from explanationZh for construction-style guidance. Focused TDD: red node --test tests/lex-cleanup001.test.mjs failed 3/3 before implementation; green node --test tests/lex-cleanup001.test.mjs passed 3/3. Extra verification: node --check scripts/lexicon/cleanup-single-token-phrases.mjs pass; node scripts/lexicon/cleanup-single-token-phrases.mjs --help usage only; dry-run against DB found 135 candidates and reported remaining_single_token_phrase_kind=135 before write. Pending QA/PM: run --write, confirm SQL count returns 0, and smoke-check gustar lookup UX.",
+    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-CLEANUP-001.md。从 PHRASE-001 验收抽样发现。优先级中，不阻塞用户。Codex1 2026-05-29 18:35 已交付 ready_for_qa，等待 Codex2/PM 跑 --write + SQL + gustar 体验验收。"
+  },
+  "71": {
+    "id": "LEX-003",
+    "priority": 72,
+    "area": "frontend",
+    "title": "LookupCard 显示相关短语 + construction 用法说明",
+    "user_visible_behavior": "查单词时词卡底部出现「相关短语」区，列出含该词的固定搭配（最多5条，带 kind badge），点击叠出短语卡（复用2层上限）；construction 词（如 gustar）显示 usageNote 用法说明。",
+    "status": "todo",
+    "verification": [
+      "Gemini1 出设计稿 docs/tickets/LEX-003-design.md，PM 选定",
+      "通过禁区清单核查、不引入新 token",
+      "查 tener 词卡显示相关短语区并可点击叠卡",
+      "查 gustar 显示 usageNote",
+      "无 relatedPhrases 的词不渲染该区",
+      "4 个页面(lectura/watch/dissect/grammar)均接入",
+      "Light/Dark mode 正常",
+      "npm test 通过、npm run build 通过"
+    ],
     "evidence": "",
-    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-CLEANUP-001.md。从 PHRASE-001 验收抽样发现。优先级中，不阻塞用户。"
+    "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-003.md。后端 P4 已返回 relatedPhrases + usageNote(construction)，本 ticket 只做前端呈现。UI 任务：Gemini1 设计→Codex1 实现→Codex2 测试→Gemini1 评审→Claude1 验收。"
   }
 }

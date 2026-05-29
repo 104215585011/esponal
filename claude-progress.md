@@ -1,3 +1,25 @@
+### Session #LEX-CLEANUP-001 - 2026-05-29 18:35
+
+**Goal**: Implement the PM-approved cleanup for single-token phrase-kind misclassifications without mutating production data by default.
+
+**Completed**:
+- Added `construction` to `LexiconKind` plus Prisma migration `20260529183000_add_lexicon_construction`.
+- Added `scripts/lexicon/cleanup-single-token-phrases.mjs` with `--help`, default dry-run, explicit `--write`, and a post-run SQL self-check reminder.
+- Updated lexicon lookup helpers so `/api/vocab/lookup` can recognize `construction` rows and surface `usageNote` from `explanationZh`.
+- Added `tests/lex-cleanup001.test.mjs` to lock the schema, cleanup script contract, and lookup route support.
+
+**Verification**:
+- Red check: `node --test tests\lex-cleanup001.test.mjs` failed 3/3 before implementation.
+- Focused green: `node --test tests\lex-cleanup001.test.mjs` passed 3/3.
+- `node --check scripts\lexicon\cleanup-single-token-phrases.mjs`: pass.
+- `node scripts\lexicon\cleanup-single-token-phrases.mjs --help`: usage only.
+- Dry-run against DB: `LEX-CLEANUP-001 dryRun=true candidates=135` and `remaining_single_token_phrase_kind=135` before write.
+- `npm run lint:encoding -- --files prisma/schema.prisma prisma/migrations/20260529183000_add_lexicon_construction/migration.sql src/lib/lexicon.ts src/app/api/vocab/lookup/route.ts scripts/lexicon/cleanup-single-token-phrases.mjs tests/lex-cleanup001.test.mjs`: pass.
+
+**Status**: `LEX-CLEANUP-001` is `ready_for_qa`. Codex2 / PM still need to run `--write`, confirm the SQL count returns `0`, and spot-check `gustar` lookup UX.
+
+---
+
 ### Session #PHRASE-001-FRONTEND - 2026-05-29 02:25
 
 **Goal**: Implement PHRASE-001 frontend integration after Gemini1 design and Codex1 backend were ready.

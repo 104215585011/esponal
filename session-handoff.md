@@ -8308,3 +8308,40 @@ uniqueHeights=[258]
 6. Sample-check generated `LexiconEntry` rows for translation, morphology, forms reverse lookup, noun gender/plural, and adjective forms.
 
 ---
+## Codex1 Dev Report: LEX-CLEANUP-001 single-token phrase-kind cleanup
+**Time**: 2026-05-29 18:35
+**Developer**: Codex1
+**Status**: Ready for Codex2 QA / PM acceptance. I did not run `--write` in this pass; the implementation stays non-destructive by default.
+
+### Implemented
+- Followed PM-recommended scheme C from `docs/tickets/LEX-CLEANUP-001.md`.
+- Added `construction` to `LexiconKind` and migration `prisma/migrations/20260529183000_add_lexicon_construction/migration.sql`.
+- Added `scripts/lexicon/cleanup-single-token-phrases.mjs`.
+  - Supports `--help`
+  - Defaults to dry-run
+  - Requires explicit `--write` to mutate DB
+  - Targets rows where `kind in ("collocation","phrase","idiom")` and lemma has no space
+  - Migrates those rows to `kind="construction"`
+  - Prints the PM SQL self-check string after each run
+- Updated lookup support so construction entries can participate in `/api/vocab/lookup`, and construction-style guidance is surfaced as `usageNote` from `explanationZh`.
+- Added `tests/lex-cleanup001.test.mjs` to lock:
+  - schema + migration presence
+  - cleanup script CLI contract
+  - lookup route / lib support for `construction`
+
+### Verification
+- Red check: `node --test tests\lex-cleanup001.test.mjs` failed 3/3 before implementation.
+- Focused green: `node --test tests\lex-cleanup001.test.mjs` passed 3/3.
+- `node --check scripts\lexicon\cleanup-single-token-phrases.mjs`: pass.
+- `node scripts\lexicon\cleanup-single-token-phrases.mjs --help`: usage only, no DB write.
+- `npm run lint:encoding -- --files prisma/schema.prisma prisma/migrations/20260529183000_add_lexicon_construction/migration.sql src/lib/lexicon.ts src/app/api/vocab/lookup/route.ts scripts/lexicon/cleanup-single-token-phrases.mjs tests/lex-cleanup001.test.mjs`: pass.
+- Dry-run against the real DB: `LEX-CLEANUP-001 dryRun=true candidates=135`; summary reported `updated=0 remaining_single_token_phrase_kind=135` before any write. Candidate list included expected rows such as `gustar`, `querer`, `poder`, `soler`, `encantar`.
+
+### Notes For Codex2 / PM
+- Please run:
+  - `node scripts\lexicon\cleanup-single-token-phrases.mjs --write`
+  - SQL self-check:
+    `SELECT count(*) FROM lexicon_entries WHERE kind IN ('collocation','phrase','idiom') AND lemma NOT LIKE '% %'`
+- Expected SQL result after write: `0`
+- Please smoke-check one migrated item such as `gustar` through `/api/vocab/lookup` and confirm the construction `usageNote` is visible and useful.
+- Do not commit `data/phrases-a1-a2-candidates.reviewed.csv`; it remains a PM intermediate file.
