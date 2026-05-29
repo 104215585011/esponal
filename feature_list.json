@@ -1406,5 +1406,21 @@
     ],
     "evidence": "PM spot-check 2026-05-30: e->conj(forms=[e],morphology=null); pedir->pido/pidio/pidiendo(旧pedo已清); levantarse->levanto+me levanto; sonreir->sonrio(70 forms); 301 phrase+10 construction intact; npm test fail=0; lex002-step4 6/6.",
     "notes": "PM 派单 2026-05-29，调研 LEX-002 时发现。Ticket: docs/tickets/LEX-005.md。病根 src/lib/conjugate.ts 的 tryConjugateVerb 纯规则拼形，不处理不规则变位。范围 94 个动词。建议与 LEX-002 step 4 共用同一套真实变位生成逻辑。商用 license 约束同 LEX-002。2026-05-29 23:55 dry-run ready for PM review; wait for approval before --write. || 2026-05-30 Codex1 completed PM-requested tail fixes and handed back for PM/Codex2 spot-check before opening LEX-002 pilot."
+  },
+  "75": {
+    "id": "WATCH-003",
+    "priority": 76,
+    "area": "frontend",
+    "title": "字幕异步抓取轮询 + 默认西语 CC",
+    "user_visible_behavior": "打开视频时 YouTube 播放器默认开启西语 CC 字幕；字幕面板/逐字稿在字幕还在后台抓取时显示「字幕加载中…」并每2秒轮询(最多5次/约10秒)，抓到才渲染，而不是立刻报「暂无字幕」。",
+    "status": "passing",
+    "verification": [
+      "WatchClient: YouTube embed 加 cc_load_policy=1&hl=es&cc_lang_pref=es",
+      "SubtitlePanel/TranscriptPanel: 字幕空时轮询5次×2s，期间 loading 态",
+      "轮询途中(pollCount>0)不重置已加载状态",
+      "npm test 通过(pre-commit)"
+    ],
+    "evidence": "Gemini1 前端改动，commit a806684 (2026-05-30)。3 files: WatchClient/SubtitlePanel/TranscriptPanel。配合字幕自动抓取(Whisper/扩展采集异步落库)。PM 补登记——未走完整 QA/视觉评审流程，但已随 pre-commit npm test 通过并上线。",
+    "notes": "PM 补登记 2026-05-30。无独立 ticket。相关：WEB-012(Whisper fallback)、EXT-008(扩展采集)。若后续要正式验收可补 Codex2 端到端 + Gemini 视觉评审。"
   }
 }
