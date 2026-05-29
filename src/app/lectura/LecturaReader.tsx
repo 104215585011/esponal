@@ -440,16 +440,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                             }
                             return (
                               <span
-                                className={`cursor-pointer rounded-sm transition hover:bg-brand-50 dark:hover:bg-brand-950/30 ${
-                                  savedSet.has(normalized) ? "saved-word" : ""
-                                }`}
+                                className={savedSet.has(normalized) ? "saved-word" : ""}
                                 key={`${phraseToken.text}-${phraseTokenIndex}`}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
-                                }}
-                                role="button"
-                                tabIndex={0}
                               >
                                 {phraseToken.text}
                               </span>

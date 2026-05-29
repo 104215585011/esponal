@@ -580,26 +580,8 @@ export function SubtitlePanel({
                         tabIndex={0}
                       >
                         {segment.tokens.map((phraseToken, phraseTokenIndex) => {
-                          const normalizedWord = normalizeLookupWord(phraseToken.text);
-                          if (!normalizedWord) {
-                            return <span key={`${phraseToken.text}-${phraseTokenIndex}`}>{phraseToken.text}</span>;
-                          }
                           return (
-                            <span
-                              className="cursor-pointer rounded px-0.5 transition hover:bg-zinc-150 dark:hover:bg-zinc-800/80"
-                              key={`${phraseToken.text}-${phraseTokenIndex}`}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openLookup(normalizedWord, spanishLine);
-                                onLookup({
-                                  form: normalizedWord,
-                                  originalSentence: spanishLine,
-                                  translatedSentence: chineseLine
-                                });
-                              }}
-                              role="button"
-                              tabIndex={0}
-                            >
+                            <span key={`${phraseToken.text}-${phraseTokenIndex}`}>
                               {phraseToken.text}
                             </span>
                           );

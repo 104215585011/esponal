@@ -372,34 +372,13 @@ export function SpanishText({
                 }
                 const normalized = normalizeLookupWord(token.text);
                 const isSaved = savedSet.has(normalized);
-                if (isReadOnly) {
-                  return (
-                    <span
-                      className={isSaved ? `saved-word ${wordClassName ?? ""}` : wordClassName}
-                      key={`${token.text}-${tokenIndex}`}
-                    >
-                      {token.text}
-                    </span>
-                  );
-                }
                 return (
-                  <button
-                    className={getWordClassName({ isSaved, interactionDensity, wordClassName })}
+                  <span
+                    className={isSaved ? `saved-word ${wordClassName ?? ""}` : wordClassName}
                     key={`${token.text}-${tokenIndex}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      const rect = event.currentTarget.getBoundingClientRect();
-                      openLookup({
-                        anchorX: rect.left,
-                        form: normalized,
-                        index: phraseIndex
-                      });
-                    }}
-                    tabIndex={enableKeyboard ? 0 : -1}
-                    type="button"
                   >
                     {token.text}
-                  </button>
+                  </span>
                 );
               })}
             </span>

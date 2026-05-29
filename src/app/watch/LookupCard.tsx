@@ -500,16 +500,16 @@ export function LookupCard({
         <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500 dark:bg-amber-600" />
       ) : null}
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="truncate text-[17px] font-bold text-gray-900">{lemma}</p>
             {isPhraseLookup ? (
-              <span className="rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+              <span className="shrink-0 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
                 {getPhraseKindLabel(phraseKind)}
               </span>
             ) : null}
-            {partOfSpeech ? (
-              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500">
+            {!isPhraseLookup && partOfSpeech ? (
+              <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500">
                 {partOfSpeech}
               </span>
             ) : null}

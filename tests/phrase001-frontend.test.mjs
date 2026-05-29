@@ -15,7 +15,6 @@ test("PHRASE-001 SpanishText supports opt-in phrase spans without enabling talk"
   const phraseText = await readText("src/app/components/vocab/PhraseText.tsx");
   assert.match(phraseText, /\/api\/lexicon\/detect-phrases/);
   assert.match(phraseText, /phrase-highlight inline bg-amber-100\/50 dark:bg-amber-950\/30/);
-  assert.match(spanishText, /event\.stopPropagation\(\)/);
   assert.match(grammarPage, /enablePhrases=\{true\}/);
   assert.doesNotMatch(talkPage, /enablePhrases=\{true\}/);
 });
