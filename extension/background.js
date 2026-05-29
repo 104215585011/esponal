@@ -80,3 +80,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // keep the response channel open for the async sendResponse
   }
 });
+
+// Reliable injection into cross-origin YouTube embed iframes.
+// Declarative all_frames content scripts proved unreliable for the embedded
+// player iframe in some browsers (Edge), so the service worker injects the
+// timedtext hook (MAIN world) + harvest (isolated world) directly when an
+// embed sub-frame commits navigation. frameId !== 0 means it's a sub-frame.
+const ESPONAL_EMBED_FRAME_RE = /^https:\/\/www\.youtube\.com\/embed\//;
+
+async function injectHarvestIntoEmbedFrame(tabId, frameId, url) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId, frameIds: [frameId] },
+      world: "MAIN",
+      files: ["dist/hook-timedtext.js"]
+    });
+    await chrome.scripting.executeScript({
+      target: { tabId, frameIds: [frameId] },
+      world: "ISOLATED",
+      files: ["dist/harvest.js"]
+    });
+    console.log("[esponal bg] injected harvest into embed frame", url);
+  } catch (error) {
+    console.warn("[esponal bg] embed inject failed", url, error);
+  }
+}
+
+if (chrome.webNavigation?.onCommitted) {
+  chrome.webNavigation.onCommitted.addListener((details) => {
+    if (details.frameId === 0) return;
+    if (!ESPONAL_EMBED_FRAME_RE.test(details.url)) return;
+    injectHarvestIntoEmbedFrame(details.tabId, details.frameId, details.url);
+  });
+}

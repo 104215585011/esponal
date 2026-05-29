@@ -286,7 +286,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { cues: JSON.parse(cached) as SubtitleCue[] } satisfies SubtitleResponse,
         {
-        headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600" }
+        headers: { "Cache-Control": "no-store" }
         }
       );
     }
@@ -309,7 +309,7 @@ export async function GET(request: Request) {
       cues.length > 0 ? { cues } : { cues: [], hint: { reason: "no_subtitle" } };
 
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "s-maxage=86400, stale-while-revalidate=3600" }
+      headers: { "Cache-Control": "no-store" }
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

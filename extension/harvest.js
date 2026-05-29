@@ -56,9 +56,11 @@ function showHarvestBadge() {
 
 async function ingestCues(videoId, lang, cues) {
   if (cues.length < MIN_HARVEST_CUES) {
+    console.log("[esponal harvest] skip ingest: too few cues", cues.length);
     return;
   }
 
+  console.log("[esponal harvest] POST ingest ->", ESPONAL_APP_ORIGIN, "cues=", cues.length);
   const ingestResponse = await fetch(`${ESPONAL_APP_ORIGIN}/api/subtitle/ingest`, {
     method: "POST",
     headers: {
@@ -68,6 +70,7 @@ async function ingestCues(videoId, lang, cues) {
     body: JSON.stringify({ videoId, lang, cues })
   });
 
+  console.log("[esponal harvest] ingest response", ingestResponse.status);
   if (!ingestResponse.ok) {
     return;
   }
@@ -115,11 +118,13 @@ async function handleCapturedTimedtext(url, body) {
   const params = new URL(url, location.origin).searchParams;
   const capturedVideoId = params.get("v") ?? "";
   if (capturedVideoId !== videoId) {
+    console.log("[esponal harvest] skip: videoId mismatch", capturedVideoId, "!=", videoId);
     return;
   }
 
   const langParam = params.get("lang") ?? "";
   if (!isSpanishLang(langParam)) {
+    console.log("[esponal harvest] skip: non-Spanish lang =", JSON.stringify(langParam), "url=", url);
     return;
   }
   const lang = langParam;
@@ -127,10 +132,12 @@ async function handleCapturedTimedtext(url, body) {
   let cues;
   try {
     cues = parseJson3ToCues(JSON.parse(body));
-  } catch {
+  } catch (error) {
+    console.log("[esponal harvest] skip: parse failed", error);
     return;
   }
 
+  console.log("[esponal harvest] ingesting", cues.length, "cues lang=", lang);
   await ingestCues(videoId, lang, cues);
 }
 
@@ -152,6 +159,7 @@ function listenForTimedtextCaptures() {
 
 async function startHarvest() {
   const videoId = getVideoId();
+  console.log("[esponal harvest] running @", location.href, "videoId=", videoId);
 
   if (!videoId || window.__esponalHarvested === videoId) {
     return;

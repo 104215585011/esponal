@@ -1,10 +1,12 @@
 (() => {
   if (window.__esponalHookInstalled) return;
   window.__esponalHookInstalled = true;
+  console.log("[esponal hook] installed @", location.href);
 
   const TIMEDTEXT_RE = /\/api\/timedtext\?/;
 
   const postCaptured = (url, body) => {
+    console.log("[esponal hook] captured timedtext", url, "bytes=", body?.length);
     window.postMessage(
       { type: "esponal-captured-timedtext", url, body },
       location.origin

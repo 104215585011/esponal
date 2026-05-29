@@ -19,7 +19,7 @@ test("extension declares a Manifest V3 Chrome extension", async () => {
     "https://*.vercel.app/*",
     "https://www.youtube.com/*"
   ]);
-  assert.deepEqual(manifest.permissions, ["activeTab", "scripting", "storage"]);
+  assert.deepEqual(manifest.permissions, ["activeTab", "scripting", "storage", "webNavigation"]);
 });
 
 test("extension content scripts cover YouTube harvesting and Esponal site detection", async () => {
