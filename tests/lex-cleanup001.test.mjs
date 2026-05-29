@@ -84,6 +84,14 @@ test("LEX-CLEANUP-001 cleanup script is safe by default and follows reviewed CSV
   assert.match(script, /kind='construction'/);
 });
 
+test("LEX-CLEANUP-001 cleanup script treats an already-clean database as idempotent", async () => {
+  const script = await readText("scripts/lexicon/cleanup-single-token-phrases.mjs");
+
+  assert.match(script, /already-clean-db/);
+  assert.match(script, /missing_phrase_rows=\$\{alreadyCleanDb \? 0 : missingPhraseRows\.length\}/);
+  assert.match(script, /if \(!alreadyCleanDb\) \{\s*console\.warn\(`warning missing-phrase-row/);
+});
+
 test("LEX-CLEANUP-001 lookup treats construction as a local lookup kind with prominent usage", async () => {
   const route = await readText("src/app/api/vocab/lookup/route.ts");
   const lib = await readText("src/lib/lexicon.ts");

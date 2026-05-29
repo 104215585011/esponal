@@ -1,3 +1,23 @@
+### Session #LEX-CLEANUP-001-IDEMPOTENT - 2026-05-29 19:30
+
+**Goal**: Make reruns of the cleanup script quiet and trustworthy once the database is already in the target state.
+
+**Completed**:
+- Added an `already-clean-db` branch to `scripts/lexicon/cleanup-single-token-phrases.mjs`.
+- Suppressed the old noisy `missing-phrase-row` spam when `remaining_single_token_phrase_kind` is already `0`.
+- Added a focused test asserting the script keeps an explicit idempotent-clean path.
+
+**Verification**:
+- Red check: `node --test tests\lex-cleanup001.test.mjs` failed 1/5 before the idempotent branch existed.
+- Focused green: `node --test tests\lex-cleanup001.test.mjs` passed 5/5.
+- Dry-run on the now-clean DB: `already-clean-db remaining_single_token_phrase_kind=0` and `missing_phrase_rows=0`.
+- `npm test`: 301/301 pass.
+- `npm run lint:encoding -- --files scripts/lexicon/cleanup-single-token-phrases.mjs tests/lex-cleanup001.test.mjs`: pass.
+
+**Status**: `LEX-CLEANUP-001` remains complete; reruns are now clean and low-noise.
+
+---
+
 ### Session #LEX-CLEANUP-001-REWORK - 2026-05-29 19:05
 
 **Goal**: Rework the cleanup script after PM review showed that only 10/135 single-token phrase-kind rows belong in `construction`.

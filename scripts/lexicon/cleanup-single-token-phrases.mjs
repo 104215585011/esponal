@@ -122,6 +122,7 @@ async function main() {
       },
       orderBy: [{ kind: "asc" }, { lemma: "asc" }]
     });
+    const alreadyCleanDb = phraseRows.length === 0;
 
     const phraseByLemma = new Map(phraseRows.map((row) => [row.lemma, row]));
     const wordRows = await prisma.lexiconEntry.findMany({
@@ -139,7 +140,9 @@ async function main() {
       const phraseRow = phraseByLemma.get(row.lemma);
       if (!phraseRow) {
         missingPhraseRows.push(row.lemma);
-        console.warn(`warning missing-phrase-row lemma=${row.lemma} decision=${row.decision}`);
+        if (!alreadyCleanDb) {
+          console.warn(`warning missing-phrase-row lemma=${row.lemma} decision=${row.decision}`);
+        }
         continue;
       }
 
@@ -162,6 +165,9 @@ async function main() {
 
     const operationCounts = countByDecision(operations);
     printDecisionSummary("planned-counts", operationCounts);
+    if (alreadyCleanDb) {
+      console.log("already-clean-db remaining_single_token_phrase_kind=0");
+    }
 
     for (const operation of operations) {
       if (operation.decision === "delete-dup") {
@@ -250,7 +256,7 @@ async function main() {
     });
 
     console.log(
-      `summary updated=${updated} deleted=${deleted} construction_with_usage=${construction_with_usage} missing_phrase_rows=${missingPhraseRows.length} remaining_single_token_phrase_kind=${remaining}`
+      `summary updated=${updated} deleted=${deleted} construction_with_usage=${construction_with_usage} missing_phrase_rows=${alreadyCleanDb ? 0 : missingPhraseRows.length} remaining_single_token_phrase_kind=${remaining}`
     );
     console.log(
       "self-check: SELECT count(*) FROM lexicon_entries WHERE kind IN ('collocation','phrase','idiom') AND lemma NOT LIKE '% %';"

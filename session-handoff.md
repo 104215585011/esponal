@@ -8439,3 +8439,20 @@ uniqueHeights=[258]
 - No drift was detected between CSV and current DB phrase-kind rows (`missing_phrase_rows=0`).
 - Waiting for PM decision on whether to run:
   - `node scripts\lexicon\cleanup-single-token-phrases.mjs --write`
+## Codex1 Dev Final Polish: LEX-CLEANUP-001 idempotent rerun
+**Time**: 2026-05-29 19:30
+**Developer**: Codex1
+**Status**: Complete. This is a post-cleanup polish only; DB was already in the accepted end state.
+
+### Fixed
+- When the DB is already clean, `scripts/lexicon/cleanup-single-token-phrases.mjs` no longer prints 135 misleading `missing-phrase-row` warnings.
+- Added an explicit `already-clean-db` branch so reruns now explain that the cleanup has already been applied.
+
+### Verification
+- Red check: `node --test tests\lex-cleanup001.test.mjs` failed 1/5 before the idempotent branch existed.
+- Focused green: `node --test tests\lex-cleanup001.test.mjs` passed 5/5.
+- Dry-run on the clean DB:
+  - `already-clean-db remaining_single_token_phrase_kind=0`
+  - `summary ... construction_with_usage=10 missing_phrase_rows=0 remaining_single_token_phrase_kind=0`
+- Full suite: `npm test` passed 301/301.
+- Encoding check passed for the changed script and test.
