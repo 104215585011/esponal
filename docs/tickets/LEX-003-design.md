@@ -1,12 +1,12 @@
-# UI Design Mockup for LEX-003
+# UI Design Mockup for LEX-003 — Related Phrases & Construction Usage Note
 
-This document specifies the design layouts, Tailwind CSS styling tokens, and interaction behaviors for displaying **Related Phrases** and the **Construction Usage Note** on the word lookup card, as well as the nesting interaction inside the stack.
+This document specifies the design layouts, Tailwind CSS styling tokens, and interaction behaviors for displaying **Related Phrases** (相关搭配) and the **Construction Usage Note** (用法提示) on the lookup card, as well as the nested stacking visual structure.
 
 ---
 
-## 1. "Related Phrases" Section Layout (Light & Dark Modes)
+## 1. "Related Phrases" (相关搭配) Section Layout
 
-When a word lookup is executed and has related phrases returned in the API payload, a dedicated **"Related Phrases" (相关搭配)** section is rendered below the example sentence block and above the bottom "Add to Vocabulary" action button.
+When a word lookup is executed and related phrases exist in the API payload, a dedicated **"Related Phrases" (相关搭配)** section is rendered below the example sentence block and above the bottom "Add to Vocabulary" action button.
 
 To keep the UI clean, the section is completely omitted (returns `null` in React) when there are no related phrases.
 
@@ -54,7 +54,7 @@ const kindBadgeClasses =
 
 ### 1.3 State Mockups
 
-#### Mock 1A: 0 items (Not Rendered)
+#### Mock 1A: 0 items (Not Rendered - Light & Dark Modes)
 If the word has no related phrases (e.g. rare vocabulary or external lookups), the section returns `null` and leaves no margin, blank box, or border line.
 
 ```text
@@ -154,8 +154,11 @@ const usageNoteLabelClasses = "font-semibold text-brand-600 dark:text-brand-400 
 )}
 ```
 
-### 2.3 ASCII Mockup for Construction Card (Light Mode)
+---
 
+### 2.3 State Mockups
+
+#### Mock 2A: Construction Card (Light Mode)
 ```text
 +------------------------------------+
 |  gustar                      [动词] |
@@ -179,6 +182,30 @@ const usageNoteLabelClasses = "font-semibold text-brand-600 dark:text-brand-400 
 +------------------------------------+
 ```
 
+#### Mock 2B: Construction Card (Dark Mode)
+```text
++------------------------------------+
+|  gustar                      [动词] |
+|  /ɡusˈtaɾ/                          |
+|                                    |
+|  1. 喜欢，使人中意                  |
+|                                    |
+|  +------------------------------+  |
+|  | 用法提示                      |  | <- border-l-2 border-brand-500 (emerald)
+|  | 倒装结构：主语是令人喜欢的事物， |  |    bg-zinc-800/30, text-zinc-400
+|  | 间接宾语(me/te/le..)表示主体。  |  |
+|  +------------------------------+  |
+|                                    |
+|  +------------------------------+  |
+|  | 例句                          |  |
+|  | Me gusta esta canción.       |  |
+|  | 我喜欢这首歌。                  |  |
+|  +------------------------------+  |
+|  ================================  |
+|  [         加入我的词库          ] |
++------------------------------------+
+```
+
 ---
 
 ## 3. Nested Stack Stacking Hierarchy (Mock 3)
@@ -187,30 +214,7 @@ When a user clicks on an item in the **"Related Phrases"** list (e.g. clicks `te
 
 The visual layering pushes the bottom card back (scaled down, faded, blurred, non-interactive) and displays the new card prominently at `z-20` with a sharp drop shadow.
 
-### 3.1 Stack Visual Hierarchy
-
-```text
-       ┌────────────────────────────────────────────────────────┐
-       │ (Card 1: Bottom - Pushed Back)                         │
-       │ Lemma: tener                              [动词]       │
-       │ scale-[0.96] opacity-40 blur-[0.5px]                   │
-       │                                                        │
-       │   ┌────────────────────────────────────────────────┐   │
-       │   │ (Card 2: Top - Active)                         │   │
-       │   │ Lemma: tener que                  [固定搭配]   │   │
-       │   │ z-20 shadow-elevated                           │   │
-       │   ├────────────────────────────────────────────────┤   │
-       │   │                                                │   │
-       │   │  必须，不得不                                   │   │
-       │   │                                                │   │
-       │   │  [例] Tengo que comer agora.                   │   │
-       │   │                                                │   │
-       │   │  [ 关闭 ]                    [ 加入我的词库 ]  │   │
-       │   └────────────────────────────────────────────────┘   │
-       └────────────────────────────────────────────────────────┘
-```
-
-### 3.2 Stack Layout Layout & Transition Details
+### 3.1 Stack Layout & Transition Details
 
 When transitioning to 2 stacked cards:
 - **Card 1 Container Classes (Bottom)**: `absolute inset-x-0 bottom-0 z-10 scale-[0.96] -translate-y-3 opacity-40 blur-[0.5px] pointer-events-none select-none transition-all duration-300`
@@ -219,12 +223,60 @@ When transitioning to 2 stacked cards:
 
 ---
 
+### 3.2 State Mockups
+
+#### Mock 3A: Nested Stack Stacking Hierarchy (Light Mode)
+```text
+       ┌────────────────────────────────────────────────────────┐
+       │ (Card 1: Bottom - bg-white/70, border-zinc-200/50)      │
+       │ Lemma: tener                              [动词]       │
+       │ scale-[0.96] opacity-40 blur-[0.5px]                   │
+       │                                                        │
+       │   ┌────────────────────────────────────────────────┐   │
+       │   │ (Card 2: Top - bg-white, border-zinc-200)      │   │
+       │   │ Lemma: tener que                  [固定搭配]   │   │
+       │   │ z-20 shadow-elevated                           │   │
+       │   ├────────────────────────────────────────────────┤   │
+       │   │                                                │   │
+       │   │  必须，不得不                                   │   │
+       │   │                                                │   │
+       │   │  [例] Tengo que comer ahora.                   │   │
+       │   │                                                │   │
+       │   │  [ 关闭 ]                    [ 加入我的词库 ]  │   │
+       │   └────────────────────────────────────────────────┘   │
+       └────────────────────────────────────────────────────────┘
+```
+
+#### Mock 3B: Nested Stack Stacking Hierarchy (Dark Mode)
+```text
+       ┌────────────────────────────────────────────────────────┐
+       │ (Card 1: Bottom - bg-zinc-900/70, border-zinc-800/50)  │
+       │ Lemma: tener                              [动词]       │
+       │ scale-[0.96] opacity-40 blur-[0.5px]                   │
+       │                                                        │
+       │   ┌────────────────────────────────────────────────┐   │
+       │   │ (Card 2: Top - bg-zinc-900, border-zinc-800)   │   │
+       │   │ Lemma: tener que                  [固定搭配]   │   │
+       │   │ z-20 shadow-elevated                           │   │
+       │   ├────────────────────────────────────────────────┤   │
+       │   │                                                │   │
+       │   │  必须，不得不                                   │   │
+       │   │                                                │   │
+       │   │  [例] Tengo que comer ahora.                   │   │
+       │   │                                                │   │
+       │   │  [ 关闭 ]                    [ 加入我的词库 ]  │   │
+       │   └────────────────────────────────────────────────┘   │
+       └────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 4. UI Design Constraints & Checklist Audit
 
 This design mockup strictly conforms to the **Esponal UI Design Constraints**:
 
-1. **No Gamified Numbers (禁区 §1)**: The Related Phrases section simply presents linguistic associations. It lists no mastery percentages, memory level gauges, repetition count counters, or daily checkmark goals.
-2. **No Fake AI Labels (禁区 §2)**: Avoids any AI sparkles (`✨`) or phrases like "AI recommended phrases" or "AI suggested collocations". It is simply titled "相关搭配" (Related Phrases/Collocations) and "用法提示" (Usage Note).
+1. **No Gamified Numbers (禁区 §1)**: The Related Phrases section simply presents linguistic associations. It lists no mastery percentages, memory level gauges, repetition counts, or daily checkmark goals.
+2. **No Fake AI Labels (禁区 §2)**: Avoids any AI sparkles (`✨`) or phrases like "AI recommended phrases" or "AI suggested collocations". It is simply titled "相关搭配" (Related Phrases) and "用法提示" (Usage Note).
 3. **No Already-Mastered Negatives (禁区 §3)**: Saved items in the related phrases list maintain standard typography weights without strike-throughs or visual graying out.
 4. **No SRS Terminology (禁区 §4)**: No memory curves, Leitner scheduling dates, or memory algorithms appear.
 5. **No Pressure Triggers (禁区 §5)**: Related phrases are displayed statically. They use zero notifications, reminders, or warning banners.

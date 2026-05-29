@@ -1,3 +1,20 @@
+## UI 评审 Report：LEX-003
+**时间**：2026-05-29 09:42
+**评审人**：Gemini1
+
+**结论**：符合
+
+**逐条对照设计稿**：
+- [相关搭配分区渲染 (Mock 1)]：✅ 符合。仅在单词查询且存在相关搭配时渲染，使用 "相关搭配" 标题（`text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider`）。列表项的 hover 边框、padding 和 Light/Dark 模式下的交互底色均完美复原（`hover:bg-zinc-50 dark:hover:bg-zinc-800/40 border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-800/50`）。
+- [Amber 徽章复用]：✅ 符合。短语类型 badge 使用了规定的 `bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 text-amber-700 dark:text-amber-400` 配色。
+- [用法提示 (Mock 2)]：✅ 符合。用法提示展示在 meanings 下方，带有 Emerald 主色左边框（`border-l-2 border-brand-500`），在 Light 模式使用 `bg-zinc-50` 且在 Dark 模式使用 `dark:bg-zinc-800/30` 容器，字体采用 `text-xs text-zinc-600 dark:text-zinc-400`，文案克制友好。
+- [双层叠卡 Stack (Mock 3)]：✅ 符合。点击相关搭配时，双层卡片层叠效果通过 `LookupCardStack` 完成，底层卡片应用了 `scale-[0.96] -translate-y-3 opacity-40 blur-[0.5px]` 压后，顶层卡片 `relative z-20` 显示，交互顺畅，关闭后返回底层。
+- [六大关键页面集成]：✅ 符合。`/lectura`、`/watch` 等 6 个主要查词交互表面均正确接入并传递了 `onRelatedPhraseClick` 回调。
+
+**禁区清单核查**：✅ 符合全部七条禁区规定，无任何进度数字、熟练度焦虑、伪 AI 标识、或多余的游戏化庆祝元素。
+
+---
+
 ## Codex1 Dev Report: LEX-003 Related Phrases & Usage Note (Frontend)
 **时间**：2026-05-29 09:39
 **开发人**：Codex1
@@ -20,19 +37,19 @@
 ---
 
 ## 设计交付 Report：LEX-003
-**时间**：2026-05-29 09:35
+**时间**：2026-05-29 09:36
 **设计人**：Gemini1
 
 **设计稿位置**：docs/tickets/LEX-003-design.md
 **关键设计决策**：
-- **相关搭配分区 (相关短语)**：新增低压力「相关搭配」列表，使用 restrained wording 避免任何推荐、必须掌握等施压文案，且在无短语时完全隐藏，保持主流程无杂音。
-- **Amber 徽章体系复用**：徽章样式与 PHRASE-001 保持完全一致，使用 `rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 text-amber-700 dark:text-amber-400` 配色，维持全站语义视觉一致性。
-- **用法提示 (usageNote) 的 Emerald 边框样式**：在释义下方引入 `border-l-2 border-brand-500` 的轻量提示栏样式，既与语法核心辅助说明一致（使用 brand 色），又与带有背景框的例句区良好区分。
-- **双层 Stack 交互自洽**：点击相关搭配后，新卡片以 `z-20 shadow-elevated` 堆叠于 bottom card `scale-[0.96] opacity-40 blur-[0.5px] pointer-events-none` 压后层之上，最高 2 层。
+- **相关搭配分区 (Mock 1)**：提供了 Mock 1A（无数据不渲染）、Mock 1B（1条数据，Light Mode）和 Mock 1C（5条数据，Dark Mode）的细致布局。采用低压力「相关搭配」文案，对用户极具亲和力，隐藏多余干扰。
+- **用法提示 (Mock 2)**：提供了 Mock 2A (Light Mode) 和 Mock 2B (Dark Mode) 的用法提示区设计，采用 Emerald 边框颜色（`border-l-2 border-brand-500`）配合 `bg-zinc-50` / `dark:bg-zinc-800/30` 容器，以确保在不同主题下均具备舒适的易读性。
+- **双层 Stack 叠卡 (Mock 3)**：设计了 Mock 3A (Light Mode) 和 Mock 3B (Dark Mode) 叠卡状态。明确了底层卡被推远时变虚（`scale-[0.96] opacity-40 blur-[0.5px]`）以及顶层卡（`shadow-elevated z-20`）浮空的层叠关系。
+- **Amber 徽章复用**：徽章与 PHRASE-001 统一，采用 `bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 text-amber-700 dark:text-amber-400`。
 
-**禁区清单核查**：✅ 全部七条已对照，无违反。不涉及游戏化数字、不含 AI 伪标签、保留纯粹语言学分类与中文友好释义。
+**禁区清单核查**：✅ 全部七条已对照，无违反。不涉及游戏化打卡和进度条、不加 AI 伪标签、禁用 SRS 焦虑词汇、无庆祝纸屑等奖励、中文母语者友好。
 
-**移交**：Codex1 实施
+**移交**：Codex1 实施 / 视觉验收依据
 
 ## UI 评审 Report：PHRASE-001
 **时间**：2026-05-29 02:45
