@@ -139,6 +139,24 @@ export function SubtitlePanel({
     });
   };
 
+  const openNestedPhrase = (lemma: string, kind: "collocation" | "phrase" | "idiom") => {
+    setActiveLookup((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `phrase-${lemma}`,
+            form: lemma,
+            lookupKind: "phrase",
+            phraseKind: kind
+          }
+        ]
+      };
+    });
+  };
+
   const closeStackCard = (id: string) => {
     setActiveLookup((prev) => {
       if (!prev) return null;
@@ -664,6 +682,7 @@ export function SubtitlePanel({
               ...card,
               onClose: () => closeStackCard(card.id),
               onExampleWordClick: openNestedWord,
+              onRelatedPhraseClick: openNestedPhrase,
               originalSentence: activeLookup.sentence,
               translatedSentence: chineseLine,
               currentTimeSec

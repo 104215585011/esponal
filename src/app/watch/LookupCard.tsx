@@ -43,12 +43,19 @@ export type LookupSource =
       sentence: string;
     };
 
+type RelatedPhrase = {
+  lemma: string;
+  translationZh: string;
+  kind: "collocation" | "phrase" | "idiom";
+};
+
 type LookupCardProps = {
   currentTimeSec?: number;
   form: string;
   lookupKind?: "word" | "phrase";
   phraseKind?: "collocation" | "phrase" | "idiom";
   onExampleWordClick?: (form: string) => void;
+  onRelatedPhraseClick?: (lemma: string, kind: "collocation" | "phrase" | "idiom") => void;
   onClose: () => void;
   onSaved?: () => void;
   originalSentence: string;
@@ -76,6 +83,8 @@ type LookupResponse = {
   nounForms?: unknown;
   adjectiveForms?: unknown;
   degraded?: boolean;
+  relatedPhrases?: RelatedPhrase[];
+  usageNote?: string | null;
 };
 
 type ButtonState = "default" | "loading" | "success" | "login" | "disabled" | "already_saved";
@@ -99,6 +108,8 @@ type LookupState =
       conjugations?: LookupResponse["conjugations"];
       nounForms?: LookupResponse["nounForms"];
       adjectiveForms?: LookupResponse["adjectiveForms"];
+      relatedPhrases?: RelatedPhrase[];
+      usageNote?: string | null;
     };
 
 const LEGACY_LEMMATIZE_ROUTE = "/api/lemmatize";
@@ -182,6 +193,7 @@ export function LookupCard({
   lookupKind = "word",
   phraseKind,
   onExampleWordClick,
+  onRelatedPhraseClick,
   onClose,
   onSaved,
   originalSentence,
@@ -245,7 +257,9 @@ export function LookupCard({
           totalEncounters: payload.totalEncounters,
           conjugations: payload.conjugations,
           nounForms: payload.nounForms,
-          adjectiveForms: payload.adjectiveForms
+          adjectiveForms: payload.adjectiveForms,
+          relatedPhrases: payload.relatedPhrases,
+          usageNote: payload.usageNote
         });
         if (payload.isSaved === true) {
           setButtonState("already_saved");
@@ -554,6 +568,13 @@ export function LookupCard({
         ) : null}
       </div>
 
+      {isReady && lookupState.usageNote && (
+        <div className="mt-2.5 p-2.5 bg-zinc-50 dark:bg-zinc-800/30 border-l-2 border-brand-500 dark:border-brand-500 rounded-r-lg text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+          <span className="font-semibold text-brand-600 dark:text-brand-400 mr-1.5">用法提示</span>
+          {lookupState.usageNote}
+        </div>
+      )}
+
       {example ? (
         <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2">
           <div className="flex items-start gap-2">
@@ -596,6 +617,34 @@ export function LookupCard({
           <p className="mt-0.5 text-xs text-gray-400">{example.zh}</p>
         </div>
       ) : null}
+
+      {lookupKind === "word" && isReady && lookupState.relatedPhrases && lookupState.relatedPhrases.length > 0 && (
+        <div className="mt-3.5 space-y-2">
+          <h4 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">相关搭配</h4>
+          <div className="space-y-1">
+            {lookupState.relatedPhrases.map((phrase) => (
+              <button
+                key={phrase.lemma}
+                type="button"
+                onClick={() => onRelatedPhraseClick?.(phrase.lemma, phrase.kind)}
+                className="flex items-center justify-between w-full text-left rounded-lg p-2 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/40 border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-800/50 transition duration-150 group"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate">
+                    {phrase.lemma}
+                  </span>
+                  <span className="text-xs text-zinc-400 dark:text-zinc-500 truncate">
+                    · {phrase.translationZh}
+                  </span>
+                </div>
+                <span className="shrink-0 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                  {getPhraseKindLabel(phrase.kind)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 border-t border-gray-100 pt-3">
         {showLoginHint ? (

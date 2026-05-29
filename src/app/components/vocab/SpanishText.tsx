@@ -219,6 +219,27 @@ export function SpanishText({
     });
   };
 
+  const openNestedPhrase = (lemma: string, kind: "collocation" | "phrase" | "idiom") => {
+    setActiveLookup((previous) => {
+      if (!previous || previous.cards.length >= 2) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        cards: [
+          ...previous.cards,
+          {
+            id: `phrase-${lemma}`,
+            form: lemma,
+            lookupKind: "phrase",
+            phraseKind: kind
+          }
+        ]
+      };
+    });
+  };
+
   const closeStackCard = (id: string) => {
     setActiveLookup((previous) => {
       if (!previous) return previous;
@@ -239,6 +260,7 @@ export function SpanishText({
             ...card,
             onClose: () => closeStackCard(card.id),
             onExampleWordClick: openNestedWord,
+            onRelatedPhraseClick: openNestedPhrase,
             onSaved: handleSaved,
             originalSentence: text,
             translatedSentence: translation,

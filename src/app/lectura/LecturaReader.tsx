@@ -162,6 +162,24 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     });
   };
 
+  const openNestedPhrase = (lemma: string, kind: "collocation" | "phrase" | "idiom") => {
+    setActiveLookup((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `phrase-${lemma}`,
+            form: lemma,
+            lookupKind: "phrase",
+            phraseKind: kind
+          }
+        ]
+      };
+    });
+  };
+
   const closeStackCard = (id: string) => {
     setActiveLookup((prev) => {
       if (!prev) return null;
@@ -494,6 +512,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
             onClose={() => setActiveLookup(null)}
             onCloseCard={closeStackCard}
             onExampleWordClick={openNestedWord}
+            onRelatedPhraseClick={openNestedPhrase}
             storySlug={story.slug}
             paragraphs={story.paragraphs}
           />
@@ -525,6 +544,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                     ...card,
                     onClose: () => closeStackCard(card.id),
                     onExampleWordClick: openNestedWord,
+                    onRelatedPhraseClick: openNestedPhrase,
                     originalSentence: paragraph,
                     translatedSentence: "",
                     source: {

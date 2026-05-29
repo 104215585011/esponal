@@ -156,6 +156,24 @@ export function DissectorClient() {
     });
   };
 
+  const openNestedPhrase = (lemma: string, kind: "collocation" | "phrase" | "idiom") => {
+    setActiveContent((prev) => {
+      if (!prev || prev.cards.length >= 2) return prev;
+      return {
+        ...prev,
+        cards: [
+          ...prev.cards,
+          {
+            id: `phrase-${lemma}`,
+            form: lemma,
+            lookupKind: "phrase",
+            phraseKind: kind
+          }
+        ]
+      };
+    });
+  };
+
   const closeStackCard = (id: string) => {
     setActiveContent((prev) => {
       if (!prev) return null;
@@ -300,6 +318,7 @@ export function DissectorClient() {
                         ...card,
                         onClose: () => closeStackCard(card.id),
                         onExampleWordClick: openNestedWord,
+                        onRelatedPhraseClick: openNestedPhrase,
                         originalSentence: input,
                         translatedSentence: "",
                         source: {
@@ -348,22 +367,23 @@ export function DissectorClient() {
                   </button>
                   {isContentActive ? (
                     <div className="absolute left-0 top-full z-20 mt-2">
-                      <LookupCardStack
-                        cards={activeContent.cards.map((card) => ({
-                          ...card,
-                          onClose: () => closeStackCard(card.id),
-                          onExampleWordClick: openNestedWord,
-                          originalSentence: input,
-                          translatedSentence: "",
-                          source: {
-                            type: "course",
-                            url: "/dissect",
-                            courseRef: "dissect",
-                            sentence: input
-                          }
-                        }))}
-                        onCloseCard={closeStackCard}
-                      />
+                        <LookupCardStack
+                          cards={activeContent.cards.map((card) => ({
+                            ...card,
+                            onClose: () => closeStackCard(card.id),
+                            onExampleWordClick: openNestedWord,
+                            onRelatedPhraseClick: openNestedPhrase,
+                            originalSentence: input,
+                            translatedSentence: "",
+                            source: {
+                              type: "course",
+                              url: "/dissect",
+                              courseRef: "dissect",
+                              sentence: input
+                            }
+                          }))}
+                          onCloseCard={closeStackCard}
+                        />
                     </div>
                   ) : null}
                 </span>

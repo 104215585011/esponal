@@ -1339,7 +1339,7 @@
     "area": "frontend",
     "title": "LookupCard 显示相关短语 + construction 用法说明",
     "user_visible_behavior": "查单词时词卡底部出现「相关短语」区，列出含该词的固定搭配（最多5条，带 kind badge），点击叠出短语卡（复用2层上限）；construction 词（如 gustar）显示 usageNote 用法说明。",
-    "status": "todo",
+    "status": "ready_for_qa",
     "verification": [
       "Gemini1 出设计稿 docs/tickets/LEX-003-design.md，PM 选定",
       "通过禁区清单核查、不引入新 token",
@@ -1350,7 +1350,7 @@
       "Light/Dark mode 正常",
       "npm test 通过、npm run build 通过"
     ],
-    "evidence": "",
+    "evidence": "Codex1 Dev 2026-05-29 09:39: Implemented Segment 2. Updated LookupResponse, LookupState, and LookupCardProps types; populated relatedPhrases/usageNote in LookupCard state; rendered relatedPhrases and usageNote in LookupCard component; wired onRelatedPhraseClick callback across all 6 surfaces (SpanishText, LecturaReader, ReadingDock, SubtitlePanel, TranscriptPanel, DissectorClient) supporting 2-layer stacking. Focused tests under tests/lex003-frontend.test.mjs verify structure, conditional rendering, callbacks, and surface integrations. All 299 tests pass; production build succeeds.",
     "notes": "PM 派单 2026-05-29。Ticket: docs/tickets/LEX-003.md。后端 P4 已返回 relatedPhrases + usageNote(construction)，本 ticket 只做前端呈现。UI 任务：Gemini1 设计→Codex1 实现→Codex2 测试→Gemini1 评审→Claude1 验收。"
   }
 }

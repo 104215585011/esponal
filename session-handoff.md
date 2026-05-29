@@ -1,3 +1,39 @@
+## Codex1 Dev Report: LEX-003 Related Phrases & Usage Note (Frontend)
+**时间**：2026-05-29 09:39
+**开发人**：Codex1
+**状态**：Ready for Codex2 QA.
+
+### 实现内容
+1. **类型扩展与数据载入**：在 `src/app/watch/LookupCard.tsx` 中为 `LookupResponse` 和 `LookupState` 补全 `relatedPhrases` 及 `usageNote` 类型，并在 API 请求成功后正确将其保存至 state.
+2. **用法提示渲染**：在 `LookupCard` 的 meanings 列表下方、例句框上方增加「用法提示」区块，使用 `border-l-2 border-brand-500 pl-3 py-1 bg-zinc-50/50 dark:bg-zinc-800/20` 用法提示样式，呈现结构化用法说明。
+3. **相关搭配渲染**：当 `lookupKind === "word"` 且存在 `relatedPhrases` 时，在例句框下方、底部按钮上方渲染「相关搭配」区。以按钮形式列出搭配的短语词头与中文释义，并标记 amber 风格的搭配类型徽章（如 `固定搭配`/`短语`/`习语`）。
+4. **叠卡逻辑与多页面接入**：
+   - 添加 `onRelatedPhraseClick` 回调，并在点击相关搭配按钮时触发。
+   - 在 6 个关键表面文件：`SpanishText.tsx` (grammar 详情页), `LecturaReader.tsx` (阅读详情页), `ReadingDock.tsx` (阅读浮窗), `SubtitlePanel.tsx` (视频字幕), `TranscriptPanel.tsx` (视频转写), `DissectorClient.tsx` (视频拆解) 中正确捕获 `onRelatedPhraseClick`，并通过 stack 逻辑（`openNestedPhrase` / `openNestedWord`）将其推入双层 `LookupCardStack`（最深 2 层限制，且关闭顶层后返回底层卡）。
+5. **单元与前端测试**：新增 `tests/lex003-frontend.test.mjs` 测试文件，对 UI 字段类型、条件渲染样式、回调传递、以及 6 个页面的正确参数传递进行自动化断言验证。
+
+### 验证记录
+- **Focused tests**: `node --test tests/lex003-frontend.test.mjs` -> 3/3 passing.
+- **Full test suite**: `npm test` -> 299/299 passing.
+- **Production build**: `npm run build` -> 完美通过编译，无任何新增警告。
+
+---
+
+## 设计交付 Report：LEX-003
+**时间**：2026-05-29 09:35
+**设计人**：Gemini1
+
+**设计稿位置**：docs/tickets/LEX-003-design.md
+**关键设计决策**：
+- **相关搭配分区 (相关短语)**：新增低压力「相关搭配」列表，使用 restrained wording 避免任何推荐、必须掌握等施压文案，且在无短语时完全隐藏，保持主流程无杂音。
+- **Amber 徽章体系复用**：徽章样式与 PHRASE-001 保持完全一致，使用 `rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/30 dark:border-amber-800/30 text-amber-700 dark:text-amber-400` 配色，维持全站语义视觉一致性。
+- **用法提示 (usageNote) 的 Emerald 边框样式**：在释义下方引入 `border-l-2 border-brand-500` 的轻量提示栏样式，既与语法核心辅助说明一致（使用 brand 色），又与带有背景框的例句区良好区分。
+- **双层 Stack 交互自洽**：点击相关搭配后，新卡片以 `z-20 shadow-elevated` 堆叠于 bottom card `scale-[0.96] opacity-40 blur-[0.5px] pointer-events-none` 压后层之上，最高 2 层。
+
+**禁区清单核查**：✅ 全部七条已对照，无违反。不涉及游戏化数字、不含 AI 伪标签、保留纯粹语言学分类与中文友好释义。
+
+**移交**：Codex1 实施
+
 ## UI 评审 Report：PHRASE-001
 **时间**：2026-05-29 02:45
 **评审人**：Gemini1

@@ -20,6 +20,7 @@ type ReadingDockProps = {
   onClose: () => void;
   onCloseCard: (id: string) => void;
   onExampleWordClick: (form: string) => void;
+  onRelatedPhraseClick: (lemma: string, kind: "collocation" | "phrase" | "idiom") => void;
   storySlug: string;
   paragraphs: string[];
 };
@@ -29,6 +30,7 @@ export function ReadingDock({
   onClose,
   onCloseCard,
   onExampleWordClick,
+  onRelatedPhraseClick,
   storySlug,
   paragraphs
 }: ReadingDockProps) {
@@ -43,6 +45,7 @@ export function ReadingDock({
               ...card,
               onClose: () => onCloseCard(card.id),
               onExampleWordClick,
+              onRelatedPhraseClick,
               originalSentence: paragraphText,
               translatedSentence: "",
               useStaticLayout: true,
