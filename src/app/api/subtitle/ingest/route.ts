@@ -137,8 +137,12 @@ export async function POST(request: Request) {
     return jsonResponse({ error: "not enough valid cues" }, { status: 400 });
   }
 
+  // Store with provenance so /api/subtitle can report the source. Extension
+  // captures are YouTube's native track (highest quality), distinguishable
+  // from the Apify/Whisper server fallbacks via the `source` field/header.
   const cacheKey = `subtitle:v4:${body.videoId}:${body.lang}:auto`;
-  await redis.set(cacheKey, JSON.stringify(cues), "EX", SUBTITLE_CACHE_TTL);
+  const envelope = { cues, source: "extension", at: Date.now() };
+  await redis.set(cacheKey, JSON.stringify(envelope), "EX", SUBTITLE_CACHE_TTL);
 
   return jsonResponse({
     success: true,

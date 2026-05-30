@@ -22,9 +22,24 @@ type SubtitleHint = {
   reason: "no_subtitle";
 };
 
+// Provenance of the returned subtitle cues, exposed via the `source` field
+// and the `X-Subtitle-Source` response header so it's easy to tell whether
+// the displayed subtitles came from the browser-extension capture (accurate
+// YouTube native captions) vs the Apify/Whisper server fallbacks.
+type SubtitleSource = "extension" | "apify" | "whisper" | "cache" | "none";
+
 type SubtitleResponse = {
   cues: SubtitleCue[];
   hint?: SubtitleHint;
+  source?: SubtitleSource;
+};
+
+// Envelope stored in Redis so cached entries carry their provenance. Older
+// entries are bare cue arrays (no source) — treated as "cache".
+type CachedSubtitlePayload = {
+  cues: SubtitleCue[];
+  source: SubtitleSource;
+  at?: number;
 };
 
 type ApifySubtitleTrack = {
@@ -262,11 +277,11 @@ async function fetchSubtitlesWithFallback(
   videoId: string,
   lang: string,
   forceWhisper: boolean
-): Promise<SubtitleCue[]> {
+): Promise<{ cues: SubtitleCue[]; source: SubtitleSource }> {
   const apifyCues = forceWhisper ? [] : await fetchHybridSubtitles(videoId, lang);
 
   if (!shouldUseWhisperFallback(apifyCues, forceWhisper)) {
-    return apifyCues;
+    return { cues: apifyCues, source: "apify" };
   }
 
   try {
@@ -280,13 +295,13 @@ async function fetchSubtitlesWithFallback(
         videoId,
         lang
       );
-      return whisperCues;
+      return { cues: whisperCues, source: "whisper" };
     }
   } catch (error) {
     console.warn("[subtitle] Whisper fallback failed:", error);
   }
 
-  return apifyCues;
+  return { cues: apifyCues, source: apifyCues.length > 0 ? "apify" : "none" };
 }
 
 export async function GET(request: Request) {
@@ -307,10 +322,17 @@ export async function GET(request: Request) {
     const cached = await redis.get(cacheKey);
 
     if (cached) {
+      const parsed = JSON.parse(cached) as CachedSubtitlePayload | SubtitleCue[];
+      const isEnvelope = !Array.isArray(parsed) && Array.isArray(parsed.cues);
+      const cues = isEnvelope ? (parsed as CachedSubtitlePayload).cues : (parsed as SubtitleCue[]);
+      const source: SubtitleSource = isEnvelope
+        ? (parsed as CachedSubtitlePayload).source ?? "cache"
+        : "cache";
+
       return NextResponse.json(
-        { cues: clampOverlappingCues(JSON.parse(cached) as SubtitleCue[]) } satisfies SubtitleResponse,
+        { cues: clampOverlappingCues(cues), source } satisfies SubtitleResponse,
         {
-        headers: { "Cache-Control": "no-store" }
+          headers: { "Cache-Control": "no-store", "X-Subtitle-Source": source }
         }
       );
     }
@@ -319,11 +341,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const cues = await fetchSubtitlesWithFallback(videoId, lang, forceWhisper);
+    const { cues, source } = await fetchSubtitlesWithFallback(videoId, lang, forceWhisper);
 
     if (cues.length > 0) {
       try {
-        await redis.set(cacheKey, JSON.stringify(cues), "EX", SUBTITLE_CACHE_TTL);
+        const envelope: CachedSubtitlePayload = { cues, source, at: Date.now() };
+        await redis.set(cacheKey, JSON.stringify(envelope), "EX", SUBTITLE_CACHE_TTL);
       } catch {
         // Redis write failed, still return cues
       }
@@ -331,11 +354,11 @@ export async function GET(request: Request) {
 
     const payload: SubtitleResponse =
       cues.length > 0
-        ? { cues: clampOverlappingCues(cues) }
-        : { cues: [], hint: { reason: "no_subtitle" } };
+        ? { cues: clampOverlappingCues(cues), source }
+        : { cues: [], hint: { reason: "no_subtitle" }, source: "none" };
 
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "no-store" }
+      headers: { "Cache-Control": "no-store", "X-Subtitle-Source": source }
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
