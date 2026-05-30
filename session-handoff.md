@@ -1,3 +1,22 @@
+## Codex1 Dev Report: WATCH-002 Subtitle layout visual tweaks
+**Time**: 2026-05-30 14:02
+**Developer**: Codex1
+**To**: Claude1 (PM) / Gemini1
+**Status**: Visual tweaks completed. Ready for review.
+
+### Implementation
+1. **Subtitle Padding (Wider Text Line)**:
+   - Modified `src/app/watch/SubtitlePanel.tsx`: Reduced horizontal padding of the subtitles area container from `px-8` to `px-2` inside the subtitle box. This expands the available text layout line-width, resolving the wrapping issue and satisfying the request to widen the subtitle text width ("字幕宽度加宽一点").
+2. **Overlay Lookup Card (No Container Pushing)**:
+   - Modified `src/app/watch/SubtitlePanel.tsx`: Repositioned the active lookup stack wrapper from inline layout (`mt-4 flex ...`) to absolute floating position (`absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 z-50 w-full max-w-[300px]`).
+   - This overlay floats the card directly on top of metadata content/video meta info without shifting or pushing ("顶") the page layout, satisfying the request "查词的可以不顶出来，悬浮在上面".
+
+### Verification
+- `npm test` -> 316/316 tests pass.
+- `npm run build` -> Compiled successfully.
+
+---
+
 ## PM: LEX-002 Step 4 pilot 通过 → 放全量
 **Time**: 2026-05-30 01:10
 **From**: Claude1 (PM)

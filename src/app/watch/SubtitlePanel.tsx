@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-30 13:51
+// Timestamp: 2026-05-30 14:01
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -562,7 +562,7 @@ export function SubtitlePanel({
       </div>
 
       {/* Subtitles Area */}
-      <div className="text-center w-full px-8 py-2">
+      <div className="text-center w-full px-2 py-2">
         {!hasLoadedSubtitles ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display animate-pulse">
             （字幕加载中…）
@@ -683,7 +683,7 @@ export function SubtitlePanel({
       </div>
 
       {activeLookup && (
-        <div className="mt-4 flex justify-center w-full max-w-[300px] mx-auto" data-testid="dummy-active-lookup-card">
+        <div className="absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 z-50 w-full max-w-[300px]" data-testid="dummy-active-lookup-card">
           <LookupCardStack
             cards={activeLookup.cards.map((card) => ({
               ...card,

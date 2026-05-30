@@ -1,3 +1,19 @@
+### Session #WATCH-002-SUBTITLE-TWEAK - 2026-05-30 14:02
+
+**Goal**: Widen subtitle text layout line-width and prevent the lookup card from pushing down page content by positioning it as a floating overlay.
+
+**Completed**:
+- Reduced subtitle area horizontal padding from `px-8` to `px-2` in `src/app/watch/SubtitlePanel.tsx` to increase horizontal space and prevent premature word wrapping.
+- Repositioned active lookup stack wrapper in `src/app/watch/SubtitlePanel.tsx` from inline layout to absolute positioning (`absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 z-50 w-full max-w-[300px]`), allowing it to float as an overlay without pushing the layout.
+
+**Verification**:
+- `npm test` -> 316/316 tests pass.
+- `npm run build` -> Compiled successfully.
+
+**Status**: Completed. Ready for review.
+
+---
+
 ### Session #WEB-002-QUOTA-FALLBACK - 2026-05-30 02:05
 
 **Goal**: Fix the `/watch` curated channel sections so they do not collapse to an empty state when the YouTube Data API quota is exhausted.
