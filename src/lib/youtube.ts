@@ -68,6 +68,12 @@ async function safeCacheSet(cacheKey: string, value: string, ttlSeconds: number)
   }
 }
 
+// Keep cached payloads around far longer than their freshness window so they
+// can be served as a fallback when the YouTube Data API call fails (e.g. the
+// daily quota is exhausted). Without this, a quota-exhausted day leaves
+// channel/search sections blank instead of showing slightly stale data.
+const STALE_FALLBACK_TTL_SECONDS = 60 * 60 * 24 * 7;
+
 export async function getCachedJson<T>(
   namespace: string,
   cacheInput: string,
@@ -77,14 +83,42 @@ export async function getCachedJson<T>(
   const cacheKey = buildCacheKey(namespace, cacheInput);
   const cached = await safeCacheGet(cacheKey);
 
+  let staleData: T | null = null;
+  let hasStale = false;
+
   if (cached) {
-    return JSON.parse(cached) as T;
+    try {
+      const parsed = JSON.parse(cached) as { data: T; ts: number } | T;
+      const envelope =
+        parsed && typeof (parsed as { ts?: number }).ts === "number"
+          ? (parsed as { data: T; ts: number })
+          : { data: parsed as T, ts: 0 };
+      staleData = envelope.data;
+      hasStale = true;
+
+      if (Date.now() - envelope.ts < ttlSeconds * 1000) {
+        return envelope.data;
+      }
+    } catch {
+      // Corrupt cache entry — ignore and refetch.
+    }
   }
 
-  const value = await resolver();
-  await safeCacheSet(cacheKey, JSON.stringify(value), ttlSeconds);
-
-  return value;
+  try {
+    const value = await resolver();
+    await safeCacheSet(
+      cacheKey,
+      JSON.stringify({ data: value, ts: Date.now() }),
+      Math.max(ttlSeconds, STALE_FALLBACK_TTL_SECONDS)
+    );
+    return value;
+  } catch (error) {
+    if (hasStale) {
+      console.warn("YouTube fetch failed; serving stale cache", error);
+      return staleData as T;
+    }
+    throw error;
+  }
 }
 
 export async function fetchYouTubeJson<T>(

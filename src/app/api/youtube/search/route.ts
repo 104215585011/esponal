@@ -15,7 +15,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const SEARCH_CACHE_TTL_SECONDS = 60 * 15;
+// search.list costs 100 quota units; cache aggressively (24h). Results are
+// reused across users and rarely change within a day.
+const SEARCH_CACHE_TTL_SECONDS = 60 * 60 * 24;
 
 type SearchResponse = {
   items?: Array<{

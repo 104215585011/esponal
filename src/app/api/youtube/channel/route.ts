@@ -15,7 +15,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const CHANNEL_CACHE_TTL_SECONDS = 60 * 60;
+const CHANNEL_CACHE_TTL_SECONDS = 60 * 60 * 12;
 
 type ChannelsResponse = {
   items?: Array<{

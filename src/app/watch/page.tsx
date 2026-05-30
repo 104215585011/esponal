@@ -73,14 +73,27 @@ async function fetchVideoInfo(videoId: string) {
   }
 }
 
-async function fetchRelatedVideos(query: string, currentVideoId: string) {
-  if (!query) {
+async function fetchRelatedVideos(channelTitle: string, currentVideoId: string) {
+  if (!channelTitle) {
     return [] as YouTubeVideoPayload[];
+  }
+
+  // Related videos are "more from the same channel". When the video belongs
+  // to a curated channel (the common case), reuse the channel uploads endpoint
+  // (3 quota units, shared cache with the home list) instead of search.list
+  // (100 units). Only fall back to search for non-curated channels.
+  const curated = curatedChannels.find(
+    (channel) => channel.title.trim().toLowerCase() === channelTitle.trim().toLowerCase()
+  );
+
+  if (curated) {
+    const channelVideos = await fetchChannelVideos(curated.id);
+    return channelVideos.filter((video) => video.id !== currentVideoId).slice(0, 8);
   }
 
   const baseUrl = getSiteUrl();
   const response = await fetch(
-    `${baseUrl}/api/youtube/search?q=${encodeURIComponent(query)}&maxResults=8`,
+    `${baseUrl}/api/youtube/search?q=${encodeURIComponent(channelTitle)}&maxResults=8`,
     {
       cache: "no-store"
     }

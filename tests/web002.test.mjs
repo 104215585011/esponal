@@ -37,7 +37,7 @@ test("WEB-002 search route exists and uses YouTube search with Spanish relevance
   assert.match(route, /type["']?\s*:\s*["']video["']/);
   assert.match(route, /relevanceLanguage["']?\s*:\s*["']es["']/);
   assert.match(route, /NextResponse\.json\(videos\)/);
-  assert.match(route, /60\s*\*\s*15/);
+  assert.match(route, /60\s*\*\s*60\s*\*\s*24/);
   assert.match(youtubeLib, /YOUTUBE_API_KEY/);
   assert.match(youtubeLib, /redis\.get/);
   assert.match(youtubeLib, /redis\.set/);
