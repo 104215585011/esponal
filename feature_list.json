@@ -1438,5 +1438,23 @@
     ],
     "evidence": "commit 3233350 (2026-05-30)。改 src/lib/youtube.ts(stale fallback)、search/channel route TTL、watch/page.tsx(related→channel)。与 WEB-002 f0e6fa5(channel RSS feed 兜底)互补叠加。根因:search.list 100单位/次×每看视频+每搜索×15min缓存→爆10k日配额。",
     "notes": "PM 派单+实现 2026-05-30。用户反馈 GCloud 配额 Queries/day 100%(10,235/10,000)。与并行 WEB-002(Codex)互补。注意:今日配额已耗尽,需等太平洋午夜重置;代码优化防未来再爆。"
+  },
+  "77": {
+    "id": "SUBS-001",
+    "priority": 78,
+    "area": "backend",
+    "title": "服务端字幕抓取 POC(yt-dlp 批量预抓可行性验证)",
+    "user_visible_behavior": "(POC,无用户可见变化)验证服务端用 yt-dlp 批量预抓策划频道人工西语字幕是否质量≈扩展、不被反爬,作为移动端零扩展看字幕的可行性闸门。",
+    "status": "todo",
+    "verification": [
+      "scripts/poc-server-subtitles.mjs 独立运行,--video= 输出 {start,dur,text}(秒) cue",
+      "对策划频道(含 Redis 已有扩展版如 5vxteCt0WsY)稳定抓到人工 es 轨",
+      "质量对比报告:yt-dlp vs 扩展版 ground truth(条数/时间轴/文本)",
+      "反爬报告:数据中心 IP 是否被封/需代理",
+      "托管 API(Supadata/Apify)质量+成本对比",
+      "POC 结论:主线选 yt-dlp 还是托管 API"
+    ],
+    "evidence": "",
+    "notes": "PM 派单 2026-05-30。Ticket: docs/tickets/SUBS-001-poc-server-subtitles.md。Spec: docs/superpowers/specs/2026-05-30-mobile-subtitles-architecture.md。移动上线可行性闸门,通过后进 SUBS-002(批处理worker)。原名 WEB-017-POC,因编号撞车改 SUBS-001。"
   }
 }
