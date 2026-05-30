@@ -1445,7 +1445,7 @@
     "area": "backend",
     "title": "服务端字幕抓取 POC(yt-dlp 批量预抓可行性验证)",
     "user_visible_behavior": "(POC,无用户可见变化)验证服务端用 yt-dlp 批量预抓策划频道人工西语字幕是否质量≈扩展、不被反爬,作为移动端零扩展看字幕的可行性闸门。",
-    "status": "todo",
+    "status": "passing",
     "verification": [
       "scripts/poc-server-subtitles.mjs 独立运行,--video= 输出 {start,dur,text}(秒) cue",
       "对策划频道(含 Redis 已有扩展版如 5vxteCt0WsY)稳定抓到人工 es 轨",
@@ -1454,7 +1454,7 @@
       "托管 API(Supadata/Apify)质量+成本对比",
       "POC 结论:主线选 yt-dlp 还是托管 API"
     ],
-    "evidence": "",
+    "evidence": "POC 通过 2026-05-30: Supadata API 抓 5vxteCt0WsY 西语字幕,归一化(ms/1000)后 445/447 cue 与 Redis 扩展版逐条一致(2处仅浮点四舍五入),抓的是人工轨非ASR,5.4s 返回,零运维。结论:Supadata 托管 API 作主线。yt-dlp 排除(裸IP被bot拦,需cookies+代理+账号封禁风险)。",
     "notes": "PM 派单 2026-05-30。Ticket: docs/tickets/SUBS-001-poc-server-subtitles.md。Spec: docs/superpowers/specs/2026-05-30-mobile-subtitles-architecture.md。移动上线可行性闸门,通过后进 SUBS-002(批处理worker)。原名 WEB-017-POC,因编号撞车改 SUBS-001。"
   }
 }
