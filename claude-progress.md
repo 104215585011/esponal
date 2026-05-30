@@ -1,3 +1,23 @@
+### Session #SUBS-002-SUPADATA-INTEGRATION - 2026-05-30 18:35
+
+**Goal**: Integrate Supadata into `/api/subtitle` as the primary server subtitle source, while preserving cache-first behavior and graceful fallback to Apify and Whisper.
+
+**Completed**:
+- Updated [src/app/api/subtitle/route.ts](C:/Users/wang/esponal/src/app/api/subtitle/route.ts) to add `SUPADATA_TRANSCRIPT_URL`, `fetchSupadataSubtitles()`, and `normalizeCueList()` for Supadata transcript payloads (`offset`/`duration` ms -> `start`/`dur` seconds).
+- Extended `SubtitleSource` to include `supadata` and rewired `fetchSubtitlesWithFallback()` to follow the approved order: `Supadata -> Apify -> Whisper`, while keeping `forceWhisper=1` as a hard bypass directly to Whisper.
+- Kept the existing Redis envelope/cache-first flow intact so Supadata is only called on cache miss and cached responses still return `X-Subtitle-Source`.
+- Added `SUPADATA_API_KEY=\"\"` to [.env.example](C:/Users/wang/esponal/.env.example) without exposing any real key.
+- Added [tests/subs002.test.mjs](C:/Users/wang/esponal/tests/subs002.test.mjs) to lock the Supadata-first route contract, fallback order, and env placeholder.
+
+**Verification**:
+- `node --test tests\\subs002.test.mjs` -> 3/3 pass.
+- `node --test tests\\web004.test.mjs tests\\web012-whisper.test.mjs tests\\ext008.test.mjs` -> 14/14 pass.
+- `npm test` -> 320/320 pass.
+
+**Status**: Implementation complete. Ready for PM/Codex2 runtime QA on live subtitle fetch behavior (`X-Subtitle-Source=supadata`, graceful apify downgrade, cache-hit reuse).
+
+---
+
 ### Session #WATCH-002-CINEMATIC-PLAYER - 2026-05-30 15:45
 
 **Goal**: Widen video player and right-side subtitles, overlay subtitle panels inside player container, remove chapters list, and minimize margins.

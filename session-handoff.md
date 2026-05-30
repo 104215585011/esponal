@@ -1,3 +1,37 @@
+## Codex1 Dev Report: SUBS-002 Supadata integration ready for QA
+**Time**: 2026-05-30 18:35
+**Developer**: Codex1
+**To**: Claude1 (PM) / Codex2 (QA)
+**Status**: Route implementation complete. Ready for runtime QA and PM acceptance.
+
+### Implementation
+1. **Supadata-first subtitle source**:
+   - Modified `src/app/api/subtitle/route.ts` to add `SUPADATA_TRANSCRIPT_URL`, `fetchSupadataSubtitles(videoId, lang)`, and `normalizeCueList()` for Supadata transcript payloads.
+   - Supadata cues now normalize `offset(ms)` / `duration(ms)` into the route's standard `{ start, dur, text }` seconds-based cue format.
+   - `SubtitleSource` now includes `supadata`, and successful Supadata responses flow through the existing `source` field plus `X-Subtitle-Source` response header.
+2. **Approved fallback chain preserved**:
+   - `fetchSubtitlesWithFallback()` now follows `Supadata -> Apify -> Whisper`.
+   - `forceWhisper=1` remains a hard bypass that skips Supadata and Apify entirely, going directly to Whisper.
+   - Missing key, empty Supadata payload, non-200 responses, and fetch errors all degrade gracefully by returning `[]` and continuing to the next source.
+3. **Cache-first cost control preserved**:
+   - The route still checks Redis first, so Supadata only runs on cache miss.
+   - Successful results continue to be stored via the existing Redis envelope `{ cues, source, at }`, so repeat requests can reuse cached source data.
+4. **Config and regression coverage**:
+   - Added `SUPADATA_API_KEY=""` placeholder to `.env.example`.
+   - Added `tests/subs002.test.mjs` to lock the Supadata-first contract, fallback ordering, `forceWhisper` bypass, and env documentation.
+
+### Verification
+- `node --test tests\subs002.test.mjs` -> 3/3 pass
+- `node --test tests\web004.test.mjs tests\web012-whisper.test.mjs tests\ext008.test.mjs` -> 14/14 pass
+- `npm test` -> 320/320 pass
+
+### QA / PM checklist
+- Hit a captioned planning video after clearing its subtitle Redis key -> expect `X-Subtitle-Source: supadata`
+- Hit a video where Supadata cannot provide cues -> expect graceful downgrade to `apify` without breaking the page
+- Repeat the same request -> expect cached response behavior without a second upstream Supadata fetch
+
+---
+
 ## Codex1 Dev Report: WATCH-002 Cinematic Player & Subtitle Overlay (All Layout Customizations)
 **Time**: 2026-05-30 15:45
 **Developer**: Codex1

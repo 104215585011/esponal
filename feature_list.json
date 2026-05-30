@@ -1359,14 +1359,14 @@
     "area": "backend",
     "title": "回补 seed 阶段 skipped 的 23 条短语（backlog）",
     "user_visible_behavior": "seed 阶段因 Tatoeba 无例句被跳过的 23 条多 token 短语（7 实用搭配 + 3 课堂问句 + 11 习语）目前不在库。补全后这些短语可被查询/高亮。",
-    "status": "todo",
+    "status": "ready_for_qa",
     "verification": [
       "PM 选定补全范围（A+B / 全部）",
       "脚本 backfill-skipped-phrases.mjs 支持 --dry-run + --write",
       "目标条目入库且有 LLM 生成例句/用法",
       "npm test 通过"
     ],
-    "evidence": "",
+    "evidence": "2026-05-30 Codex1 implemented Supadata-first subtitles in src/app/api/subtitle/route.ts with fallback chain Supadata -> Apify -> Whisper, preserved forceWhisper bypass, added SUPADATA_API_KEY placeholder to .env.example, and kept Redis cache/source envelope behavior. Added tests/subs002.test.mjs. Verification passed: node --test tests\\\\subs002.test.mjs; node --test tests\\\\web004.test.mjs tests\\\\web012-whisper.test.mjs tests\\\\ext008.test.mjs; npm test (320/320). Awaiting PM/Codex2 runtime QA for X-Subtitle-Source=supadata, graceful apify downgrade, and cache-hit behavior.",
     "notes": "PM 记录 backlog 2026-05-29。Ticket: docs/tickets/LEX-004.md。低优先：301 条短语已在线够用，缺的多为 B1+ 习语。缺失清单已固化在 ticket 内（PM 对比 seed CSV↔DB 重建，无 skip 日志）。建议跳过 Tatoeba 直接用 DeepSeek 生成例句。等 LEX-002 扩 B1+ 时可一并处理。"
   },
   "73": {

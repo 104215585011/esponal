@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 
 const APIFY_ACTOR_URL =
   "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items";
+const SUPADATA_TRANSCRIPT_URL = "https://api.supadata.ai/v1/youtube/transcript";
 const SUBTITLE_CACHE_TTL = 86400;
 const MIN_REASONABLE_CUE_COUNT = 6;
 const MAX_REASONABLE_CUE_GAP_SEC = 25;
@@ -25,8 +26,14 @@ type SubtitleHint = {
 // Provenance of the returned subtitle cues, exposed via the `source` field
 // and the `X-Subtitle-Source` response header so it's easy to tell whether
 // the displayed subtitles came from the browser-extension capture (accurate
-// YouTube native captions) vs the Apify/Whisper server fallbacks.
-type SubtitleSource = "extension" | "apify" | "whisper" | "cache" | "none";
+// YouTube native captions) vs the Supadata/Apify/Whisper server fallbacks.
+type SubtitleSource =
+  | "extension"
+  | "supadata"
+  | "apify"
+  | "whisper"
+  | "cache"
+  | "none";
 
 type SubtitleResponse = {
   cues: SubtitleCue[];
@@ -51,6 +58,16 @@ type ApifySubtitleTrack = {
 
 type ApifyVideoItem = {
   subtitles?: ApifySubtitleTrack[] | null;
+};
+
+type SupadataCueItem = {
+  text?: string | null;
+  offset?: number | null;
+  duration?: number | null;
+};
+
+type SupadataResponse = {
+  content?: SupadataCueItem[] | null;
 };
 
 /**
@@ -120,6 +137,70 @@ function parseSrt(srt: string): SubtitleCue[] {
   }
 
   return cues;
+}
+
+function normalizeCueList(items: SupadataCueItem[]): SubtitleCue[] {
+  return items
+    .map((item) => {
+      const text = item.text?.replace(/\s+/g, " ").trim() ?? "";
+      const start = Number(item.offset ?? 0) / 1000;
+      const dur = Number(item.duration ?? 0) / 1000;
+
+      if (!text || !Number.isFinite(start) || !Number.isFinite(dur) || dur <= 0) {
+        return null;
+      }
+
+      return { start, dur, text };
+    })
+    .filter((cue): cue is SubtitleCue => Boolean(cue));
+}
+
+async function fetchSupadataSubtitles(
+  videoId: string,
+  lang: string
+): Promise<SubtitleCue[]> {
+  const apiKey = process.env.SUPADATA_API_KEY?.trim();
+
+  if (!apiKey) {
+    return [];
+  }
+
+  const requestedLang = lang.startsWith("es") ? "es" : lang;
+  const url = new URL(SUPADATA_TRANSCRIPT_URL);
+  url.searchParams.set("videoId", videoId);
+  url.searchParams.set("lang", requestedLang);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "x-api-key": apiKey,
+        Accept: "application/json"
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      console.warn("[subtitle] Supadata request failed:", response.status);
+      return [];
+    }
+
+    const payload = (await response.json()) as SupadataResponse | SupadataCueItem[];
+    const content = Array.isArray(payload) ? payload : payload.content ?? [];
+
+    if (!Array.isArray(content) || content.length === 0) {
+      return [];
+    }
+
+    const cues = normalizeCueList(content);
+
+    console.log("[subtitle] Supadata fetched", cues.length, "cues for", videoId, requestedLang);
+
+    return cues;
+  } catch (error) {
+    console.warn("[subtitle] Supadata fetch failed:", error);
+    return [];
+  }
 }
 
 async function callApify(
@@ -278,9 +359,36 @@ async function fetchSubtitlesWithFallback(
   lang: string,
   forceWhisper: boolean
 ): Promise<{ cues: SubtitleCue[]; source: SubtitleSource }> {
-  const apifyCues = forceWhisper ? [] : await fetchHybridSubtitles(videoId, lang);
+  if (forceWhisper) {
+    try {
+      const whisperCues = await getLocalWhisperSubtitles(videoId, lang);
 
-  if (!shouldUseWhisperFallback(apifyCues, forceWhisper)) {
+      if (whisperCues.length > 0) {
+        console.log(
+          "[subtitle] Whisper fetched",
+          whisperCues.length,
+          "cues for",
+          videoId,
+          lang
+        );
+        return { cues: whisperCues, source: "whisper" };
+      }
+    } catch (error) {
+      console.warn("[subtitle] Whisper fallback failed:", error);
+    }
+
+    return { cues: [], source: "none" };
+  }
+
+  const supadataCues = await fetchSupadataSubtitles(videoId, lang);
+
+  if (!shouldUseWhisperFallback(supadataCues, false)) {
+    return { cues: supadataCues, source: "supadata" };
+  }
+
+  const apifyCues = await fetchHybridSubtitles(videoId, lang);
+
+  if (!shouldUseWhisperFallback(apifyCues, false)) {
     return { cues: apifyCues, source: "apify" };
   }
 
@@ -301,7 +409,15 @@ async function fetchSubtitlesWithFallback(
     console.warn("[subtitle] Whisper fallback failed:", error);
   }
 
-  return { cues: apifyCues, source: apifyCues.length > 0 ? "apify" : "none" };
+  if (apifyCues.length > 0) {
+    return { cues: apifyCues, source: "apify" };
+  }
+
+  if (supadataCues.length > 0) {
+    return { cues: supadataCues, source: "supadata" };
+  }
+
+  return { cues: [], source: "none" };
 }
 
 export async function GET(request: Request) {
