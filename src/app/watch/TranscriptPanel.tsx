@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-29 14:35
+// Timestamp: 2026-05-30 14:12
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -929,7 +929,7 @@ export function TranscriptPanel({
 
               return (
                 <div
-                  className={`group border-t border-zinc-100 dark:border-zinc-850/65 px-5 py-3.5 first:border-t-0 ${
+                  className={`relative group border-t border-zinc-100 dark:border-zinc-850/65 px-5 py-3.5 first:border-t-0 ${
                     isActive ? "border-l-[3px] border-l-brand-600 bg-brand-50/10 dark:bg-brand-950/5" : "border-l-[3px] border-l-transparent"
                   }`}
                   data-cue-index={index}
@@ -1054,7 +1054,7 @@ export function TranscriptPanel({
                   </button>
 
                   {activeLookup?.cueIndex === index && (
-                    <div className="relative mt-3 z-10 w-full max-w-[300px]" data-testid="dummy-active-lookup-card">
+                    <div className="absolute left-5 top-full z-30 w-full max-w-[300px]" data-testid="dummy-active-lookup-card">
                       <LookupCardStack
                         cards={activeLookup.cards.map((card) => ({
                           ...card,

@@ -1,10 +1,28 @@
-### Session #WATCH-002-SUBTITLE-TWEAK - 2026-05-30 14:02
+### Session #WATCH-002-ALL-LOOKUP-FLOATED - 2026-05-30 14:55
 
-**Goal**: Widen subtitle text layout line-width and prevent the lookup card from pushing down page content by positioning it as a floating overlay.
+**Goal**: Verify that all lookup cards across the application float dynamically as absolute/fixed overlays instead of pushing inline content down, and resolve any visual anomalies.
 
 **Completed**:
-- Reduced subtitle area horizontal padding from `px-8` to `px-2` in `src/app/watch/SubtitlePanel.tsx` to increase horizontal space and prevent premature word wrapping.
-- Repositioned active lookup stack wrapper in `src/app/watch/SubtitlePanel.tsx` from inline layout to absolute positioning (`absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 z-50 w-full max-w-[300px]`), allowing it to float as an overlay without pushing the layout.
+- Sweeped all lookup card surfaces in the codebase (`/watch`, `/lectura`, `/dissect`, `/grammar`, and `/talk`).
+- Resolved a layout bug in `WatchClient.tsx` where the fullscreen subtitle overlay rendered a duplicate container with double borders, padding, and shadows. Passed `useStaticLayout={true}` to the inner `<LookupCard />` to ensure it formats properly inside the floating overlay panel container.
+- Confirmed all other interfaces correctly render absolute/fixed positioned hovering wrappers (such as `absolute left-5 top-full` cues in `TranscriptPanel`, bottom overlay in `SubtitlePanel`, dynamic cursor coordinates in `LecturaReader`, and `absolute top-full z-50` anchors in `SpanishText`).
+
+**Verification**:
+- `npm test` -> 316/316 tests pass.
+- `npm run build` -> Compiled successfully (static pages 108/108 built).
+
+**Status**: Completed. Ready for PM and UI Designer final review.
+
+---
+
+### Session #WATCH-002-SUBTITLE-TWEAK - 2026-05-30 14:14
+
+**Goal**: Widen transcript panel (right-side subtitles) width, make transcript lookups float as absolute overlay.
+
+**Completed**:
+- Changed Transcript Panel and Drawer width in `src/app/watch/WatchClient.tsx` from `420px` to `480px` to widen right-side subtitles overall width.
+- Modified `src/app/watch/TranscriptPanel.tsx` to set cue containers `relative` and wrap the active lookup stack in `absolute` positioning, letting the card float on top of following lines instead of shifting layout down.
+- Kept the previous bottom-subtitle area padding (`px-2`) and card absolute overlay styling.
 
 **Verification**:
 - `npm test` -> 316/316 tests pass.

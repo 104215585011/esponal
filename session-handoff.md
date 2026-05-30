@@ -1,15 +1,35 @@
-## Codex1 Dev Report: WATCH-002 Subtitle layout visual tweaks
-**Time**: 2026-05-30 14:02
+## Codex1 Dev Report: WATCH-002 Full Sweep on Floating Lookup Cards (All Surfaces Hovered)
+**Time**: 2026-05-30 14:55
 **Developer**: Codex1
-**To**: Claude1 (PM) / Gemini1
-**Status**: Visual tweaks completed. Ready for review.
+**To**: Claude1 (PM) / Gemini1 (UI)
+**Status**: Sweep and final visual fixes completed. Ready for visual acceptance.
 
 ### Implementation
-1. **Subtitle Padding (Wider Text Line)**:
-   - Modified `src/app/watch/SubtitlePanel.tsx`: Reduced horizontal padding of the subtitles area container from `px-8` to `px-2` inside the subtitle box. This expands the available text layout line-width, resolving the wrapping issue and satisfying the request to widen the subtitle text width ("字幕宽度加宽一点").
-2. **Overlay Lookup Card (No Container Pushing)**:
-   - Modified `src/app/watch/SubtitlePanel.tsx`: Repositioned the active lookup stack wrapper from inline layout (`mt-4 flex ...`) to absolute floating position (`absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 z-50 w-full max-w-[300px]`).
-   - This overlay floats the card directly on top of metadata content/video meta info without shifting or pushing ("顶") the page layout, satisfying the request "查词的可以不顶出来，悬浮在上面".
+1. **Fullscreen Subtitle Lookup Overlay Fix**:
+   - Modified `src/app/watch/WatchClient.tsx`: Passed `useStaticLayout={true}` to the inner `<LookupCard />` component rendered within the absolute-positioned overlay wrapper `div`. This resolves a styling layout bug where the card rendered duplicate borders, padding, and high-depth shadows, making it overlay cleanly as a single floating panel.
+2. **Surface Sweeping & Verification**:
+   - Verified that all lookup card contexts (`/watch` subtitle panel, `/watch` transcript pane, `/lectura` floating/docked panels, `/dissect` dissection popups, and `/grammar`/`/talk` `SpanishText` elements) employ hovering overlays (absolutely/fixed positioned layouts) and do not shift or push inline page content down when clicked.
+
+### Verification
+- `npm test` -> 316/316 tests pass.
+- `npm run build` -> Compiled successfully (static pages 108/108 built).
+
+---
+
+## Codex1 Dev Report: WATCH-002 Transcript (Right Subtitle) Layout Tweaks
+**Time**: 2026-05-30 14:14
+**Developer**: Codex1
+**To**: Claude1 (PM) / Gemini1
+**Status**: Visual and layout tweaks completed. Ready for review.
+
+### Implementation
+1. **Widened Transcript Panel & Drawer**:
+   - Modified `src/app/watch/WatchClient.tsx`: Changed the width of the desktop Transcript Panel (right-side subtitles container) and the slide-out drawer from `420px` to `480px` (adjusting `lg:w-[420px]`, drawer `w-[420px]`, drawer arrow trigger offset `right-[420px]`, and hover styles). This widens the overall width of the right subtitles ("我要加宽的是右边字幕的整体的宽度"), resolving wrapping and spacing constraints on the right side.
+2. **Transcript Floating Lookup Overlay (No Content Shifting)**:
+   - Modified `src/app/watch/TranscriptPanel.tsx`: Added `relative` positioning class to the cue container lines.
+   - Changed the active lookup card stack wrapper from inline layout (`relative mt-3 ...`) to absolute positioning (`absolute left-5 top-full z-30 w-full max-w-[300px]`). This causes the lookup card to hover absolutely on top of subsequent lines, rather than pushing ("顶") the content list down.
+3. **Subtitle Panel Padding & Positioning (From Previous Turn)**:
+   - Maintained reduced subtitle area container padding (`px-2`) to expand Spanish text line layout width, and absolute card stack positioning below the player.
 
 ### Verification
 - `npm test` -> 316/316 tests pass.
