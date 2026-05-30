@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-30 14:50
+// Timestamp: 2026-05-30 15:45
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -41,12 +41,6 @@ type ActiveLookup = {
 };
 
 const PLAYER_IFRAME_ID = "esponal-youtube-player";
-const MOCK_CHAPTERS = [
-  { time: "0:00", title: "介绍与嘉宾登场" },
-  { time: "1:45", title: "加拿大人学西语的旅程" },
-  { time: "5:20", title: "阿根廷口音的特点" },
-  { time: "9:10", title: "vos 用法与日常对话" }
-];
 
 function loadYouTubeIframeApi(): Promise<any> {
   if (typeof window === "undefined") {
@@ -256,7 +250,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   }, []);
 
   return (
-    <div className="relative mx-auto flex w-full max-w-app-shell flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:px-6">
+    <div className="relative mx-auto flex w-full max-w-none flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:px-2">
       {/* Main Column: Player & Subtitles & Transcript */}
       <section className="flex flex-1 min-w-0 flex-col px-4 pt-2 pb-4 lg:justify-start lg:overflow-y-auto lg:pr-6 lg:pt-3 lg:pb-8">
         <BackLink href="/" label="视频" />
@@ -279,73 +273,24 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
             />
           </div>
 
-          {/* Fullscreen Subtitle Overlay and floating LookupCard */}
-          {isFullscreen && currentSpanish && (
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-11/12 max-w-4xl pointer-events-none z-30 flex flex-col items-center">
-              {activeLookup && (
-                <div className="pointer-events-auto mb-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 shadow-elevated w-[300px]">
-                  <LookupCard
-                    currentTimeSec={currentTimeSec}
-                    form={activeLookup.form}
-                    onClose={handleCloseLookup}
-                    originalSentence={activeLookup.originalSentence}
-                    translatedSentence={activeLookup.translatedSentence ?? ""}
-                    useStaticLayout={true}
-                  />
-                </div>
-              )}
-
-              <div className="pointer-events-auto bg-black/75 backdrop-blur-md px-6 py-3 rounded-xl text-center shadow-lg border border-white/10 select-none">
-                <p className="text-white text-lg md:text-xl font-semibold tracking-wide leading-relaxed font-sans">
-                  {splitSubtitleTokens(currentSpanish).map((token, index, arr) => {
-                    const normalizedWord = normalizeLookupWord(token);
-                    if (!normalizedWord) {
-                      return <span key={`${token}-${index}`}>{token}</span>;
-                    }
-
-                    // Highlight currently spoken word
-                    let isWordActive = false;
-                    if (activeCue && activeCue.dur > 0) {
-                      const wordIndices: number[] = [];
-                      arr.forEach((t, idx) => {
-                        if (normalizeLookupWord(t)) {
-                          wordIndices.push(idx);
-                        }
-                      });
-                      const elapsed = currentTimeSec - activeCue.start;
-                      const progress = Math.min(Math.max(0, elapsed / activeCue.dur), 0.99);
-                      const activeWordIndex = wordIndices[Math.floor(progress * wordIndices.length)] ?? -1;
-                      isWordActive = index === activeWordIndex;
-                    }
-
-                    return (
-                      <span
-                        key={`${token}-${index}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLookup({
-                            form: normalizedWord,
-                            originalSentence: currentSpanish,
-                            translatedSentence: currentChinese
-                          });
-                        }}
-                        className={`cursor-pointer rounded px-0.5 transition hover:bg-white/20 ${
-                          isWordActive ? "bg-brand-500/30 text-brand-400 font-bold" : ""
-                        }`}
-                      >
-                        {token}
-                      </span>
-                    );
-                  })}
-                </p>
-                {currentChinese && (
-                  <p className="text-zinc-300 text-sm mt-1.5 font-medium">
-                    {currentChinese}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Subtitle Panel Overlay (desktop overlay inside player, visible on desktop/fullscreen) */}
+          <div className="hidden lg:block absolute bottom-0 left-0 right-0 z-30">
+            <SubtitlePanel
+              key={`subtitle-overlay-${videoId}-${refreshKey}`}
+              currentTimeSec={currentTimeSec}
+              onLookup={handleLookup}
+              onCloseLookup={handleCloseLookup}
+              playbackRate={playbackRate}
+              onSpeedChange={handleSpeedChange}
+              videoId={videoId}
+              isOverlay={true}
+              onCueChange={(spanish, chinese, cue) => {
+                setCurrentSpanish(spanish);
+                setCurrentChinese(chinese);
+                setActiveCue(cue);
+              }}
+            />
+          </div>
 
           {/* Custom Fullscreen Toggle Button */}
           <button
@@ -366,23 +311,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           </button>
         </div>
 
-        {/* Subtitle Panel (Directly below player on desktop, hidden on mobile in tabs) */}
-        <div className="hidden lg:block mt-3 shrink-0">
-          <SubtitlePanel
-            key={`subtitle-${videoId}-${refreshKey}`}
-            currentTimeSec={currentTimeSec}
-            onLookup={handleLookup}
-            onCloseLookup={handleCloseLookup}
-            playbackRate={playbackRate}
-            onSpeedChange={handleSpeedChange}
-            videoId={videoId}
-            onCueChange={(spanish, chinese, cue) => {
-              setCurrentSpanish(spanish);
-              setCurrentChinese(chinese);
-              setActiveCue(cue);
-            }}
-          />
-        </div>
+
 
         {/* Video Meta Info */}
         <div className="mt-4 px-0.5">
@@ -505,32 +434,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           )}
         </div>
 
-        {/* Chapters */}
-        <div className="mt-5 px-0.5">
-          <div className="mb-3 h-px bg-gray-200 dark:bg-zinc-800" />
-          <p className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.5px] text-gray-500 dark:text-zinc-400">
-            章节
-          </p>
-          <div className="space-y-1">
-            {MOCK_CHAPTERS.map((chapter) => {
-              const timeParts = chapter.time.split(":");
-              const sec = parseInt(timeParts[0]!) * 60 + parseInt(timeParts[1]!);
-              return (
-                <button
-                  onClick={() => handleSeek(sec)}
-                  className="flex items-center gap-3 w-full text-left rounded-md px-1 py-1.5 text-sm text-gray-700 dark:text-zinc-300 transition hover:bg-gray-100 dark:hover:bg-zinc-800/50"
-                  key={chapter.time}
-                  type="button"
-                >
-                  <span className="w-9 shrink-0 text-[11px] font-semibold text-gray-400 dark:text-zinc-500">
-                    {chapter.time}
-                  </span>
-                  <span>{chapter.title}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+
       </section>
 
       {videoEnded ? (
@@ -565,7 +469,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       ) : null}
 
       {/* Desktop Transcript Panel (inline, below subtitle on desktop) */}
-      <section className="hidden lg:block lg:w-[480px] lg:shrink-0 border-l border-zinc-200 dark:border-zinc-800 h-full bg-surface">
+      <section className="hidden lg:block lg:w-[560px] lg:shrink-0 border-l border-zinc-200 dark:border-zinc-800 h-full bg-surface">
         <TranscriptPanel
           key={`transcript-${videoId}-${refreshKey}`}
           currentTimeSec={currentTimeSec}
@@ -580,10 +484,10 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       <button
         aria-label={isSidebarOpen ? "关闭侧栏" : "打开侧栏"}
         className={`hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 h-16 w-5 items-center justify-center rounded-l-lg border border-r-0 border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-900/90 shadow-sm backdrop-blur-sm text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-200 ${
-          isSidebarOpen ? "right-[480px]" : "right-0"
+          isSidebarOpen ? "right-[560px]" : "right-0"
         }`}
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        style={{ right: isSidebarOpen ? 480 : 0 }}
+        style={{ right: isSidebarOpen ? 560 : 0 }}
         type="button"
       >
         <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${isSidebarOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -593,7 +497,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
 
       {/* Desktop Slide-out Sidebar Drawer */}
       <aside
-        className={`hidden lg:flex fixed right-0 top-[65px] bottom-0 z-30 w-[480px] flex-col border-l border-zinc-200/80 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-950/95 shadow-xl backdrop-blur-md transition-transform duration-300 ease-out ${
+        className={`hidden lg:flex fixed right-0 top-[65px] bottom-0 z-30 w-[560px] flex-col border-l border-zinc-200/80 dark:border-zinc-800/80 bg-white/95 dark:bg-zinc-950/95 shadow-xl backdrop-blur-md transition-transform duration-300 ease-out ${
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

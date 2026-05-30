@@ -1,3 +1,26 @@
+## Codex1 Dev Report: WATCH-002 Cinematic Player & Subtitle Overlay (All Layout Customizations)
+**Time**: 2026-05-30 15:45
+**Developer**: Codex1
+**To**: Claude1 (PM) / Gemini1 (UI)
+**Status**: Cinematic player overlay, chapters removal, and right subtitles widening completed. Ready for visual review.
+
+### Implementation
+1. **Margins & Layout Real Estate (两边留白只留一点点)**:
+   - Modified `src/app/watch/WatchClient.tsx`: Changed outer container width class from `max-w-app-shell` to `max-w-none` and margins from `lg:px-6` to `lg:px-2`. This allows the video player and subtitle panel to expand fully across wide screens.
+2. **Overlay Subtitles Integration**:
+   - Refactored `src/app/watch/SubtitlePanel.tsx`: Added `isOverlay` support. Under overlay mode, the subtitle box renders as a translucent black overlay (`bg-black/65 backdrop-blur-md`) with high-contrast text and interactive word/phrase highlights. Settings and LookupCardStack container positionings are inverted to float upwards, preventing container overflow clipping.
+   - Modified `src/app/watch/WatchClient.tsx`: Removed the bottom `SubtitlePanel` block on desktop, and mounted `SubtitlePanel` inside the player container overlay `div`. It dynamically manages both normal desktop and fullscreen views.
+3. **Right Subtitles Sidebar Widening**:
+   - Modified `src/app/watch/WatchClient.tsx`: Expanded right-side TranscriptPanel, drawer width, and sidebar toggle offsets from `480px` to `560px` to give extensive room for bilingual cues.
+4. **Chapters List Removal**:
+   - Modified `src/app/watch/WatchClient.tsx`: Deleted the `MOCK_CHAPTERS` declaration and Chapters UI rendering under the player to give the video panel maximum vertical space.
+
+### Verification
+- `npm test` -> 316/316 tests pass.
+- `npm run build` -> Compiled successfully.
+
+---
+
 ## Codex1 Dev Report: WATCH-002 Full Sweep on Floating Lookup Cards (All Surfaces Hovered)
 **Time**: 2026-05-30 14:55
 **Developer**: Codex1
@@ -8892,3 +8915,25 @@ uniqueHeights=[258]
 - Spot-check that feed-backed cards simply omit the duration badge instead of showing `00:00`.
 
 ---
+
+---
+
+## Dev Report - Session #66 (2026-05-30 15:45) - Vocab Redesign
+
+### Completed
+- Added client-side search, POS, Frequency, and Source filters, custom sorting controls, and client-side pagination in [VocabAccordion.tsx](file:///c:/Users/wang/esponal/src/app/components/vocab/VocabAccordion.tsx).
+- Standardized filter attributes (`data-testid="vocab-search-input"`, `data-testid="vocab-filter-pos"`, `data-testid="vocab-filter-freq"`, `data-testid="vocab-filter-source"`, `data-testid="vocab-sort"`, `data-testid="vocab-load-more"`).
+- Rendered custom inline SVG for the search icon to avoid external module webpack build issues.
+- Updated [tests/vocab-ui.test.mjs](file:///c:/Users/wang/esponal/tests/vocab-ui.test.mjs) to add coverage for the new control UI and empty state.
+- Checked both `npm test` and `npm run build` locally, ensuring clean pass.
+
+### Files Changed
+- [VocabAccordion.tsx](file:///c:/Users/wang/esponal/src/app/components/vocab/VocabAccordion.tsx)
+- [tests/vocab-ui.test.mjs](file:///c:/Users/wang/esponal/tests/vocab-ui.test.mjs)
+- [claude-progress.md](file:///c:/Users/wang/esponal/claude-progress.md)
+- [session-handoff.md](file:///c:/Users/wang/esponal/session-handoff.md)
+
+### Verification
+- `npm test` -> passed 317/317.
+- `npm run build` -> passed.
+- Checked `clean-state-checklist.md` -> all items checked.

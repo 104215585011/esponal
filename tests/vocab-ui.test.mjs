@@ -52,3 +52,19 @@ test("vocab accordion renders reviewed row, encounter, divider, and empty states
   assert.match(component, /date divider/i);
   assert.doesNotMatch(component, /known|learning|掌握|未掌握/i);
 });
+
+test("vocab accordion renders search, filters, sorting controls and load-more button", async () => {
+  const componentPath = "src/app/components/vocab/VocabAccordion.tsx";
+  assert.ok(existsSync(componentPath), `${componentPath} should exist`);
+
+  const component = await readText(componentPath);
+
+  assert.match(component, /data-testid="vocab-search-input"/);
+  assert.match(component, /data-testid="vocab-filter-pos"/);
+  assert.match(component, /data-testid="vocab-filter-freq"/);
+  assert.match(component, /data-testid="vocab-filter-source"/);
+  assert.match(component, /data-testid="vocab-sort"/);
+  assert.match(component, /data-testid="vocab-load-more"/);
+  assert.match(component, /没有找到符合筛选条件的单词/);
+});
+

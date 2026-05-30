@@ -1,3 +1,22 @@
+### Session #WATCH-002-CINEMATIC-PLAYER - 2026-05-30 15:45
+
+**Goal**: Widen video player and right-side subtitles, overlay subtitle panels inside player container, remove chapters list, and minimize margins.
+
+**Completed**:
+- Adjusted layout margins on `/watch` in [WatchClient.tsx](file:///C:/Users/wang/esponal/src/app/watch/WatchClient.tsx) by setting container max-width to `none` and margins to `px-2` to maximize video and text area (两边留白只留一点点).
+- Removed mock chapters list and UI references to yield space for vertical screen expansion.
+- Refactored [SubtitlePanel.tsx](file:///C:/Users/wang/esponal/src/app/watch/SubtitlePanel.tsx) to support `isOverlay?: boolean` property. When in overlay mode, it displays with a translucent glass dark backdrop (`bg-black/65 backdrop-blur-md`), accessible word and phrase contrast adjustments, and pops settings popovers and LookupCardStack upwards instead of downwards (avoiding container cropping).
+- Mounted `SubtitlePanel` overlay inside the player container in [WatchClient.tsx](file:///C:/Users/wang/esponal/src/app/watch/WatchClient.tsx), handling desktop normal and fullscreen display dynamically while removing redundant custom overlays.
+- Widened the right-side subtitles transcript panel, drawer, and trigger offset to `560px`.
+
+**Verification**:
+- `npm test` -> 316/316 tests pass.
+- `npm run build` -> Compiled successfully.
+
+**Status**: Completed. Ready for visual review.
+
+---
+
 ### Session #WATCH-002-ALL-LOOKUP-FLOATED - 2026-05-30 14:55
 
 **Goal**: Verify that all lookup cards across the application float dynamically as absolute/fixed overlays instead of pushing inline content down, and resolve any visual anomalies.
@@ -4278,3 +4297,19 @@ feature_list.json 更新：
 - `npm run build`: pass; existing `<img>`, Sentry, and local Redis warnings remain.
 
 **Status**: `TALK-005` is `ready_for_qa`; handoff returned to Codex2.
+
+### Session Update - 2026-05-30 15:45 - Vocab Redesign Codex1 Dev
+
+**Goal**: Redesign the vocabulary list interface (`/vocab`) to handle a large and growing number of words.
+
+**Done**:
+- Added client-side search, filtering, custom sorting, and paginated loading in `src/app/components/vocab/VocabAccordion.tsx`.
+- Removed potential external package dependencies (`lucide-react`) to ensure robust builds by rendering the search icon as an inline SVG.
+- Reset `pageSize` (default 20) back to 20 whenever any search or filter state changes.
+- Added a "加载更多" (Load More) button that displays next batch when more matching words are available.
+- Added a search empty state with a click-to-clear quick reset link.
+- Added test coverage in `tests/vocab-ui.test.mjs` verifying controls exist.
+
+**Verification**:
+- `npm test` -> 317/317 pass.
+- `npm run build` -> pass.

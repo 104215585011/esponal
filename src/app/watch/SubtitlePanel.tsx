@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-30 14:01
+// Timestamp: 2026-05-30 15:40
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -28,6 +28,7 @@ type SubtitlePanelProps = {
   onSpeedChange: (speed: number) => void;
   videoId: string;
   onCueChange?: (spanish: string, chinese: string, activeCue: SubtitleCue | null) => void;
+  isOverlay?: boolean;
 };
 
 type HighlightStatus = "course" | "saved" | "unknown";
@@ -67,7 +68,8 @@ export function SubtitlePanel({
   playbackRate,
   onSpeedChange,
   videoId,
-  onCueChange
+  onCueChange,
+  isOverlay = false
 }: SubtitlePanelProps) {
   // Constants kept for WEB-006 test assertions
   const COURSE_HIGHLIGHT = "#86EFAC";
@@ -460,7 +462,13 @@ export function SubtitlePanel({
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
 
   return (
-    <section className="relative min-h-[120px] flex flex-col justify-center rounded-surface border border-zinc-300 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-6 shadow-md backdrop-blur-sm">
+    <section
+      className={
+        isOverlay
+          ? "relative min-h-[90px] flex flex-col justify-center bg-black/65 backdrop-blur-md text-white px-6 py-4 border-t border-white/10 w-full select-none"
+          : "relative min-h-[120px] flex flex-col justify-center rounded-surface border border-zinc-300 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-6 shadow-md backdrop-blur-sm"
+      }
+    >
       {/* Subtitle Settings Control */}
       <div className="absolute top-4 right-4 flex items-center gap-2" ref={settingsRef}>
         <div className="relative">
@@ -477,7 +485,11 @@ export function SubtitlePanel({
           </button>
 
           {isSettingsOpen && (
-            <div className="absolute right-0 top-10 z-30 w-56 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xl text-left">
+            <div className={`absolute right-0 z-30 w-56 rounded-xl border p-4 shadow-xl text-left ${
+              isOverlay
+                ? "bottom-12 border-zinc-700 bg-zinc-950/95 text-white shadow-2xl backdrop-blur-md"
+                : "top-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+            }`}>
               <h3 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 font-display">
                 字幕选项
               </h3>
@@ -578,7 +590,9 @@ export function SubtitlePanel({
             {/* Spanish line */}
             {displayMode !== "chinese" ? (
               <p
-                className={`font-sans tracking-wide leading-relaxed font-semibold transition-all text-zinc-900 dark:text-zinc-100 ${
+                className={`font-sans tracking-wide leading-relaxed font-semibold transition-all ${
+                  isOverlay ? "text-white hover:text-white" : "text-zinc-900 dark:text-zinc-100"
+                } ${
                   textSize === "large" ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
                 }`}
               >
@@ -586,7 +600,11 @@ export function SubtitlePanel({
                   if (segment.type === "phrase") {
                     return (
                       <span
-                        className={PHRASE_HIGHLIGHT_CLASSES}
+                        className={
+                          isOverlay
+                            ? "phrase-highlight inline bg-amber-500/20 border-b border-amber-500/40 rounded px-1 py-0.5 mx-0.5 transition-colors duration-150 hover:bg-amber-500/35 cursor-pointer"
+                            : PHRASE_HIGHLIGHT_CLASSES
+                        }
                         key={`phrase-${segment.span.start}-${segment.span.end}`}
                         onClick={() => {
                           openLookup(
@@ -624,7 +642,7 @@ export function SubtitlePanel({
                   // We map them to premium high-contrast accessible styling
                   let colorClass = "";
                   if (highlightStatus === "course") {
-                    colorClass = "text-emerald-600 dark:text-emerald-400";
+                    colorClass = isOverlay ? "text-emerald-400 font-semibold" : "text-emerald-600 dark:text-emerald-400";
                   }
 
                   if (!normalizedWord) {
@@ -633,11 +651,21 @@ export function SubtitlePanel({
 
                   return (
                     <span
-                      className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-150 dark:hover:bg-zinc-800/80 ${colorClass} ${
+                      className={`cursor-pointer rounded px-0.5 transition ${
+                        isOverlay
+                          ? "hover:bg-white/20 text-white"
+                          : "hover:bg-zinc-150 dark:hover:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100"
+                      } ${colorClass} ${
                         highlightStatus === "saved"
-                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-550"
+                          ? `saved-word underline decoration-dotted decoration-1 ${isOverlay ? "decoration-zinc-300" : "decoration-zinc-400 dark:decoration-zinc-550"}`
                           : ""
-                      } ${isWordActive ? "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold" : ""}`}
+                      } ${
+                        isWordActive
+                          ? isOverlay
+                            ? "bg-brand-500/30 text-brand-300 font-bold"
+                            : "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold"
+                          : ""
+                      }`}
                       key={`${token}-${index}`}
                       onClick={() => {
                         openLookup(normalizedWord, spanishLine);
@@ -671,7 +699,9 @@ export function SubtitlePanel({
             {/* Chinese translation line */}
             {displayMode !== "spanish" ? (
               <p
-                className={`font-sans tracking-wide leading-relaxed font-medium mt-2 text-zinc-400 dark:text-zinc-500 transition-all ${
+                className={`font-sans tracking-wide leading-relaxed font-medium mt-2 ${
+                  isOverlay ? "text-zinc-300" : "text-zinc-400 dark:text-zinc-500"
+                } transition-all ${
                   textSize === "large" ? "text-lg md:text-xl" : "text-sm"
                 }`}
               >
@@ -683,7 +713,12 @@ export function SubtitlePanel({
       </div>
 
       {activeLookup && (
-        <div className="absolute left-1/2 top-[calc(100%+8px)] -translate-x-1/2 z-50 w-full max-w-[300px]" data-testid="dummy-active-lookup-card">
+        <div
+          className={`absolute left-1/2 -translate-x-1/2 z-50 w-full max-w-[300px] ${
+            isOverlay ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
+          }`}
+          data-testid="dummy-active-lookup-card"
+        >
           <LookupCardStack
             cards={activeLookup.cards.map((card) => ({
               ...card,
