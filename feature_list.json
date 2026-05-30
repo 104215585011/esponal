@@ -1456,5 +1456,23 @@
     ],
     "evidence": "POC 通过 2026-05-30: Supadata API 抓 5vxteCt0WsY 西语字幕,归一化(ms/1000)后 445/447 cue 与 Redis 扩展版逐条一致(2处仅浮点四舍五入),抓的是人工轨非ASR,5.4s 返回,零运维。结论:Supadata 托管 API 作主线。yt-dlp 排除(裸IP被bot拦,需cookies+代理+账号封禁风险)。",
     "notes": "PM 派单 2026-05-30。Ticket: docs/tickets/SUBS-001-poc-server-subtitles.md。Spec: docs/superpowers/specs/2026-05-30-mobile-subtitles-architecture.md。移动上线可行性闸门,通过后进 SUBS-002(批处理worker)。原名 WEB-017-POC,因编号撞车改 SUBS-001。"
+  },
+  "78": {
+    "id": "SUBS-002",
+    "priority": 79,
+    "area": "backend",
+    "title": "Supadata 接入 /api/subtitle 作字幕主力",
+    "user_visible_behavior": "移动端/Safari 零扩展即可在播放页看到人工西语字幕:/api/subtitle 缓存未命中时优先调 Supadata 托管 API(质量=扩展),失败再退 Apify/Whisper,结果缓存。",
+    "status": "todo",
+    "verification": [
+      "回退链 Supadata→Apify→Whisper,source 标 supadata + X-Subtitle-Source 头",
+      "Supadata 只在缓存未命中时调,结果写 Redis(成本有界)",
+      "缺 key/空/报错 优雅降级不崩",
+      "cue 归一化 ms→秒,过 clampOverlappingCues",
+      "route 单测(mock Supadata)+ npm test 通过",
+      "PM 验收:策划视频 X-Subtitle-Source=supadata 且质量=扩展;无轨视频降级 apify;二次请求命中缓存"
+    ],
+    "evidence": "",
+    "notes": "PM 派单 2026-05-30。Ticket: docs/tickets/SUBS-002-supadata-integration.md。承接 SUBS-001(POC通过)。SUPADATA_API_KEY 已在 Vercel Production,代码读 process.env,勿提交真key。批处理worker不做(实时+缓存够)。"
   }
 }
