@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-29 14:35
+// Timestamp: 2026-05-30 13:51
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -460,7 +460,7 @@ export function SubtitlePanel({
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
 
   return (
-    <section className="relative min-h-[120px] flex flex-col justify-center rounded-surface border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm backdrop-blur-sm">
+    <section className="relative min-h-[120px] flex flex-col justify-center rounded-surface border border-zinc-300 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-6 shadow-md backdrop-blur-sm">
       {/* Subtitle Settings Control */}
       <div className="absolute top-4 right-4 flex items-center gap-2" ref={settingsRef}>
         <div className="relative">
