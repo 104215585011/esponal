@@ -1,3 +1,184 @@
+## UI 评审 Report：WATCH-007
+**时间**：2026-05-31 15:50
+**评审人**：Gemini1
+
+**结论**：符合
+
+**逐条对照设计稿**：
+- **工具条排版**：✅ 已重构。左侧双语/单语 pill selector 与右侧句子级/逐行 pill selector、下载按钮在一行内横向排开，使用 `ml-auto` 进行对齐，自适应换行在 `560px` 宽度下整齐美观。
+- **状态管理**：✅ 已引入 `transcriptMode` 状态与 `localStorage` 同步（记忆为 `esponal_transcript_mode`），切换模式时自动重置跟随滚动 `setFollowMode(true)`。
+- **PDF下载方案**：✅ 已在底部渲染全量隐藏的 `#print-transcript-area`，并在 `src/app/globals.css` 追加 `@media print` 样式。唤起打印时只打印该容器，内容完全跟随 `displayMode`，中文字体渲染正常，每一行带时间戳前缀，无 jsPDF 依赖。
+- **查词交互**：✅ 切换模式后，单词查词、短语高亮、已收藏词下划线、LookupCard 叠卡以及键盘/点击触发逻辑在两套渲染下均完美一致且功能正常。
+
+**移交**：Claude1 最终验收
+
+---
+
+## Codex2 Re-QA Report: WATCH-007 blocker cleanup
+**Time**: 2026-05-31 15:43
+**Tester**: Codex2
+**Conclusion**: PASS - the previous blocker is closed. Ready for Gemini1 UI review.
+
+### Commands Run
+1. `node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs`
+   - Result: 14/14 pass.
+2. `npm test`
+   - Result: 334/334 pass.
+3. `npm run build`
+   - Result: pass. Existing unrelated Next `<img>` warnings and Sentry setup/deprecation warnings remain.
+4. `npm run lint:encoding`
+   - Result: pass (`Encoding check passed`).
+
+### Blocker Recheck
+- `tests/watch007.test.mjs` no longer contains literal mojibake characters. The guard now builds the regexp with `String.fromCodePoint(...)`.
+- Independent scan of `src/app/watch/**` and `tests/watch007.test.mjs` found no literal mojibake hints.
+
+### WATCH-007 Contract Recheck
+- `TranscriptMode = "sentence" | "cue"` remains present; default state is `"sentence"`.
+- The localStorage key remains `esponal_transcript_mode`.
+- `handleTranscriptModeChange(...)` still persists the key, resets state, and calls `setFollowMode(true)`.
+- Sentence mode and cue mode render branches both remain present.
+- Lookup/phrase highlighting/card stack behavior remains wired through token rendering and `LookupCardStack`.
+- Download still uses the print-view approach: `#print-transcript-area`, `printRows.map`, `formatTimestamp(row.start)`, and `window.print()`. No jsPDF import/dependency was found.
+- Print output still follows `displayMode` and keeps timestamps on every row.
+
+### Handoff
+Codex2 Re-QA passes. Move WATCH-007 to Gemini1 visual/UI review.
+
+---
+
+## Codex1 Fix Report: WATCH-007 QA Blocker Cleanup
+**Time**: 2026-05-31 15:45
+**From**: Codex1
+**To**: Codex2（Re-QA）
+**Status**: ready_for_qa
+
+### Fix
+- Replaced the literal mojibake guard characters in `tests/watch007.test.mjs` with a `String.fromCodePoint(...)` generated RegExp, so the test still catches the bad characters without storing them in the test file itself.
+
+### Verification
+- `node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 14/14 pass.
+- `npm run lint:encoding` -> pass.
+- Literal mojibake scan for `tests/watch007.test.mjs` -> no literal mojibake.
+- `npm test` -> 334/334 pass.
+- `npm run build` -> pass, with existing unrelated Next `<img>` and Sentry warnings.
+
+### Handoff
+Return to Codex2 for narrow re-QA of the previous blocker plus the normal WATCH-007 checklist.
+
+---
+
+## Codex2 QA Report: WATCH-007 Transcript Mode + Subtitle Download
+**Time**: 2026-05-31 15:37
+**Tester**: Codex2
+**Conclusion**: FAIL - return to Codex1 for one cleanup before Gemini1 UI review.
+
+### Commands Run
+1. `node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs`
+   - Result: 14/14 pass.
+2. `npm test`
+   - Result: 334/334 pass.
+3. `npm run build`
+   - Result: pass. Existing unrelated Next `<img>` warnings and Sentry setup/deprecation warnings remain.
+4. `npm run lint:encoding`
+   - Result: pass (`Encoding check passed`).
+
+### Source Contract Checks
+- `src/app/watch/TranscriptPanel.tsx` defines `TranscriptMode = "sentence" | "cue"` and defaults state to `"sentence"`.
+- The localStorage key is `esponal_transcript_mode`; `handleTranscriptModeChange` writes the key, resets virtual window/lookup, and calls `setFollowMode(true)`.
+- Both sentence and cue render branches exist: sentence mode uses `renderedSentences.map(...)`; cue mode uses `renderedCueRows.map((cue, offset) => renderCueRow(cue, offset))`.
+- Both branches retain lookup/phrase behavior through token spans and `LookupCardStack`.
+- Download uses browser print view, not jsPDF: `#print-transcript-area`, `window.print()`, `printRows.map`, and `formatTimestamp(row.start)` are present; package/source checks show no jsPDF import/dependency.
+- Print rows follow `displayMode`: Spanish hidden when `displayMode === "chinese"`, Chinese hidden when `displayMode === "spanish"`, and every row still renders the timestamp.
+- Right transcript unloaded/empty paths in `TranscriptPanel.tsx` are normal Chinese (`字幕加载中...`, extension/no-subtitle EmptyState copy). Translation-empty paths use `?? ""`, not mojibake fallback.
+
+### Blocking Finding
+1. `tests/watch007.test.mjs:61` contains literal mojibake characters:
+   ```text
+   assert.doesNotMatch(source, /鍥|鈥|閳|闂/);
+   ```
+   This is a guard assertion, not user-facing UI, and production watch sources are clean. However the QA assignment explicitly required `src/app/watch/**` and `tests/watch007.test.mjs` to contain no mojibake characters. Please replace these literals with Unicode escapes or another non-literal guard pattern, then rerun:
+   ```text
+   node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs
+   npm test
+   npm run build
+   npm run lint:encoding
+   ```
+
+### Handoff
+Return to Codex1 for the test-file mojibake cleanup only. No implementation behavior blocker was found.
+
+---
+
+## Codex1 Dev Report: WATCH-007 字幕加载方式切换 + 字幕下载
+**Time**: 2026-05-31 15:32
+**From**: Codex1（实现）
+**To**: Codex2（QA）→ Gemini1（UI 评审）→ Claude1（验收）
+**Status**: ready_for_qa
+
+### Implemented
+- `TranscriptPanel` 新增 `transcriptMode: "sentence" | "cue"`，默认句子级，localStorage key 为 `esponal_transcript_mode`。
+- 工具条保留 `ES+中 / 仅西语 / 仅中文`，新增 `句子级 / 逐行` 切换和 `下载` 按钮。
+- 逐行模式恢复 per-cue 渲染，同时保留逐词查词、短语高亮、已收藏下划线、LookupCard stack 和键盘可访问点击。
+- 切换加载方式时会重置虚拟窗口、关闭旧 lookup，并调用 `setFollowMode(true)` 恢复跟随。
+- 下载采用 Gemini1/PM 推荐的 print-view 方案：`#print-transcript-area` + `window.print()`，不引入 `jsPDF`，内容跟随当前显示模式且每行带时间戳。
+- `src/app/globals.css` 增加 `@media print`，打印时只显示字幕导出区域。
+
+### Verification
+- TDD: `tests/watch007.test.mjs` 先红后绿。
+- `node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 14/14 pass。
+- `npx tsc --noEmit --pretty false` -> pass。
+- `npm run lint:encoding` -> pass。
+- `npm test` -> 334/334 pass（单独重跑通过；并行跑 build 时曾让 LEX 相关测试 stdout 为空，这是并发干扰，不是 WATCH-007 回归）。
+- `npm run build` -> pass，只有既有 Next `<img>` 与 Sentry warning。
+
+### Codex2 QA Checklist
+- 跑 `node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs`、`npm test`、`npm run build`、`npm run lint:encoding`。
+- 源码核查 `src/app/watch/TranscriptPanel.tsx`：句子级/逐行分支都存在，localStorage key 正确，切换会 `setFollowMode(true)`。
+- 源码核查下载：无 `jspdf` 依赖，`#print-transcript-area` 非虚拟化输出，timestamp 使用 `formatTimestamp(row.start)`。
+- 重点看中文：右侧字幕未加载/翻译空值时不应出现乱码；导出区域不应含 mojibake 字符。
+
+---
+
+## Ticket: WATCH-007 字幕加载方式切换 + 字幕下载（PDF）
+**Time**: 2026-05-31 15:20
+**From**: Gemini1（设计）
+**To**: Codex1（实现）→ Codex2（测试）→ Gemini1（评审）→ Claude1（验收）
+**Status**: in_progress — 设计已交付，等 Codex1 实施
+
+## 设计交付 Report：WATCH-007
+**时间**：2026-05-31 15:20
+**设计人**：Gemini1
+
+**设计稿位置**：docs/tickets/WATCH-007-design.md
+**关键设计决策**：
+- **工具条排版**：左侧保留原 `ES+中 / 仅西语 / 仅中文` pill buttons。右侧添加 `句子级 / 逐行` pill buttons 切换和 icon-button `下载`。使用 `ml-auto` 进行右对齐，并在小屏幕上自适应换行，确保 `560px` 宽度下美观且无溢出。
+- **状态管理**：引入 `transcriptMode` 状态，并与 `localStorage` 同步（记忆为 `esponal_transcript_mode`）。切换模式时，强行重置自动跟随滚动 `setFollowMode(true)`。
+- **PDF下载方案**：使用 `window.print()` + 打印样式 CSS。这种做法可以从根本上避开 jsPDF 携带巨大中文字体造成的 package 膨胀。在 `TranscriptPanel` 底部渲染一个只在打印模式下可见（`print:block`，平常 `hidden`）的非虚拟化列表 `div#print-transcript-area`。在 `src/app/globals.css` 中追加打印媒体查询 `@media print` 规则以隐藏其它所有屏幕级元素。
+
+**禁区清单核查**：✅ 全部七条已对照，无任何游戏化数字、AI 伪标签、已掌握反向视觉、SRS 术语、压力提醒、庆祝纸屑动画或不友好中文，符合 Esponal 设计准则。
+
+**移交**：Codex1 实施
+
+---
+
+**需求**（用户提）：右侧字幕工具条加两样：
+1. **加载方式切换**：保留旧「逐 cue 逐行」+ 新「句子级合并」(WATCH-004)，两种可切、都保留查词、选择 localStorage 记忆。
+2. **字幕下载按钮**：导出 **PDF**，内容跟随当前显示模式(ES+中/仅西语/仅中文)，每条带时间戳，中文不乱码。
+
+**完整 ticket**：`docs/tickets/WATCH-007.md`
+
+**要点**：
+- 原拟 WATCH-005，已被「禁用原生字幕」占用 → 改用 **WATCH-007**。
+- 逐 cue 旧渲染在 commit `bf7acd6`（WATCH-004 sentence 渲染）之前的 git 历史里，可参考恢复。
+- ⚠️ PDF 选型：纯前端 jsPDF 嵌 CJK 字体撑大 bundle，**不推荐**；PM 推荐「打印视图 + window.print() 另存 PDF」(CJK 安全、零字体负担)，留设计/实现定夺。
+
+**下一站 Gemini1**：出工具条布局设计稿(模式切换 + 加载方式 + 下载按钮怎么排不挤) → `docs/tickets/WATCH-007-design.md`。
+
+> ⚠️ PM 提醒：watch 区当前多 agent 并发改 TranscriptPanel.tsx，本票开工前务必先确认拿到最新代码，避免互相覆盖。
+
+---
+
 ## Codex2 Re-QA Report: WATCH-005 & WATCH-006 blocker fixes
 **Time**: 2026-05-31 14:45
 **Tester**: Codex2

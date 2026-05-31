@@ -1,3 +1,39 @@
+### Session #WATCH-007 UI Review & Completion - 2026-05-31 15:50
+
+**Goal**: Review WATCH-007 loading mode toggle and PDF print download UI, verify with automated and production build tests, and deliver to PM for final acceptance.
+
+**Done (Gemini1)**:
+- Performed visual and functional UI review of `WATCH-007` toolbar alignment, loading mode switching logic, lookup interactivity in both modes, and print view formatting.
+- Verified that all 334 tests pass successfully and the Next.js production build compiles without errors.
+- Prepended the UI Review Report to `session-handoff.md` and set feature status to `passing` in `feature_list.json`.
+- Completed task list tracking in `task.md` and created progress documentation in `walkthrough.md`.
+
+**Status**: WATCH-007 -> `passing` (waiting for Claude1 PM final acceptance / close).
+
+---
+
+### Session #WATCH-007 Transcript Mode + Subtitle Download - 2026-05-31 15:32
+
+**Goal**: Implement the Gemini1-designed WATCH-007 toolbar controls: sentence/cue transcript loading mode switch and subtitle PDF download via browser print.
+
+**Done (Codex1)**:
+- Added `tests/watch007.test.mjs` with contract coverage for transcript mode state/localStorage, toolbar controls, print download, print rows, and mojibake guards.
+- Updated `src/app/watch/TranscriptPanel.tsx` with `sentence` / `cue` transcript modes, localStorage persistence (`esponal_transcript_mode`), follow-mode reset on switch, restored per-cue row rendering, and preserved lookup/phrase highlighting/card-stack behavior in both modes.
+- Added a `下载` toolbar action that renders `#print-transcript-area` and calls `window.print()` instead of bundling jsPDF/CJK fonts.
+- Added print-only CSS in `src/app/globals.css` so browser "Save as PDF" prints only the transcript rows with timestamps.
+
+**Verification**:
+- TDD red -> green: WATCH-007 test failed before implementation and passed after implementation.
+- `node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 14/14 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 334/334 pass on standalone rerun.
+- `npm run build` -> pass; existing unrelated Next `<img>` and Sentry warnings remain.
+
+**Status**: WATCH-007 -> `ready_for_qa`; handoff to Codex2 for independent QA.
+
+---
+
 ### Session #WATCH-005/006 Codex2 Re-QA Fixes - 2026-05-31 14:45
 
 **Goal**: Close Codex2 QA blockers for WATCH-005 and WATCH-006 before PM final acceptance.

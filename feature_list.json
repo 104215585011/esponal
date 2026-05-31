@@ -1505,7 +1505,7 @@
       "Gemini1 UI 评审通过",
       "npm test 全绿"
     ],
-      "evidence": "2026-05-31 Codex1 implemented sentence-level transcript grouping in src/app/watch/TranscriptPanel.tsx, switched translation input/cache to sentence.text keyed by sentence.startIndex, preserved cue-level Spanish lookup/highlight/follow behavior, and rendered Chinese as per-sentence blocks with pl-[42px] in bilingual mode. Added tests/watch004.test.mjs. Verification: node --test tests/watch004.test.mjs tests/web007.test.mjs tests/web008.test.mjs tests/phrase001-frontend.test.mjs tests/ext008.test.mjs; npm run lint:encoding; npm run build; npm test (323/323 pass). | Gemini1 2026-05-31: UI 评审与真实数据运行时 QA 均通过。在 1440px 视口与真实字幕数据环境下，合并翻译语义连贯无碎句，双语 pl-[42px] 缩进对齐正确，仅中文模式带时间戳跳转稳定，逐词查词与高亮均未发生回归。 | PM(Claude1) 最终验收 2026-05-31: 代码逐项亲核通过 — groupCuesIntoSentences(标点 shouldEndTranscriptLine + MAX_CUES_PER_SENTENCE 强制断句 + 空文本跳过), translateSentence 按整句翻+按 sentence.text 缓存, 展示层 group/sentence 容器(西语逐cue查词/seek保留, 中文每句一块, 三模式齐)。单测 3/3, 全量 npm test 323/323, lint:encoding pass。验收中发现并回滚 Gemini1 误伤的无关文件 tests/ext008.test.mjs(乱码污染), 回滚后仍 323/323。源码中文完好未受影响。状态→passing 关闭。| Codex1 fix 2026-05-31: 修复右侧字幕空态与回到当前位置按钮的用户可见 mojibake，恢复 extension popup/badge 测试断言为真实中文/✓，新增 WATCH-004 防乱码断言。Verification: node --test tests/watch004.test.mjs tests/ext008.test.mjs -> 12/12 pass; npm run lint:encoding pass; npm test -> 324/324 pass; npm run build pass.",
+    "evidence": "2026-05-31 Codex1 implemented sentence-level transcript grouping in src/app/watch/TranscriptPanel.tsx, switched translation input/cache to sentence.text keyed by sentence.startIndex, preserved cue-level Spanish lookup/highlight/follow behavior, and rendered Chinese as per-sentence blocks with pl-[42px] in bilingual mode. Added tests/watch004.test.mjs. Verification: node --test tests/watch004.test.mjs tests/web007.test.mjs tests/web008.test.mjs tests/phrase001-frontend.test.mjs tests/ext008.test.mjs; npm run lint:encoding; npm run build; npm test (323/323 pass). | Gemini1 2026-05-31: UI 评审与真实数据运行时 QA 均通过。在 1440px 视口与真实字幕数据环境下，合并翻译语义连贯无碎句，双语 pl-[42px] 缩进对齐正确，仅中文模式带时间戳跳转稳定，逐词查词与高亮均未发生回归。 | PM(Claude1) 最终验收 2026-05-31: 代码逐项亲核通过 — groupCuesIntoSentences(标点 shouldEndTranscriptLine + MAX_CUES_PER_SENTENCE 强制断句 + 空文本跳过), translateSentence 按整句翻+按 sentence.text 缓存, 展示层 group/sentence 容器(西语逐cue查词/seek保留, 中文每句一块, 三模式齐)。单测 3/3, 全量 npm test 323/323, lint:encoding pass。验收中发现并回滚 Gemini1 误伤的无关文件 tests/ext008.test.mjs(乱码污染), 回滚后仍 323/323。源码中文完好未受影响。状态→passing 关闭。| Codex1 fix 2026-05-31: 修复右侧字幕空态与回到当前位置按钮的用户可见 mojibake，恢复 extension popup/badge 测试断言为真实中文/✓，新增 WATCH-004 防乱码断言。Verification: node --test tests/watch004.test.mjs tests/ext008.test.mjs -> 12/12 pass; npm run lint:encoding pass; npm test -> 324/324 pass; npm run build pass.",
     "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-004.md。根因:翻译按字幕cue逐块翻,而cue按时长切非按句切,半句喂翻译→残句。方案:cue先拼回整句再翻+中文按句展示.有UI影响,需 Gemini1 出中文按句展示设计稿(docs/tickets/WATCH-004-design.md)。第1步句子合并算法+翻译层无UI,Codex1 可先行实现+单测;展示层等设计稿。流程:Claude1→Gemini1设计→Codex1→Codex2→Gemini1评审→Claude1验收。2026-05-31 Codex1 implementation complete; Gemini1 UI/QA review passed."
   },
   "81": {
@@ -1514,14 +1514,14 @@
     "area": "ui",
     "title": "禁用 YouTube 原生字幕自动加载",
     "user_visible_behavior": "视频播放页加载时，YouTube 播放器默认不再自动弹出原生白色/黄色字幕，避免与自定义悬浮字幕重合遮挡。",
-    "status": "ready_for_accept",
+    "status": "passing",
     "verification": [
       "src/app/watch/WatchClient.tsx 第 271 行左右的 iframe 的 src 将 cc_load_policy=1 改为 cc_load_policy=0 并移除 hl/cc_lang_pref",
       "视频播放页加载时，YouTube 播放器默认不显示原生字幕",
       "自定义悬浮字幕正常渲染，无重合遮挡",
       "npm test 通过"
     ],
-    "evidence": "2026-05-31 Codex1: updated YouTube iframe parameters in WatchClient.tsx, set cc_load_policy=0 and removed &hl=es&cc_lang_pref=es. All tests passed. | Gemini1 2026-05-31: UI 评审通过。YouTube 播放器成功禁用了原生字幕的强制加载，悬浮字幕重合冲突已解决。 | Codex2 2026-05-31 Re-QA: PASS after blocker fixes; focused watch tests 10/10, npm test 330/330, npm run build pass.",
+    "evidence": "2026-05-31 Codex1: updated YouTube iframe parameters in WatchClient.tsx, set cc_load_policy=0 and removed &hl=es&cc_lang_pref=es. All tests passed. | Gemini1 2026-05-31: UI 评审通过。YouTube 播放器成功禁用了原生字幕的强制加载，悬浮字幕重合冲突已解决。 | Codex2 2026-05-31 Re-QA: PASS after blocker fixes; focused watch tests 10/10, npm test 330/330, npm run build pass. | PM(Claude1) 最终验收 2026-05-31: 用户线下验收通过,无问题。状态→passing 关闭。",
     "notes": "Ticket: docs/tickets/WATCH-005.md。设计稿: docs/tickets/WATCH-005-design.md。解决自定义悬浮字幕与 YouTube 原生字幕重合遮挡的视觉冲突。Gemini1 已出设计稿，移交 Codex1。"
   },
   "82": {
@@ -1530,7 +1530,7 @@
     "area": "ui",
     "title": "播放器页布局与视觉重构",
     "user_visible_behavior": "右侧逐字稿的句子增加分隔线，激活态句子带有淡背景与左侧品牌色竖条，「回到当前位置」按钮绝对定位悬浮在逐字稿面板底部。悬浮字幕上提至 bottom-12 并增加毛玻璃背板避免与控制栏重叠冲突。",
-    "status": "ready_for_accept",
+    "status": "passing",
     "verification": [
       "TranscriptPanel: 句子间使用分隔线 border-b border-zinc-100 dark:border-zinc-900/60 且垂直间距 py-5",
       "TranscriptPanel: 激活态句子具有 bg-zinc-50/50 dark:bg-zinc-900/20 背景与 border-l-[3px] border-l-brand-500 色条",
@@ -1538,7 +1538,24 @@
       "SubtitlePanel: 悬浮字幕容器上提至 bottom-12 并使用毛玻璃背板 bg-black/65 backdrop-blur-md",
       "npm test 通过"
     ],
-    "evidence": "2026-05-31 Codex1: implemented layout redesign in TranscriptPanel.tsx and SubtitlePanel.tsx according to watch_layout_redesign.md. Separator border-b and active brand color border-l-[3px] styled. Positioned '回到当前位置' button to bottom-6 absolute. Subtitle overlay raised to bottom-12 with Apple-like frosted glass background block. Verified with npm test (328/328 passing, including watch005.test.mjs). | Gemini1 2026-05-31: UI 视觉评审与运行时 QA 确认。句子卡片间距、分割线、激活态绿条高亮已完美呈现，悬浮字幕成功提至 bottom-12 并带毛玻璃背板避开控制条冲突，「回到当前位置」按钮已归位悬浮于逐字稿面板下方，无视觉及功能性回归。 | Codex1 2026-05-31: fixed Codex2 blockers by removing mojibake translation fallback and replacing non-standard watch zinc classes; added regression guards. | Codex2 2026-05-31 Re-QA: PASS; focused watch tests 10/10, npm test 330/330, npm run build pass.",
+    "evidence": "2026-05-31 Codex1: implemented layout redesign in TranscriptPanel.tsx and SubtitlePanel.tsx according to watch_layout_redesign.md. Separator border-b and active brand color border-l-[3px] styled. Positioned '回到当前位置' button to bottom-6 absolute. Subtitle overlay raised to bottom-12 with Apple-like frosted glass background block. Verified with npm test (328/328 passing, including watch005.test.mjs). | Gemini1 2026-05-31: UI 视觉评审与运行时 QA 确认。句子卡片间距、分割线、激活态绿条高亮已完美呈现，悬浮字幕成功提至 bottom-12 并带毛玻璃背板避开控制条冲突，「回到当前位置」按钮已归位悬浮于逐字稿面板下方，无视觉及功能性回归。 | Codex1 2026-05-31: fixed Codex2 blockers by removing mojibake translation fallback and replacing non-standard watch zinc classes; added regression guards. | Codex2 2026-05-31 Re-QA: PASS; focused watch tests 10/10, npm test 330/330, npm run build pass. | PM(Claude1) 最终验收 2026-05-31: 用户线下验收通过,无问题。状态→passing 关闭。",
     "notes": "Ticket: docs/tickets/watch_layout_redesign.md (Gemini brain proposal referenced in handoff). Handed over to Codex2 for QA; Re-QA passed after blocker fixes."
+  },
+  "83": {
+    "id": "WATCH-007",
+    "priority": 84,
+    "area": "ui",
+    "title": "字幕区:加载方式切换(句子级↔逐cue) + 字幕下载(PDF,带时间戳)",
+    "user_visible_behavior": "右侧字幕工具条新增:(1)加载方式切换——默认句子级合并(WATCH-004),可切回逐cue逐行,两种都保留逐词查词,选择记忆localStorage;(2)下载按钮——导出当前字幕为PDF,内容跟随当前显示模式(ES+中/仅西语/仅中文),每条带时间戳,中文不乱码。",
+    "status": "passing",
+    "verification": [
+      "加载方式切换:句子级/逐cue 两种渲染都可用,切换不丢查词/高亮/滚动,选择 localStorage 记忆",
+      "下载按钮:导出 PDF,内容随当前显示模式(三选一),每条带时间戳",
+      "PDF 中文显示正常(不乱码/不缺字)",
+      "Gemini1 出工具条布局设计稿 + UI 评审通过",
+      "npm test 全绿 + lint:encoding 通过"
+    ],
+    "evidence": "2026-05-31 15:32 Codex1 implemented WATCH-007: TranscriptPanel now supports sentence/cue transcript modes with localStorage key esponal_transcript_mode, mode switching resets follow mode, cue mode restores per-cue rows with lookup/phrase highlight/card stack, and download uses print view (#print-transcript-area + @media print) instead of jsPDF so Chinese PDF output relies on browser print. Verification: TDD red -> green; node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs = 14/14 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test standalone = 334/334 pass; npm run build pass with existing unrelated Next img and Sentry warnings. | 2026-05-31 15:45 Codex1 fixed Codex2 QA blocker: tests/watch007.test.mjs no longer contains literal mojibake guard characters; guard now builds the RegExp via String.fromCodePoint. | 2026-05-31 15:43 Codex2 Re-QA: PASS. All 334 tests passed, npm run build compiled. | 2026-05-31 15:50 Gemini1 UI Review: PASS. Controls aligned beautifully with responsive wrap-around at 560px width. Both sentence/cue loading modes functional and remember settings. PDF print view is perfectly formatted, responsive to displayMode, has timestamps on every line, and is free of mojibake/encoding issues. | PM(Claude1) 最终验收 2026-05-31: 独立核实通过 — transcriptMode 双模式(sentence/cue)+localStorage(esponal_transcript_mode)持久化+window.print() 打印导出 代码均到位; watch007 单测 3/3, 全量 npm test 334/334, lint:encoding pass(无乱码); 改动范围干净(TranscriptPanel.tsx + globals.css @media print + watch007 test, 未碰无关文件)。确认关闭 passing。",
+    "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-007.md。用户需求:字幕区两种加载方式(保留旧逐cue+新句子级)+字幕下载PDF(跟随显示模式,带时间戳)。原拟WATCH-005已被占,改WATCH-007。逐cue旧渲染在commit bf7acd6之前的git历史。PDF选型:纯前端jsPDF嵌CJK字体撑大bundle不推荐,PM推荐打印视图+window.print()另存PDF(CJK安全零字体负担),留设计/实现定夺。流程:Claude1→Gemini1设计→Codex1→Codex2→Gemini1评审→Claude1验收。"
   }
 }

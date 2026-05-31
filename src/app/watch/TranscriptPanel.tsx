@@ -55,6 +55,7 @@ type HighlightResponse = {
 };
 
 type DisplayMode = "bilingual" | "spanish" | "chinese";
+type TranscriptMode = "sentence" | "cue";
 
 type SentenceGroup = {
   id: string;
@@ -222,6 +223,7 @@ export function TranscriptPanel({
   videoId
 }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
+  const [transcriptMode, setTranscriptMode] = useState<TranscriptMode>("sentence");
   type ActiveLookupCard = {
     id: string;
     form: string;
@@ -326,7 +328,7 @@ export function TranscriptPanel({
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
   const cueRefs = useRef<Array<HTMLDivElement | null>>([]);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
-  const sentenceGroupsRef = useRef<SentenceGroup[]>([]);
+  const rowCountRef = useRef(0);
   const isProgrammaticScrollRef = useRef(false);
   const scrollUnlockRef = useRef<number | null>(null);
   const autoFollowTimeoutRef = useRef<number | null>(null);
@@ -345,23 +347,37 @@ export function TranscriptPanel({
       ),
     [activeCueIndex, sentenceGroups]
   );
+  const activeRowIndex = transcriptMode === "sentence" ? activeSentenceIndex : activeCueIndex;
+  const transcriptRowCount =
+    transcriptMode === "sentence" ? sentenceGroups.length : transcriptCues.length;
   const visibleCueRange = useMemo(
     () => ({
-      start: Math.max(0, Math.min(renderStart, sentenceGroups.length)),
-      end: Math.max(0, Math.min(renderEnd, sentenceGroups.length))
+      start: Math.max(0, Math.min(renderStart, transcriptRowCount)),
+      end: Math.max(0, Math.min(renderEnd, transcriptRowCount))
     }),
-    [renderEnd, renderStart, sentenceGroups.length]
+    [renderEnd, renderStart, transcriptRowCount]
   );
-  const visibleCues = useMemo(
+  const renderedSentences = useMemo(
     () => sentenceGroups.slice(visibleCueRange.start, visibleCueRange.end),
-    [sentenceGroups, visibleCueRange]
+    [sentenceGroups, visibleCueRange.end, visibleCueRange.start]
   );
-  const renderedSentences = visibleCues;
-  const renderedCues = renderedSentences;
+  const renderedCueRows = useMemo(
+    () => transcriptCues.slice(visibleCueRange.start, visibleCueRange.end),
+    [transcriptCues, visibleCueRange.end, visibleCueRange.start]
+  );
+  const visibleCues = transcriptMode === "sentence" ? renderedSentences : renderedCueRows;
+  const renderedCues = visibleCues;
+  const visibleSubtitleCues = useMemo(
+    () =>
+      transcriptMode === "sentence"
+        ? renderedSentences.flatMap((sentence) => sentence.cues)
+        : renderedCueRows,
+    [renderedCueRows, renderedSentences, transcriptMode]
+  );
 
   const expandBottomWindow = useCallback(() => {
     setRenderEnd((previousEnd) =>
-      Math.min(sentenceGroupsRef.current.length, previousEnd + LOAD_MORE_BATCH)
+      Math.min(rowCountRef.current, previousEnd + LOAD_MORE_BATCH)
     );
   }, []);
 
@@ -386,21 +402,21 @@ export function TranscriptPanel({
   }, []);
 
   const returnToCurrentCue = useCallback(() => {
-    if (activeSentenceIndex < 0) {
+    if (activeRowIndex < 0) {
       setFollowMode(true);
       return;
     }
 
     setRenderStart((previousStart) =>
-      activeSentenceIndex < previousStart
-        ? Math.max(0, activeSentenceIndex - FOLLOW_EXPAND_THRESHOLD)
+      activeRowIndex < previousStart
+        ? Math.max(0, activeRowIndex - FOLLOW_EXPAND_THRESHOLD)
         : previousStart
     );
     setRenderEnd((previousEnd) =>
-      activeSentenceIndex >= previousEnd
+      activeRowIndex >= previousEnd
         ? Math.min(
-            sentenceGroupsRef.current.length,
-            activeSentenceIndex + FOLLOW_EXPAND_THRESHOLD + 1
+            rowCountRef.current,
+            activeRowIndex + FOLLOW_EXPAND_THRESHOLD + 1
           )
         : previousEnd
     );
@@ -412,7 +428,7 @@ export function TranscriptPanel({
         block: "center"
       });
     });
-  }, [activeCueIndex, activeSentenceIndex]);
+  }, [activeCueIndex, activeRowIndex]);
 
   // Check extension
   useEffect(() => {
@@ -420,8 +436,24 @@ export function TranscriptPanel({
   }, []);
 
   useEffect(() => {
-    sentenceGroupsRef.current = sentenceGroups;
-  }, [sentenceGroups]);
+    rowCountRef.current = transcriptRowCount;
+  }, [transcriptRowCount]);
+
+  useEffect(() => {
+    const savedMode = localStorage.getItem("esponal_transcript_mode");
+    if (savedMode === "sentence" || savedMode === "cue") {
+      setTranscriptMode(savedMode);
+    }
+  }, []);
+
+  const handleTranscriptModeChange = (mode: TranscriptMode) => {
+    setTranscriptMode(mode);
+    localStorage.setItem("esponal_transcript_mode", mode);
+    setRenderStart(0);
+    setRenderEnd(Math.min(rowCountRef.current || INITIAL_RENDER_COUNT, INITIAL_RENDER_COUNT));
+    setActiveLookup(null);
+    setFollowMode(true);
+  };
 
   // Sentinel intersection observer
   useEffect(() => {
@@ -637,7 +669,7 @@ export function TranscriptPanel({
       return await response.json();
     }
 
-    async function translateSentence(index: number, sentence: SentenceGroup) {
+    async function translateSentence(index: number, sentence: { text: string }) {
       const cached = translationCacheRef.current.get(sentence.text);
 
       if (cached) {
@@ -702,13 +734,18 @@ export function TranscriptPanel({
             return;
           }
 
-          const sentence = sentenceGroups[index];
+          const text =
+            transcriptMode === "sentence"
+              ? sentenceGroups[index]?.text
+              : transcriptCues[index]?.text;
 
-          if (!sentence?.text.trim()) {
+          if (!text?.trim()) {
             continue;
           }
 
-          await translateSentence(sentence.startIndex, sentence);
+          const translationIndex =
+            transcriptMode === "sentence" ? sentenceGroups[index]?.startIndex ?? index : index;
+          await translateSentence(translationIndex, { text });
         }
       }
 
@@ -724,7 +761,7 @@ export function TranscriptPanel({
     return () => {
       cancelled = true;
     };
-  }, [sentenceGroups, visibleCueRange.start, visibleCues]);
+  }, [sentenceGroups, transcriptCues, transcriptMode, visibleCueRange.start, visibleCues]);
 
   // Fetch highlights
   useEffect(() => {
@@ -733,8 +770,7 @@ export function TranscriptPanel({
     async function loadHighlights() {
       const words = Array.from(
         new Set(
-          visibleCues
-            .flatMap((sentence) => sentence.cues)
+          visibleSubtitleCues
             .flatMap((cue) => splitSubtitleTokens(cue.text))
             .map((token) => normalizeLookupWord(token))
             .filter(Boolean)
@@ -799,16 +835,17 @@ export function TranscriptPanel({
     return () => {
       cancelled = true;
     };
-  }, [visibleCues]);
+  }, [visibleSubtitleCues]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadPhraseSpans() {
       const entries = await Promise.all(
-        visibleCues.flatMap((sentence) =>
-          sentence.cues.map(async (cue, offset) => {
-            const index = sentence.startIndex + offset;
+        visibleSubtitleCues.map(async (cue) => {
+            const index = transcriptCues.findIndex(
+              (candidate) => candidate.start === cue.start && candidate.text === cue.text
+            );
             try {
               const response = await fetch("/api/lexicon/detect-phrases", {
                 method: "POST",
@@ -822,11 +859,13 @@ export function TranscriptPanel({
               return [index, []] as const;
             }
           })
-        )
       );
 
       if (!cancelled) {
-        setPhraseSpansByCue((previous) => ({ ...previous, ...Object.fromEntries(entries) }));
+        setPhraseSpansByCue((previous) => ({
+          ...previous,
+          ...Object.fromEntries(entries.filter(([index]) => index >= 0))
+        }));
       }
     }
 
@@ -835,34 +874,34 @@ export function TranscriptPanel({
     return () => {
       cancelled = true;
     };
-  }, [visibleCues]);
+  }, [transcriptCues, visibleSubtitleCues]);
 
   // Keep sliding window centered around active cue
   useEffect(() => {
-    if (activeSentenceIndex < 0 || sentenceGroups.length === 0) {
+    if (activeRowIndex < 0 || transcriptRowCount === 0) {
       return;
     }
 
-    if (activeSentenceIndex < renderStart) {
-      setRenderStart(Math.max(0, activeSentenceIndex - FOLLOW_EXPAND_THRESHOLD));
+    if (activeRowIndex < renderStart) {
+      setRenderStart(Math.max(0, activeRowIndex - FOLLOW_EXPAND_THRESHOLD));
       return;
     }
 
-    if (activeSentenceIndex >= renderEnd) {
-      setRenderStart(Math.max(0, activeSentenceIndex - FOLLOW_EXPAND_THRESHOLD));
-      setRenderEnd(Math.min(sentenceGroups.length, activeSentenceIndex + LOAD_MORE_BATCH));
+    if (activeRowIndex >= renderEnd) {
+      setRenderStart(Math.max(0, activeRowIndex - FOLLOW_EXPAND_THRESHOLD));
+      setRenderEnd(Math.min(transcriptRowCount, activeRowIndex + LOAD_MORE_BATCH));
       return;
     }
 
-    if (activeSentenceIndex >= renderEnd - FOLLOW_EXPAND_THRESHOLD) {
+    if (activeRowIndex >= renderEnd - FOLLOW_EXPAND_THRESHOLD) {
       setRenderEnd((previousEnd) =>
         Math.min(
-          sentenceGroups.length,
-          Math.max(previousEnd, activeSentenceIndex + FOLLOW_EXPAND_THRESHOLD + 1)
+          transcriptRowCount,
+          Math.max(previousEnd, activeRowIndex + FOLLOW_EXPAND_THRESHOLD + 1)
         )
       );
     }
-  }, [activeSentenceIndex, renderEnd, renderStart, sentenceGroups.length]);
+  }, [activeRowIndex, renderEnd, renderStart, transcriptRowCount]);
 
   // Smooth scroll container to center the active cue when followMode is active
   useEffect(() => {
@@ -891,13 +930,195 @@ export function TranscriptPanel({
   const activeCue = activeCueIndex >= 0 ? transcriptCues[activeCueIndex] : null;
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
   const showHarvestHint = showEmptyState && subtitleHint?.reason === "no_subtitle";
+  const printRows = useMemo(
+    () =>
+      transcriptMode === "sentence" ? sentenceGroups.map((sentence) => ({
+        id: sentence.id,
+        start: sentence.cues[0]?.start ?? 0,
+        text: sentence.text,
+        translation: translations[sentence.startIndex] ?? ""
+      })) : transcriptCues.map((cue, index) => ({
+        id: `cue-${cue.start}-${index}`,
+        start: cue.start,
+        text: cue.text,
+        translation: translations[index] ?? ""
+      })),
+    [sentenceGroups, transcriptCues, transcriptMode, translations]
+  );
+
+  const handlePrintDownload = () => {
+    const originalTitle = document.title;
+    document.title = `Esponal subtitles - ${videoId}`;
+    window.print();
+    document.title = originalTitle;
+  };
+
+  const renderCueRow = (cue: SubtitleCue, offset: number) => {
+    const index = visibleCueRange.start + offset;
+    const tokens = splitSubtitleTokens(cue.text);
+    const phraseSegments = buildPhraseSegments(
+      tokens.map((token) => ({ text: token, isWord: !!normalizeLookupWord(token) })),
+      phraseSpansByCue[index] ?? []
+    );
+    const translation = translations[index] ?? "";
+    const isActive = index === activeCueIndex;
+
+    return (
+      <div
+        className={`relative group border-b border-zinc-100 dark:border-zinc-900/60 px-6 py-4 transition-all duration-200 ${
+          isActive
+            ? "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
+            : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
+        }`}
+        data-cue-index={index}
+        data-testid="transcript-cue"
+        key={`${cue.start}-${cue.text}`}
+        ref={(element) => {
+          cueRefs.current[index] = element;
+        }}
+      >
+        <button
+          className="block w-full text-left"
+          onClick={() => {
+            onSeek(cue.start);
+            setFollowMode(true);
+          }}
+          type="button"
+        >
+          {displayMode !== "chinese" ? (
+            <div className="inline">
+              <span
+                className={`mr-2 inline-block text-[10px] font-bold tabular-nums tracking-[0.3px] transition font-display ${
+                  isActive ? "opacity-100 text-brand-600" : "opacity-0 text-zinc-400 group-hover:opacity-100"
+                }`}
+              >
+                {formatTimestamp(cue.start)}
+              </span>
+              <span
+                className={`inline text-[15px] leading-7 tracking-[0.05px] font-sans ${
+                  isActive
+                    ? "font-bold text-brand-600 dark:text-brand-400"
+                    : "font-medium text-zinc-800 dark:text-zinc-200"
+                }`}
+              >
+                {phraseSegments.map((segment, tokenIndex) => {
+                  if (segment.type === "phrase") {
+                    return (
+                      <span
+                        className={PHRASE_HIGHLIGHT_CLASSES}
+                        key={`phrase-${segment.span.start}-${segment.span.end}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openLookup(index, segment.span.lemma, "phrase", segment.span.kind);
+                          onLookup({
+                            form: segment.span.lemma,
+                            originalSentence: cue.text.trim(),
+                            translatedSentence: translation
+                          });
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        {segment.tokens.map((phraseToken, phraseTokenIndex) => (
+                          <span key={`${phraseToken.text}-${phraseTokenIndex}`}>
+                            {phraseToken.text}
+                          </span>
+                        ))}
+                      </span>
+                    );
+                  }
+
+                  const token = segment.token.text;
+                  const normalizedWord = normalizeLookupWord(token);
+                  const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+
+                  let colorClass = "";
+                  if (highlightStatus === "course") {
+                    colorClass = "text-brand-600 dark:text-brand-400";
+                  }
+
+                  if (!normalizedWord) {
+                    return <span key={`${token}-${tokenIndex}`}>{token}</span>;
+                  }
+
+                  return (
+                    <span
+                      className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 ${colorClass} ${
+                        highlightStatus === "saved"
+                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
+                          : ""
+                      }`}
+                      key={`${token}-${tokenIndex}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openLookup(index, normalizedWord);
+                        onLookup({
+                          form: normalizedWord,
+                          originalSentence: cue.text.trim(),
+                          translatedSentence: translation
+                        });
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          openLookup(index, normalizedWord);
+                          onLookup({
+                            form: normalizedWord,
+                            originalSentence: cue.text.trim(),
+                            translatedSentence: translation
+                          });
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      {token}
+                    </span>
+                  );
+                })}
+              </span>
+            </div>
+          ) : null}
+
+          {displayMode !== "spanish" ? (
+            <p
+              className={`mt-1.5 font-sans text-[13px] leading-6 ${
+                isActive
+                  ? "font-medium text-zinc-600 dark:text-zinc-300"
+                  : "text-zinc-400 dark:text-zinc-500"
+              }`}
+            >
+              {translation}
+            </p>
+          ) : null}
+        </button>
+
+        {activeLookup?.cueIndex === index ? (
+          <div className="absolute left-5 top-full z-30 w-full max-w-[300px]" data-testid="dummy-active-lookup-card">
+            <LookupCardStack
+              cards={activeLookup.cards.map((card) => ({
+                ...card,
+                onClose: () => closeStackCard(card.id),
+                onExampleWordClick: openNestedWord,
+                onRelatedPhraseClick: openNestedPhrase,
+                originalSentence: cue.text.trim(),
+                translatedSentence: translation,
+                currentTimeSec
+              }))}
+              onCloseCard={closeStackCard}
+            />
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <section className="relative flex h-full min-w-0 flex-col bg-surface" ref={panelRef}>
       {/* Tab bar header */}
-      <div className="flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
-        {/* WEB-007 label contract: ES + 中 */}
-        <div className="flex rounded-full bg-gray-150/70 dark:bg-zinc-850 p-0.5 text-[11px] font-semibold text-gray-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
+        <div className="flex rounded-full bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
           <button
             className={`rounded-full px-3 py-1 transition ${
               displayMode === "bilingual" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
@@ -935,7 +1156,39 @@ export function TranscriptPanel({
             仅中文
           </button>
         </div>
-        <span className="ml-auto text-[11.5px] text-zinc-400 dark:text-zinc-500">点击字幕跳转</span>
+        <div className="ml-auto flex items-center gap-3">
+          <div className="flex rounded-full bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
+            <button
+              className={`rounded-full px-3 py-1 transition ${
+                transcriptMode === "sentence" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+              }`}
+              onClick={() => handleTranscriptModeChange("sentence")}
+              type="button"
+            >
+              句子级
+            </button>
+            <button
+              className={`rounded-full px-3 py-1 transition ${
+                transcriptMode === "cue" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+              }`}
+              onClick={() => handleTranscriptModeChange("cue")}
+              type="button"
+            >
+              逐行
+            </button>
+          </div>
+          <button
+            aria-label="下载当前字幕为 PDF"
+            className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            onClick={handlePrintDownload}
+            type="button"
+          >
+            <svg className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>下载</span>
+          </button>
+        </div>
       </div>
 
       <div
@@ -989,7 +1242,9 @@ export function TranscriptPanel({
           <>
             <div ref={topSentinelRef} />
             {/* renderedCues.map contract preserved for WEB-008 while rendering by sentence groups */}
-            {renderedSentences.map((sentence) => {
+            {transcriptMode === "cue"
+              ? renderedCueRows.map((cue, offset) => renderCueRow(cue, offset))
+              : renderedSentences.map((sentence) => {
               const sentenceTranslation = translations[sentence.startIndex] ?? "";
               const isActive =
                 activeCueIndex >= sentence.startIndex && activeCueIndex <= sentence.endIndex;
@@ -1197,10 +1452,42 @@ export function TranscriptPanel({
                   ) : null}
                 </div>
               );
-            })}
+              })}
             <div ref={bottomSentinelRef} />
           </>
         )}
+      </div>
+
+      <div
+        className="hidden print:block w-full bg-white px-8 py-10 font-sans text-black"
+        id="print-transcript-area"
+      >
+        <h1 className="mb-6 border-b-2 border-zinc-200 pb-3 text-2xl font-bold font-display">
+          Esponal 字幕
+        </h1>
+        <div className="space-y-6">
+          {printRows.map((row) => (
+            <div className="page-break-avoid border-b border-zinc-100 pb-4 last:border-b-0" key={row.id}>
+              <div className="flex items-start gap-2">
+                <span className="mt-1.5 min-w-[36px] text-[10px] font-bold tabular-nums text-zinc-400 font-display">
+                  [{formatTimestamp(row.start)}]
+                </span>
+                <div className="min-w-0">
+                  {displayMode !== "chinese" ? (
+                  <span className="text-[14px] font-medium leading-7 text-zinc-800">
+                    {row.text}
+                  </span>
+                  ) : null}
+                  {displayMode !== "spanish" ? (
+                    <p className="mt-1 text-[12.5px] leading-6 text-zinc-500">
+                      {row.translation}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Floating Detached browsing follow button */}
