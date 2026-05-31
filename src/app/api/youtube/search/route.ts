@@ -45,6 +45,9 @@ type VideosResponse = {
     contentDetails?: {
       duration?: string;
     };
+    status?: {
+      embeddable?: boolean;
+    };
   }>;
 };
 
@@ -65,7 +68,7 @@ async function fetchSearchVideos(query: string, maxResults: number) {
   }
 
   const videosResponse = await fetchYouTubeJson<VideosResponse>("videos", {
-    part: "contentDetails",
+    part: "contentDetails,status",
     id: videoIds.join(",")
   });
   const durationById = mapVideoDetailsById(
@@ -79,25 +82,34 @@ async function fetchSearchVideos(query: string, maxResults: number) {
       }))
   );
 
-  return (searchResponse.items ?? [])
-    .filter(
-      (
-        item
-      ): item is NonNullable<SearchResponse["items"]>[number] & {
-        id: { videoId: string };
-        snippet: NonNullable<SearchResponse["items"]>[number]["snippet"];
-      } => Boolean(item.id?.videoId && item.snippet)
-    )
-    .map((item) =>
+  const embeddableById = new Map<string, boolean>();
+  for (const item of videosResponse.items ?? []) {
+    if (item.id) {
+      embeddableById.set(item.id, item.status?.embeddable ?? true);
+    }
+  }
+
+  const results: YouTubeVideoPayload[] = [];
+  for (const item of searchResponse.items ?? []) {
+    if (!item.id?.videoId || !item.snippet) {
+      continue;
+    }
+    const videoId = item.id.videoId;
+    if (embeddableById.get(videoId) === false) {
+      continue;
+    }
+    results.push(
       normalizeVideoPayload({
-        id: item.id.videoId,
-        title: item.snippet?.title ?? "",
-        thumbnails: item.snippet?.thumbnails,
-        duration: durationById.get(item.id.videoId) ?? "",
-        channelTitle: item.snippet?.channelTitle ?? "",
-        publishedAt: item.snippet?.publishedAt ?? ""
+        id: videoId,
+        title: item.snippet.title ?? "",
+        thumbnails: item.snippet.thumbnails,
+        duration: durationById.get(videoId) ?? "",
+        channelTitle: item.snippet.channelTitle ?? "",
+        publishedAt: item.snippet.publishedAt ?? ""
       })
     );
+  }
+  return results;
 }
 
 export async function GET(request: Request) {

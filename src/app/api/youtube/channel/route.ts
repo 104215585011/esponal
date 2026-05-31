@@ -53,6 +53,9 @@ type VideosResponse = {
     contentDetails?: {
       duration?: string;
     };
+    status?: {
+      embeddable?: boolean;
+    };
   }>;
 };
 
@@ -144,7 +147,7 @@ async function fetchChannelVideosFromApi(channelId: string, maxResults: number) 
   }
 
   const videosResponse = await fetchYouTubeJson<VideosResponse>("videos", {
-    part: "contentDetails",
+    part: "contentDetails,status",
     id: videoIds.join(",")
   });
   const durationById = mapVideoDetailsById(
@@ -158,6 +161,13 @@ async function fetchChannelVideosFromApi(channelId: string, maxResults: number) 
       }))
   );
 
+  const embeddableById = new Map<string, boolean>();
+  for (const item of videosResponse.items ?? []) {
+    if (item.id) {
+      embeddableById.set(item.id, item.status?.embeddable ?? true);
+    }
+  }
+
   const videos: YouTubeVideoPayload[] = [];
 
   for (const item of playlistResponse.items ?? []) {
@@ -165,6 +175,10 @@ async function fetchChannelVideosFromApi(channelId: string, maxResults: number) 
     const videoId = snippet?.resourceId?.videoId;
 
     if (!snippet || !videoId) {
+      continue;
+    }
+
+    if (embeddableById.get(videoId) === false) {
       continue;
     }
 

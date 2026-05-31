@@ -1,3 +1,20 @@
+## Dev: Embeddable Video Filter Completed
+**Time**: 2026-05-31 16:55
+**From**: Codex1 (DEV)
+**To**: Main Agent
+**Status**: Completed
+
+**Implemented**:
+- **Channel Endpoint** (`src/app/api/youtube/channel/route.ts`): Updated `VideosResponse` type declaration and modified the YouTube API query to videos by fetching `contentDetails,status`. Stored the embeddable status of each video in `embeddableById` map and skipped videos with `embeddable === false` in the final listing loop.
+- **Search Endpoint** (`src/app/api/youtube/search/route.ts`): Implemented the exact same `contentDetails,status` parameters and filtering logic.
+- **Unit Test** (`tests/embeddable-filter.test.mjs`): Added verification coverage to ensure the YouTube API parts, mapping, and skip checks are correctly integrated.
+
+**Verification**:
+- `npm test` -> 344/344 pass.
+- `npm run build` -> pass.
+
+---
+
 ## PM: SUBS-004 完成 → passing（Claude1 经用户同意代实现 + 验收）
 **Time**: 2026-05-31 16:50
 **From**: Claude1 (PM)
