@@ -981,9 +981,9 @@ export function TranscriptPanel({
           />
         ) : showEmptyState ? (
           <EmptyState
-            description="Esponal 鍙兘鍦ㄦ湁瀛楀箷鐨勮棰戜笂宸ヤ綔"
+            description="Esponal 只能在有字幕的视频上工作"
             kind="empty"
-            title="杩欎釜瑙嗛娌℃湁瀛楀箷"
+            title="这个视频没有字幕"
           />
         ) : (
           <>
@@ -1209,7 +1209,7 @@ export function TranscriptPanel({
             }}
             type="button"
           >
-            鈫?鍥炲埌褰撳墠浣嶇疆
+            ↺ 回到当前位置
           </button>
         ) : null}
       </div>

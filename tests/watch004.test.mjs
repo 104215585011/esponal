@@ -40,3 +40,16 @@ test("WATCH-004 transcript panel renders sentence-level Chinese blocks in all di
   assert.match(transcriptPanel, /sentence\.cues\.map/);
   assert.match(transcriptPanel, /sentence\.cues\[0\]\.start/);
 });
+
+test("WATCH-004 transcript user-facing Chinese copy is not mojibake", async () => {
+  const transcriptPanel = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.match(transcriptPanel, /这个视频暂时没有高质量字幕/);
+  assert.match(transcriptPanel, /Esponal 只能在有字幕的视频上工作/);
+  assert.match(transcriptPanel, /这个视频没有字幕/);
+  assert.match(transcriptPanel, /在 YouTube 打开/);
+  assert.match(transcriptPanel, /安装扩展/);
+  assert.match(transcriptPanel, /先去 YouTube 看/);
+  assert.match(transcriptPanel, /回到当前位置/);
+  assert.doesNotMatch(transcriptPanel, /鍙|瀛|閳|鈫|杩|瑁|鎵|�|\?{3,}/);
+});

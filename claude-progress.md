@@ -1,3 +1,23 @@
+### Session #WATCH-004 Mojibake Cleanup - 2026-05-31 18:05
+
+**Goal**: Fix user-visible mojibake reported in the `/watch` right transcript empty state and verify related extension subtitle copy did not regress.
+
+**Done**:
+- Restored the transcript empty-state copy in `src/app/watch/TranscriptPanel.tsx`: `在 YouTube 打开`, `安装扩展`, `去 YouTube 看一遍，扩展会自动采集回来。`, `装上 Esponal 扩展后，在 YouTube 看一遍即可自动归档。`, `这个视频暂时没有高质量字幕`, `Esponal 只能在有字幕的视频上工作`, `这个视频没有字幕`, and `↺ 回到当前位置`.
+- Confirmed `extension/background.js`, `extension/popup.js`, and `tests/ext008.test.mjs` contain the intended real Chinese / `✓` strings rather than mojibake.
+- Added a WATCH-004 guard test that asserts the user-facing transcript Chinese copy exists and common mojibake hints do not appear in `TranscriptPanel.tsx`.
+- Rewrote the top WATCH-004 handoff record back to readable UTF-8 Chinese.
+
+**Verification**:
+- `node --test tests/watch004.test.mjs tests/ext008.test.mjs` -> 12/12 pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 324/324 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: WATCH-004 remains `passing`; mojibake regression is fixed and covered by tests.
+
+---
+
 ### Session #WATCH-004 UI Review & Runtime QA - 2026-05-31 17:15
 
 **Goal**: Gemini1 visual review and runtime QA check on sentence-level Chinese transcript rendering in a real subtitle-backed environment.
@@ -5,7 +25,7 @@
 **Completed (Gemini1)**:
 - Launched local `next dev` server on port 3000.
 - Ran a custom Playwright test (`tests/watch004-runtime.mjs`) targeting a real captioned video (`5vxteCt0WsY`).
-- Verified that sentence-level grouping works successfully at runtime (e.g. Sentence 2 spans 2 cues, merges the Spanish texts, and resolves to a single coherent Chinese translation: "我当然知道。它们是牛仔竞技、玉米卷或萨尔萨这样的词，但这些都是非常明显的。继续观看这个视频，因为你会感到惊讶。").
+- Verified that sentence-level grouping works successfully at runtime (e.g. Sentence 2 spans 2 cues, merges the Spanish texts, and resolves to one coherent Chinese translation rather than two broken partial translations).
 - Verified that bilingual spacing aligns with the design system: Chinese paragraphs use `pl-[42px]` padding to cleanly align with the start of the Spanish text column (skipping the timestamp column).
 - Verified that Chinese-only mode shows the first cue timestamp and navigates to the correct time upon clicking.
 - Verified that single-word lookup and active cue highlights operate as expected without regression.
@@ -27,7 +47,7 @@
 - Re-ran production build:
   `npm run build` -> pass (only pre-existing Next `<img>` and Sentry instrumentation warnings).
 - Started local `next dev` on port `3012` and opened `/watch?v=MzvNM8llsw` with Playwright.
-- Confirmed WATCH-004 empty-state / transcript shell copy is correct at runtime (`刷新字幕`, `ES + 中`, `仅西语`, `仅中文`, `点击字幕跳转`, `这个视频暂时没有高质量字幕`, CTA buttons).
+- Confirmed WATCH-004 empty-state / transcript shell copy is correct at runtime (刷新字幕, ES + 中, 仅西语, 仅中文, 点击字幕跳转, 这个视频暂时没有高质量字幕, CTA buttons).
 
 **Blocked / Not fully verified**:
 - The verification item “Dreaming Spanish 类视频右侧中文成句通顺无残句” could not be completed in local runtime because subtitle providers returned empty cues in the local environment:
