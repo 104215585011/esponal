@@ -1,3 +1,60 @@
+### Session #WATCH-004 UI Review & Runtime QA - 2026-05-31 17:15
+
+**Goal**: Gemini1 visual review and runtime QA check on sentence-level Chinese transcript rendering in a real subtitle-backed environment.
+
+**Completed (Gemini1)**:
+- Launched local `next dev` server on port 3000.
+- Ran a custom Playwright test (`tests/watch004-runtime.mjs`) targeting a real captioned video (`5vxteCt0WsY`).
+- Verified that sentence-level grouping works successfully at runtime (e.g. Sentence 2 spans 2 cues, merges the Spanish texts, and resolves to a single coherent Chinese translation: "我当然知道。它们是牛仔竞技、玉米卷或萨尔萨这样的词，但这些都是非常明显的。继续观看这个视频，因为你会感到惊讶。").
+- Verified that bilingual spacing aligns with the design system: Chinese paragraphs use `pl-[42px]` padding to cleanly align with the start of the Spanish text column (skipping the timestamp column).
+- Verified that Chinese-only mode shows the first cue timestamp and navigates to the correct time upon clicking.
+- Verified that single-word lookup and active cue highlights operate as expected without regression.
+- Updated `session-handoff.md` and `feature_list.json` to mark the feature as `ready_for_accept` and transfer it to the PM for final acceptance.
+
+**Status**: WATCH-004 visual review & runtime QA passed. Ready for PM acceptance.
+
+---
+
+### Session #WATCH-004 QA - 2026-05-31 16:58
+
+**Goal**: Validate sentence-level Chinese transcript rendering changes for `/watch`, and determine whether the feature is ready to move from Codex2 QA to Gemini1 visual review.
+
+**Done (Codex2)**:
+- Re-ran targeted regression coverage:
+  `node --test tests/watch004.test.mjs tests/web007.test.mjs tests/web008.test.mjs tests/phrase001-frontend.test.mjs tests/ext008.test.mjs` -> 18/18 pass.
+- Re-ran full suite:
+  `npm test` -> 323/323 pass.
+- Re-ran production build:
+  `npm run build` -> pass (only pre-existing Next `<img>` and Sentry instrumentation warnings).
+- Started local `next dev` on port `3012` and opened `/watch?v=MzvNM8llsw` with Playwright.
+- Confirmed WATCH-004 empty-state / transcript shell copy is correct at runtime (`刷新字幕`, `ES + 中`, `仅西语`, `仅中文`, `点击字幕跳转`, `这个视频暂时没有高质量字幕`, CTA buttons).
+
+**Blocked / Not fully verified**:
+- The verification item “Dreaming Spanish 类视频右侧中文成句通顺无残句” could not be completed in local runtime because subtitle providers returned empty cues in the local environment:
+  `APIFY_API_TOKEN not set` and `Apify fetched 0 cues for MzvNM8llsw es`.
+- This means the sentence-level rendering contract is strongly covered by tests, but a real subtitle-backed runtime pass still needs an environment with available subtitle data.
+
+**Status**: WATCH-004 automated QA passes; recorded as partial QA in `session-handoff.md` and handed forward for Gemini1 visual review plus a later real-subtitle runtime recheck.
+
+### Session #WATCH-004 Sentence-Level Chinese Transcript - 2026-05-31 13:55
+
+**Goal**: Implement sentence-level Chinese translation rendering in `/watch` transcript while keeping Spanish cue-level lookup, highlighting, and follow-mode behavior intact.
+
+**Completed (Codex1)**:
+- Added `SentenceGroup` + `groupCuesIntoSentences()` in [src/app/watch/TranscriptPanel.tsx](C:/Users/wang/esponal/src/app/watch/TranscriptPanel.tsx), with punctuation-based grouping plus a 4-cue hard cap.
+- Switched transcript translation fetching from per-cue text to per-sentence text, caching by `sentence.text` and storing display text under `translations[sentence.startIndex]`.
+- Updated transcript virtualization/follow logic to slice/render by sentence groups while preserving cue-level refs for active-word scrolling.
+- Reworked transcript rendering so bilingual mode shows one Chinese block per sentence with `pl-[42px]`, Chinese-only mode shows a timestamped sentence block, and Spanish remains cue-level for phrase spans and word lookup.
+- Cleaned malformed transcript CTA strings to valid UTF-8/LF text and aligned `tests/ext008.test.mjs` with the now-correct Chinese copy plus current extension badge/popup strings.
+- Added [tests/watch004.test.mjs](C:/Users/wang/esponal/tests/watch004.test.mjs) to lock sentence grouping, sentence-virtualization, and sentence-level Chinese rendering contracts.
+
+**Verification**:
+- `node --test tests/watch004.test.mjs tests/web007.test.mjs tests/web008.test.mjs tests/phrase001-frontend.test.mjs tests/ext008.test.mjs` -> pass
+- `npm run lint:encoding` -> pass
+- `npm run build` -> pass
+- `npm test` -> 323/323 pass
+
+**Status**: WATCH-004 implementation complete. Handing off to Codex2 QA, then Gemini1 visual review.
 ### Session #SUBS-003 字幕缓存延长 30 天 - 2026-05-31 10:30
 
 **Goal**: 降低 Supadata/Apify/Whisper 上游额度消耗。决策放弃 Postgres 持久化,改最小改动延长 Redis TTL(字幕通用、不绑用户)。

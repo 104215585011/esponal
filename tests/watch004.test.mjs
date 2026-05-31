@@ -1,0 +1,42 @@
+import { readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import test from "node:test";
+import assert from "node:assert/strict";
+
+const readText = (path) => readFile(path, "utf8");
+
+test("WATCH-004 transcript panel defines sentence grouping primitives", async () => {
+  const transcriptPanelPath = "src/app/watch/TranscriptPanel.tsx";
+  assert.ok(existsSync(transcriptPanelPath), `${transcriptPanelPath} should exist`);
+
+  const transcriptPanel = await readText(transcriptPanelPath);
+
+  assert.match(transcriptPanel, /type SentenceGroup = \{/);
+  assert.match(transcriptPanel, /function groupCuesIntoSentences\(cues: SubtitleCue\[\]\)/);
+  assert.match(transcriptPanel, /startIndex:\s*number/);
+  assert.match(transcriptPanel, /endIndex:\s*number/);
+  assert.match(transcriptPanel, /MAX_CUES_PER_SENTENCE/);
+});
+
+test("WATCH-004 transcript panel translates and virtualizes by sentence groups", async () => {
+  const transcriptPanel = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.match(transcriptPanel, /const sentenceGroups = useMemo\(\(\) => groupCuesIntoSentences\(transcriptCues\), \[transcriptCues\]\)/);
+  assert.match(transcriptPanel, /const activeSentenceIndex = useMemo/);
+  assert.match(transcriptPanel, /renderedSentences/);
+  assert.match(transcriptPanel, /renderedSentences\.map/);
+  assert.match(transcriptPanel, /translateSentence\(/);
+  assert.match(transcriptPanel, /translationCacheRef\.current\.get\(sentence\.text\)/);
+  assert.match(transcriptPanel, /translations\[sentence\.startIndex\]/);
+});
+
+test("WATCH-004 transcript panel renders sentence-level Chinese blocks in all display modes", async () => {
+  const transcriptPanel = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.match(transcriptPanel, /group\/sentence/);
+  assert.match(transcriptPanel, /pl-\[42px\]/);
+  assert.match(transcriptPanel, /displayMode !== "chinese"/);
+  assert.match(transcriptPanel, /displayMode !== "spanish"/);
+  assert.match(transcriptPanel, /sentence\.cues\.map/);
+  assert.match(transcriptPanel, /sentence\.cues\[0\]\.start/);
+});
