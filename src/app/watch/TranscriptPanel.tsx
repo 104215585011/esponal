@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-30 14:12
+// Timestamp: 2026-05-31 12:48
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -893,7 +893,7 @@ export function TranscriptPanel({
   const showHarvestHint = showEmptyState && subtitleHint?.reason === "no_subtitle";
 
   return (
-    <section className="flex h-full min-w-0 flex-col bg-surface" ref={panelRef}>
+    <section className="relative flex h-full min-w-0 flex-col bg-surface" ref={panelRef}>
       {/* Tab bar header */}
       <div className="flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
         {/* WEB-007 label contract: ES + 中 */}
@@ -990,7 +990,7 @@ export function TranscriptPanel({
             <div ref={topSentinelRef} />
             {/* renderedCues.map contract preserved for WEB-008 while rendering by sentence groups */}
             {renderedSentences.map((sentence) => {
-              const sentenceTranslation = translations[sentence.startIndex] ?? "鈥?";
+              const sentenceTranslation = translations[sentence.startIndex] ?? "";
               const isActive =
                 activeCueIndex >= sentence.startIndex && activeCueIndex <= sentence.endIndex;
               const activeLookupInSentence =
@@ -1000,8 +1000,10 @@ export function TranscriptPanel({
 
               return (
                 <div
-                  className={`group/sentence relative border-t border-zinc-100 px-5 py-3.5 first:border-t-0 dark:border-zinc-850/65 ${
-                    isActive ? "border-l-[3px] border-l-brand-600 bg-brand-50/10 dark:bg-brand-950/5" : "border-l-[3px] border-l-transparent"
+                  className={`group/sentence relative px-6 py-5 border-b border-zinc-100 dark:border-zinc-900/60 first:border-t-0 transition-all duration-200 ${
+                    isActive
+                      ? "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
+                      : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
                   }`}
                   data-cue-index={sentence.startIndex}
                   data-testid="transcript-cue"
@@ -1104,7 +1106,7 @@ export function TranscriptPanel({
                                     <span
                                       className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 ${colorClass} ${
                                         highlightStatus === "saved"
-                                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-450 dark:decoration-zinc-550"
+                                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
                                           : ""
                                       }`}
                                       key={`${token}-${tokenIndex}`}
@@ -1148,7 +1150,7 @@ export function TranscriptPanel({
                         <p
                           className={`mt-1.5 pl-[42px] font-sans text-[13px] leading-6 ${
                             isActive
-                              ? "font-medium text-zinc-500 dark:text-zinc-400"
+                              ? "font-medium text-zinc-600 dark:text-zinc-300"
                               : "text-zinc-400 dark:text-zinc-500"
                           }`}
                         >
@@ -1166,7 +1168,7 @@ export function TranscriptPanel({
                           <p
                             className={`font-sans text-[13px] leading-6 ${
                               isActive
-                                ? "font-medium text-zinc-500 dark:text-zinc-400"
+                                ? "font-medium text-zinc-600 dark:text-zinc-300"
                                 : "text-zinc-400 dark:text-zinc-500"
                             }`}
                           >
@@ -1199,20 +1201,18 @@ export function TranscriptPanel({
             <div ref={bottomSentinelRef} />
           </>
         )}
-
-        {/* Floating Detached browsing follow button */}
-        {!followMode && activeCue ? (
-          <button
-            className="fixed bottom-8 right-[max(2rem,calc(37vw-7rem))] z-20 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 text-xs font-semibold text-brand-600 dark:text-brand-400 shadow-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-display"
-            onClick={() => {
-              returnToCurrentCue();
-            }}
-            type="button"
-          >
-            ↺ 回到当前位置
-          </button>
-        ) : null}
       </div>
+
+      {/* Floating Detached browsing follow button */}
+      {!followMode && activeCue ? (
+        <button
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 rounded-full border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-brand-600 dark:text-brand-400 shadow-elevated hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-display"
+          onClick={() => returnToCurrentCue()}
+          type="button"
+        >
+          ↺ 回到当前位置
+        </button>
+      ) : null}
 
       {/* Hidden dummy component for WEB-007 test compatibility */}
       {false && (

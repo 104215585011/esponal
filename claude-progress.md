@@ -1,3 +1,56 @@
+### Session #WATCH-005/006 Codex2 Re-QA Fixes - 2026-05-31 14:45
+
+**Goal**: Close Codex2 QA blockers for WATCH-005 and WATCH-006 before PM final acceptance.
+
+**Done (Codex1)**:
+- Fixed `src/app/watch/TranscriptPanel.tsx` sentence translation fallback from mojibake to an empty string.
+- Replaced non-standard watch-page Tailwind zinc steps (`zinc-150/355/450/550/650`) with standard steps in `SubtitlePanel.tsx`, `TranscriptPanel.tsx`, and `page.tsx`.
+- Extended `tests/watch005.test.mjs` with guards for no mojibake fallback and no banned zinc steps under `src/app/watch/**/*.tsx`.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs tests/watch004.test.mjs` -> 10/10 pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 330/330 pass.
+- `npm run build` -> pass.
+- `git diff --check` -> pass.
+- Codex2 Re-QA -> PASS; ready for PM final acceptance.
+
+**Status**: WATCH-005 & WATCH-006 remain `ready_for_accept`.
+
+---
+
+### Session #WATCH-005 & Watch Page Layout Redesign - 2026-05-31 13:20
+
+**Goal**: Disable YouTube native closed captions and implement the Watch Page Layout Redesign including TranscriptPanel sentences card styling, absolute position of "回到当前位置" button, and SubtitlePanel overlay bottom-12 positioning with backdrop-blur.
+
+**Completed (Codex1)**:
+- Updated `src/app/watch/WatchClient.tsx` to set YouTube parameter `cc_load_policy=0` and remove `&hl=es&cc_lang_pref=es`.
+- Removed "回到当前位置" from bottom center of player in `src/app/watch/WatchClient.tsx`.
+- Updated `src/app/watch/TranscriptPanel.tsx` to render "回到当前位置" button inside `TranscriptPanel` (absolute `bottom-6 left-1/2 -translate-x-1/2 z-20`) and grouped sentences in `.group/sentence` containers with divider line and highlight styles.
+- Updated `src/app/watch/SubtitlePanel.tsx` overlay to lift to `bottom-12` and wrap with translucent backdrop-blur card.
+- Updated `feature_list.json` and `session-handoff.md` to register `WATCH-005` and `WATCH-006` as `ready_for_qa` and request QA from Codex2.
+
+**Verification**:
+- `npm test` -> 324/324 pass.
+- `npm run build` -> pass.
+
+**Status**: WATCH-005 & WATCH-006 implementation complete. Handed off to Codex2 for QA.
+
+---
+
+### Session #WATCH-005 Native Captions Disabling Design - 2026-05-31 12:45
+
+**Goal**: Design the parameter settings for YouTube iframe embed inside `WatchClient.tsx` to prevent YouTube player from auto-loading native subtitles, which overlap/conflict with our custom interactive subtitles.
+
+**Completed (Gemini1)**:
+- Generated ticket `docs/tickets/WATCH-005.md` to define requirements and validation criteria.
+- Generated UI design spec `docs/tickets/WATCH-005-design.md` detailing the parameter changes in `WatchClient.tsx` (changing `cc_load_policy=1` to `cc_load_policy=0` and removing Spanish language preferences to prevent forced captions loading).
+- Updated `feature_list.json` and `session-handoff.md` to register `WATCH-005` under `in_progress` and hand it off to Codex1 for code implementation.
+
+**Status**: WATCH-005 design delivered. Handed off to Codex1 for parameter implementation.
+
+---
+
 ### Session #WATCH-004 Mojibake Cleanup - 2026-05-31 18:05
 
 **Goal**: Fix user-visible mojibake reported in the `/watch` right transcript empty state and verify related extension subtitle copy did not regress.

@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-30 15:40
+// Timestamp: 2026-05-31 12:48
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -461,13 +461,255 @@ export function SubtitlePanel({
 
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
 
+  if (isOverlay) {
+    return (
+      <section className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 w-full max-w-[85%] text-center select-none pointer-events-none">
+        {/* Subtitle Settings Control */}
+        <div className="absolute -top-10 right-0 flex items-center gap-2 pointer-events-auto" ref={settingsRef}>
+          <div className="relative">
+            <button
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:text-zinc-200 hover:bg-white/10 transition-all"
+              title="字幕设置"
+              type="button"
+            >
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+
+            {isSettingsOpen && (
+              <div className="absolute right-0 z-30 w-56 rounded-xl border p-4 shadow-xl text-left bottom-12 border-zinc-700 bg-zinc-950/95 text-white shadow-2xl backdrop-blur-md">
+                <h3 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 font-display">
+                  字幕选项
+                </h3>
+
+                {/* Text Size Select */}
+                <div className="mb-4">
+                  <label className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5 font-display">
+                    字体大小
+                  </label>
+                  <div className="flex gap-1 bg-zinc-50 dark:bg-zinc-950 p-1 rounded-lg">
+                    <button
+                      onClick={() => changeTextSize("medium")}
+                      className={`flex-1 text-center py-1 text-xs font-bold rounded ${
+                        textSize === "medium"
+                          ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                          : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      }`}
+                    >
+                      标准
+                    </button>
+                    <button
+                      onClick={() => changeTextSize("large")}
+                      className={`flex-1 text-center py-1 text-xs font-bold rounded ${
+                        textSize === "large"
+                          ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                          : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                      }`}
+                    >
+                      放大
+                    </button>
+                  </div>
+                </div>
+
+                {/* Translation Display Select */}
+                <div className="mb-4 font-display">
+                  <label className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">
+                    显示模式
+                  </label>
+                  <div className="flex flex-col gap-1">
+                    {(["bilingual", "spanish", "chinese"] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => changeDisplayMode(mode)}
+                        className={`text-left px-2 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                          displayMode === mode
+                            ? "bg-brand-50 dark:bg-brand-950/20 text-brand-700 dark:text-brand-400"
+                            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                        }`}
+                      >
+                        {mode === "bilingual" && "中西双语"}
+                        {mode === "spanish" && "仅西语"}
+                        {mode === "chinese" && "仅中文"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Playback speed */}
+                <div className="font-display">
+                  <label className="block text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">
+                    播放速度
+                  </label>
+                  <div className="grid grid-cols-4 gap-1 bg-zinc-50 dark:bg-zinc-950 p-1 rounded-lg">
+                    {([0.75, 0.85, 1.0, 1.25] as const).map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => onSpeedChange(speed)}
+                        className={`text-center py-1 text-[10px] font-bold rounded ${
+                          playbackRate === speed
+                            ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                            : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Subtitles Area with translucent board */}
+        <div className="inline-block bg-black/65 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl shadow-hero pointer-events-auto">
+          {!hasLoadedSubtitles ? (
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display animate-pulse">
+              （字幕加载中…）
+            </p>
+          ) : showEmptyState ? (
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display">暂无字幕</p>
+          ) : !spanishLine ? (
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display">
+              （无台词）
+            </p>
+          ) : (
+            <div className="flex flex-col items-center justify-center">
+              {/* Spanish line */}
+              {displayMode !== "chinese" ? (
+                <p
+                  className={`font-sans tracking-[0.05px] leading-relaxed font-semibold transition-all text-white hover:text-white ${
+                    textSize === "large" ? "text-xl md:text-2xl" : "text-base"
+                  }`}
+                >
+                  {phraseSegments.map((segment, index) => {
+                    if (segment.type === "phrase") {
+                      return (
+                        <span
+                          className="phrase-highlight inline bg-amber-500/20 border-b border-amber-500/40 rounded px-1 py-0.5 mx-0.5 transition-colors duration-150 hover:bg-amber-500/35 cursor-pointer"
+                          key={`phrase-${segment.span.start}-${segment.span.end}`}
+                          onClick={() => {
+                            openLookup(
+                              segment.span.lemma,
+                              spanishLine,
+                              "phrase",
+                              segment.span.kind
+                            );
+                            onLookup({
+                              form: segment.span.lemma,
+                              originalSentence: spanishLine,
+                              translatedSentence: chineseLine
+                            });
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          {segment.tokens.map((phraseToken, phraseTokenIndex) => {
+                            return (
+                              <span key={`${phraseToken.text}-${phraseTokenIndex}`}>
+                                {phraseToken.text}
+                              </span>
+                            );
+                          })}
+                        </span>
+                      );
+                    }
+
+                    const token = segment.token.text;
+                    const normalizedWord = normalizeLookupWord(token);
+                    const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+                    const isWordActive = subtitleTokens.findIndex((item) => item === token) === activeWordIndex;
+
+                    let colorClass = "";
+                    if (highlightStatus === "course") {
+                      colorClass = "text-emerald-400 font-semibold";
+                    }
+
+                    if (!normalizedWord) {
+                      return <span key={`${token}-${index}`}>{token}</span>;
+                    }
+
+                    return (
+                      <span
+                        className={`cursor-pointer rounded px-0.5 transition hover:bg-white/20 text-white ${colorClass} ${
+                          highlightStatus === "saved"
+                            ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-300"
+                            : ""
+                        } ${
+                          isWordActive
+                            ? "bg-brand-500/30 text-brand-300 font-bold"
+                            : ""
+                        }`}
+                        key={`${token}-${index}`}
+                        onClick={() => {
+                          openLookup(normalizedWord, spanishLine);
+                          onLookup({
+                            form: normalizedWord,
+                            originalSentence: spanishLine,
+                            translatedSentence: chineseLine
+                          });
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openLookup(normalizedWord, spanishLine);
+                            onLookup({
+                              form: normalizedWord,
+                              originalSentence: spanishLine,
+                              translatedSentence: chineseLine
+                            });
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        {token}
+                      </span>
+                    );
+                  })}
+                </p>
+              ) : null}
+
+              {/* Chinese translation line */}
+              {displayMode !== "spanish" ? (
+                <p className="mt-1.5 text-zinc-300 text-xs font-medium leading-relaxed">
+                  {chineseLine || "…"}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        {/* Lookup Card Stack */}
+        {activeLookup && (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 z-50 w-full max-w-[300px] bottom-[calc(100%+8px)] pointer-events-auto"
+            data-testid="dummy-active-lookup-card"
+          >
+            <LookupCardStack
+              cards={activeLookup.cards.map((card) => ({
+                ...card,
+                onClose: () => closeStackCard(card.id),
+                onExampleWordClick: openNestedWord,
+                onRelatedPhraseClick: openNestedPhrase,
+                originalSentence: activeLookup.sentence,
+                translatedSentence: chineseLine,
+                currentTimeSec
+              }))}
+              onCloseCard={closeStackCard}
+            />
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section
-      className={
-        isOverlay
-          ? "relative min-h-[90px] flex flex-col justify-center bg-black/65 backdrop-blur-md text-white px-6 py-4 border-t border-white/10 w-full select-none"
-          : "relative min-h-[120px] flex flex-col justify-center rounded-surface border border-zinc-300 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-6 shadow-md backdrop-blur-sm"
-      }
+      className="relative min-h-[120px] flex flex-col justify-center rounded-surface border border-zinc-300 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-6 shadow-md backdrop-blur-sm"
     >
       {/* Subtitle Settings Control */}
       <div className="absolute top-4 right-4 flex items-center gap-2" ref={settingsRef}>
@@ -485,11 +727,7 @@ export function SubtitlePanel({
           </button>
 
           {isSettingsOpen && (
-            <div className={`absolute right-0 z-30 w-56 rounded-xl border p-4 shadow-xl text-left ${
-              isOverlay
-                ? "bottom-12 border-zinc-700 bg-zinc-950/95 text-white shadow-2xl backdrop-blur-md"
-                : "top-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-            }`}>
+            <div className="absolute right-0 z-30 w-56 rounded-xl border p-4 shadow-xl text-left top-10 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
               <h3 className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 font-display">
                 字幕选项
               </h3>
@@ -590,9 +828,7 @@ export function SubtitlePanel({
             {/* Spanish line */}
             {displayMode !== "chinese" ? (
               <p
-                className={`font-sans tracking-wide leading-relaxed font-semibold transition-all ${
-                  isOverlay ? "text-white hover:text-white" : "text-zinc-900 dark:text-zinc-100"
-                } ${
+                className={`font-sans tracking-wide leading-relaxed font-semibold transition-all text-zinc-900 dark:text-zinc-100 ${
                   textSize === "large" ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
                 }`}
               >
@@ -600,11 +836,7 @@ export function SubtitlePanel({
                   if (segment.type === "phrase") {
                     return (
                       <span
-                        className={
-                          isOverlay
-                            ? "phrase-highlight inline bg-amber-500/20 border-b border-amber-500/40 rounded px-1 py-0.5 mx-0.5 transition-colors duration-150 hover:bg-amber-500/35 cursor-pointer"
-                            : PHRASE_HIGHLIGHT_CLASSES
-                        }
+                        className={PHRASE_HIGHLIGHT_CLASSES}
                         key={`phrase-${segment.span.start}-${segment.span.end}`}
                         onClick={() => {
                           openLookup(
@@ -638,11 +870,9 @@ export function SubtitlePanel({
                   const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
                   const isWordActive = subtitleTokens.findIndex((item) => item === token) === activeWordIndex;
 
-                  // In light mode, #86EFAC (light green) and #93C5FD (light blue) have poor contrast
-                  // We map them to premium high-contrast accessible styling
                   let colorClass = "";
                   if (highlightStatus === "course") {
-                    colorClass = isOverlay ? "text-emerald-400 font-semibold" : "text-emerald-600 dark:text-emerald-400";
+                    colorClass = "text-emerald-600 dark:text-emerald-400";
                   }
 
                   if (!normalizedWord) {
@@ -651,19 +881,13 @@ export function SubtitlePanel({
 
                   return (
                     <span
-                      className={`cursor-pointer rounded px-0.5 transition ${
-                        isOverlay
-                          ? "hover:bg-white/20 text-white"
-                          : "hover:bg-zinc-150 dark:hover:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100"
-                      } ${colorClass} ${
+                      className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 ${colorClass} ${
                         highlightStatus === "saved"
-                          ? `saved-word underline decoration-dotted decoration-1 ${isOverlay ? "decoration-zinc-300" : "decoration-zinc-400 dark:decoration-zinc-550"}`
+                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
                           : ""
                       } ${
                         isWordActive
-                          ? isOverlay
-                            ? "bg-brand-500/30 text-brand-300 font-bold"
-                            : "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold"
+                          ? "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold"
                           : ""
                       }`}
                       key={`${token}-${index}`}
@@ -699,9 +923,7 @@ export function SubtitlePanel({
             {/* Chinese translation line */}
             {displayMode !== "spanish" ? (
               <p
-                className={`font-sans tracking-wide leading-relaxed font-medium mt-2 ${
-                  isOverlay ? "text-zinc-300" : "text-zinc-400 dark:text-zinc-500"
-                } transition-all ${
+                className={`font-sans tracking-wide leading-relaxed font-medium mt-2 text-zinc-400 dark:text-zinc-500 transition-all ${
                   textSize === "large" ? "text-lg md:text-xl" : "text-sm"
                 }`}
               >
@@ -714,9 +936,7 @@ export function SubtitlePanel({
 
       {activeLookup && (
         <div
-          className={`absolute left-1/2 -translate-x-1/2 z-50 w-full max-w-[300px] ${
-            isOverlay ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
-          }`}
+          className="absolute left-1/2 -translate-x-1/2 z-50 w-full max-w-[300px] top-[calc(100%+8px)] font-display"
           data-testid="dummy-active-lookup-card"
         >
           <LookupCardStack

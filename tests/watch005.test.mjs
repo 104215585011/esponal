@@ -1,0 +1,70 @@
+import { readdir, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import test from "node:test";
+import assert from "node:assert/strict";
+
+const readText = (path) => readFile(path, "utf8");
+
+test("WATCH-005: YouTube iframe parameters updated", async () => {
+  const watchClientPath = "src/app/watch/WatchClient.tsx";
+  assert.ok(existsSync(watchClientPath), `${watchClientPath} should exist`);
+
+  const clientText = await readText(watchClientPath);
+
+  // iframe src should have cc_load_policy=0 and no hl/cc_lang_pref
+  assert.match(clientText, /cc_load_policy=0/);
+  assert.doesNotMatch(clientText, /cc_load_policy=1/);
+  assert.doesNotMatch(clientText, /hl=es/);
+  assert.doesNotMatch(clientText, /cc_lang_pref=es/);
+});
+
+test("Watch Layout Redesign: Back to Current Position button locations", async () => {
+  const watchClientText = await readText("src/app/watch/WatchClient.tsx");
+  const transcriptPanelText = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  // Removed from WatchClient.tsx
+  assert.doesNotMatch(watchClientText, /↺ 回到当前位置/);
+
+  // Exists in TranscriptPanel.tsx at bottom center
+  assert.match(transcriptPanelText, /↺ 回到当前位置/);
+  assert.match(transcriptPanelText, /absolute bottom-6 left-1\/2 -translate-x-1\/2 z-20/);
+});
+
+test("Watch Layout Redesign: TranscriptPanel sentence grouping and styling", async () => {
+  const transcriptPanelText = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  // Divider lines: border-b border-zinc-100 dark:border-zinc-900/60
+  assert.match(transcriptPanelText, /border-b border-zinc-100 dark:border-zinc-900\/60/);
+  // Active sentence styling: bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]
+  assert.match(transcriptPanelText, /bg-zinc-50\/50 dark:bg-zinc-900\/20 border-l-\[3px\] border-l-brand-500 pl-\[21px\]/);
+  // Inactive sentence styling: hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]
+  assert.match(transcriptPanelText, /hover:bg-zinc-50\/20 dark:hover:bg-zinc-900\/5 border-l-\[3px\] border-l-transparent/);
+});
+
+test("Watch Layout Redesign: SubtitlePanel subtitle overlay container", async () => {
+  const subtitlePanelText = await readText("src/app/watch/SubtitlePanel.tsx");
+
+  // Raised to bottom-12
+  assert.match(subtitlePanelText, /absolute bottom-12 left-1\/2 -translate-x-1\/2 z-30/);
+  // Translucent backdrop border px-5 py-3 rounded-2xl shadow-hero
+  assert.match(subtitlePanelText, /bg-black\/65 backdrop-blur-md border border-white\/10 px-5 py-3 rounded-2xl shadow-hero/);
+});
+
+test("Watch Layout Redesign: transcript translation fallback is not mojibake", async () => {
+  const transcriptPanelText = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.doesNotMatch(transcriptPanelText, /鈥\?|閳\?/);
+  assert.match(transcriptPanelText, /translations\[sentence\.startIndex\] \?\? ""/);
+});
+
+test("Watch Layout Redesign: new watch styles use standard Tailwind zinc steps", async () => {
+  const watchFiles = await readdir("src/app/watch", { recursive: true });
+  const invalidZincSteps = /zinc-(?:150|355|450|550|650)\b/;
+
+  for (const file of watchFiles) {
+    if (!file.endsWith(".tsx")) continue;
+    const path = `src/app/watch/${file}`;
+    const source = await readText(path);
+    assert.doesNotMatch(source, invalidZincSteps, `${path} should not use non-standard zinc steps`);
+  }
+});

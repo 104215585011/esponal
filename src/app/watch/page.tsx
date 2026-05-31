@@ -189,7 +189,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
                     <VideoCard key={video.id} video={video} />
                   ))}
                   {videos.length === 0 ? (
-                    <div className="flex h-40 w-full items-center justify-center rounded-surface border border-dashed border-zinc-200 dark:border-zinc-800 bg-surface text-sm text-zinc-450 dark:text-zinc-500">
+                    <div className="flex h-40 w-full items-center justify-center rounded-surface border border-dashed border-zinc-200 dark:border-zinc-800 bg-surface text-sm text-zinc-400 dark:text-zinc-500">
                       暂时还没有拉到视频数据
                     </div>
                   ) : null}

@@ -1,3 +1,170 @@
+## Codex2 Re-QA Report: WATCH-005 & WATCH-006 blocker fixes
+**Time**: 2026-05-31 14:45
+**Tester**: Codex2
+**Conclusion**: PASS - the two Codex2 blockers are closed. Ready for PM final acceptance.
+
+### Commands Run
+1. `node --test tests\watch005.test.mjs tests\watch004.test.mjs`
+   - Result: 10/10 pass
+2. `npm run lint:encoding`
+   - Result: pass
+3. `git diff --check`
+   - Result: pass
+4. `npm test`
+   - Result: 330/330 pass
+5. `npm run build`
+   - Result: pass. Existing Next `<img>` warnings and existing Sentry configuration warnings remain, unrelated to WATCH-005/006.
+
+### Blocker Recheck
+- `src/app/watch/TranscriptPanel.tsx` no longer uses a mojibake translation fallback. The fallback is now an empty string:
+  ```text
+  translations[sentence.startIndex] ?? ""
+  ```
+- `src/app/watch/SubtitlePanel.tsx`, `src/app/watch/TranscriptPanel.tsx`, `src/app/watch/WatchClient.tsx`, and `src/app/watch/page.tsx` no longer contain the non-standard `zinc-150/355/450/550/650` classes.
+- New `tests/watch005.test.mjs` guards lock both fixes: no mojibake translation fallback, and no banned zinc steps under `src/app/watch/**/*.tsx`.
+
+### Scope Check
+- WATCH-005 iframe contract remains correct: `cc_load_policy=0`, no `hl=es`, no `cc_lang_pref=es`.
+- WATCH-006 layout contract remains present: overlay `bottom-12`, frosted glass `bg-black/65 backdrop-blur-md`, transcript sentence dividers, active `border-l-brand-500`, and the right-panel bottom `回到当前位置` button.
+- `src/app/watch/page.tsx` only changed a stale `text-zinc-450` to valid `text-zinc-400`; this is in scope for the same watch style cleanup.
+
+### Handoff
+Codex2 QA passes after the blocker fixes. This can go to Claude1/PM final acceptance.
+
+---
+
+## Codex2 QA Report: WATCH-005 & WATCH-006 independent verification
+**Time**: 2026-05-31 14:20
+**Tester**: Codex2
+**Conclusion**: FAIL - return to Codex1 before PM acceptance.
+
+### Commands Run
+1. `node --test tests\watch005.test.mjs tests\watch004.test.mjs`
+   - Result: 8/8 pass
+2. `npm run lint:encoding`
+   - Result: pass
+3. `npm test`
+   - Result: 328/328 pass
+4. `npm run build`
+   - Result: pass, with existing Next `<img>` warnings and existing Sentry configuration warnings.
+5. `git diff --check`
+   - Result: pass
+
+### Source Checks
+- WATCH-005 iframe parameter is implemented in `src/app/watch/WatchClient.tsx`: `cc_load_policy=0`, and `hl=es` / `cc_lang_pref=es` are removed.
+- WATCH-006 overlay placement is present in `src/app/watch/SubtitlePanel.tsx`: `absolute bottom-12 ...` plus `bg-black/65 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl shadow-hero`.
+- WATCH-006 transcript sentence styling is present in `src/app/watch/TranscriptPanel.tsx`: `.group/sentence`, `border-b border-zinc-100 dark:border-zinc-900/60`, active `bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500`, and the follow button is moved to `absolute bottom-6 left-1/2 -translate-x-1/2 z-20`.
+
+### Blocking Findings
+1. `src/app/watch/TranscriptPanel.tsx:993` still contains mojibake:
+   ```text
+   const sentenceTranslation = translations[sentence.startIndex] ?? "[mojibake fallback]";
+   ```
+   This can become user-visible whenever sentence translation is not yet available or missing. It should be a real ellipsis or empty fallback, e.g. `"..."` or `"…"`.
+
+2. `src/app/watch/SubtitlePanel.tsx` introduces non-standard Tailwind color classes:
+   ```text
+   hover:text-zinc-650
+   dark:hover:text-zinc-355
+   hover:bg-zinc-150
+   dark:decoration-zinc-550
+   ```
+   These are not default Tailwind zinc scale classes and are likely ignored in generated CSS. Replace with valid project tokens or standard Tailwind steps.
+
+### Handoff
+Return to Codex1 for the two small fixes above, then rerun:
+```text
+node --test tests\watch005.test.mjs tests\watch004.test.mjs
+npm run lint:encoding
+npm test
+npm run build
+```
+
+Feature status was not advanced to `passing`.
+
+---
+
+## UI 评审 & 运行时 QA Report：WATCH-005 & WATCH-006（播放器页视觉重构）
+**时间**：2026-05-31 13:30
+**评审/测试人**：Gemini1（UI 设计师 + 验收人）
+
+**结论**：✅ **符合预期，通过验收**
+
+**逐条对照设计稿（视觉评审）**：
+- **WATCH-005 — 禁用 YouTube 原生字幕**：✅ 符合。YouTube 嵌入 Iframe 成功去除了 `cc_load_policy=1` 及西语偏好，视频加载时不再自动弹出冲突的原生大字幕，自定义字幕显示区域干净清爽。
+- **自定义字幕上提与玻璃背板（SubtitlePanel）**：✅ 符合。字幕浮层容器成功上提至 `.bottom-12`，彻底避免了与 YouTube 鼠标移入时播放进度条/按钮的碰撞。背板采用了 `.bg-black/65` 毛玻璃以及优雅的 `rounded-2xl`，中西文字体对比度极佳，品质感强烈。
+- **句子间距与分隔线（TranscriptPanel）**：✅ 符合。每一句都完美包装在 `.group/sentence` 中，取消了句内 cue 之间的分割线，句与句之间以 `border-b border-zinc-100 dark:border-zinc-900/60` 细线清晰隔离，间距扩充至 `py-5`，呼吸感极其舒适。
+- **激活态焦点锁定（Active Sentence Focus）**：✅ 符合。当视频播放到句内 cue 时，整句容器亮起 `bg-zinc-50/50`（暗色下 `dark:bg-zinc-900/20`）温和背景以及左侧 `border-l-[3px] border-l-brand-500` 绿色竖条，用户焦点能够无缝跟随播放进度。
+- **回到当前位置按钮（Auto-follow Button）**：✅ 符合。已从播放器底部剥离，完美归属到右侧逐字稿面板的底部中央（`absolute bottom-6 left-1/2 -translate-x-1/2 z-20`），并附带玻璃背板，对左侧主内容不再构成干扰。
+
+**运行时数据与不回归验证（QA 验收）**：
+- 运行全新 Playwright 运行时自动化脚本 `tests/watch005-runtime.mjs`，所有样式、高度、参数逻辑均 100% 校验成功。
+- 新增 `tests/watch005.test.mjs` 测试套件，全量 `npm test` 共 328/328 通过，`npm run build` 成功。单词查词卡片弹出、词组高亮等交互一切正常，无任何功能性回归。
+
+**移交**：Claude1 最终验收关闭
+
+---
+
+## Codex1 Dev Report: WATCH-005 & Watch Page Layout Redesign
+**Time**: 2026-05-31 12:52
+**Developer**: Codex1
+**To**: Claude1 (PM) / Codex2 (QA)
+**Status**: Implementation complete. Ready for QA.
+
+### Implemented
+1. **WATCH-005 — Disable YouTube Native Captions**:
+   - Modified `src/app/watch/WatchClient.tsx`: Changed player iframe URL query parameters, setting `cc_load_policy=0` and removing `&hl=es&cc_lang_pref=es`.
+2. **Watch Page Layout Redesign**:
+   - Modified `src/app/watch/WatchClient.tsx`: Removed the absolute-positioned "回到当前位置" button from the player bottom.
+   - Modified `src/app/watch/TranscriptPanel.tsx`:
+     - Styled sentence containers (grouped in `.group/sentence` with a separator line `border-b border-zinc-100 dark:border-zinc-900/60` and vertical spacing `py-5`).
+     - Added active sentence highlights: a subtle background `bg-zinc-50/50 dark:bg-zinc-900/20` and left brand color border `border-l-[3px] border-l-brand-500` (shifting padding to `pl-[21px]` to maintain alignment).
+     - Renders "回到当前位置" button inside `TranscriptPanel` using absolute positioning (`absolute bottom-6 left-1/2 -translate-x-1/2 z-20`) with glass-card backdrop blur effects.
+   - Modified `src/app/watch/SubtitlePanel.tsx`:
+     - Lifted the overlay subtitle container from `bottom-4` to `bottom-12`.
+     - Wrapped the subtitle text with a frosted glass backdrop-blur card (`bg-black/65 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl shadow-hero`).
+3. **Tests Added**:
+   - Created `tests/watch005.test.mjs` to assert the YouTube iframe properties, layouts, and styles.
+
+### Verification
+- `npm test` -> 328/328 tests pass successfully.
+- `npm run build` -> Compiles successfully (108/108 static pages generated).
+
+---
+
+## 设计交付 Report：WATCH-005
+**时间**：2026-05-31 12:45
+**设计人**：Gemini1
+
+**设计稿位置**：[WATCH-005-design.md](file:///c:/Users/wang/esponal/docs/tickets/WATCH-005-design.md)
+**关键设计决策**：
+- **禁用原生字幕自动显示**：将 YouTube 播放器嵌入 URL 的 `cc_load_policy=1` 改为 `cc_load_policy=0` 并移除 `hl/cc_lang_pref`，从源头上阻止 YouTube 播放器强制调入原生字幕，避免其与自定义的实时高亮悬浮字幕重叠，完美净化播放器底部的显示层。
+
+**禁区清单核查**：✅ 全部七条已对照，无违反。
+
+**移交**：Codex1 实施
+
+---
+
+## Ticket: WATCH-005 禁用 YouTube 原生字幕自动加载 & WATCH-006 布局与视觉重构
+**Time**: 2026-05-31 12:40
+**From**: Claude1 (PM)
+**To**: Gemini1（设计）→ Codex1（实现）→ Codex2（测试）→ Gemini1（评审）→ Claude1（验收）
+**Status**: ready_for_accept — Gemini1 UI 评审 & 运行时 QA 通过，移交 PM 做最终验收
+
+**背景**：
+用户反馈我们在视频播放区显示的自定义悬浮字幕（SubtitlePanel）被 YouTube 播放器自动载入的原生字幕（白色/黄色大字）重合遮挡，且右侧逐字稿排版过于密集。
+
+**方案**：
+1. 修改 iframe 参数禁用原生字幕。
+2. 重构 Watch 页面布局（逐字稿增加分隔线、间距和激活态焦点；悬浮字幕上提并增加 frosted-glass 容器；将回到当前位置按钮移至逐字稿右下）。
+
+**完整 ticket**：`docs/tickets/WATCH-005.md` 与 `docs/tickets/watch_layout_redesign.md`
+
+**下一站 Claude1**：做最终验收与关闭。
+
+---
+
 ## PM: WATCH-004 最终验收通过 -> 关闭（passing）
 **Time**: 2026-05-31 11:40
 **From**: Claude1 (PM)
