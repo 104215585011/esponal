@@ -1,3 +1,32 @@
+### Session #SUBS-003 字幕缓存延长 30 天 - 2026-05-31 10:30
+
+**Goal**: 降低 Supadata/Apify/Whisper 上游额度消耗。决策放弃 Postgres 持久化,改最小改动延长 Redis TTL(字幕通用、不绑用户)。
+
+**Done (Claude1, 经 PM 同意代为实现单常量改动)**:
+- `src/app/api/subtitle/route.ts`: `SUBTITLE_CACHE_TTL` 由 86400(24h) 改为 2592000(30天),仅此一行,缓存 envelope/读写逻辑未动。
+- `npm test` → 320/320 pass。
+- `feature_list.json` SUBS-003 `todo → passing` + evidence。
+
+**Status**: `SUBS-003` → **passing**,关闭。
+
+---
+
+### Session #SUBS-002 PM 验收关闭 - 2026-05-31 10:10
+
+**Goal**: 收尾 SUBS-002，把 Codex1 已交付的 Supadata 接入从 `todo` 推到 `passing`。
+
+**Done (PM/Claude1)**:
+- 复核代码 `src/app/api/subtitle/route.ts`：回退链 Supadata→Apify→Whisper、source/X-Subtitle-Source 头、cue ms→秒归一化过 clampOverlappingCues、缺 key/空/报错均返回 [] 优雅降级 —— 与 ticket 实施要求逐条对上。
+- 重跑 `node --test tests/subs002.test.mjs` → 3/3 pass；`npm test` → 320/320 pass。
+- 运行时验收：线上 `https://esponalsssssss.vercel.app/api/subtitle` fast-path HTTP 200 确认端点存活；PM 本人线上实测三条（supadata 主力 / 无轨视频降级 / 二次请求缓存命中）确认通过。
+- `feature_list.json` SUBS-002 `todo → passing` + 写入 evidence。
+
+**Note**: 本地 `.env` 无 SUPADATA_API_KEY（仅 Vercel Production 有），故运行时实测对线上部署进行。后续「字幕持久化到 Postgres（一次抓取永不二次付费）」为独立议题 SUBS-003，尚未开 ticket。
+
+**Status**: `SUBS-002` → **passing**，关闭。
+
+---
+
 ### Session #SUBS-002-SUPADATA-INTEGRATION - 2026-05-30 18:35
 
 **Goal**: Integrate Supadata into `/api/subtitle` as the primary server subtitle source, while preserving cache-first behavior and graceful fallback to Apify and Whisper.

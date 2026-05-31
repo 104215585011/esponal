@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 const APIFY_ACTOR_URL =
   "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items";
 const SUPADATA_TRANSCRIPT_URL = "https://api.supadata.ai/v1/youtube/transcript";
-const SUBTITLE_CACHE_TTL = 86400;
+const SUBTITLE_CACHE_TTL = 2592000; // 30 days — subtitles are generic (not user-bound), so cache long to avoid re-billing Supadata/Apify/Whisper
 const MIN_REASONABLE_CUE_COUNT = 6;
 const MAX_REASONABLE_CUE_GAP_SEC = 25;
 

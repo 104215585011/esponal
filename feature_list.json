@@ -1463,7 +1463,7 @@
     "area": "backend",
     "title": "Supadata 接入 /api/subtitle 作字幕主力",
     "user_visible_behavior": "移动端/Safari 零扩展即可在播放页看到人工西语字幕:/api/subtitle 缓存未命中时优先调 Supadata 托管 API(质量=扩展),失败再退 Apify/Whisper,结果缓存。",
-    "status": "todo",
+    "status": "passing",
     "verification": [
       "回退链 Supadata→Apify→Whisper,source 标 supadata + X-Subtitle-Source 头",
       "Supadata 只在缓存未命中时调,结果写 Redis(成本有界)",
@@ -1472,7 +1472,22 @@
       "route 单测(mock Supadata)+ npm test 通过",
       "PM 验收:策划视频 X-Subtitle-Source=supadata 且质量=扩展;无轨视频降级 apify;二次请求命中缓存"
     ],
-    "evidence": "",
+    "evidence": "commit 70b3306 feat(SUBS-002). 代码: src/app/api/subtitle/route.ts 加 fetchSupadataSubtitles + 回退链 Supadata→Apify→Whisper, source/X-Subtitle-Source 已带, cue ms→秒归一化过 clampOverlappingCues, 缺 key/空/报错均返回 [] 优雅降级。单测: tests/subs002.test.mjs 3/3 pass。全量: npm test 320/320 pass (2026-05-31)。运行时验收: 线上 https://esponalsssssss.vercel.app/api/subtitle fast-path HTTP200; PM 本人线上实测三条 (supadata 主力/降级/缓存命中) 确认通过 2026-05-31。",
     "notes": "PM 派单 2026-05-30。Ticket: docs/tickets/SUBS-002-supadata-integration.md。承接 SUBS-001(POC通过)。SUPADATA_API_KEY 已在 Vercel Production,代码读 process.env,勿提交真key。批处理worker不做(实时+缓存够)。"
+  },
+  "79": {
+    "id": "SUBS-003",
+    "priority": 80,
+    "area": "backend",
+    "title": "字幕 Redis 缓存延长到 30 天",
+    "user_visible_behavior": "已抓过的视频字幕在 30 天内重复访问直接命中 Redis,不再二次调 Supadata/Apify/Whisper,显著降低上游额度消耗。字幕是通用资源(不绑用户),延长缓存无副作用。",
+    "status": "passing",
+    "verification": [
+      "src/app/api/subtitle/route.ts 中 SUBTITLE_CACHE_TTL 由 86400 改为 2592000(30天)",
+      "其余缓存读写逻辑不变(envelope {cues,source,at} 不动)",
+      "npm test 全绿"
+    ],
+    "evidence": "src/app/api/subtitle/route.ts: SUBTITLE_CACHE_TTL = 2592000 (30天), 仅改此一常量, 缓存读写逻辑未动。npm test 320/320 pass (2026-05-31)。",
+    "notes": "PM 派单 2026-05-31。决策:放弃 Postgres 持久化(原 SUBS-003 草案),改最小改动延长 TTL。理由:字幕通用不绑用户,30天 TTL 零迁移零运维,代价仅每视频每月最多重抓一次 Supadata,可接受。交给 Codex1 一行改动 → Codex2 跑 npm test → 关闭。"
   }
 }
