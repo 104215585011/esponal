@@ -1575,5 +1575,23 @@
     ],
     "evidence": "2026-05-31 16:20 Codex1 implemented WATCH-008. Replaced WATCH-007 print download with direct SRT download in src/app/watch/TranscriptPanel.tsx: added formatSrtTimestamp(HH:MM:SS,mmm), complete-array srtRows from sentenceGroups/transcriptCues with start/end, displayMode-aware line selection, UTF-8 text Blob, createObjectURL, and .srt filename. Removed window.print(), handlePrintDownload, #print-transcript-area DOM, and globals.css @media print/page-break rules. Added tests/watch008.test.mjs and updated WATCH-007 tests for the superseded download behavior. Verification: TDD red -> green; node --test tests/watch008.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs = 18/18 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; git diff --check pass; npm test = 338/338 pass; npm run build pass with existing unrelated Next img and Sentry warnings. Ready for Codex2 QA.",
     "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-008.md。背景:WATCH-007 的 window.print() 打印导出 PM 实测【打印出来是空的】——根因是逐字稿虚拟化渲染,#print-transcript-area 里大部分cue未挂DOM。改方案:放弃打印,改 SRT 下载(纯文本零字体问题/一键下载/可导入工具)。关键:SRT 必须从完整 sentenceGroups/transcriptCues 数组生成,不能依赖只渲染可见行的DOM。复用现有 displayRows(line 920) + formatTimestamp,但时间轴要 SRT 标准 HH:MM:SS,mmm(现有 formatTimestamp 是 M:SS 仅展示用,需另写 srt 时间格式化)。sentence 模式时间段用 sentence.cues[0].start→末cue end。UI改动小(按钮已存在),Codex1 直接实现;如需文案/格式选择UI再回Gemini。流程:Claude1→Codex1→Codex2→Claude1验收。"
+  },
+  "85": {
+    "id": "SUBS-004",
+    "priority": 86,
+    "area": "backend",
+    "title": "默认关闭 Apify 字幕源(省额度),回退链改 Supadata→Whisper",
+    "user_visible_behavior": "字幕抓取默认只用 Supadata;Supadata 拿不到或字幕不合格时,跳过 Apify 直接走本机 Whisper 兜底。不再默认消耗 Apify 额度。Apify 用环境变量 APIFY_ENABLED 保留可逆开关(默认关)。",
+    "status": "passing",
+    "verification": [
+      "新增 APIFY_ENABLED 环境变量,默认(未设/非1)时跳过 Apify",
+      "fetchSubtitlesWithFallback 回退链:Supadata→(Apify仅当APIFY_ENABLED=1)→Whisper",
+      "默认配置下抓一个 Supadata 无字幕的视频,日志确认未调 Apify、直接走 Whisper",
+      "APIFY_ENABLED=1 时回退链恢复含 Apify(不破坏原逻辑)",
+      ".env.example 记录 APIFY_ENABLED 默认关",
+      "route 单测(mock)覆盖 开/关 两种回退路径 + npm test 全绿"
+    ],
+    "evidence": "route.ts: 新增 APIFY_ENABLED=process.env.APIFY_ENABLED===1(默认关), fetchHybridSubtitles 包在 if(APIFY_ENABLED) 内,关闭时 apifyCues=[] 跳过 Apify 直接 Whisper; 下游 if(apifyCues.length>0) 关闭时自然不触发。Apify 代码全保留可逆(软关不删)。.env.example 加 APIFY_ENABLED=空 默认关注释。新增 tests/subs004.test.mjs 4/4; 同步更新 SUBS-002 旧契约断言(const->let)。全量 npm test 342/342 pass + lint:encoding pass + npm run build pass (2026-05-31)。PM 经用户同意代为实现并验收。设 APIFY_ENABLED=1 可恢复。",
+    "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/SUBS-004.md。目的:省钱,默认只用 Supadata(质量=扩展),不再默认烧 Apify 额度。决策:软关(环境变量开关)不硬删——Apify 那套 manual+ASR 合并逻辑保留,设 APIFY_ENABLED=1 可恢复。兜底:Supadata miss→跳 Apify→Whisper(本机,经 Cloudflare Tunnel)。现状 route line 383-393 回退链已是 Supadata→Apify→Whisper,本票在 Apify 那步加 enabled 判断即可。纯后端无UI。流程:Claude1→Codex1→Codex2→Claude1验收。"
   }
 }

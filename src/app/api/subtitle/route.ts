@@ -12,6 +12,10 @@ const SUPADATA_TRANSCRIPT_URL = "https://api.supadata.ai/v1/youtube/transcript";
 const SUBTITLE_CACHE_TTL = 2592000; // 30 days — subtitles are generic (not user-bound), so cache long to avoid re-billing Supadata/Apify/Whisper
 const MIN_REASONABLE_CUE_COUNT = 6;
 const MAX_REASONABLE_CUE_GAP_SEC = 25;
+// Apify is disabled by default to save quota — Supadata is the primary source
+// and local Whisper is the fallback. Set APIFY_ENABLED="1" to re-enable the
+// Apify hybrid (manual + ASR) source without removing any of its code.
+const APIFY_ENABLED = process.env.APIFY_ENABLED === "1";
 
 type SubtitleCue = {
   start: number;
@@ -386,10 +390,17 @@ async function fetchSubtitlesWithFallback(
     return { cues: supadataCues, source: "supadata" };
   }
 
-  const apifyCues = await fetchHybridSubtitles(videoId, lang);
+  // Apify is gated behind APIFY_ENABLED (default off) to avoid burning quota.
+  // When disabled we skip straight to the Whisper fallback. The Apify code is
+  // intentionally retained so it can be re-enabled via env without a code change.
+  let apifyCues: SubtitleCue[] = [];
 
-  if (!shouldUseWhisperFallback(apifyCues, false)) {
-    return { cues: apifyCues, source: "apify" };
+  if (APIFY_ENABLED) {
+    apifyCues = await fetchHybridSubtitles(videoId, lang);
+
+    if (!shouldUseWhisperFallback(apifyCues, false)) {
+      return { cues: apifyCues, source: "apify" };
+    }
   }
 
   try {

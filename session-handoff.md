@@ -1,3 +1,66 @@
+## PM: SUBS-004 完成 → passing（Claude1 经用户同意代实现 + 验收）
+**Time**: 2026-05-31 16:50
+**From**: Claude1 (PM)
+**Status**: **CLOSED / passing**
+
+**实现**（软关，不删）：
+- `route.ts` 加 `const APIFY_ENABLED = process.env.APIFY_ENABLED === "1"`（默认关）。
+- `fetchHybridSubtitles` 包进 `if (APIFY_ENABLED)`；关闭时 `apifyCues` 保持 `[]`，回退链变 **Supadata → Whisper**，下游 `if(apifyCues.length>0)` 自然不触发。
+- Apify 全套代码（`fetchHybridSubtitles`/`callApify`/`mergeManualWithAsr`）原样保留，设 `APIFY_ENABLED=1` 即恢复。
+- `.env.example` 加 `APIFY_ENABLED=""`（默认关注释）。
+
+**测试**：新增 `tests/subs004.test.mjs` 4/4；更新 SUBS-002 旧契约断言（`const apifyCues` → `apifyCues`，因结构改 `let`+`if`）。全量 `npm test` **342/342** + `lint:encoding` pass + `npm run build` pass。
+
+**踩坑记录**：首跑 SUBS-002 有 1 条断言 fail（锁死旧的无条件 Apify 写法），已同步更新该断言；PM 一度误标 passing 后立即回退查清才确认关闭——证据优先，不轻信首轮。
+
+---
+
+## Ticket: SUBS-004 默认关闭 Apify 字幕源（省额度）
+**Time**: 2026-05-31 16:30
+**From**: Claude1 (PM)
+**To**: Codex1（实现）→ Codex2（测试）→ Claude1（验收）
+**Status**: not_started
+
+**目的**：省钱。默认只用 Supadata，不再默认烧 Apify 额度。
+
+**决策**：软关（环境变量 `APIFY_ENABLED`，默认关），**不硬删** Apify 代码（可逆）。兜底：Supadata 拿不到 → 跳过 Apify → 直接 Whisper（本机）。
+
+**完整 ticket**：`docs/tickets/SUBS-004.md`
+
+**改造点**：`src/app/api/subtitle/route.ts` 的 `fetchSubtitlesWithFallback`（line 383-393）—— 在 Apify 那步（line 389）外包 `if (APIFY_ENABLED)`，关闭时回退链变 Supadata→Whisper。`fetchHybridSubtitles/callApify/mergeManualWithAsr` 全保留不动。
+
+**纯后端无 UI**。流程：Claude1→Codex1→Codex2→Claude1 验收。
+
+---
+
+## Codex2 QA Report: WATCH-008 SRT Subtitle Download
+**Time**: 2026-05-31 16:25
+**Tester**: Codex2
+**Conclusion**: PASS - ready for Claude1 PM acceptance.
+
+### Commands Run
+1. `node --test tests/watch008.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs`
+   - Result: PASS, 18/18 tests passed.
+2. `npm test`
+   - Result: PASS, 338/338 tests passed.
+3. `npm run build`
+   - Result: PASS. Existing unrelated Next `<img>` warnings and Sentry setup/deprecation warnings remain.
+4. `npm run lint:encoding`
+   - Result: PASS, `Encoding check passed`.
+
+### Source Contract Checks
+- `src/app/watch/TranscriptPanel.tsx` uses direct SRT download through `Blob`, `URL.createObjectURL`, a generated anchor with `download`, and a `${videoId}-${transcriptMode}-${displayMode}.srt` filename.
+- No WATCH-007 print path remains in watch implementation: no `window.print()`, no `handlePrintDownload`, and no `#print-transcript-area` in `TranscriptPanel.tsx`.
+- `src/app/globals.css` has no WATCH-007 print remnants: no `@media print`, no `print-transcript-area`, and no `page-break-avoid`.
+- `srtRows` is generated from complete `sentenceGroups` / `transcriptCues`; it does not use virtualized `renderedSentences` / `renderedCueRows`.
+- SRT output includes numeric sequence, `HH:MM:SS,mmm --> HH:MM:SS,mmm`, and display-mode-aware text lines.
+- Mojibake scan across `src/app/watch/**`, `tests/watch008.test.mjs`, and `tests/watch007.test.mjs` found no literal mojibake hints; `lint:encoding` also passed.
+
+### Handoff
+WATCH-008 QA passes. Move to Claude1 PM final acceptance.
+
+---
+
 ## Codex1 Dev Report: WATCH-008 字幕下载改为 SRT
 **Time**: 2026-05-31 16:20
 **From**: Codex1（实现）

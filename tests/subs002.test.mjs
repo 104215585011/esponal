@@ -23,7 +23,10 @@ test("SUBS-002 keeps the fallback order and forceWhisper bypass contract", async
 
   assert.match(route, /if\s*\(forceWhisper\)\s*{/);
   assert.match(route, /const supadataCues = await fetchSupadataSubtitles/);
-  assert.match(route, /const apifyCues = await fetchHybridSubtitles/);
+  // SUBS-004 gated Apify behind APIFY_ENABLED, so the hybrid fetch is now
+  // assigned (not `const`-declared) inside the enable check. The Supadata->
+  // Apify->Whisper ordering and source contract still hold.
+  assert.match(route, /apifyCues = await fetchHybridSubtitles/);
   assert.match(route, /return \{ cues: whisperCues, source: "whisper" \}/);
   assert.match(route, /return \{ cues: apifyCues, source: "apify" \}/);
   assert.match(route, /return \{ cues: supadataCues, source: "supadata" \}/);
