@@ -289,27 +289,3 @@ body {
   );
   background-size: 200% 100%;
 }
-
-@media print {
-  body * {
-    visibility: hidden !important;
-  }
-
-  #print-transcript-area,
-  #print-transcript-area * {
-    visibility: visible !important;
-  }
-
-  #print-transcript-area {
-    display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-  }
-
-  .page-break-avoid {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-}

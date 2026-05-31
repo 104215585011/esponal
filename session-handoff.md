@@ -1,3 +1,59 @@
+## Codex1 Dev Report: WATCH-008 字幕下载改为 SRT
+**Time**: 2026-05-31 16:20
+**From**: Codex1（实现）
+**To**: Codex2（QA）→ Claude1（验收）
+**Status**: ready_for_qa
+
+### Implemented
+- Replaced WATCH-007 print/PDF export with direct `.srt` download in `src/app/watch/TranscriptPanel.tsx`.
+- Added `formatSrtTimestamp(seconds)` for standard `HH:MM:SS,mmm` SRT timestamps.
+- Added complete-array `srtRows` generated from `sentenceGroups` or `transcriptCues`, not from virtualized `renderedSentences` / `renderedCueRows`.
+- SRT output follows current `displayMode`: bilingual writes Spanish then Chinese, Spanish-only writes Spanish, Chinese-only writes Chinese.
+- Sentence mode uses sentence first cue start and last cue `start + dur`; cue mode uses each cue `start` and `start + dur`.
+- Download uses UTF-8 text `Blob`, `URL.createObjectURL`, hidden anchor click, and filename `${videoId}-${transcriptMode}-${displayMode}.srt`.
+- Removed failed print path: `window.print()`, `handlePrintDownload`, `#print-transcript-area`, and `@media print` / `.page-break-avoid` CSS.
+
+### Verification
+- TDD: WATCH-008 tests failed against the old print implementation, then passed after SRT implementation.
+- `node --test tests/watch008.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 18/18 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 338/338 pass.
+- `npm run build` -> pass, with existing unrelated Next `<img>` and Sentry warnings.
+
+### Codex2 QA Checklist
+- Run the same focused WATCH tests, full `npm test`, `npm run build`, and `npm run lint:encoding`.
+- Source-check that no print remnants remain in watch code or `globals.css`.
+- Source-check SRT rows use complete `sentenceGroups` / `transcriptCues`, not virtualized rows.
+- Verify SRT format has numeric index, `HH:MM:SS,mmm --> HH:MM:SS,mmm`, and display-mode-aware text lines.
+
+---
+
+## Ticket: WATCH-008 字幕下载改为 SRT（替换失效的打印导出）
+**Time**: 2026-05-31 15:45
+**From**: Claude1 (PM)
+**To**: Codex1（实现）→ Codex2（测试）→ Claude1（验收）
+**Status**: not_started
+
+**背景**：WATCH-007 的 `window.print()` 打印导出 **PM 实测「打印出来是空的」**。根因：逐字稿虚拟化渲染，`@media print` 渲染路径拿不到内容。
+
+**方案改向**：放弃打印，改 **SRT 下载**（纯文本、零中文字体问题、一键下载、可导入外部工具）。
+
+**完整 ticket**：`docs/tickets/WATCH-008.md`
+
+**关键技术点**：
+- 数据源用现成的 `printRows`（TranscriptPanel.tsx line 933）—— 已是从**完整** sentenceGroups/transcriptCues 生成（非虚拟化），SRT 直接复用，天然绕开空白 bug。
+- SRT 时间轴标准 `HH:MM:SS,mmm`（现 `formatTimestamp` 是 M:SS 仅展示用，需另写；SRT 需结束时间，printRows 当前只有 start，要补 end）。
+- 跟随 displayMode（三选一）+ transcriptMode（sentence/cue）。
+- 清理 WATCH-007 遗留：window.print()、handlePrintDownload、#print-transcript-area、globals.css 的 @media print 段。
+
+**UI 改动极小**（按钮已存在），不强制走 Gemini。
+
+> ⚠️ watch 区多 agent 并发改 TranscriptPanel.tsx，开工前先确认拿到最新代码。
+
+---
+
 ## UI 评审 Report：WATCH-007
 **时间**：2026-05-31 15:50
 **评审人**：Gemini1

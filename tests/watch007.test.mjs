@@ -28,32 +28,22 @@ test("WATCH-007 toolbar contains display mode, loading mode, and download contro
   assert.match(source, /仅中文/);
   assert.match(source, /句子级/);
   assert.match(source, /逐行/);
-  assert.match(source, /handlePrintDownload/);
+  assert.match(source, /handleSrtDownload/);
   assert.match(source, /下载/);
-  assert.match(source, /aria-label="下载当前字幕为 PDF"/);
 });
 
-test("WATCH-007 print download uses browser print view instead of jsPDF", async () => {
+test("WATCH-007 download control avoids jsPDF bundle weight", async () => {
   const transcript = await readText("src/app/watch/TranscriptPanel.tsx");
-  const globals = await readText("src/app/globals.css");
   const packageJson = await readText("package.json");
 
   assert.doesNotMatch(packageJson, /jspdf/i);
   assert.doesNotMatch(transcript, /from "jspdf"|from 'jspdf'|jsPDF/);
-  assert.match(transcript, /id="print-transcript-area"/);
-  assert.match(transcript, /window\.print\(\)/);
-  assert.match(transcript, /document\.title = originalTitle/);
-  assert.match(transcript, /printRows\.map/);
-  assert.match(transcript, /formatTimestamp\(row\.start\)/);
-  assert.match(globals, /@media print/);
-  assert.match(globals, /#print-transcript-area/);
-  assert.match(globals, /\.page-break-avoid/);
 });
 
-test("WATCH-007 print rows follow display and transcript modes without mojibake", async () => {
+test("WATCH-007 download rows follow display and transcript modes without mojibake", async () => {
   const source = await readText("src/app/watch/TranscriptPanel.tsx");
 
-  assert.match(source, /const printRows = useMemo/);
+  assert.match(source, /const (srt|download)Rows = useMemo/);
   assert.match(source, /displayMode !== "chinese"/);
   assert.match(source, /displayMode !== "spanish"/);
   assert.match(source, /transcriptMode === "sentence" \? sentenceGroups\.map/);

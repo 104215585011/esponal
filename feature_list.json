@@ -1557,5 +1557,23 @@
     ],
     "evidence": "2026-05-31 15:32 Codex1 implemented WATCH-007: TranscriptPanel now supports sentence/cue transcript modes with localStorage key esponal_transcript_mode, mode switching resets follow mode, cue mode restores per-cue rows with lookup/phrase highlight/card stack, and download uses print view (#print-transcript-area + @media print) instead of jsPDF so Chinese PDF output relies on browser print. Verification: TDD red -> green; node --test tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs = 14/14 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test standalone = 334/334 pass; npm run build pass with existing unrelated Next img and Sentry warnings. | 2026-05-31 15:45 Codex1 fixed Codex2 QA blocker: tests/watch007.test.mjs no longer contains literal mojibake guard characters; guard now builds the RegExp via String.fromCodePoint. | 2026-05-31 15:43 Codex2 Re-QA: PASS. All 334 tests passed, npm run build compiled. | 2026-05-31 15:50 Gemini1 UI Review: PASS. Controls aligned beautifully with responsive wrap-around at 560px width. Both sentence/cue loading modes functional and remember settings. PDF print view is perfectly formatted, responsive to displayMode, has timestamps on every line, and is free of mojibake/encoding issues. | PM(Claude1) 最终验收 2026-05-31: 独立核实通过 — transcriptMode 双模式(sentence/cue)+localStorage(esponal_transcript_mode)持久化+window.print() 打印导出 代码均到位; watch007 单测 3/3, 全量 npm test 334/334, lint:encoding pass(无乱码); 改动范围干净(TranscriptPanel.tsx + globals.css @media print + watch007 test, 未碰无关文件)。确认关闭 passing。",
     "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-007.md。用户需求:字幕区两种加载方式(保留旧逐cue+新句子级)+字幕下载PDF(跟随显示模式,带时间戳)。原拟WATCH-005已被占,改WATCH-007。逐cue旧渲染在commit bf7acd6之前的git历史。PDF选型:纯前端jsPDF嵌CJK字体撑大bundle不推荐,PM推荐打印视图+window.print()另存PDF(CJK安全零字体负担),留设计/实现定夺。流程:Claude1→Gemini1设计→Codex1→Codex2→Gemini1评审→Claude1验收。"
+  },
+  "84": {
+    "id": "WATCH-008",
+    "priority": 85,
+    "area": "frontend",
+    "title": "字幕下载改为 SRT(替换失效的打印导出)",
+    "user_visible_behavior": "点击字幕下载按钮,一键下载标准 .srt 文件(序号+时间轴 HH:MM:SS,mmm-->+文本)。内容跟随当前显示模式:ES+中→双语(西上中下)/仅西语/仅中文。跟随加载方式:sentence 模式按句导(时间段 startTime→endTime),cue 模式按 cue 导。",
+    "status": "ready_for_qa",
+    "verification": [
+      "点击下载一键生成 .srt 文件(无系统打印对话框)",
+      "SRT 格式标准:序号 + HH:MM:SS,mmm --> HH:MM:SS,mmm + 文本,可导入外部播放器",
+      "内容跟随显示模式(ES+中双语/仅西语/仅中文)+ 加载方式(sentence/cue)",
+      "中文不乱码(纯文本 UTF-8 BOM 或正确编码)",
+      "从完整 cue/sentence 数组生成(不依赖虚拟化DOM,避免原打印空白bug)",
+      "npm test 全绿 + lint:encoding 通过"
+    ],
+    "evidence": "2026-05-31 16:20 Codex1 implemented WATCH-008. Replaced WATCH-007 print download with direct SRT download in src/app/watch/TranscriptPanel.tsx: added formatSrtTimestamp(HH:MM:SS,mmm), complete-array srtRows from sentenceGroups/transcriptCues with start/end, displayMode-aware line selection, UTF-8 text Blob, createObjectURL, and .srt filename. Removed window.print(), handlePrintDownload, #print-transcript-area DOM, and globals.css @media print/page-break rules. Added tests/watch008.test.mjs and updated WATCH-007 tests for the superseded download behavior. Verification: TDD red -> green; node --test tests/watch008.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs = 18/18 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; git diff --check pass; npm test = 338/338 pass; npm run build pass with existing unrelated Next img and Sentry warnings. Ready for Codex2 QA.",
+    "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-008.md。背景:WATCH-007 的 window.print() 打印导出 PM 实测【打印出来是空的】——根因是逐字稿虚拟化渲染,#print-transcript-area 里大部分cue未挂DOM。改方案:放弃打印,改 SRT 下载(纯文本零字体问题/一键下载/可导入工具)。关键:SRT 必须从完整 sentenceGroups/transcriptCues 数组生成,不能依赖只渲染可见行的DOM。复用现有 displayRows(line 920) + formatTimestamp,但时间轴要 SRT 标准 HH:MM:SS,mmm(现有 formatTimestamp 是 M:SS 仅展示用,需另写 srt 时间格式化)。sentence 模式时间段用 sentence.cues[0].start→末cue end。UI改动小(按钮已存在),Codex1 直接实现;如需文案/格式选择UI再回Gemini。流程:Claude1→Codex1→Codex2→Claude1验收。"
   }
 }

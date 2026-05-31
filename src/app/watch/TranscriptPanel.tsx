@@ -207,6 +207,15 @@ function formatTimestamp(seconds: number) {
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
+function formatSrtTimestamp(seconds: number) {
+  const totalMilliseconds = Math.max(0, Math.round(seconds * 1000));
+  const hours = String(Math.floor(totalMilliseconds / 3600000)).padStart(2, "0");
+  const minutes = String(Math.floor((totalMilliseconds % 3600000) / 60000)).padStart(2, "0");
+  const secs = String(Math.floor((totalMilliseconds % 60000) / 1000)).padStart(2, "0");
+  const milliseconds = String(totalMilliseconds % 1000).padStart(3, "0");
+  return `${hours}:${minutes}:${secs},${milliseconds}`;
+}
+
 function chunkWords(words: string[]) {
   const chunks: string[][] = [];
   for (let index = 0; index < words.length; index += 64) {
@@ -930,27 +939,55 @@ export function TranscriptPanel({
   const activeCue = activeCueIndex >= 0 ? transcriptCues[activeCueIndex] : null;
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
   const showHarvestHint = showEmptyState && subtitleHint?.reason === "no_subtitle";
-  const printRows = useMemo(
+  const srtRows = useMemo(
     () =>
       transcriptMode === "sentence" ? sentenceGroups.map((sentence) => ({
         id: sentence.id,
         start: sentence.cues[0]?.start ?? 0,
+        end:
+          (sentence.cues[sentence.cues.length - 1]?.start ?? sentence.cues[0]?.start ?? 0) +
+          (sentence.cues[sentence.cues.length - 1]?.dur ?? 0),
         text: sentence.text,
         translation: translations[sentence.startIndex] ?? ""
       })) : transcriptCues.map((cue, index) => ({
         id: `cue-${cue.start}-${index}`,
         start: cue.start,
+        end: cue.start + cue.dur,
         text: cue.text,
         translation: translations[index] ?? ""
       })),
     [sentenceGroups, transcriptCues, transcriptMode, translations]
   );
 
-  const handlePrintDownload = () => {
-    const originalTitle = document.title;
-    document.title = `Esponal subtitles - ${videoId}`;
-    window.print();
-    document.title = originalTitle;
+  const handleSrtDownload = () => {
+    const srtBlocks = srtRows
+      .map((row) => ({
+        ...row,
+        lines: [
+          displayMode !== "chinese" ? row.text : "",
+          displayMode !== "spanish" ? row.translation : ""
+        ].filter((line) => line.trim().length > 0)
+      }))
+      .filter((block) => block.lines.length > 0);
+
+    const srtContent = srtBlocks
+      .map((row, index) =>
+        [
+          String(index + 1),
+          `${formatSrtTimestamp(row.start)} --> ${formatSrtTimestamp(row.end)}`,
+          ...row.lines
+        ].join("\n")
+      )
+      .join("\n\n");
+
+    const blob = new Blob([`\ufeff${srtContent}\n`], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const safeVideoId = videoId.replace(/[^a-z0-9_-]/gi, "").trim() || "subtitles";
+    link.href = url;
+    link.download = `${safeVideoId}-${transcriptMode}-${displayMode}.srt`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const renderCueRow = (cue: SubtitleCue, offset: number) => {
@@ -1178,9 +1215,9 @@ export function TranscriptPanel({
             </button>
           </div>
           <button
-            aria-label="下载当前字幕为 PDF"
+            aria-label="下载当前字幕为 SRT"
             className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800"
-            onClick={handlePrintDownload}
+            onClick={handleSrtDownload}
             type="button"
           >
             <svg className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -1456,38 +1493,6 @@ export function TranscriptPanel({
             <div ref={bottomSentinelRef} />
           </>
         )}
-      </div>
-
-      <div
-        className="hidden print:block w-full bg-white px-8 py-10 font-sans text-black"
-        id="print-transcript-area"
-      >
-        <h1 className="mb-6 border-b-2 border-zinc-200 pb-3 text-2xl font-bold font-display">
-          Esponal 字幕
-        </h1>
-        <div className="space-y-6">
-          {printRows.map((row) => (
-            <div className="page-break-avoid border-b border-zinc-100 pb-4 last:border-b-0" key={row.id}>
-              <div className="flex items-start gap-2">
-                <span className="mt-1.5 min-w-[36px] text-[10px] font-bold tabular-nums text-zinc-400 font-display">
-                  [{formatTimestamp(row.start)}]
-                </span>
-                <div className="min-w-0">
-                  {displayMode !== "chinese" ? (
-                  <span className="text-[14px] font-medium leading-7 text-zinc-800">
-                    {row.text}
-                  </span>
-                  ) : null}
-                  {displayMode !== "spanish" ? (
-                    <p className="mt-1 text-[12.5px] leading-6 text-zinc-500">
-                      {row.translation}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Floating Detached browsing follow button */}

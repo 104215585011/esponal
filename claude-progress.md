@@ -1,3 +1,25 @@
+### Session #WATCH-008 SRT Subtitle Download - 2026-05-31 16:20
+
+**Goal**: Replace the failed WATCH-007 print/PDF subtitle export with direct SRT download.
+
+**Done (Codex1)**:
+- Added `tests/watch008.test.mjs` and updated `tests/watch007.test.mjs` so the download contract now expects SRT instead of print/PDF.
+- Updated `src/app/watch/TranscriptPanel.tsx` with `formatSrtTimestamp(...)`, complete-array `srtRows`, display-mode-aware SRT text generation, UTF-8 text `Blob`, object URL creation, and `.srt` filename download.
+- Removed `window.print()`, `handlePrintDownload`, the hidden `#print-transcript-area`, and the print-only `@media print` rules in `src/app/globals.css`.
+
+**Verification**:
+- TDD red -> green: WATCH-008 tests failed against the print implementation, then passed after the SRT implementation.
+- `node --test tests/watch008.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 18/18 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 338/338 pass.
+- `npm run build` -> pass; existing unrelated Next `<img>` and Sentry warnings remain.
+
+**Status**: WATCH-008 -> `ready_for_qa`; handoff to Codex2.
+
+---
+
 ### Session #WATCH-007 UI Review & Completion - 2026-05-31 15:50
 
 **Goal**: Review WATCH-007 loading mode toggle and PDF print download UI, verify with automated and production build tests, and deliver to PM for final acceptance.
