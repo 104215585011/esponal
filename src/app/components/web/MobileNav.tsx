@@ -1,9 +1,12 @@
-// Timestamp: 2026-05-28 08:40
+// Timestamp: 2026-06-01 22:15
 "use client";
+
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { ThemeToggle } from "@/app/components/web/ThemeToggle";
 
 type MobileNavProps = {
   vocabHref: string;
@@ -40,6 +43,7 @@ function isActivePath(pathname: string, href: string) {
 export function MobileNav({ vocabHref }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
   const allItems: MobileNavItem[] = [
     ...navItems,
     { label: "词库", href: vocabHref, activeHref: "/vocab" }
@@ -201,6 +205,43 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
               </div>
             </div>
           </nav>
+
+          {/* Mobile Nav Footer: Theme Toggle and Auth status */}
+          <div className="mt-auto border-t border-zinc-100 dark:border-zinc-800/50 p-5 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-950/20">
+            {/* Theme Toggle */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">外观设置</span>
+              <ThemeToggle />
+            </div>
+
+            {/* Auth status */}
+            <div>
+              {session?.user ? (
+                <div className="flex items-center gap-2">
+                  <img
+                    alt={session.user.name || "User"}
+                    className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-800"
+                    src={session.user.image || "/images/default-avatar.png"}
+                  />
+                  <Link
+                    href="/api/auth/signout"
+                    className="text-xs font-bold text-zinc-500 hover:text-brand-500 transition-colors"
+                    onClick={() => setOpen(false)}
+                  >
+                    退出
+                  </Link>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/sign-in"
+                  className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline"
+                  onClick={() => setOpen(false)}
+                >
+                  登录账户
+                </Link>
+              )}
+            </div>
+          </div>
         </aside>
       </div>
     </div>

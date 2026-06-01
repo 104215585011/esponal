@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 17:32
+// Timestamp: 2026-06-01 22:15
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -7,7 +7,158 @@ import { BackLink } from "@/app/components/web/BackLink";
 import { SubtitlePanel } from "./SubtitlePanel";
 import { TranscriptPanel } from "./TranscriptPanel";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
+
 import { formatTimestamp } from "./pdf-helpers";
+
+function SkipBackIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <polygon points="19 20 9 12 19 4 19 20" />
+      <line x1="5" x2="5" y1="19" y2="5" />
+    </svg>
+  );
+}
+
+function SkipForwardIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <polygon points="5 4 15 12 5 20 5 4" />
+      <line x1="19" x2="19" y1="5" y2="19" />
+    </svg>
+  );
+}
+
+function PlayIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <polygon points="6 3 20 12 6 21 6 3" />
+    </svg>
+  );
+}
+
+function PauseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+    </svg>
+  );
+}
+
+function MaximizeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M15 3h6v6" />
+      <path d="M9 21H3v-6" />
+      <path d="M21 3l-7 7" />
+      <path d="M3 21l7-7" />
+    </svg>
+  );
+}
+
+function MinimizeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M4 14h6v6" />
+      <path d="M20 10h-6V4" />
+      <path d="M14 10l7-7" />
+      <path d="M10 14l-7 7" />
+    </svg>
+  );
+}
+
+function Volume2Icon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    </svg>
+  );
+}
+
+function VolumeXIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <line x1="22" x2="16" y1="9" y2="15" />
+      <line x1="16" x2="22" y1="9" y2="15" />
+    </svg>
+  );
+}
+
 
 type ActiveLookup = {
   form: string;
@@ -50,6 +201,8 @@ type WatchMobileLayoutProps = {
   handlePlayPause: () => void;
   handleVolumeChange: (volume: number) => void;
   handleToggleMute: () => void;
+  handlePrevSentence: () => void;
+  handleNextSentence: () => void;
 };
 
 export function WatchMobileLayout({
@@ -82,7 +235,9 @@ export function WatchMobileLayout({
   isMuted,
   handlePlayPause,
   handleVolumeChange,
-  handleToggleMute
+  handleToggleMute,
+  handlePrevSentence,
+  handleNextSentence
 }: WatchMobileLayoutProps) {
   const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "related">("subtitle");
   const [showControls, setShowControls] = useState(false);
@@ -99,14 +254,19 @@ export function WatchMobileLayout({
     }, 3000);
   };
 
-  const handlePlayerTap = () => {
-    setShowControls((prev) => {
-      const next = !prev;
-      if (next && isPlaying) {
-        resetHidingTimer();
-      }
-      return next;
-    });
+  const handlePlayerTap = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isPlaying) {
+      handlePlayPause();
+    } else {
+      setShowControls((prev) => {
+        const next = !prev;
+        if (next && isPlaying) {
+          resetHidingTimer();
+        }
+        return next;
+      });
+    }
   };
 
   useEffect(() => {
@@ -153,10 +313,26 @@ export function WatchMobileLayout({
           <div className="absolute inset-0 z-10 cursor-pointer" />
         </div>
 
+        {/* Custom Top Bar Overlay to cover native YouTube title & share buttons */}
+        <div
+          className={`absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/85 via-black/45 to-transparent px-4 py-3 flex items-start justify-between z-20 transition-opacity duration-300 pointer-events-none ${
+            showControls || !isPlaying ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div className="flex flex-col min-w-0 pr-12 text-left">
+            <span className="text-white text-xs font-bold font-sans line-clamp-1">
+              {videoInfo.title}
+            </span>
+            <span className="text-zinc-300 text-[10px] font-medium mt-0.5">
+              {videoInfo.channelTitle}
+            </span>
+          </div>
+        </div>
+
         {/* Giant play/pause toggle in the center on mobile */}
         <div
-          className={`absolute inset-0 z-20 bg-black/30 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
-            showControls ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 z-20 bg-black/40 backdrop-blur-[1px] flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
+            showControls || !isPlaying ? "opacity-100" : "opacity-0"
           }`}
         >
           <button
@@ -167,173 +343,194 @@ export function WatchMobileLayout({
                 resetHidingTimer();
               }
             }}
-            className="h-14 w-14 flex items-center justify-center rounded-full bg-black/60 text-white shadow-lg active:scale-95 transition-all pointer-events-auto"
+            className="h-16 w-16 flex items-center justify-center rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-xl active:scale-95 transition-all pointer-events-auto"
             type="button"
           >
             {isPlaying ? (
-              <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
-                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-              </svg>
+              <PauseIcon className="h-7 w-7 fill-current" />
             ) : (
-              <svg className="h-6 w-6 fill-current ml-0.5" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              <PlayIcon className="h-7 w-7 fill-current ml-1" />
             )}
           </button>
         </div>
 
         {/* Custom Mobile Player Controls Bar */}
         <div
-          className={`absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/90 via-black/45 to-transparent px-3 pb-2 pt-5 flex items-center gap-2.5 transition-all duration-300 ${
-            showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+          className={`absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-4 pb-3 pt-6 flex flex-col gap-2.5 transition-all duration-300 ${
+            showControls || !isPlaying ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           }`}
         >
-          {/* Play/Pause Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePlayPause();
-              resetHidingTimer();
-            }}
-            className="text-white active:text-sky-400 p-1 transition-colors"
-            type="button"
-          >
-            {isPlaying ? (
-              <svg className="h-[18px] w-[18px] fill-current" viewBox="0 0 24 24">
-                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-              </svg>
-            ) : (
-              <svg className="h-[18px] w-[18px] fill-current" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            )}
-          </button>
-
-          {/* Volume controls */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isVolumeOpen) {
-                  setIsVolumeOpen(true);
-                } else {
-                  handleToggleMute();
-                }
-                resetHidingTimer();
-              }}
-              className="text-white active:text-sky-400 p-1 transition-colors"
-              type="button"
-            >
-              {isMuted || volume === 0 ? (
-                <svg className="h-[18px] w-[18px] fill-none stroke-current stroke-2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z" />
-                </svg>
-              ) : (
-                <svg className="h-[18px] w-[18px] fill-none stroke-current stroke-2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-                </svg>
-              )}
-            </button>
-            <div className={`overflow-hidden transition-all duration-200 ease-out flex items-center ${isVolumeOpen ? "w-12 opacity-100 mr-1" : "w-0 opacity-0"}`}>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={isMuted ? 0 : volume}
-                onChange={(e) => {
-                  handleVolumeChange(Number(e.target.value));
-                  resetHidingTimer();
-                }}
-                className="w-12 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-sky-500 focus:outline-none"
-                style={{
-                  background: `linear-gradient(to right, #0ea5e9 0%, #0ea5e9 ${isMuted ? 0 : volume}%, rgba(255, 255, 255, 0.3) ${isMuted ? 0 : volume}%, rgba(255, 255, 255, 0.3) 100%)`
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Time text (Current) */}
-          <span className="text-[10px] font-semibold text-white/90 font-mono select-none">
-            {formatTimestamp(currentTimeSec)}
-          </span>
-
-          {/* Slider progress bar */}
-          <div className="flex-1 flex items-center min-w-0">
+          {/* Progress Seek Slider */}
+          <div className="w-full flex items-center">
             <input
               type="range"
               min={0}
               max={durationSec || 100}
               value={currentTimeSec}
               onChange={(e) => handleSeek(Number(e.target.value))}
-              className="w-full h-1.5 bg-white/30 rounded-lg appearance-none cursor-pointer accent-sky-500 focus:outline-none"
+              className="w-full h-[5px] bg-white/20 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none"
               style={{
-                background: `linear-gradient(to right, #0ea5e9 0%, #0ea5e9 ${(currentTimeSec / (durationSec || 1)) * 100}%, rgba(255, 255, 255, 0.3) ${(currentTimeSec / (durationSec || 1)) * 100}%, rgba(255, 255, 255, 0.3) 100%)`
+                background: `linear-gradient(to right, #10b981 0%, #10b981 ${durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0}%, rgba(255, 255, 255, 0.2) ${durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0}%)`
               }}
             />
           </div>
 
-          {/* Time text (Total) */}
-          <span className="text-[10px] font-semibold text-white/90 font-mono select-none">
-            {formatTimestamp(durationSec)}
-          </span>
+          {/* Time indicator row */}
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-white/90 font-mono select-none">
+              {formatTimestamp(currentTimeSec)}
+            </span>
+            <span className="text-[10px] font-bold text-white/90 font-mono select-none">
+              {formatTimestamp(durationSec)}
+            </span>
+          </div>
+          {/* Thumb Area controls */}
+          <div className="flex items-center justify-between h-14">
+            {/* Speed selector and Volume row */}
+            <div className="flex items-center gap-1.5">
+              {/* Speed selector */}
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsSpeedMenuOpen((prev) => !prev);
+                    resetHidingTimer();
+                  }}
+                  className="text-white active:text-brand-400 text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-all select-none border border-white/5"
+                  type="button"
+                >
+                  {playbackRate}x
+                </button>
+                {isSpeedMenuOpen && (
+                  <div
+                    className="absolute bottom-10 left-0 z-30 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-lg p-1 shadow-xl flex flex-col gap-1 min-w-[65px]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {([0.75, 0.85, 1.0, 1.25, 1.5] as const).map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => {
+                          handleSpeedChange(speed);
+                          setIsSpeedMenuOpen(false);
+                          resetHidingTimer();
+                        }}
+                        className={`px-2 py-1 text-[10px] font-semibold rounded-md text-center transition-all ${
+                          playbackRate === speed
+                            ? "bg-brand-500 text-white"
+                            : "text-zinc-300 hover:text-white hover:bg-white/10"
+                        }`}
+                        type="button"
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          {/* Speed Selector */}
-          <div className="relative">
+              {/* Volume controls */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isVolumeOpen) {
+                      setIsVolumeOpen(true);
+                    } else {
+                      handleToggleMute();
+                    }
+                    resetHidingTimer();
+                  }}
+                  className="text-zinc-300 active:text-brand-400 p-1.5 transition-colors"
+                  type="button"
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeXIcon className="h-5 w-5" />
+                  ) : (
+                    <Volume2Icon className="h-5 w-5" />
+                  )}
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ease-out flex items-center ${isVolumeOpen ? "w-12 opacity-100 mr-1" : "w-0 opacity-0"}`}>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => {
+                      handleVolumeChange(Number(e.target.value));
+                      resetHidingTimer();
+                    }}
+                    className="w-12 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none"
+                    style={{
+                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${isMuted ? 0 : volume}%, rgba(255, 255, 255, 0.2) ${isMuted ? 0 : volume}%)`
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Previous Sentence */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setIsSpeedMenuOpen((prev) => !prev);
+                handlePrevSentence();
                 resetHidingTimer();
               }}
-              className="text-white active:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-all select-none"
+              className="text-zinc-300 active:text-brand-400 p-2 transition-colors active:scale-90"
+              type="button"
+              title="上一句"
+            >
+              <SkipBackIcon className="h-5 w-5" />
+            </button>
+
+            {/* Play/Pause */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePlayPause();
+                resetHidingTimer();
+              }}
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-brand-500 text-white shadow-lg active:scale-95 transition-all"
               type="button"
             >
-              {playbackRate}x
+              {isPlaying ? (
+                <PauseIcon className="h-5 w-5 fill-current" />
+              ) : (
+                <PlayIcon className="h-5 w-5 fill-current ml-0.5" />
+              )}
             </button>
-            {isSpeedMenuOpen && (
-              <div
-                className="absolute bottom-8 right-0 z-30 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-lg p-1 shadow-xl flex flex-col gap-1 min-w-[65px]"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {([0.75, 0.85, 1.0, 1.25, 1.5] as const).map((speed) => (
-                  <button
-                    key={speed}
-                    onClick={() => {
-                      handleSpeedChange(speed);
-                      setIsSpeedMenuOpen(false);
-                      resetHidingTimer();
-                    }}
-                    className={`px-2 py-1 text-[10px] font-semibold rounded-md text-center transition-all ${
-                      playbackRate === speed
-                        ? "bg-sky-500 text-white"
-                        : "text-zinc-300 hover:text-white hover:bg-white/10"
-                    }`}
-                    type="button"
-                  >
-                    {speed}x
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Fullscreen Toggle */}
-          <button
-            onClick={toggleFullscreen}
-            className="text-white active:text-sky-400 p-1 transition-colors"
-            type="button"
-            title={isFullscreen ? "退出全屏" : "全屏播放"}
-          >
-            {isFullscreen ? (
-              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4.5 4.5M9 9H4.5M9 9V4.5M15 9l4.5-4.5M15 9h4.5M15 9V4.5M9 15l-4.5 4.5M9 15H4.5M9 15v4.5M15 15l4.5 4.5M15 15h4.5M15 15v-4.5" />
-              </svg>
-            ) : (
-              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h-4.5m4.5 0L15 9M20.25 20.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
-              </svg>
-            )}
-          </button>
+            {/* Next Sentence */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextSentence();
+                resetHidingTimer();
+              }}
+              className="text-zinc-300 active:text-brand-400 p-2 transition-colors active:scale-90"
+              type="button"
+              title="下一句"
+            >
+              <SkipForwardIcon className="h-5 w-5" />
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFullscreen();
+                resetHidingTimer();
+              }}
+              className="text-zinc-300 active:text-brand-400 p-2 transition-colors"
+              type="button"
+              title={isFullscreen ? "退出全屏" : "全屏播放"}
+            >
+              {isFullscreen ? (
+                <MinimizeIcon className="h-5 w-5" />
+              ) : (
+                <MaximizeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

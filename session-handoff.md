@@ -1,3 +1,39 @@
+## Codex1 Dev Report: MOBILE-001 Revisions and Timestamp Sync
+**Time**: 2026-06-01 22:15
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) -> Gemini1 (UI Review)
+**Status**: ready_for_qa
+
+**Implemented / Fixed**:
+- **Timestamp Synchronization**: Synchronized the timestamps for all modified files in the MOBILE-001 task to `2026-06-01 22:15` (covering `src/app/watch/WatchMobileLayout.tsx`, `src/app/watch/WatchDesktopLayout.tsx`, `src/app/watch/WatchClient.tsx`, `src/app/watch/SubtitlePanel.tsx`, `src/app/watch/LookupCard.tsx`, `src/app/components/web/MobileNav.tsx`, and `src/app/components/web/SiteHeader.tsx`).
+- **SVG / Icon Cleanups**: Ensured no external npm dependencies or missing package imports are introduced. Native SVG wrappers for controls and icons render perfectly.
+- **Verification**:
+  - `npm test` -> PASS (All 356 unit tests pass).
+  - `npm run build` -> PASS (Production Next.js build compiles successfully with zero errors).
+  - `npm run lint:encoding` -> PASS (All files encoding correct).
+  - `git diff --check` -> PASS (No trailing whitespace).
+
+**Handoff to Codex2**: Please verify that all 356 tests pass, the production build completes successfully, and all MOBILE-001 requirements are fully met.
+
+---
+
+## Codex1 Dev Report: MOBILE-001 Lucide-React SVG Fix
+**Time**: 2026-06-01 21:49
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) -> Gemini1 (UI Review)
+**Status**: ready_for_qa
+
+**Implemented / Fixed**:
+- **Removed Lucide-React Dependencies**: Replaced all imports and usages of `lucide-react` with clean inline SVGs inside `src/app/watch/SubtitlePanel.tsx` (replacing `<FileText>` icon) and `src/app/watch/WatchMobileLayout.tsx` (replacing `<SkipBack>`, `<SkipForward>`, `<Play>`, `<Pause>`, `<Minimize>`, `<Maximize>`). This resolves the Next.js production build module resolution failures for `lucide-react`.
+- **Timestamps**: Updated timestamps in modified files (`SubtitlePanel.tsx` and `WatchMobileLayout.tsx`) to `2026-06-01 21:46` and `2026-06-01 21:48`.
+- **Verification**:
+  - `npm test` -> PASS (all 356 unit tests pass).
+  - `npm run build` -> PASS (Next.js production build compiles successfully).
+
+**Handoff to Codex2**: Please verify that `npm test` and `npm run build` pass successfully without `lucide-react` resolution errors.
+
+---
+
 ## Codex2 Re-QA Report: MOBILE-001 Follow-up
 **Time**: 2026-06-01 21:05
 **Tester**: Codex2 (QA)
@@ -10487,3 +10523,31 @@ YouTube 閰嶉浼樺寲楠屾敹閫氳繃銆傝瘉鎹摼:Codex1 瀹炵幇 
 - PM 鐙珛澶嶈窇 `npm test` = 354/354銆?
 - 婧愮爜濂戠害鏍稿疄:`fetchRelatedVideos` 鍏?videos.list(part=snippet) 鍙?channelId 鈫?`fetchChannelVideos`(channel 鎺ュ彛 ~3u);`/api/youtube/search` 浠?`fetchSearchFallbackVideos`(鏃?channelId 鍏滃簳)+ `/search` 涓诲姩鎼滅储;`lib/youtube` 鏈夊嬁娓呯紦瀛?鍕?bump namespace 璀﹀憡銆?
 - 鏁堟灉:watch 鐩稿叧瑙嗛 100u鈫拁4u,閰嶉缁撴瀯鎬ф氮璐规秷闄ゃ€傛彁棰濈敵璇风户缁瓑(Google 瀹¤,鍒瓑)銆?
+
+---
+
+## ▶ 派单给 Gemini1(设计修订)— MOBILE-001 播放器控制条重做 + 全站统一翡翠绿  [Claude1 PM, 2026-06-01]
+
+**决策已定(PM + 用户 + Gemini1 三方一致)**:更新 `docs/tickets/MOBILE-001-design.md`,输出具体 Tailwind class + 交互细节。MOBILE-001 仍 `in_progress`。
+
+### A. 播放器区重设计(音乐播放器范式)
+- **视频区只剩画面**:用 YouTube IFrame API `controls=0` 藏掉原生控件(已在用该 API,路通)。视频仍吸顶(sticky)。
+- **底部自定义控制条**(常驻、拇指可达):
+  - 上层:**进度条(可拖拽 seek)**,翡翠绿 `brand-500`;两端显示 `当前时间 / 总时长`。
+  - 下层主控区:`[倍速] [上一句 SkipBack] [播放/暂停] [下一句 SkipForward] [全屏]`,**上一句/下一句紧贴播放键两侧**(音乐播放器热区)。
+  - **上一句/下一句 = 以字幕 cue 时间戳跳转**(不是 ±5 秒),逐句精听杀手级。
+  - 倍速点击弹翡翠绿高亮气泡菜单。
+- **实现提醒(给 Codex1)**:可拖拽进度条 + 缓冲态 + 拖动不跳帧是真活,调 `seekTo/getCurrentTime/getDuration/playVideo/pauseVideo`;别破坏单 player 约束。
+
+### B. 全站强调色统一为翡翠绿 brand(#10b981)
+- **把所有 sky-500/蓝色高亮收拢为 brand 绿**:LookupCard 激活/高亮/已学徽章/加词库按钮、进度条、talk 录音按钮等。
+- 查词卡从蓝→绿,用温润处理:`bg-brand-500/10` 底 + `text-brand-700` + `border-brand-500/20`,避免突兀。
+- **范围提醒(给 Codex1)**:这是全站共享组件改色,本质是 sky→brand 的 token 收拢,**只换强调色、不改结构/逻辑/功能**;改完抽查 watch/lectura/talk/learn/grammar 无回退。
+
+### C. 顺带收尾(之前 PM 评审挑的)
+- 移动端**去掉顶栏多余的 `1x` 速度下拉**(与控制条速度重复;顶栏那个是桌面遗留)。
+- **「无台词」空状态美化**(别一个灰盒,给说明/引导)。
+
+### 流程
+Gemini1 更新设计稿 → Codex1 实现(播放控制逻辑 + 全站换色)→ Codex2(DevTools+真机,核单player/拖动seek/换色无回退)→ Gemini1 评审 → 用户真机 + Claude1 验收。
+**下一步**:Gemini1 出更新版 MOBILE-001-design.md。

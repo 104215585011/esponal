@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 13:38
+// Timestamp: 2026-06-01 22:15
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -73,10 +73,14 @@ export async function SiteHeader({
 
         <GlobalSearchOverlay searchAction={searchAction} initialQuery={initialQuery} />
 
-        <PlaybackRateControl className="shrink-0" />
-        <ThemeToggle />
+        <div className="hidden lg:block shrink-0">
+          <PlaybackRateControl className="shrink-0" />
+        </div>
+        <div className="hidden lg:block">
+          <ThemeToggle />
+        </div>
 
-        <div className="shrink-0">
+        <div className="hidden lg:block shrink-0">
           {session?.user ? (
             <details className="relative">
               <summary className="flex list-none cursor-pointer items-center gap-2 rounded-full p-0.5 text-sm text-gray-600 hover:text-gray-900">

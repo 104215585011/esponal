@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 17:26
+// Timestamp: 2026-06-01 22:15
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -103,6 +103,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const [currentChinese, setCurrentChinese] = useState("");
   const [activeCue, setActiveCue] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [subtitleCues, setSubtitleCues] = useState<any[]>([]);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [durationSec, setDurationSec] = useState(0);
@@ -129,6 +130,62 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  // Load subtitles for sentence navigation
+  useEffect(() => {
+    let cancelled = false;
+    let pollCount = 0;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    async function loadSubtitles() {
+      if (!videoId) {
+        setSubtitleCues([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/subtitle?v=${encodeURIComponent(videoId)}&lang=es`,
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Subtitle failed: ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const cues = Array.isArray(payload) ? payload : payload.cues ?? [];
+        if (cancelled) return;
+
+        if (cues.length > 0) {
+          setSubtitleCues(cues);
+        } else if (pollCount < 5) {
+          pollCount += 1;
+          timeoutId = setTimeout(loadSubtitles, 2000);
+        } else {
+          setSubtitleCues([]);
+        }
+      } catch (error) {
+        console.error("Subtitle load failed in WatchClient", error);
+        if (!cancelled) {
+          if (pollCount < 5) {
+            pollCount += 1;
+            timeoutId = setTimeout(loadSubtitles, 2000);
+          } else {
+            setSubtitleCues([]);
+          }
+        }
+      }
+    }
+
+    loadSubtitles();
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [videoId, refreshKey]);
 
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<number | null>(null);
@@ -289,6 +346,64 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
     } catch (e) {}
   }, []);
 
+  const handlePrevSentence = useCallback(() => {
+    if (subtitleCues.length === 0) return;
+
+    if (activeCue) {
+      const activeIdx = subtitleCues.findIndex(
+        (cue) => cue.start === activeCue.start
+      );
+      if (activeIdx !== -1) {
+        if (currentTimeSec > activeCue.start + 2) {
+          handleSeek(activeCue.start);
+        } else {
+          if (activeIdx > 0) {
+            handleSeek(subtitleCues[activeIdx - 1].start);
+          } else {
+            handleSeek(0);
+          }
+        }
+        return;
+      }
+    }
+
+    // If no active cue, seek to start of last cue before currentTimeSec (or 0)
+    let lastCueBefore = null;
+    for (let i = subtitleCues.length - 1; i >= 0; i--) {
+      if (subtitleCues[i].start < currentTimeSec) {
+        lastCueBefore = subtitleCues[i];
+        break;
+      }
+    }
+    if (lastCueBefore) {
+      handleSeek(lastCueBefore.start);
+    } else {
+      handleSeek(0);
+    }
+  }, [subtitleCues, currentTimeSec, activeCue, handleSeek]);
+
+  const handleNextSentence = useCallback(() => {
+    if (subtitleCues.length === 0) return;
+
+    if (activeCue) {
+      const activeIdx = subtitleCues.findIndex(
+        (cue) => cue.start === activeCue.start
+      );
+      if (activeIdx !== -1) {
+        if (activeIdx + 1 < subtitleCues.length) {
+          handleSeek(subtitleCues[activeIdx + 1].start);
+        }
+        return;
+      }
+    }
+
+    // If no active cue, seek to start of first cue after currentTimeSec
+    const firstCueAfter = subtitleCues.find((cue) => cue.start > currentTimeSec);
+    if (firstCueAfter) {
+      handleSeek(firstCueAfter.start);
+    }
+  }, [subtitleCues, currentTimeSec, activeCue, handleSeek]);
+
   const handlePlayPause = useCallback(() => {
     if (!playerRef.current) return;
     try {
@@ -371,7 +486,11 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   };
 
   return isMobile ? (
-    <WatchMobileLayout {...sharedProps} />
+    <WatchMobileLayout
+      {...sharedProps}
+      handlePrevSentence={handlePrevSentence}
+      handleNextSentence={handleNextSentence}
+    />
   ) : (
     <WatchDesktopLayout {...sharedProps} />
   );

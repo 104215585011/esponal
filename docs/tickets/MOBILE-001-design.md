@@ -1,137 +1,127 @@
-# MOBILE-001 — watch 页 + 字幕面板 移动端独立布局重设计设计稿
+# MOBILE-001 设计修订案 — 移动端独立播放器控制（音乐播放器范式）与全站翡翠绿品牌化
 
-本设计稿规范了 `WatchClient` 页面在移动端视口下的独立布局（WatchMobileLayout）以及字幕、转写、控制条在移动端的展示与交互规范。设计追求移动端原生 App 级体验，保持精细、高效的成人自学调性，对齐 MOBILE-000 的高品质感。
+本修订版设计规范了 `WatchMobileLayout` 播放器控制条的交互重构、全站强调色向官方翡翠绿（Emerald）的收拢规范，以及字幕跳转、空状态美化的具体实现参数。
 
 ---
 
-## 1. 整体移动端架构与布局范式
+## 1. 移动端独立播放器控制条：音乐播放器范式
 
-在移动端（视口宽度 < 768px），我们放弃桌面的双栏布局，采用 **视频吸顶（Sticky Player） + 下方滚动内容流（Scrollable Details）** 的单栏结构，并使用 **Sticky Tab Switcher** 切换字幕、转写及推荐视频。
+移动端播放器（视口宽度 < 768px）隐藏 YouTube 原生控件（`controls=0`），完全采用自定义的底部常驻控制条。该控制条采用**音乐播放器式**的拇指操控区布局。
 
-### 1.1 ASCII 页面布局 (Mobile Portrait View)
+### 1.1 界面布局 (Bottom Custom Control Bar)
+
+自定义控制条固定悬浮在吸顶视频区的最下方，背景采用半透明的黑色渐变遮罩以保证在亮色视频背景下的可读性。
 
 ```text
-+---------------------------------------------+
-|  [<- 视频]  Esponal Logo             (某某)  |  <- 顶栏 (SiteHeader)
-+---------------------------------------------+
-|                                             |
-|             YouTube 视频播放器               |  <- 视频吸顶区 (sticky top-0 z-40)
-|                                             |  <- 宽度 w-full, 高度 aspect-video
-+---------------------------------------------+
-|   字幕   |   转写   |   推荐                 |  <- 选项卡 (sticky top-[56.25vw] z-40)
-+---------------------------------------------+  <- tabs 容器高度 44px
-|                                             |
-|  [ 视频元信息：标题、作者、刷新字幕 ]       |  <- Tab 滚动内容流起始
-|                                             |
-|  +---------------------------------------+  |
-|  |             字幕展示区                |  |  <- 字幕 Tab (SubtitlePanel)
-|  |  Queremos aprender español para...    |  |  <- 单词大字距, 触摸目标达标
-|  |  我们想学习西班牙语，为了...            |  |
-|  +---------------------------------------+  |
-|                                             |
-|  +---------------------------------------+  |
-|  |             底部控制条                |  |  <- 拇指可达区 (控制面板)
-|  |  显示模式: [中西] [仅西] [仅中]       |  |  <- 切换按钮触摸高度 44px
-|  |  播放速度: [0.75] [0.85] [1.0] [1.25] |  |
-|  +---------------------------------------+  |
-|                                             |
-+---------------------------------------------+
++-------------------------------------------------------------+
+|                                                             |
+|   [===================●--------------------------------]     |  <- 自定义进度条 (h-[5px], 拖拽 Seek)
+|   01:23                                               03:45 |  <- 时间文本 (text-[10px] font-mono)
+|                                                             |
+|     [ 1.0x ]    [ |<< ]      (( > ))      [ >>| ]   [ 全屏 ] |  <- 拇指操作栏 (高度 h-14)
+|                                                             |
++-------------------------------------------------------------+
 ```
 
-### 1.2 关键设计决策
-1. **视频吸顶 (Sticky Video)**: 视频播放器使用 `sticky top-0 z-40 w-full aspect-video shadow-md`，使用户在向下滚动阅读转写或查看字幕选项时，视频画面始终可见。
-2. **独立布局渲染**: 引入 `WatchDesktopLayout` 与 `WatchMobileLayout` 展示组件，通过 `useIsMobileViewport()` 钩子在客户端进行单分支渲染，避免 SSR 布局冲突，彻底杜绝渲染出第二个 YouTube Player 实例。
-3. **安全区适配 (Safe Area)**: 底部内容流及弹出的底部查词抽屉均使用 `.pb-safe` 适配刘海屏及底部 Home Bar。
+### 1.2 关键组件与 Tailwind Class 规范
+
+1. **容器背景遮罩**：
+   - 类名：`absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-4 pb-3 pt-6 flex flex-col gap-2.5 transition-all duration-300`
+   - 显示触发条件：`showControls || !isPlaying` 时可见（`opacity-100 translate-y-0`），正在播放且无触摸时自动隐藏（`opacity-0 translate-y-2 pointer-events-none`）。
+
+2. **自定义进度条 (Progress Seek Slider)**：
+   - 使用原生的 `<input type="range" />`，并通过 CSS 渐变绘制当前进度。
+   - 类名：`w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none`
+   - 动态样式：`style={{ background: 'linear-gradient(to right, #10b981 0%, #10b981 ' + percent + '%, rgba(255, 255, 255, 0.2) ' + percent + '%)' }}`
+   - 强调色统一使用翡翠绿（`#10b981`），杜绝天蓝色（`sky-500`）。
+
+3. **时间指示器**：
+   - 进度条左右两侧或下方渲染 `currentTimeSec` 和 `durationSec`。
+   - 类名：`text-[10px] font-bold text-white/90 font-mono select-none`
+
+4. **主控操作栏 (Thumb Area controls)**：
+   - 容器：`flex items-center justify-between h-14`
+   - **倍速选择器 (`[1.0x]`)**：
+     - 类名：`text-white active:text-brand-400 text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-all select-none border border-white/5`
+     - 菜单激活：点击弹出的半透明气泡菜单中，选中速度使用 `bg-brand-500 text-white` 进行高亮。
+   - **上一句跳转 (`[|<<]`)**：
+     - 使用 Lucide 图标 `<SkipBack className="h-5 w-5" />`
+     - 类名：`text-zinc-300 active:text-brand-400 p-2 transition-colors active:scale-90`
+   - **中央播放/暂停键 (`(( > ))`)**：
+     - 增大点击热区，居中摆放。
+     - 类名：`h-12 w-12 flex items-center justify-center rounded-full bg-brand-500 text-white shadow-lg active:scale-95 transition-all`
+     - 播放/暂停图标：统一使用 Lucide 的 `Play`（带微调 `ml-0.5` 修正视觉重心）和 `Pause`。
+   - **下一句跳转 (`[>>|]`)**：
+     - 使用 Lucide 图标 `<SkipForward className="h-5 w-5" />`
+     - 类名：`text-zinc-300 active:text-brand-400 p-2 transition-colors active:scale-90`
+   - **全屏切换**：
+     - 使用 Lucide 图标 `<Maximize className="h-5 w-5" />` 或 `<Minimize className="h-5 w-5" />`
+     - 类名：`text-zinc-300 active:text-brand-400 p-2 transition-colors`
 
 ---
 
-## 2. 界面与组件详细设计
+## 2. 逐句跳转（上一句/下一句）交互逻辑
 
-### 2.1 WatchClient 独立分支结构 (WatchClient.tsx)
+跳转逻辑依赖当前播放时间 `currentTimeSec` 与字幕 Cue 列表 `subtitleCues`（格式同 `{ start: number, dur: number, text: string }`）的比对。
 
-```jsx
-// 骨架伪代码
-export function WatchClient({ videoId, videoInfo, relatedVideos }) {
-  const isMobile = useIsMobileViewport();
+### 2.1 算法边界规范
 
-  if (isMobile === null) {
-    return <div className="min-h-screen bg-white dark:bg-zinc-950 animate-pulse" />;
-  }
+1. **上一句跳转 (handlePrevSentence)**：
+   - 计算逻辑：
+     - 若当前时间 `currentTimeSec` 大于当前激活 Cue 的开始时间 `start` + 2 秒，说明用户希望**重新聆听当前句**。此时将视频 seek 到当前 Cue 的 `start`。
+     - 否则，寻找在当前 Cue 之前的上一个 Cue（即 `index - 1`）。将视频 seek 到该 Cue 的 `start`。
+     - 若当前没有激活的 Cue，则寻找**所有在当前时间之前结束/开始的最后一个 Cue** 进行跳转。如果没有任何前置 Cue，则跳转到视频起点 `0`。
 
-  // 共享的状态和 Player 逻辑
-  const sharedState = {
-    currentTimeSec,
-    playbackRate,
-    activeLookup,
-    spanishLine,
-    chineseLine,
-    activeCue,
-    playerRef,
-    // ... callbacks
-  };
+2. **下一句跳转 (handleNextSentence)**：
+   - 计算逻辑：
+     - 寻找在当前激活 Cue 之后的下一个 Cue（即 `index + 1`）。将视频 seek 到该 Cue 的 `start`。
+     - 若当前没有激活的 Cue，则寻找**第一个在当前时间之后开始的 Cue** 进行跳转。如果没有后续 Cue，则不做任何跳转。
 
-  return isMobile ? (
-    <WatchMobileLayout {...sharedState} videoInfo={videoInfo} relatedVideos={relatedVideos} />
-  ) : (
-    <WatchDesktopLayout {...sharedState} videoInfo={videoInfo} relatedVideos={relatedVideos} />
-  );
-}
-```
-
-### 2.2 WatchMobileLayout 结构 (WatchMobileLayout.tsx)
-* **容器**：`relative flex w-full flex-col bg-white dark:bg-zinc-950`。
-* **吸顶视频包装器**：
-  - 类名：`sticky top-0 z-40 w-full aspect-video bg-black shadow-md`。
-  - 内含 YouTube `iframe` 容器以及全屏切换按钮。
-* **Tab 开关控制条**：
-  - 类名：`sticky top-[56.25vw] z-40 flex h-11 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm`。
-  - Tab 选项按钮：`flex-1 flex items-center justify-center text-xs font-semibold h-11 cursor-pointer transition-all`。
-  - 选中状态：`border-b-2 border-brand-500 text-brand-600 dark:text-brand-400`。
-  - 未选中状态：`text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200`。
-* **Tab 内容流区**：
-  - 类名：`flex-1 min-w-0 w-full overflow-y-auto px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+24px)]`。
-
-### 2.3 SubtitlePanel 移动端重设 (SubtitlePanel.tsx)
-在移动端 Tab 中，SubtitlePanel 不再使用 `isOverlay` 浮层模式，而是直接融于页面白底/黑底内容流中：
-* **字幕卡片背景**：
-  - 类名：`w-full bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800/60 rounded-2xl p-5 shadow-sm min-h-[140px] flex items-center justify-center text-center`。
-* **西语单词 Span 点击优化**：
-  - 西语单句大小：`text-lg font-semibold leading-relaxed tracking-wide text-zinc-900 dark:text-zinc-100`。
-  - 单词点击：`cursor-pointer rounded px-0.5 transition hover:bg-zinc-200 dark:hover:bg-zinc-800/80`，激活词高亮为 `bg-brand-500/20 text-brand-600 dark:text-brand-300 font-bold`。
-  - 单词点击热区（Touch Target）：利用 margin 和 inline-block 确保物理点击区域大小。
-* **翻译显示**：
-  - 类名：`mt-2.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium`。
-* **底部控制区 (Thumb Zone Controls)**：
-  - 将字幕设置（显示模式、速度、刷新）提取为一个扁平化的底层控制面板，排列在字幕卡片下方。
-  - **显示模式切换**：使用胶囊式 Segment Control `flex bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full`。选项（中西、仅西、仅中）使用 `flex-1 py-1.5 text-[11px] font-bold rounded-full`。
-  - **播放速度切换**：`grid grid-cols-4 gap-1 mt-3 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full`。速度选项使用 `text-center py-1.5 text-[11px] font-bold rounded-full`，选中项为 `bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm`。
-  - **刷新字幕与下载 PDF (WATCH-009)**：
-    - 在控制条下部，排列一排次要操作按钮（两列等宽布局）。
-    - 刷新字幕按钮：`flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-800 rounded-full h-10 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50`。
-    - 下载 PDF 按钮 (WATCH-009)：`flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-800 rounded-full h-10 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50`。
-
-### 2.4 TranscriptPanel 移动端重设 (TranscriptPanel.tsx)
-* **长列表滚动容器**：
-  - 类名：`w-full h-[calc(100vh-56.25vw-44px-env(safe-area-inset-bottom)-48px)] overflow-y-auto`。
-  - 对句子流进行合理裁剪或原生虚拟化滚动，确保滑动顺畅。
-* **句子卡片 (Sentence Group)**：
-  - 容器：`group flex flex-col p-4 border-b border-zinc-100 dark:border-zinc-900/60 bg-white dark:bg-zinc-950 transition`。
-  - 激活状态句：`bg-brand-50/20 dark:bg-brand-950/5 border-l-2 border-brand-500`。
-  - 句子西语文本：`text-sm font-semibold leading-relaxed text-zinc-800 dark:text-zinc-200`。
-  - 句子中文翻译：`text-xs text-zinc-400 dark:text-zinc-500 mt-1`。
-
-### 2.5 推荐卡片流重设 (Related Videos)
-* **卡片条目**：
-  - 容器：`flex gap-3.5 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800/40 bg-zinc-50/30 dark:bg-zinc-900/10 hover:border-brand-200/50 transition`。
-  - 缩略图：`w-28 h-16 object-cover rounded-lg shrink-0`。
-  - 信息区：`flex-1 min-w-0 flex flex-col justify-between py-0.5`。
-  - 标题：`text-[12px] font-semibold leading-relaxed line-clamp-2 text-zinc-800 dark:text-zinc-200`。
-  - 频道：`text-[10px] text-zinc-400 dark:text-zinc-500 mt-1`。
+3. **数据接口规范**：
+   - `WatchClient.tsx` 中定义 `handlePrevSentence` 和 `handleNextSentence` 回调函数。
+   - `WatchMobileLayout` 通过 Props 接收这两个回调并绑定在 `SkipBack` 和 `SkipForward` 按钮上。
 
 ---
 
-## 3. 强制校验标准 (验收 Checklist)
+## 3. 全站强调色统一为翡翠绿（Emerald）
 
-1. **响应式适配**：保证 iOS 设备的刘海及安全指示条区域通过 `env(safe-area-inset-bottom)` 自动顶开，禁止发生操作键与 Home 指示条重叠。
-2. **唯一 Player 实例**：用 Chrome DevTools 检查 DOM，`id="esponal-youtube-player"` 在同一时间仅能挂载 1 个，视频播放中途切换 tab，播放绝不能中断或重置。
-3. **无游戏化与中文文案**：依照 `docs/UI-DESIGN-CONSTRAINTS.md`，页面内不能出现进度完成率圈、XP 积分以及任何引发焦虑的每日进度术语。错误提示及重载状态文案 100% 用清晰中文。
+根据品牌规范，所有此前由 `sky-` (蓝色) 渲染的控制及激活高亮全部收拢为官方主色 `brand` (翡翠绿)。
+
+### 3.1 查词卡 (LookupCard.tsx) 配色收拢
+
+查词卡片（无论是移动端底部抽屉还是桌面端右侧面板）需将蓝色背景 and 字色统一改为温润的品牌绿色：
+* **生词未激活/次要标签**：
+  - 替换前：`bg-sky-500/10 text-sky-600 border-sky-500/20`
+  - 替换后：`bg-brand-500/10 text-brand-700 dark:text-brand-400 border-brand-500/20`
+* **收藏/熟词等高亮按钮**：
+  - 将所有 `bg-sky-500 hover:bg-sky-600` 改为 `bg-brand-500 hover:bg-brand-600`。
+  - 将所有 `text-sky-500` 改为 `text-brand-600` 或 `dark:text-brand-400`。
+  - 所有带 `hover:border-sky-500` 的词条卡片改用 `hover:border-brand-500/30`。
+
+### 3.2 播放器与控制控件配色收拢
+
+* 移动端音量进度条和视频进度条的 `accent-sky-500` 全部替换为 `accent-brand-500`。
+* 进度条背景渲染的 CSS 渐变中的蓝色值 `#0ea5e9` 统一替换为翡翠绿 `#10b981`。
+
+---
+
+## 4. 细节清理与美化
+
+### 4.1 顶栏清理
+* 在移动端（`< 768px`），`SiteHeader` 顶栏移除任何可能拥挤的控制元素（如 1x 速度选择、折叠设置）。这些配置一律隐藏（使用 `hidden md:flex`），确保顶栏保持极简（仅 Logo、搜索触发和侧边菜单触发）。主题切换和个人中心链接由滑出的 `MobileNav` 抽屉底层承载。
+
+### 4.2 「无台词」空状态美化 (SubtitlePanel)
+* 当视频由于各种原因没有加载到同步字幕（`hasLoadedSubtitles && subtitleCues.length === 0`）时，不再显示枯燥的 `（无台词）` 占位符。
+* **美化后规范**：
+  - 容器：`w-full min-h-[160px] flex flex-col items-center justify-center text-center p-6 bg-zinc-50/50 dark:bg-zinc-900/10 border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl`
+  - 内部元素：放置一个 Lucide 哑光图标 `<FileText className="h-6 w-6 text-zinc-400 mb-2" />`，下方渲染中文文案：
+    - 主标题：`暂无西语字幕` (类名：`text-sm font-semibold text-zinc-700 dark:text-zinc-300`)
+    - 辅助提示：`此视频暂无同步字幕，您可以通过进度条自由播放与精听。` (类名：`text-xs text-zinc-400 dark:text-zinc-500 mt-1 max-w-[240px]`)
+
+---
+
+## 5. 校验与验证方案 (QA 指南)
+
+1. **单实例校验**：全站换色和交互重构绝对不能在 DOM 中生成第二个播放器 iframe 实例，视频在中途切换 Tab（例如从“字幕”切到“转写”）时，播放不能中断。
+2. **跳转精确性**：点击上一句/下一句按钮，视频应该精准 seek 到上一句/下一句的开始时间，并且字幕高亮状态立即跟随更新。
+3. **视觉抽查**：用 Chrome 开发者工具模拟移动端，确认全站无 `sky-500` 的蓝色遗留，所有进度条、激活框、查词标签呈现温润的品牌翡翠绿。

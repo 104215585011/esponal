@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 16:41
+// Timestamp: 2026-06-01 22:15
 "use client";
 
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
@@ -617,8 +617,8 @@ export function LookupCard({
                   aria-label={`Play pronunciation for ${lemma}`}
                   className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs transition duration-200 ${
                     speakingText === lemma
-                      ? "animate-pulse border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                      : "border-zinc-200 dark:border-zinc-800 text-sky-500 bg-sky-500/5 hover:bg-sky-500/10 dark:bg-sky-500/10 dark:hover:bg-sky-500/20"
+                      ? "animate-pulse border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-400"
+                      : "border-zinc-200 dark:border-zinc-800 text-brand-600 dark:text-brand-400 bg-brand-500/5 hover:bg-brand-500/10 dark:bg-brand-500/10 dark:hover:bg-brand-500/20"
                   }`}
                   onClick={handleSpeakLemma}
                   type="button"
@@ -638,7 +638,7 @@ export function LookupCard({
             </div>
 
             {buttonState === "already_saved" && (
-              <div className="mt-2.5 flex items-center gap-1.5 rounded-full bg-sky-500/10 text-sky-500 border border-sky-500/20 px-2.5 py-0.5 text-xs font-semibold w-fit">
+              <div className="mt-2.5 flex items-center gap-1.5 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-400 border border-brand-500/20 px-2.5 py-0.5 text-xs font-semibold w-fit">
                 <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
@@ -654,8 +654,8 @@ export function LookupCard({
                 disabled={buttonState === "already_saved" || buttonState === "loading" || buttonState === "success"}
                 className={`p-1.5 rounded-full transition duration-300 ${
                   buttonState === "already_saved" || buttonState === "success"
-                    ? "text-sky-500 hover:text-sky-600 scale-105"
-                    : "text-zinc-300 dark:text-zinc-600 hover:text-sky-500 dark:hover:text-sky-400"
+                    ? "text-brand-600 dark:text-brand-400 hover:text-brand-700 scale-105"
+                    : "text-zinc-300 dark:text-zinc-600 hover:text-brand-600 dark:hover:text-brand-400"
                 }`}
                 type="button"
                 aria-label="Add to vocabulary"
@@ -777,7 +777,7 @@ export function LookupCard({
               <span>你在今天遇到了</span>
               <button
                 onClick={handleAddToVocab}
-                className="text-sky-500 hover:text-sky-600 transition p-0.5"
+                className="text-brand-600 dark:text-brand-400 hover:text-brand-700 transition p-0.5"
                 type="button"
                 disabled={buttonState === "already_saved" || buttonState === "loading"}
                 aria-label="Add to vocabulary from encounter"
@@ -800,7 +800,7 @@ export function LookupCard({
                           <button
                             className={`rounded px-0.5 text-left transition ${
                               isTarget
-                                ? "text-sky-500 font-bold hover:bg-sky-500/10"
+                                ? "text-brand-600 dark:text-brand-400 font-bold hover:bg-brand-500/10"
                                 : "hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-white"
                             }`}
                             key={`${token}-${index}`}
@@ -821,8 +821,8 @@ export function LookupCard({
                     aria-label="Play example sentence"
                     className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border text-[11px] transition ${
                       speakingText === example.es
-                        ? "animate-pulse border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                        : "border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400"
+                        ? "animate-pulse border-brand-500 bg-brand-500/10 text-brand-600 dark:text-brand-400"
+                        : "border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 hover:border-brand-500/30 hover:text-brand-600 dark:hover:text-brand-400"
                     }`}
                     onClick={handleSpeakExample}
                     type="button"
@@ -907,7 +907,7 @@ export function LookupCard({
                 onClick={() => onRelatedPhraseClick?.(phrase.lemma, phrase.kind)}
                 className={
                   useStaticLayout
-                    ? "flex items-center justify-between w-full text-left rounded-xl p-2.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-100 dark:border-zinc-800/40 hover:border-sky-500/30 transition duration-150 group"
+                    ? "flex items-center justify-between w-full text-left rounded-xl p-2.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-100 dark:border-zinc-800/40 hover:border-brand-500/30 transition duration-150 group"
                     : "flex items-center justify-between w-full text-left rounded-lg p-2 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/40 border border-transparent hover:border-zinc-200/50 dark:hover:border-zinc-800/50 transition duration-150 group"
                 }
               >
@@ -918,7 +918,7 @@ export function LookupCard({
                 }>
                   <span className={
                     useStaticLayout
-                      ? "text-sm font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition truncate"
+                      ? "text-sm font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition truncate"
                       : "text-sm font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate"
                   }>
                     {phrase.lemma}
@@ -949,7 +949,7 @@ export function LookupCard({
                 登录后才能保存到生词本，下次还能查到
               </p>
               <a
-                className="block h-11 w-full rounded-full bg-sky-500 text-center text-sm font-semibold flex items-center justify-center text-white transition hover:bg-sky-600 shadow-md"
+                className="block h-11 w-full rounded-full bg-brand-500 text-center text-sm font-semibold flex items-center justify-center text-white transition hover:bg-brand-600 shadow-md"
                 href={buildSignInHref()}
               >
                 登录 / 注册
@@ -974,13 +974,13 @@ export function LookupCard({
               useStaticLayout
                 ? `h-11 w-full rounded-full text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm ${
                     buttonState === "default"
-                      ? "bg-sky-500 hover:bg-sky-600 text-white hover:shadow-md active:scale-[0.99]"
+                      ? "bg-brand-500 hover:bg-brand-600 text-white hover:shadow-md active:scale-[0.99]"
                       : buttonState === "loading"
-                        ? "cursor-progress bg-sky-500/70 text-white opacity-70"
+                        ? "cursor-progress bg-brand-500/70 text-white opacity-70"
                         : buttonState === "already_saved"
                           ? "bg-zinc-100 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-500 cursor-default shadow-none border border-transparent dark:border-zinc-800/50"
                           : buttonState === "success"
-                            ? "bg-sky-500 text-white"
+                            ? "bg-brand-500 text-white"
                             : "cursor-default bg-zinc-100 text-zinc-400"
                   }`
                 : `h-8 w-full rounded-md text-sm font-medium transition ${

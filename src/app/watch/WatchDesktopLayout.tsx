@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 17:28
+// Timestamp: 2026-06-01 22:15
 "use client";
 
 import { useState } from "react";
@@ -163,7 +163,7 @@ export function WatchDesktopLayout({
           </h1>
           <div className="mt-2 flex items-center justify-between gap-4 text-sm text-gray-500">
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-sky-500 text-[10px] font-bold text-white">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-brand-400 text-[10px] font-bold text-white">
                 ES
               </div>
               <span>{videoInfo.channelTitle}</span>

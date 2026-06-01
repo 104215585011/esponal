@@ -1,7 +1,29 @@
-// Timestamp: 2026-06-01 17:21
+// Timestamp: 2026-06-01 22:15
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+
+function FileTextIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+    </svg>
+  );
+}
+
 import { LookupCard, LookupCardStack } from "./LookupCard";
 import {
   PHRASE_HIGHLIGHT_CLASSES,
@@ -570,10 +592,16 @@ export function SubtitlePanel({
               （字幕加载中…）
             </p>
           ) : showEmptyState ? (
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display">暂无字幕</p>
+            <div className="w-full min-h-[160px] flex flex-col items-center justify-center text-center p-6 bg-zinc-50/50 dark:bg-zinc-900/10 border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl">
+              <FileTextIcon className="h-6 w-6 text-zinc-400 mb-2" />
+              <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">暂无西语字幕</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 max-w-[240px]">
+                此视频暂无同步字幕，您可以通过进度条自由播放与精听。
+              </p>
+            </div>
           ) : !spanishLine ? (
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display">
-              （无台词）
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display font-medium select-none animate-pulse">
+              字幕将在视频播放时同步显示
             </p>
           ) : (
             <div className="flex flex-col items-center justify-center">
@@ -677,17 +705,17 @@ export function SubtitlePanel({
         </div>
 
         {/* 底部控制区 (Thumb Zone Controls) */}
-        <div className="flex flex-col gap-3 w-full">
+        <div className="flex flex-col gap-3 w-full animate-fadeIn">
           {/* 显示模式切换 */}
           <div>
-            <div className="flex bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full">
+            <div className="flex bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full shadow-inner">
               {(["bilingual", "spanish", "chinese"] as const).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => changeDisplayMode(mode)}
                   className={`flex-1 py-1.5 text-[11px] font-bold rounded-full transition-all ${
                     displayMode === mode
-                      ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                      ? "bg-white dark:bg-zinc-800 text-brand-600 dark:text-brand-400 shadow-sm border border-zinc-200/10"
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                   }`}
                   type="button"
@@ -702,14 +730,14 @@ export function SubtitlePanel({
 
           {/* 播放速度切换 */}
           <div>
-            <div className="grid grid-cols-4 gap-1 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full">
+            <div className="grid grid-cols-4 gap-1 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full shadow-inner">
               {([0.75, 0.85, 1.0, 1.25] as const).map((speed) => (
                 <button
                   key={speed}
                   onClick={() => onSpeedChange(speed)}
                   className={`text-center py-1.5 text-[11px] font-bold rounded-full transition-all ${
                     playbackRate === speed
-                      ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                      ? "bg-white dark:bg-zinc-800 text-brand-600 dark:text-brand-400 shadow-sm border border-zinc-200/10"
                       : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                   }`}
                   type="button"
@@ -724,7 +752,7 @@ export function SubtitlePanel({
           <div className="grid grid-cols-2 gap-3.5 mt-1">
             <button
               onClick={onRefresh}
-              className="flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-800 rounded-full h-10 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors"
+              className="flex items-center justify-center gap-1.5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-full h-10 text-[11.5px] font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm transition-all duration-150 active:scale-98"
               type="button"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -736,7 +764,7 @@ export function SubtitlePanel({
             <button
               onClick={handlePdfDownload}
               disabled={isGeneratingPdf}
-              className="flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-800 rounded-full h-10 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-full h-10 text-[11.5px] font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm transition-all duration-150 active:scale-98 disabled:opacity-50"
               type="button"
               aria-label="下载当前字幕为 PDF 讲义"
             >
@@ -1141,7 +1169,13 @@ export function SubtitlePanel({
             （字幕加载中…）
           </p>
         ) : showEmptyState ? (
-          <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display">暂无字幕</p>
+          <div className="w-full min-h-[160px] flex flex-col items-center justify-center text-center p-6 bg-zinc-50/50 dark:bg-zinc-900/10 border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl">
+            <FileTextIcon className="h-6 w-6 text-zinc-400 mb-2" />
+            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">暂无西语字幕</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 max-w-[240px]">
+              此视频暂无同步字幕，您可以通过进度条自由播放与精听。
+            </p>
+          </div>
         ) : !spanishLine ? (
           <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display">
             （无台词）
