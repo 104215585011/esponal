@@ -72,6 +72,10 @@ async function safeCacheSet(cacheKey: string, value: string, ttlSeconds: number)
 // can be served as a fallback when the YouTube Data API call fails (e.g. the
 // daily quota is exhausted). Without this, a quota-exhausted day leaves
 // channel/search sections blank instead of showing slightly stale data.
+//
+// Quota note: do not routinely clear youtube:* Redis keys during operations.
+// Do not bump YouTube cache namespaces casually. Each broad invalidation forces
+// cold rehydration and can burn through search.list quota especially quickly.
 const STALE_FALLBACK_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 export async function getCachedJson<T>(

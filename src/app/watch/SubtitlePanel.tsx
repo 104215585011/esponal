@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-31 12:48
+// Timestamp: 2026-06-01 16:41
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -23,7 +23,7 @@ type SubtitlePanelProps = {
     translatedSentence?: string;
     source?: any;
   }) => void;
-  onCloseLookup?: () => void;
+  onCloseLookup?: (options?: { autoPlay?: boolean }) => void;
   playbackRate: number;
   onSpeedChange: (speed: number) => void;
   videoId: string;
@@ -159,11 +159,14 @@ export function SubtitlePanel({
     });
   };
 
-  const closeStackCard = (id: string) => {
+  const closeStackCard = (id: string, options?: { autoPlay?: boolean }) => {
     setActiveLookup((prev) => {
       if (!prev) return null;
       const nextCards = prev.cards.filter((card) => card.id !== id);
-      if (nextCards.length === 0) return null;
+      if (nextCards.length === 0) {
+        onCloseLookup?.(options);
+        return null;
+      }
       return { ...prev, cards: nextCards };
     });
   };

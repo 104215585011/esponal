@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 10:32
+// Timestamp: 2026-06-01 16:41
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -33,7 +33,7 @@ type TranscriptPanelProps = {
     translatedSentence?: string;
     source?: any;
   }) => void;
-  onCloseLookup?: () => void;
+  onCloseLookup?: (options?: { autoPlay?: boolean }) => void;
   onSeek: (seconds: number) => void;
   videoId: string;
   videoTitle?: string;
@@ -536,12 +536,12 @@ export function TranscriptPanel({
     });
   };
 
-  const closeStackCard = (id: string) => {
+  const closeStackCard = (id: string, options?: { autoPlay?: boolean }) => {
     setActiveLookup((prev) => {
       if (!prev) return null;
       const nextCards = prev.cards.filter((card) => card.id !== id);
       if (nextCards.length === 0) {
-        onCloseLookup?.();
+        onCloseLookup?.(options);
         return null;
       }
       return { ...prev, cards: nextCards };

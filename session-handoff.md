@@ -1,3 +1,51 @@
+## Codex1 Dev Report: WEB-019 YouTube Quota Optimization Ready for QA
+**Time**: 2026-06-01 18:55
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Implemented**:
+- `src/app/watch/page.tsx` now fetches the current video's YouTube snippet through `videos.list(part=snippet)` to get `channelId`.
+- Watch related videos now use `/api/youtube/channel?id=...` for same-channel uploads instead of `/api/youtube/search`.
+- Curated channel title fallback still uses channel uploads.
+- `/api/youtube/search` remains available for `/search` user-initiated search and as the rare fallback when `channelId` cannot be resolved.
+- `src/lib/youtube.ts` now documents the operational warning: do not routinely clear `youtube:*` Redis cache keys and do not casually bump YouTube cache namespaces.
+- Added `tests/web019.test.mjs` to lock the quota behavior.
+
+**Verification run by Codex1**:
+- `node --test tests/web019.test.mjs tests/web002.test.mjs tests/web003.test.mjs tests/web016.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 354/354 pass.
+- `npm run build` -> pass with existing unrelated Next `<img>` and Sentry warnings.
+
+**Codex2 QA focus**:
+- Source-check that the normal `fetchRelatedVideos` path no longer calls `/api/youtube/search`.
+- Confirm `/search` page and `/api/youtube/search` are unchanged for active user search.
+- Confirm cache warning comments are present.
+
+## Codex1 Task Report: MOBILE-000 Video Playback Resume Fix
+**Time**: 2026-06-01 16:42
+**From**: Codex1 (DEV)
+**Status**: Completed and verified
+
+**What I implemented**:
+- Fixed the issue where clicking the backdrop/blank area or swiping down the Lookup Sheet on mobile resumes video playback.
+- Backdrop clicks, drag-handle clicks, and swipe-down dismissals now keep the video paused, while clicking the explicit "关闭" (Close) button inside the sheet resumes video playback.
+- Updated `LookupCardStack` and `MobileLookupSheet` in [LookupCard.tsx](file:///c:/Users/wang/esponal/src/app/watch/LookupCard.tsx) to accept an `options` parameter with an `autoPlay` flag in their close callbacks.
+- Propagated the `autoPlay` option back through the close handlers in [SubtitlePanel.tsx](file:///c:/Users/wang/esponal/src/app/watch/SubtitlePanel.tsx) and [TranscriptPanel.tsx](file:///c:/Users/wang/esponal/src/app/watch/TranscriptPanel.tsx) to [WatchClient.tsx](file:///c:/Users/wang/esponal/src/app/watch/WatchClient.tsx).
+- Updated the timestamps of all modified files to `2026-06-01 16:41`.
+
+**Verification**:
+- `npm test` -> 351/351 pass.
+- `npm run build` -> pass.
+
+**Next step**:
+- Handing back to Claude1 (PM) and User for final verification.
+
+---
+
 ## Codex1 Sanity Fix Report: MOBILE-000 Visual Rework Verified
 **Time**: 2026-06-01 18:32
 **From**: Codex1 (DEV)
@@ -10207,3 +10255,21 @@ uniqueHeights=[258]
 - 出处遭遇区(VOCAB-003/012):例句 + 来源
 - 品牌色 = Esponal 蓝/sky(非绿);**亮色 + 暗色模式都要做到位**
 - 质量对齐桌面悬浮卡 + 这张 DejaVocab 抽屉
+
+---
+
+## ▶ 派单给 Codex1 — WEB-019 YouTube 配额优化  [Claude1 PM, 2026-06-01]
+
+**Ticket**: `docs/tickets/WEB-019.md`(无 UI:Claude1→Codex1→Codex2)。feature_list key 100, `not_started`。
+
+**一句话**:watch 相关视频(含非精选频道)从 search.list(100 配额单位)改成走 channel 上传列表接口(~3-4u)。
+
+**核心改动**(`src/app/watch/page.tsx` ~line 80-100 的相关视频逻辑):
+- 现状:精选频道走 channel 接口(便宜✅);**非精选频道回落 /api/youtube/search(search.list 100u❌)**。
+- 改:非精选频道也**解析 channelId(videos.list part=snippet 拿 snippet.channelId,1u,可与现有取时长/embeddable 的 videos.list 合并 part 零额外成本)→ 走 channel 上传列表(~3u)**。仅拿不到 channelId 才兜底 search。
+- `/search` 用户搜索保持不动(search.list + 24h 短缓存,需新鲜)。
+- 缓存代码加注释:**勿在常规运维清 `youtube:*` 缓存、勿随意 bump 缓存 key**(每清一次触发全量 search 重灌烧配额)。
+
+**背景**:今日配额 3433/10000 快速消耗,主因是之前手动清缓存 + v2 bump 冷启动重灌(一次性);本票消除 search 误用这个结构性浪费。提额申请已在走(Google 审计 1-4 个月,别等)。
+
+**下一步**:交 Codex1 实现。

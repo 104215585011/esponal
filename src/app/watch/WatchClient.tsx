@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-31 12:48
+// Timestamp: 2026-06-01 16:41
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -218,14 +218,17 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   }, []);
 
   // Handle closing lookup triggering resume
-  const handleCloseLookup = useCallback(() => {
+  const handleCloseLookup = useCallback((options?: { autoPlay?: boolean }) => {
     setActiveLookup(null);
     setVideoEnded(false);
-    try {
-      if (playerRef.current && typeof playerRef.current.playVideo === "function") {
-        playerRef.current.playVideo();
-      }
-    } catch (e) {}
+    const shouldPlay = options?.autoPlay ?? true;
+    if (shouldPlay) {
+      try {
+        if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+          playerRef.current.playVideo();
+        }
+      } catch (e) {}
+    }
   }, []);
 
   // Handle player speed adjustments

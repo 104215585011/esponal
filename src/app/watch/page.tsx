@@ -1,8 +1,9 @@
-// Timestamp: 2026-05-28 10:00
+// Timestamp: 2026-06-01 18:45
 import EmptyState from "@/app/components/ui/EmptyState";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getSiteUrl } from "@/lib/site-url";
+import { fetchYouTubeJson } from "@/lib/youtube";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { curatedChannels } from "@/lib/channels";
 import { VideoCard } from "@/app/components/web/VideoCard";
@@ -30,6 +31,16 @@ type OEmbedResponse = {
   author_name?: string;
 };
 
+type VideoListResponse = {
+  items?: Array<{
+    snippet?: {
+      title?: string;
+      channelId?: string;
+      channelTitle?: string;
+    };
+  }>;
+};
+
 const channelDescriptions: Record<string, string> = {
   "Dreaming Spanish": "推荐入门，语速慢，适合建立可理解输入。",
   "Extra Spanish": "轻松情景剧，适合跟着语境反复吸收表达。",
@@ -40,8 +51,27 @@ async function fetchVideoInfo(videoId: string) {
   if (!videoId) {
     return {
       title: "未提供视频",
-      channelTitle: "Esponal"
+      channelTitle: "Esponal",
+      channelId: ""
     };
+  }
+
+  try {
+    const payload = await fetchYouTubeJson<VideoListResponse>("videos", {
+      part: "snippet",
+      id: videoId
+    });
+    const snippet = payload.items?.[0]?.snippet;
+
+    if (snippet) {
+      return {
+        title: snippet.title?.trim() || "YouTube 视频",
+        channelTitle: snippet.channelTitle?.trim() || "YouTube Channel",
+        channelId: snippet.channelId?.trim() || ""
+      };
+    }
+  } catch (error) {
+    console.warn("Watch page YouTube video snippet failed", error);
   }
 
   try {
@@ -61,27 +91,33 @@ async function fetchVideoInfo(videoId: string) {
 
     return {
       title: payload.title?.trim() || "YouTube 视频",
-      channelTitle: payload.author_name?.trim() || "YouTube Channel"
+      channelTitle: payload.author_name?.trim() || "YouTube Channel",
+      channelId: ""
     };
   } catch (error) {
     console.warn("Watch page oEmbed failed", error);
 
     return {
       title: "YouTube 视频",
-      channelTitle: "YouTube Channel"
+      channelTitle: "YouTube Channel",
+      channelId: ""
     };
   }
 }
 
-async function fetchRelatedVideos(channelTitle: string, currentVideoId: string) {
-  if (!channelTitle) {
+async function fetchRelatedVideos(channelId: string | undefined, channelTitle: string, currentVideoId: string) {
+  if (!channelId && !channelTitle) {
     return [] as YouTubeVideoPayload[];
   }
 
-  // Related videos are "more from the same channel". When the video belongs
-  // to a curated channel (the common case), reuse the channel uploads endpoint
-  // (3 quota units, shared cache with the home list) instead of search.list
-  // (100 units). Only fall back to search for non-curated channels.
+  // Related videos are "more from the same channel", so prefer the channel
+  // uploads endpoint. This keeps watch pages away from search.list's 100-unit
+  // quota cost for normal related-video rendering.
+  if (channelId) {
+    const channelVideos = await fetchChannelVideos(channelId);
+    return channelVideos.filter((video) => video.id !== currentVideoId).slice(0, 8);
+  }
+
   const curated = curatedChannels.find(
     (channel) => channel.title.trim().toLowerCase() === channelTitle.trim().toLowerCase()
   );
@@ -91,9 +127,13 @@ async function fetchRelatedVideos(channelTitle: string, currentVideoId: string) 
     return channelVideos.filter((video) => video.id !== currentVideoId).slice(0, 8);
   }
 
+  return fetchSearchFallbackVideos(channelTitle, currentVideoId);
+}
+
+async function fetchSearchFallbackVideos(query: string, currentVideoId: string) {
   const baseUrl = getSiteUrl();
   const response = await fetch(
-    `${baseUrl}/api/youtube/search?q=${encodeURIComponent(channelTitle)}&maxResults=8`,
+    `${baseUrl}/api/youtube/search?q=${encodeURIComponent(query)}&maxResults=8`,
     {
       cache: "no-store"
     }
@@ -114,7 +154,7 @@ async function fetchRelatedVideos(channelTitle: string, currentVideoId: string) 
 async function fetchChannelVideos(channelId: string) {
   const baseUrl = getSiteUrl();
   const response = await fetch(
-    `${baseUrl}/api/youtube/channel?id=${channelId}&maxResults=12`,
+    `${baseUrl}/api/youtube/channel?id=${encodeURIComponent(channelId)}&maxResults=12`,
     {
       cache: "no-store"
     }
@@ -134,7 +174,7 @@ async function fetchChannelVideos(channelId: string) {
 export default async function WatchPage({ searchParams }: WatchPageProps) {
   const videoId = searchParams?.v?.trim() ?? "";
   const videoInfo = await fetchVideoInfo(videoId);
-  const relatedVideos = await fetchRelatedVideos(videoInfo.channelTitle, videoId);
+  const relatedVideos = await fetchRelatedVideos(videoInfo.channelId, videoInfo.channelTitle, videoId);
 
   const channelSections = !videoId
     ? await Promise.all(

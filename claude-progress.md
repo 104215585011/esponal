@@ -1,3 +1,25 @@
+### Session #WEB-019 YouTube Quota Optimization - 2026-06-01 18:55
+
+**Goal**: Remove watch-page related-video misuse of YouTube `search.list` and route same-channel recommendations through the lower-cost channel uploads path.
+
+**Done (Codex1)**:
+- Added `tests/web019.test.mjs` first to lock the desired quota behavior.
+- Updated `src/app/watch/page.tsx` so `fetchVideoInfo` calls `videos.list(part=snippet)` and carries `channelId`.
+- Updated watch related videos to call `/api/youtube/channel?id=...` when `channelId` is available.
+- Kept curated channel fallback on channel uploads and isolated `/api/youtube/search` to a rare `fetchSearchFallbackVideos` path when `channelId` cannot be resolved.
+- Left `/search` active user search behavior unchanged.
+- Added cache-operation warnings in `src/lib/youtube.ts` against routinely clearing `youtube:*` keys or casually bumping YouTube cache namespaces.
+
+**Verification**:
+- `node --test tests/web019.test.mjs tests/web002.test.mjs tests/web003.test.mjs tests/web016.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 354/354 pass.
+- `npm run build` -> pass with existing unrelated Next `<img>` and Sentry warnings.
+
+**Status**: WEB-019 -> `ready_for_qa`; handoff written for Codex2.
+
 ### Session #MOBILE-000 Codex1 Sanity Verification - 2026-06-01 18:32
 
 **Goal**: Verify Gemini1's MOBILE-000 visual rework before it lands, and clean any small code quality issues.
@@ -4709,3 +4731,17 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass
 - `npm test` -> 350/350 pass
 - `npm run build` -> pass
+
+### Session Update - 2026-06-01 16:42 - MOBILE-000 video play fix (Codex1)
+
+**Goal**: Implement custom video playback resume logic during mobile lookup sheet closure.
+
+**Done**:
+- Updated `LookupCardStack` and `MobileLookupSheet` in `src/app/watch/LookupCard.tsx` to pass options containing an `autoPlay` flag to the close handlers.
+- Updated `onCloseLookup` prop signature and `closeStackCard` method in `src/app/watch/SubtitlePanel.tsx` and `src/app/watch/TranscriptPanel.tsx` to propagate the `autoPlay` option back to `WatchClient`.
+- Updated `handleCloseLookup` in `src/app/watch/WatchClient.tsx` to conditionally resume the YouTube player only when `autoPlay` is `true` (defaulting to `true` when explicit "关闭" is clicked, and `false` when the backdrop/drag handle is clicked or sheet is swiped down).
+- Updated timestamps in `LookupCard.tsx`, `SubtitlePanel.tsx`, `TranscriptPanel.tsx`, and `WatchClient.tsx` to `2026-06-01 16:41`.
+
+**Verification**:
+- `npm test` -> 351/351 pass.
+- `npm run build` -> pass.

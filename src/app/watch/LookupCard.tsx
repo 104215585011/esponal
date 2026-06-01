@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-01 16:41
 "use client";
 
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
@@ -141,7 +142,7 @@ export function LookupCardStack({
   onCloseCard
 }: {
   cards: LookupCardStackCard[];
-  onCloseCard: (id: string) => void;
+  onCloseCard: (id: string, options?: { autoPlay?: boolean }) => void;
 }) {
   const visibleCards = cards.slice(-2);
   const activeCard = visibleCards[visibleCards.length - 1];
@@ -157,7 +158,7 @@ export function LookupCardStack({
     return (
       <MobileLookupSheet
         card={activeCardProps}
-        onClose={() => onCloseCard(activeId)}
+        onClose={(options) => onCloseCard(activeId, options)}
       />
     );
   }
@@ -205,7 +206,7 @@ function MobileLookupSheet({
   onClose
 }: {
   card: LookupCardProps;
-  onClose: () => void;
+  onClose: (options?: { autoPlay?: boolean }) => void;
 }) {
   const [dragStartY, setDragStartY] = useState<number | null>(null);
 
@@ -223,7 +224,7 @@ function MobileLookupSheet({
 
   const handlePointerUp = (event: PointerEvent) => {
     if (dragStartY !== null && event.clientY - dragStartY > 72) {
-      onClose();
+      onClose({ autoPlay: false });
     }
     setDragStartY(null);
   };
@@ -233,7 +234,7 @@ function MobileLookupSheet({
       <button
         aria-label="Close lookup sheet backdrop"
         className="absolute inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity duration-300 ease-out"
-        onClick={onClose}
+        onClick={() => onClose({ autoPlay: false })}
         type="button"
       />
       <section
@@ -246,13 +247,13 @@ function MobileLookupSheet({
         <button
           aria-label="Close lookup sheet"
           className="mx-auto flex min-h-[44px] w-16 items-center justify-center"
-          onClick={onClose}
+          onClick={() => onClose({ autoPlay: false })}
           type="button"
         >
           <span className="h-1 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800" />
         </button>
         <div className="max-h-[calc(75vh-44px)] overflow-y-auto px-5 pb-4">
-          <LookupCard {...card} useStaticLayout={true} onClose={onClose} />
+          <LookupCard {...card} useStaticLayout={true} onClose={() => onClose({ autoPlay: true })} />
         </div>
       </section>
     </div>,
