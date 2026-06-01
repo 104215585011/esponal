@@ -1,12 +1,10 @@
-# MOBILE-000 — 移动端地基：查词卡抽屉化 + 设计 Token + 导航打磨设计稿
+# MOBILE-000 — 移动端地基：查词卡抽屉化 + 设计 Token + 对标 DejaVocab 视觉升级设计稿
 
-本设计稿规范了 `LookupCard` 共享查词组件在移动端的底部抽屉（Bottom Sheet）形态、全站移动端设计 Token 规范以及 `MobileNav` 和 `SiteHeader` 的移动端体验打磨细节。此为移动端重构的“地基”，供 Codex1 直接实施。
+本设计稿规范了 `LookupCard` 共享查词组件在移动端的底部抽屉（Bottom Sheet）形态、全站移动端设计 Token 规范以及对标 DejaVocab 精致质感的视觉设计方案。此版设计以 Esponal 品牌强调色（`sky` 蓝系）贯穿，补回内容丰富度，打造一流的成品级移动查词体验。
 
 ---
 
-## 1. 查词卡移动端形态：底部抽屉 (Bottom Sheet Drawer)
-
-在桌面端，查词卡保持现有的绝对定位浮动卡片形态（或侧边 Dock 形态）。在移动端，当视口宽度小于 `768px` 时，查词卡应自动转化为从屏幕底部滑出的抽屉式卡片。
+## 1. 查词卡移动端形态：对标 DejaVocab 底部抽屉 (Mobile Sheet)
 
 ### 1.1 手机端底部抽屉 ASCII 布局 (Mobile Drawer Layout)
 
@@ -15,172 +13,99 @@
 |                                             |
 |              点击外部/背景关闭                 |
 |                                             |
-+---------------------------------------------+  <- 视口上部，可见原正文内容
++---------------------------------------------+  <- 视口上部，主界面背景变暗
 |                                             |
-|  +---------------------------------------+  |  <- 底部抽屉开始
-|  |                ======                 |  |  <- 拖拽/关闭手柄 (Drag Handle)
-|  |  [单词/短语]   [词性]          [🔊] [关闭] |  |  <- 头部 (Word, POS, Pronounce, Close)
-|  |  /phonetic/                              |  |  <- 发音音标
-|  |  变形/形态分析                             |  |  <- 变形信息
-|  |  -------------------------------------  |  |  <- 分隔线
-|  |  1. 释义 1                              |  |  <- 释义列表
-|  |  2. 释义 2                              |  |  <- 滚动区域限制 max-h-[60vh]
-|  |  [ 用法提示：这里有用法细节 ]            |  |  <- 用法卡片 (Usage Note)
-|  |  +-----------------------------------+  |  |  <- 例句卡片
-|  |  | "Es un buen ejemplo."         [🔊] |  |  |  <- 西语例句 (支持点词)
-|  |  | "这是一个很好的例子。"                |  |  |  <- 中文翻译
-|  |  +-----------------------------------+  |  |
-|  |  相关搭配：                               |  |  <- 相关搭配列表 (LEX-003)
-|  |  - hablar de (谈论)                     |  |  
-|  |  -------------------------------------  |  |  <- 分隔线
-|  |  [          保存至我的生词本          ]  |  |  <- 核心操作按钮 (Min-height 44px)
-|  |  [       第 N 次遇到 · 已自动记录      ]  |  |  <- 自动遭遇次数徽章
-|  |                                         |  |  <- 适配 iOS 底部安全区 (pb-safe)
+|  +---------------------------------------+  |  <- 底部抽屉开始 (rounded-t-3xl)
+|  |                ======                 |  |  <- 居中拖拽杆 (Drag Handle)
+|  |                                       |  |
+|  |  aprender       [🔊]            [🤍]  |  |  <- 词头区 (大字 + 品牌色喇叭 + 收藏心形)
+|  |  /a.pɾen.ˈdeɾ/   [v.]                 |  |  <- 音标/读音/词性
+|  |                                       |  |
+|  |  [ 已学 ✓ ]                           |  |  <- 状态 badge/chip (sky-500/10)
+|  |                                       |  |
+|  |  释义：                                |  |
+|  |  1. 学习，学会                         |  |  <- 释义正文
+|  |                                       |  |
+|  |  你在今天遇到了                     [+]  |  <- 分区标题 + 品牌色 Plus 按钮
+|  |  +---------------------------------+  |  |
+|  |  | "Queremos aprender español."   |  |  |  <- 遭遇卡片 (深色圆角 elevated)
+|  |  | (句中目标词 aprender 高亮为 sky 蓝)   |  |  |
+|  |  |                                 |  |  |
+|  |  |  [▶] 视频: Spanish for Beginners|  |  |  <- 遭遇来源 (Muted 文本 + 图标)
+|  |  +---------------------------------+  |  |
+|  |                                       |  |
+|  |  相关搭配                           [+]  |  <- 分区标题
+|  |  +---------------------------------+  |  |
+|  |  | aprender a (学习做...)      搭配 |  |  <- 搭配卡片 (LEX-003)
+|  |  +---------------------------------+  |  |
+|  |                                       |  |
+|  |  [          保存至我的生词本          ]  |  |  <- 核心操作按钮 (圆角胶囊, Height 44px)
+|  |                                       |  |  <- 适配 iOS 底部安全区 (pb-safe)
 |  +---------------------------------------+  |
 +---------------------------------------------+
 ```
 
 ### 1.2 高保真 UI 模型图 (High-Fidelity UI Mockup)
 
-下列模型图展示了移动端查词底部抽屉在真实场景下的界面排布。你可以直接下载此图片并拖入 Figma 或 Canva 进行样式编辑、切图或设计标注：
+下列模型图展示了移动端查词底部抽屉在真实场景下对标 DejaVocab 的界面排布。
 
-![MOBILE-000 移动端底部抽屉查词卡 UI 模型](file:///C:/Users/wang/.gemini/antigravity/brain/7bac0d5a-3e94-46d5-9839-17e9ebbf0f49/mobile_lookup_sheet_1780292852720.png)
-
-### 1.3 响应式架构设计与 TSX 骨架
-
-为了避免在多个业务页面产生 clipping (元素被父级 `overflow: hidden` 截断) 风险，移动端抽屉应使用 **React Portal** 直接挂载至 `document.body`，同时维持与原有桌面端 Props 的 100% 兼容。
-
-```jsx
-import { createPortal } from "react-dom";
-
-export function LookupCardStack({ cards, onCloseCard }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-
-  // 1. 获取顶层卡片
-  const activeCard = cards[cards.length - 1];
-  
-  if (!activeCard) return null;
-
-  // 2. 移动端渲染分支 (通过 Tailwind md 断点进行条件呈现，或配合 window 匹配)
-  if (mounted) {
-    return (
-      <>
-        {/* 移动端 Portal 抽屉 */}
-        <MobilePortalWrapper activeCard={activeCard} onClose={() => onCloseCard(activeCard.id)} />
-        
-        {/* 桌面端堆叠卡片 (md:block hidden) */}
-        <div className="hidden md:block relative w-full min-h-[360px]">
-          {/* 现有的桌面端 visibleCards 堆叠逻辑 */}
-        </div>
-      </>
-    );
-  }
-  return null;
-}
-```
-
-### 1.3 底部抽屉 TSX 骨架与 Tailwind 样式
-
-```jsx
-function MobilePortalWrapper({ activeCard, onClose }) {
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col justify-end md:hidden">
-      {/* 1. 半透明背景遮罩 Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity duration-300 ease-out" 
-        onClick={onClose} 
-      />
-
-      {/* 2. 滑动抽屉容器 Drawer Panel */}
-      <div 
-        className="relative w-full max-h-[75vh] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-hero flex flex-col transition-transform duration-300 ease-out translate-y-0 pb-[calc(env(safe-area-inset-bottom)+12px)] animate-slide-up"
-      >
-        {/* 3. 拖拽手柄指示器 Drag Handle */}
-        <div 
-          className="w-12 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full mx-auto my-3 cursor-pointer shrink-0" 
-          onClick={onClose}
-        />
-
-        {/* 4. 滚动内容区域 Scroll Container */}
-        <div className="overflow-y-auto px-5 pb-4 space-y-4">
-          <LookupCard 
-            {...activeCard} 
-            useStaticLayout={true} // 强行使用静态无定位布局，铺满抽屉
-            onClose={onClose}
-          />
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
-```
+![MOBILE-000 移动端底部抽屉查词卡 UI 模型](file:///C:/Users/wang/.gemini/antigravity/brain/7bac0d5a-3e94-46d5-9839-17e9ebbf0f49/mobile_lookup_sheet_deja_aligned_1780301354008.png)
 
 ---
 
-## 2. 交互细节与状态联动
+## 2. 视觉规范细节 (Tailwind Class Checklist)
 
-1. **查词时视频/朗读暂停**：
-   - 移动端查词弹出底部抽屉时，现有的“点词暂停，关闭恢复”逻辑应无缝衔接。
-   - 用户点击遮罩层、点击“关闭”按钮或点击拖拽手柄时，触发 `onClose` 进而恢复视频/朗读播放。
-2. **手势关闭支持（可选/渐进增强）**：
-   - 用户在抽屉容器上向下滑动（Swipe Down）可直接触发关闭。
-3. **安全区域保护**：
-   - 抽屉底部内边距必须使用 `pb-[calc(env(safe-area-inset-bottom)+12px)]`，确保在无边框手机（如 iPhone）上，操作按钮不被系统 Home Indicator 条遮挡或干扰。
+开发团队（Codex1）在实现时必须严格使用以下样式规范，消灭 `useStaticLayout` 导致的平铺感，在亮色和暗色模式下拉开层次：
 
----
+### 2.1 抽屉面板与遮罩 (Drawer Container & Backdrop)
+* **遮罩层 (Backdrop)**：`bg-black/50 backdrop-blur-[2px] transition-opacity duration-300`。
+* **面板主体 (Panel Body)**：
+  - 容器：`bg-white dark:bg-[#09090B] border-t border-zinc-200/50 dark:border-zinc-800/40 rounded-t-3xl shadow-hero flex flex-col transition-transform duration-300 ease-out`。
+  - 拖拽手柄：`w-12 h-1 bg-zinc-200 dark:bg-zinc-800/80 rounded-full mx-auto mt-3 mb-2 shrink-0`。
+  - 安全区内边距：`pb-[calc(env(safe-area-inset-bottom)+16px)]`。
 
-## 3. 全站移动端设计 Token 规范 (Mobile Token Spec)
+### 2.2 词头与发音 (Header & Speech)
+* **单词标题**：`text-[26px] font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 font-display`。
+* **TTS 按钮**：
+  - 图标：使用 Lucide `Volume2`（代替旧的 `>`）。
+  - 颜色：非播放状态为 `text-sky-500 hover:bg-sky-500/10`，播放中为 `text-sky-600 bg-sky-500/20 animate-pulse`。
+  - 尺寸：`w-9 h-9 flex items-center justify-center rounded-full bg-sky-500/5 dark:bg-sky-500/10 transition`。
+* **收藏/生词本心形 (Heart Icon)**：
+  - 放置在词头最右侧。
+  - 未收藏：`text-zinc-300 dark:text-zinc-600 hover:text-sky-500 transition`。
+  - 已收藏：`text-sky-500 fill-sky-500 scale-110 transition duration-300`。
 
-为保障手指操作的顺畅性，移动端的所有 UI 组件必须遵循以下 Token 阶梯：
+### 2.3 音标与状态 Chip (Status & Phonetic)
+* **音标/词性行**：`flex items-center gap-2 mt-1 text-sm font-mono text-zinc-400 dark:text-zinc-500`。
+* **词性 Badge**：`bg-zinc-100 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded text-[11px] font-medium`。
+* **状态 Chip**（当已加入生词本时显示）：
+  - 样式：`bg-sky-500/10 text-sky-500 border border-sky-500/20 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 w-fit mt-3`。
+  - 内部文本：`已学 ✓` 或 `已标记`。
 
-### 3.1 触摸目标 (Touch Targets)
+### 2.4 分区标题 (Section Titles)
+* 统一采用：`flex justify-between items-center text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-6 mb-3`。
+* 右侧搭配品牌色 Plus 按钮：`text-sky-500 hover:text-sky-600 cursor-pointer p-1 -mr-1 transition`。
 
-* **核心操作目标**：所有可点按元素（按钮、导航链接、切换 Tabs、词表栏目）的物理点击范围**必须 $\ge 44\text{px} \times 44\text{px}$**。
-* **实现方式**：文字较小时，必须通过补白（如 `py-2.5 px-4` 或 `min-h-[44px]`）拉大触摸边界，而不仅是视觉尺寸。
+### 2.5 遭遇卡片与相关搭配 (Encounter Card & Related Phrases)
+* **遭遇卡容器 (Encounter Box)**：
+  - 样式：`bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-100 dark:border-zinc-800/40 rounded-2xl p-4 shadow-sm relative overflow-hidden`。
+  - 句中目标词高亮：`text-sky-500 font-bold hover:underline cursor-pointer`。
+  - 遭遇来源：前置 Lucide `Play` 或 `FileText` 徽标，文字使用 `text-xs text-zinc-400 dark:text-zinc-500 mt-2 block`。
+* **相关搭配卡片 (Related Phrase Item)**：
+  - 样式：`bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-100 dark:border-zinc-800/40 rounded-xl p-3 flex justify-between items-center hover:border-sky-500/30 transition`。
+  - 左侧：`lemma` 用 `text-sm font-semibold text-zinc-800 dark:text-zinc-200`，中文翻译用 `text-xs text-zinc-400 dark:text-zinc-500 ml-2`。
+  - 右侧：类型 Badge（短语/搭配）用 `text-[10px] font-semibold tracking-wider text-amber-600 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-200/20`。
 
-### 3.2 移动端排版 Token (Mobile Typography)
-
-为防止小屏下文本溢出及保持阅读舒适度，字号和行高在小屏幕下微调：
-
-| Token | 小屏大小 (Mobile) | 桌面大小 (Desktop) | 用途 |
-|---|---|---|---|
-| `text-page-title` | `text-xl leading-7` | `text-2xl leading-8` | 移动端页面主标题 |
-| `text-card-title` | `text-base leading-6` | `text-lg leading-7` | 查词卡单词/卡片标题 |
-| `text-body` | `text-sm leading-6` | `text-base leading-relaxed` | 释义、例句与正文 |
-| `text-helper` | `text-xs leading-5` | `text-sm leading-normal` | 时间戳、变位辅助等 |
-
-### 3.3 布局与安全区 Token (Mobile Spacing)
-
-* **屏幕左右内边距**：移动端容器统一使用 `px-4`（16px）或 `px-5`（20px），不使用桌面端的 `px-8`。
-* **底部安全区适配**：
-  * 底部固定浮动元素（如 TabBar、底部操作栏）：使用 `pb-safe` 或者是 `pb-[env(safe-area-inset-bottom)]`。
-  * 滚动页面的底部 Padding：追加 `pb-24`，保证滚到底部时内容能完全呈现在安全区内。
-
----
-
-## 4. 导航与顶栏移动端打磨 (`MobileNav.tsx` / `SiteHeader.tsx`)
-
-### 4.1 SiteHeader 移动端表现规范
-
-* 保持 `h-16` 高度，两侧为 **左Logo/右汉堡菜单**。
-* 桌面端全局搜索框及普通链接应在移动端隐藏，搜索图标收进 Header 右侧作为二级按钮（点击唤起 SearchOverlay）。
-* 汉堡菜单触摸区域设置在 `w-11 h-11`，内部使用标准的 Lucide `Menu` 图标。
-
-### 4.2 MobileNav 移动端抽屉精化
-
-* 宽度定为 `w-72` (288px)，位于屏幕右侧。
-* 弹出过渡：`translate-x-full` 到 `translate-x-0`，动画持续 `duration-300`，配合 `ease-out`。
-* 抽屉遮罩层使用 `bg-black/35 backdrop-blur-[1px]`，增强层次感。
-* 抽屉内部菜单项字体设置为 `text-base font-semibold text-zinc-800 dark:text-zinc-200 py-3.5 px-6`，垂直触摸间距完全满足大于 `44px` 规范。
+### 2.6 底部核心保存按钮 (Footer Action Button)
+* **未保存状态**：`bg-sky-500 hover:bg-sky-600 text-white font-semibold h-11 w-full rounded-full transition shadow-md flex items-center justify-center gap-2`。
+* **已保存状态**：`bg-zinc-100 dark:bg-zinc-800/60 text-zinc-400 dark:text-zinc-500 font-medium h-11 w-full rounded-full transition flex items-center justify-center gap-2 cursor-default`。
 
 ---
 
-## 5. UI 设计审查核对表 (MOBILE-000 Checklist)
-
-* [ ] **双端不干涉**：桌面端 `LookupCard` 维持浮动卡片或 Dock 状态（无回退）；移动端渲染为完整的底部抽屉 Portal。
-* [ ] **触控区域安全**：查词卡底部“加入生词本”及 Mobile 导航栏所有按钮的点击响应高度 $\ge 44\text{px}$。
-* [ ] **安全适配**：抽屉面板在 iOS Safari/微信浏览器中拉起时，底部完全避让 Home 指示线。
-* [ ] **关闭体验顺畅**：点击遮罩层、右上角关闭字样或向下滑动，均能正常关闭抽屉并恢复音频/视频播放。
-* [ ] **暗色模式完好**：抽屉在暗色模式下背景色为 `#18181b`，文字对比度良好，分界线分明。
+## 3. UI 交互细节与状态联动
+1. **点词暂停与遮罩关闭**：
+   - 手机端底部查词抽屉拉起时，视频/朗读应正常暂停，遮罩点击、手持下滑均可关闭抽屉，并恢复音频/视频播放。
+2. **安全区域保护**：
+   - 抽屉底部内边距必须使用 `pb-[calc(env(safe-area-inset-bottom)+16px)]`，确保操作按钮不被系统 Home Bar 遮挡。
+3. **滚动锁定**：
+   - 抽屉拉起时，主视口（Player 页面）通过 `overflow: hidden` 锁定，滚动区域仅限抽屉内部。

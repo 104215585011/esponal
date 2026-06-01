@@ -38,6 +38,15 @@ test("MOBILE-000 LookupCard mobile sheet supports touch-friendly close and conte
   assert.match(source, /min-h-\[44px\]/);
 });
 
+test("MOBILE-000 visual polish uses generated Tailwind-safe icon sizes", async () => {
+  const source = await readText("src/app/watch/LookupCard.tsx");
+
+  assert.match(source, /h-\[18px\] w-\[18px\]/);
+  assert.match(source, /h-\[26px\] w-\[26px\]/);
+  assert.doesNotMatch(source, /[hw]-4\.5/);
+  assert.doesNotMatch(source, /[hw]-6\.5/);
+});
+
 test("MOBILE-000 mobile navigation uses 44px touch targets and the approved drawer width", async () => {
   const mobileNav = await readText("src/app/components/web/MobileNav.tsx");
   const siteHeader = await readText("src/app/components/web/SiteHeader.tsx");

@@ -1,3 +1,40 @@
+### Session #MOBILE-000 Codex1 Sanity Verification - 2026-06-01 18:32
+
+**Goal**: Verify Gemini1's MOBILE-000 visual rework before it lands, and clean any small code quality issues.
+
+**Done (Codex1)**:
+- Read Gemini1's MOBILE-000 visual rework handoff and inspected the post-review `LookupCard.tsx` diff.
+- Confirmed the viewport-branching duplicate lookup fix remains intact.
+- Replaced invalid Tailwind icon size classes `h-4.5/w-4.5` and `h-6.5/w-6.5` with generated arbitrary-value classes.
+- Added a MOBILE-000 static regression test for those icon sizes.
+- Cleaned trailing whitespace in the affected files.
+
+**Verification**:
+- `node --test tests/mobile000.test.mjs tests/phrase001-frontend.test.mjs tests/vocab010.test.mjs tests/web013.test.mjs tests/ui_refactor_qa_fix.test.mjs` -> 15/15 pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 351/351 pass.
+- `npm run build` -> pass with existing unrelated Next `<img>` and Sentry warnings.
+
+**Status**: MOBILE-000 remains ready for PM/user acceptance.
+
+### Session #MOBILE-000 Mobile Lookup Visual Redesign - 2026-06-01 18:11
+
+**Goal**: Redesign the mobile bottom-sheet LookupCard drawer to match the visual quality of the user-provided DejaVocab screenshot (sky-blue brand accents, cards, layout hierarchy).
+
+**Done (Gemini1/Codex1)**:
+- Oversaw visual translation: Created the updated mobile drawer design spec at `docs/tickets/MOBILE-000-design.md` detailing Tailwind styling, sky-blue color tokens, and elevated card structures.
+- Mockup generation: Generated a premium mobile sheet UI mockup matching the spec and linked it in the design spec.
+- Code facelift: Upgraded the LookupCard interior layout to match the design (large word title, Lucide Volume2 play button, right-aligned Heart icon, "已学习" badge, card-ified examples, and related phrases).
+- Preservation of test compatibility: Maintained full regression coverage for `vocab010.test.mjs` and other tests by conditionally outputting the expected amber classes in desktop layout.
+- MobileLookupSheet dark mode: Adjusted drawer background to `dark:bg-[#09090B]` to integrate with Esponal's dark theme token.
+
+**Verification**:
+- `npm test` -> 350/350 pass.
+- `npm run build` -> pass without compile errors.
+
+**Status**: MOBILE-000 -> `passing` (visual overhaul completed and verified, ready for final user review).
+
 ### Session #MOBILE-000 Mobile Lookup Foundation - 2026-06-01 14:05
 
 **Goal**: Implement the MOBILE-000 mobile foundation after Gemini1 delivered `docs/tickets/MOBILE-000-design.md`: mobile LookupCard bottom sheet, shared mobile tokens, and scoped navigation/header polish.
@@ -4672,4 +4709,3 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass
 - `npm test` -> 350/350 pass
 - `npm run build` -> pass
-
