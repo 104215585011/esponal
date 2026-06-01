@@ -305,6 +305,9 @@ export function WatchMobileLayout({
           />
           {/* Invisible tap target layer */}
           <div className="absolute inset-0 z-10 cursor-pointer" />
+          
+          {/* Opaque Top Bar to hide YouTube's native title and 'More Videos' icons */}
+          <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-10" />
         </div>
 
         {/* Lightweight Play/Pause Overlay on video center */}
@@ -392,7 +395,7 @@ export function WatchMobileLayout({
           )}
 
           {mobileTab === "transcript" && (
-            <div className="h-full border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/50">
+            <div className="h-full w-full -mx-4 px-4 overflow-hidden relative">
               <TranscriptPanel
                 key={`transcript-mobile-${videoId}-${refreshKey}`}
                 currentTimeSec={currentTimeSec}
@@ -401,6 +404,7 @@ export function WatchMobileLayout({
                 onSeek={handleSeek}
                 videoId={videoId}
                 videoTitle={videoInfo.title}
+                isMobile={true}
               />
             </div>
           )}

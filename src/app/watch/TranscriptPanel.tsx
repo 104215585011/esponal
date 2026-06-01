@@ -37,6 +37,7 @@ type TranscriptPanelProps = {
   onSeek: (seconds: number) => void;
   videoId: string;
   videoTitle?: string;
+  isMobile?: boolean;
 };
 
 type TranslateResponse = {
@@ -456,7 +457,8 @@ export function TranscriptPanel({
   onCloseLookup,
   onSeek,
   videoId,
-  videoTitle
+  videoTitle,
+  isMobile = false
 }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
   const [transcriptMode, setTranscriptMode] = useState<TranscriptMode>("sentence");
@@ -1411,13 +1413,13 @@ export function TranscriptPanel({
   };
 
   return (
-    <section className="relative flex h-full min-w-0 flex-col bg-surface" ref={panelRef}>
+    <section className={`relative flex h-full min-w-0 flex-col ${isMobile ? 'bg-transparent' : 'bg-surface'}`} ref={panelRef}>
       {/* Tab bar header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
-        <div className="flex rounded-full bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
+      <div className={`flex flex-wrap items-center justify-between gap-3 ${isMobile ? 'px-2 py-2 pb-3 border-b border-zinc-800/40' : 'border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4'} font-display`}>
+        <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
           <button
-            className={`rounded-full px-3 py-1 transition ${
-              displayMode === "bilingual" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+            className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
+              displayMode === "bilingual" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
             }`}
             onClick={() => {
               setDisplayMode("bilingual");
@@ -1425,11 +1427,11 @@ export function TranscriptPanel({
             }}
             type="button"
           >
-            ES + 中
+            {isMobile ? "双语" : "ES + 中"}
           </button>
           <button
-            className={`rounded-full px-3 py-1 transition ${
-              displayMode === "spanish" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+            className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
+              displayMode === "spanish" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
             }`}
             onClick={() => {
               setDisplayMode("spanish");
@@ -1440,8 +1442,8 @@ export function TranscriptPanel({
             仅西语
           </button>
           <button
-            className={`rounded-full px-3 py-1 transition ${
-              displayMode === "chinese" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+            className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
+              displayMode === "chinese" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
             }`}
             onClick={() => {
               setDisplayMode("chinese");
@@ -1453,10 +1455,10 @@ export function TranscriptPanel({
           </button>
         </div>
         <div className="ml-auto flex items-center gap-3">
-          <div className="flex rounded-full bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
+          <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
             <button
-              className={`rounded-full px-3 py-1 transition ${
-                transcriptMode === "sentence" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+              className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
+                transcriptMode === "sentence" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
               }`}
               onClick={() => handleTranscriptModeChange("sentence")}
               type="button"
@@ -1464,8 +1466,8 @@ export function TranscriptPanel({
               句子级
             </button>
             <button
-              className={`rounded-full px-3 py-1 transition ${
-                transcriptMode === "cue" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+              className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
+                transcriptMode === "cue" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
               }`}
               onClick={() => handleTranscriptModeChange("cue")}
               type="button"
@@ -1473,25 +1475,27 @@ export function TranscriptPanel({
               逐行
             </button>
           </div>
-          <button
-            aria-label="下载当前字幕为 PDF 讲义"
-            className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isGeneratingPdf}
-            onClick={handlePdfDownload}
-            type="button"
-          >
-            {isGeneratingPdf ? (
-              <svg className="h-3.5 w-3.5 animate-spin text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" strokeLinecap="round" strokeWidth="4" />
-              </svg>
-            ) : (
-              <svg className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-            <span>{isGeneratingPdf ? "生成中..." : "下载 PDF"}</span>
-          </button>
+          {!isMobile && (
+            <button
+              aria-label="下载当前字幕为 PDF 讲义"
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isGeneratingPdf}
+              onClick={handlePdfDownload}
+              type="button"
+            >
+              {isGeneratingPdf ? (
+                <svg className="h-3.5 w-3.5 animate-spin text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" strokeLinecap="round" strokeWidth="4" />
+                </svg>
+              ) : (
+                <svg className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              <span>{isGeneratingPdf ? "生成中..." : "下载 PDF"}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1559,11 +1563,11 @@ export function TranscriptPanel({
 
               return (
                 <div
-                  className={`group/sentence relative px-6 py-5 border-b border-zinc-100 dark:border-zinc-900/60 first:border-t-0 transition-all duration-200 ${
+                  className={`group/sentence relative px-6 py-5 first:border-t-0 transition-all duration-300 ${
                     isActive
-                      ? "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
-                      : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
-                  }`}
+                      ? isMobile ? "opacity-100 scale-100" : "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
+                      : isMobile ? "opacity-30 scale-[0.98] blur-[0.3px]" : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
+                  } ${isMobile ? 'border-none !py-4 !px-2' : 'border-b border-zinc-100 dark:border-zinc-900/60'}`}
                   data-cue-index={sentence.startIndex}
                   data-testid="transcript-cue"
                   key={sentence.id}
@@ -1603,17 +1607,17 @@ export function TranscriptPanel({
                                   cueOffset === 0
                                     ? isActive
                                       ? "opacity-100 text-brand-600"
-                                      : "opacity-0 text-zinc-400 group-hover/sentence:opacity-100"
+                                      : isMobile ? "opacity-0" : "opacity-0 text-zinc-400 group-hover/sentence:opacity-100"
                                     : "opacity-0"
-                                }`}
+                                } ${isMobile ? 'hidden' : ''}`}
                               >
                                 {cueOffset === 0 ? formatTimestamp(sentence.cues[0].start) : ""}
                               </span>
                               <span
-                                className={`inline text-[15px] leading-7 tracking-[0.05px] font-sans ${
+                                className={`inline ${isMobile ? 'text-[22px] leading-[1.5] tracking-wide' : 'text-[15px] leading-7 tracking-[0.05px]'} font-sans ${
                                   cueIsActive
-                                    ? "font-bold text-brand-600 dark:text-brand-400"
-                                    : "font-medium text-zinc-800 dark:text-zinc-200"
+                                    ? (isMobile ? "font-bold text-zinc-100" : "font-bold text-brand-600 dark:text-brand-400")
+                                    : (isMobile ? "font-semibold text-zinc-300" : "font-medium text-zinc-800 dark:text-zinc-200")
                                 }`}
                               >
                                 {phraseSegments.map((segment, tokenIndex) => {
@@ -1707,28 +1711,28 @@ export function TranscriptPanel({
                     {displayMode !== "spanish" ? (
                       displayMode === "bilingual" ? (
                         <p
-                          className={`mt-1.5 pl-[42px] font-sans text-[13px] leading-6 ${
+                          className={`${isMobile ? 'mt-2.5 text-[14px] leading-[1.6]' : 'mt-1.5 pl-[42px] text-[13px] leading-6'} font-sans ${
                             isActive
-                              ? "font-medium text-zinc-600 dark:text-zinc-300"
-                              : "text-zinc-400 dark:text-zinc-500"
+                              ? (isMobile ? "font-medium text-brand-400/90" : "font-medium text-zinc-600 dark:text-zinc-300")
+                              : (isMobile ? "font-medium text-zinc-500" : "text-zinc-400 dark:text-zinc-500")
                           }`}
                         >
                           {sentenceTranslation}
                         </p>
                       ) : (
-                        <div className="flex items-start gap-2">
+                        <div className={`flex items-start gap-2 ${isMobile ? 'mt-2' : ''}`}>
                           <span
                             className={`mt-0.5 shrink-0 text-[10px] font-bold tabular-nums tracking-[0.3px] font-display ${
                               isActive ? "text-brand-600" : "text-zinc-400"
-                            }`}
+                            } ${isMobile ? 'hidden' : ''}`}
                           >
                             {formatTimestamp(sentence.cues[0].start)}
                           </span>
                           <p
-                            className={`font-sans text-[13px] leading-6 ${
+                            className={`font-sans ${isMobile ? 'text-[15px] leading-relaxed' : 'text-[13px] leading-6'} ${
                               isActive
-                                ? "font-medium text-zinc-600 dark:text-zinc-300"
-                                : "text-zinc-400 dark:text-zinc-500"
+                                ? (isMobile ? "font-medium text-brand-400/90" : "font-medium text-zinc-600 dark:text-zinc-300")
+                                : (isMobile ? "font-medium text-zinc-500" : "text-zinc-400 dark:text-zinc-500")
                             }`}
                           >
                             {sentenceTranslation}
@@ -1765,7 +1769,7 @@ export function TranscriptPanel({
       {/* Floating Detached browsing follow button */}
       {!followMode && activeCue ? (
         <button
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 rounded-full border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-brand-600 dark:text-brand-400 shadow-elevated hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-display"
+          className={`${isMobile ? 'absolute bottom-2 left-1/2 -translate-x-1/2 z-20 rounded-full border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-brand-600 dark:text-brand-400 shadow-elevated hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-display' : 'absolute bottom-6 left-1/2 -translate-x-1/2 z-20 rounded-full border border-zinc-200/60 dark:border-zinc-800/60 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-brand-600 dark:text-brand-400 shadow-elevated hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-display'}`}
           onClick={() => returnToCurrentCue()}
           type="button"
         >

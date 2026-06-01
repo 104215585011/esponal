@@ -584,30 +584,30 @@ export function SubtitlePanel({
 
   if (isMobile) {
     return (
-      <div className="flex flex-col gap-4 w-full relative">
-        {/* 字幕展示区 */}
-        <div className="w-full bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800/60 rounded-2xl p-5 shadow-sm min-h-[140px] flex items-center justify-center text-center">
+      <div className="flex flex-col h-full w-full relative min-h-[250px]">
+        {/* 字幕展示区 - 透明沉浸式，大文字居中 */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-2 py-4">
           {!hasLoadedSubtitles ? (
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display animate-pulse">
+            <p className="text-sm text-zinc-500 italic select-none font-display animate-pulse">
               （字幕加载中…）
             </p>
           ) : showEmptyState ? (
-            <div className="w-full min-h-[160px] flex flex-col items-center justify-center text-center p-6 bg-zinc-50/50 dark:bg-zinc-900/10 border border-zinc-200/50 dark:border-zinc-800/50 rounded-2xl">
-              <FileTextIcon className="h-6 w-6 text-zinc-400 mb-2" />
-              <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">暂无西语字幕</p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 max-w-[240px]">
+            <div className="w-full flex flex-col items-center justify-center text-center py-8">
+              <FileTextIcon className="h-6 w-6 text-zinc-600 mb-2" />
+              <p className="text-sm font-semibold text-zinc-400">暂无西语字幕</p>
+              <p className="text-xs text-zinc-600 mt-1 max-w-[240px]">
                 此视频暂无同步字幕，您可以通过进度条自由播放与精听。
               </p>
             </div>
           ) : !spanishLine ? (
-            <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display font-medium select-none animate-pulse">
+            <p className="text-sm text-zinc-600 font-display font-medium select-none animate-pulse">
               字幕将在视频播放时同步显示
             </p>
           ) : (
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center w-full max-w-md">
               {/* Spanish text */}
               {displayMode !== "chinese" && (
-                <p className="text-lg font-semibold leading-relaxed tracking-wide text-zinc-900 dark:text-zinc-100">
+                <p className="text-[19px] font-semibold leading-[1.6] tracking-wide text-zinc-100">
                   {phraseSegments.map((segment, index) => {
                     if (segment.type === "phrase") {
                       return (
@@ -646,7 +646,7 @@ export function SubtitlePanel({
 
                     let colorClass = "";
                     if (highlightStatus === "course") {
-                      colorClass = "text-emerald-600 dark:text-emerald-400";
+                      colorClass = "text-emerald-400";
                     }
 
                     if (!normalizedWord) {
@@ -655,13 +655,13 @@ export function SubtitlePanel({
 
                     return (
                       <span
-                        className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-200 dark:hover:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 ${colorClass} ${
+                        className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-800/80 text-zinc-100 ${colorClass} ${
                           highlightStatus === "saved"
-                            ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
+                            ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-500"
                             : ""
                         } ${
                           isWordActive
-                            ? "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold"
+                            ? "bg-brand-500/20 text-brand-300 font-bold"
                             : ""
                         }`}
                         key={`${token}-${index}`}
@@ -696,7 +696,7 @@ export function SubtitlePanel({
 
               {/* Chinese translation text */}
               {displayMode !== "spanish" && (
-                <p className="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">
+                <p className="mt-4 text-[13px] text-zinc-400 leading-relaxed font-medium">
                   {chineseLine || "…"}
                 </p>
               )}
@@ -704,85 +704,57 @@ export function SubtitlePanel({
           )}
         </div>
 
-        {/* 底部控制区 (Thumb Zone Controls) */}
-        <div className="flex flex-col gap-3 w-full animate-fadeIn">
-          {/* 显示模式切换 */}
-          <div>
-            <div className="flex bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full shadow-inner">
-              {(["bilingual", "spanish", "chinese"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => changeDisplayMode(mode)}
-                  className={`flex-1 py-1.5 text-[11px] font-bold rounded-full transition-all ${
-                    displayMode === mode
-                      ? "bg-white dark:bg-zinc-800 text-brand-600 dark:text-brand-400 shadow-sm border border-zinc-200/10"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                  }`}
-                  type="button"
-                >
-                  {mode === "bilingual" && "中西双语"}
-                  {mode === "spanish" && "仅西语"}
-                  {mode === "chinese" && "仅中文"}
-                </button>
-              ))}
-            </div>
+        {/* 底部极简控制区 (Minimal Thumb Controls) */}
+        <div className="shrink-0 flex items-center justify-between border-t border-zinc-800/40 pt-3 mt-auto px-2">
+          {/* Minimal Display Mode Toggle */}
+          <div className="flex bg-zinc-900/60 rounded-full p-0.5 border border-zinc-800/60">
+            {(["bilingual", "spanish", "chinese"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => changeDisplayMode(mode)}
+                className={`px-3 py-1 text-[10px] font-medium rounded-full transition-colors ${
+                  displayMode === mode
+                    ? "bg-zinc-800 text-brand-400"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+                type="button"
+              >
+                {mode === "bilingual" && "双语"}
+                {mode === "spanish" && "西语"}
+                {mode === "chinese" && "中文"}
+              </button>
+            ))}
           </div>
 
-          {/* 播放速度切换 */}
-          <div>
-            <div className="grid grid-cols-4 gap-1 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full shadow-inner">
-              {([0.75, 0.85, 1.0, 1.25] as const).map((speed) => (
-                <button
-                  key={speed}
-                  onClick={() => onSpeedChange(speed)}
-                  className={`text-center py-1.5 text-[11px] font-bold rounded-full transition-all ${
-                    playbackRate === speed
-                      ? "bg-white dark:bg-zinc-800 text-brand-600 dark:text-brand-400 shadow-sm border border-zinc-200/10"
-                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                  }`}
-                  type="button"
-                >
-                  {speed}x
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 刷新字幕与下载 PDF (两列等宽) */}
-          <div className="grid grid-cols-2 gap-3.5 mt-1">
+          {/* Minimal Actions: Refresh & PDF Download as Icons */}
+          <div className="flex items-center gap-4 pr-2">
             <button
               onClick={onRefresh}
-              className="flex items-center justify-center gap-1.5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-full h-10 text-[11.5px] font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm transition-all duration-150 active:scale-98"
+              className="text-zinc-500 hover:text-zinc-300 transition-colors active:scale-90"
+              title="刷新字幕"
               type="button"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
               </svg>
-              刷新字幕
             </button>
 
             <button
               onClick={handlePdfDownload}
               disabled={isGeneratingPdf}
-              className="flex items-center justify-center gap-1.5 border border-zinc-200/60 dark:border-zinc-800/60 rounded-full h-10 text-[11.5px] font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm transition-all duration-150 active:scale-98 disabled:opacity-50"
+              className="text-zinc-500 hover:text-zinc-300 transition-colors active:scale-90 disabled:opacity-50"
+              title="下载 PDF 讲义"
               type="button"
-              aria-label="下载当前字幕为 PDF 讲义"
             >
               {isGeneratingPdf ? (
-                <>
-                  <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  生成中...
-                </>
+                <svg className="animate-spin h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
               ) : (
-                <>
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                  </svg>
-                  下载 PDF
-                </>
+                <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
               )}
             </button>
           </div>
@@ -798,6 +770,7 @@ export function SubtitlePanel({
               cards={activeLookup.cards.map((card) => ({
                 ...card,
                 onClose: () => closeStackCard(card.id),
+
                 onExampleWordClick: openNestedWord,
                 onRelatedPhraseClick: openNestedPhrase,
                 originalSentence: activeLookup.sentence,
