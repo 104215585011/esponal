@@ -248,7 +248,7 @@ export async function GET(request: Request) {
     }
 
     const videos = await getCachedJson(
-      "youtube:channel",
+      "youtube:v2:channel",
       `${channelId}:${maxResults}`,
       CHANNEL_CACHE_TTL_SECONDS,
       () => fetchChannelVideos(channelId, maxResults)

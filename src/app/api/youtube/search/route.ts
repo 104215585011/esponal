@@ -137,7 +137,7 @@ export async function GET(request: Request) {
     }
 
     const videos = await getCachedJson(
-      "youtube:search",
+      "youtube:v2:search",
       `${query}:${maxResults}`,
       SEARCH_CACHE_TTL_SECONDS,
       () => fetchSearchVideos(query, maxResults)

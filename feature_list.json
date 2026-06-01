@@ -1593,5 +1593,21 @@
     ],
     "evidence": "route.ts: 新增 APIFY_ENABLED=process.env.APIFY_ENABLED===1(默认关), fetchHybridSubtitles 包在 if(APIFY_ENABLED) 内,关闭时 apifyCues=[] 跳过 Apify 直接 Whisper; 下游 if(apifyCues.length>0) 关闭时自然不触发。Apify 代码全保留可逆(软关不删)。.env.example 加 APIFY_ENABLED=空 默认关注释。新增 tests/subs004.test.mjs 4/4; 同步更新 SUBS-002 旧契约断言(const->let)。全量 npm test 342/342 pass + lint:encoding pass + npm run build pass (2026-05-31)。PM 经用户同意代为实现并验收。设 APIFY_ENABLED=1 可恢复。",
     "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/SUBS-004.md。目的:省钱,默认只用 Supadata(质量=扩展),不再默认烧 Apify 额度。决策:软关(环境变量开关)不硬删——Apify 那套 manual+ASR 合并逻辑保留,设 APIFY_ENABLED=1 可恢复。兜底:Supadata miss→跳 Apify→Whisper(本机,经 Cloudflare Tunnel)。现状 route line 383-393 回退链已是 Supadata→Apify→Whisper,本票在 Apify 那步加 enabled 判断即可。纯后端无UI。流程:Claude1→Codex1→Codex2→Claude1验收。"
+  },
+  "86": {
+    "id": "WEB-018",
+    "priority": 87,
+    "area": "backend",
+    "title": "过滤不可嵌入的 YouTube 视频(源头规避无法播放报错)",
+    "user_visible_behavior": "精选频道卡片流与搜索结果不再出现作者限制嵌入(embeddable=false)的视频,用户点开不会再遇到 YouTube 灰底无法播放报错。",
+    "status": "passing",
+    "verification": [
+      "channel/search route 的 videos 查询加 part:contentDetails,status",
+      "读取 item.status.embeddable,false 的视频在拼装 payload 时跳过",
+      "tests/embeddable-filter.test.mjs 锁定两接口过滤契约",
+      "npm test 全绿 + npm run build 通过"
+    ],
+    "evidence": "Codex1 commit 6a84be4 (2026-05-31). channel/route.ts + search/route.ts: videos 查询 part:contentDetails,status, embeddableById Map 缓存 item.status.embeddable, embeddable===false 的视频 continue 跳过。tests/embeddable-filter.test.mjs 2/2 pass。Codex1 报告 npm test 344/344 + build pass。PM(Claude1) 独立核实 2026-06-01: commit/代码/测试均属实(单测复跑 2/2)。",
+    "notes": "补登记 by Claude1(PM) 2026-06-01。Codex1 已实现+提交+推送(6a84be4),当时未在 feature_list 登记,PM 核实后补录 passing。"
   }
 }
