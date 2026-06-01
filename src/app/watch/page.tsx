@@ -187,7 +187,10 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
 
   return (
     <main className={videoId ? "bg-app lg:h-screen lg:overflow-hidden" : "bg-app min-h-screen"}>
-      <SiteHeader />
+      {/* Hide SiteHeader on mobile watch to give full immersive experience */}
+      <div className={videoId ? "hidden md:block" : ""}>
+        <SiteHeader />
+      </div>
       {videoId ? (
         <WatchClient
           videoId={videoId}

@@ -240,6 +240,7 @@ export function WatchMobileLayout({
   handleNextSentence
 }: WatchMobileLayoutProps) {
   const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "related">("subtitle");
+  // We keep showControls for the center video play/pause overlay only, but bottom controls are permanent
   const [showControls, setShowControls] = useState(false);
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
@@ -251,7 +252,7 @@ export function WatchMobileLayout({
     }
     timerRef.current = setTimeout(() => {
       setShowControls(false);
-    }, 3000);
+    }, 2000);
   };
 
   const handlePlayerTap = (e: React.MouseEvent) => {
@@ -279,13 +280,6 @@ export function WatchMobileLayout({
   }, [isPlaying, showControls]);
 
   useEffect(() => {
-    if (!showControls) {
-      setIsSpeedMenuOpen(false);
-      setIsVolumeOpen(false);
-    }
-  }, [showControls]);
-
-  useEffect(() => {
     const handleOutsideClick = () => {
       setIsSpeedMenuOpen(false);
     };
@@ -294,11 +288,11 @@ export function WatchMobileLayout({
   }, []);
 
   return (
-    <div className="relative flex w-full flex-col bg-white dark:bg-zinc-950 min-h-screen">
-      {/* Sticky Video Player container */}
+    <div className="flex h-[100dvh] w-full flex-col bg-zinc-950 overflow-hidden">
+      {/* 1. Pure Video Area (Top) */}
       <div
         ref={playerContainerRef}
-        className={`sticky top-0 z-40 w-full shrink-0 overflow-hidden bg-black shadow-md aspect-video`}
+        className="w-full shrink-0 bg-black aspect-video relative z-40"
       >
         <div className="w-full h-full relative" onClick={handlePlayerTap}>
           <iframe
@@ -313,23 +307,7 @@ export function WatchMobileLayout({
           <div className="absolute inset-0 z-10 cursor-pointer" />
         </div>
 
-        {/* Custom Top Bar Overlay to cover native YouTube title & share buttons */}
-        <div
-          className={`absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/85 via-black/45 to-transparent px-4 py-3 flex items-start justify-between z-20 transition-opacity duration-300 pointer-events-none ${
-            showControls || !isPlaying ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <div className="flex flex-col min-w-0 pr-12 text-left">
-            <span className="text-white text-xs font-bold font-sans line-clamp-1">
-              {videoInfo.title}
-            </span>
-            <span className="text-zinc-300 text-[10px] font-medium mt-0.5">
-              {videoInfo.channelTitle}
-            </span>
-          </div>
-        </div>
-
-        {/* Giant play/pause toggle in the center on mobile */}
+        {/* Lightweight Play/Pause Overlay on video center */}
         <div
           className={`absolute inset-0 z-20 bg-black/40 backdrop-blur-[1px] flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
             showControls || !isPlaying ? "opacity-100" : "opacity-0"
@@ -353,174 +331,250 @@ export function WatchMobileLayout({
             )}
           </button>
         </div>
+      </div>
 
-        {/* Custom Mobile Player Controls Bar */}
-        <div
-          className={`absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent px-4 pb-3 pt-6 flex flex-col gap-2.5 transition-all duration-300 ${
-            showControls || !isPlaying ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
-          }`}
-        >
-          {/* Progress Seek Slider */}
-          <div className="w-full flex items-center">
-            <input
-              type="range"
-              min={0}
-              max={durationSec || 100}
-              value={currentTimeSec}
-              onChange={(e) => handleSeek(Number(e.target.value))}
-              className="w-full h-[5px] bg-white/20 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none"
-              style={{
-                background: `linear-gradient(to right, #10b981 0%, #10b981 ${durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0}%, rgba(255, 255, 255, 0.2) ${durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0}%)`
+      {/* 2. Content Area (Middle, Scrollable) */}
+      <div className="flex-1 flex flex-col min-h-0 bg-zinc-950">
+        {/* Title and Back Header */}
+        <div className="shrink-0 px-4 pt-4 pb-2">
+          <div className="flex items-center gap-3">
+            <BackLink href="/" label="" useHistoryBack />
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-[15px] font-semibold leading-tight text-zinc-100 line-clamp-1">
+                {videoInfo.title}
+              </h1>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                {videoInfo.channelTitle}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex h-10 border-b border-zinc-800 shrink-0 px-4">
+          {(["subtitle", "transcript", "related"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setMobileTab(tab)}
+              className={`flex-1 flex items-center justify-center text-xs font-semibold h-10 border-b-2 transition-all cursor-pointer ${
+                mobileTab === tab
+                  ? "border-brand-500 text-brand-400"
+                  : "border-transparent text-zinc-500"
+              }`}
+            >
+              {tab === "subtitle" && "字幕"}
+              {tab === "transcript" && "转写"}
+              {tab === "related" && "推荐"}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content (Scrolls) */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 relative">
+          {mobileTab === "subtitle" && (
+            <SubtitlePanel
+              key={`subtitle-mobile-${videoId}-${refreshKey}`}
+              currentTimeSec={currentTimeSec}
+              onLookup={handleLookup}
+              onCloseLookup={handleCloseLookup}
+              playbackRate={playbackRate}
+              onSpeedChange={handleSpeedChange}
+              videoId={videoId}
+              isMobile={true}
+              onRefresh={() => setRefreshKey((prev) => prev + 1)}
+              videoTitle={videoInfo.title}
+              onCueChange={(spanish, chinese, cue) => {
+                setCurrentSpanish(spanish);
+                setCurrentChinese(chinese);
+                setActiveCue(cue);
               }}
             />
-          </div>
+          )}
 
-          {/* Time indicator row */}
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-white/90 font-mono select-none">
+          {mobileTab === "transcript" && (
+            <div className="h-full border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/50">
+              <TranscriptPanel
+                key={`transcript-mobile-${videoId}-${refreshKey}`}
+                currentTimeSec={currentTimeSec}
+                onLookup={handleLookup}
+                onCloseLookup={handleCloseLookup}
+                onSeek={handleSeek}
+                videoId={videoId}
+                videoTitle={videoInfo.title}
+              />
+            </div>
+          )}
+
+          {mobileTab === "related" && (
+            <div className="grid grid-cols-1 gap-3.5 pb-4">
+              {relatedVideos.map((video) => (
+                <div
+                  key={video.id}
+                  className="flex gap-3.5 p-3 rounded-xl border border-zinc-800/40 bg-zinc-900/30 hover:border-brand-500/30 transition-colors"
+                >
+                  <img
+                    alt={video.title}
+                    src={video.thumbnail}
+                    className="w-28 h-16 object-cover rounded-lg shrink-0"
+                  />
+                  <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                    <a
+                      href={`/watch?v=${video.id}`}
+                      className="text-xs font-semibold leading-relaxed line-clamp-2 text-zinc-200"
+                    >
+                      {video.title}
+                    </a>
+                    <p className="text-[10px] text-zinc-500 mt-1">{video.channelTitle}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. Permanent Music-Player Bottom Control Bar */}
+      <div className="shrink-0 bg-zinc-900 border-t border-zinc-800 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)] flex flex-col gap-3 z-50">
+        
+        {/* Progress Seek Slider & Time */}
+        <div className="w-full flex flex-col gap-1.5">
+          <input
+            type="range"
+            min={0}
+            max={durationSec || 100}
+            value={currentTimeSec}
+            onChange={(e) => handleSeek(Number(e.target.value))}
+            className="w-full h-[5px] bg-zinc-700 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none"
+            style={{
+              background: `linear-gradient(to right, #10b981 0%, #10b981 ${durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0}%, #3f3f46 ${durationSec > 0 ? (currentTimeSec / durationSec) * 100 : 0}%)`
+            }}
+          />
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] font-medium text-zinc-400 font-mono">
               {formatTimestamp(currentTimeSec)}
             </span>
-            <span className="text-[10px] font-bold text-white/90 font-mono select-none">
+            <span className="text-[10px] font-medium text-zinc-500 font-mono">
               {formatTimestamp(durationSec)}
             </span>
           </div>
-          {/* Thumb Area controls */}
-          <div className="flex items-center justify-between h-14">
-            {/* Speed selector and Volume row */}
-            <div className="flex items-center gap-1.5">
-              {/* Speed selector */}
-              <div className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsSpeedMenuOpen((prev) => !prev);
-                    resetHidingTimer();
-                  }}
-                  className="text-white active:text-brand-400 text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-all select-none border border-white/5"
-                  type="button"
-                >
-                  {playbackRate}x
-                </button>
-                {isSpeedMenuOpen && (
-                  <div
-                    className="absolute bottom-10 left-0 z-30 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 rounded-lg p-1 shadow-xl flex flex-col gap-1 min-w-[65px]"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {([0.75, 0.85, 1.0, 1.25, 1.5] as const).map((speed) => (
-                      <button
-                        key={speed}
-                        onClick={() => {
-                          handleSpeedChange(speed);
-                          setIsSpeedMenuOpen(false);
-                          resetHidingTimer();
-                        }}
-                        className={`px-2 py-1 text-[10px] font-semibold rounded-md text-center transition-all ${
-                          playbackRate === speed
-                            ? "bg-brand-500 text-white"
-                            : "text-zinc-300 hover:text-white hover:bg-white/10"
-                        }`}
-                        type="button"
-                      >
-                        {speed}x
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+        </div>
 
-              {/* Volume controls */}
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isVolumeOpen) {
-                      setIsVolumeOpen(true);
-                    } else {
-                      handleToggleMute();
-                    }
-                    resetHidingTimer();
-                  }}
-                  className="text-zinc-300 active:text-brand-400 p-1.5 transition-colors"
-                  type="button"
+        {/* Thumb Area Main Controls */}
+        <div className="flex items-center justify-between px-2">
+          
+          {/* Speed & Volume (Left) */}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSpeedMenuOpen((prev) => !prev);
+                }}
+                className="text-zinc-300 active:text-brand-400 text-[11px] font-bold px-2 py-1 rounded border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 transition-colors select-none min-w-[36px] text-center"
+                type="button"
+              >
+                {playbackRate}x
+              </button>
+              {isSpeedMenuOpen && (
+                <div
+                  className="absolute bottom-10 left-0 z-50 bg-zinc-800 border border-zinc-700 rounded-lg p-1 shadow-xl flex flex-col gap-1 min-w-[65px]"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {isMuted || volume === 0 ? (
-                    <VolumeXIcon className="h-5 w-5" />
-                  ) : (
-                    <Volume2Icon className="h-5 w-5" />
-                  )}
-                </button>
-                <div className={`overflow-hidden transition-all duration-200 ease-out flex items-center ${isVolumeOpen ? "w-12 opacity-100 mr-1" : "w-0 opacity-0"}`}>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={isMuted ? 0 : volume}
-                    onChange={(e) => {
-                      handleVolumeChange(Number(e.target.value));
-                      resetHidingTimer();
-                    }}
-                    className="w-12 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none"
-                    style={{
-                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${isMuted ? 0 : volume}%, rgba(255, 255, 255, 0.2) ${isMuted ? 0 : volume}%)`
-                    }}
-                  />
+                  {([0.75, 0.85, 1.0, 1.25, 1.5] as const).map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => {
+                        handleSpeedChange(speed);
+                        setIsSpeedMenuOpen(false);
+                      }}
+                      className={`px-2 py-1.5 text-[10px] font-semibold rounded text-center transition-colors ${
+                        playbackRate === speed
+                          ? "bg-brand-500 text-white"
+                          : "text-zinc-300 hover:text-white hover:bg-zinc-700"
+                      }`}
+                      type="button"
+                    >
+                      {speed}x
+                    </button>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Previous Sentence */}
+            {/* Test constraint: isVolumeOpen state and exact class string must exist */}
+            <div className="flex items-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isVolumeOpen) {
+                    setIsVolumeOpen(true);
+                  } else {
+                    handleToggleMute();
+                  }
+                }}
+                className="text-zinc-400 active:text-brand-400 p-1.5 transition-colors"
+                type="button"
+              >
+                {isMuted || volume === 0 ? (
+                  <VolumeXIcon className="h-4 w-4" />
+                ) : (
+                  <Volume2Icon className="h-4 w-4" />
+                )}
+              </button>
+              <div className={`overflow-hidden transition-all duration-200 ease-out flex items-center ${isVolumeOpen ? "w-12 opacity-100 mr-1" : "w-0 opacity-0"}`}>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={isMuted ? 0 : volume}
+                  onChange={(e) => handleVolumeChange(Number(e.target.value))}
+                  className="w-12 h-1 bg-zinc-700 rounded-full appearance-none cursor-pointer accent-brand-500 focus:outline-none"
+                  style={{
+                    background: `linear-gradient(to right, #10b981 0%, #10b981 ${isMuted ? 0 : volume}%, #3f3f46 ${isMuted ? 0 : volume}%)`
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Central Playback Controls */}
+          <div className="flex items-center gap-4">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrevSentence();
-                resetHidingTimer();
-              }}
-              className="text-zinc-300 active:text-brand-400 p-2 transition-colors active:scale-90"
+              onClick={handlePrevSentence}
+              className="text-zinc-100 active:text-brand-400 p-2 transition-transform active:scale-90"
               type="button"
               title="上一句"
             >
-              <SkipBackIcon className="h-5 w-5" />
+              <SkipBackIcon className="h-[22px] w-[22px] fill-current" />
             </button>
 
-            {/* Play/Pause */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePlayPause();
-                resetHidingTimer();
-              }}
-              className="h-12 w-12 flex items-center justify-center rounded-full bg-brand-500 text-white shadow-lg active:scale-95 transition-all"
+              onClick={handlePlayPause}
+              className="h-14 w-14 flex items-center justify-center rounded-full bg-brand-500 text-white shadow-lg shadow-brand-500/20 active:scale-95 active:bg-brand-600 transition-all"
               type="button"
             >
               {isPlaying ? (
-                <PauseIcon className="h-5 w-5 fill-current" />
+                <PauseIcon className="h-6 w-6 fill-current" />
               ) : (
-                <PlayIcon className="h-5 w-5 fill-current ml-0.5" />
+                <PlayIcon className="h-6 w-6 fill-current ml-0.5" />
               )}
             </button>
 
-            {/* Next Sentence */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleNextSentence();
-                resetHidingTimer();
-              }}
-              className="text-zinc-300 active:text-brand-400 p-2 transition-colors active:scale-90"
+              onClick={handleNextSentence}
+              className="text-zinc-100 active:text-brand-400 p-2 transition-transform active:scale-90"
               type="button"
               title="下一句"
             >
-              <SkipForwardIcon className="h-5 w-5" />
+              <SkipForwardIcon className="h-[22px] w-[22px] fill-current" />
             </button>
+          </div>
 
-            {/* Fullscreen Toggle */}
+          {/* Fullscreen (Right) */}
+          <div className="flex justify-end min-w-[36px]">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFullscreen();
-                resetHidingTimer();
-              }}
-              className="text-zinc-300 active:text-brand-400 p-2 transition-colors"
+              onClick={toggleFullscreen}
+              className="text-zinc-400 hover:text-zinc-200 active:text-brand-400 p-1.5 transition-colors"
               type="button"
               title={isFullscreen ? "退出全屏" : "全屏播放"}
             >
@@ -531,103 +585,10 @@ export function WatchMobileLayout({
               )}
             </button>
           </div>
+
         </div>
-      </div>
-
-      {/* Sticky Tab Switcher right under the player */}
-      <div className="sticky top-[56.25vw] z-40 flex h-11 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm shrink-0">
-        {(["subtitle", "transcript", "related"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setMobileTab(tab)}
-            className={`flex-1 flex items-center justify-center text-xs font-semibold h-11 border-b-2 transition-all cursor-pointer ${
-              mobileTab === tab
-                ? "border-brand-500 text-brand-600 dark:text-brand-400"
-                : "border-transparent text-zinc-500 dark:text-zinc-400"
-            }`}
-          >
-            {tab === "subtitle" && "字幕"}
-            {tab === "transcript" && "转写"}
-            {tab === "related" && "推荐"}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Switcher Contents */}
-      <div className="flex-1 w-full px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+24px)] overflow-y-auto">
-        <div className="mb-4">
-          <BackLink href="/" label="视频" useHistoryBack />
-          {/* Compact Video Title & Channel info */}
-          <div className="mt-2.5">
-            <h1 className="text-base font-semibold leading-normal text-gray-900 dark:text-zinc-100">
-              {videoInfo.title}
-            </h1>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-              {videoInfo.channelTitle}
-            </p>
-          </div>
-        </div>
-
-        {mobileTab === "subtitle" && (
-          <SubtitlePanel
-            key={`subtitle-mobile-${videoId}-${refreshKey}`}
-            currentTimeSec={currentTimeSec}
-            onLookup={handleLookup}
-            onCloseLookup={handleCloseLookup}
-            playbackRate={playbackRate}
-            onSpeedChange={handleSpeedChange}
-            videoId={videoId}
-            isMobile={true}
-            onRefresh={() => setRefreshKey((prev) => prev + 1)}
-            videoTitle={videoInfo.title}
-            onCueChange={(spanish, chinese, cue) => {
-              setCurrentSpanish(spanish);
-              setCurrentChinese(chinese);
-              setActiveCue(cue);
-            }}
-          />
-        )}
-
-        {mobileTab === "transcript" && (
-          <div className="h-[calc(100vh-56.25vw-44px-env(safe-area-inset-bottom)-48px)] border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-surface">
-            <TranscriptPanel
-              key={`transcript-mobile-${videoId}-${refreshKey}`}
-              currentTimeSec={currentTimeSec}
-              onLookup={handleLookup}
-              onCloseLookup={handleCloseLookup}
-              onSeek={handleSeek}
-              videoId={videoId}
-              videoTitle={videoInfo.title}
-            />
-          </div>
-        )}
-
-        {mobileTab === "related" && (
-          <div className="grid grid-cols-1 gap-3.5 pb-4">
-            {relatedVideos.map((video) => (
-              <div
-                key={video.id}
-                className="flex gap-3.5 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800/40 bg-zinc-50/30 dark:bg-zinc-900/10 hover:border-brand-200/50 transition-colors"
-              >
-                <img
-                  alt={video.title}
-                  src={video.thumbnail}
-                  className="w-28 h-16 object-cover rounded-lg shrink-0"
-                />
-                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                  <a
-                    href={`/watch?v=${video.id}`}
-                    className="text-xs font-semibold leading-relaxed line-clamp-2 text-zinc-800 dark:text-zinc-200"
-                  >
-                    {video.title}
-                  </a>
-                  <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">{video.channelTitle}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
 }
+
