@@ -27,7 +27,7 @@ export async function SiteHeader({
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-300">
       <div className="absolute inset-0 z-[-1] glass-header" />
-      <div className="mx-auto flex h-16 w-full max-w-app-shell items-center gap-4 px-6">
+      <div className="mx-auto flex h-16 w-full max-w-app-shell items-center gap-3 px-4 sm:px-6 lg:gap-4">
         <Link className="flex shrink-0 items-center gap-2.5 group" href="/">
           <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 dark:from-brand-600 dark:to-teal-400 text-white shadow-md shadow-brand-500/20 dark:shadow-brand-950/20 group-hover:scale-105 transition-transform duration-300">
             <svg className="h-4.5 w-4.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,4 +120,3 @@ export async function SiteHeader({
     </header>
   );
 }
-

@@ -40,7 +40,13 @@
 +---------------------------------------------+
 ```
 
-### 1.2 响应式架构设计与 TSX 骨架
+### 1.2 高保真 UI 模型图 (High-Fidelity UI Mockup)
+
+下列模型图展示了移动端查词底部抽屉在真实场景下的界面排布。你可以直接下载此图片并拖入 Figma 或 Canva 进行样式编辑、切图或设计标注：
+
+![MOBILE-000 移动端底部抽屉查词卡 UI 模型](file:///C:/Users/wang/.gemini/antigravity/brain/7bac0d5a-3e94-46d5-9839-17e9ebbf0f49/mobile_lookup_sheet_1780292852720.png)
+
+### 1.3 响应式架构设计与 TSX 骨架
 
 为了避免在多个业务页面产生 clipping (元素被父级 `overflow: hidden` 截断) 风险，移动端抽屉应使用 **React Portal** 直接挂载至 `document.body`，同时维持与原有桌面端 Props 的 100% 兼容。
 

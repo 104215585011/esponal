@@ -84,7 +84,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
       <button
         aria-expanded={open}
         aria-label="打开导航菜单"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-card text-zinc-500 dark:text-zinc-400 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-card text-zinc-500 dark:text-zinc-400 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
         onClick={() => setOpen(true)}
         type="button"
       >
@@ -103,13 +103,13 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
       >
         <button
           aria-label="关闭导航菜单"
-          className="absolute inset-0 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm transition-opacity duration-300"
+          className="absolute inset-0 bg-black/35 dark:bg-zinc-950/60 backdrop-blur-[1px] transition-opacity duration-300"
           onClick={() => setOpen(false)}
           type="button"
         />
 
         <aside
-          className={`absolute inset-y-0 right-0 flex w-full max-w-[280px] flex-col bg-white dark:bg-zinc-900 shadow-2xl border-l border-zinc-200/50 dark:border-zinc-800/50 transition-transform duration-300 ease-out ${
+          className={`absolute inset-y-0 right-0 flex w-72 max-w-[calc(100vw-2rem)] flex-col bg-white dark:bg-zinc-900 shadow-2xl border-l border-zinc-200/50 dark:border-zinc-800/50 transition-transform duration-300 ease-out ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -137,7 +137,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
             </Link>
             <button
               aria-label="关闭菜单"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 dark:text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 dark:text-zinc-500 transition hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200"
               onClick={() => setOpen(false)}
               type="button"
             >
@@ -159,7 +159,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
 
                   return (
                     <Link
-                      className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      className={`flex min-h-[44px] items-center py-3.5 px-6 rounded-lg text-base font-semibold transition-all ${
                         active
                           ? "bg-brand-50/60 dark:bg-brand-950/20 text-brand-600 dark:text-brand-400 border-l-2 border-brand-500 rounded-l-none"
                           : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -185,7 +185,7 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
 
                   return (
                     <Link
-                      className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      className={`flex min-h-[44px] items-center py-3.5 px-6 rounded-lg text-base font-semibold transition-all ${
                         active
                           ? "bg-brand-50/60 dark:bg-brand-950/20 text-brand-600 dark:text-brand-400 border-l-2 border-brand-500 rounded-l-none"
                           : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -206,4 +206,3 @@ export function MobileNav({ vocabHref }: MobileNavProps) {
     </div>
   );
 }
-

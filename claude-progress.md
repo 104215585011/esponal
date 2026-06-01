@@ -1,3 +1,28 @@
+### Session #MOBILE-000 Mobile Lookup Foundation - 2026-06-01 14:05
+
+**Goal**: Implement the MOBILE-000 mobile foundation after Gemini1 delivered `docs/tickets/MOBILE-000-design.md`: mobile LookupCard bottom sheet, shared mobile tokens, and scoped navigation/header polish.
+
+**Done (Codex1)**:
+- Added `tests/mobile000.test.mjs` first and verified the expected red state before production edits.
+- Updated `src/app/watch/LookupCard.tsx` so `LookupCardStack` preserves the existing desktop two-card stack while mobile viewports render the active card through a `document.body` portal bottom sheet.
+- Reused `LookupCard` with `useStaticLayout={true}` inside the sheet, preserving lookup/save/audio/related-phrase behavior.
+- Added backdrop close, drag-handle close, swipe-down close, `max-h-[75vh]`, safe-area padding, and scrollable sheet content.
+- Prevented hidden desktop duplicate lookup calls by returning `null` from the mobile portal outside `max-width: 767px`.
+- Added `.pb-safe` and `.mobile-touch-target` utilities to `src/app/globals.css`.
+- Polished `MobileNav` and `SiteHeader` to match the design-token requirements: 44px touch targets, `w-72` drawer, light blur backdrop, larger menu rows, and mobile header gutters.
+- Reworked after Codex2 QA found a duplicate mobile lookup risk: `LookupCardStack` now branches by viewport before mounting any `LookupCard`, so mobile renders only the portal sheet and desktop renders only the stacked cards.
+
+**Verification so far**:
+- `node --test tests/mobile000.test.mjs` -> 4/4 pass.
+- `node --test tests/mobile000.test.mjs tests/phrase001-frontend.test.mjs tests/vocab010.test.mjs tests/web013.test.mjs tests/ui_refactor_qa_fix.test.mjs` -> 14/14 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm test` -> 350/350 pass.
+- `npm run build` -> pass with existing unrelated Next `<img>` and Sentry warnings.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+
+**Status**: MOBILE-000 -> `ready_for_qa`; handoff written for Codex2 mobile QA and Gemini1 visual review.
+
 ### Session #WATCH-009 PDF Subtitle Download - 2026-06-01 10:03
 
 **Goal**: Replace the superseded WATCH-008 SRT export with a direct PDF subtitle handout download.
@@ -4631,5 +4656,20 @@ feature_list.json 更新：
 **Verification**:
 - `npm run lint:encoding` -> pass
 - `npm test` -> 344/344 pass
+- `npm run build` -> pass
+
+### Session Update - 2026-06-01 15:42 - MOBILE-000 UI Review (Gemini1)
+
+**Goal**: Perform visual and interactive UI/UX acceptance review of the MOBILE-000 mobile foundation implementation.
+
+**Done**:
+- Verified the mobile bottom-sheet `MobileLookupSheet` layout, drag-to-close gesture threshold (72px), backdrop blur, and scroll lock behavior.
+- Verified that `LookupCardStack` implements responsive viewport split rendering, eliminating duplicate lookup mount calls.
+- Verified that mobile navigation touch targets on `MobileNav` Hamburger button and close button are successfully set to `h-11 w-11` ($\ge 44\text{px}$) and nav drawer links padding are set to `py-3.5 px-6` with `min-h-[44px]`.
+- Prepended the UI acceptance report to the top of `session-handoff.md`, handing the ticket back to Claude1 (PM) for final acceptance.
+
+**Verification**:
+- `npm run lint:encoding` -> pass
+- `npm test` -> 350/350 pass
 - `npm run build` -> pass
 

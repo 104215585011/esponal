@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type PointerEvent } from "react";
+import { createPortal } from "react-dom";
 import EmptyState from "@/app/components/ui/EmptyState";
 import { speak, useSpeechAvailable } from "@/lib/speak";
 
@@ -143,6 +144,23 @@ export function LookupCardStack({
   onCloseCard: (id: string) => void;
 }) {
   const visibleCards = cards.slice(-2);
+  const activeCard = visibleCards[visibleCards.length - 1];
+  const isMobileViewport = useIsMobileViewport();
+
+  if (!activeCard || isMobileViewport === null) {
+    return null;
+  }
+
+  const { id: activeId, ...activeCardProps } = activeCard;
+
+  if (isMobileViewport) {
+    return (
+      <MobileLookupSheet
+        card={activeCardProps}
+        onClose={() => onCloseCard(activeId)}
+      />
+    );
+  }
 
   return (
     <div className="relative w-full min-h-[360px]">
@@ -164,6 +182,81 @@ export function LookupCardStack({
         );
       })}
     </div>
+  );
+}
+
+function useIsMobileViewport() {
+  const [isMobileViewport, setIsMobileViewport] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateMobileViewport = () => setIsMobileViewport(mediaQuery.matches);
+
+    updateMobileViewport();
+    mediaQuery.addEventListener("change", updateMobileViewport);
+    return () => mediaQuery.removeEventListener("change", updateMobileViewport);
+  }, []);
+
+  return isMobileViewport;
+}
+
+function MobileLookupSheet({
+  card,
+  onClose
+}: {
+  card: LookupCardProps;
+  onClose: () => void;
+}) {
+  const [dragStartY, setDragStartY] = useState<number | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  const handlePointerDown = (event: PointerEvent) => {
+    setDragStartY(event.clientY);
+  };
+
+  const handlePointerUp = (event: PointerEvent) => {
+    if (dragStartY !== null && event.clientY - dragStartY > 72) {
+      onClose();
+    }
+    setDragStartY(null);
+  };
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end md:hidden">
+      <button
+        aria-label="Close lookup sheet backdrop"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[1px] transition-opacity duration-300 ease-out"
+        onClick={onClose}
+        type="button"
+      />
+      <section
+        aria-modal="true"
+        className="relative w-full max-h-[75vh] overflow-hidden rounded-t-2xl border border-zinc-200/80 border-b-0 bg-white shadow-hero transition-transform duration-300 ease-out dark:border-zinc-800 dark:bg-zinc-900 pb-[calc(env(safe-area-inset-bottom)+12px)]"
+        role="dialog"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
+        <button
+          aria-label="Close lookup sheet"
+          className="mx-auto flex min-h-[44px] w-16 items-center justify-center"
+          onClick={onClose}
+          type="button"
+        >
+          <span className="h-1 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+        </button>
+        <div className="max-h-[calc(75vh-44px)] overflow-y-auto px-5 pb-4">
+          <LookupCard {...card} useStaticLayout={true} onClose={onClose} />
+        </div>
+      </section>
+    </div>,
+    document.body
   );
 }
 

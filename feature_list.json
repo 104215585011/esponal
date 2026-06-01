@@ -1652,7 +1652,7 @@
     "area": "frontend",
     "title": "移动端地基:查词卡抽屉化 + 设计 token + 导航打磨",
     "user_visible_behavior": "手机上点任意西语文本,查词卡从底部弹出(bottom sheet)而非桌面卡片,单手可达、不挡内容、可下滑关闭。全站统一的移动端触摸目标/字号/安全区规范。导航在手机上顺手。这套地基被后续所有移动端重构页面复用。",
-    "status": "in_progress",
+    "status": "ready_for_qa",
     "verification": [
       "LookupCard 移动端改底部抽屉(bottom sheet),桌面端不回退",
       "查词暂停/恢复、发音、已标记状态等现有交互在抽屉里照常工作",
@@ -1662,7 +1662,7 @@
       "全站使用 LookupCard 的页面(watch/lectura/talk/learn/grammar)抽查无回退",
       "npm test 全绿 + npm run build 通过 + lint:encoding 通过"
     ],
-    "evidence": "",
+    "evidence": "2026-06-01 14:05 Codex1 implemented MOBILE-000 foundation: LookupCardStack now renders a mobile-only React Portal bottom sheet for the active lookup card, with backdrop close, drag-handle close/swipe-down support, 75vh scroll container, safe-area bottom padding, and useStaticLayout LookupCard reuse; desktop keeps the existing two-layer stacked card behavior and no mobile portal lookup is mounted outside mobile viewport. MobileNav/SiteHeader touched only for foundation polish: 44px menu/close touch targets, w-72 right drawer, bg-black/35 backdrop-blur-[1px], larger menu links, and mobile header px-4 sm:px-6. Global mobile utilities added: .pb-safe and .mobile-touch-target. Verification: node --test tests/mobile000.test.mjs = 4/4 pass; focused regression node --test tests/mobile000.test.mjs tests/phrase001-frontend.test.mjs tests/vocab010.test.mjs tests/web013.test.mjs tests/ui_refactor_qa_fix.test.mjs = 14/14 pass; npx tsc --noEmit --pretty false pass; npm test = 350/350 pass; npm run build pass with existing unrelated Next img and Sentry warnings; npm run lint:encoding pass; git diff --check pass. Note: an initial parallel npm test + build run produced transient LEX script stdout failures; rerunning npm test alone passed 350/350. 2026-06-01 14:22 Codex1 rework after Codex2 FAIL: desktop stack no longer relies on hidden md:block CSS hiding; LookupCardStack now returns null while viewport is unknown, returns only MobileLookupSheet on mobile, and returns only the desktop stacked cards on desktop, preventing duplicate mobile /api/vocab/lookup mounts. Re-verified focused suite 14/14, tsc pass, npm test 350/350, build pass, lint:encoding pass, diff-check pass. 2026-06-01 15:35 Codex2 re-QA PASS: focused suite 14/14, npm test 350/350, npm run build pass, npm run lint:encoding pass; source contract confirms mobile and desktop are conditional returns, no simultaneous portal + hidden desktop LookupCard mount. Ready for Gemini1 mobile/desktop visual review.",
     "notes": "PM 派单 2026-06-01。移动端重设计 epic 的【地基】,先于所有单页(包括 MOBILE-001 watch)。理由:词汇靠阅读输入积累→点词查 LookupCard 是全站核心交互(VOCAB-009 全站可点查词),跨 watch/lectura/talk/learn/grammar 都用,改一次全站受益。手机上查词卡应是底部抽屉。一并落地移动端设计 token + 导航打磨,后续页面照用。目标用户成人/学生,调性高效克制,不游戏化。流程(有UI):Claude1→Gemini1 地基设计稿(docs/tickets/MOBILE-000-design.md)→Codex1→Codex2→Gemini1 评审→Claude1 验收。Ticket: docs/tickets/MOBILE-000.md。下一步:交 Gemini1 出地基设计稿。"
   },
   "90": {
@@ -1768,5 +1768,31 @@
     ],
     "evidence": "",
     "notes": "PM backlog 2026-06-01。用户提出,理念来源=阅读输入习得词汇、不刷卡(见学习理念)。【用户明确:优先级低,目前不重要,不排期】。属新功能,不在移动端重构 epic 内。记录在案待将来。"
+  },
+  "98": {
+    "id": "LEX-006",
+    "priority": 99,
+    "area": "frontend",
+    "title": "语感网络可视化(相关词/搭配网络图)",
+    "user_visible_behavior": "把一个词的相关词、固定搭配、同根词形连成可视化网络图,用户点一个词能看到它的『语感网络』,直观感受词与词、词与搭配的关系。底层复用现有短语高亮(PHRASE-001)+ 相关短语(LEX-003)数据。",
+    "status": "not_started",
+    "verification": [
+      "占位,正式立项时细化 ticket(设计走 Gemini1)"
+    ],
+    "evidence": "",
+    "notes": "PM 立项 2026-06-01。用户明确『要做』。对标 DejaVocab 语感网络。底层数据已有(短语高亮 PHRASE-001 + 相关短语 LEX-003),本票做可视化网络图。落地后作为高阶/终身专属功能(见积分 spec §4.2)。契合产品『靠语感/搭配习得』理念。有 UI→走有 UI 流程。"
+  },
+  "99": {
+    "id": "VOCAB-013",
+    "priority": 100,
+    "area": "fullstack",
+    "title": "生词本导出 Anki",
+    "user_visible_behavior": "用户可把生词本导出为 Anki 牌组(.apkg 或 csv),带例句/释义/发音,导入自己的 Anki 复习。",
+    "status": "not_started",
+    "verification": [
+      "占位,正式立项时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 立项 2026-06-01。用户明确『要做』。对标 DejaVocab Anki 导出。落地后作为高阶/终身专属功能(见积分 spec §4.2)。【调性提醒】VISION 反 SRS 刷卡、UI 禁用 Anki 字眼;建议定位为『导出到你习惯的外部工具』的便利功能(给已用 Anki 的用户),不改变站内『阅读输入、不打卡』的主张——即站内不推 Anki,但不挡用户导出。实现:生词本数据→.apkg/csv。"
   }
 }
