@@ -19,6 +19,8 @@ test("WEB-013 mobile nav component exists and wires the required behavior", asyn
   assert.match(source, /href:\s*"\/lectura"/);
   assert.match(source, /href:\s*"\/grammar"/);
   assert.match(source, /activeHref:\s*"\/vocab"/);
+  assert.doesNotMatch(source, /useSession/);
+  assert.match(source, /session\?:/);
 });
 
 test("WEB-013 SiteNav keeps desktop nav and exposes a mobile branch", async () => {
@@ -28,6 +30,8 @@ test("WEB-013 SiteNav keeps desktop nav and exposes a mobile branch", async () =
 
   assert.match(source, /hidden lg:flex/);
   assert.match(source, /MobileNav/);
+  assert.match(source, /session\?:/);
+  assert.match(source, /<MobileNav vocabHref=\{vocabHref\} session=\{session\}/);
   assert.match(source, /lg:hidden/);
 });
 
@@ -37,6 +41,7 @@ test("WEB-013 SiteHeader keeps SiteNav and hides desktop search on small screens
   const source = await readText(path);
 
   assert.match(source, /SiteNav/);
+  assert.match(source, /<SiteNav vocabHref=\{vocabHref\} session=\{session\}/);
   assert.doesNotMatch(source, /MobileNav/);
   assert.match(source, /className="hidden lg:flex/);
 });

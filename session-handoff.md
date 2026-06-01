@@ -10551,3 +10551,59 @@ YouTube 閰嶉浼樺寲楠屾敹閫氳繃銆傝瘉鎹摼:Codex1 瀹炵幇 
 ### 流程
 Gemini1 更新设计稿 → Codex1 实现(播放控制逻辑 + 全站换色)→ Codex2(DevTools+真机,核单player/拖动seek/换色无回退)→ Gemini1 评审 → 用户真机 + Claude1 验收。
 **下一步**:Gemini1 出更新版 MOBILE-001-design.md。
+
+---
+
+## Codex1 Dev Report: MOBILE-001 P0 Mobile Render Crash Fixed
+**Time**: 2026-06-02 00:14
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Fix**:
+- Removed the direct `useSession()` dependency from `src/app/components/web/MobileNav.tsx`.
+- `SiteHeader` already resolves the session on the server; it now passes that `session` through `SiteNav` into `MobileNav`.
+- This follows the existing app architecture and avoids adding a global `SessionProvider` solely for the mobile drawer.
+- Added WEB-013 regression coverage so `MobileNav` must not use `useSession`, and `session` must be passed `SiteHeader -> SiteNav -> MobileNav`.
+- Removed scratch debug files from the workspace cleanup batch.
+
+**Verification**:
+- `node --test tests/web013.test.mjs` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> pass.
+- `npm run build` -> pass.
+
+**Codex2 QA focus**:
+- In mobile/device mode, open `/`, `/watch`, and `/lectura` and confirm the global mobile nav no longer trips the error boundary.
+- Source-check that `MobileNav` has no `useSession` import/call.
+
+## 🔴 退回 Codex1 — MOBILE-001 P0 崩溃修复  [Claude1 PM, 2026-06-01]
+
+**MOBILE-001 状态:ready_for_qa → in_progress(P0 回归,不能验收)。**
+
+### 现象
+用户真机(iPhone 14 Pro Max 设备模式)实测:watch 移动端**整页渲染失败**(「出了点小问题」error boundary)。控制台:
+`TypeError: Cannot destructure property 'data' of useSession(...) as it is undefined`
+
+### 根因(PM 已定位)
+- commit **f3ba345(MOBILE-001)给 `src/app/components/web/MobileNav.tsx` 新加了 `useSession()`**(line 46),用于抽屉里显示用户头像(line 219-224)。
+- 但**全项目从来没有 `<SessionProvider>`**(`git log -S SessionProvider` 历史全空;layout.tsx 无 provider)。
+- → `useSession()` 无 provider 返回 undefined → `const { data } = ...` 解构崩溃。
+- **MobileNav 是全局移动导航,所有移动端页面都会崩**(不止 watch)。
+
+### 修复(Codex1 二选一,推荐前者)
+- **方案A(推荐·标准做法)**:加一个 `"use client"` 的 Providers 组件包 `<SessionProvider>`,在 `src/app/layout.tsx` 里包住 children。useSession 全站可用,头像功能保留。
+- **方案B(贴现有架构)**:本项目其它地方是服务端取 session(getServerSession)+ 以 prop 下传(如 SiteHeader 头像)。照此把 MobileNav 的 useSession 去掉,改为由父级(服务端)把 user 当 prop 传进来。
+- 任选其一,确保:移动端 watch/lectura/首页等页面**真机不崩**。
+
+### 同时清理(clean-state)
+- `git status` 已提交,但带进了 **`scratch/` 调试垃圾文件**(test_zinc.mjs / decode.mjs / decode.py / find_hints.py / mojibake_lines.txt)→ 应删除,不该进仓库。
+
+### 验收门槛升级(教训)
+- MOBILE-001 单测全是 `readFile`+正则查源码字符串,**不渲染组件**,所以 356/356 绿却漏了整页崩溃。
+- 本票及后续 MOBILE-* 验收**必须加真机/设备模式实际渲染验证**(error boundary 不触发),不能只靠 unit test 报"全绿"。
+
+### 流程
+Codex1 修复 → Codex2 QA(**含设备模式实际打开 watch/lectura/首页不崩**)→ 用户真机 → Claude1 验收。
+**下一步**:交 Codex1 修这个 P0。

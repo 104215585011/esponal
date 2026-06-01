@@ -1,3 +1,22 @@
+### Session #MOBILE-001 P0 Mobile Render Crash Fix - 2026-06-02 00:14
+
+**Goal**: Fix the mobile error boundary crash caused by `MobileNav` calling `useSession()` without a global `SessionProvider`.
+
+**Done (Codex1)**:
+- Removed the direct `useSession()` dependency from `src/app/components/web/MobileNav.tsx`.
+- Passed the existing server session from `SiteHeader` through `SiteNav` into `MobileNav`.
+- Added WEB-013 regression coverage so this architecture does not regress.
+- Removed scratch debug files from the cleanup batch.
+
+**Verification**:
+- `node --test tests/web013.test.mjs` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> pass.
+- `npm run build` -> pass.
+
+**Status**: MOBILE-001 -> `ready_for_qa`.
+
 ### Session #MOBILE-001 QA Fixes - 2026-06-01 20:47
 
 **Goal**: Resolve Codex2 QA failures for MOBILE-001 (collapsible volume slider, Tailwind CSS icon size classes, GBK encoding mojibake).

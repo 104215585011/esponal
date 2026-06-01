@@ -5,11 +5,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { ThemeToggle } from "@/app/components/web/ThemeToggle";
 
 type MobileNavProps = {
   vocabHref: string;
+  session?: any;
 };
 
 type MobileNavItem = {
@@ -40,10 +40,9 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function MobileNav({ vocabHref }: MobileNavProps) {
+export function MobileNav({ vocabHref, session }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
   const allItems: MobileNavItem[] = [
     ...navItems,
     { label: "词库", href: vocabHref, activeHref: "/vocab" }

@@ -7,6 +7,7 @@ import { MobileNav } from "@/app/components/web/MobileNav";
 
 type SiteNavProps = {
   vocabHref: string;
+  session?: any;
 };
 
 type SiteNavItem = {
@@ -37,7 +38,7 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteNav({ vocabHref }: SiteNavProps) {
+export function SiteNav({ vocabHref, session }: SiteNavProps) {
   const pathname = usePathname();
   const allItems: SiteNavItem[] = [
     ...navItems,
@@ -113,7 +114,7 @@ export function SiteNav({ vocabHref }: SiteNavProps) {
         })}
       </nav>
       <div className="lg:hidden">
-        <MobileNav vocabHref={vocabHref} />
+        <MobileNav vocabHref={vocabHref} session={session} />
       </div>
     </>
   );

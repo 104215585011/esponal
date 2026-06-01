@@ -50,7 +50,7 @@ export async function SiteHeader({
           </span>
         </Link>
 
-        <SiteNav vocabHref={vocabHref} />
+        <SiteNav vocabHref={vocabHref} session={session} />
 
         <form
           action={searchAction}
