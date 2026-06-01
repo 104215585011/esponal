@@ -1,3 +1,23 @@
+### Session #WATCH-009 PDF Subtitle Download - 2026-06-01 10:03
+
+**Goal**: Replace the superseded WATCH-008 SRT export with a direct PDF subtitle handout download.
+
+**Done (Codex1)**:
+- Replaced the `.srt` download path in `src/app/watch/TranscriptPanel.tsx` with a programmatic PDF generator. It builds full `pdfRows` from `sentenceGroups` or `transcriptCues`, so export content is not limited by transcript virtualization.
+- Added browser-canvas PDF page rendering with timestamps, Spanish-on-top / Chinese-below layout, pagination, and a no-dependency PDF byte writer. This avoids `window.print()` and avoids bundling jsPDF or a large CJK font.
+- Updated the toolbar button to `下载 PDF`, with `aria-label="下载当前字幕为 PDF 讲义"` and a disabled `生成中...` state.
+- Added `tests/watch009.test.mjs`, removed the superseded WATCH-008 test, and adjusted WATCH-007 compatibility coverage.
+
+**Verification**:
+- `node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 18/18 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 344/344 pass.
+- `npm run build` -> pass; existing unrelated Next `<img>` and Sentry warnings remain.
+
+**Status**: WATCH-009 -> `ready_for_qa`; hand off to Codex2.
+
 ### Session #WATCH-008 SRT Subtitle Download - 2026-05-31 16:20
 
 **Goal**: Replace the failed WATCH-007 print/PDF subtitle export with direct SRT download.
@@ -4550,3 +4570,33 @@ feature_list.json 更新：
 **Verification**:
 - `npm test` -> 317/317 pass.
 - `npm run build` -> pass.
+
+### Session Update - 2026-06-01 09:50 - WATCH-009 UI Design (Gemini1)
+
+**Goal**: Design the PDF subtitle download button and layout for WATCH-009, with a bilingual vertical layout (Spanish on top, Chinese on bottom) and timestamps.
+
+**Done**:
+- Created the design specification document `docs/tickets/WATCH-009-design.md` detailing the button behavior, Tailwind classes, dynamic CJK font loading recommendations, and PDF typography.
+- Appended the design delivery report to `session-handoff.md` to notify Codex1 of the specifications.
+- Verified that all modified and untracked files are strictly UTF-8 encoded with LF line endings and pass all project encodings checks.
+
+**Verification**:
+- `npm run lint:encoding` -> pass
+- `npm test` -> 344/344 pass
+- `npm run build` -> pass
+
+### Session Update - 2026-06-01 10:25 - WATCH-009 UI Review (Gemini1)
+
+**Goal**: Perform UI/UX review of WATCH-009 (PDF subtitle download) implementation against the design spec.
+
+**Done**:
+- Inspected Codex1's canvas-to-JPEG-to-PDF generation logic in `src/app/watch/TranscriptPanel.tsx` and verified it implements the exact "Spanish on top, Chinese below" (西上中下) bilingual layout and `[MM:SS]` timestamp specifications.
+- Confirmed that the page-break logic accurately protects subtitles from breaking across pages.
+- Verified the download button copy (`下载 PDF`), loading spinner state, and accessibility properties.
+- Prepended the UI review report in `session-handoff.md`, passing the ticket to Claude1 (PM) for final acceptance.
+
+**Verification**:
+- `npm run lint:encoding` -> pass
+- `npm test` -> 344/344 pass
+- `npm run build` -> pass
+

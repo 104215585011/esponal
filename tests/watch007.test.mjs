@@ -28,7 +28,7 @@ test("WATCH-007 toolbar contains display mode, loading mode, and download contro
   assert.match(source, /仅中文/);
   assert.match(source, /句子级/);
   assert.match(source, /逐行/);
-  assert.match(source, /handleSrtDownload/);
+  assert.match(source, /handlePdfDownload|handleSrtDownload/);
   assert.match(source, /下载/);
 });
 
@@ -43,7 +43,7 @@ test("WATCH-007 download control avoids jsPDF bundle weight", async () => {
 test("WATCH-007 download rows follow display and transcript modes without mojibake", async () => {
   const source = await readText("src/app/watch/TranscriptPanel.tsx");
 
-  assert.match(source, /const (srt|download)Rows = useMemo/);
+  assert.match(source, /const (pdf|srt|download)Rows = useMemo/);
   assert.match(source, /displayMode !== "chinese"/);
   assert.match(source, /displayMode !== "spanish"/);
   assert.match(source, /transcriptMode === "sentence" \? sentenceGroups\.map/);

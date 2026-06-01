@@ -1,3 +1,104 @@
+## UI 评审 Report：WATCH-009 (Gemini1, 2026-06-01 10:22)
+
+**结论**：符合设计稿，评审通过。可以交给 Claude1 (PM) 进行最终验收。
+
+### 逐条对照设计稿核对：
+1. **工具条按钮 UI & 状态**：
+   - 按钮文案为 `下载 PDF`，加载中状态文案为 `生成中...`，动画由 CSS `animate-spin` 驱动，完全符合。
+   - 样式类名使用统一的 `rounded-full border border-zinc-200 dark:border-zinc-800 text-[11.5px] font-semibold text-zinc-600`，视觉调性温和克制。
+   - `disabled={isGeneratingPdf}` 能够有效防止连击。
+2. **PDF 文档版式**：
+   - **双语（西上中下）**：西语文本（粗体，`18181b`）居上，中文译文（细体，`71717a`）居下，且均以 `textX` 对齐，在水平方向上相对于 `[MM:SS]` 时间轴形成垂直对齐与缩进。
+   - **时间戳**：完美保留，格式为 `[MM:SS]`，且完美支持 Sentence / Cue 两种加载模式的数据。
+   - **分页保护**：代码中通过 `y + blockHeight > PDF_CANVAS_HEIGHT - PDF_BOTTOM_MARGIN` 提前判断块高度并触发分页，确保字幕块绝不在中途断裂折页。
+3. **性能与打包体积**：
+   - 采用 browser canvas + 系统自带字体拼装 JPEG，再利用轻量手写字节流生成基础 PDF 的方式。**完全没有引入 jsPDF 等重型库，真正实现了 0 字节的前端打包开销**。
+
+### 剩余风险提示
+* **实站渲染**：由于本地单测为无头测试，且 Canvas 渲染高度依赖执行环境的系统字体（Windows 下使用的是 `"Noto Sans SC", "Microsoft YaHei", Arial`），部署到 Vercel 线上环境后，PM 在实机进行一次 spot-check 下载，确认中文无漏字/错位即可关闭此 Ticket。
+
+---
+
+## QA Report: WATCH-009 PDF Subtitle Download
+**Time**: 2026-06-01 10:16
+**Tester**: Codex2 (QA)
+**Conclusion**: PASS - functional/source QA passed; ready for Gemini1 UI review and then Claude1 PM acceptance.
+
+**Scope**:
+- Verified current workspace WATCH-009 only: subtitle-panel download now produces PDF instead of superseded SRT/print.
+- Did not modify business code, did not commit, did not push.
+
+**Commands Run**:
+1. `node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs`
+   - Result: PASS, 18/18 tests passed.
+   - Output summary:
+   ```text
+   tests 18
+   pass 18
+   fail 0
+   duration_ms 159.9584
+   ```
+2. `npm test`
+   - Result: PASS, 344/344 tests passed.
+   - Output summary:
+   ```text
+   tests 344
+   pass 344
+   fail 0
+   duration_ms 3573.0522
+   ```
+3. `npm run build`
+   - Result: PASS, production build compiled successfully.
+   - Existing unrelated warnings remain: Next `<img>` warnings in SiteHeader/learn/watch, plus Sentry instrumentation/deprecation warnings.
+4. `npm run lint:encoding`
+   - Result: PASS.
+   - Output:
+   ```text
+   Encoding check passed
+   ```
+
+**Source Contract Checks**:
+- `src/app/watch/TranscriptPanel.tsx` has no `window.print(`, `handlePrintDownload`, `formatSrtTimestamp`, `.srt`, or `text/plain;charset=utf-8` regression.
+- PDF button contract is present: `下载 PDF`, disabled/loading copy `生成中...`, `disabled={isGeneratingPdf}`, and `aria-label="下载当前字幕为 PDF 讲义"`.
+- PDF rows are generated from complete arrays via `const pdfRows = useMemo(...)`, with `sentenceGroups.map((sentence)` for sentence mode and `transcriptCues.map((cue, index)` for cue mode.
+- Output follows display mode: `displayMode !== "chinese"` controls Spanish, `displayMode !== "spanish"` controls Chinese.
+- Renderer preserves timestamp and bilingual vertical layout: `formatTimestamp(row.start)`, `spanishLines`, `chineseLines`, Spanish block appears before Chinese block, and PDF pages are generated through `canvas.getContext("2d")` plus `toDataURL("image/jpeg"...)`.
+
+**Runtime Click**:
+- Not executed. User confirmed the app is running on Vercel and local runtime is not equivalent for this QA. I therefore did not use a local `/watch` click as acceptance evidence.
+- I attempted to start a local dev server before that clarification, then cleaned temporary logs; port 3012 had no listening process afterward.
+
+**Findings**:
+- No functional blocker found in WATCH-009.
+- Residual risk: actual downloaded PDF glyph readability should still be spot-checked on the Vercel deployment because runtime click was intentionally not used as evidence in this local workspace QA.
+
+## Dev Report: WATCH-009 PDF Subtitle Download Ready for QA
+**Time**: 2026-06-01 10:03
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Implemented**:
+- `src/app/watch/TranscriptPanel.tsx` now exports subtitles as a direct `.pdf` download instead of the superseded SRT flow.
+- Export data comes from complete `sentenceGroups` / `transcriptCues` arrays via `pdfRows`, so the PDF is not affected by the virtualized transcript DOM.
+- PDF generation is programmatic and does not call `window.print()`. It renders A4 canvas pages with `[MM:SS]` timestamps, Spanish on top and Chinese below, then packs those pages into a minimal PDF blob.
+- Chinese glyphs render through the browser canvas/system font path before embedding as PDF page images, avoiding jsPDF default-font CJK loss and avoiding a large bundled font.
+- Toolbar copy is `下载 PDF`; loading state is `生成中...`; accessibility label is `下载当前字幕为 PDF 讲义`.
+
+**Verification run by Codex1**:
+- `node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs` -> 18/18 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 344/344 pass.
+- `npm run build` -> pass with existing unrelated Next `<img>` and Sentry warnings.
+
+**Codex2 QA checklist**:
+- Re-run focused WATCH tests plus `npm test`, `npm run build`, and `npm run lint:encoding`.
+- Source-check that `TranscriptPanel.tsx` has no `.srt`, `formatSrtTimestamp`, `window.print()`, or print-area regression.
+- Verify the PDF button contract: `下载 PDF`, disabled `生成中...`, and `aria-label="下载当前字幕为 PDF 讲义"`.
+- If possible, runtime-click the button on `/watch` with loaded subtitles and confirm a `.pdf` is produced with timestamp + Spanish-above-Chinese rows and readable Chinese.
+
 ## UI/UX Acceptance: Embeddable Video Filter Verified
 **Time**: 2026-05-31 16:58
 **From**: Gemini1 (UI Designer / UI Reviewer)
@@ -9558,3 +9659,137 @@ uniqueHeights=[258]
 - `npm test` -> passed 317/317.
 - `npm run build` -> passed.
 - Checked `clean-state-checklist.md` -> all items checked.
+
+---
+
+## PM 决策 + 派单 (Claude1, 2026-06-01) — 字幕下载改 PDF
+
+### 决策：WATCH-008(SRT)作废 → WATCH-009(PDF)替代
+- **触发**：用户反馈「srt 字幕下载下来不知道用什么看 / 怎么打开」。PM 判定 srt 对在线学习者不直观——本站是 YouTube 在线播放,用户无本地视频可外挂,srt 大多只能当文本读。
+- **产品决策**：字幕下载改 **PDF 文稿**(双击即读,适合离线复习/打印)。srt 不验收。
+- feature_list：WATCH-008 状态改 `superseded`；新增 WATCH-009(key "87", priority 88, `not_started`)。
+
+### 同期决策：视频下方加「下载视频及字幕」入口
+- **本轮不做**,后续另开票。原因:下载 YouTube 视频文件涉及 ToS 禁止 / yt-dlp 后端成本 / 版权,需单独评估。用户目的是离线学习(方向 A),已同意先缓。
+
+### Ticket: WATCH-009 字幕下载改为 PDF 文稿
+- 文档:`docs/tickets/WATCH-009.md`
+- **目标**:字幕面板右侧「下载字幕」→ 一键下载 PDF 文稿(无打印对话框),内容跟随显示模式 + 加载方式,中文正常。
+- **两个必避的坑**:
+  1. ❌ 严禁 `window.print()`(WATCH-007 因虚拟化打印空白)。
+  2. ⚠️ PDF 默认字体不含中文 → 必须解决中文字体嵌入(子集化 jsPDF / 服务端生成 / 等效)。被阻塞就反馈 PM,**勿擅自降级 txt**。
+- **复用**:WATCH-008 已写的「按显示模式+加载方式从完整数组提取文本」逻辑,只换输出 srt→pdf。
+- **流程(有 UI)**:Claude1 ✅ → **Gemini1 设计稿** `docs/tickets/WATCH-009-design.md`(按钮位置/文案 + PDF 版式/是否留时间戳)→ Codex1 实现 → Codex2 测试 → Gemini1 评审 → Claude1 验收。
+- **下一步**:交 **Gemini1** 出设计稿。
+
+
+---
+
+## PM 决策 + 派单 (Claude1, 2026-06-01) — 移动端独立布局重设计 epic 启动
+
+### 战略背景(写入 VISION 待办)
+- 产品最终目标:上架 **Android / iOS app**,走 **Capacitor 路线**(包住现有网页,90% 代码复用)。
+- **打包放最后**:先把网页移动端做好做稳 → (可选)PWA 过渡 → 功能稳定后 Capacitor 打包上架。
+- iOS 打包必须 macOS,但**用云 Mac CI(Codemagic 等)即可,不必买 Mac**;Android 在 Windows 直接打。
+- 用户现状:**桌面网页端已基本完成**,移动端 UI 需要重新设计。
+
+### 决策
+- 移动端走**独立布局/组件**(非纯 CSS 断点适配)。
+- 第一优先:**watch 页 + 字幕面板**(用户用得最多)。
+- epic 后续:MOBILE-002+ 覆盖首页 / vocab / 查词等。
+
+### Ticket: MOBILE-001 watch 页 + 字幕面板 移动端独立布局重设计
+- 文档:`docs/tickets/MOBILE-001.md`;feature_list key "88", priority 89, `not_started`。
+- **现状**:WatchClient.tsx 用 lg: 断点条件渲染,移动端是塞同组件的临时 tab(字幕/转写/推荐),粗糙待重设计。
+- **架构硬约束**:只有一个 YouTube player(PLAYER_IFRAME_ID),面板只接收共享状态;移动端独立布局≠另起一页=同一 player+状态的不同排布,**绝不能出第二个 player**。推荐拆 WatchDesktop/MobileLayout 展示组件,共享逻辑留 WatchClient/hook。
+- **与 WATCH-009 协调**:字幕下载按钮移动端落点以 MOBILE-001 设计稿为准,**MOBILE-001 设计先行**。
+- **流程(有 UI)**:Claude1 ✅ → **Gemini1 移动端设计稿** `docs/tickets/MOBILE-001-design.md` → Codex1 → Codex2(DevTools 设备模式+真机)→ Gemini1 评审 → Claude1 验收。
+- **下一步**:交 **Gemini1** 出移动端设计稿。
+
+### 当前可并行的两张 UI 设计任务(都在等 Gemini1)
+1. **MOBILE-001**(优先,设计先行)— watch 移动端独立布局
+2. **WATCH-009** — 字幕下载 PDF(移动端按钮落点等 MOBILE-001 设计)
+
+### 移动端测试工具(已与用户对齐)
+- 主力:**Chrome DevTools 设备模式**(F12 → Ctrl+Shift+M),配 Next 热更新迭代最快。
+- 定稿必做:**真机连 WiFi**(`npm run dev -- -H 0.0.0.0` → 手机访问电脑内网 IP:3000)。
+- 云真机(BrowserStack 等)等接近上架做兼容性回归再用。
+
+---
+
+## 设计交付 Report：WATCH-009 (Gemini1, 2026-06-01 09:50)
+
+### 交付物
+- 设计稿已完成并落盘：[docs/tickets/WATCH-009-design.md](file:///c:/Users/wang/esponal/docs/tickets/WATCH-009-design.md)
+
+### 设计要点
+1. **按钮位置与文案**：
+   - 保持在右侧字幕面板顶部 Header 工具条的最右侧（`ml-auto`），作为 `下载 PDF` 按钮。
+   - 带有 loading 状态，生成时显示 `生成中...`，防止重复点击。
+2. **PDF 文档版式**：
+   - **双语布局（西上中下）**：西语原文加粗且在上，中文译文稍淡在下且缩进对齐。
+   - **时间戳保留**：保留 `[MM:SS]` 格式时间戳，提升课后复习和讲义对照的可读性。
+   - **分页保护**：单条字幕块在折页处禁止跨页拆分（使用 page-break 保护）。
+3. **技术与字体载入策略**：
+   - 建议 Codex1 在客户端点击下载时，**动态加载** CDN 上的轻量中文字体子集（Noto Sans SC Regular，约 1~2MB），防止打包导致 Next.js 包体积增加；或选用服务端 API 路由生成 PDF 的备选方案。
+
+---
+
+## PM 决策 + 排期 (Claude1, 2026-06-01) — 移动端重构 epic 全局排序 + 战略锚点
+
+### 战略锚点(已存 memory)
+- **目标用户**:成人/学生自学者。**不做儿童早教**(续费决策在家长、不可控)。调性高效克制、不游戏化。
+- **学习理念**:词汇靠**可理解输入/广泛阅读**自然习得,**不靠 SRS 刷卡打卡**。→ lectura(阅读)是每日留存引擎,vocab SRS 降级为生词本。
+- **产品现状(PM 更正)**:学习阶梯已完整(phonics/vocab/lectura/watch/learn + talk/grammar/dissect/插件/PWA)。当前杠杆=移动端体验+留存,不是加功能。
+
+### 移动端重构 epic 排序(用户已认可)
+| 顺序 | ticket | 页面 |
+|---|---|---|
+| 地基 | **MOBILE-000** | 查词卡抽屉 + token + 导航(先于所有单页) |
+| T1-① | MOBILE-001 | watch(已细化) |
+| T1-② | MOBILE-002 | lectura(每日引擎) |
+| T2-③ | MOBILE-003 | 首页/学习路径 |
+| T2-④ | MOBILE-004 | learn 课程 |
+| T3-⑤ | MOBILE-005 | vocab 生词本(降级) |
+| T3-⑥ | MOBILE-006 | talk |
+| T3-⑦ | MOBILE-007 | phonics |
+| T3-⑧ | MOBILE-008 | grammar/dissect |
+- 已入 feature_list(keys 88-96)。MOBILE-000/001 已写详细 ticket;002-008 占位,轮到再细化。
+- 全部依赖 MOBILE-000 地基(共享查词卡形态 + token)。
+
+### Backlog(低优先,用户明确暂不排期)
+- **PATH-001 学习路线集成每日阅读循环**:学习路线=每日驱动器,『今天读新+重读旧』织进路线,非独立打卡模块。属新功能,记录在案。feature_list key 97。
+
+### 旁注:WATCH-009 已被 Codex1 实现(2026-06-01 10:03)
+- 并发:Codex1 已接 WATCH-009,status=ready_for_qa。方案:字幕渲染到 canvas 图片拼 PDF,靠系统字体出中文,**避开 window.print 和 jsPDF 字体包**(两个坑都绕过)。等 Codex2 QA + PM 验收。
+
+### 下一步
+- **交 Gemini1 出 MOBILE-000 地基设计稿**(`docs/tickets/MOBILE-000-design.md`):查词卡底部抽屉形态 + 移动端 token + 导航。地基过了再推 MOBILE-001 watch。
+
+---
+
+## ▶ 派单给 Gemini1 (设计) — MOBILE-000 移动端地基  [Claude1 PM, 2026-06-01 10:18]
+
+**状态**:MOBILE-000 已置 `in_progress`(当前唯一活跃功能)。**交给 Gemini1 出设计稿。**
+
+**Ticket**:`docs/tickets/MOBILE-000.md`(请完整读)
+**产出**:设计稿 `docs/tickets/MOBILE-000-design.md`,含具体 class/参数,供 Codex1 直接照做。
+
+### 设计前提(锚点,务必遵守)
+- **目标用户**:成人/学生自学者。调性**高效、克制、专业,不游戏化/不幼龄化**。
+- **学习理念**:词汇靠阅读输入积累、不刷卡 → "点词查词"是全站最高频核心交互,这正是本地基要打磨好的重点。
+- 这是 epic 地基,**先于所有单页**,后续 watch/lectura 等都复用你这版查词卡形态 + token。
+
+### 需要你设计的三块
+1. **LookupCard 移动端 = 底部抽屉(bottom sheet)**(桌面端保持现有卡片,不回退)
+   - 抽屉高度策略(半屏/自适应内容/可上拉全屏)、拖拽手柄、关闭手势(下滑/点背景)
+   - 内部信息层级:词义、变位、发音按钮、相关短语/用法(LEX-003)、加入生词本
+   - 与"查词时暂停视频/朗读、关闭后恢复"的交互衔接
+   - 现有共享组件 `src/app/watch/LookupCard.tsx`(全站调用,改造保持对外 props 兼容)
+2. **移动端设计 token**:触摸目标(≥44px)、字号阶梯、行距、安全区 `env(safe-area-inset-*)` 留白——给出具体数值规范,后续页面照用
+3. **导航/顶栏移动端打磨**:`MobileNav.tsx` / `SiteHeader.tsx`,审查并给打磨建议(范围克制,不大改)
+
+### 协作提醒
+- LookupCard 是全站共享 + 多 agent 并发热点(TALK-005 曾修它的裁剪 bug),设计时注意桌面端不回退。
+- 设计完回写 `session-handoff.md` 通知 PM,我转 Codex1 实现。
+

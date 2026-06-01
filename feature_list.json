@@ -1564,7 +1564,7 @@
     "area": "frontend",
     "title": "字幕下载改为 SRT(替换失效的打印导出)",
     "user_visible_behavior": "点击字幕下载按钮,一键下载标准 .srt 文件(序号+时间轴 HH:MM:SS,mmm-->+文本)。内容跟随当前显示模式:ES+中→双语(西上中下)/仅西语/仅中文。跟随加载方式:sentence 模式按句导(时间段 startTime→endTime),cue 模式按 cue 导。",
-    "status": "ready_for_qa",
+    "status": "superseded",
     "verification": [
       "点击下载一键生成 .srt 文件(无系统打印对话框)",
       "SRT 格式标准:序号 + HH:MM:SS,mmm --> HH:MM:SS,mmm + 文本,可导入外部播放器",
@@ -1574,7 +1574,7 @@
       "npm test 全绿 + lint:encoding 通过"
     ],
     "evidence": "2026-05-31 16:20 Codex1 implemented WATCH-008. Replaced WATCH-007 print download with direct SRT download in src/app/watch/TranscriptPanel.tsx: added formatSrtTimestamp(HH:MM:SS,mmm), complete-array srtRows from sentenceGroups/transcriptCues with start/end, displayMode-aware line selection, UTF-8 text Blob, createObjectURL, and .srt filename. Removed window.print(), handlePrintDownload, #print-transcript-area DOM, and globals.css @media print/page-break rules. Added tests/watch008.test.mjs and updated WATCH-007 tests for the superseded download behavior. Verification: TDD red -> green; node --test tests/watch008.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs = 18/18 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; git diff --check pass; npm test = 338/338 pass; npm run build pass with existing unrelated Next img and Sentry warnings. Ready for Codex2 QA.",
-    "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-008.md。背景:WATCH-007 的 window.print() 打印导出 PM 实测【打印出来是空的】——根因是逐字稿虚拟化渲染,#print-transcript-area 里大部分cue未挂DOM。改方案:放弃打印,改 SRT 下载(纯文本零字体问题/一键下载/可导入工具)。关键:SRT 必须从完整 sentenceGroups/transcriptCues 数组生成,不能依赖只渲染可见行的DOM。复用现有 displayRows(line 920) + formatTimestamp,但时间轴要 SRT 标准 HH:MM:SS,mmm(现有 formatTimestamp 是 M:SS 仅展示用,需另写 srt 时间格式化)。sentence 模式时间段用 sentence.cues[0].start→末cue end。UI改动小(按钮已存在),Codex1 直接实现;如需文案/格式选择UI再回Gemini。流程:Claude1→Codex1→Codex2→Claude1验收。"
+    "notes": "PM 派单 2026-05-31。Ticket: docs/tickets/WATCH-008.md。背景:WATCH-007 的 window.print() 打印导出 PM 实测【打印出来是空的】——根因是逐字稿虚拟化渲染,#print-transcript-area 里大部分cue未挂DOM。改方案:放弃打印,改 SRT 下载(纯文本零字体问题/一键下载/可导入工具)。关键:SRT 必须从完整 sentenceGroups/transcriptCues 数组生成,不能依赖只渲染可见行的DOM。复用现有 displayRows(line 920) + formatTimestamp,但时间轴要 SRT 标准 HH:MM:SS,mmm(现有 formatTimestamp 是 M:SS 仅展示用,需另写 srt 时间格式化)。sentence 模式时间段用 sentence.cues[0].start→末cue end。UI改动小(按钮已存在),Codex1 直接实现;如需文案/格式选择UI再回Gemini。流程:Claude1→Codex1→Codex2→Claude1验收。【2026-06-01 作废】PM 实测+用户反馈:srt 对在线学习者不直观(不知道怎么打开/无本地视频可外挂)。产品决策改为 PDF 文稿下载,本票被 WATCH-009 替代。srt 实现成果不验收。WATCH-008 已写好的『从完整数据数组按显示模式/加载方式提取文本』逻辑可被 WATCH-009 复用,只换输出格式 srt→pdf。"
   },
   "85": {
     "id": "SUBS-004",
@@ -1609,5 +1609,164 @@
     ],
     "evidence": "Codex1 commit 6a84be4 (2026-05-31). channel/route.ts + search/route.ts: videos 查询 part:contentDetails,status, embeddableById Map 缓存 item.status.embeddable, embeddable===false 的视频 continue 跳过。tests/embeddable-filter.test.mjs 2/2 pass。Codex1 报告 npm test 344/344 + build pass。PM(Claude1) 独立核实 2026-06-01: commit/代码/测试均属实(单测复跑 2/2)。",
     "notes": "补登记 by Claude1(PM) 2026-06-01。Codex1 已实现+提交+推送(6a84be4),当时未在 feature_list 登记,PM 核实后补录 passing。"
+  },
+  "87": {
+    "id": "WATCH-009",
+    "priority": 88,
+    "area": "frontend",
+    "title": "字幕下载改为 PDF 文稿(替换作废的 SRT)",
+    "user_visible_behavior": "字幕面板右侧点『下载字幕』→ 一键下载 PDF 文稿(无系统打印对话框)。内容跟随当前显示模式(ES+中双语/仅西语/仅中文)与加载方式(sentence/cue)。中文正常显示不乱码。PDF 双击即可阅读,适合离线复习/打印。",
+    "status": "ready_for_ui_review",
+    "verification": [
+      "右侧『下载字幕』按钮点击一键生成 .pdf(无 window.print 打印对话框)",
+      "PDF 从完整 sentenceGroups/transcriptCues 数组生成,不依赖虚拟化 DOM(避免 WATCH-007 打印空白 bug)",
+      "中文字形正确嵌入,不丢字/不乱码(PDF 默认字体不含 CJK,需嵌入中文字体或等效方案)",
+      "内容跟随显示模式(三选一)+ 加载方式(sentence/cue)",
+      "时间轴可选(文稿以可读为主,是否保留时间戳由 Gemini 设计稿定)",
+      "npm test 全绿 + npm run build 通过 + lint:encoding 通过"
+    ],
+    "evidence": "2026-06-01 10:03 Codex1 implemented WATCH-009: TranscriptPanel replaces the superseded SRT export with a direct programmatic PDF download. The export uses complete pdfRows from sentenceGroups/transcriptCues, follows displayMode and transcriptMode, preserves [MM:SS] timestamps, lays Spanish above Chinese, and generates PDF pages from browser canvas images so CJK glyphs render through system fonts without window.print or jsPDF bundle/fonts. Button copy is 下载 PDF with aria-label 下载当前字幕为 PDF 讲义 and disabled/loading state 生成中.... Verification: node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs tests/watch005.test.mjs = 18/18 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; git diff --check pass; npm test = 344/344 pass; npm run build pass with existing unrelated Next img and Sentry warnings. Ready for Codex2 QA. | 2026-06-01 10:16 Codex2 QA PASS: focused WATCH tests 18/18, npm test 344/344, npm run build pass, npm run lint:encoding pass. Source contract verified: no window.print/print/SRT regression; PDF button copy/loading/aria correct; PDF rows use complete arrays and preserve timestamp plus Spanish-above-Chinese layout. Runtime Vercel click not performed; residual risk noted for post-deploy PDF Chinese readability spot-check.",
+    "notes": "PM 派单 2026-06-01。Ticket: docs/tickets/WATCH-009.md。替代作废的 WATCH-008(srt)。用户反馈 srt 对在线学习者不直观。【关键坑】绝不可回到 WATCH-007 的 window.print()——右侧逐字稿虚拟化渲染,打印区空白。PDF 必须从完整数据数组生成。【PDF 主要风险】中文字体嵌入:jsPDF 默认字体不含中文字形,直接画中文会丢失;Codex1 需解决(嵌入子集化中文字体 / 服务端生成 / 其它)。若 PDF+中文实现成本过高被阻塞,在 session-handoff 反馈 PM,不要擅自降级成 txt。可复用 WATCH-008 已写的『按显示模式+加载方式从完整数组提取文本』逻辑(TranscriptPanel.tsx),只换输出格式。下载视频(下方入口)本轮不做,后续另开票。有 UI 改动(按钮文案/位置确认在右侧)→ 走有 UI 流程:Claude1→Gemini1 设计→Codex1 实现→Codex2 测试→Gemini1 评审→Claude1 验收。【与 MOBILE-001 协调】移动端字幕面板形态会变,下载按钮的移动端落点以 MOBILE-001 设计稿为准,建议 MOBILE-001 设计先行。"
+  },
+  "88": {
+    "id": "MOBILE-001",
+    "priority": 90,
+    "area": "frontend",
+    "title": "watch 页 + 字幕面板 移动端独立布局重设计",
+    "user_visible_behavior": "在手机打开 /watch 得到专为移动端设计的独立布局:视频、字幕、转写、查词都好用好点不拥挤。所有现有功能(逐词查词/显示模式/速度/转写跳转/推荐/字幕下载)移动端可用。桌面端体验不回退。",
+    "status": "not_started",
+    "verification": [
+      "移动端 watch 页为独立设计布局,符合 Gemini1 设计稿(评审比对)",
+      "全程只有一个 YouTube player,共享状态正常(查词暂停恢复/字幕同步/速度生效)",
+      "字幕/转写/查词移动端均可用,触摸目标≥44px",
+      "桌面端布局与功能无回退",
+      "Chrome DevTools 设备模式(多机型)+ 至少一台真机过响应式",
+      "npm test 全绿 + npm run build 通过 + lint:encoding 通过"
+    ],
+    "evidence": "",
+    "notes": "PM 派单 2026-06-01。Ticket: docs/tickets/MOBILE-001.md。移动端重设计 epic 第一张(后续 MOBILE-002+ 覆盖首页/vocab 等)。产品最终目标上架 Android/iOS app(Capacitor,打包放最后);当前阶段先把网页移动端做好。决策:走独立布局/组件(非纯 CSS 断点)。现状:WatchClient.tsx 用 lg: 断点条件渲染,移动端是塞同组件的临时 tab 方案(字幕/转写/推荐),粗糙待重设计。【架构硬约束】只有一个 YouTube player 实例(PLAYER_IFRAME_ID),面板只接收共享状态;移动端独立布局≠另起一页,是同一 player+同一状态的不同排布,绝不能渲染第二个 player。推荐拆 WatchDesktopLayout/WatchMobileLayout 展示组件,共享状态/player 逻辑留 WatchClient 或提 hook。与 WATCH-009 协调(字幕下载按钮移动端落点以本设计稿为准,MOBILE-001 设计先行)。流程(有UI):Claude1→Gemini1 设计稿→Codex1→Codex2(DevTools+真机)→Gemini1 评审→Claude1 验收。【依赖】先做 MOBILE-000 地基(LookupCard 抽屉 + token + 导航),watch 移动端复用地基的查词卡形态,不另发明。下一步:MOBILE-000 设计先行。"
+  },
+  "89": {
+    "id": "MOBILE-000",
+    "priority": 89,
+    "area": "frontend",
+    "title": "移动端地基:查词卡抽屉化 + 设计 token + 导航打磨",
+    "user_visible_behavior": "手机上点任意西语文本,查词卡从底部弹出(bottom sheet)而非桌面卡片,单手可达、不挡内容、可下滑关闭。全站统一的移动端触摸目标/字号/安全区规范。导航在手机上顺手。这套地基被后续所有移动端重构页面复用。",
+    "status": "in_progress",
+    "verification": [
+      "LookupCard 移动端改底部抽屉(bottom sheet),桌面端不回退",
+      "查词暂停/恢复、发音、已标记状态等现有交互在抽屉里照常工作",
+      "移动端设计 token 落地:触摸目标≥44px、字号行距、安全区(刘海/底部 home bar)留白",
+      "导航/顶栏(MobileNav 已存在)审查并打磨,跨页一致",
+      "符合 Gemini1 地基设计稿(评审比对)",
+      "全站使用 LookupCard 的页面(watch/lectura/talk/learn/grammar)抽查无回退",
+      "npm test 全绿 + npm run build 通过 + lint:encoding 通过"
+    ],
+    "evidence": "",
+    "notes": "PM 派单 2026-06-01。移动端重设计 epic 的【地基】,先于所有单页(包括 MOBILE-001 watch)。理由:词汇靠阅读输入积累→点词查 LookupCard 是全站核心交互(VOCAB-009 全站可点查词),跨 watch/lectura/talk/learn/grammar 都用,改一次全站受益。手机上查词卡应是底部抽屉。一并落地移动端设计 token + 导航打磨,后续页面照用。目标用户成人/学生,调性高效克制,不游戏化。流程(有UI):Claude1→Gemini1 地基设计稿(docs/tickets/MOBILE-000-design.md)→Codex1→Codex2→Gemini1 评审→Claude1 验收。Ticket: docs/tickets/MOBILE-000.md。下一步:交 Gemini1 出地基设计稿。"
+  },
+  "90": {
+    "id": "MOBILE-002",
+    "priority": 91,
+    "area": "frontend",
+    "title": "lectura 分级阅读 移动端重设计",
+    "user_visible_behavior": "手机上读分级短文体验优秀:正文易读、点词查(用 MOBILE-000 抽屉)、段落朗读、已读/重读顺手。lectura 是每日留存引擎(读新+重读),移动端必须丝滑。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T1-②。理由:学习理念=阅读输入习得词汇,lectura 是每日留存核心。依赖 MOBILE-000 地基。轮到时写 docs/tickets/MOBILE-002.md。"
+  },
+  "91": {
+    "id": "MOBILE-003",
+    "priority": 92,
+    "area": "frontend",
+    "title": "首页 / 学习路径 移动端重设计",
+    "user_visible_behavior": "手机首页是清晰的学习动线枢纽,成人学习者一眼知道今天做什么。将来承载『学习路线集成每日阅读』日循环(见 PATH-001,低优先暂不做)。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T2-③。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-003.md。"
+  },
+  "92": {
+    "id": "MOBILE-004",
+    "priority": 93,
+    "area": "frontend",
+    "title": "learn 课程 移动端重设计",
+    "user_visible_behavior": "手机上学体系课程(总览/单元/起步课/拆解器)顺手,长内容移动端排版良好。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T2-④。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-004.md。"
+  },
+  "93": {
+    "id": "MOBILE-005",
+    "priority": 94,
+    "area": "frontend",
+    "title": "vocab 生词本 移动端重设计",
+    "user_visible_behavior": "手机上查看积累的生词/词汇仪表盘顺手。定位为生词本积累查看,不做每日打卡 SRS 面(学习理念:不靠刷卡)。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T3-⑤,已从 T1 降级(学习理念=阅读输入,非 SRS 打卡)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-005.md。"
+  },
+  "94": {
+    "id": "MOBILE-006",
+    "priority": 95,
+    "area": "frontend",
+    "title": "talk AI 对话 移动端重设计",
+    "user_visible_behavior": "手机上 AI 对话练习(含语音)顺手,气泡查词不被裁剪。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T3-⑥(亮点但低频)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-006.md。"
+  },
+  "95": {
+    "id": "MOBILE-007",
+    "priority": 96,
+    "area": "frontend",
+    "title": "phonics 发音 移动端重设计",
+    "user_visible_behavior": "手机上学字母/发音规则顺手。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T3-⑦(入门期一次性用,频次低)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-007.md。"
+  },
+  "96": {
+    "id": "MOBILE-008",
+    "priority": 97,
+    "area": "frontend",
+    "title": "grammar / dissect 移动端重设计",
+    "user_visible_behavior": "手机上语法库查阅和句子拆解器顺手。",
+    "status": "not_started",
+    "verification": [
+      "占位,轮到时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 占位 2026-06-01。epic T3-⑧(工具按需,最后)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-008.md。"
+  },
+  "97": {
+    "id": "PATH-001",
+    "priority": 98,
+    "area": "frontend",
+    "title": "学习路线集成每日阅读循环(backlog,低优先)",
+    "user_visible_behavior": "学习路线不只是静态课程地图,而是每日驱动器:用户每天打开,路线告诉他『今天读这篇新的 + 回顾这篇旧的』。把阅读这个留存动作织进学习路线,而非独立打卡/SRS 模块。词汇在背后默默积累,用户感知是『我今天读了书』。",
+    "status": "not_started",
+    "verification": [
+      "占位,优先级低,暂不排期"
+    ],
+    "evidence": "",
+    "notes": "PM backlog 2026-06-01。用户提出,理念来源=阅读输入习得词汇、不刷卡(见学习理念)。【用户明确:优先级低,目前不重要,不排期】。属新功能,不在移动端重构 epic 内。记录在案待将来。"
   }
 }

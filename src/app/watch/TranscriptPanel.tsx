@@ -65,6 +65,19 @@ type SentenceGroup = {
   text: string;
 };
 
+type PdfRow = {
+  id: string;
+  start: number;
+  spanish: string;
+  chinese: string;
+};
+
+type PdfImagePage = {
+  dataUrl: string;
+  width: number;
+  height: number;
+};
+
 const COURSE_HIGHLIGHT = "#86EFAC";
 const SAVED_HIGHLIGHT = "#93C5FD";
 const TRANSLATION_BATCH_SIZE = 2;
@@ -76,6 +89,14 @@ const MAX_MERGED_CUE_CHARS = 120;
 const MAX_MERGED_CUE_GAP_SEC = 1.1;
 const MAX_MERGED_CUE_COUNT = 4;
 const MAX_CUES_PER_SENTENCE = 4;
+const PDF_PAGE_WIDTH_PT = 595.28;
+const PDF_PAGE_HEIGHT_PT = 841.89;
+const PDF_CANVAS_WIDTH = 1240;
+const PDF_CANVAS_HEIGHT = 1754;
+const PDF_MARGIN_X = 106;
+const PDF_TOP_MARGIN = 118;
+const PDF_BOTTOM_MARGIN = 118;
+const PDF_TIMESTAMP_WIDTH = 92;
 
 function normalizeLookupWord(token: string) {
   return token
@@ -207,21 +228,224 @@ function formatTimestamp(seconds: number) {
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
-function formatSrtTimestamp(seconds: number) {
-  const totalMilliseconds = Math.max(0, Math.round(seconds * 1000));
-  const hours = String(Math.floor(totalMilliseconds / 3600000)).padStart(2, "0");
-  const minutes = String(Math.floor((totalMilliseconds % 3600000) / 60000)).padStart(2, "0");
-  const secs = String(Math.floor((totalMilliseconds % 60000) / 1000)).padStart(2, "0");
-  const milliseconds = String(totalMilliseconds % 1000).padStart(3, "0");
-  return `${hours}:${minutes}:${secs},${milliseconds}`;
-}
-
 function chunkWords(words: string[]) {
   const chunks: string[][] = [];
   for (let index = 0; index < words.length; index += 64) {
     chunks.push(words.slice(index, index + 64));
   }
   return chunks;
+}
+
+function wrapCanvasText(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const tokens = Array.from(text || "");
+  const lines: string[] = [];
+  let line = "";
+
+  for (const token of tokens) {
+    const nextLine = `${line}${token}`;
+    if (line && context.measureText(nextLine).width > maxWidth) {
+      lines.push(line.trimEnd());
+      line = token.trimStart();
+      continue;
+    }
+    line = nextLine;
+  }
+
+  if (line.trim()) {
+    lines.push(line.trimEnd());
+  }
+
+  return lines.length > 0 ? lines : [""];
+}
+
+function dataUrlToBytes(dataUrl: string) {
+  const base64 = dataUrl.split(",")[1] ?? "";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function concatBytes(parts: Uint8Array[]) {
+  const totalLength = parts.reduce((length, part) => length + part.length, 0);
+  const output = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const part of parts) {
+    output.set(part, offset);
+    offset += part.length;
+  }
+  return output;
+}
+
+function buildPdfBytes(pages: PdfImagePage[]) {
+  const encoder = new TextEncoder();
+  const chunks: Uint8Array[] = [];
+  const offsets: number[] = [0];
+  let byteLength = 0;
+  const objectCount = 2 + pages.length * 3;
+  const pageObjectIds = pages.map((_, index) => 3 + index * 3);
+
+  const push = (part: string | Uint8Array) => {
+    const bytes = typeof part === "string" ? encoder.encode(part) : part;
+    chunks.push(bytes);
+    byteLength += bytes.length;
+  };
+
+  const writeObject = (id: number, body: string | Uint8Array, prefix?: string, suffix?: string) => {
+    offsets[id] = byteLength;
+    push(`${id} 0 obj\n`);
+    if (prefix) push(prefix);
+    push(body);
+    if (suffix) push(suffix);
+    push("\nendobj\n");
+  };
+
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  writeObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  writeObject(2, `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`);
+
+  pages.forEach((page, index) => {
+    const pageObjectId = 3 + index * 3;
+    const contentObjectId = pageObjectId + 1;
+    const imageObjectId = pageObjectId + 2;
+    const imageName = `Im${index}`;
+    const content = `q\n${PDF_PAGE_WIDTH_PT} 0 0 ${PDF_PAGE_HEIGHT_PT} 0 0 cm\n/${imageName} Do\nQ\n`;
+    const imageBytes = dataUrlToBytes(page.dataUrl);
+
+    writeObject(
+      pageObjectId,
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PDF_PAGE_WIDTH_PT} ${PDF_PAGE_HEIGHT_PT}] /Resources << /XObject << /${imageName} ${imageObjectId} 0 R >> >> /Contents ${contentObjectId} 0 R >>`
+    );
+    writeObject(contentObjectId, content, `<< /Length ${encoder.encode(content).length} >>\nstream\n`, "endstream");
+    writeObject(
+      imageObjectId,
+      imageBytes,
+      `<< /Type /XObject /Subtype /Image /Width ${page.width} /Height ${page.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`,
+      "endstream"
+    );
+  });
+
+  const xrefOffset = byteLength;
+  push(`xref\n0 ${objectCount + 1}\n0000000000 65535 f \n`);
+  for (let id = 1; id <= objectCount; id += 1) {
+    push(`${String(offsets[id]).padStart(10, "0")} 00000 n \n`);
+  }
+  push(`trailer\n<< /Size ${objectCount + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`);
+
+  return concatBytes(chunks);
+}
+
+function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, videoId: string) {
+  const pages: PdfImagePage[] = [];
+  let canvas = document.createElement("canvas");
+  let context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Canvas is not available");
+  }
+
+  const setupPage = () => {
+    canvas = document.createElement("canvas");
+    canvas.width = PDF_CANVAS_WIDTH;
+    canvas.height = PDF_CANVAS_HEIGHT;
+    context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas is not available");
+    }
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, PDF_CANVAS_WIDTH, PDF_CANVAS_HEIGHT);
+    context.fillStyle = "#18181b";
+    context.font = '700 38px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.fillText("Esponal 字幕讲义", PDF_MARGIN_X, 76);
+    context.fillStyle = "#71717a";
+    context.font = '500 18px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.fillText(videoId, PDF_MARGIN_X, 108);
+    context.fillStyle = "#10b981";
+    context.fillRect(PDF_MARGIN_X, 128, PDF_CANVAS_WIDTH - PDF_MARGIN_X * 2, 4);
+    return PDF_TOP_MARGIN + 44;
+  };
+
+  const finishPage = () => {
+    if (!context) return;
+    const pageNumber = pages.length + 1;
+    context.fillStyle = "#71717a";
+    context.font = '500 16px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.textAlign = "center";
+    context.fillText(`第 ${pageNumber} 页`, PDF_CANVAS_WIDTH / 2, PDF_CANVAS_HEIGHT - 48);
+    context.textAlign = "right";
+    context.fillText("Esponal — 西班牙语学习平台", PDF_CANVAS_WIDTH - PDF_MARGIN_X, PDF_CANVAS_HEIGHT - 48);
+    context.textAlign = "left";
+    pages.push({
+      dataUrl: canvas.toDataURL("image/jpeg", 0.92),
+      width: canvas.width,
+      height: canvas.height
+    });
+  };
+
+  let y = setupPage();
+  const textX = PDF_MARGIN_X + PDF_TIMESTAMP_WIDTH;
+  const textWidth = PDF_CANVAS_WIDTH - textX - PDF_MARGIN_X;
+
+  for (const row of rows) {
+    if (!context) continue;
+    context.font = displayMode === "spanish" ? '600 25px Arial, sans-serif' : '600 23px Arial, sans-serif';
+    const spanishLines =
+      displayMode !== "chinese" ? wrapCanvasText(context, row.spanish, textWidth) : [];
+    context.font =
+      displayMode === "chinese"
+        ? '500 25px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif'
+        : '500 21px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    const chineseLines =
+      displayMode !== "spanish" ? wrapCanvasText(context, row.chinese, textWidth) : [];
+    const blockHeight =
+      18 +
+      spanishLines.length * (displayMode === "spanish" ? 32 : 29) +
+      chineseLines.length * (displayMode === "chinese" ? 32 : 27) +
+      (spanishLines.length && chineseLines.length ? 8 : 0);
+
+    if (y + blockHeight > PDF_CANVAS_HEIGHT - PDF_BOTTOM_MARGIN) {
+      finishPage();
+      y = setupPage();
+    }
+
+    context.fillStyle = "#71717a";
+    context.font = '700 16px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.fillText(`[${formatTimestamp(row.start)}]`, PDF_MARGIN_X, y + 20);
+
+    let textY = y + 20;
+    if (spanishLines.length) {
+      context.fillStyle = "#18181b";
+      context.font = displayMode === "spanish" ? '600 25px Arial, sans-serif' : '600 23px Arial, sans-serif';
+      for (const line of spanishLines) {
+        context.fillText(line, textX, textY);
+        textY += displayMode === "spanish" ? 32 : 29;
+      }
+    }
+
+    if (chineseLines.length) {
+      if (spanishLines.length) textY += 8;
+      context.fillStyle = displayMode === "chinese" ? "#18181b" : "#71717a";
+      context.font =
+        displayMode === "chinese"
+          ? '500 25px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif'
+          : '500 21px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+      for (const line of chineseLines) {
+        context.fillText(line, textX, textY);
+        textY += displayMode === "chinese" ? 32 : 27;
+      }
+    }
+
+    context.strokeStyle = "#f4f4f5";
+    context.beginPath();
+    context.moveTo(textX, y + blockHeight - 4);
+    context.lineTo(PDF_CANVAS_WIDTH - PDF_MARGIN_X, y + blockHeight - 4);
+    context.stroke();
+    y += blockHeight + 14;
+  }
+
+  finishPage();
+  return pages;
 }
 
 export function TranscriptPanel({
@@ -330,6 +554,7 @@ export function TranscriptPanel({
   const [followMode, setFollowMode] = useState(true);
   const [renderStart, setRenderStart] = useState(0);
   const [renderEnd, setRenderEnd] = useState(INITIAL_RENDER_COUNT);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const panelRef = useRef<HTMLElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -939,7 +1164,7 @@ export function TranscriptPanel({
   const activeCue = activeCueIndex >= 0 ? transcriptCues[activeCueIndex] : null;
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
   const showHarvestHint = showEmptyState && subtitleHint?.reason === "no_subtitle";
-  const srtRows = useMemo(
+  const pdfRows = useMemo(
     () =>
       transcriptMode === "sentence" ? sentenceGroups.map((sentence) => ({
         id: sentence.id,
@@ -947,47 +1172,43 @@ export function TranscriptPanel({
         end:
           (sentence.cues[sentence.cues.length - 1]?.start ?? sentence.cues[0]?.start ?? 0) +
           (sentence.cues[sentence.cues.length - 1]?.dur ?? 0),
-        text: sentence.text,
-        translation: translations[sentence.startIndex] ?? ""
+        spanish: sentence.text,
+        chinese: translations[sentence.startIndex] ?? ""
       })) : transcriptCues.map((cue, index) => ({
         id: `cue-${cue.start}-${index}`,
         start: cue.start,
         end: cue.start + cue.dur,
-        text: cue.text,
-        translation: translations[index] ?? ""
+        spanish: cue.text,
+        chinese: translations[index] ?? ""
       })),
     [sentenceGroups, transcriptCues, transcriptMode, translations]
   );
 
-  const handleSrtDownload = () => {
-    const srtBlocks = srtRows
-      .map((row) => ({
-        ...row,
-        lines: [
-          displayMode !== "chinese" ? row.text : "",
-          displayMode !== "spanish" ? row.translation : ""
-        ].filter((line) => line.trim().length > 0)
-      }))
-      .filter((block) => block.lines.length > 0);
-
-    const srtContent = srtBlocks
-      .map((row, index) =>
-        [
-          String(index + 1),
-          `${formatSrtTimestamp(row.start)} --> ${formatSrtTimestamp(row.end)}`,
-          ...row.lines
-        ].join("\n")
-      )
-      .join("\n\n");
-
-    const blob = new Blob([`\ufeff${srtContent}\n`], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const safeVideoId = videoId.replace(/[^a-z0-9_-]/gi, "").trim() || "subtitles";
-    link.href = url;
-    link.download = `${safeVideoId}-${transcriptMode}-${displayMode}.srt`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const handlePdfDownload = async () => {
+    if (isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    try {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const rows = pdfRows.filter((row) => {
+        const hasSpanish = displayMode !== "chinese" && row.spanish.trim().length > 0;
+        const hasChinese = displayMode !== "spanish" && row.chinese.trim().length > 0;
+        return hasSpanish || hasChinese;
+      });
+      const pages = renderTranscriptPdfPages(rows, displayMode, videoId);
+      const pdfBytes = buildPdfBytes(pages);
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeVideoId = videoId.replace(/[^a-z0-9_-]/gi, "").trim() || "subtitles";
+      link.href = url;
+      link.download = `${safeVideoId}-${transcriptMode}-${displayMode}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const renderCueRow = (cue: SubtitleCue, offset: number) => {
@@ -1215,15 +1436,23 @@ export function TranscriptPanel({
             </button>
           </div>
           <button
-            aria-label="下载当前字幕为 SRT"
-            className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800"
-            onClick={handleSrtDownload}
+            aria-label="下载当前字幕为 PDF 讲义"
+            className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isGeneratingPdf}
+            onClick={handlePdfDownload}
             type="button"
           >
-            <svg className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>下载</span>
+            {isGeneratingPdf ? (
+              <svg className="h-3.5 w-3.5 animate-spin text-zinc-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" strokeLinecap="round" strokeWidth="4" />
+              </svg>
+            ) : (
+              <svg className="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            <span>{isGeneratingPdf ? "生成中..." : "下载 PDF"}</span>
           </button>
         </div>
       </div>
