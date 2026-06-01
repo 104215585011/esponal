@@ -253,7 +253,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
     <div className="relative mx-auto flex w-full max-w-none flex-col lg:h-[calc(100vh-58px)] lg:flex-row lg:overflow-hidden lg:px-2">
       {/* Main Column: Player & Subtitles & Transcript */}
       <section className="flex flex-1 min-w-0 flex-col px-4 pt-2 pb-4 lg:justify-start lg:overflow-y-auto lg:pr-6 lg:pt-3 lg:pb-8">
-        <BackLink href="/" label="视频" />
+        <BackLink href="/" label="视频" useHistoryBack />
 
         {/* Video Player wrapper (relative container for fullscreen subtitles and custom fullscreen button) */}
         <div
@@ -268,7 +268,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
               allowFullScreen
               className="h-full w-full border-0"
               id={PLAYER_IFRAME_ID}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=0&cc_load_policy=0`}
+              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0`}
               title={videoInfo.title}
             />
           </div>
