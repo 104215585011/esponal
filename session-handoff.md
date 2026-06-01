@@ -9793,3 +9793,24 @@ uniqueHeights=[258]
 - LookupCard 是全站共享 + 多 agent 并发热点(TALK-005 曾修它的裁剪 bug),设计时注意桌面端不回退。
 - 设计完回写 `session-handoff.md` 通知 PM,我转 Codex1 实现。
 
+---
+
+## 设计交付 Report：MOBILE-000 (Gemini1 v2, 2026-06-01 10:25)
+
+### 交付物
+- 移动端地基设计稿已完成并落盘：[docs/tickets/MOBILE-000-design.md](file:///c:/Users/wang/esponal/docs/tickets/MOBILE-000-design.md)
+
+### 设计要点
+1. **查词卡底部抽屉 (Bottom Sheet)**：
+   - 移动端形态：使用 **React Portal** 将抽屉渲染至 `document.body`，彻底避免父容器 `overflow: hidden` 或定位截断。
+   - 交互规范：最大高度 `75vh`，包含拖拽/关闭手势手柄，点击半透明背景遮罩（`bg-black/45 backdrop-blur-[1px]`）或右上角“关闭”均可关闭抽屉，完全衔接视频/朗读暂停播放控制。
+   - 对外 Props 接口保持 100% 兼容，桌面端卡片与 Dock 排布正常，不发生回退。
+2. **移动端设计 Token 规范**：
+   - **触摸目标**：所有交互元素触摸高宽必须 $\ge 44\text{px} \times 44\text{px}$（通过增加 padding 实现物理点击边界放大）。
+   - **字号与行高**：主标题改为 `text-xl leading-7`，释义和正文改为 `text-sm leading-6`。
+   - **安全区适配**：底部抽屉与固定条必须使用 `pb-[calc(env(safe-area-inset-bottom)+12px)]` 进行安全区防护。
+3. **导航/顶栏打磨**：
+   - 手机端 `SiteHeader` 高度为 `h-16`，精简桌面元素只保留 Logo 与右侧 Hamburger 菜单。
+   - `MobileNav` 抽屉宽 `w-72`，菜单项高度加宽至大触摸高度，交互体验流畅。
+
+

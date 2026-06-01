@@ -4600,3 +4600,19 @@ feature_list.json 更新：
 - `npm test` -> 344/344 pass
 - `npm run build` -> pass
 
+### Session Update - 2026-06-01 10:28 - MOBILE-000 UI Design (Gemini1)
+
+**Goal**: Design the mobile bottom-sheet LookupCard drawer, touch targets, and nav system to establish the mobile rewrite foundation (MOBILE-000).
+
+**Done**:
+- Created the design specification document `docs/tickets/MOBILE-000-design.md` detailing the bottom sheet layout, React Portal wrapper integration in `LookupCardStack`, and mobile navigation refinements.
+- Established design tokens for touch targets ($\ge 44\text{px} \times 44\text{px}$), font sizes, and safe area edge padding (`env(safe-area-inset-bottom)`).
+- Appended the design delivery report to the end of `session-handoff.md`.
+- Verified that all created files are valid UTF-8 and pass `npm run lint:encoding` successfully.
+
+**Verification**:
+- `npm run lint:encoding` -> pass
+- `npm test` -> 344/344 pass
+- `npm run build` -> pass
+
+
