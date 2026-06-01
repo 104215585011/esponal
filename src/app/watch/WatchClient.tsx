@@ -404,6 +404,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
                 onCloseLookup={handleCloseLookup}
                 onSeek={handleSeek}
                 videoId={videoId}
+                videoTitle={videoInfo.title}
               />
             </div>
           )}
@@ -477,6 +478,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           onCloseLookup={handleCloseLookup}
           onSeek={handleSeek}
           videoId={videoId}
+          videoTitle={videoInfo.title}
         />
       </section>
 

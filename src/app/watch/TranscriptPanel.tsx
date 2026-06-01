@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-31 12:48
+// Timestamp: 2026-06-01 10:32
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -36,6 +36,7 @@ type TranscriptPanelProps = {
   onCloseLookup?: () => void;
   onSeek: (seconds: number) => void;
   videoId: string;
+  videoTitle?: string;
 };
 
 type TranslateResponse = {
@@ -70,6 +71,7 @@ type PdfRow = {
   start: number;
   spanish: string;
   chinese: string;
+  translationIndex: number;
 };
 
 type PdfImagePage = {
@@ -337,7 +339,7 @@ function buildPdfBytes(pages: PdfImagePage[]) {
   return concatBytes(chunks);
 }
 
-function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, videoId: string) {
+function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, title: string) {
   const pages: PdfImagePage[] = [];
   let canvas = document.createElement("canvas");
   let context = canvas.getContext("2d");
@@ -360,7 +362,7 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, vide
     context.fillText("Esponal 字幕讲义", PDF_MARGIN_X, 76);
     context.fillStyle = "#71717a";
     context.font = '500 18px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
-    context.fillText(videoId, PDF_MARGIN_X, 108);
+    context.fillText(title, PDF_MARGIN_X, 108);
     context.fillStyle = "#10b981";
     context.fillRect(PDF_MARGIN_X, 128, PDF_CANVAS_WIDTH - PDF_MARGIN_X * 2, 4);
     return PDF_TOP_MARGIN + 44;
@@ -453,7 +455,8 @@ export function TranscriptPanel({
   onLookup,
   onCloseLookup,
   onSeek,
-  videoId
+  videoId,
+  videoTitle
 }: TranscriptPanelProps) {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
   const [transcriptMode, setTranscriptMode] = useState<TranscriptMode>("sentence");
@@ -608,6 +611,52 @@ export function TranscriptPanel({
         : renderedCueRows,
     [renderedCueRows, renderedSentences, transcriptMode]
   );
+
+  const fetchTranslationText = useCallback(async (text: string): Promise<string | null> => {
+    const cached = translationCacheRef.current.get(text);
+    if (cached) {
+      return cached;
+    }
+
+    for (let attempt = 0; attempt <= TRANSLATION_RETRY_DELAYS_MS.length; attempt += 1) {
+      try {
+        const response = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        if (response.status === 429) {
+          const retryAfterSec = Number(response.headers.get("Retry-After") ?? "1");
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.max(1000, retryAfterSec * 1000) + Math.floor(Math.random() * 300))
+          );
+          continue;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Translate request failed: ${response.status}`);
+        }
+
+        const payload: TranslateResponse = await response.json();
+        const translation = payload.translation?.trim();
+        const looksTranslated = !!translation && /[\u4e00-\u9fff]/.test(translation);
+
+        if (!payload.degraded && looksTranslated && translation) {
+          translationCacheRef.current.set(text, translation);
+          return translation;
+        }
+      } catch (error) {
+        console.error("Transcript translate failed", error);
+      }
+
+      const delay = TRANSLATION_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined) return null;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    return null;
+  }, []);
 
   const expandBottomWindow = useCallback(() => {
     setRenderEnd((previousEnd) =>
@@ -881,31 +930,8 @@ export function TranscriptPanel({
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchTranslateOnce(text: string): Promise<TranslateResponse | null> {
-      const response = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
-      });
-
-      if (response.status === 429) {
-        const retryAfterSec = Number(response.headers.get("Retry-After") ?? "1");
-        return {
-          rateLimited: true,
-          retryAfterMs: Math.max(1000, retryAfterSec * 1000)
-        };
-      }
-
-      if (!response.ok) {
-        throw new Error(`Translate request failed: ${response.status}`);
-      }
-
-      return await response.json();
-    }
-
     async function translateSentence(index: number, sentence: { text: string }) {
       const cached = translationCacheRef.current.get(sentence.text);
-
       if (cached) {
         setTranslations((previous) =>
           previous[index] === cached ? previous : { ...previous, [index]: cached }
@@ -913,39 +939,11 @@ export function TranscriptPanel({
         return;
       }
 
-      for (let attempt = 0; attempt <= TRANSLATION_RETRY_DELAYS_MS.length; attempt += 1) {
-        if (cancelled) return;
-
-        try {
-          const payload = await fetchTranslateOnce(sentence.text);
-
-          if (payload?.rateLimited) {
-            const delay = payload.retryAfterMs ?? TRANSLATION_RETRY_DELAYS_MS[attempt] ?? 1000;
-            await new Promise((resolve) => setTimeout(resolve, delay + Math.floor(Math.random() * 300)));
-            continue;
-          }
-
-          const translation = payload?.translation?.trim();
-          const looksTranslated = !!translation && /[\u4e00-\u9fff]/.test(translation);
-
-          if (payload && !payload.degraded && looksTranslated && translation) {
-            translationCacheRef.current.set(sentence.text, translation);
-            if (!cancelled) {
-              setTranslations((previous) =>
-                previous[index] === translation
-                  ? previous
-                  : { ...previous, [index]: translation }
-              );
-            }
-            return;
-          }
-        } catch (error) {
-          console.error("Transcript translate failed", error);
-        }
-
-        const delay = TRANSLATION_RETRY_DELAYS_MS[attempt];
-        if (delay === undefined) return;
-        await new Promise((resolve) => setTimeout(resolve, delay));
+      const translation = await fetchTranslationText(sentence.text);
+      if (!cancelled && translation) {
+        setTranslations((previous) =>
+          previous[index] === translation ? previous : { ...previous, [index]: translation }
+        );
       }
     }
 
@@ -995,7 +993,7 @@ export function TranscriptPanel({
     return () => {
       cancelled = true;
     };
-  }, [sentenceGroups, transcriptCues, transcriptMode, visibleCueRange.start, visibleCues]);
+  }, [fetchTranslationText, sentenceGroups, transcriptCues, transcriptMode, visibleCueRange.start, visibleCues]);
 
   // Fetch highlights
   useEffect(() => {
@@ -1173,13 +1171,15 @@ export function TranscriptPanel({
           (sentence.cues[sentence.cues.length - 1]?.start ?? sentence.cues[0]?.start ?? 0) +
           (sentence.cues[sentence.cues.length - 1]?.dur ?? 0),
         spanish: sentence.text,
-        chinese: translations[sentence.startIndex] ?? ""
+        chinese: translations[sentence.startIndex] ?? "",
+        translationIndex: sentence.startIndex
       })) : transcriptCues.map((cue, index) => ({
         id: `cue-${cue.start}-${index}`,
         start: cue.start,
         end: cue.start + cue.dur,
         spanish: cue.text,
-        chinese: translations[index] ?? ""
+        chinese: translations[index] ?? "",
+        translationIndex: index
       })),
     [sentenceGroups, transcriptCues, transcriptMode, translations]
   );
@@ -1192,14 +1192,52 @@ export function TranscriptPanel({
       const rows = pdfRows.filter((row) => {
         const hasSpanish = displayMode !== "chinese" && row.spanish.trim().length > 0;
         const hasChinese = displayMode !== "spanish" && row.chinese.trim().length > 0;
-        return hasSpanish || hasChinese;
+        const canTranslateForPdf = displayMode !== "spanish" && row.spanish.trim().length > 0;
+        return hasSpanish || hasChinese || canTranslateForPdf;
       });
-      const pages = renderTranscriptPdfPages(rows, displayMode, videoId);
+      const ensurePdfRowsHaveTranslations = async (rows: PdfRow[]) => {
+        if (displayMode === "spanish") return rows;
+        const missingRows = rows.filter(
+          (row) => row.spanish.trim().length > 0 && row.chinese.trim().length === 0
+        );
+        const nextTranslations: Record<number, string> = {};
+        let cursor = 0;
+
+        async function worker() {
+          while (cursor < missingRows.length) {
+            const row = missingRows[cursor];
+            cursor += 1;
+            const translation = await fetchTranslationText(row.spanish);
+            if (translation) {
+              nextTranslations[row.translationIndex] = translation;
+            }
+          }
+        }
+
+        await Promise.all(
+          Array.from(
+            { length: Math.min(TRANSLATION_BATCH_SIZE, missingRows.length) },
+            () => worker()
+          )
+        );
+
+        if (Object.keys(nextTranslations).length > 0) {
+          setTranslations((previous) => ({ ...previous, ...nextTranslations }));
+        }
+
+        return rows.map((row) => ({
+          ...row,
+          chinese: row.chinese || nextTranslations[row.translationIndex] || ""
+        }));
+      };
+      const completeRows = await ensurePdfRowsHaveTranslations(rows);
+      const pdfTitle = videoTitle?.trim() || videoId;
+      const pages = renderTranscriptPdfPages(completeRows, displayMode, pdfTitle);
       const pdfBytes = buildPdfBytes(pages);
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      const safeVideoId = videoId.replace(/[^a-z0-9_-]/gi, "").trim() || "subtitles";
+      const safeVideoId = pdfTitle.replace(/[^a-z0-9\u00c0-\u024f\u4e00-\u9fff_-]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "subtitles";
       link.href = url;
       link.download = `${safeVideoId}-${transcriptMode}-${displayMode}.pdf`;
       document.body.appendChild(link);

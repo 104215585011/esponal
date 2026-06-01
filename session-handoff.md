@@ -1,3 +1,49 @@
+## QA Report: WATCH-009 PDF Title + Complete Chinese Export Follow-up
+**Time**: 2026-06-01 10:41
+**Tester**: Codex2 (QA)
+**Conclusion**: PASS - follow-up source contract and automated verification passed. Ready for Gemini1 UI review / PM Vercel spot-check.
+
+**Scope**:
+- Verified Codex1 follow-up only: PDF title/filename should prefer video title, and bilingual/chinese PDF export should fill missing Chinese translations before rendering.
+- Did not modify business code, did not commit, did not push.
+
+**Commands Run**:
+1. `node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs`
+   - Result: PASS, 14/14 tests passed.
+   ```text
+   tests 14
+   pass 14
+   fail 0
+   duration_ms 158.6697
+   ```
+2. `npm test`
+   - Result: PASS, 346/346 tests passed.
+   ```text
+   tests 346
+   pass 346
+   fail 0
+   duration_ms 3419.3076
+   ```
+3. `npm run build`
+   - Result: PASS, production build compiled successfully.
+   - Existing unrelated warnings remain: Next `<img>` warnings in `SiteHeader`, `learn/[slug]`, and `WatchClient`; existing Sentry configuration/deprecation warnings.
+4. `npm run lint:encoding`
+   - Result: PASS.
+   ```text
+   Encoding check passed
+   ```
+
+**Source Contract Checks**:
+- Title flow verified: `WatchClient` passes `videoTitle={videoInfo.title}` to both mobile and desktop `TranscriptPanel` instances; `TranscriptPanel` derives `pdfTitle = videoTitle?.trim() || videoId`; PDF header uses `context.fillText(title, PDF_MARGIN_X, 108)` and filename is sanitized from `pdfTitle`.
+- Raw `videoId` remains only as fallback when title is absent; when a title exists, header and filename no longer display the raw id.
+- Complete Chinese export verified: `pdfRows` are built from full `sentenceGroups` / `transcriptCues`, missing Chinese rows are selected by `row.chinese.trim().length === 0`, translated through `fetchTranslationText(row.spanish)`, merged into `nextTranslations`, and rendered via `renderTranscriptPdfPages(completeRows, displayMode, pdfTitle)`.
+- Spanish-only guard verified: `if (displayMode === "spanish") return rows`, so Spanish-only export does not trigger translation fill.
+- Cache/retry/concurrency verified: `fetchTranslationText` checks `translationCacheRef` first, handles retry/429 using existing retry delays, and both lazy translation and PDF fill use `Math.min(TRANSLATION_BATCH_SIZE, ...)` with `TRANSLATION_BATCH_SIZE = 2`.
+- Regression check: no `window.print`, `handlePrintDownload`, `formatSrtTimestamp`, `.srt`, or `text/plain;charset=utf-8` remains in `src/app/watch/TranscriptPanel.tsx`.
+
+**Residual Risk**:
+- Runtime PDF click was not repeated in this local QA. Because the user is validating on Vercel, final spot-check should confirm the downloaded PDF header shows the real video title and later pages contain Chinese rows after the pre-export fill completes.
+
 ## UI 评审 Report：WATCH-009 (Gemini1, 2026-06-01 10:22)
 
 **结论**：符合设计稿，评审通过。可以交给 Claude1 (PM) 进行最终验收。
@@ -18,6 +64,30 @@
 * **实站渲染**：由于本地单测为无头测试，且 Canvas 渲染高度依赖执行环境的系统字体（Windows 下使用的是 `"Noto Sans SC", "Microsoft YaHei", Arial`），部署到 Vercel 线上环境后，PM 在实机进行一次 spot-check 下载，确认中文无漏字/错位即可关闭此 Ticket。
 
 ---
+
+## Dev Follow-up: WATCH-009 PDF Title + Complete Chinese Export Ready for QA
+**Time**: 2026-06-01 10:32
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Implemented**:
+- PDF handout header now uses `videoInfo.title` instead of the raw video id; filename also prefers a sanitized video title.
+- Bilingual and Chinese-only PDF export now fills missing Chinese translations before rendering, so rows beyond the visible/lazy-loaded transcript window are no longer blank Chinese.
+- Translation calls are skipped for Spanish-only export, use the existing translation cache, and run with concurrency capped by `TRANSLATION_BATCH_SIZE=2`.
+
+**Verification run by Codex1**:
+- `node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs` -> 14/14 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 346/346 pass.
+- `npm run build` -> pass with existing unrelated Next `<img>` and Sentry warnings.
+
+**Codex2 QA checklist**:
+- Re-run focused WATCH tests and confirm full `npm test` / `npm run build` / `npm run lint:encoding`.
+- Source-check title flow: `WatchClient` passes `videoInfo.title`; PDF renderer receives `pdfTitle`; header no longer prints raw id when title exists.
+- Source-check complete Chinese export: bilingual/chinese PDF fills missing translations before `renderTranscriptPdfPages`; Spanish-only mode returns without translation calls; concurrency remains capped.
 
 ## QA Report: WATCH-009 PDF Subtitle Download
 **Time**: 2026-06-01 10:16
@@ -9814,3 +9884,17 @@ uniqueHeights=[258]
    - `MobileNav` 抽屉宽 `w-72`，菜单项高度加宽至大触摸高度，交互体验流畅。
 
 
+
+---
+
+## ✅ PM 验收关票 — WATCH-009 字幕下载 PDF  [Claude1 PM, 2026-06-01 10:34]
+
+**WATCH-009 → `passing`,关闭。**
+- 用户 Vercel 线上实测:点下载 PDF → **中文渲染正常**(补上 Codex2 留的运行时尾巴)、**图片版 PDF 可接受**。
+- PM 独立复跑 `node --test tests/watch009.test.mjs` = 4/4 pass。
+- 证据链:Codex1 实现(344/344)→ Codex2 QA PASS(344/344, build/lint 过)→ 用户运行时验收 → PM 复测。
+- **已知取舍(用户已接受)**:canvas→图片→PDF,PDF 内文字为图片,不可选中/复制/搜索;作为离线讲义/打印够用。将来若要可选文字另开票。
+- 流程上 `ready_for_ui_review` 的 Gemini1 UI 评审由用户直接线上验收覆盖。
+- 配套:WATCH-008(srt)`superseded` 作废;tests/watch008.test.mjs 已删,watch009.test.mjs 新增。
+
+**下一步**:球仍在 Gemini1(MOBILE-000 地基设计稿)。watch 字幕下载这条线收尾完成。

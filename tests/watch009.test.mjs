@@ -53,3 +53,28 @@ test("WATCH-009 download button uses PDF copy and loading state", async () => {
   assert.match(transcript, /下载 PDF/);
   assert.match(transcript, /disabled=\{isGeneratingPdf\}/);
 });
+
+test("WATCH-009 PDF handout uses the video title instead of the raw video id", async () => {
+  const transcript = await readText("src/app/watch/TranscriptPanel.tsx");
+  const watchClient = await readText("src/app/watch/WatchClient.tsx");
+
+  assert.match(transcript, /videoTitle\??: string/);
+  assert.match(transcript, /function renderTranscriptPdfPages\(rows: PdfRow\[\], displayMode: DisplayMode, title: string\)/);
+  assert.match(transcript, /context\.fillText\(title, PDF_MARGIN_X, 108\)/);
+  assert.match(transcript, /const pdfTitle = videoTitle\?\.trim\(\) \|\| videoId/);
+  assert.match(transcript, /renderTranscriptPdfPages\(completeRows, displayMode, pdfTitle\)/);
+  assert.match(watchClient, /videoTitle=\{videoInfo\.title\}/);
+});
+
+test("WATCH-009 PDF download fills missing Chinese translations only when Chinese is requested", async () => {
+  const transcript = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.match(transcript, /translationIndex: number/);
+  assert.match(transcript, /ensurePdfRowsHaveTranslations/);
+  assert.match(transcript, /if \(displayMode === "spanish"\) return rows/);
+  assert.match(transcript, /row\.chinese\.trim\(\)\.length === 0/);
+  assert.match(transcript, /await fetchTranslationText\(row\.spanish\)/);
+  assert.match(transcript, /setTranslations\(\(previous\) => \(\{ \.\.\.previous, \.\.\.nextTranslations \}\)\)/);
+  assert.match(transcript, /const completeRows = await ensurePdfRowsHaveTranslations\(rows\)/);
+  assert.match(transcript, /renderTranscriptPdfPages\(completeRows, displayMode, pdfTitle\)/);
+});

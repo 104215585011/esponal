@@ -4600,6 +4600,24 @@ feature_list.json 更新：
 - `npm test` -> 344/344 pass
 - `npm run build` -> pass
 
+### Session #WATCH-009 PDF Follow-up - 2026-06-01 10:32
+
+**Goal**: Fix the downloaded PDF handout so it uses the video title and contains complete Chinese translations when the user exports bilingual or Chinese-only mode.
+
+**Done (Codex1)**:
+- Passed `videoInfo.title` from `WatchClient` into `TranscriptPanel`.
+- PDF header subtitle and downloaded filename now prefer the video title, falling back to `videoId`.
+- PDF export now fills missing Chinese translations before rendering when `displayMode` is bilingual/chinese. It reuses the translation cache/retry path and caps concurrent calls with `TRANSLATION_BATCH_SIZE=2`; Spanish-only export makes no translation calls.
+- Added WATCH-009 regression tests for video-title header and missing-translation fill behavior.
+
+**Verification**:
+- `node --test tests/watch009.test.mjs tests/watch007.test.mjs tests/watch004.test.mjs` -> 14/14 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> 346/346 pass.
+- `npm run build` -> pass; existing unrelated Next `<img>` and Sentry warnings remain.
+
 ### Session Update - 2026-06-01 10:28 - MOBILE-000 UI Design (Gemini1)
 
 **Goal**: Design the mobile bottom-sheet LookupCard drawer, touch targets, and nav system to establish the mobile rewrite foundation (MOBILE-000).
@@ -4614,5 +4632,4 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass
 - `npm test` -> 344/344 pass
 - `npm run build` -> pass
-
 
