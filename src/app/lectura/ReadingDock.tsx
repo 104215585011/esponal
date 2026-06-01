@@ -48,7 +48,7 @@ export function ReadingDock({
               onRelatedPhraseClick,
               originalSentence: paragraphText,
               translatedSentence: "",
-              useStaticLayout: true,
+              useStaticLayout: false,
               source: {
                 type: "lectura",
                 storySlug: storySlug,

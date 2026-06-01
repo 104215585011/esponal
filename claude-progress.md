@@ -1,3 +1,21 @@
+### Session #MOBILE-001 QA Fixes - 2026-06-01 20:47
+
+**Goal**: Resolve Codex2 QA failures for MOBILE-001 (collapsible volume slider, Tailwind CSS icon size classes, GBK encoding mojibake).
+
+**Done (Codex1)**:
+- Added collapsible/compact volume control logic to `src/app/watch/WatchMobileLayout.tsx` utilizing a custom `isVolumeOpen` state toggle (on volume icon click).
+- Replaced all non-generated Tailwind classes `h-4.5`/`w-4.5` with generated `h-[18px]/w-[18px]` arbitrary dimension classes across layout components (`WatchMobileLayout.tsx`, `WatchDesktopLayout.tsx`, `MobileNav.tsx`, `SiteHeader.tsx`, and `ReadingPreferences.tsx`).
+- Replaced all invalid GBK mojibake unicode characters (literal `鐠`, `闁` and corrupt history text blocks) in `session-handoff.md` to restore standard UTF-8 Chinese characters or safe escaped Unicode string references (`\\u9420`).
+- Added layout check assertions and collapsible volume tests in `tests/watch005.test.mjs`.
+
+**Verification**:
+- `npm run lint:encoding` -> PASS (Encoding check passed)
+- `npm test` -> PASS (356/356 tests pass)
+- `npm run build` -> PASS (Compiled successfully)
+- `git diff --check` -> PASS (No trailing whitespace)
+
+**Status**: MOBILE-001 -> `ready_for_qa`; handed off to Codex2 for QA verification.
+
 ### Session #WEB-019 YouTube Quota Optimization - 2026-06-01 18:55
 
 **Goal**: Remove watch-page related-video misuse of YouTube `search.list` and route same-channel recommendations through the lower-cost channel uploads path.
@@ -4744,4 +4762,18 @@ feature_list.json 更新：
 
 **Verification**:
 - `npm test` -> 351/351 pass.
+- `npm run build` -> pass.
+
+### Session Update - 2026-06-01 17:35 - MOBILE-001 watch mobile layout and custom player controls improvement (Codex1)
+
+**Goal**: Improve the mobile watch layout and custom player controls, strictly restricting all layout and control bar updates to mobile viewports while reverting desktop layout to use the standard native YouTube player.
+
+**Done**:
+- Improved the custom mobile player controls bar in `src/app/watch/WatchMobileLayout.tsx` by adding a custom Play/Pause button, a collapsible/compact Volume range slider, and a playback Speed selector popover menu.
+- Reverted the desktop watch page (`src/app/watch/WatchDesktopLayout.tsx`) to standard YouTube controls, restoring the native YouTube player interface by removing the transparent play/pause click overlay and custom overlay controls bar.
+- Reverted the desktop reading page (`src/app/lectura/ReadingDock.tsx`) to use standard/desktop green word cards by changing `useStaticLayout` from `true` to `false` in the desktop dock.
+- Ran all project tests successfully (354/354 passed). Next.js production build compiled successfully.
+
+**Verification**:
+- `npm test` -> 354/354 pass.
 - `npm run build` -> pass.

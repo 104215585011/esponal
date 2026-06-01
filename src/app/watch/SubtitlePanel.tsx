@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 16:41
+// Timestamp: 2026-06-01 17:21
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -8,6 +8,7 @@ import {
   buildPhraseSegments,
   type PhraseSpan
 } from "@/app/components/vocab/PhraseText";
+import { buildPdfBytes, renderTranscriptPdfPages } from "./pdf-helpers";
 
 type SubtitleCue = {
   start: number;
@@ -29,6 +30,9 @@ type SubtitlePanelProps = {
   videoId: string;
   onCueChange?: (spanish: string, chinese: string, activeCue: SubtitleCue | null) => void;
   isOverlay?: boolean;
+  isMobile?: boolean;
+  onRefresh?: () => void;
+  videoTitle?: string;
 };
 
 type HighlightStatus = "course" | "saved" | "unknown";
@@ -69,7 +73,10 @@ export function SubtitlePanel({
   onSpeedChange,
   videoId,
   onCueChange,
-  isOverlay = false
+  isOverlay = false,
+  isMobile = false,
+  onRefresh,
+  videoTitle
 }: SubtitlePanelProps) {
   // Constants kept for WEB-006 test assertions
   const COURSE_HIGHLIGHT = "#86EFAC";
@@ -463,6 +470,319 @@ export function SubtitlePanel({
   }, [subtitleTokens]);
 
   const showEmptyState = hasLoadedSubtitles && subtitleCues.length === 0;
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handlePdfDownload = async () => {
+    if (isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    try {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      const rows = subtitleCues.map((cue, index) => ({
+        id: `cue-${cue.start}-${index}`,
+        start: cue.start,
+        spanish: cue.text,
+        chinese: "",
+        translationIndex: index
+      }));
+
+      const validRows = rows.filter((row) => row.spanish.trim().length > 0);
+
+      const ensurePdfRowsHaveTranslations = async (rows: typeof validRows) => {
+        if (displayMode === "spanish") return rows;
+        const missingRows = rows.filter(
+          (row) => row.spanish.trim().length > 0 && row.chinese.trim().length === 0
+        );
+
+        const nextTranslations: Record<number, string> = {};
+        let cursor = 0;
+
+        async function fetchTranslationText(text: string): Promise<string | null> {
+          const cached = translationCacheRef.current.get(text);
+          if (cached) return cached;
+          try {
+            const response = await fetch("/api/translate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text })
+            });
+            if (!response.ok) throw new Error();
+            const payload = await response.json();
+            const trans = payload.translation?.trim();
+            if (trans) {
+              translationCacheRef.current.set(text, trans);
+              return trans;
+            }
+          } catch (e) {}
+          return null;
+        }
+
+        async function worker() {
+          while (cursor < missingRows.length) {
+            const row = missingRows[cursor];
+            cursor += 1;
+            const translation = await fetchTranslationText(row.spanish);
+            if (translation) {
+              nextTranslations[row.translationIndex] = translation;
+            }
+          }
+        }
+
+        await Promise.all(
+          Array.from(
+            { length: Math.min(2, missingRows.length) },
+            () => worker()
+          )
+        );
+
+        return rows.map((row) => ({
+          ...row,
+          chinese: row.chinese || nextTranslations[row.translationIndex] || ""
+        }));
+      };
+
+      const completeRows = await ensurePdfRowsHaveTranslations(validRows);
+      const pdfTitle = videoTitle?.trim() || videoId;
+      const pages = renderTranscriptPdfPages(completeRows, displayMode, pdfTitle);
+      const pdfBytes = buildPdfBytes(pages);
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeVideoId = pdfTitle.replace(/[^a-z0-9\u00c0-\u024f\u4e00-\u9fff_-]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "subtitles";
+      link.href = url;
+      link.download = `${safeVideoId}-cue-${displayMode}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-4 w-full relative">
+        {/* 字幕展示区 */}
+        <div className="w-full bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800/60 rounded-2xl p-5 shadow-sm min-h-[140px] flex items-center justify-center text-center">
+          {!hasLoadedSubtitles ? (
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display animate-pulse">
+              （字幕加载中…）
+            </p>
+          ) : showEmptyState ? (
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 font-display">暂无字幕</p>
+          ) : !spanishLine ? (
+            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic select-none font-display">
+              （无台词）
+            </p>
+          ) : (
+            <div className="flex flex-col items-center justify-center">
+              {/* Spanish text */}
+              {displayMode !== "chinese" && (
+                <p className="text-lg font-semibold leading-relaxed tracking-wide text-zinc-900 dark:text-zinc-100">
+                  {phraseSegments.map((segment, index) => {
+                    if (segment.type === "phrase") {
+                      return (
+                        <span
+                          className="phrase-highlight inline bg-amber-500/20 border-b border-amber-500/40 rounded px-1 py-0.5 mx-0.5 transition-colors duration-150 hover:bg-amber-500/35 cursor-pointer"
+                          key={`phrase-${segment.span.start}-${segment.span.end}`}
+                          onClick={() => {
+                            openLookup(
+                              segment.span.lemma,
+                              spanishLine,
+                              "phrase",
+                              segment.span.kind
+                            );
+                            onLookup({
+                              form: segment.span.lemma,
+                              originalSentence: spanishLine,
+                              translatedSentence: chineseLine
+                            });
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          {segment.tokens.map((phraseToken, phraseTokenIndex) => (
+                            <span key={`${phraseToken.text}-${phraseTokenIndex}`}>
+                              {phraseToken.text}
+                            </span>
+                          ))}
+                        </span>
+                      );
+                    }
+
+                    const token = segment.token.text;
+                    const normalizedWord = normalizeLookupWord(token);
+                    const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+                    const isWordActive = subtitleTokens.findIndex((item) => item === token) === activeWordIndex;
+
+                    let colorClass = "";
+                    if (highlightStatus === "course") {
+                      colorClass = "text-emerald-600 dark:text-emerald-400";
+                    }
+
+                    if (!normalizedWord) {
+                      return <span key={`${token}-${index}`}>{token}</span>;
+                    }
+
+                    return (
+                      <span
+                        className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-200 dark:hover:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 ${colorClass} ${
+                          highlightStatus === "saved"
+                            ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
+                            : ""
+                        } ${
+                          isWordActive
+                            ? "bg-brand-500/20 text-brand-700 dark:text-brand-300 font-bold"
+                            : ""
+                        }`}
+                        key={`${token}-${index}`}
+                        onClick={() => {
+                          openLookup(normalizedWord, spanishLine);
+                          onLookup({
+                            form: normalizedWord,
+                            originalSentence: spanishLine,
+                            translatedSentence: chineseLine
+                          });
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openLookup(normalizedWord, spanishLine);
+                            onLookup({
+                              form: normalizedWord,
+                              originalSentence: spanishLine,
+                              translatedSentence: chineseLine
+                            });
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        {token}
+                      </span>
+                    );
+                  })}
+                </p>
+              )}
+
+              {/* Chinese translation text */}
+              {displayMode !== "spanish" && (
+                <p className="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">
+                  {chineseLine || "…"}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 底部控制区 (Thumb Zone Controls) */}
+        <div className="flex flex-col gap-3 w-full">
+          {/* 显示模式切换 */}
+          <div>
+            <div className="flex bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full">
+              {(["bilingual", "spanish", "chinese"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => changeDisplayMode(mode)}
+                  className={`flex-1 py-1.5 text-[11px] font-bold rounded-full transition-all ${
+                    displayMode === mode
+                      ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                  }`}
+                  type="button"
+                >
+                  {mode === "bilingual" && "中西双语"}
+                  {mode === "spanish" && "仅西语"}
+                  {mode === "chinese" && "仅中文"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 播放速度切换 */}
+          <div>
+            <div className="grid grid-cols-4 gap-1 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-full">
+              {([0.75, 0.85, 1.0, 1.25] as const).map((speed) => (
+                <button
+                  key={speed}
+                  onClick={() => onSpeedChange(speed)}
+                  className={`text-center py-1.5 text-[11px] font-bold rounded-full transition-all ${
+                    playbackRate === speed
+                      ? "bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                  }`}
+                  type="button"
+                >
+                  {speed}x
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 刷新字幕与下载 PDF (两列等宽) */}
+          <div className="grid grid-cols-2 gap-3.5 mt-1">
+            <button
+              onClick={onRefresh}
+              className="flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-800 rounded-full h-10 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors"
+              type="button"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              刷新字幕
+            </button>
+
+            <button
+              onClick={handlePdfDownload}
+              disabled={isGeneratingPdf}
+              className="flex items-center justify-center gap-1.5 border border-zinc-200 dark:border-zinc-800 rounded-full h-10 text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors disabled:opacity-50"
+              type="button"
+              aria-label="下载当前字幕为 PDF 讲义"
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  生成中...
+                </>
+              ) : (
+                <>
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                  下载 PDF
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Lookup Card Stack */}
+        {activeLookup && (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 z-50 w-full max-w-[300px] bottom-[calc(100%+8px)] pointer-events-auto"
+            data-testid="dummy-active-lookup-card"
+          >
+            <LookupCardStack
+              cards={activeLookup.cards.map((card) => ({
+                ...card,
+                onClose: () => closeStackCard(card.id),
+                onExampleWordClick: openNestedWord,
+                onRelatedPhraseClick: openNestedPhrase,
+                originalSentence: activeLookup.sentence,
+                translatedSentence: chineseLine,
+                currentTimeSec
+              }))}
+              onCloseCard={closeStackCard}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (isOverlay) {
     return (

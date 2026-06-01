@@ -68,3 +68,18 @@ test("Watch Layout Redesign: new watch styles use standard Tailwind zinc steps",
     assert.doesNotMatch(source, invalidZincSteps, `${path} should not use non-standard zinc steps`);
   }
 });
+
+test("Watch Layout: layout files do not use invalid tailwind class h-4.5/w-4.5", async () => {
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
+  const desktopLayout = await readText("src/app/watch/WatchDesktopLayout.tsx");
+
+  assert.doesNotMatch(mobileLayout, /\b[hw]-4\.5\b/);
+  assert.doesNotMatch(desktopLayout, /\b[hw]-4\.5\b/);
+});
+
+test("Watch Layout: WatchMobileLayout implements a collapsible volume slider", async () => {
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
+
+  assert.match(mobileLayout, /isVolumeOpen/);
+  assert.match(mobileLayout, /isVolumeOpen\s*\?\s*"w-12 opacity-100 mr-1"\s*:\s*"w-0 opacity-0"/);
+});

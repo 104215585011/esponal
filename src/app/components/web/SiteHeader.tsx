@@ -30,7 +30,7 @@ export async function SiteHeader({
       <div className="mx-auto flex h-16 w-full max-w-app-shell items-center gap-3 px-4 sm:px-6 lg:gap-4">
         <Link className="flex shrink-0 items-center gap-2.5 group" href="/">
           <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 dark:from-brand-600 dark:to-teal-400 text-white shadow-md shadow-brand-500/20 dark:shadow-brand-950/20 group-hover:scale-105 transition-transform duration-300">
-            <svg className="h-4.5 w-4.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="h-[18px] w-[18px] text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M18 6H8.5C6.567 6 5 7.567 5 9.5V14.5C5 16.433 6.567 18 8.5 18H18"
                 stroke="currentColor"
