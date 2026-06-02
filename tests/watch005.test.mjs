@@ -130,5 +130,19 @@ test("Watch player setup waits for responsive layout iframe before binding YouTu
   assert.match(clientText, /if \(isMobile === null\) return;/);
   assert.match(clientText, /document\.getElementById\(PLAYER_IFRAME_ID\)/);
   assert.match(clientText, /if \(!playerIframe\) return;/);
-  assert.match(clientText, /\}, \[videoId, isMobile\]\);/);
+  assert.match(clientText, /\}, \[videoId, isMobile, sendYouTubeCommand\]\);/);
+});
+
+test("Watch mobile play path is isolated from desktop and has iframe command fallback", async () => {
+  const clientText = await readText("src/app/watch/WatchClient.tsx");
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
+  const desktopLayout = await readText("src/app/watch/WatchDesktopLayout.tsx");
+
+  assert.match(clientText, /const handleMobilePlayPause = useCallback/);
+  assert.match(clientText, /pendingMobilePlayRef/);
+  assert.match(clientText, /postMessage\(\s*JSON\.stringify\(\{ event: "command", func: command/s);
+  assert.match(clientText, /handlePlayPause=\{handleMobilePlayPause\}/);
+  assert.match(clientText, /<WatchDesktopLayout \{\.\.\.sharedProps\} \/>/);
+  assert.doesNotMatch(desktopLayout, /handleMobilePlayPause|pendingMobilePlayRef|postMessage/);
+  assert.match(mobileLayout, /handlePlayPause: \(\) => void/);
 });

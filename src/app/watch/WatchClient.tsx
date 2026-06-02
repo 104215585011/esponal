@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 10:02
+// Timestamp: 2026-06-02 10:31
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -225,11 +225,21 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
 
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<number | null>(null);
+  const isPlayerReadyRef = useRef(false);
+  const pendingMobilePlayRef = useRef<"play" | null>(null);
   const nextVideo = relatedVideos[0] ?? null;
 
   // Sync playback rate with global speed helper on mount
   useEffect(() => {
     setPlaybackRate(getPlaybackRate());
+  }, []);
+
+  const sendYouTubeCommand = useCallback((command: "playVideo" | "pauseVideo") => {
+    const iframe = document.getElementById(PLAYER_IFRAME_ID) as HTMLIFrameElement | null;
+    iframe?.contentWindow?.postMessage(
+      JSON.stringify({ event: "command", func: command, args: [] }),
+      "https://www.youtube.com"
+    );
   }, []);
 
   // Set up YouTube player and polling
@@ -283,6 +293,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
           },
           events: {
             onReady: () => {
+              isPlayerReadyRef.current = true;
               // Apply initial speed
               try {
                 const currentSpeed = getPlaybackRate();
@@ -298,6 +309,17 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
                 }
               } catch (err) {}
               startPolling();
+              if (pendingMobilePlayRef.current === "play") {
+                pendingMobilePlayRef.current = null;
+                try {
+                  if (typeof playerRef.current.playVideo === "function") {
+                    playerRef.current.playVideo();
+                  }
+                } catch (error) {
+                  console.warn("Mobile YouTube queued play failed", error);
+                }
+                sendYouTubeCommand("playVideo");
+              }
             },
             onStateChange: (event: any) => {
               const ended = yt.PlayerState?.ENDED ?? 0;
@@ -306,6 +328,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
               const paused = yt.PlayerState?.PAUSED ?? 2;
 
               if (event.data === playing || event.data === buffering) {
+                pendingMobilePlayRef.current = null;
                 setVideoEnded(false);
                 setIsPlaying(true);
                 startPolling();
@@ -332,6 +355,8 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
 
     return () => {
       cancelled = true;
+      isPlayerReadyRef.current = false;
+      pendingMobilePlayRef.current = null;
       stopPolling();
       try {
         if (playerRef.current && typeof playerRef.current.destroy === "function") {
@@ -340,7 +365,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       } catch (e) {}
       playerRef.current = null;
     };
-  }, [videoId, isMobile]);
+  }, [videoId, isMobile, sendYouTubeCommand]);
 
   // Handle word clicked lookup triggering pause
   const handleLookup = useCallback((lookup: ActiveLookup) => {
@@ -456,6 +481,47 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
     } catch (e) {}
   }, [isPlaying]);
 
+  const handleMobilePlayPause = useCallback(() => {
+    const command = isPlaying ? "pauseVideo" : "playVideo";
+    const player = playerRef.current;
+
+    if (command === "playVideo") {
+      setVideoEnded(false);
+    }
+
+    try {
+      if (isPlayerReadyRef.current && player) {
+        if (command === "pauseVideo" && typeof player.pauseVideo === "function") {
+          player.pauseVideo();
+        } else if (command === "playVideo" && typeof player.playVideo === "function") {
+          player.playVideo();
+        } else if (command === "playVideo") {
+          pendingMobilePlayRef.current = "play";
+          console.warn("Mobile YouTube playVideo unavailable; queued play", {
+            hasPlayer: Boolean(player),
+            isPlayerReady: isPlayerReadyRef.current
+          });
+        }
+      } else if (command === "playVideo") {
+        pendingMobilePlayRef.current = "play";
+        console.warn("Mobile YouTube player not ready; queued play", {
+          hasPlayer: Boolean(player),
+          isPlayerReady: isPlayerReadyRef.current
+        });
+      }
+    } catch (error) {
+      if (command === "playVideo") {
+        pendingMobilePlayRef.current = "play";
+      }
+      console.warn("Mobile YouTube player command failed", {
+        command,
+        errorMessage: error instanceof Error ? error.message : String(error)
+      });
+    }
+
+    sendYouTubeCommand(command);
+  }, [isPlaying, sendYouTubeCommand]);
+
   const handleVolumeChange = useCallback((newVolume: number) => {
     setVolume(newVolume);
     try {
@@ -527,6 +593,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   return isMobile ? (
     <WatchMobileLayout
       {...sharedProps}
+      handlePlayPause={handleMobilePlayPause}
       handlePrevSentence={handlePrevSentence}
       handleNextSentence={handleNextSentence}
     />

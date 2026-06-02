@@ -1,3 +1,28 @@
+### Session #MOBILE-001 Mobile-Only Play Handler - 2026-06-02 10:31
+
+**Goal**: Fix production mobile `/watch` play clicks without changing desktop playback behavior.
+
+**Scope Guard**:
+- `WatchDesktopLayout.tsx` was not changed.
+- Desktop continues using the original `handlePlayPause`.
+- Mobile receives a separate `handleMobilePlayPause` override only in the `WatchMobileLayout` render branch.
+
+**Done (Codex1)**:
+- Added `isPlayerReadyRef` from YouTube `onReady`.
+- Added `pendingMobilePlayRef` so early mobile play taps are queued until readiness.
+- Added mobile-only iframe command fallback using YouTube's postMessage API.
+- Kept desktop out of the new mobile fallback path.
+- Added WATCH regression coverage proving the mobile handler isolation and absence of mobile fallback code in `WatchDesktopLayout.tsx`.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (13/13).
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> pass (363/363).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: ready_for_qa; requires Codex2 production Vercel mobile playback retest after deploy.
+
 ### Session #MOBILE-001 Play Binding Fix - 2026-06-02 10:02
 
 **Goal**: Fix Codex2's production Vercel QA failure where mobile `/watch` play click did not advance beyond `0:00`.
