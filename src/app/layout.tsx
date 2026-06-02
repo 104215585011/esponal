@@ -1,6 +1,7 @@
-// Timestamp: 2026-05-27 08:39
+// Timestamp: 2026-06-02 16:05
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
+import { BottomTabBar } from "@/app/components/web/BottomTabBar";
 import { ServiceWorkerRegister } from "@/app/components/web/ServiceWorkerRegister";
 import "./globals.css";
 
@@ -60,6 +61,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ServiceWorkerRegister />
         {children}
+        <BottomTabBar />
       </body>
     </html>
   );

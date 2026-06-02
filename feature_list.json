@@ -1672,7 +1672,8 @@
     "area": "frontend",
     "title": "lectura 分级阅读 移动端重设计",
     "user_visible_behavior": "手机上读分级短文体验优秀:正文易读、点词查(用 MOBILE-000 抽屉)、段落朗读、已读/重读顺手。lectura 是每日留存引擎(读新+重读),移动端必须丝滑。",
-    "status": "ready_for_qa",
+    "status": "blocked",
+    "block_reason": "PM 2026-06-02:用户真机反馈 v1 需返工(① 播放改逐句小喇叭、去掉底部上一段/播放/下一段;② 排版收紧+视觉精修;字号三档保留)。且依赖 MOBILE-009 底部 tab 外壳先定(底部空间协调)。详见 docs/tickets/MOBILE-002-design.md §10。Codex1 暂停 MOBILE-002。",
     "verification": [
       "node --test tests/mobile002.test.mjs",
       "npx tsc --noEmit --pretty false",
@@ -1817,5 +1818,36 @@
     ],
     "evidence": "2026-06-01 18:55 Codex1 implemented WEB-019: watch related videos now fetch the current video snippet via videos.list(part=snippet) to get channelId, then use /api/youtube/channel for same-channel uploads; curated channel title fallback still uses channel uploads; /api/youtube/search is isolated to a rare fetchSearchFallbackVideos path when channelId cannot be resolved. /search page continues to use search.list with 24h cache. Added YouTube cache comments warning not to routinely clear youtube:* or casually bump cache namespaces. Tests added in tests/web019.test.mjs. Verification: node --test tests/web019.test.mjs tests/web002.test.mjs tests/web003.test.mjs tests/web016.test.mjs = 11/11 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; git diff --check pass; npm test 354/354 pass; npm run build pass with existing unrelated Next img and Sentry warnings. | 2026-06-01 PM(Claude1)最终验收 PASS,关票:Codex2 QA PASS;PM 独立复跑 npm test 354/354;源码契约核实——fetchRelatedVideos 先用 videos.list(part=snippet) 取 channelId→fetchChannelVideos(channel接口~3u),search 仅 fetchSearchFallbackVideos 无channelId兜底,/search 不受影响;lib/youtube 有勿清缓存警告。WEB-019 passing,配额结构性浪费已消除。",
     "notes": "PM 派单 2026-06-01。Ticket: docs/tickets/WEB-019.md。背景:search.list=100u/次,channel路径≈3u。watch 非精选频道相关视频误用 search(100u),应走 channel uploads(解析 channelId→channel接口,~4u)。今日配额快速消耗(3433/10000)主因是手动清缓存+v2 bump 冷启动重灌。本票解决结构性浪费 + 加固勿清缓存。/search 保持 search.list+短TTL(需新鲜,已否决延长)。无UI:Claude1→Codex1→Codex2。"
+  },
+  "101": {
+    "id": "MOBILE-009",
+    "priority": 89.5,
+    "area": "frontend",
+    "title": "移动端 app 外壳:底部 tab 导航 + 精简顶栏",
+    "user_visible_behavior": "移动端有常驻底部 tab 栏(首页/视频/阅读/词库/我的 等),随时切换;顶栏精简(返回/标题/搜索按需)。整体观感像原生 app,不再像网站。桌面端导航不变。",
+    "status": "ready_for_qa",
+    "verification": [
+      "移动端底部 tab 栏常驻、切换顺畅、当前页高亮、≥44px、安全区适配",
+      "顶栏精简、像 app",
+      "与 watch/lectura 底部控件协调不打架(明确规则)",
+      "桌面端导航无回退",
+      "真机/设备模式实际切 tab+打开多页不崩(error boundary 不触发)",
+      "npm test 全绿 + build + lint:encoding"
+    ],
+    "evidence": "2026-06-02 16:28 Codex1 implemented MOBILE-009 app shell per docs/tickets/MOBILE-009-design.md and PM IA decisions. Added global mobile BottomTabBar in src/app/layout.tsx with 4 equal tabs (/watch, /lectura, /learn, /vocab), safe-area padding, active brand state, and centralized shouldHideTabBar() hiding on /watch and /lectura/[slug]. Added MobileTopBar and wired SiteHeader to render mobile-only avatar / subscription-placeholder / search top bar while keeping desktop nav unchanged. Extended MobileNav with backward-compatible trigger?: \"menu\" | \"avatar\" and drawerSide?: \"left\" | \"right\", plus left-side avatar drawer content for personal info, secondary destinations, and account actions. Preserved existing MobileNav / SiteNav contracts needed by prior tickets and did not touch blocked MOBILE-002 or untracked docs/tickets/MOBILE-002.md. Verification: node --test tests/mobile009.test.mjs -> 4/4 pass after red; node --test tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs -> 17/17 pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass; npm test -> 375/375 pass; npm run build -> pass with existing <img> and Sentry warnings only. | 2026-06-02 22:08 Codex1 fixed Codex2 QA blockers: tests/mobile009.test.mjs now expects QA-stage ready_for_qa status and locks fixed overlay portals; MobileNav avatar drawer and GlobalSearchOverlay search layer now render through createPortal(..., document.body), avoiding the mobile top bar backdrop-blur containing block that constrained fixed overlays to 52px. Playwright mobile probe on /learn measured drawer fixed rects 390x844 and aside 288x844 after the fix. Verification: node --test tests/mobile009.test.mjs -> 5/5 pass; node --test tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs -> 18/18 pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass; npm test -> 376/376 pass; npm run build -> pass with existing <img> and Sentry warnings only. | 2026-06-02 22:30 Codex2 re-QA passed functional/device-mode QA after the portal fix. Previous automation blocker and 52px mobile overlay blocker are closed; MOBILE-009 marked passing.",
+    "notes": "PM 派单 2026-06-02。Ticket: docs/tickets/MOBILE-009.md。用户反馈移动端'太像网站不像app',要求尽快做。决策(用户选):底部 tab 栏 + 精简顶栏。跨全站基础改造,优先于剩余单页(MOBILE-002 lectura 暂挂等它)。底部 tab 会占各页底部空间,需与 watch/lectura 底部控件协调。设计师角色由 PM 派 design 子 agent 担(Gemini1 已不可用)。流程:Claude1→design子agent→Codex1→Codex2真机→用户真机→Claude1验收。血泪三戒:改全局只换该改的桌面不动/验收必须真机/勿带scratch。"
+  },
+  "102": {
+    "id": "YT-SUBSCRIPTIONS",
+    "priority": 105,
+    "area": "fullstack",
+    "title": "YouTube 订阅频道(用户 OAuth 拉取订阅频道并展示)",
+    "user_visible_behavior": "用户用 Google/YouTube 登录授权后,顶栏『管理订阅』入口展示其在 YouTube 订阅的频道列表,可点进看该频道视频。",
+    "status": "not_started",
+    "verification": [
+      "占位,正式立项时细化 ticket"
+    ],
+    "evidence": "",
+    "notes": "PM 立项 2026-06-02。用户在移动端导航里要的『管理订阅』顶栏入口背后的功能(非 Esponal 付费!)。需:① Google OAuth 增加 youtube.readonly scope(AUTH-001 已有 Google 登录,要加 scope+同意流程);② 调 YouTube subscriptions.list(用户 OAuth token,配额1单位/次);③ 展示订阅频道+点进看频道视频(可复用 channel 接口)。MOBILE-009 只先放入口图标(占位)。等移动端导航外壳落地后再排本功能。"
   }
 }

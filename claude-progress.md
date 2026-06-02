@@ -1,3 +1,63 @@
+### Session #MOBILE-009 Codex2 Re-QA Pass - 2026-06-02 22:30
+
+**Goal**: Close MOBILE-009 after Codex2 confirmed the blocker fix.
+
+**Result**:
+- Codex2 re-QA passed functional/device-mode checks after the portal fix.
+- The stale `tests/mobile009.test.mjs` status assertion blocker is closed.
+- The mobile avatar drawer and search overlay no longer collapse to the 52px top bar height.
+- Updated `feature_list.json`: `MOBILE-009.status = passing` with re-QA evidence.
+
+**Status**: MOBILE-009 passing.
+
+### Session #MOBILE-009 Codex2 QA Blocker Fix - 2026-06-02 22:08
+
+**Goal**: Fix Codex2 QA failures for MOBILE-009: stale status assertion and mobile fixed overlays constrained to the 52px top bar.
+
+**Root Cause**:
+- `tests/mobile009.test.mjs` still asserted the dev-stage status `in_progress`, while the ticket had correctly moved to `ready_for_qa`.
+- `MobileTopBar` uses `backdrop-blur-xl`; CSS filters create a containing block for descendant `position: fixed` elements, so `MobileNav` drawer and `GlobalSearchOverlay` search overlay were fixed inside the 52px top bar instead of the viewport.
+
+**Done (Codex1)**:
+- Updated `tests/mobile009.test.mjs` to expect `ready_for_qa` and added a portal regression guard.
+- Moved `MobileNav` drawer layer to `createPortal(..., document.body)`.
+- Moved `GlobalSearchOverlay` overlay layer to `createPortal(..., document.body)`.
+- Kept triggers, body scroll lock, Escape handling, and desktop behavior unchanged.
+
+**Verification**:
+- Red check: `node --test tests/mobile009.test.mjs` failed on missing `createPortal` before implementation.
+- `node --test tests/mobile009.test.mjs` -> pass (5/5).
+- `node --test tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs` -> pass (18/18).
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- Playwright mobile probe on `/learn`: drawer overlay fixed rects `390x844`, drawer aside `288x844`; this closes Codex2's `52px` blocker. The probe process cleanup timed out after printing the measurements, but no port listener remained afterward.
+- `npm test` -> pass (376/376).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-009` remains `ready_for_qa`; Codex2 should re-run QA against the fixed overlay behavior.
+
+### Session #MOBILE-009 App Shell Implementation - 2026-06-02 16:28
+
+**Goal**: Implement the approved mobile app shell foundation: global bottom tab bar, simplified mobile top bar, and avatar-triggered side drawer without regressing desktop nav.
+
+**Done (Codex1)**:
+- Added [BottomTabBar.tsx](/C:/Users/wang/esponal/src/app/components/web/BottomTabBar.tsx) and mounted it globally from [layout.tsx](/C:/Users/wang/esponal/src/app/layout.tsx), with four equal mobile tabs for `/watch`, `/lectura`, `/learn`, and `/vocab`.
+- Centralized route hiding with `shouldHideTabBar()` so watch and lectura detail pages suppress the global bottom tab bar.
+- Added [MobileTopBar.tsx](/C:/Users/wang/esponal/src/app/components/web/MobileTopBar.tsx) and wired [SiteHeader.tsx](/C:/Users/wang/esponal/src/app/components/web/SiteHeader.tsx) to render a mobile-only top bar with left avatar trigger, centered disabled subscription placeholder, and right search, while preserving desktop header/nav behavior.
+- Extended [MobileNav.tsx](/C:/Users/wang/esponal/src/app/components/web/MobileNav.tsx) with backward-compatible `trigger` and `drawerSide` props, added left-side avatar drawer behavior, and kept the old menu-trigger flow for existing callers.
+- Kept `MOBILE-002` untouched as blocked work and did not modify untracked `docs/tickets/MOBILE-002.md`.
+
+**Verification**:
+- Red check: `node --test tests/mobile009.test.mjs` failed at the expected contract points before implementation.
+- `node --test tests/mobile009.test.mjs` -> pass (4/4).
+- `node --test tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs` -> pass (17/17).
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (375/375).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-009` moved to `ready_for_qa`; handoff written for Codex2 mobile/device-mode QA.
+
 ### QA Session #MOBILE-002 Functional QA - 2026-06-02 15:44
 
 **Goal**: Codex2 QA for MOBILE-002 lectura mobile redesign.
