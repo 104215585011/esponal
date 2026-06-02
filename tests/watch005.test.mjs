@@ -97,6 +97,8 @@ test("Watch mobile layout suppresses native YouTube chrome without changing desk
   assert.match(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
   assert.match(mobileLayout, /const shouldCoverYouTubeChrome = shouldBlockYouTubeChrome \|\| showControls \|\| !isPlaying;/);
   assert.match(mobileLayout, /shouldCoverYouTubeChrome\s*\?\s*"opacity-100 bg-zinc-950"/);
+  assert.match(mobileLayout, /backgroundImage: `linear-gradient\(rgba\(9, 9, 11, 0\.62\), rgba\(9, 9, 11, 0\.62\)\), url\(https:\/\/i\.ytimg\.com\/vi\/\$\{videoId\}\/hqdefault\.jpg\)`/);
+  assert.match(mobileLayout, /data-testid="mobile-youtube-frosted-backdrop"/);
 
   assert.doesNotMatch(desktopLayout, /controls=0/);
   assert.doesNotMatch(desktopLayout, /disablekb=1/);
@@ -118,6 +120,7 @@ test("Watch mobile layout covers paused YouTube recommendations with an opaque a
   assert.match(mobileLayout, /data-testid="mobile-youtube-bottom-chrome-mask"/);
   assert.match(mobileLayout, /h-28 bg-gradient-to-t from-black/);
   assert.match(mobileLayout, /shouldCoverYouTubeChrome\s*\?\s*"opacity-100 bg-zinc-950"/);
+  assert.match(mobileLayout, /backdrop-blur-md/);
   assert.match(mobileLayout, /isFullscreen \? "fixed inset-0 z-\[80\]"/);
   assert.match(mobileLayout, /isFullscreen \? "w-full flex-1 bg-black relative z-40 flex items-center justify-center"/);
   assert.match(mobileLayout, /isFullscreen \? "hidden" : "flex-1 flex flex-col min-h-0 bg-zinc-950"/);

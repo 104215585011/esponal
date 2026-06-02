@@ -329,7 +329,23 @@ export function WatchMobileLayout({
               ? "opacity-100 bg-zinc-950"
               : "opacity-0 bg-transparent"
           }`}
+          style={
+            shouldCoverYouTubeChrome
+              ? {
+                  backgroundImage: `linear-gradient(rgba(9, 9, 11, 0.62), rgba(9, 9, 11, 0.62)), url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`,
+                  backgroundPosition: "center",
+                  backgroundSize: "cover"
+                }
+              : undefined
+          }
         >
+          {shouldCoverYouTubeChrome ? (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 backdrop-blur-md"
+              data-testid="mobile-youtube-frosted-backdrop"
+            />
+          ) : null}
           {shouldCoverYouTubeChrome ? (
             <>
               <div
