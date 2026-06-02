@@ -1263,11 +1263,11 @@ export function TranscriptPanel({
 
     return (
       <div
-        className={`relative group border-b border-zinc-100 dark:border-zinc-900/60 px-6 py-4 transition-all duration-200 ${
+        className={`relative group px-6 py-4 transition-all duration-300 ${
           isActive
-            ? "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
-            : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
-        }`}
+            ? isMobile ? "opacity-100 scale-100" : "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
+            : isMobile ? "opacity-30 scale-[0.98] blur-[0.3px]" : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
+        } ${isMobile ? 'border-none !py-4 !px-2' : 'border-b border-zinc-100 dark:border-zinc-900/60'}`}
         data-cue-index={index}
         data-testid="transcript-cue"
         key={`${cue.start}-${cue.text}`}
@@ -1287,16 +1287,16 @@ export function TranscriptPanel({
             <div className="inline">
               <span
                 className={`mr-2 inline-block text-[10px] font-bold tabular-nums tracking-[0.3px] transition font-display ${
-                  isActive ? "opacity-100 text-brand-600" : "opacity-0 text-zinc-400 group-hover:opacity-100"
-                }`}
+                  isActive ? "opacity-100 text-brand-600" : isMobile ? "opacity-0" : "opacity-0 text-zinc-400 group-hover:opacity-100"
+                } ${isMobile ? 'hidden' : ''}`}
               >
                 {formatTimestamp(cue.start)}
               </span>
               <span
-                className={`inline text-[15px] leading-7 tracking-[0.05px] font-sans ${
+                className={`inline ${isMobile ? 'text-[22px] leading-[1.5] tracking-wide' : 'text-[15px] leading-7 tracking-[0.05px]'} font-sans ${
                   isActive
-                    ? "font-bold text-brand-600 dark:text-brand-400"
-                    : "font-medium text-zinc-800 dark:text-zinc-200"
+                    ? (isMobile ? "font-bold text-zinc-100" : "font-bold text-brand-600 dark:text-brand-400")
+                    : (isMobile ? "font-semibold text-zinc-300" : "font-medium text-zinc-800 dark:text-zinc-200")
                 }`}
               >
                 {phraseSegments.map((segment, tokenIndex) => {
@@ -1381,10 +1381,10 @@ export function TranscriptPanel({
 
           {displayMode !== "spanish" ? (
             <p
-              className={`mt-1.5 font-sans text-[13px] leading-6 ${
+              className={`${isMobile ? 'mt-2.5 text-[14px] leading-[1.6]' : 'mt-1.5'} font-sans ${isMobile ? '' : 'text-[13px] leading-6'} ${
                 isActive
-                  ? "font-medium text-zinc-600 dark:text-zinc-300"
-                  : "text-zinc-400 dark:text-zinc-500"
+                  ? (isMobile ? "font-medium text-brand-400/90" : "font-medium text-zinc-600 dark:text-zinc-300")
+                  : (isMobile ? "font-medium text-zinc-500" : "text-zinc-400 dark:text-zinc-500")
               }`}
             >
               {translation}
@@ -1419,7 +1419,7 @@ export function TranscriptPanel({
         <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
           <button
             className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-              displayMode === "bilingual" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+              displayMode === "bilingual" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
             }`}
             onClick={() => {
               setDisplayMode("bilingual");
@@ -1431,7 +1431,7 @@ export function TranscriptPanel({
           </button>
           <button
             className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-              displayMode === "spanish" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+              displayMode === "spanish" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
             }`}
             onClick={() => {
               setDisplayMode("spanish");
@@ -1443,7 +1443,7 @@ export function TranscriptPanel({
           </button>
           <button
             className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-              displayMode === "chinese" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+              displayMode === "chinese" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
             }`}
             onClick={() => {
               setDisplayMode("chinese");
@@ -1458,7 +1458,7 @@ export function TranscriptPanel({
           <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
             <button
               className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-                transcriptMode === "sentence" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+                transcriptMode === "sentence" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
               }`}
               onClick={() => handleTranscriptModeChange("sentence")}
               type="button"
@@ -1467,7 +1467,7 @@ export function TranscriptPanel({
             </button>
             <button
               className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-                transcriptMode === "cue" ? (isMobile ? "bg-zinc-800 text-brand-400" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+                transcriptMode === "cue" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
               }`}
               onClick={() => handleTranscriptModeChange("cue")}
               type="button"
