@@ -1,3 +1,215 @@
+## Codex1 Dev Report: MOBILE-001 YouTube Chrome Mask Follow-up
+**Time**: 2026-06-02 10:36
+**Role**: Codex1 (Dev)
+**Status**: ready_for_qa
+
+**Problem corrected**:
+- User confirmed real mobile playback works, but YouTube iframe chrome (share / watch later / more videos / YouTube logo) still remains visible.
+- Root cause: the previous mobile shield used `bg-black/85`, so YouTube's iframe-internal paused/recommendation chrome could still show through the translucent layer.
+
+**Mobile-only implementation**:
+- Updated `src/app/watch/WatchMobileLayout.tsx` only.
+- Paused state now uses a fully opaque app shield: `opacity-100 bg-black`.
+- Playing state with app controls visible keeps the video visible, but adds top and bottom masks above the iframe:
+  - `data-testid="mobile-youtube-top-chrome-mask"`
+  - `data-testid="mobile-youtube-bottom-chrome-mask"`
+- Desktop layout was not modified.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (13/13).
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (363/363).
+
+**Next**:
+- Codex2 should retest on deployed Vercel/mobile viewport after deploy, focusing specifically on whether share/watch-later/more-videos/YouTube chrome is visually hidden.
+
+---
+
+## Codex2 QA Report: MOBILE-001 User-Specified Video Retest
+**Time**: 2026-06-02 11:16
+**Tester**: Codex2 (QA)
+**Target**: Production Vercel, `https://esponalsssssss.vercel.app/watch?v=L71UG68wRMI`
+**Conclusion**: FAIL - latest mobile-only handler is deployed but playback still does not advance on the user-specified video
+
+**Correction**:
+- Previous QA runs reused the older QA video id `5vxteCt0WsY`.
+- User clarified the target video is `L71UG68wRMI`.
+- This report is the valid retest for the requested video.
+
+**Deployment Check**:
+- Result: PASS.
+- Loaded production watch chunk:
+  `/_next/static/chunks/app/watch/page-e152fb1c04186f88.js`
+- Confirmed bundle contains latest mobile-only handler diagnostics:
+  - `Mobile YouTube player not ready; queued play`
+  - `Mobile YouTube queued play failed`
+  - `Mobile YouTube player command failed`
+
+**Runtime Checks**:
+1. Mobile page load
+   - HTTP status: `200`.
+   - iframe src:
+     `https://www.youtube.com/embed/L71UG68wRMI?enablejsapi=1&fs=1&cc_load_policy=0&controls=0&disablekb=1&rel=0&playsinline=1&iv_load_policy=3&modestbranding=1`
+   - Initial visible time: `0:00 / 9:27`.
+   - Center play found: yes.
+
+2. Center play button
+   - Result: FAIL.
+   - Repro: click center play (`h-16 w-16`), wait 20s.
+   - Actual:
+     ```json
+     {
+       "times": ["0:00", "9:27"],
+       "shieldClass": "absolute inset-0 z-20 flex items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-100"
+     }
+     ```
+
+3. Bottom play button
+   - Result: FAIL.
+   - Repro: click bottom play (`h-14 w-14`), wait; click again; wait 15s.
+   - Actual:
+     ```json
+     {
+       "times": ["0:00", "9:27"],
+       "shieldClass": "absolute inset-0 z-20 flex items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-100",
+       "bottomPlayFound": true
+     }
+     ```
+
+4. Console / errors
+   - Page errors: none.
+   - Console only includes YouTube warning: `Allow attribute will take precedence over 'allowfullscreen'.`
+   - No mobile diagnostic warnings appeared.
+
+**Return To Codex1**:
+- Continue mobile-only scope.
+- The latest bundle is deployed, but neither center nor bottom play advances on the requested video.
+- The fact that no mobile diagnostic warnings appear suggests the handler may still not be invoked by the visible buttons, or the click is swallowed before reaching React.
+
+---
+
+## Codex2 QA Report: MOBILE-001 Clean Retest After Confirmed Deploy
+**Time**: 2026-06-02 11:03
+**Tester**: Codex2 (QA)
+**Target**: Production Vercel, `https://esponalsssssss.vercel.app/watch?v=5vxteCt0WsY`
+**Conclusion**: FAIL - latest mobile-only handler is deployed but playback still does not advance
+
+**Correction To Previous QA Note**:
+- The prior QA script incorrectly added a global `cache-control: no-cache` request header, which polluted YouTube iframe subresource requests and produced CORS errors.
+- This clean retest removed that header. Only URL cache busting was used.
+
+**Deployment Check**:
+- Result: PASS.
+- Loaded production watch chunk:
+  `/_next/static/chunks/app/watch/page-e152fb1c04186f88.js`
+- Confirmed bundle contains all latest Codex1 mobile-only handler literals:
+  - `Mobile YouTube player not ready; queued play`
+  - `Mobile YouTube queued play failed`
+  - `Mobile YouTube player command failed`
+
+**Runtime Checks**:
+1. Mobile page load
+   - HTTP status: `200`.
+   - Watch chunks loaded:
+     - `/_next/static/chunks/app/watch/loading-daff155205380428.js`
+     - `/_next/static/chunks/app/watch/page-e152fb1c04186f88.js`
+   - Initial time: `0:00 / 25:43`.
+   - Center play found: yes.
+
+2. Center play button
+   - Result: FAIL.
+   - Repro: click center play (`h-16 w-16`), wait 20s.
+   - Actual:
+     ```json
+     {
+       "times": ["0:00", "25:43"],
+       "shieldClass": "absolute inset-0 z-20 flex items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-100"
+     }
+     ```
+
+3. Bottom play button
+   - Result: FAIL.
+   - Repro: click bottom play (`h-14 w-14`), wait; click again; wait 15s.
+   - Actual:
+     ```json
+     {
+       "times": ["0:00", "25:43"],
+       "shieldClass": "absolute inset-0 z-20 flex items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-100",
+       "bottomPlayFound": true
+     }
+     ```
+
+4. Console / errors
+   - Page errors: none.
+   - Console only includes YouTube warning: `Allow attribute will take precedence over 'allowfullscreen'.`
+   - No Codex1 mobile diagnostic warnings appeared, which suggests the click path may not be invoking `handleMobilePlayPause`, or the command path runs without warning but still fails.
+
+**Return To Codex1**:
+- The latest mobile-only handler is deployed, but it does not fix the production mobile playback issue.
+- Next debugging should verify whether the mobile buttons actually invoke `handleMobilePlayPause` in production:
+  - add temporary/guarded diagnostics or a data-state marker that changes on mobile play click;
+  - ensure the overlay button is not blocked by another layer;
+  - inspect whether `player.playVideo()` and `postMessage` are actually called after click.
+- Desktop remains out of scope; continue to keep the fix mobile-only.
+
+---
+
+## Codex2 QA Report: MOBILE-001 Mobile-Only Play Handler Retest
+**Time**: 2026-06-02 10:48
+**Tester**: Codex2 (QA)
+**Target**: Production Vercel, `https://esponalsssssss.vercel.app/watch?v=5vxteCt0WsY`
+**Conclusion**: BLOCKED - latest Codex1 bundle is not deployed yet
+
+**Environment**:
+- Playwright Chromium, `devices["iPhone 14 Pro Max"]` for mobile.
+- Playwright Chromium desktop viewport `1440x900` for desktop non-regression smoke.
+- Production Vercel with `_qa=<timestamp>` cache busting.
+
+**Deployment Check**:
+- Result: FAIL / blocked.
+- Searched loaded production `/_next/static/...` scripts for the new Codex1 symbols:
+  - `handleMobilePlayPause`
+  - `pendingMobilePlayRef`
+  - `postMessage`
+- Result:
+  ```json
+  {
+    "bundleFix": {
+      "found": false,
+      "src": null
+    }
+  }
+  ```
+- Therefore the current Vercel deployment does not contain the mobile-only play handler commit. This is not a valid retest of the latest Codex1 fix.
+
+**Observed Runtime On Current Production Bundle**:
+1. Mobile page load
+   - HTTP status: `200`.
+   - `iframeCount=1`.
+   - Center play exists.
+   - Initial time: `0:00 / 25:43`.
+
+2. Center play
+   - Still fails on current deployed bundle.
+   - After 15s: `0:00 / 25:43`, shield remains `opacity-100`.
+
+3. Bottom play
+   - Still fails on current deployed bundle.
+   - After pause/play attempt: `0:00 / 25:43`, shield remains `opacity-100`.
+
+4. Desktop smoke
+   - HTTP status: `200`.
+   - `iframeCount=1`.
+   - `mobileShieldCount=0`.
+   - No page errors.
+   - This only confirms desktop is not rendering mobile shield on the current deployment.
+
+**Next Step**:
+- Deploy the latest Codex1 change containing `handleMobilePlayPause` / `pendingMobilePlayRef`.
+- Then rerun Codex2 production Vercel test. Do not treat the current failure as a failure of the latest fix because the bundle does not include it yet.
+
+---
+
 ## Codex1 Dev Report: MOBILE-001 Mobile-Only Play Handler
 **Time**: 2026-06-02 10:31
 **From**: Codex1 (DEV)

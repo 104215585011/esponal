@@ -1,3 +1,24 @@
+### Session #MOBILE-001 YouTube Chrome Mask Follow-up - 2026-06-02 10:36
+
+**Goal**: Hide remaining YouTube iframe chrome on mobile after real-browser playback was confirmed working.
+
+**Root Cause**:
+- Playback recovery and YouTube chrome suppression are separate problems.
+- The prior mobile shield used `bg-black/85`, which was still translucent enough for YouTube iframe-internal share/watch-later/more-videos/logo chrome to remain visible.
+
+**Done (Codex1)**:
+- Kept the fix mobile-only in `WatchMobileLayout.tsx`.
+- Changed paused state to an opaque app shield (`opacity-100 bg-black`) so paused YouTube recommendations cannot show through.
+- Added top and bottom masks while app controls are visible during playback, preserving the video center while covering common YouTube chrome zones.
+- Updated watch regression tests to lock the opaque paused shield and mobile chrome masks.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (13/13).
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (363/363).
+
+**Status**: ready_for_qa; requires Codex2 Vercel/mobile visual retest after deploy.
+
 ### Session #MOBILE-001 Mobile-Only Play Handler - 2026-06-02 10:31
 
 **Goal**: Fix production mobile `/watch` play clicks without changing desktop playback behavior.

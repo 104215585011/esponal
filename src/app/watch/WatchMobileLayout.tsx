@@ -310,10 +310,28 @@ export function WatchMobileLayout({
         {/* Lightweight Play/Pause Overlay on video center */}
         <div
           data-testid="mobile-youtube-chrome-shield"
-          className={`absolute inset-0 z-20 flex items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${
-            showControls || !isPlaying ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 z-20 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
+            !isPlaying
+              ? "opacity-100 bg-black"
+              : showControls
+                ? "opacity-100 bg-transparent"
+                : "opacity-0 bg-transparent"
           }`}
         >
+          {isPlaying && showControls ? (
+            <>
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/90 via-black/45 to-transparent"
+                data-testid="mobile-youtube-top-chrome-mask"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black via-black/80 to-transparent"
+                data-testid="mobile-youtube-bottom-chrome-mask"
+              />
+            </>
+          ) : null}
           <button
             onClick={(e) => {
               e.stopPropagation();
