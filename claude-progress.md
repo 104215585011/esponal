@@ -1,3 +1,72 @@
+### QA Session #MOBILE-002 Functional QA - 2026-06-02 15:44
+
+**Goal**: Codex2 QA for MOBILE-002 lectura mobile redesign.
+
+**Result**: Passed functional/device-mode QA. Because MOBILE-002 is a UI ticket, `feature_list.json` remains `ready_for_qa` pending PM/user visual acceptance.
+
+**Verification**:
+- `npm run lint:encoding` -> pass (`Encoding check passed`).
+- `node --test tests/mobile002.test.mjs` -> pass (5/5).
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm test` -> pass (371/371).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+- Local Playwright QA on `http://localhost:3012`: mobile `/lectura` rendered without error boundary, 35 single-column cards, no sampled sky/purple badge classes; mobile `/lectura/la-tortuga-y-la-liebre` rendered without error boundary, bottom safe-area bar was inside 390x844 viewport, all five controls were >=44px, Aa cycled font size, lookup drawer hid the bar and closing restored it, mocked paragraph audio highlighted paragraph 0, auto-continued to paragraph 1 on `ended`, and stopped after the final paragraph. Desktop 1280x900 kept ReadingPreferences and ReadingDock visible while mobile bottom bar stayed hidden.
+
+**Notes**:
+- Did not touch untracked `docs/tickets/MOBILE-002.md`.
+- In-app Browser plugin was attempted, but its node bridge crashed in the Windows sandbox; equivalent local Playwright viewport QA was used instead.
+
+### Session #MOBILE-002 Lectura Mobile Minimal Green - 2026-06-02 15:29
+
+**Goal**: Implement the red-test-confirmed minimum for lectura mobile: bottom reading bar, responsive typography, mobile-hidden top read status, and paragraph audio auto-continue.
+
+**Done (Codex1)**:
+- Implemented the mobile article detail shell from `docs/tickets/MOBILE-002-design.md`: `px-5 pb-32 pt-6`, mobile-hidden top `LecturaReadStatus`, compact title/meta styling, and desktop isolation.
+- Polished `/lectura` card stream spacing, badge colors, read badge, and mobile active feedback.
+- Updated `LecturaReader.tsx` with responsive font-size classes, desktop-only `ReadingPreferences`, mobile-hidden paragraph play buttons, active paragraph highlight, and a `MobileReadingBar` that hides while `activeLookup` is open.
+- Added bottom bar controls for font-size cycling, previous/play/next paragraph audio, and read marking.
+- Updated paragraph audio so `ended` auto-continues to the next paragraph and stops at the final paragraph.
+- Avoided shared `LookupCard.tsx` / `MobileLookupSheet` changes and did not touch untracked `docs/tickets/MOBILE-002.md`.
+
+**Verification**:
+- Red check: `node --test tests/mobile002.test.mjs` failed 4/5 at the expected missing implementation points.
+- `node --test tests/mobile002.test.mjs` -> pass (5/5).
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (371/371).
+- `npm run build` -> pass with existing `<img>`, Sentry, and Redis warnings only.
+
+**Status**: ready_for_qa; Codex2 should run mobile/device-mode QA for `/lectura` and one `/lectura/[slug]`.
+
+### Session #MOBILE-002 LECTURA Mobile Design - 2026-06-02 14:38
+
+**Goal**: Draft complete mobile UI/UX redesign specifications for `/lectura` and `/lectura/[slug]` (badges, typography, active TTS highlighting, bilingual translation, floating bottom control bar) and isolate desktop viewports.
+
+**Done (Gemini1)**:
+- Generated detailed UI design spec at `docs/tickets/MOBILE-002-design.md` detailing Tailwind class mappings, badge updates (emerald/zinc), lyrics-style TTS styling, API pre-fetch for translations, and the floating safe bottom bar.
+- Documented collision prevention layout rules to prevent overlapping with MOBILE-000 bottom lookup sheets.
+- Updated `session-handoff.md` with UI Design Report and status `ready_for_implementation`.
+
+**Status**: ready_for_implementation; handed off to Codex1 for full-stack implementation.
+
+### Session #MOBILE-001 Remove App Chrome Shield and Restore Video Tap Toggle - 2026-06-02 14:19
+
+**Goal**: Stop the app-level YouTube chrome shield approach and restore the primary mobile interaction: tapping the video itself toggles play/pause.
+
+**Done (Codex1)**:
+- Removed mobile `showControls`, `shouldBlockYouTubeChrome`, `shouldCoverYouTubeChrome`, and the app-created black/frosted chrome shield from `WatchMobileLayout.tsx`.
+- Simplified `handlePlayerTap()` to call `handlePlayPause()` directly.
+- Removed the now-unused `playerState` chain from `WatchClient.tsx`.
+- Updated `tests/watch005.test.mjs` so it rejects the app shield state and asserts the video tap toggles playback.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (15/15).
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (366/366).
+- `npm run build` -> pass.
+
+**Status**: ready_for_qa; deployed mobile retest should prioritize play/pause tap behavior over YouTube iframe chrome suppression.
+
 ### Session #MOBILE-001 Mobile Mode Switches Restoration - 2026-06-02 13:55
 
 **Goal**: Restore the bilingual/monolingual switches ("双语 / 西语 / 中文") and sentence/line switches ("按句 / 按行") on mobile transcript panel.

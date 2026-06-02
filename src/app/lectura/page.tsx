@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 08:46
+// Timestamp: 2026-06-02 14:33
 // Keep for tests: border-emerald-100 ml-1.5 text-emerald-500
 import Link from "next/link";
 import { getServerSession } from "next-auth";
@@ -10,9 +10,9 @@ import { lecturaStories, type LecturaLevel } from "@/../content/lectura";
 export const dynamic = "force-dynamic";
 
 const levelStyle: Record<LecturaLevel, string> = {
-  A1: "bg-brand-100 text-brand-700",
-  A2: "bg-sky-100 text-sky-700",
-  B1: "bg-purple-100 text-purple-700"
+  A1: "bg-brand-50 dark:bg-brand-950/30 text-brand-700 dark:text-brand-400 border border-brand-200/30 dark:border-brand-800/20",
+  A2: "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50",
+  B1: "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200/30 dark:border-amber-800/20"
 };
 
 const levelOrder: Record<LecturaLevel, number> = { A1: 0, A2: 1, B1: 2 };
@@ -38,7 +38,7 @@ export default async function LecturaIndexPage() {
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
-      <section className="mx-auto max-w-app-shell px-4 py-10">
+      <section className="mx-auto max-w-app-shell px-4 py-6 md:py-10">
         <header className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100">
             Lectura · 西语短文阅读
@@ -76,30 +76,30 @@ export default async function LecturaIndexPage() {
           ) : null}
         </header>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {sortedStories.map((story) => {
             const isRead = readSlugs.has(story.slug);
 
             return (
               <Link
-                className={`group flex flex-col gap-3 rounded-surface border bg-surface p-5 shadow-card transition hover:-translate-y-[2px] hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-elevated ${
+                className={`group flex flex-col gap-3 rounded-2xl border p-4 md:p-5 shadow-card transition-all active:scale-[0.98] md:hover:-translate-y-[2px] md:hover:border-brand-200 md:dark:hover:border-brand-800 md:hover:shadow-elevated ${
                   isRead 
                     ? "border-brand-100/60 dark:border-brand-900/30 bg-brand-50/5 dark:bg-brand-950/2" 
-                    : "border-zinc-200/60 dark:border-zinc-800/60"
+                    : "border-zinc-200/60 dark:border-zinc-800/60 bg-surface"
                 }`}
                 href={`/lectura/${story.slug}`}
                 key={story.slug}
               >
                 <div className="flex items-center justify-between">
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${levelStyle[story.level]}`}
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${levelStyle[story.level]}`}
                   >
                     {story.level}
                   </span>
-                  <div className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-zinc-500">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
                     <span>{story.durationMin} min</span>
                     {isRead ? (
-                      <span className="inline-flex items-center rounded-full bg-brand-50/60 dark:bg-brand-950/20 px-1.5 py-0.5 text-[9px] font-bold text-brand-600 dark:text-brand-400">
+                      <span className="inline-flex items-center rounded-full bg-brand-50 dark:bg-brand-950/40 px-1.5 py-0.5 text-[9px] font-bold text-brand-600 dark:text-brand-400 border border-brand-100/50 dark:border-brand-900/30">
                         已读
                       </span>
                     ) : null}

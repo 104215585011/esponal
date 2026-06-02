@@ -1,7 +1,7 @@
-// Timestamp: 2026-06-02 13:33
+// Timestamp: 2026-06-02 14:19
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BackLink } from "@/app/components/web/BackLink";
 import { TranscriptPanel } from "./TranscriptPanel";
@@ -194,7 +194,6 @@ type WatchMobileLayoutProps = {
   handleSpeedChange: (speed: number) => void;
   handleSeek: (seconds: number) => void;
   isPlaying: boolean;
-  playerState: number | null;
   durationSec: number;
   volume: number;
   isMuted: boolean;
@@ -231,7 +230,6 @@ export function WatchMobileLayout({
   handleSpeedChange,
   handleSeek,
   isPlaying,
-  playerState,
   durationSec,
   volume,
   isMuted,
@@ -243,45 +241,12 @@ export function WatchMobileLayout({
   activeLookup
 }: WatchMobileLayoutProps) {
   const [mobileTab, setMobileTab] = useState<"transcript" | "related">("transcript");
-  // We keep showControls for the center video play/pause overlay only, but bottom controls are permanent
-  const [showControls, setShowControls] = useState(false);
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const shouldBlockYouTubeChrome = playerState === 2 || playerState === 0;
-  const shouldCoverYouTubeChrome = shouldBlockYouTubeChrome || showControls || !isPlaying;
-
-  const resetHidingTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 2000);
-  };
 
   const handlePlayerTap = () => {
-    if (!isPlaying) {
-      handlePlayPause();
-    } else {
-      setShowControls((prev) => {
-        const next = !prev;
-        if (next && isPlaying) {
-          resetHidingTimer();
-        }
-        return next;
-      });
-    }
+    handlePlayPause();
   };
-
-  useEffect(() => {
-    if (isPlaying && showControls) {
-      resetHidingTimer();
-    }
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [isPlaying, showControls]);
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -319,66 +284,6 @@ export function WatchMobileLayout({
           />
           {/* Invisible tap target layer */}
           <div className="absolute inset-0 z-10 cursor-pointer" />
-        </div>
-
-        {/* Lightweight Play/Pause Overlay on video center */}
-        <div
-          data-testid="mobile-youtube-chrome-shield"
-          className={`absolute inset-0 z-20 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
-            shouldCoverYouTubeChrome
-              ? "opacity-100 bg-zinc-950"
-              : "opacity-0 bg-transparent"
-          }`}
-          style={
-            shouldCoverYouTubeChrome
-              ? {
-                  backgroundImage: `linear-gradient(rgba(9, 9, 11, 0.62), rgba(9, 9, 11, 0.62)), url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`,
-                  backgroundPosition: "center",
-                  backgroundSize: "cover"
-                }
-              : undefined
-          }
-        >
-          {shouldCoverYouTubeChrome ? (
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 backdrop-blur-md"
-              data-testid="mobile-youtube-frosted-backdrop"
-            />
-          ) : null}
-          {shouldCoverYouTubeChrome ? (
-            <>
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/90 via-black/45 to-transparent"
-                data-testid="mobile-youtube-top-chrome-mask"
-              />
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black via-black/80 to-transparent"
-                data-testid="mobile-youtube-bottom-chrome-mask"
-              />
-            </>
-          ) : null}
-          {!activeLookup && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePlayPause();
-                if (isPlaying) {
-                  resetHidingTimer();
-                }
-              }}
-              className="h-12 w-12 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white shadow-xl active:scale-95 transition-all pointer-events-auto"
-              type="button"
-            >
-              {isPlaying ? (
-                <PauseIcon className="h-5 w-5 fill-current" />
-              ) : (
-                <PlayIcon className="h-5 w-5 fill-current ml-0.5" />
-              )}
-            </button>
-          )}
         </div>
       </div>
 

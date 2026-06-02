@@ -84,7 +84,7 @@ test("Watch Layout: WatchMobileLayout implements a collapsible volume slider", a
   assert.match(mobileLayout, /isVolumeOpen\s*\?\s*"w-12 opacity-100 mr-1"\s*:\s*"w-0 opacity-0"/);
 });
 
-test("Watch mobile layout suppresses native YouTube chrome without changing desktop iframe", async () => {
+test("Watch mobile layout keeps custom player params without changing desktop iframe", async () => {
   const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
   const desktopLayout = await readText("src/app/watch/WatchDesktopLayout.tsx");
 
@@ -94,33 +94,22 @@ test("Watch mobile layout suppresses native YouTube chrome without changing desk
   assert.match(mobileLayout, /iv_load_policy=3/);
   assert.match(mobileLayout, /modestbranding=1/);
   assert.match(mobileLayout, /pointer-events-none/);
-  assert.match(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
-  assert.match(mobileLayout, /const shouldCoverYouTubeChrome = shouldBlockYouTubeChrome \|\| showControls \|\| !isPlaying;/);
-  assert.match(mobileLayout, /shouldCoverYouTubeChrome\s*\?\s*"opacity-100 bg-zinc-950"/);
-  assert.match(mobileLayout, /backgroundImage: `linear-gradient\(rgba\(9, 9, 11, 0\.62\), rgba\(9, 9, 11, 0\.62\)\), url\(https:\/\/i\.ytimg\.com\/vi\/\$\{videoId\}\/hqdefault\.jpg\)`/);
-  assert.match(mobileLayout, /data-testid="mobile-youtube-frosted-backdrop"/);
+  assert.doesNotMatch(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
+  assert.doesNotMatch(mobileLayout, /shouldCoverYouTubeChrome|showControls|mobile-youtube-frosted-backdrop/);
 
   assert.doesNotMatch(desktopLayout, /controls=0/);
   assert.doesNotMatch(desktopLayout, /disablekb=1/);
   assert.doesNotMatch(desktopLayout, /data-testid="mobile-youtube-chrome-shield"/);
 });
 
-test("Watch mobile layout covers paused YouTube recommendations with an opaque app layer", async () => {
+test("Watch mobile video tap toggles playback instead of opening an app chrome shield", async () => {
   const clientText = await readText("src/app/watch/WatchClient.tsx");
   const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
 
-  assert.match(clientText, /const \[playerState, setPlayerState\] = useState<number \| null>\(null\)/);
-  assert.match(clientText, /setPlayerState\(event\.data\)/);
-  assert.match(clientText, /playerState,/);
-  assert.match(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
-  assert.match(mobileLayout, /playerState: number \| null/);
-  assert.match(mobileLayout, /const shouldBlockYouTubeChrome = playerState === 2 \|\| playerState === 0;/);
-  assert.match(mobileLayout, /shouldBlockYouTubeChrome \|\| showControls \|\| !isPlaying/);
-  assert.match(mobileLayout, /data-testid="mobile-youtube-top-chrome-mask"/);
-  assert.match(mobileLayout, /data-testid="mobile-youtube-bottom-chrome-mask"/);
-  assert.match(mobileLayout, /h-28 bg-gradient-to-t from-black/);
-  assert.match(mobileLayout, /shouldCoverYouTubeChrome\s*\?\s*"opacity-100 bg-zinc-950"/);
-  assert.match(mobileLayout, /backdrop-blur-md/);
+  assert.doesNotMatch(clientText, /playerState|setPlayerState/);
+  assert.match(mobileLayout, /const handlePlayerTap = \(\) => \{\s*handlePlayPause\(\);\s*\};/s);
+  assert.doesNotMatch(mobileLayout, /setShowControls|resetHidingTimer|shouldBlockYouTubeChrome|shouldCoverYouTubeChrome/);
+  assert.doesNotMatch(mobileLayout, /mobile-youtube-top-chrome-mask|mobile-youtube-bottom-chrome-mask|mobile-youtube-frosted-backdrop/);
   assert.match(mobileLayout, /isFullscreen \? "fixed inset-0 z-\[80\]"/);
   assert.match(mobileLayout, /isFullscreen \? "w-full flex-1 bg-black relative z-40 flex items-center justify-center"/);
   assert.match(mobileLayout, /isFullscreen \? "hidden" : "flex-1 flex flex-col min-h-0 bg-zinc-950"/);

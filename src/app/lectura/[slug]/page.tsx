@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-28 08:54
+// Timestamp: 2026-06-02 15:05
 import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/app/components/web/BackLink";
@@ -12,9 +12,9 @@ import { getLecturaStory, lecturaStories, type LecturaLevel } from "@/../content
 export const dynamic = "force-dynamic";
 
 const levelStyle: Record<LecturaLevel, string> = {
-  A1: "bg-brand-100 text-brand-700",
-  A2: "bg-sky-100 text-sky-700",
-  B1: "bg-purple-100 text-purple-700"
+  A1: "bg-brand-50 dark:bg-brand-950/30 text-brand-700 dark:text-brand-400 border border-brand-200/30 dark:border-brand-800/20",
+  A2: "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50",
+  B1: "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200/30 dark:border-amber-800/20"
 };
 
 export function generateStaticParams() {
@@ -53,20 +53,22 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
-      <article className="mx-auto max-w-3xl px-6 pb-24 pt-10">
+      <article className="mx-auto max-w-3xl px-5 pb-32 pt-6 md:px-6 md:pt-10">
         <div className="flex items-center justify-between gap-4">
           <BackLink href="/lectura" label="阅读" />
-          {userId ? <LecturaReadStatus isRead={isRead} slug={story.slug} /> : null}
+          <div className="hidden md:block">
+            {userId ? <LecturaReadStatus isRead={isRead} slug={story.slug} /> : null}
+          </div>
         </div>
 
-        <h1 className="mt-8 text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100 sm:text-4xl">
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 md:mt-8 md:text-3xl lg:text-4xl">
           {story.title}
         </h1>
-        <p className="mt-2 text-base text-gray-500 dark:text-zinc-400">{story.titleZh}</p>
+        <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 font-normal">{story.titleZh}</p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${levelStyle[story.level]}`}
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${levelStyle[story.level]}`}
           >
             {story.level}
           </span>
@@ -88,4 +90,3 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
     </main>
   );
 }
-
