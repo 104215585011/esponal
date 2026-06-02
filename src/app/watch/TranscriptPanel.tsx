@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 13:33
+// Timestamp: 2026-06-02 13:55
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -748,7 +748,12 @@ export function TranscriptPanel({
   useEffect(() => {
     if (!isMobile) return;
     setDisplayMode("bilingual");
-    setTranscriptMode("sentence");
+    const savedMode = localStorage.getItem("esponal_transcript_mode");
+    if (savedMode === "sentence" || savedMode === "cue") {
+      setTranscriptMode(savedMode as TranscriptMode);
+    } else {
+      setTranscriptMode("sentence");
+    }
   }, [isMobile]);
 
   const handleTranscriptModeChange = (mode: TranscriptMode) => {
@@ -1471,68 +1476,67 @@ export function TranscriptPanel({
   return (
     <section className={`relative flex h-full min-w-0 flex-col ${isMobile ? 'bg-transparent' : 'bg-surface'}`} ref={panelRef}>
       {/* Tab bar header */}
-      {!isMobile && (
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
-        <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
-          <button
-            className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-              displayMode === "bilingual" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
-            }`}
-            onClick={() => {
-              setDisplayMode("bilingual");
-              setFollowMode(true);
-            }}
-            type="button"
-          >
-            {isMobile ? "双语" : "ES + 中"}
-          </button>
-          <button
-            className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-              displayMode === "spanish" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
-            }`}
-            onClick={() => {
-              setDisplayMode("spanish");
-              setFollowMode(true);
-            }}
-            type="button"
-          >
-            仅西语
-          </button>
-          <button
-            className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-              displayMode === "chinese" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
-            }`}
-            onClick={() => {
-              setDisplayMode("chinese");
-              setFollowMode(true);
-            }}
-            type="button"
-          >
-            仅中文
-          </button>
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
+      {!isMobile ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
+          <div className="flex rounded-full bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
             <button
-              className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-                transcriptMode === "sentence" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+              className={`rounded-full px-3 py-1 transition ${
+                displayMode === "bilingual" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
               }`}
-              onClick={() => handleTranscriptModeChange("sentence")}
+              onClick={() => {
+                setDisplayMode("bilingual");
+                setFollowMode(true);
+              }}
               type="button"
             >
-              句子级
+              ES + 中
             </button>
             <button
-              className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
-                transcriptMode === "cue" ? (isMobile ? "bg-brand-500 text-white shadow" : "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm") : ""
+              className={`rounded-full px-3 py-1 transition ${
+                displayMode === "spanish" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
               }`}
-              onClick={() => handleTranscriptModeChange("cue")}
+              onClick={() => {
+                setDisplayMode("spanish");
+                setFollowMode(true);
+              }}
               type="button"
             >
-              逐行
+              仅西语
+            </button>
+            <button
+              className={`rounded-full px-3 py-1 transition ${
+                displayMode === "chinese" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+              }`}
+              onClick={() => {
+                setDisplayMode("chinese");
+                setFollowMode(true);
+              }}
+              type="button"
+            >
+              仅中文
             </button>
           </div>
-          {!isMobile && (
+          <div className="ml-auto flex items-center gap-3">
+            <div className="flex rounded-full bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
+              <button
+                className={`rounded-full px-3 py-1 transition ${
+                  transcriptMode === "sentence" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+                }`}
+                onClick={() => handleTranscriptModeChange("sentence")}
+                type="button"
+              >
+                句子级
+              </button>
+              <button
+                className={`rounded-full px-3 py-1 transition ${
+                  transcriptMode === "cue" ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm" : ""
+                }`}
+                onClick={() => handleTranscriptModeChange("cue")}
+                type="button"
+              >
+                逐行
+              </button>
+            </div>
             <button
               aria-label="下载当前字幕为 PDF 讲义"
               className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1 text-[11.5px] font-semibold text-zinc-600 dark:text-zinc-300 shadow-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1552,9 +1556,69 @@ export function TranscriptPanel({
               )}
               <span>{isGeneratingPdf ? "生成中..." : "下载 PDF"}</span>
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center justify-between border-b border-zinc-800/80 px-4 py-2.5 bg-zinc-950/20 shrink-0 font-display">
+          <div className="flex rounded-full bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px] font-semibold text-zinc-400">
+            <button
+              className={`px-3 py-1 rounded-full transition ${
+                displayMode === "bilingual" ? "bg-brand-500 text-white shadow" : ""
+              }`}
+              onClick={() => {
+                setDisplayMode("bilingual");
+                setFollowMode(true);
+              }}
+              type="button"
+            >
+              双语
+            </button>
+            <button
+              className={`px-3 py-1 rounded-full transition ${
+                displayMode === "spanish" ? "bg-brand-500 text-white shadow" : ""
+              }`}
+              onClick={() => {
+                setDisplayMode("spanish");
+                setFollowMode(true);
+              }}
+              type="button"
+            >
+              西语
+            </button>
+            <button
+              className={`px-3 py-1 rounded-full transition ${
+                displayMode === "chinese" ? "bg-brand-500 text-white shadow" : ""
+              }`}
+              onClick={() => {
+                setDisplayMode("chinese");
+                setFollowMode(true);
+              }}
+              type="button"
+            >
+              中文
+            </button>
+          </div>
+          <div className="flex rounded-full bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px] font-semibold text-zinc-400">
+            <button
+              className={`px-3 py-1 rounded-full transition ${
+                transcriptMode === "sentence" ? "bg-brand-500 text-white shadow" : ""
+              }`}
+              onClick={() => handleTranscriptModeChange("sentence")}
+              type="button"
+            >
+              按句
+            </button>
+            <button
+              className={`px-3 py-1 rounded-full transition ${
+                transcriptMode === "cue" ? "bg-brand-500 text-white shadow" : ""
+              }`}
+              onClick={() => handleTranscriptModeChange("cue")}
+              type="button"
+            >
+              按行
+            </button>
+          </div>
+        </div>
       )}
 
       <div

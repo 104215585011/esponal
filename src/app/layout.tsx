@@ -26,6 +26,7 @@ export const metadata: Metadata = {
     title: "Esponal"
   },
   icons: {
+    icon: "/favicon.ico",
     apple: "/icons/icon-192.png"
   }
 };

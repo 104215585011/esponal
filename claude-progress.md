@@ -1,3 +1,35 @@
+### Session #MOBILE-001 Mobile Mode Switches Restoration - 2026-06-02 13:55
+
+**Goal**: Restore the bilingual/monolingual switches ("双语 / 西语 / 中文") and sentence/line switches ("按句 / 按行") on mobile transcript panel.
+
+**Done (Codex1)**:
+- Updated `TranscriptPanel.tsx` to branch the header toolbar: desktop gets the original layout, and mobile gets a dedicated, compact flex toolbar styled with HSL-tailored colors (`bg-zinc-900/60`, `border-zinc-800/60`, `text-[10px]`) which fits neatly on mobile screens.
+- Modified the `isMobile` useEffect inside `TranscriptPanel.tsx` to respect user's saved `localStorage` preference for `transcriptMode` instead of hardcoding "sentence" mode on mount.
+
+**Verification**:
+- `npm test` -> pass (366/366).
+- `npm run build` -> pass.
+
+**Status**: ready_for_qa.
+
+### Session #MOBILE-001 Mobile Control-State Chrome Shield - 2026-06-02 13:49
+
+**Goal**: Hide YouTube iframe-internal share/watch-later/more-videos/logo chrome when the user taps the mobile video while it is playing.
+
+**Done (Codex1)**:
+- Updated `WatchMobileLayout.tsx` to derive `shouldCoverYouTubeChrome = shouldBlockYouTubeChrome || showControls || !isPlaying`.
+- Changed the mobile chrome shield to fully opaque `opacity-100 bg-zinc-950` while app controls are visible, so YouTube's iframe-internal chrome cannot show through during the control overlay window.
+- Left desktop watch layout untouched.
+- Updated `tests/watch005.test.mjs` to reject the old `showControls -> bg-transparent` leak.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (15/15).
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (366/366).
+- `npm run build` -> pass.
+
+**Status**: ready_for_qa; needs Codex2 deployed mobile/Vercel visual retest.
+
 ### Session #MOBILE-001 Mobile Player UI and Typography Polish - 2026-06-02 13:35
 
 **Goal**: Optimize mobile video paused state overlay, glassmorphic play button, hide play button during word lookups, and refine transcript panel mobile typography and colors.

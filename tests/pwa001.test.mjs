@@ -34,6 +34,18 @@ test("PWA-001 icon assets exist and are non-trivial PNGs", async () => {
   }
 });
 
+test("PWA-001 exposes a default favicon for browser /favicon.ico requests", async () => {
+  const faviconPath = "public/favicon.ico";
+  const layoutPath = "src/app/layout.tsx";
+
+  assert.equal(existsSync(faviconPath), true, `${faviconPath} missing`);
+  const info = await stat(faviconPath);
+  assert.ok(info.size > 1024, `${faviconPath} should be larger than 1KB`);
+
+  const layout = await readText(layoutPath);
+  assert.match(layout, /icon:\s*"\/favicon\.ico"/);
+});
+
 test("PWA-001 service worker wiring exists", async () => {
   const swPath = "src/sw.ts";
   const publicSwPath = "public/sw.js";

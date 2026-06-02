@@ -1,3 +1,62 @@
+## Codex1 Dev Report: MOBILE-001 Mobile Mode Switches Restoration
+**Time**: 2026-06-02 13:55
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Scope**:
+- Mobile watch page transcript header toolbar.
+- Desktop layout was not changed.
+
+**Problem corrected**:
+- Toggling between "按句" (sentence mode) and "按行" (cue mode) was lost on mobile viewport, along with language filters (Bilingual/Monolingual), because the entire header toolbar was previously wrapped in `!isMobile`.
+
+**Implementation**:
+- Updated `TranscriptPanel.tsx` to conditionally branch the header layout:
+  - If `!isMobile`, renders the full-width desktop layout header containing all tabs and controls.
+  - If `isMobile`, renders a dedicated compact toolbar. Displays "双语 / 西语 / 中文" and "按句 / 按行" switches side-by-side using HSL-tailored compact selectors (`text-[10px] bg-zinc-900/60 p-0.5 border border-zinc-800/60`).
+- Updated the `isMobile` useEffect inside `TranscriptPanel.tsx` to read the user's persisted choice from `localStorage` instead of defaulting to `"sentence"` mode on every resolution.
+
+**Verification**:
+- `npm test` -> PASS (366/366 tests pass).
+- `npm run build` -> PASS (compiled successfully).
+
+**Next**:
+- Codex2 should verify on mobile viewport that both toggle switch groups ("双语 / 西语 / 中文" and "按句 / 按行") appear at the top of the transcript panel and work correctly.
+
+---
+
+## Codex1 Dev Report: MOBILE-001 Mobile Control-State Chrome Shield
+**Time**: 2026-06-02 13:49
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Scope**:
+- Mobile watch player only.
+- Desktop watch layout was not changed.
+
+**Problem corrected**:
+- User confirmed mobile playback works, but tapping the video while it is playing still lets YouTube iframe-internal chrome leak through: share, watch-later, "more videos", and YouTube logo.
+- Previous player-state shield covered paused/ended/unstarted states, but playing + app-control-visible state was still transparent.
+
+**Implementation**:
+- Added `shouldCoverYouTubeChrome = shouldBlockYouTubeChrome || showControls || !isPlaying` in `WatchMobileLayout.tsx`.
+- The mobile chrome shield now uses fully opaque `opacity-100 bg-zinc-950` whenever app controls are visible, paused/ended, or not playing.
+- The center app control remains our own glass button; YouTube iframe chrome is hidden behind the app layer.
+- Updated `tests/watch005.test.mjs` so the regression no longer accepts the old `showControls -> bg-transparent` leak.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> PASS (15/15).
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (366/366).
+- `npm run build` -> PASS (compiled successfully with existing `img` and Sentry warnings unchanged).
+
+**Next**:
+- Codex2 must verify on deployed mobile/Vercel: play `https://esponalsssssss.vercel.app/watch?v=L71UG68wRMI`, tap the video while playing, and confirm no YouTube share/watch-later/more-videos/logo chrome remains visible. Desktop watch must be unchanged.
+
+---
+
 ## Codex1 Dev Report: MOBILE-001 Mobile Player UI and Typography Polish
 **Time**: 2026-06-02 13:35
 **From**: Codex1 (DEV)

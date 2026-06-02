@@ -249,6 +249,7 @@ export function WatchMobileLayout({
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const shouldBlockYouTubeChrome = playerState === 2 || playerState === 0;
+  const shouldCoverYouTubeChrome = shouldBlockYouTubeChrome || showControls || !isPlaying;
 
   const resetHidingTimer = () => {
     if (timerRef.current) {
@@ -324,14 +325,12 @@ export function WatchMobileLayout({
         <div
           data-testid="mobile-youtube-chrome-shield"
           className={`absolute inset-0 z-20 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
-            shouldBlockYouTubeChrome || !isPlaying
-              ? "opacity-100 bg-zinc-950/40 backdrop-blur-[3px]"
-              : showControls
-                ? "opacity-100 bg-transparent"
-                : "opacity-0 bg-transparent"
+            shouldCoverYouTubeChrome
+              ? "opacity-100 bg-zinc-950"
+              : "opacity-0 bg-transparent"
           }`}
         >
-          {isPlaying && showControls ? (
+          {shouldCoverYouTubeChrome ? (
             <>
               <div
                 aria-hidden="true"

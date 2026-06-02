@@ -117,11 +117,33 @@ async function writeIcon(filename, size, insetRatio) {
   fillRoundedRect(pixels, size, inset, radius, brand);
   drawLetterE(pixels, size, Math.round(size * (insetRatio + 0.12)));
 
-  await writeFile(new URL(filename, outputDir), createPng(size, size, pixels));
+  const png = createPng(size, size, pixels);
+  await writeFile(new URL(filename, outputDir), png);
+  return png;
+}
+
+function createIcoFromPng(png, size) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(1, 4);
+
+  const directory = Buffer.alloc(16);
+  directory[0] = size >= 256 ? 0 : size;
+  directory[1] = size >= 256 ? 0 : size;
+  directory[2] = 0;
+  directory[3] = 0;
+  directory.writeUInt16LE(1, 4);
+  directory.writeUInt16LE(32, 6);
+  directory.writeUInt32LE(png.length, 8);
+  directory.writeUInt32LE(header.length + directory.length, 12);
+
+  return Buffer.concat([header, directory, png]);
 }
 
 await mkdir(outputDir, { recursive: true });
-await writeIcon("icon-192.png", 192, 0.08);
+const faviconPng = await writeIcon("icon-192.png", 192, 0.08);
 await writeIcon("icon-512.png", 512, 0.08);
 await writeIcon("icon-maskable-192.png", 192, 0.04);
 await writeIcon("icon-maskable-512.png", 512, 0.04);
+await writeFile(new URL("../favicon.ico", outputDir), createIcoFromPng(faviconPng, 192));
