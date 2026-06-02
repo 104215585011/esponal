@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 10:31
+// Timestamp: 2026-06-02 13:33
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -106,6 +106,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const [subtitleCues, setSubtitleCues] = useState<any[]>([]);
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playerState, setPlayerState] = useState<number | null>(null);
   const [durationSec, setDurationSec] = useState(0);
   const [volume, setVolume] = useState(100);
   const [isMuted, setIsMuted] = useState(false);
@@ -340,6 +341,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
               }
             },
             onStateChange: (event: any) => {
+              setPlayerState(event.data);
               const ended = yt.PlayerState?.ENDED ?? 0;
               const playing = yt.PlayerState?.PLAYING ?? 1;
               const buffering = yt.PlayerState?.BUFFERING ?? 3;
@@ -600,12 +602,14 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
     handleSpeedChange,
     handleSeek,
     isPlaying,
+    playerState,
     durationSec,
     volume,
     isMuted,
     handlePlayPause,
     handleVolumeChange,
-    handleToggleMute
+    handleToggleMute,
+    activeLookup
   };
 
   return isMobile ? (

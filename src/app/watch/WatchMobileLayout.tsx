@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 09:20
+// Timestamp: 2026-06-02 13:33
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -194,6 +194,7 @@ type WatchMobileLayoutProps = {
   handleSpeedChange: (speed: number) => void;
   handleSeek: (seconds: number) => void;
   isPlaying: boolean;
+  playerState: number | null;
   durationSec: number;
   volume: number;
   isMuted: boolean;
@@ -202,6 +203,7 @@ type WatchMobileLayoutProps = {
   handleToggleMute: () => void;
   handlePrevSentence: () => void;
   handleNextSentence: () => void;
+  activeLookup?: any;
 };
 
 export function WatchMobileLayout({
@@ -229,6 +231,7 @@ export function WatchMobileLayout({
   handleSpeedChange,
   handleSeek,
   isPlaying,
+  playerState,
   durationSec,
   volume,
   isMuted,
@@ -236,7 +239,8 @@ export function WatchMobileLayout({
   handleVolumeChange,
   handleToggleMute,
   handlePrevSentence,
-  handleNextSentence
+  handleNextSentence,
+  activeLookup
 }: WatchMobileLayoutProps) {
   const [mobileTab, setMobileTab] = useState<"transcript" | "related">("transcript");
   // We keep showControls for the center video play/pause overlay only, but bottom controls are permanent
@@ -244,6 +248,7 @@ export function WatchMobileLayout({
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldBlockYouTubeChrome = playerState === 2 || playerState === 0;
 
   const resetHidingTimer = () => {
     if (timerRef.current) {
@@ -319,8 +324,8 @@ export function WatchMobileLayout({
         <div
           data-testid="mobile-youtube-chrome-shield"
           className={`absolute inset-0 z-20 flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
-            !isPlaying
-              ? "opacity-100 bg-black"
+            shouldBlockYouTubeChrome || !isPlaying
+              ? "opacity-100 bg-zinc-950/40 backdrop-blur-[3px]"
               : showControls
                 ? "opacity-100 bg-transparent"
                 : "opacity-0 bg-transparent"
@@ -340,23 +345,25 @@ export function WatchMobileLayout({
               />
             </>
           ) : null}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePlayPause();
-              if (isPlaying) {
-                resetHidingTimer();
-              }
-            }}
-            className="h-16 w-16 flex items-center justify-center rounded-full bg-brand-500 hover:bg-brand-600 text-white shadow-xl active:scale-95 transition-all pointer-events-auto"
-            type="button"
-          >
-            {isPlaying ? (
-              <PauseIcon className="h-7 w-7 fill-current" />
-            ) : (
-              <PlayIcon className="h-7 w-7 fill-current ml-1" />
-            )}
-          </button>
+          {!activeLookup && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePlayPause();
+                if (isPlaying) {
+                  resetHidingTimer();
+                }
+              }}
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white shadow-xl active:scale-95 transition-all pointer-events-auto"
+              type="button"
+            >
+              {isPlaying ? (
+                <PauseIcon className="h-5 w-5 fill-current" />
+              ) : (
+                <PlayIcon className="h-5 w-5 fill-current ml-0.5" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 

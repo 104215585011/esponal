@@ -1,3 +1,39 @@
+### Session #MOBILE-001 Mobile Player UI and Typography Polish - 2026-06-02 13:35
+
+**Goal**: Optimize mobile video paused state overlay, glassmorphic play button, hide play button during word lookups, and refine transcript panel mobile typography and colors.
+
+**Done (Codex1)**:
+- Passed `activeLookup` state from `WatchClient.tsx` to `WatchMobileLayout.tsx`.
+- Updated `WatchMobileLayout.tsx` to use `bg-zinc-950/40 backdrop-blur-[3px]` for the paused overlay instead of solid `bg-black`, allowing users to see the blurred current frame.
+- Changed the giant green play button to a sleek glassmorphic white button (`h-12 w-12 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white`).
+- Configured the center play button to be hidden when `activeLookup` is active (word lookup sheet is open).
+- Refined `TranscriptPanel.tsx` mobile styles: removed fuzzy `blur-[0.3px]` filter on inactive sentences, changed inactive opacity to `opacity-45`, standardized Spanish font size to `text-xl` (active: `font-bold text-zinc-50`, inactive: `font-semibold text-zinc-500`), standardized Chinese translation font size to `text-sm` (active: `font-normal text-zinc-400`, inactive: `font-normal text-zinc-700`).
+
+**Verification**:
+- `npm test` -> pass (365/365).
+- `npm run build` -> pass.
+
+**Status**: ready_for_qa.
+
+### Session #MOBILE-001 Player-State Chrome Shield - 2026-06-02 12:25
+
+**Goal**: Make the mobile YouTube chrome shield follow real IFrame API states instead of inferring pause/end from `isPlaying`.
+
+**Done (Codex1)**:
+- Added `playerState` in `WatchClient` and update it from YouTube `onStateChange(event.data)`.
+- Passed `playerState` into `WatchMobileLayout`.
+- Added `shouldBlockYouTubeChrome = playerState === 2 || playerState === 0`.
+- Kept the overlay mobile-only and desktop layout untouched.
+- Updated `tests/watch005.test.mjs` with a red-to-green regression for the state-driven shield contract.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (15/15).
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (365/365).
+- `npm run build` -> pass (Compiled successfully; existing `img` and Sentry warnings unchanged).
+
+**Status**: ready_for_qa; deploy and retest pause/end overlay on real mobile/Vercel.
+
 ### Session #MOBILE-001 Sentence Highlight Follow-up - 2026-06-02 12:10
 
 **Goal**: Correct the remaining mobile sentence-mode active-word drift and re-verify the entire watch mobile surface.

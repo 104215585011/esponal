@@ -103,10 +103,16 @@ test("Watch mobile layout suppresses native YouTube chrome without changing desk
 });
 
 test("Watch mobile layout covers paused YouTube recommendations with an opaque app layer", async () => {
+  const clientText = await readText("src/app/watch/WatchClient.tsx");
   const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
 
+  assert.match(clientText, /const \[playerState, setPlayerState\] = useState<number \| null>\(null\)/);
+  assert.match(clientText, /setPlayerState\(event\.data\)/);
+  assert.match(clientText, /playerState,/);
   assert.match(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
-  assert.match(mobileLayout, /!\s*isPlaying\s*\?\s*"opacity-100 bg-black"/);
+  assert.match(mobileLayout, /playerState: number \| null/);
+  assert.match(mobileLayout, /const shouldBlockYouTubeChrome = playerState === 2 \|\| playerState === 0;/);
+  assert.match(mobileLayout, /shouldBlockYouTubeChrome \|\| !isPlaying/);
   assert.match(mobileLayout, /data-testid="mobile-youtube-top-chrome-mask"/);
   assert.match(mobileLayout, /data-testid="mobile-youtube-bottom-chrome-mask"/);
   assert.match(mobileLayout, /h-28 bg-gradient-to-t from-black/);
