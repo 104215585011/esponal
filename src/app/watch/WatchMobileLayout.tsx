@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 08:55
+// Timestamp: 2026-06-02 09:20
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -288,11 +288,11 @@ export function WatchMobileLayout({
   }, []);
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col bg-zinc-950 overflow-hidden">
+    <div className={`flex h-[100dvh] w-full flex-col bg-zinc-950 overflow-hidden ${isFullscreen ? "fixed inset-0 z-[80]" : ""}`}>
       {/* 1. Pure Video Area (Top) */}
       <div
         ref={playerContainerRef}
-        className="w-full shrink-0 bg-black aspect-video relative z-40"
+        className={isFullscreen ? "w-full flex-1 bg-black relative z-40" : "w-full shrink-0 bg-black aspect-video relative z-40"}
       >
         <div className="w-full h-full relative" onClick={handlePlayerTap}>
           <iframe
@@ -310,7 +310,7 @@ export function WatchMobileLayout({
         {/* Lightweight Play/Pause Overlay on video center */}
         <div
           data-testid="mobile-youtube-chrome-shield"
-          className={`absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${
+          className={`absolute inset-0 z-20 flex items-center justify-center bg-black/85 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${
             showControls || !isPlaying ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -335,7 +335,7 @@ export function WatchMobileLayout({
       </div>
 
       {/* 2. Content Area (Middle, Scrollable) */}
-      <div className="flex-1 flex flex-col min-h-0 bg-zinc-950">
+      <div className={isFullscreen ? "hidden" : "flex-1 flex flex-col min-h-0 bg-zinc-950"}>
         {/* Title and Back Header */}
         <div className="shrink-0 px-4 pt-4 pb-2">
           <div className="flex items-center gap-3">

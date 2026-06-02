@@ -25,6 +25,17 @@ test("VOCAB-009 Phase A adds SpanishText component with reviewed props and visua
   assert.match(source, /TODO:.*roving tabindex/i);
 });
 
+test("VOCAB-009 SpanishText lookup card floats above course overflow containers", async () => {
+  const source = await readText("src/app/components/vocab/SpanishText.tsx");
+
+  assert.match(source, /createPortal/);
+  assert.match(source, /document\.body/);
+  assert.match(source, /position:\s*"fixed"/);
+  assert.match(source, /anchorY/);
+  assert.match(source, /rect\.left \+ rect\.width \/ 2/);
+  assert.match(source, /rect\.bottom/);
+});
+
 test("VOCAB-009 Phase A extends lookup source types and vocab save sourceType handling", async () => {
   const lookupCard = await readText("src/app/watch/LookupCard.tsx");
   const route = await readText("src/app/api/vocab/add/route.ts");

@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-27 08:45
+// Timestamp: 2026-06-02 09:12
 "use client";
 
 import Link from "next/link";
@@ -62,7 +62,7 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
 
       {analysis && analysis !== "loading" && analysis !== "error" ? (
         <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-4">
-          <div className="flex flex-nowrap overflow-x-auto gap-3 pb-1">
+          <div className="flex flex-nowrap items-start overflow-x-auto gap-4 pb-2">
             {analysis.tokens.map((token, index) => {
               const impliedSubject =
                 analysis.impliedSubject?.insertBeforeIndex === index
@@ -72,17 +72,17 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
               return (
                 <div className="contents" key={`${token.form}-${index}`}>
                   {impliedSubject ? (
-                    <div className="inline-flex flex-col items-center min-w-[2rem]">
-                      <span className="bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 rounded px-1.5 font-medium">
+                    <div className="inline-flex shrink-0 flex-col items-center min-w-[3.5rem] max-w-[8rem] text-center">
+                      <span className="whitespace-nowrap bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 rounded px-1.5 font-medium">
                         ({impliedSubject.pronoun})
                       </span>
-                      <span className="italic text-brand-400 dark:text-brand-500">[{impliedSubject.english}]</span>
+                      <span className="max-w-full break-words text-sm italic leading-tight text-brand-400 dark:text-brand-500">[{impliedSubject.english}]</span>
                       <span className="text-[10px] text-brand-300 dark:text-brand-700">省略</span>
                     </div>
                   ) : null}
-                  <div className="inline-flex flex-col items-center min-w-[2rem]">
-                    <span className="text-lg font-medium text-zinc-900 dark:text-zinc-50">{token.form}</span>
-                    <span className="text-sm text-zinc-400 dark:text-zinc-500">
+                  <div className="inline-flex shrink-0 flex-col items-center min-w-[3.5rem] max-w-[8rem] text-center">
+                    <span className="whitespace-nowrap text-lg font-medium text-zinc-900 dark:text-zinc-50">{token.form}</span>
+                    <span className="max-w-full break-words text-sm leading-tight text-zinc-400 dark:text-zinc-500">
                       {token.isPunctuation ? "" : token.english}
                     </span>
                   </div>
@@ -455,5 +455,4 @@ export function DissectorClient() {
     </div>
   );
 }
-
 

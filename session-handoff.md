@@ -1,3 +1,84 @@
+## Codex1 Dev Report: MOBILE-001 Runtime Follow-up
+**Time**: 2026-06-02 09:20
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / User
+**Status**: ready_for_qa
+
+**Scope**:
+- Mobile `/watch` only. Desktop player layout and iframe parameters were not changed.
+
+**Root Cause**:
+- YouTube pause-state recommendations/share chrome are rendered inside the cross-origin iframe, so the existing transparent tap shield cannot hide them.
+- Mobile fullscreen was wired, but failed native `requestFullscreen()` calls were not actionable on device; the runtime path needed diagnostics and a mobile app-fullscreen fallback.
+
+**Implemented**:
+- Strengthened the mobile video shield to `bg-black/85` while controls are visible or playback is paused, covering YouTube pause recommendation chrome with our own app overlay.
+- Added mobile fullscreen diagnostics with `fullscreenEnabled`, current fullscreen state, error name/message, and `navigator.userAgent`.
+- Added a mobile fallback: when native fullscreen is unavailable or the request fails, the mobile watch layout enters an app-level fullscreen mode (`fixed inset-0 z-[80]`), expands the player, and hides the transcript content area.
+- Added regression coverage in `tests/watch005.test.mjs`.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> PASS (11/11).
+- `node --test tests/course006.test.mjs tests/vocab009.test.mjs tests/talk005.test.mjs tests/watch005.test.mjs` -> PASS (25/25).
+- `npm run lint:encoding` -> PASS.
+- `git diff --check` -> PASS (CRLF warning only for existing `claude-progress.md`).
+- `npm test` -> PASS (361/361).
+- `npm run build` -> PASS (existing `<img>` and Sentry warnings only).
+
+**Codex2 QA Focus**:
+- On an actual phone or Chrome mobile device mode, pause the video and verify YouTube share/more-video chrome is hidden by the app overlay.
+- Tap the fullscreen button and verify either native fullscreen works or the app-level fullscreen fallback expands the video; check console diagnostics if native fullscreen fails.
+
+---
+
+## Codex1 Dev Report: Dissect Interlinear Gloss Anti-Overlap Fix
+**Time**: 2026-06-02 09:12
+**From**: Codex1 (DEV)
+**To**: User / Codex2 (optional QA)
+**Status**: ready_for_review
+
+**Root Cause**:
+- `/dissect` desktop interlinear gloss columns were flex children without `shrink-0`.
+- Long Spanish tokens / English glosses could force columns to collapse, making adjacent tokens visually pile up instead of scrolling horizontally.
+
+**Implemented**:
+- Updated `src/app/dissect/DissectorClient.tsx` interlinear gloss layout to keep token columns `shrink-0`, `min-w-[3.5rem]`, and `max-w-[8rem]`.
+- Kept Spanish token text `whitespace-nowrap`.
+- Let English gloss text wrap within its own column via `break-words` and `leading-tight`.
+- Added regression coverage in `tests/course006.test.mjs`.
+
+**Verification**:
+- `node --test tests/course006.test.mjs` -> PASS (5/5).
+- `npm test` -> PASS (359/359).
+- `npm run build` -> PASS (existing `<img>` and Sentry warnings only).
+
+---
+
+## Codex1 Dev Report: Course Lookup Card Floating Fix
+**Time**: 2026-06-02 09:03
+**From**: Codex1 (DEV)
+**To**: User / Codex2 (optional QA)
+**Status**: ready_for_review
+
+**Root Cause**:
+- Course foundation pages render Spanish lookup text inside card/table containers that use `overflow-hidden`.
+- `SpanishText` previously rendered `LookupCardStack` as an inline `absolute top-full` child of the clicked word, so the lookup card could be clipped or visually embedded inside the course table instead of floating above the page.
+
+**Implemented**:
+- Updated `src/app/components/vocab/SpanishText.tsx` to render desktop lookup cards through `createPortal(..., document.body)`.
+- Changed lookup positioning to viewport-fixed coordinates based on the clicked token's center X and bottom Y, while preserving the TALK-005 sidebar clamp and normal 8px viewport clamp.
+- Added regression coverage in `tests/vocab009.test.mjs` for portal + fixed positioning.
+- Updated `tests/talk005.test.mjs` to lock the new centered fixed-position clamp formula.
+
+**Verification**:
+- `node --test tests/vocab009.test.mjs tests/vocab004.test.mjs tests/vocab008.test.mjs tests/phrase001-frontend.test.mjs tests/talk005.test.mjs` -> PASS (24/24).
+- `npm run lint:encoding` -> PASS.
+- `git diff --check` -> PASS.
+- `npm test` -> PASS (358/358).
+- `npm run build` -> PASS (existing `<img>` and Sentry warnings only).
+
+---
+
 ## Codex1 Dev Report: Mobile YouTube Native Chrome Suppression Trial
 **Time**: 2026-06-02 08:55
 **From**: Codex1 (DEV)
@@ -10632,3 +10713,22 @@ Gemini1 更新设计稿 → Codex1 实现(播放控制逻辑 + 全站换色)→ 
 ### 流程
 Codex1 修复 → Codex2 QA(**含设备模式实际打开 watch/lectura/首页不崩**)→ 用户真机 → Claude1 验收。
 **下一步**:交 Codex1 修这个 P0。
+
+---
+
+## ▶ 追加 Codex1 — MOBILE-001 播放器两处修复(P0 已修后)  [Claude1 PM, 2026-06-01]
+
+P0 useSession 崩溃已修(页面正常渲染)。用户真机又发现两处播放器问题:
+
+### 修复1:暂停时遮住 YouTube 推荐覆盖层
+- 现状:iframe 已 `pointer-events-none`(line 301)+ 透明遮罩 `z-10`(line 307)+ 参数齐(modestbranding/rel=0/iv_load_policy=3)。基础对的。
+- 残留:**YouTube 暂停时自动弹的"更多视频/分享"推荐层**,渲染在 iframe 内部,外层遮罩挡不住。
+- 改:**视频暂停时,用一层不透明覆盖盖住 iframe**(显示我们自己的暂停态/封面),播放时移除。现有 line 313 那个 z-20 中心覆盖是 `bg-black/70` 半透明 + pointer-events-none,可改造成暂停态不透明遮挡。
+
+### 修复2:全屏运行时失效(代码已接,运行时不生效)
+- 接线完整:按钮(WatchMobileLayout:578)+ toggleFullscreen(WatchClient:115,对 playerContainerRef.requestFullscreen())+ ref 已挂(WatchMobileLayout:294)。**不是缺接线。**
+- 问题:`requestFullscreen()` 在移动端对"装跨域 iframe 的 div"常失败;WatchClient:118 的 `.catch()` **把错误默默吞了**,所以点了无反应、无提示。
+- 让 Codex1:① 先把 catch 里的错误打出来/在真机看具体报错(根因优先,别猜);② iOS 不支持 div 全屏需降级方案;③ 确认全屏时 iframe 真的填满(aspect-video 容器全屏可能letterbox);④ Codex2 必须真机点全屏验证,不能只看代码。
+
+### 流程
+Codex1 修 → Codex2 真机 QA(暂停无 YouTube 覆盖层 + 全屏真生效)→ 用户真机 → Claude1 验收。

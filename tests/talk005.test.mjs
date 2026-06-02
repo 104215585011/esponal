@@ -14,8 +14,8 @@ test("TALK-005 clamps talk lookup popovers away from sidebar and viewport edges"
   assert.match(spanishText, /window\.innerWidth >= 1024/);
   assert.match(spanishText, /SIDEBAR_W_LG \+ LOOKUP_PADDING/);
   assert.match(spanishText, /window\.innerWidth - LOOKUP_CARD_W - LOOKUP_PADDING/);
-  assert.match(spanishText, /Math\.max\(minLeft,\s*Math\.min\(anchorX,\s*maxLeft\)\)/);
-  assert.match(spanishText, /getLookupAnchorOffset/);
+  assert.match(spanishText, /Math\.max\(minLeft,\s*Math\.min\(anchorX - LOOKUP_CARD_W \/ 2,\s*maxLeft\)\)/);
+  assert.match(spanishText, /getLookupViewportLeft/);
 });
 
 test("TALK-005 keeps non-talk lookup pages on the normal 8px viewport lower bound", async () => {

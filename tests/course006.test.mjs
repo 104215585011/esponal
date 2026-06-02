@@ -77,9 +77,9 @@ test("COURSE-006 prompt and client source lock the new implied-subject cases and
 test("COURSE-006 interlinear gloss UI uses aligned token columns and separate natural English footer", async () => {
   const client = await readText("src/app/dissect/DissectorClient.tsx");
 
-  assert.match(client, /flex flex-nowrap overflow-x-auto/);
-  assert.match(client, /inline-flex flex-col items-center/);
-  assert.match(client, /min-w-\[2rem\]/);
+  assert.match(client, /flex flex-nowrap items-start overflow-x-auto/);
+  assert.match(client, /inline-flex shrink-0 flex-col items-center/);
+  assert.match(client, /min-w-\[3\.5rem\]/);
   assert.match(client, /bg-brand-50/);
   assert.match(client, /text-brand-600/);
   assert.match(client, /rounded/);
@@ -89,4 +89,14 @@ test("COURSE-006 interlinear gloss UI uses aligned token columns and separate na
   assert.match(client, /text-\[10px\]/);
   assert.match(client, /text-brand-300/);
   assert.match(client, /border-t/);
+});
+
+test("COURSE-006 interlinear gloss columns do not collapse on desktop", async () => {
+  const client = await readText("src/app/dissect/DissectorClient.tsx");
+
+  assert.match(client, /shrink-0/);
+  assert.match(client, /min-w-\[3\.5rem\]/);
+  assert.match(client, /whitespace-nowrap/);
+  assert.match(client, /break-words/);
+  assert.match(client, /leading-tight/);
 });

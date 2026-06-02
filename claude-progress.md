@@ -1,3 +1,72 @@
+### Session #MOBILE-001 Runtime Follow-up - 2026-06-02 09:20
+
+**Goal**: Fix two mobile `/watch` runtime issues reported from device testing: YouTube pause chrome leaking through and fullscreen button appearing ineffective.
+
+**Root Cause**:
+- The existing iframe parameters and transparent shield were already present, but YouTube pause recommendations/share chrome render inside the cross-origin iframe.
+- Native `requestFullscreen()` failures were logged too generically for device diagnosis, and mobile browsers can reject fullscreen for iframe containers.
+
+**Done (Codex1)**:
+- Strengthened the mobile paused/controls overlay to `bg-black/85`, so our app layer hides YouTube's paused recommendation chrome.
+- Added fullscreen diagnostics with `fullscreenEnabled`, `fullscreenElement`, error name/message, and user agent.
+- Added mobile app-level fullscreen fallback when native fullscreen is unavailable or fails.
+- In app fullscreen fallback, the player fills the viewport and the transcript/content area is hidden.
+- Added watch regression coverage for the pause overlay and fullscreen diagnostic/fallback contract.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (11/11).
+- `node --test tests/course006.test.mjs tests/vocab009.test.mjs tests/talk005.test.mjs tests/watch005.test.mjs` -> pass (25/25).
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass (existing CRLF warning only).
+- `npm test` -> pass (361/361).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: ready_for_qa; Codex2 should verify on mobile device mode or a real phone.
+
+### Session #Dissect Interlinear Gloss Anti-Overlap Fix - 2026-06-02 09:12
+
+**Goal**: Fix desktop `/dissect` interlinear gloss columns visually piling up when long tokens/glosses appear.
+
+**Root Cause**:
+- Token columns were flex children without `shrink-0`, so the row compressed them under desktop width pressure.
+- Long token/gloss text overflowed adjacent columns instead of staying within a stable column.
+
+**Done (Codex1)**:
+- Added non-collapsing token columns with `shrink-0`, `min-w-[3.5rem]`, `max-w-[8rem]`, and `text-center`.
+- Kept Spanish forms on one line with `whitespace-nowrap`.
+- Allowed English gloss text to wrap inside each column with `break-words` and `leading-tight`.
+- Added COURSE-006 regression coverage for the non-collapsing desktop layout.
+
+**Verification**:
+- `node --test tests/course006.test.mjs` -> pass (5/5).
+- `npm test` -> pass (359/359).
+- `npm run build` -> pass with existing warnings only.
+
+**Status**: ready_for_review.
+
+### Session #Course Lookup Card Floating Fix - 2026-06-02 09:03
+
+**Goal**: Fix course-page lookup cards appearing embedded/clipped inside foundation course comparison tables.
+
+**Root Cause**:
+- `SpanishText` rendered `LookupCardStack` inline under the clicked token with `absolute top-full`.
+- Foundation course comparison containers use `overflow-hidden`, so the card could be clipped and appear non-floating.
+
+**Done (Codex1)**:
+- Moved `SpanishText` lookup stack rendering into a `document.body` portal.
+- Switched desktop positioning to `position: fixed` using the clicked token's viewport center/bottom coordinates.
+- Preserved TALK-005 viewport/sidebar clamp behavior with the new centered formula.
+- Added regression coverage for course overflow containers and updated the talk clamp test.
+
+**Verification**:
+- `node --test tests/vocab009.test.mjs tests/vocab004.test.mjs tests/vocab008.test.mjs tests/phrase001-frontend.test.mjs tests/talk005.test.mjs` -> pass (24/24).
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> pass (358/358).
+- `npm run build` -> pass with existing warnings only.
+
+**Status**: ready_for_review.
+
 ### Session #Mobile Watch YouTube Chrome Suppression Trial - 2026-06-02 08:55
 
 **Goal**: Reduce native YouTube share / watch-on-YouTube chrome on the mobile watch player without changing desktop behavior.

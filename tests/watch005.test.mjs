@@ -101,3 +101,25 @@ test("Watch mobile layout suppresses native YouTube chrome without changing desk
   assert.doesNotMatch(desktopLayout, /disablekb=1/);
   assert.doesNotMatch(desktopLayout, /data-testid="mobile-youtube-chrome-shield"/);
 });
+
+test("Watch mobile layout covers paused YouTube recommendations with an opaque app layer", async () => {
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
+
+  assert.match(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
+  assert.match(mobileLayout, /bg-black\/85/);
+  assert.match(mobileLayout, /showControls \|\| !isPlaying/);
+  assert.match(mobileLayout, /isFullscreen \? "fixed inset-0 z-\[80\]"/);
+  assert.match(mobileLayout, /isFullscreen \? "w-full flex-1 bg-black relative z-40"/);
+  assert.match(mobileLayout, /isFullscreen \? "hidden" : "flex-1 flex flex-col min-h-0 bg-zinc-950"/);
+});
+
+test("Watch fullscreen logs mobile runtime diagnostics and falls back when native fullscreen fails", async () => {
+  const clientText = await readText("src/app/watch/WatchClient.tsx");
+
+  assert.match(clientText, /fullscreenEnabled/);
+  assert.match(clientText, /navigator\.userAgent/);
+  assert.match(clientText, /Mobile fullscreen request failed/);
+  assert.match(clientText, /Mobile fullscreen is unavailable/);
+  assert.match(clientText, /setIsFullscreen\(true\)/);
+  assert.match(clientText, /isMobile/);
+});

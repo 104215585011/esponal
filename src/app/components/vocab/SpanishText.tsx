@@ -1,6 +1,8 @@
+// Timestamp: 2026-06-02 09:03
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { LookupCardStack, type LookupSource } from "@/app/watch/LookupCard";
 import {
   PHRASE_HIGHLIGHT_CLASSES,
@@ -31,6 +33,7 @@ type ActiveLookupCard = {
 type ActiveLookupStack = {
   index: string;
   anchorX: number;
+  anchorY: number;
   cards: ActiveLookupCard[];
 };
 
@@ -118,15 +121,14 @@ function getWordClassName({
     .join(" ");
 }
 
-function getLookupAnchorOffset(anchorX: number, source?: LookupSource) {
+function getLookupViewportLeft(anchorX: number, source?: LookupSource) {
   if (typeof window === "undefined") return 0;
 
   const isTalkDesktop = source?.type === "talk" && window.innerWidth >= 1024;
   const minLeft = isTalkDesktop ? SIDEBAR_W_LG + LOOKUP_PADDING : LOOKUP_PADDING;
   const maxLeft = Math.max(minLeft, window.innerWidth - LOOKUP_CARD_W - LOOKUP_PADDING);
-  const clampedLeft = Math.max(minLeft, Math.min(anchorX, maxLeft));
 
-  return clampedLeft - anchorX + LOOKUP_CARD_W / 2;
+  return Math.max(minLeft, Math.min(anchorX - LOOKUP_CARD_W / 2, maxLeft));
 }
 
 export function SpanishText({
@@ -170,12 +172,14 @@ export function SpanishText({
 
   const openLookup = ({
     anchorX,
+    anchorY,
     form,
     index,
     lookupKind = "word",
     phraseKind
   }: {
     anchorX: number;
+    anchorY: number;
     form: string;
     index: string;
     lookupKind?: "word" | "phrase";
@@ -187,6 +191,7 @@ export function SpanishText({
         : {
             index,
             anchorX,
+            anchorY,
             cards: [
               {
                 id: `${lookupKind}-${form}`,
@@ -249,11 +254,19 @@ export function SpanishText({
     });
   };
 
-  const renderStack = (index: string) =>
-    activeLookup?.index === index ? (
+  const renderStack = (index: string) => {
+    if (activeLookup?.index !== index || typeof document === "undefined") {
+      return null;
+    }
+
+    return createPortal(
       <span
-        className="absolute top-full z-50"
-        style={{ left: getLookupAnchorOffset(activeLookup.anchorX, source) }}
+        className="fixed z-[70] w-[300px] max-w-[min(20rem,calc(100vw-2rem))]"
+        style={{
+          left: getLookupViewportLeft(activeLookup.anchorX, source),
+          position: "fixed",
+          top: activeLookup.anchorY + LOOKUP_PADDING
+        }}
       >
         <LookupCardStack
           cards={activeLookup.cards.slice(-2).map((card) => ({
@@ -268,8 +281,10 @@ export function SpanishText({
           }))}
           onCloseCard={closeStackCard}
         />
-      </span>
-    ) : null;
+      </span>,
+      document.body
+    );
+  };
 
   const renderWordToken = ({
     index,
@@ -304,7 +319,8 @@ export function SpanishText({
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             openLookup({
-              anchorX: rect.left,
+              anchorX: rect.left + rect.width / 2,
+              anchorY: rect.bottom,
               form: normalized || tokenText,
               index
             });
@@ -356,7 +372,8 @@ export function SpanishText({
               onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 openLookup({
-                  anchorX: rect.left,
+                  anchorX: rect.left + rect.width / 2,
+                  anchorY: rect.bottom,
                   form: segment.span.lemma,
                   index: phraseIndex,
                   lookupKind: "phrase",

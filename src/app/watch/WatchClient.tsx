@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 22:15
+// Timestamp: 2026-06-02 09:20
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -111,16 +111,52 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const [isMuted, setIsMuted] = useState(false);
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobileViewport();
+
+  const logFullscreenIssue = (message: string, error?: unknown) => {
+    const fullscreenError = error instanceof Error ? error : null;
+    console.warn(message, {
+      fullscreenEnabled: document.fullscreenEnabled,
+      fullscreenElement: Boolean(document.fullscreenElement),
+      errorName: fullscreenError?.name ?? null,
+      errorMessage: fullscreenError?.message ?? (error ? String(error) : null),
+      userAgent: navigator.userAgent
+    });
+  };
 
   const toggleFullscreen = () => {
     if (!playerContainerRef.current) return;
-    if (!document.fullscreenElement) {
-      playerContainerRef.current.requestFullscreen().catch((err) => {
-        console.error("Error attempting to enable fullscreen", err);
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((error) => {
+        logFullscreenIssue("Mobile fullscreen exit failed", error);
       });
-    } else {
-      document.exitFullscreen();
+      return;
     }
+
+    if (isFullscreen) {
+      setIsFullscreen(false);
+      return;
+    }
+
+    const requestFullscreen = playerContainerRef.current.requestFullscreen?.bind(playerContainerRef.current);
+
+    if (!document.fullscreenEnabled || !requestFullscreen) {
+      logFullscreenIssue("Mobile fullscreen is unavailable");
+      if (isMobile) {
+        setIsFullscreen(true);
+      }
+      return;
+    }
+
+    requestFullscreen()
+      .then(() => setIsFullscreen(true))
+      .catch((error) => {
+        logFullscreenIssue("Mobile fullscreen request failed", error);
+        if (isMobile) {
+          setIsFullscreen(true);
+        }
+      });
   };
 
   useEffect(() => {
@@ -443,8 +479,6 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       }
     } catch (e) {}
   }, [isMuted, volume]);
-
-  const isMobile = useIsMobileViewport();
 
   if (isMobile === null) {
     return <div className="min-h-screen bg-white dark:bg-zinc-950 animate-pulse" />;
