@@ -83,3 +83,21 @@ test("Watch Layout: WatchMobileLayout implements a collapsible volume slider", a
   assert.match(mobileLayout, /isVolumeOpen/);
   assert.match(mobileLayout, /isVolumeOpen\s*\?\s*"w-12 opacity-100 mr-1"\s*:\s*"w-0 opacity-0"/);
 });
+
+test("Watch mobile layout suppresses native YouTube chrome without changing desktop iframe", async () => {
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
+  const desktopLayout = await readText("src/app/watch/WatchDesktopLayout.tsx");
+
+  assert.match(mobileLayout, /controls=0/);
+  assert.match(mobileLayout, /disablekb=1/);
+  assert.match(mobileLayout, /playsinline=1/);
+  assert.match(mobileLayout, /iv_load_policy=3/);
+  assert.match(mobileLayout, /modestbranding=1/);
+  assert.match(mobileLayout, /pointer-events-none/);
+  assert.match(mobileLayout, /data-testid="mobile-youtube-chrome-shield"/);
+  assert.match(mobileLayout, /showControls \|\| !isPlaying/);
+
+  assert.doesNotMatch(desktopLayout, /controls=0/);
+  assert.doesNotMatch(desktopLayout, /disablekb=1/);
+  assert.doesNotMatch(desktopLayout, /data-testid="mobile-youtube-chrome-shield"/);
+});

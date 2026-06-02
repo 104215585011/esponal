@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 22:15
+// Timestamp: 2026-06-02 08:55
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -300,20 +300,17 @@ export function WatchMobileLayout({
             allowFullScreen
             className="h-full w-full border-0 pointer-events-none"
             id={PLAYER_IFRAME_ID}
-            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0&controls=0&disablekb=1&rel=0`}
+            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0&controls=0&disablekb=1&rel=0&playsinline=1&iv_load_policy=3&modestbranding=1`}
             title={videoInfo.title}
           />
           {/* Invisible tap target layer */}
           <div className="absolute inset-0 z-10 cursor-pointer" />
-          
-          {/* Top and Bottom Shields to hide YouTube's native UI when paused */}
-          <div className={`absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${!isPlaying ? 'opacity-100' : 'opacity-0'}`} />
-          <div className={`absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${!isPlaying ? 'opacity-100' : 'opacity-0'}`} />
         </div>
 
         {/* Lightweight Play/Pause Overlay on video center */}
         <div
-          className={`absolute inset-0 z-20 bg-black/40 backdrop-blur-[1px] flex items-center justify-center transition-opacity duration-300 pointer-events-none ${
+          data-testid="mobile-youtube-chrome-shield"
+          className={`absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 pointer-events-none ${
             showControls || !isPlaying ? "opacity-100" : "opacity-0"
           }`}
         >
@@ -596,4 +593,3 @@ export function WatchMobileLayout({
     </div>
   );
 }
-

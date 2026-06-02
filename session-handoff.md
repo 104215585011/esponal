@@ -1,3 +1,28 @@
+## Codex1 Dev Report: Mobile YouTube Native Chrome Suppression Trial
+**Time**: 2026-06-02 08:55
+**From**: Codex1 (DEV)
+**To**: User / Codex2 (optional QA)
+**Status**: ready_for_review
+
+**Scope**: Mobile watch page only.
+
+**Implemented**:
+- Added mobile-only YouTube iframe suppression parameters in `src/app/watch/WatchMobileLayout.tsx`: `playsinline=1`, `iv_load_policy=3`, and `modestbranding=1`, while preserving `controls=0`, `disablekb=1`, `cc_load_policy=0`, and `rel=0`.
+- Upgraded the existing mobile play/pause overlay into a stronger `mobile-youtube-chrome-shield` (`bg-black/70 backdrop-blur-sm`) so paused / controls-visible states cover YouTube native share / watch-on-YouTube chrome.
+- Kept the iframe `pointer-events-none` and left desktop watch layout untouched.
+- Added regression coverage in `tests/watch005.test.mjs` asserting the mobile-only parameters and that desktop does not receive them.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> PASS (9/9).
+- `npm run lint:encoding` -> PASS.
+- `git diff --check` -> PASS.
+- `npm test` -> PASS (357/357).
+- `npm run build` -> PASS (existing `<img>` and Sentry warnings only).
+
+**Known Limit**: YouTube iframe branding/chrome cannot be fully removed by API. This is a best-effort mobile shield that reduces visible native chrome when paused or when custom controls are shown.
+
+---
+
 ## Codex1 Dev Report: MOBILE-001 Revisions and Timestamp Sync
 **Time**: 2026-06-01 22:15
 **From**: Codex1 (DEV)

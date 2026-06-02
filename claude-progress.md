@@ -1,3 +1,22 @@
+### Session #Mobile Watch YouTube Chrome Suppression Trial - 2026-06-02 08:55
+
+**Goal**: Reduce native YouTube share / watch-on-YouTube chrome on the mobile watch player without changing desktop behavior.
+
+**Done (Codex1)**:
+- Updated only `src/app/watch/WatchMobileLayout.tsx` for runtime behavior.
+- Added mobile-only iframe parameters: `playsinline=1`, `iv_load_policy=3`, `modestbranding=1`.
+- Strengthened the mobile play/pause overlay into `mobile-youtube-chrome-shield` so paused and controls-visible states cover native YouTube chrome.
+- Added a regression test proving desktop iframe parameters remain unchanged.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (9/9).
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> pass (357/357).
+- `npm run build` -> pass with existing warnings only.
+
+**Status**: ready_for_review. This is a best-effort shield; YouTube does not provide a supported way to fully remove all iframe branding/chrome.
+
 ### Session #MOBILE-001 P0 Mobile Render Crash Fix - 2026-06-02 00:14
 
 **Goal**: Fix the mobile error boundary crash caused by `MobileNav` calling `useSession()` without a global `SessionProvider`.
