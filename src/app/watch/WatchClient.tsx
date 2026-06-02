@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 09:20
+// Timestamp: 2026-06-02 10:02
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -234,6 +234,11 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
 
   // Set up YouTube player and polling
   useEffect(() => {
+    if (isMobile === null) return;
+
+    const playerIframe = document.getElementById(PLAYER_IFRAME_ID);
+    if (!playerIframe) return;
+
     let cancelled = false;
 
     const stopPolling = () => {
@@ -335,7 +340,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       } catch (e) {}
       playerRef.current = null;
     };
-  }, [videoId]);
+  }, [videoId, isMobile]);
 
   // Handle word clicked lookup triggering pause
   const handleLookup = useCallback((lookup: ActiveLookup) => {

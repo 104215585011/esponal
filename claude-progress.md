@@ -1,3 +1,27 @@
+### Session #MOBILE-001 Play Binding Fix - 2026-06-02 10:02
+
+**Goal**: Fix Codex2's production Vercel QA failure where mobile `/watch` play click did not advance beyond `0:00`.
+
+**Root Cause**:
+- `WatchClient` can render a skeleton while `isMobile === null`, so no watch iframe exists on the first committed layout.
+- The YouTube setup effect did not wait for the responsive layout branch, so it could bind before `PLAYER_IFRAME_ID` existed.
+- Later the mobile buttons rendered, but `playerRef` could be missing or detached from the real iframe.
+
+**Done (Codex1)**:
+- Guarded player setup with `if (isMobile === null) return;`.
+- Checked `document.getElementById(PLAYER_IFRAME_ID)` before creating `new YT.Player(...)`.
+- Added `isMobile` to the player setup effect dependency list.
+- Added WATCH regression coverage locking this initialization order.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (12/12).
+- `npm run lint:encoding` -> pass.
+- `git diff --check` -> pass.
+- `npm test` -> pass (362/362).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: ready_for_qa; requires Codex2 Vercel mobile playback retest after deploy.
+
 ### Session #MOBILE-001 Runtime Follow-up - 2026-06-02 09:20
 
 **Goal**: Fix two mobile `/watch` runtime issues reported from device testing: YouTube pause chrome leaking through and fullscreen button appearing ineffective.

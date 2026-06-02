@@ -123,3 +123,12 @@ test("Watch fullscreen logs mobile runtime diagnostics and falls back when nativ
   assert.match(clientText, /setIsFullscreen\(true\)/);
   assert.match(clientText, /isMobile/);
 });
+
+test("Watch player setup waits for responsive layout iframe before binding YouTube API", async () => {
+  const clientText = await readText("src/app/watch/WatchClient.tsx");
+
+  assert.match(clientText, /if \(isMobile === null\) return;/);
+  assert.match(clientText, /document\.getElementById\(PLAYER_IFRAME_ID\)/);
+  assert.match(clientText, /if \(!playerIframe\) return;/);
+  assert.match(clientText, /\}, \[videoId, isMobile\]\);/);
+});
