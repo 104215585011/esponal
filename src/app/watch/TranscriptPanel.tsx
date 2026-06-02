@@ -114,6 +114,20 @@ function splitSubtitleTokens(text: string) {
   return text.match(/\S+|\s+/g) ?? [];
 }
 
+function getActiveWordOrdinal(tokens: string[], cue: SubtitleCue, currentTimeSec: number) {
+  const wordOrdinals = tokens
+    .map((token, index) => ({ token, index }))
+    .filter(({ token }) => normalizeLookupWord(token));
+
+  if (wordOrdinals.length === 0) {
+    return -1;
+  }
+
+  const elapsed = currentTimeSec - cue.start;
+  const progress = Math.min(Math.max(0, elapsed / (cue.dur || 1)), 0.99);
+  return Math.floor(progress * wordOrdinals.length);
+}
+
 function findActiveCueIndex(cues: SubtitleCue[], currentTime: number) {
   for (let i = cues.length - 1; i >= 0; i -= 1) {
     const cue = cues[i];
@@ -731,6 +745,12 @@ export function TranscriptPanel({
     }
   }, []);
 
+  useEffect(() => {
+    if (!isMobile) return;
+    setDisplayMode("bilingual");
+    setTranscriptMode("sentence");
+  }, [isMobile]);
+
   const handleTranscriptModeChange = (mode: TranscriptMode) => {
     setTranscriptMode(mode);
     localStorage.setItem("esponal_transcript_mode", mode);
@@ -1263,11 +1283,11 @@ export function TranscriptPanel({
 
     return (
       <div
-        className={`relative group px-6 py-4 transition-all duration-300 ${
+        className={`relative group transition-all duration-300 ${
           isActive
-            ? isMobile ? "opacity-100 scale-100" : "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
-            : isMobile ? "opacity-30 scale-[0.98] blur-[0.3px]" : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
-        } ${isMobile ? 'border-none !py-4 !px-2' : 'border-b border-zinc-100 dark:border-zinc-900/60'}`}
+            ? isMobile ? "px-4 py-6 opacity-100 scale-100" : "px-6 py-4 bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
+            : isMobile ? "px-4 py-4 opacity-30 scale-[0.98] blur-[0.3px] hover:opacity-50" : "px-6 py-4 hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
+        } ${isMobile ? 'border-none' : 'border-b border-zinc-100 dark:border-zinc-900/60'}`}
         data-cue-index={index}
         data-testid="transcript-cue"
         key={`${cue.start}-${cue.text}`}
@@ -1296,14 +1316,35 @@ export function TranscriptPanel({
                 className={`inline ${isMobile ? 'text-[22px] leading-[1.5] tracking-wide' : 'text-[15px] leading-7 tracking-[0.05px]'} font-sans ${
                   isActive
                     ? (isMobile ? "font-bold text-zinc-100" : "font-bold text-brand-600 dark:text-brand-400")
-                    : (isMobile ? "font-semibold text-zinc-300" : "font-medium text-zinc-800 dark:text-zinc-200")
+                    : (isMobile ? "font-semibold text-zinc-500" : "font-medium text-zinc-800 dark:text-zinc-200")
                 }`}
               >
-                {phraseSegments.map((segment, tokenIndex) => {
+                {(() => {
+                  const activeWordOrdinal =
+                    isActive && isMobile ? getActiveWordOrdinal(tokens, cue, currentTimeSec) : -1;
+                  let renderedWordOrdinal = -1;
+
+                  return phraseSegments.map((segment, tokenIndex) => {
                   if (segment.type === "phrase") {
+                    const phraseWordCount = segment.tokens.filter((phraseToken) =>
+                      normalizeLookupWord(phraseToken.text)
+                    ).length;
+                    const phraseStartOrdinal = renderedWordOrdinal + 1;
+                    renderedWordOrdinal += phraseWordCount;
+                    const isCurrentlyPlayingPhrase =
+                      isMobile &&
+                      isActive &&
+                      phraseWordCount > 0 &&
+                      activeWordOrdinal >= phraseStartOrdinal &&
+                      activeWordOrdinal <= renderedWordOrdinal;
+
                     return (
                       <span
-                        className={PHRASE_HIGHLIGHT_CLASSES}
+                        className={
+                          isCurrentlyPlayingPhrase
+                            ? "bg-amber-500/20 border-b border-amber-500/40 rounded px-1 py-0.5 mx-0.5"
+                            : PHRASE_HIGHLIGHT_CLASSES
+                        }
                         key={`phrase-${segment.span.start}-${segment.span.end}`}
                         onClick={(event) => {
                           event.stopPropagation();
@@ -1329,10 +1370,28 @@ export function TranscriptPanel({
                   const token = segment.token.text;
                   const normalizedWord = normalizeLookupWord(token);
                   const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+                  if (normalizedWord) {
+                    renderedWordOrdinal += 1;
+                  }
+                  const isCurrentlyPlayingWord =
+                    isMobile && isActive && normalizedWord && renderedWordOrdinal === activeWordOrdinal;
 
-                  let colorClass = "";
-                  if (highlightStatus === "course") {
-                    colorClass = "text-brand-600 dark:text-brand-400";
+                  let tokenClass = isCurrentlyPlayingWord
+                    ? "bg-brand-500 text-white shadow-md shadow-brand-500/20 px-1.5 py-0.5 rounded-md mx-px transition-colors duration-150 inline-block"
+                    : isMobile
+                      ? "text-zinc-100 hover:bg-zinc-800/80 rounded px-0.5 transition-colors"
+                      : "cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80";
+
+                  if (!isCurrentlyPlayingWord) {
+                    if (highlightStatus === "saved") {
+                      tokenClass = isMobile
+                        ? "text-zinc-100 underline decoration-dotted decoration-1 decoration-zinc-500 hover:bg-zinc-800/80 rounded px-0.5 transition-colors"
+                        : "cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500";
+                    } else if (highlightStatus === "course") {
+                      tokenClass = isMobile
+                        ? "text-brand-400 hover:bg-zinc-800/80 rounded px-0.5 transition-colors"
+                        : "cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 text-brand-600 dark:text-brand-400";
+                    }
                   }
 
                   if (!normalizedWord) {
@@ -1341,11 +1400,7 @@ export function TranscriptPanel({
 
                   return (
                     <span
-                      className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 ${colorClass} ${
-                        highlightStatus === "saved"
-                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
-                          : ""
-                      }`}
+                      className={tokenClass}
                       key={`${token}-${tokenIndex}`}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -1374,17 +1429,18 @@ export function TranscriptPanel({
                       {token}
                     </span>
                   );
-                })}
+                });
+                })()}
               </span>
             </div>
           ) : null}
 
           {displayMode !== "spanish" ? (
             <p
-              className={`${isMobile ? 'mt-2.5 text-[14px] leading-[1.6]' : 'mt-1.5'} font-sans ${isMobile ? '' : 'text-[13px] leading-6'} ${
+              className={`${isMobile ? 'mt-2.5 text-[15px] leading-relaxed' : 'mt-1.5'} font-sans ${isMobile ? '' : 'text-[13px] leading-6'} ${
                 isActive
                   ? (isMobile ? "font-medium text-brand-400/90" : "font-medium text-zinc-600 dark:text-zinc-300")
-                  : (isMobile ? "font-medium text-zinc-500" : "text-zinc-400 dark:text-zinc-500")
+                  : (isMobile ? "font-medium text-zinc-600" : "text-zinc-400 dark:text-zinc-500")
               }`}
             >
               {translation}
@@ -1415,7 +1471,8 @@ export function TranscriptPanel({
   return (
     <section className={`relative flex h-full min-w-0 flex-col ${isMobile ? 'bg-transparent' : 'bg-surface'}`} ref={panelRef}>
       {/* Tab bar header */}
-      <div className={`flex flex-wrap items-center justify-between gap-3 ${isMobile ? 'px-2 py-2 pb-3 border-b border-zinc-800/40' : 'border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4'} font-display`}>
+      {!isMobile && (
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-zinc-800/80 px-5 py-4 font-display">
         <div className={`flex rounded-full ${isMobile ? 'bg-zinc-900/60 border border-zinc-800/60 p-0.5 text-[10px]' : 'bg-gray-100/70 dark:bg-zinc-800 p-0.5 text-[11px]'} font-semibold text-gray-500 dark:text-zinc-400`}>
           <button
             className={`${isMobile ? 'px-3 py-1 rounded-full' : 'rounded-full px-3 py-1'} transition ${
@@ -1498,6 +1555,7 @@ export function TranscriptPanel({
           )}
         </div>
       </div>
+      )}
 
       <div
         className="relative flex-1 overflow-y-auto pb-12 pt-2"
@@ -1563,11 +1621,11 @@ export function TranscriptPanel({
 
               return (
                 <div
-                  className={`group/sentence relative px-6 py-5 first:border-t-0 transition-all duration-300 ${
+                  className={`group/sentence relative transition-all duration-300 ${
                     isActive
-                      ? isMobile ? "opacity-100 scale-100" : "bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
-                      : isMobile ? "opacity-30 scale-[0.98] blur-[0.3px]" : "hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
-                  } ${isMobile ? 'border-none !py-4 !px-2' : 'border-b border-zinc-100 dark:border-zinc-900/60'}`}
+                      ? isMobile ? "px-4 py-6 opacity-100 scale-100" : "px-6 py-5 bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
+                      : isMobile ? "px-4 py-4 opacity-30 scale-[0.98] blur-[0.3px] hover:opacity-50" : "px-6 py-5 hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
+                  } ${isMobile ? 'border-none' : 'first:border-t-0 border-b border-zinc-100 dark:border-zinc-900/60'}`}
                   data-cue-index={sentence.startIndex}
                   data-testid="transcript-cue"
                   key={sentence.id}
@@ -1593,6 +1651,9 @@ export function TranscriptPanel({
                             phraseSpansByCue[index] ?? []
                           );
                           const cueIsActive = index === activeCueIndex;
+                          const activeWordOrdinal =
+                            cueIsActive && isMobile ? getActiveWordOrdinal(tokens, cue, currentTimeSec) : -1;
+                          let renderedWordOrdinal = -1;
 
                           return (
                             <div
@@ -1617,14 +1678,49 @@ export function TranscriptPanel({
                                 className={`inline ${isMobile ? 'text-[22px] leading-[1.5] tracking-wide' : 'text-[15px] leading-7 tracking-[0.05px]'} font-sans ${
                                   cueIsActive
                                     ? (isMobile ? "font-bold text-zinc-100" : "font-bold text-brand-600 dark:text-brand-400")
-                                    : (isMobile ? "font-semibold text-zinc-300" : "font-medium text-zinc-800 dark:text-zinc-200")
+                                    : (isMobile ? "font-semibold text-zinc-500" : "font-medium text-zinc-800 dark:text-zinc-200")
                                 }`}
                               >
-                                {phraseSegments.map((segment, tokenIndex) => {
+                                {(() => {
+                                  let activeWordTokenIndex = -1;
+                                  if (cueIsActive && isMobile) {
+                                    const elapsed = currentTimeSec - cue.start;
+                                    const progress = Math.min(Math.max(0, elapsed / (cue.dur || 1)), 0.99);
+
+                                    const lookupWordIndices: number[] = [];
+                                    tokens.forEach((token, idx) => {
+                                      if (normalizeLookupWord(token)) {
+                                        lookupWordIndices.push(idx);
+                                      }
+                                    });
+
+                                    if (lookupWordIndices.length > 0) {
+                                      const wordProgressIndex = Math.floor(progress * lookupWordIndices.length);
+                                      activeWordTokenIndex = lookupWordIndices[wordProgressIndex];
+                                    }
+                                  }
+
+                                  return phraseSegments.map((segment, tokenIndex) => {
                                   if (segment.type === "phrase") {
+                                    const phraseWordCount = segment.tokens.filter((phraseToken) =>
+                                      normalizeLookupWord(phraseToken.text)
+                                    ).length;
+                                    const phraseStartOrdinal = renderedWordOrdinal + 1;
+                                    renderedWordOrdinal += phraseWordCount;
+                                    const isCurrentlyPlayingPhrase =
+                                      isMobile &&
+                                      cueIsActive &&
+                                      phraseWordCount > 0 &&
+                                      activeWordOrdinal >= phraseStartOrdinal &&
+                                      activeWordOrdinal <= renderedWordOrdinal;
+
                                     return (
                                       <span
-                                        className={PHRASE_HIGHLIGHT_CLASSES}
+                                        className={
+                                          isCurrentlyPlayingPhrase
+                                            ? "bg-amber-500/20 border-b border-amber-500/40 rounded px-1 py-0.5 mx-0.5"
+                                            : PHRASE_HIGHLIGHT_CLASSES
+                                        }
                                         key={`phrase-${segment.span.start}-${segment.span.end}`}
                                         onClick={(event) => {
                                           event.stopPropagation();
@@ -1655,10 +1751,28 @@ export function TranscriptPanel({
                                   const token = segment.token.text;
                                   const normalizedWord = normalizeLookupWord(token);
                                   const highlightStatus = highlightMap[normalizedWord] ?? "unknown";
+                                  if (normalizedWord) {
+                                    renderedWordOrdinal += 1;
+                                  }
+                                  const isCurrentlyPlayingWord =
+                                    isMobile && cueIsActive && renderedWordOrdinal === activeWordOrdinal;
 
-                                  let colorClass = "";
-                                  if (highlightStatus === "course") {
-                                    colorClass = "text-brand-600 dark:text-brand-400";
+                                  let tokenClass = isCurrentlyPlayingWord
+                                    ? "bg-brand-500 text-white shadow-md shadow-brand-500/20 px-1.5 py-0.5 rounded-md mx-px transition-colors duration-150 inline-block"
+                                    : isMobile
+                                      ? "text-zinc-100 hover:bg-zinc-800/80 rounded px-0.5 transition-colors"
+                                      : "cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80";
+
+                                  if (!isCurrentlyPlayingWord) {
+                                    if (highlightStatus === "saved") {
+                                      tokenClass = isMobile
+                                        ? "text-zinc-100 underline decoration-dotted decoration-1 decoration-zinc-500 hover:bg-zinc-800/80 rounded px-0.5 transition-colors"
+                                        : "cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500";
+                                    } else if (highlightStatus === "course") {
+                                      tokenClass = isMobile
+                                        ? "text-brand-400 hover:bg-zinc-800/80 rounded px-0.5 transition-colors"
+                                        : "cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 text-brand-600 dark:text-brand-400";
+                                    }
                                   }
 
                                   if (!normalizedWord) {
@@ -1667,11 +1781,7 @@ export function TranscriptPanel({
 
                                   return (
                                     <span
-                                      className={`cursor-pointer rounded px-0.5 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80 ${colorClass} ${
-                                        highlightStatus === "saved"
-                                          ? "saved-word underline decoration-dotted decoration-1 decoration-zinc-400 dark:decoration-zinc-500"
-                                          : ""
-                                      }`}
+                                      className={tokenClass}
                                       key={`${token}-${tokenIndex}`}
                                       onClick={(event) => {
                                         event.stopPropagation();
@@ -1700,7 +1810,8 @@ export function TranscriptPanel({
                                       {token}
                                     </span>
                                   );
-                                })}
+                                });
+                                })()}
                               </span>
                             </div>
                           );

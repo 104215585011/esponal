@@ -1,3 +1,62 @@
+### Session #MOBILE-001 Sentence Highlight Follow-up - 2026-06-02 12:10
+
+**Goal**: Correct the remaining mobile sentence-mode active-word drift and re-verify the entire watch mobile surface.
+
+**Done (Codex1)**:
+- Added a regression test proving mobile watch keeps only `transcript` and `related` tabs.
+- Added a regression test proving sentence-mode active-word highlighting uses word ordinals instead of the old segment index comparison.
+- Updated `TranscriptPanel.tsx` sentence-mode token rendering so phrase segmentation no longer shifts the active word highlight.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (15/15).
+- `npm run lint:encoding` -> pass.
+- `npm test` -> pass (365/365).
+- `npm run build` -> pass (Compiled successfully; existing `img` and Sentry warnings unchanged).
+
+**Status**: ready_for_qa; handed back to Codex2 for deployed mobile verification of sentence-mode follow-highlighting.
+
+### Session #MOBILE-001 Revision Implementation - 2026-06-02 11:20
+
+**Goal**: Implement Gemini1's redesign for the mobile lyrics-style transcript panel.
+
+**Done (Codex1)**:
+- Removed the top "Tab bar" on mobile devices, merging the dual language and transcript modes into a single view.
+- Implemented lyrics-style formatting where inactive sentences are `opacity-30 scale-[0.98] blur-[0.3px]` and active sentences are `opacity-100 scale-100`.
+- Implemented highlighting of the currently playing word inside the active cue with `bg-brand-500 text-white shadow-md shadow-brand-500/20 px-1.5 py-0.5 rounded-md`.
+- Mobile timestamps were hidden per design.
+- The UI features a clean white/green (`brand-500`) style as requested by the user.
+- Addressed the full-screen exit bug in an earlier step.
+- Fixed a Next.js build compilation syntax error caused by unmatched JSX braces in my initial replacement.
+
+**Verification**:
+- `npm test` -> pass (363/363).
+- `npm run build` -> pass (Compiled successfully).
+
+**Status**: ready_for_qa; handed off to Codex2 for QA/Gemini1 for UI Review.
+
+### Session #MOBILE-001 Fullscreen Exit Bug Fix - 2026-06-02 10:55
+**Goal**: Fix the explicit mobile fullscreen exit bug while waiting for Gemini1's updated transcript/tabs design.
+
+**Scope Guard**:
+- Only `WatchMobileLayout.tsx` fullscreen wiring was changed.
+- Desktop layout was not changed.
+- The new "transcript + related only" tab UI was not implemented because the updated Gemini1 design file is not yet present.
+
+**Root Cause**:
+- Native fullscreen targeted the video-area div.
+- The permanent bottom custom controls sit outside that div, so successful native fullscreen can leave the exit button outside the fullscreen element.
+
+**Done (Codex1)**:
+- Moved `playerContainerRef` to the top-level mobile shell so native fullscreen includes the player and the custom bottom controls.
+- Preserved fullscreen black-area exit by keeping the video-area click handler wired to `toggleFullscreen` while fullscreen is active.
+- Cleaned up `handlePlayerTap` so click propagation is explicit and type-safe.
+- Updated `tests/watch005.test.mjs` to lock the mobile fullscreen shell ref and black-area exit contract.
+
+**Verification**:
+- `node --test tests/watch005.test.mjs` -> pass (13/13).
+
+**Status**: ready_for_qa for the fullscreen bug; waiting for Gemini1 design before the transcript/tab UI implementation.
+
 ### Session #MOBILE-001 YouTube Chrome Mask Follow-up - 2026-06-02 10:36
 
 **Goal**: Hide remaining YouTube iframe chrome on mobile after real-browser playback was confirmed working.

@@ -112,12 +112,13 @@ test("Watch mobile layout covers paused YouTube recommendations with an opaque a
   assert.match(mobileLayout, /h-28 bg-gradient-to-t from-black/);
   assert.match(mobileLayout, /showControls\s*\?\s*"opacity-100 bg-transparent"/);
   assert.match(mobileLayout, /isFullscreen \? "fixed inset-0 z-\[80\]"/);
-  assert.match(mobileLayout, /isFullscreen \? "w-full flex-1 bg-black relative z-40"/);
+  assert.match(mobileLayout, /isFullscreen \? "w-full flex-1 bg-black relative z-40 flex items-center justify-center"/);
   assert.match(mobileLayout, /isFullscreen \? "hidden" : "flex-1 flex flex-col min-h-0 bg-zinc-950"/);
 });
 
 test("Watch fullscreen logs mobile runtime diagnostics and falls back when native fullscreen fails", async () => {
   const clientText = await readText("src/app/watch/WatchClient.tsx");
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
 
   assert.match(clientText, /fullscreenEnabled/);
   assert.match(clientText, /navigator\.userAgent/);
@@ -125,6 +126,8 @@ test("Watch fullscreen logs mobile runtime diagnostics and falls back when nativ
   assert.match(clientText, /Mobile fullscreen is unavailable/);
   assert.match(clientText, /setIsFullscreen\(true\)/);
   assert.match(clientText, /isMobile/);
+  assert.match(mobileLayout, /ref=\{playerContainerRef\}\s*className=\{`flex h-\[100dvh\]/s);
+  assert.match(mobileLayout, /onClick=\{isFullscreen \? toggleFullscreen : undefined\}/);
 });
 
 test("Watch player setup waits for responsive layout iframe before binding YouTube API", async () => {
@@ -148,4 +151,21 @@ test("Watch mobile play path is isolated from desktop and has iframe command fal
   assert.match(clientText, /<WatchDesktopLayout \{\.\.\.sharedProps\} \/>/);
   assert.doesNotMatch(desktopLayout, /handleMobilePlayPause|pendingMobilePlayRef|postMessage/);
   assert.match(mobileLayout, /handlePlayPause: \(\) => void/);
+});
+
+test("MOBILE-001 keeps only transcript and related tabs on mobile", async () => {
+  const mobileLayout = await readText("src/app/watch/WatchMobileLayout.tsx");
+
+  assert.match(mobileLayout, /\(\["transcript", "related"\] as const\)/);
+  assert.doesNotMatch(mobileLayout, /"subtitle"/);
+  assert.match(mobileLayout, /tab === "transcript" && "转写"/);
+  assert.match(mobileLayout, /tab === "related" && "推荐"/);
+});
+
+test("MOBILE-001 sentence mode uses word ordinals for active-token highlighting", async () => {
+  const transcriptPanel = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.match(transcriptPanel, /const activeWordOrdinal =\s*cueIsActive && isMobile \? getActiveWordOrdinal\(tokens, cue, currentTimeSec\) : -1;/);
+  assert.match(transcriptPanel, /renderedWordOrdinal === activeWordOrdinal/);
+  assert.doesNotMatch(transcriptPanel, /isMobile && cueIsActive && tokenIndex === activeWordTokenIndex/);
 });

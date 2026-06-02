@@ -127,10 +127,17 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const toggleFullscreen = () => {
     if (!playerContainerRef.current) return;
 
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch((error) => {
-        logFullscreenIssue("Mobile fullscreen exit failed", error);
-      });
+    const doc = document as any;
+    const currentFullscreenElement = doc.fullscreenElement || doc.webkitFullscreenElement;
+
+    if (currentFullscreenElement) {
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch((error: any) => {
+          logFullscreenIssue("Mobile fullscreen exit failed", error);
+        });
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      }
       return;
     }
 
@@ -139,9 +146,10 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       return;
     }
 
-    const requestFullscreen = playerContainerRef.current.requestFullscreen?.bind(playerContainerRef.current);
+    const container = playerContainerRef.current as any;
+    const requestFullscreen = container.requestFullscreen?.bind(container) || container.webkitRequestFullscreen?.bind(container);
 
-    if (!document.fullscreenEnabled || !requestFullscreen) {
+    if (!requestFullscreen) {
       logFullscreenIssue("Mobile fullscreen is unavailable");
       if (isMobile) {
         setIsFullscreen(true);
@@ -149,22 +157,32 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
       return;
     }
 
-    requestFullscreen()
-      .then(() => setIsFullscreen(true))
-      .catch((error) => {
-        logFullscreenIssue("Mobile fullscreen request failed", error);
-        if (isMobile) {
-          setIsFullscreen(true);
-        }
-      });
+    const promise = requestFullscreen();
+    if (promise) {
+      promise
+        .then(() => setIsFullscreen(true))
+        .catch((error: any) => {
+          logFullscreenIssue("Mobile fullscreen request failed", error);
+          if (isMobile) {
+            setIsFullscreen(true);
+          }
+        });
+    } else {
+      setIsFullscreen(true);
+    }
   };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const doc = document as any;
+      setIsFullscreen(!!(doc.fullscreenElement || doc.webkitFullscreenElement));
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+    };
   }, []);
 
   // Load subtitles for sentence navigation

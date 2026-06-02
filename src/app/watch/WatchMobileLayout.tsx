@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { BackLink } from "@/app/components/web/BackLink";
-import { SubtitlePanel } from "./SubtitlePanel";
 import { TranscriptPanel } from "./TranscriptPanel";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 
@@ -239,7 +238,7 @@ export function WatchMobileLayout({
   handlePrevSentence,
   handleNextSentence
 }: WatchMobileLayoutProps) {
-  const [mobileTab, setMobileTab] = useState<"subtitle" | "transcript" | "related">("subtitle");
+  const [mobileTab, setMobileTab] = useState<"transcript" | "related">("transcript");
   // We keep showControls for the center video play/pause overlay only, but bottom controls are permanent
   const [showControls, setShowControls] = useState(false);
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
@@ -255,8 +254,7 @@ export function WatchMobileLayout({
     }, 2000);
   };
 
-  const handlePlayerTap = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handlePlayerTap = () => {
     if (!isPlaying) {
       handlePlayPause();
     } else {
@@ -288,17 +286,27 @@ export function WatchMobileLayout({
   }, []);
 
   return (
-    <div className={`flex h-[100dvh] w-full flex-col bg-zinc-950 overflow-hidden ${isFullscreen ? "fixed inset-0 z-[80]" : ""}`}>
+    <div
+      ref={playerContainerRef}
+      className={`flex h-[100dvh] w-full flex-col bg-zinc-950 overflow-hidden ${isFullscreen ? "fixed inset-0 z-[80]" : ""}`}
+    >
       {/* 1. Pure Video Area (Top) */}
       <div
-        ref={playerContainerRef}
-        className={isFullscreen ? "w-full flex-1 bg-black relative z-40" : "w-full shrink-0 bg-black aspect-video relative z-40"}
+        className={isFullscreen ? "w-full flex-1 bg-black relative z-40 flex items-center justify-center" : "w-full shrink-0 bg-black aspect-video relative z-40"}
+        onClick={isFullscreen ? toggleFullscreen : undefined}
       >
-        <div className="w-full h-full relative" onClick={handlePlayerTap}>
+        <div 
+          className={isFullscreen ? "relative w-full max-w-full max-h-full" : "w-full h-full relative"} 
+          style={isFullscreen ? { aspectRatio: '16/9' } : undefined}
+          onClick={(e) => {
+            if (isFullscreen) e.stopPropagation();
+            handlePlayerTap();
+          }}
+        >
           <iframe
             allow="autoplay; encrypted-media; fullscreen"
             allowFullScreen
-            className="h-full w-full border-0 pointer-events-none"
+            className="absolute inset-0 w-full h-full border-0 pointer-events-none"
             id={PLAYER_IFRAME_ID}
             src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0&controls=0&disablekb=1&rel=0&playsinline=1&iv_load_policy=3&modestbranding=1`}
             title={videoInfo.title}
@@ -371,7 +379,7 @@ export function WatchMobileLayout({
 
         {/* Tab Switcher */}
         <div className="flex h-10 border-b border-zinc-800 shrink-0 px-4">
-          {(["subtitle", "transcript", "related"] as const).map((tab) => (
+          {(["transcript", "related"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setMobileTab(tab)}
@@ -381,7 +389,6 @@ export function WatchMobileLayout({
                   : "border-transparent text-zinc-500"
               }`}
             >
-              {tab === "subtitle" && "字幕"}
               {tab === "transcript" && "转写"}
               {tab === "related" && "推荐"}
             </button>
@@ -390,26 +397,6 @@ export function WatchMobileLayout({
 
         {/* Tab Content (Scrolls) */}
         <div className="flex-1 overflow-y-auto px-4 py-3 relative">
-          {mobileTab === "subtitle" && (
-            <SubtitlePanel
-              key={`subtitle-mobile-${videoId}-${refreshKey}`}
-              currentTimeSec={currentTimeSec}
-              onLookup={handleLookup}
-              onCloseLookup={handleCloseLookup}
-              playbackRate={playbackRate}
-              onSpeedChange={handleSpeedChange}
-              videoId={videoId}
-              isMobile={true}
-              onRefresh={() => setRefreshKey((prev) => prev + 1)}
-              videoTitle={videoInfo.title}
-              onCueChange={(spanish, chinese, cue) => {
-                setCurrentSpanish(spanish);
-                setCurrentChinese(chinese);
-                setActiveCue(cue);
-              }}
-            />
-          )}
-
           {mobileTab === "transcript" && (
             <div className="h-full w-full -mx-4 px-4 overflow-hidden relative">
               <TranscriptPanel
