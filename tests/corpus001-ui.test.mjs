@@ -49,8 +49,13 @@ test("CORPUS-001 mobile corpus shell provides three tabs, lazy loaders, and phra
   assert.match(mobile, /LookupCardStack/);
   assert.match(mobile, /lookupKind:\s*"phrase"/);
   assert.match(mobile, /phraseKind:/);
-  assert.match(mobile, /fetch\("\/api\/watch\/history"/);
-  assert.match(mobile, /fetch\("\/api\/vocab\/phrase\/list"/);
+  assert.match(mobile, /fetchJsonWithTimeout<\{ videos\?: VideoView\[] \}>/);
+  assert.match(mobile, /fetchJsonWithTimeout<\{ phrases\?: SavedPhrase\[] \}>/);
+  assert.match(mobile, /"\/api\/watch\/history"/);
+  assert.match(mobile, /"\/api\/vocab\/phrase\/list"/);
+  assert.match(mobile, /AbortController/);
+  assert.match(mobile, /CORPUS_FETCH_TIMEOUT_MS = 5000/);
+  assert.match(mobile, /controller\.abort\(\)/);
   assert.match(mobile, /kind="loading-failed"/);
   assert.match(mobile, /kind="empty"/);
   assert.match(mobile, /from "lucide-react"/);

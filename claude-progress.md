@@ -5374,3 +5374,19 @@ feature_list.json 更新：
 - node --test tests/mobile009.test.mjs tests/corpus001-ui.test.mjs tests/web013.test.mjs -> 12/12 pass.
 - npx tsc --noEmit --pretty false -> pass.
 - npm run lint:encoding -> pass.
+
+### Session #CORPUS-001 Client Fetch Timeout Guard - 2026-06-03 13:05
+
+**Goal**: Prevent the mobile corpus video and phrase tabs from staying on skeleton loading forever when a production request hangs for reasons beyond the Upstash limiter path.
+
+**Done**:
+- Added a client-side `fetchJsonWithTimeout()` helper in `src/app/vocab/CorpusMobile.tsx` with a 5s `AbortController` timeout for both `/api/watch/history` and `/api/vocab/phrase/list`.
+- Kept the existing empty/error rendering paths intact so hung requests now fall into the existing `loading-failed` state instead of leaving the UI on endless shimmer cards.
+- Updated `tests/corpus001-ui.test.mjs` to lock the new timeout guard contract.
+
+**Verification**:
+- `node --test tests/corpus001-ui.test.mjs tests/ops002.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 387/387 pass.
+- `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).

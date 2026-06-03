@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 11:10
+// Timestamp: 2026-06-03 13:05
 "use client";
 
 import Link from "next/link";
@@ -51,8 +51,30 @@ type LookupStackCard = {
   onRelatedPhraseClick?: (lemma: string, kind: PhraseKind) => void;
 };
 
+const CORPUS_FETCH_TIMEOUT_MS = 5000;
+
 function makeLookupId(prefix: string, value: string) {
   return `${prefix}-${value}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+async function fetchJsonWithTimeout<T>(input: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CORPUS_FETCH_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(input, {
+      cache: "no-store",
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`${input} ${response.status}`);
+    }
+
+    return (await response.json()) as T;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function formatViewedTime(dateValue: string) {
@@ -132,12 +154,9 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
       setVideoState({ status: "loading", items: [] });
 
       try {
-        const response = await fetch("/api/watch/history", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`history ${response.status}`);
-        }
-
-        const payload = (await response.json()) as { videos?: VideoView[] };
+        const payload = await fetchJsonWithTimeout<{ videos?: VideoView[] }>(
+          "/api/watch/history"
+        );
         if (cancelled) return;
 
         setVideoState({
@@ -169,12 +188,9 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
       setPhraseState((current) => ({ ...current, status: "loading" }));
 
       try {
-        const response = await fetch("/api/vocab/phrase/list", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`phrases ${response.status}`);
-        }
-
-        const payload = (await response.json()) as { phrases?: SavedPhrase[] };
+        const payload = await fetchJsonWithTimeout<{ phrases?: SavedPhrase[] }>(
+          "/api/vocab/phrase/list"
+        );
         if (cancelled) return;
 
         setPhraseState({
