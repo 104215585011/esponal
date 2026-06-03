@@ -37,6 +37,7 @@ type SavedPhrase = {
 type LoadableState<T> = {
   status: "idle" | "loading" | "ready" | "error";
   items: T[];
+  requestedAt: number | null;
 };
 
 type LookupStackCard = {
@@ -135,13 +136,47 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
   const [activeTab, setActiveTab] = useState<"video" | "word" | "phrase">("video");
   const [videoState, setVideoState] = useState<LoadableState<VideoView>>({
     status: "idle",
-    items: []
+    items: [],
+    requestedAt: null
   });
   const [phraseState, setPhraseState] = useState<LoadableState<SavedPhrase>>({
     status: "idle",
-    items: []
+    items: [],
+    requestedAt: null
   });
   const [cards, setCards] = useState<LookupStackCard[]>([]);
+
+  useEffect(() => {
+    if (videoState.status !== "loading" || videoState.requestedAt === null) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setVideoState((current) =>
+        current.status === "loading"
+          ? { status: "error", items: current.items, requestedAt: current.requestedAt }
+          : current
+      );
+    }, CORPUS_FETCH_TIMEOUT_MS + 1000);
+
+    return () => clearTimeout(timer);
+  }, [videoState.status, videoState.requestedAt]);
+
+  useEffect(() => {
+    if (phraseState.status !== "loading" || phraseState.requestedAt === null) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setPhraseState((current) =>
+        current.status === "loading"
+          ? { status: "error", items: current.items, requestedAt: current.requestedAt }
+          : current
+      );
+    }, CORPUS_FETCH_TIMEOUT_MS + 1000);
+
+    return () => clearTimeout(timer);
+  }, [phraseState.status, phraseState.requestedAt]);
 
   useEffect(() => {
     if (videoState.status !== "idle") {
@@ -151,22 +186,24 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
     let cancelled = false;
 
     async function loadHistory() {
-      setVideoState({ status: "loading", items: [] });
+      setVideoState({ status: "loading", items: [], requestedAt: Date.now() });
 
       try {
         const payload = await fetchJsonWithTimeout<{ videos?: VideoView[] }>(
           "/api/watch/history"
         );
         if (cancelled) return;
+        console.info("[CORPUS] history loaded", payload.videos?.length ?? 0);
 
         setVideoState({
           status: "ready",
-          items: Array.isArray(payload.videos) ? payload.videos : []
+          items: Array.isArray(payload.videos) ? payload.videos : [],
+          requestedAt: null
         });
       } catch (error) {
         if (cancelled) return;
         console.error("Load watch history failed", error);
-        setVideoState({ status: "error", items: [] });
+        setVideoState({ status: "error", items: [], requestedAt: null });
       }
     }
 
@@ -185,22 +222,28 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
     let cancelled = false;
 
     async function loadPhrases() {
-      setPhraseState((current) => ({ ...current, status: "loading" }));
+      setPhraseState((current) => ({
+        ...current,
+        status: "loading",
+        requestedAt: Date.now()
+      }));
 
       try {
         const payload = await fetchJsonWithTimeout<{ phrases?: SavedPhrase[] }>(
           "/api/vocab/phrase/list"
         );
         if (cancelled) return;
+        console.info("[CORPUS] phrases loaded", payload.phrases?.length ?? 0);
 
         setPhraseState({
           status: "ready",
-          items: Array.isArray(payload.phrases) ? payload.phrases : []
+          items: Array.isArray(payload.phrases) ? payload.phrases : [],
+          requestedAt: null
         });
       } catch (error) {
         if (cancelled) return;
         console.error("Load saved phrases failed", error);
-        setPhraseState({ status: "error", items: [] });
+        setPhraseState({ status: "error", items: [], requestedAt: null });
       }
     }
 
@@ -255,11 +298,11 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
   }
 
   function retryVideo() {
-    setVideoState({ status: "idle", items: [] });
+    setVideoState({ status: "idle", items: [], requestedAt: null });
   }
 
   function retryPhrase() {
-    setPhraseState({ status: "idle", items: [] });
+    setPhraseState({ status: "idle", items: [], requestedAt: null });
   }
 
   const videoGroups = groupByDate(videoState.items);

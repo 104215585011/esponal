@@ -5390,3 +5390,18 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass.
 - `npm test` -> 387/387 pass.
 - `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).
+
+### Session #CORPUS-001 Loading Watchdog and Runtime Counters - 2026-06-03 13:24
+
+**Goal**: Close the remaining gap after the user proved production API responses are successful but the mobile corpus shell can still stay visually stuck on loading.
+
+**Done**:
+- Extended `src/app/vocab/CorpusMobile.tsx` load state with `requestedAt` timestamps.
+- Added per-tab watchdog timers so `video` and `phrase` loading states self-convert to error if they somehow outlive the fetch timeout path.
+- Added lightweight runtime counters to the browser console: `[CORPUS] history loaded <n>` and `[CORPUS] phrases loaded <n>`.
+- Updated `tests/corpus001-ui.test.mjs` to lock the watchdog and console instrumentation contract.
+
+**Verification**:
+- `node --test tests/corpus001-ui.test.mjs tests/ops002.test.mjs` -> 11/11 pass.
+- `npm test` -> 387/387 pass.
+- `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).
