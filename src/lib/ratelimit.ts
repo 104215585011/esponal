@@ -1,6 +1,7 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
+// CORPUS-001 reliability patch timestamp: 2026-06-03 12:12
 type LimitResult = {
   success: boolean;
   reset: number;
@@ -9,6 +10,8 @@ type LimitResult = {
 type Limitable = {
   limit: (key: string) => Promise<LimitResult>;
 };
+
+const RATE_LIMIT_TIMEOUT_MS = 75;
 
 const upstashUrl =
   process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL ?? "";
@@ -58,20 +61,29 @@ export function getClientIp(request: Request) {
   return request.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
+async function limitWithTimeout(limiter: Limitable, key: string): Promise<LimitResult> {
+  return await Promise.race([
+    limiter.limit(key),
+    new Promise<LimitResult>((_, reject) => {
+      setTimeout(() => reject(new Error("rate limit timeout")), RATE_LIMIT_TIMEOUT_MS);
+    })
+  ]);
+}
+
 export async function checkRateLimit(
   limiter: Limitable,
   request: Request,
   userId: string | null
 ): Promise<{ allowed: boolean; reset: number }> {
   try {
-    const ipResult = await limiter.limit(`ip:${getClientIp(request)}`);
+    const ipResult = await limitWithTimeout(limiter, `ip:${getClientIp(request)}`);
 
     if (!ipResult.success) {
       return { allowed: false, reset: ipResult.reset };
     }
 
     if (userId) {
-      const userResult = await limiter.limit(`user:${userId}`);
+      const userResult = await limitWithTimeout(limiter, `user:${userId}`);
 
       if (!userResult.success) {
         return { allowed: false, reset: userResult.reset };

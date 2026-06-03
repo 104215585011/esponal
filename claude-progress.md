@@ -5341,3 +5341,21 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass.
 - `npm test` -> 386/386 pass.
 - `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).
+
+### Session #CORPUS-001 Watch/Phrase Loading Reliability - 2026-06-03 12:12
+
+**Goal**: Fix the mobile corpus video/phrase tabs getting stuck in loading when the shared Upstash rate-limit call hangs.
+
+**Done**:
+- Root-caused the stuck skeleton to the shared `checkRateLimit(addLimiter, ...)` path used by both `/api/watch/history` and `/api/vocab/phrase/list`.
+- Added a regression test in `tests/ops002.test.mjs` proving `checkRateLimit` must fail open when the limiter promise hangs instead of rejecting.
+- Updated `src/lib/ratelimit.ts` to wrap each limiter call in a short timeout via `Promise.race(...)`, preserving fail-open behavior for unavailable or hanging Upstash requests.
+
+**Verification**:
+- Red check: `node --test tests/ops002.test.mjs` failed on the new hanging-limiter case.
+- `node --test tests/ops002.test.mjs` -> 7/7 pass.
+- `node --test tests/ops002.test.mjs tests/corpus001.test.mjs tests/corpus001-ui.test.mjs` -> 16/16 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 387/387 pass.
+- `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).

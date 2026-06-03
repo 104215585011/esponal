@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
+// CORPUS-001 reliability test timestamp: 2026-06-03 12:12
 function read(path) {
   return fs.readFileSync(path, "utf8");
 }
@@ -71,6 +72,23 @@ test("OPS-002 checkRateLimit fails open when the limiter is unavailable", async 
 
   const result = await checkRateLimit(limiter, new Request("https://example.com"), null);
 
+  assert.equal(result.allowed, true);
+});
+
+test("OPS-002 checkRateLimit fails open when the limiter hangs", async () => {
+  const { checkRateLimit } = await import("../src/lib/ratelimit.ts");
+  const limiter = {
+    async limit() {
+      return new Promise(() => {});
+    }
+  };
+
+  const result = await Promise.race([
+    checkRateLimit(limiter, new Request("https://example.com"), "user-1"),
+    new Promise((resolve) => setTimeout(() => resolve("timeout"), 80))
+  ]);
+
+  assert.notEqual(result, "timeout");
   assert.equal(result.allowed, true);
 });
 
