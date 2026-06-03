@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 22:08
+// Timestamp: 2026-06-03 01:24
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -79,24 +79,24 @@ export function GlobalSearchOverlay({
               className="h-12 w-full border-0 bg-transparent text-base text-zinc-800 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               defaultValue={initialQuery}
               name="q"
-              placeholder="鎼滅储鍐呭..."
+              placeholder="搜索内容..."
               type="search"
             />
             <button
               className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={(event) => {
+                event.preventDefault();
                 setOpen(false);
               }}
               type="button"
             >
-              鍙栨秷
+              取消
             </button>
           </form>
 
           <div className="border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              杈撳叆鍏抽敭璇嶆悳绱㈣棰戙€侀槄璇汇€佽绋嬬瓑鍐呭
+              搜索视频、课程、阅读和词库内容
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export function GlobalSearchOverlay({
   return (
     <>
       <button
-        aria-label="鎼滅储"
+        aria-label="搜索"
         className="inline-flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 lg:hidden"
         onClick={() => setOpen(true)}
         type="button"

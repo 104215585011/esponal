@@ -1,3 +1,46 @@
+### Session #MOBILE-009 Secondary Pages Hide Bottom Tabs - 2026-06-03 01:33
+
+**Goal**: Fix PM/user feedback that mobile bottom tabs block secondary pages such as Talk and course details.
+
+**Root Cause**:
+- `BottomTabBar.shouldHideTabBar` hid only watch player pages and lectura details, then defaulted to showing the bottom bar on every other route.
+- That made secondary routes like `/talk`, `/talk/[characterId]`, `/phonics`, `/grammar`, `/dissect`, and `/learn/unidad-1` render the bottom tab bar even when they need the vertical space for their own controls.
+
+**What changed**:
+- Changed `BottomTabBar` to a positive primary landing allowlist.
+- Bottom tabs now show only on `/watch` without `v`, `/lectura`, `/learn`, and `/vocab`.
+- `/watch?v=...`, course detail pages, talk pages, and all secondary drawer destinations hide the bottom tabs.
+
+**Verification**:
+- Red check: `node --test tests/mobile009.test.mjs` failed before implementation on the new allowlist contract.
+- `node --test tests/mobile009.test.mjs tests/mobile009-search.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 377/377 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+- Local mobile Playwright probe observed bottom tabs visible on `/watch`, `/lectura`, `/learn`, and hidden on `/watch?v=...`, `/learn/unidad-1`, `/talk`, `/talk/carlos`, `/phonics`, `/grammar`, `/dissect`, `/vocab/review`.
+
+**Status**: `MOBILE-009` remains `ready_for_qa`; Codex2 should re-QA secondary pages without bottom tabs. Codex1 did not mark `passing`.
+
+### Session #MOBILE-009 Search Overlay Mojibake Fix - 2026-06-03 01:24
+
+**Goal**: Fix the remaining MOBILE-009 true-device search overlay mojibake reported by the user.
+
+**What changed**:
+- Rewrote `GlobalSearchOverlay` copy to readable Chinese: aria-label `搜索`, placeholder `搜索内容...`, button `取消`, and helper text `搜索视频、课程、阅读和词库内容`.
+- Preserved the existing portal-to-body overlay, Escape close, backdrop close, body scroll lock, and autofocus behavior.
+- Added `tests/mobile009-search.test.mjs` to lock the readable Chinese copy and reject common mojibake glyphs.
+
+**Verification**:
+- `node --test tests/mobile009-search.test.mjs tests/mobile009.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- Mobile Playwright probe confirmed placeholder `搜索内容...`, text `取消搜索视频、课程、阅读和词库内容`, and focused input.
+- `npm test` -> 377/377 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-009` remains `ready_for_qa`; Codex2 should re-QA search overlay copy along with the previous mobile shell checks. Codex1 did not mark `passing`.
+
 ### Session #MOBILE-009 True-Device Regression Fix - 2026-06-03 01:11
 
 **Goal**: Fix PM/user true-device regressions for MOBILE-009 without marking the UI ticket `passing`.

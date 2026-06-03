@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 01:11
+// Timestamp: 2026-06-03 01:33
 "use client";
 
 import Link from "next/link";
@@ -61,6 +61,8 @@ const tabs: BottomTab[] = [
   { label: "词库", href: "/vocab", matchBase: "/vocab", Icon: LibraryIcon }
 ];
 
+const primaryTabLandingPaths = new Set(["/watch", "/lectura", "/learn", "/vocab"]);
+
 function startsWith(pathname: string, base: string) {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
@@ -74,11 +76,9 @@ export function shouldHideTabBar(pathname: string, hasWatchVideo = false) {
     return hasWatchVideo;
   }
 
-  if (!pathname.startsWith("/lectura/")) {
-    return false;
-  }
+  const isPrimaryLandingPath = primaryTabLandingPaths.has(pathname);
 
-  return /^\/lectura\/[^/]+/.test(pathname);
+  return !isPrimaryLandingPath;
 }
 
 export function BottomTabBar() {

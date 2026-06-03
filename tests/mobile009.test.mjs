@@ -20,7 +20,7 @@ test("MOBILE-009 ticket and PM-approved design are present", async () => {
   assert.match(design, /搜索|鎼滅储/);
 });
 
-test("MOBILE-009 bottom tab bar distinguishes video index from player page", async () => {
+test("MOBILE-009 bottom tab bar only appears on primary tab landing pages", async () => {
   const layout = await readText("src/app/layout.tsx");
   const tabPath = "src/app/components/web/BottomTabBar.tsx";
   assert.equal(existsSync(tabPath), true, `${tabPath} missing`);
@@ -36,8 +36,11 @@ test("MOBILE-009 bottom tab bar distinguishes video index from player page", asy
   assert.match(tabs, /searchParams\.get\("v"\)/);
   assert.match(tabs, /shouldHideTabBar\(pathname,\s*Boolean\(videoId\)\)/);
   assert.match(tabs, /pathname\.startsWith\("\/watch\/"\)/);
-  assert.match(tabs, /\/lectura\//);
-  assert.match(tabs, /\[\^\/\]\+/);
+  assert.match(tabs, /const primaryTabLandingPaths/);
+  assert.match(tabs, /primaryTabLandingPaths\.has\(pathname\)/);
+  assert.match(tabs, /pathname === "\/watch"/);
+  assert.match(tabs, /return !isPrimaryLandingPath/);
+  assert.doesNotMatch(tabs, /if \(!pathname\.startsWith\("\/lectura\/"\)\)/);
   assert.match(tabs, /grid-cols-4/);
   assert.match(tabs, /md:hidden/);
   assert.match(tabs, /pb-safe/);

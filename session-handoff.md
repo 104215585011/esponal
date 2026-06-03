@@ -11617,6 +11617,68 @@ Codex1 修 1+3 → Codex2 真机 QA(label 不乱码 + 顶栏固定)→ 用户真
 - 修:**只在播放页(`/watch` 且带 `v` query 参数)隐藏底部 tab;视频首页(`/watch` 无 v)显示。** usePathname 拿不到 query,需用 `useSearchParams()` 读 `v`(或在组件内判断 window.location.search,注意 SSR/Suspense)。`/lectura` 列表显示、`/lectura/[slug]` 隐藏 的逻辑保持不变(那个本来就对)。
 - Codex2 真机:视频首页有底部 tab、点开某视频(播放页)底部 tab 消失。
 ---
+## Codex1 Fix Report: MOBILE-009 Secondary Pages Hide Bottom Tabs
+**Time**: 2026-06-03 01:33
+**From**: Codex1
+**Status**: ready_for_qa
+
+**Scope**:
+- Fixed PM/user feedback that the mobile bottom tab bar blocks secondary pages, especially Talk input.
+- Did not mark the ticket `passing`.
+
+**Root Cause**:
+- `BottomTabBar.shouldHideTabBar` hid only watch player pages and lectura details, then defaulted to showing on all other routes.
+- Secondary routes like `/talk`, `/talk/[characterId]`, `/phonics`, `/grammar`, `/dissect`, and `/learn/unidad-1` therefore kept the bottom bar.
+
+**Implementation**:
+- `BottomTabBar` now uses a positive primary landing allowlist.
+- Bottom tabs may show only on `/watch` without `v`, `/lectura`, `/learn`, and `/vocab`.
+- `/watch?v=...`, `/learn/[slug]`, `/talk`, `/talk/[characterId]`, `/phonics`, `/grammar`, `/dissect`, and other secondary/detail routes hide the bottom tabs.
+
+**Verification**:
+- Red check: `node --test tests/mobile009.test.mjs` failed before implementation on the new allowlist contract.
+- `node --test tests/mobile009.test.mjs tests/mobile009-search.test.mjs` -> PASS (6/6).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (377/377).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+- Local mobile Playwright probe observed bottom tabs visible on `/watch`, `/lectura`, `/learn`, and hidden on `/watch?v=...`, `/learn/unidad-1`, `/talk`, `/talk/carlos`, `/phonics`, `/grammar`, `/dissect`, `/vocab/review`.
+
+**Next For Codex2**:
+- Re-run MOBILE-009 mobile QA with focus on secondary pages.
+- Confirm `/talk` and `/talk/[characterId]` input is no longer blocked by the bottom tab bar.
+- Confirm `/learn/unidad-1`, `/phonics`, `/grammar`, `/dissect` also have no bottom tab bar.
+- Reconfirm primary landing pages `/watch` without `v`, `/lectura`, `/learn`, and `/vocab` behavior as applicable.
+
+---
+## Codex1 Fix Report: MOBILE-009 Search Overlay Mojibake Fix
+**Time**: 2026-06-03 01:24
+**From**: Codex1
+**Status**: ready_for_qa
+
+**Scope**:
+- Fixed the remaining MOBILE-009 mobile search overlay mojibake reported by the user screenshot.
+- Did not mark the ticket `passing`.
+
+**Implementation**:
+- `GlobalSearchOverlay` now uses readable Chinese copy: aria-label `搜索`, placeholder `搜索内容...`, cancel button `取消`, and helper text `搜索视频、课程、阅读和词库内容`.
+- Preserved the existing portal-to-body full-screen overlay behavior, Escape close, backdrop close, body scroll lock, and autofocus.
+- Added `tests/mobile009-search.test.mjs` to lock readable Chinese copy and reject common mojibake glyphs.
+
+**Verification**:
+- `node --test tests/mobile009-search.test.mjs tests/mobile009.test.mjs` -> PASS (6/6).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- Mobile Playwright probe confirmed placeholder `搜索内容...`, overlay text `取消搜索视频、课程、阅读和词库内容`, and focused input.
+- `npm test` -> PASS (377/377).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**Next For Codex2**:
+- Re-run MOBILE-009 mobile QA and specifically open the top search overlay.
+- Confirm placeholder, cancel button, and helper copy have no mojibake.
+- Also re-check the prior items: drawer labels/deduplication, `/watch` bottom tab query behavior, and fixed mobile top bar.
+
+---
 ## Codex1 Fix Report: MOBILE-009 True-Device Regression Fix
 **Time**: 2026-06-03 01:11
 **From**: Codex1
@@ -11645,3 +11707,14 @@ Codex1 修 1+3 → Codex2 真机 QA(label 不乱码 + 顶栏固定)→ 用户真
 **Next For Codex2**:
 - Re-run MOBILE-009 QA in mobile device mode / true device.
 - Focus: side drawer Chinese labels, no primary-tab duplicates, `/watch` index has bottom tabs, `/watch?v=...` player hides bottom tabs, top bar stays fixed while scrolling.
+
+---
+
+## ▶ 立项 CORPUS-001 语料库重构  [Claude1 PM, 2026-06-03]
+用户定义底部第4 tab「语料库」(/vocab)内容:三子 tab = **视频(本站浏览历史·按日期·打开播放页即记·重看置顶)/ 单词(现生词本)/ 短语(新:可从查词卡收藏)**。
+- ticket: docs/tickets/CORPUS-001.md;feature_list key 103,not_started。MOBILE-005 已 superseded 并入。
+- **两个新后端**:① 视频浏览历史(VideoView 模型 + watch 页打开即 POST /api/watch/history + 列表按日期分组;列表用快照,不再烧 YT 配额)② 短语收藏(查词卡加收藏 + SavedPhrase + 列表)。单词复用。
+- 前端 3-tab 页走 design 子 agent → Codex1,移动优先。
+- 流程:后端 Codex1+Codex2;前端 design子agent→Codex1→Codex2真机→用户真机→PM验收。前端依赖后端,后端跑通再 unblock。
+- 下一步:PM 待定——先收尾 MOBILE-009 验收,还是先启动 CORPUS-001(后端可与设计并行)。
+
