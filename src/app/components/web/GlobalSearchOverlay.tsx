@@ -96,7 +96,7 @@ export function GlobalSearchOverlay({
 
           <div className="border-t border-zinc-100 px-4 py-3 dark:border-zinc-800">
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              搜索视频、课程、阅读和词库内容
+              搜索视频、课程、阅读和语料库内容
             </p>
           </div>
         </div>

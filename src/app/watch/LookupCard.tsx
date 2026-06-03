@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 22:15
+// Timestamp: 2026-06-03 10:05
 "use client";
 
 import { useEffect, useMemo, useState, type PointerEvent } from "react";
@@ -546,6 +546,53 @@ export function LookupCard({
     }
   }
 
+  async function handleSavePhrase() {
+    if (lookupState.kind !== "ready") return;
+
+    setButtonState("loading");
+    setShowLoginHint(false);
+
+    try {
+      const response = await fetch("/api/vocab/phrase/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lemma: lookupState.lemma,
+          kind: phraseKind ?? "phrase",
+          translationZh: lookupState.translation,
+          explanationZh: lookupState.usageNote || lookupState.morphInfo,
+          data: {
+            meanings: lookupState.meanings,
+            examples: lookupState.examples,
+            phonetic: lookupState.phonetic,
+            source
+          }
+        })
+      });
+
+      if (response.status === 401) {
+        setButtonState("login");
+        setShowLoginHint(true);
+        return;
+      }
+
+      if (response.status === 429) {
+        setButtonState("default");
+        return;
+      }
+
+      if (!response.ok) throw new Error(`Save phrase failed: ${response.status}`);
+
+      setButtonState("success");
+      onSaved?.();
+    } catch (error) {
+      console.error("Save phrase failed", error);
+      setButtonState("default");
+    }
+  }
+
+  const handlePrimarySave = isPhraseLookup ? handleSavePhrase : handleAddToVocab;
+
   const isReady = lookupState.kind === "ready";
   const lemma = isReady ? lookupState.lemma : normalizedForm;
   const partOfSpeech = isReady ? lookupState.partOfSpeech : "";
@@ -650,7 +697,7 @@ export function LookupCard({
           <div className="flex items-center gap-2">
             {isReady && (
               <button
-                onClick={handleAddToVocab}
+                onClick={handlePrimarySave}
                 disabled={buttonState === "already_saved" || buttonState === "loading" || buttonState === "success"}
                 className={`p-1.5 rounded-full transition duration-300 ${
                   buttonState === "already_saved" || buttonState === "success"
@@ -776,7 +823,7 @@ export function LookupCard({
             <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-2">
               <span>你在今天遇到了</span>
               <button
-                onClick={handleAddToVocab}
+                onClick={handlePrimarySave}
                 className="text-brand-600 dark:text-brand-400 hover:text-brand-700 transition p-0.5"
                 type="button"
                 disabled={buttonState === "already_saved" || buttonState === "loading"}
@@ -1001,7 +1048,7 @@ export function LookupCard({
               buttonState === "success" ||
               buttonState === "already_saved"
             }
-            onClick={handleAddToVocab}
+            onClick={handlePrimarySave}
             type="button"
           >
             {buttonState === "already_saved" && useStaticLayout && (
@@ -1010,14 +1057,20 @@ export function LookupCard({
               </svg>
             )}
             {buttonState === "loading"
-              ? "保存中.."
+              ? isPhraseLookup
+                ? "收藏中..."
+                : "保存中..."
               : buttonState === "already_saved"
                 ? "已加入词库"
                 : buttonState === "success"
-                  ? "已加入词库"
+                  ? isPhraseLookup
+                    ? "已收藏短语"
+                    : "已加入词库"
                   : lookupState.kind === "unsupported"
                     ? "无法查词"
-                    : "加入我的词库"}
+                    : isPhraseLookup
+                      ? "收藏短语"
+                      : "加入我的词库"}
           </button>
         )}
         {buttonState === "already_saved" && totalEncounters !== null && (

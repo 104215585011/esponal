@@ -18,6 +18,8 @@ model User {
   sessions      Session[]
   words         Word[]
   lecturaReads  LecturaRead[]
+  videoViews    VideoView[]
+  savedPhrases  SavedPhrase[]
   chatSessions  ChatSession[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -119,6 +121,23 @@ model LecturaRead {
   @@map("lectura_reads")
 }
 
+model VideoView {
+  id           String   @id @default(cuid())
+  userId       String
+  videoId      String
+  title        String
+  channelTitle String
+  thumbnail    String?
+  viewedAt     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId, viewedAt])
+  @@map("video_views")
+}
+
 enum LexiconKind {
   word
   construction
@@ -164,6 +183,23 @@ model LexiconEntry {
   @@index([level])
   @@index([frequency])
   @@index([lookupCount])
+}
+
+model SavedPhrase {
+  id            String      @id @default(cuid())
+  userId        String
+  lemma         String
+  kind          LexiconKind
+  translationZh String?
+  explanationZh String?
+  data          Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lemma, kind])
+  @@index([userId, createdAt])
+  @@map("saved_phrases")
 }
 
 // === Talk 集成（口语训练）===

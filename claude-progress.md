@@ -1,3 +1,51 @@
+### Session #CORPUS-001 Mobile Corpus UI - 2026-06-03 11:10
+
+**Goal**: Implement the `/vocab` mobile corpus redesign from `docs/tickets/CORPUS-001-design.md`, while keeping the desktop vocabulary page unchanged.
+
+**Done (Codex1)**:
+- Added `src/app/vocab/CorpusMobile.tsx` as the new mobile-only `/vocab` surface with three tabs: 视频, 单词, 短语.
+- Split `src/app/vocab/page.tsx` into `hidden md:block` desktop content and `md:hidden` mobile corpus content.
+- Reused `VocabAccordion` unchanged for the 单词 tab.
+- Wired 视频 tab to `GET /api/watch/history` with grouped history cards, loading skeletons, empty state, and error retry.
+- Added dedicated `GET /api/vocab/phrase/list` and wired 短语 tab to it with loading, empty, and error states.
+- Reused `LookupCardStack` for phrase cards so mobile taps open the existing lookup bottom sheet.
+- Unified visible `/vocab` naming from `词库` to `语料库` across the bottom tab, vocab page title, review backlink/copy, desktop nav/account entry, and mobile search helper copy.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed 4/4 before implementation.
+- `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
+- Regression slice `tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/vocab-ui.test.mjs tests/mobile009.test.mjs tests/web014.test.mjs` -> 24/24 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 386/386 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `CORPUS-001` stays `in_progress`; backend + mobile UI are now in place, and the next step is Codex2 QA / true-device validation.
+
+### Session #CORPUS-001 Backend A/B Slice - 2026-06-03 10:05
+
+**Goal**: Start CORPUS-001 with the backend pieces that do not depend on the pending 3-tab UI design.
+
+**Done (Codex1)**:
+- Added `VideoView` and `SavedPhrase` Prisma models plus migration `20260603095000_add_corpus_models`.
+- Added `src/lib/corpus.ts` helpers for video view upsert/list and phrase save/list.
+- Added protected `GET/POST /api/watch/history`; video history uses local snapshots and does not call YouTube APIs for listing.
+- `WatchClient` now records authenticated `/watch?v=...` opens, with rewatch upsert semantics and silent unauthenticated 401 handling.
+- Added protected `GET/POST /api/vocab/phrase/add`.
+- `LookupCard` phrase lookups now save to the phrase API instead of the word vocab API.
+
+**Verification**:
+- Red check: `node --test tests/corpus001.test.mjs` failed 5/5 before implementation.
+- `npx prisma generate` -> pass.
+- `node --test tests/corpus001.test.mjs` -> 5/5 pass.
+- Regression slice `tests/corpus001.test.mjs tests/vocab012-be.test.mjs tests/lex003-frontend.test.mjs tests/phrase001-frontend.test.mjs tests/watch005.test.mjs` -> 29/29 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 382/382 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `CORPUS-001` moved from `not_started` to `in_progress`. Remaining work is the `/vocab` corpus 3-tab UI, which is waiting for `docs/tickets/CORPUS-001-design.md`.
+
 ### Session #MOBILE-009 Secondary Pages Hide Bottom Tabs - 2026-06-03 01:33
 
 **Goal**: Fix PM/user feedback that mobile bottom tabs block secondary pages such as Talk and course details.
@@ -5275,3 +5323,21 @@ feature_list.json 更新：
 **Verification**:
 - `npm test` -> 354/354 pass.
 - `npm run build` -> pass.
+
+### Session #CORPUS-001 Mobile Corpus UI Polish - 2026-06-03 10:55
+
+**Goal**: Continue polishing the CORPUS-001 mobile corpus frontend without blocking QA.
+
+**Done**:
+- Replaced the hand-drawn tab icons in `src/app/vocab/CorpusMobile.tsx` with `lucide-react` icons (`Play`, `BookText`, `Quote`) to align the mobile corpus shell with the shared frontend button/icon guidance.
+- Increased short-phrase card information density by rendering `explanationZh` preview text under the translation when available.
+- Repaired the UTF-8/LF integrity of `session-handoff.md` after the earlier mixed-encoding append left replacement characters in the CORPUS-001 handoff block.
+- Added `tests/corpus001-ui.test.mjs` assertions covering the lucide icon import and phrase explanation preview contract.
+
+**Verification**:
+- `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
+- `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/vocab-ui.test.mjs tests/mobile009.test.mjs tests/web014.test.mjs` -> 24/24 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 386/386 pass.
+- `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).

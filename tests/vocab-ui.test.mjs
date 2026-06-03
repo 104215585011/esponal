@@ -15,7 +15,7 @@ test("/vocab page requires authentication and loads current user's words", async
   assert.match(page, /getServerSession\(getAuthOptions\(\)\)/);
   assert.match(page, /redirect\(["']\/api\/auth\/signin["']\)/);
   assert.match(page, /getWordsByUser\(session\.user\.id\)/);
-  assert.match(page, /我的词库/);
+  assert.match(page, /我的语料库/);
   assert.match(page, /按词根归类，记录你遭遇过的词/);
   assert.match(page, /max-w-2xl/);
   assert.match(page, /bg-app/);
@@ -67,4 +67,3 @@ test("vocab accordion renders search, filters, sorting controls and load-more bu
   assert.match(component, /data-testid="vocab-load-more"/);
   assert.match(component, /没有找到符合筛选条件的单词/);
 });
-

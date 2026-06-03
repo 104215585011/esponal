@@ -42,7 +42,7 @@ export function SiteNav({ vocabHref, session }: SiteNavProps) {
   const pathname = usePathname();
   const allItems: SiteNavItem[] = [
     ...navItems,
-    { label: "词库", href: vocabHref, activeHref: "/vocab" }
+    { label: "语料库", href: vocabHref, activeHref: "/vocab" }
   ];
 
   const visibleItems = allItems.map((item) => {
@@ -53,10 +53,10 @@ export function SiteNav({ vocabHref, session }: SiteNavProps) {
   });
 
   const learningVisibleItems = visibleItems.filter(
-    (item) => item.label !== "拆解" && item.label !== "词库"
+    (item) => item.label !== "拆解" && item.label !== "语料库"
   );
   const toolVisibleItems = visibleItems.filter(
-    (item) => item.label === "拆解" || item.label === "词库"
+    (item) => item.label === "拆解" || item.label === "语料库"
   );
 
   return (
@@ -119,4 +119,3 @@ export function SiteNav({ vocabHref, session }: SiteNavProps) {
     </>
   );
 }
-

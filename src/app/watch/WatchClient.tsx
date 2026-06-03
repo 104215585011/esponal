@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 14:19
+// Timestamp: 2026-06-03 10:05
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -245,12 +245,57 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
   const intervalRef = useRef<number | null>(null);
   const isPlayerReadyRef = useRef(false);
   const pendingMobilePlayRef = useRef<"play" | null>(null);
+  const recordedHistoryVideoRef = useRef<string | null>(null);
   const nextVideo = relatedVideos[0] ?? null;
 
   // Sync playback rate with global speed helper on mount
   useEffect(() => {
     setPlaybackRate(getPlaybackRate());
   }, []);
+
+  useEffect(() => {
+    if (!videoId || recordedHistoryVideoRef.current === videoId) {
+      return;
+    }
+
+    recordedHistoryVideoRef.current = videoId;
+
+    const controller = new AbortController();
+
+    async function recordWatchHistory() {
+      try {
+        const response = await fetch("/api/watch/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            videoId,
+            title: videoInfo.title,
+            channelTitle: videoInfo.channelTitle,
+            thumbnail: `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`
+          })
+        });
+
+        if (response.status === 401) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Watch history returned ${response.status}`);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.warn("Watch history record failed", error);
+        }
+      }
+    }
+
+    void recordWatchHistory();
+
+    return () => {
+      controller.abort();
+    };
+  }, [videoId, videoInfo.title, videoInfo.channelTitle]);
 
   const sendYouTubeCommand = useCallback((command: "playVideo" | "pauseVideo") => {
     const iframe = document.getElementById(PLAYER_IFRAME_ID) as HTMLIFrameElement | null;

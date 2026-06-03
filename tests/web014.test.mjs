@@ -27,7 +27,7 @@ test("WEB-014 detail pages import BackLink and use the exact destinations", asyn
     ["src/app/lectura/[slug]/page.tsx", /<BackLink href="\/lectura" label="阅读" \/>/],
     ["src/app/learn/[slug]/page.tsx", /<BackLink href="\/learn" label="课程" \/>/],
     ["src/app/watch/page.tsx", /<BackLink href="\/" label="视频" \/>/],
-    ["src/app/vocab/review/page.tsx", /<BackLink href="\/vocab" label="词库" \/>/],
+    ["src/app/vocab/review/page.tsx", /<BackLink href="\/vocab" label="语料库" \/>/],
     ["src/app/grammar/[slug]/page.tsx", /<BackLink href="\/grammar" label="语法" \/>/]
   ];
 
@@ -56,7 +56,7 @@ test("WEB-014 labels match SiteNav and watch uses video label", async () => {
   const siteNav = await readText("src/app/components/web/SiteNav.tsx");
   const watch = await readText("src/app/watch/page.tsx");
 
-  for (const label of ["视频", "课程", "阅读", "语法", "词库"]) {
+  for (const label of ["视频", "课程", "阅读", "语法", "语料库"]) {
     assert.match(siteNav, new RegExp(`label: "${label}"`));
   }
 

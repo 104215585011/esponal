@@ -20,7 +20,7 @@ export default async function VocabReviewPage() {
     <main className="min-h-screen bg-app text-gray-900">
       <SiteHeader />
       <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <BackLink href="/vocab" label="词库" />
+        <BackLink href="/vocab" label="语料库" />
 
         <header className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">SRS 复习</h1>

@@ -44,7 +44,7 @@ test("VOCAB-011 vocab page loads stats server-side and mounts a dashboard above 
   assert.match(page, /getVocabStats/);
   assert.match(page, /Promise\.all/);
   assert.match(page, /<VocabDashboard stats=\{stats\} \/>/);
-  assert.match(page, /border-b border-gray-100 mb-6 pb-6/);
+  assert.match(page, /mb-6 border-b border-gray-100 pb-6|border-b border-gray-100 mb-6 pb-6/);
 });
 
 test("VOCAB-011 dashboard uses reviewed compact cards, bar rows, and text source separators", async () => {

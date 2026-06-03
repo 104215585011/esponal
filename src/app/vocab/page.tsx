@@ -4,6 +4,7 @@ import { SiteHeader } from "@/app/components/web/SiteHeader";
 import VocabAccordion, {
   type VocabWord
 } from "@/app/components/vocab/VocabAccordion";
+import CorpusMobile from "@/app/vocab/CorpusMobile";
 import VocabDashboard from "@/app/vocab/VocabDashboard";
 import { getAuthOptions } from "@/lib/auth";
 import { getDueReviewCount, getVocabStats, getWordsByUser } from "@/lib/vocab";
@@ -155,31 +156,36 @@ export default async function VocabPage() {
   return (
     <main className="min-h-screen bg-app text-gray-900">
       <SiteHeader />
-      <section className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-        <header className="mb-8">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">我的词库</h1>
-              <p className="mt-2 text-sm text-gray-400">
-                按词根归类，记录你遭遇过的词
-              </p>
+      <div className="hidden md:block">
+        <section className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+          <header className="mb-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">我的语料库</h1>
+                <p className="mt-2 text-sm text-gray-400">
+                  按词根归类，记录你遭遇过的词
+                </p>
+              </div>
+              {dueCount > 0 ? (
+                <a
+                  href="/vocab/review"
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-600 hover:bg-brand-100"
+                >
+                  <span>{dueCount} 词待复习</span>
+                  <span aria-hidden>{"->"}</span>
+                </a>
+              ) : null}
             </div>
-            {dueCount > 0 ? (
-              <a
-                href="/vocab/review"
-                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-600 hover:bg-brand-100"
-              >
-                <span>{dueCount} 词待复习</span>
-                <span aria-hidden>{"->"}</span>
-              </a>
-            ) : null}
+          </header>
+          <div className="mb-6 border-b border-gray-100 pb-6">
+            <VocabDashboard stats={stats} />
           </div>
-        </header>
-        <div className="border-b border-gray-100 mb-6 pb-6">
-          <VocabDashboard stats={stats} />
-        </div>
-        <VocabAccordion words={serializedWords} />
-      </section>
+          <VocabAccordion words={serializedWords} />
+        </section>
+      </div>
+      <div className="md:hidden">
+        <CorpusMobile words={serializedWords} />
+      </div>
     </main>
   );
 }

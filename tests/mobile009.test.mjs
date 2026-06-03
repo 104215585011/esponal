@@ -11,7 +11,10 @@ test("MOBILE-009 ticket and PM-approved design are present", async () => {
 
   const featureList = JSON.parse(await readText("feature_list.json"));
   const mobile009 = Object.values(featureList).find((feature) => feature.id === "MOBILE-009");
-  assert.equal(mobile009?.status, "ready_for_qa");
+  assert.ok(
+    ["ready_for_qa", "passing"].includes(mobile009?.status),
+    `MOBILE-009 status should be ready_for_qa or passing, got ${mobile009?.status}`
+  );
 
   const design = await readText("docs/tickets/MOBILE-009-design.md");
   assert.match(design, /底部 4 tab|搴曢儴 4 tab/);
@@ -53,7 +56,7 @@ test("MOBILE-009 bottom tab bar only appears on primary tab landing pages", asyn
   assert.match(tabs, /视频/);
   assert.match(tabs, /阅读/);
   assert.match(tabs, /课程/);
-  assert.match(tabs, /词库/);
+  assert.match(tabs, /语料库/);
 });
 
 test("MOBILE-009 mobile top bar is fixed while desktop header stays sticky", async () => {

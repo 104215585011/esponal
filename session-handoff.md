@@ -11717,4 +11717,280 @@ Codex1 修 1+3 → Codex2 真机 QA(label 不乱码 + 顶栏固定)→ 用户真
 - 前端 3-tab 页走 design 子 agent → Codex1,移动优先。
 - 流程:后端 Codex1+Codex2;前端 design子agent→Codex1→Codex2真机→用户真机→PM验收。前端依赖后端,后端跑通再 unblock。
 - 下一步:PM 待定——先收尾 MOBILE-009 验收,还是先启动 CORPUS-001(后端可与设计并行)。
+---
 
+## QA Report: MOBILE-009 Final Mobile App Shell Re-QA
+**Time**: 2026-06-03 09:45
+**Tester**: Codex2
+**Status**: PASS functional/device-mode QA; keep `feature_list.json` as `ready_for_qa` for PM/user closure.
+
+**Commands**:
+- `node --test tests/mobile009.test.mjs tests/mobile009-search.test.mjs` -> PASS, 6/6.
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS, Encoding check passed.
+- `npm test` -> PASS, 377/377.
+- `npm run build` -> PASS; only existing Next `<img>` and Sentry warnings.
+
+**Mobile viewport evidence**:
+- Local Playwright 390x844 on `http://127.0.0.1:3024`.
+- Drawer on `/learn`: overlay `390x844`, aside `288x844`; text readable Chinese; contains secondary/account entries `发音/对话/语法/拆解/设置/积分订阅`; no duplicate primary labels `首页/视频/阅读/课程/词库`.
+- Search overlay on `/learn`: overlay `390x844`; placeholder `搜索内容...`; text `取消搜索视频、课程、阅读和词库内容`; active element `INPUT`.
+- Primary landing pages show bottom tab: `/watch`, `/lectura`, `/learn`; each measured bottom tab `390x57`, text `视频阅读课程词库`.
+- Secondary/detail pages hide bottom tab: `/watch?v=A0yzRIuKYUw`, `/learn/unidad-1`, `/talk`, `/phonics`, `/grammar`, `/dissect`.
+- Authenticated `/talk/carlos` via local QA JWT: bottom tab hidden; textarea bottom `817/844`, form bottom `833/844`, so the input is not covered by the tab bar.
+
+**Conclusion**:
+- No MOBILE-009 blocker found in final QA pass.
+- Do not mark `passing` here; hand back to PM/user for final closure.
+
+
+---
+
+## ✅ MOBILE-009 关票 passing  [Claude1 PM, 2026-06-03]
+app 外壳(底部4tab+精简顶栏+头像左侧栏)验收通过:用户真机基本过 + Codex2 最终 QA PASS(搜索浮层中文/全屏覆盖、侧边栏中文无重复一级tab、/watch有底栏 /watch?v=无、/talk·二级页隐藏底栏输入框不被挡)+ PM 代码核 4 项修复到位。同步放宽 mobile009.test.mjs 的 status 断言(允许 passing,原钉死 ready_for_qa 会卡关票)。
+- **MOBILE-002 解挂**(外壳已就绪,可实现 lectura 移动端)。
+- ⚠️ **当前 npm test 有 4 红,全是 CORPUS-001**(Codex1 并发实现中,TDD 红:视频历史API + 短语收藏),**与 MOBILE-009 无关**。说明 CORPUS-001 后端已在并发开发。
+
+---
+
+## Codex1 Dev Report: CORPUS-001 Backend A/B Slice
+**Time**: 2026-06-03 10:05
+**From**: Codex1
+**Status**: `in_progress`
+
+**Scope completed**:
+- Implemented the backend/data slice for CORPUS-001 that does not depend on the pending corpus 3-tab UI design.
+- Did not implement `/vocab` 3-tab UI because `docs/tickets/CORPUS-001-design.md` is not present yet.
+
+**Implementation**:
+- Added `VideoView` and `SavedPhrase` Prisma models to `prisma/schema.prisma`.
+- Added migration `prisma/migrations/20260603095000_add_corpus_models/migration.sql`.
+- Added `src/lib/corpus.ts`:
+  - `upsertVideoView()` and `getVideoViewsByUser()`
+  - `savePhraseForUser()` and `getSavedPhrasesByUser()`
+- Added protected `GET/POST /api/watch/history`.
+  - POST upserts by `userId + videoId`; rewatch updates `viewedAt` and moves the video to the top.
+  - GET returns local snapshots sorted by `viewedAt desc`.
+  - Listing does not call YouTube APIs.
+- Updated `WatchClient` so opening `/watch?v=...` records history for authenticated users and silently ignores unauthenticated 401.
+- Added protected `GET/POST /api/vocab/phrase/add`.
+- Updated `LookupCard` so phrase lookups save through `/api/vocab/phrase/add`, separate from the word vocab save flow.
+
+**Verification**:
+- Red check: `node --test tests/corpus001.test.mjs` failed 5/5 before implementation.
+- `npx prisma generate` -> PASS.
+- `node --test tests/corpus001.test.mjs` -> PASS (5/5).
+- `node --test tests/corpus001.test.mjs tests/vocab012-be.test.mjs tests/lex003-frontend.test.mjs tests/phrase001-frontend.test.mjs tests/watch005.test.mjs` -> PASS (29/29).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (382/382).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**Next**:
+- Design subagent should produce `docs/tickets/CORPUS-001-design.md` for `/vocab` corpus 3-tab UI.
+- After the design exists, Codex1 can implement the front-end tab shell and wire video history / words / saved phrases into it.
+- Codex2 can already QA the backend contracts and static wiring from this slice.
+
+## ▶ CORPUS-001 前端设计稿完成(PM 派 design 子 agent)[Claude1 PM, 2026-06-03]
+设计稿:`docs/tickets/CORPUS-001-design.md`(三 tab 视频/单词/短语 + 数据契约 + 空/加载/错误态 + 桌面隔离 + §9 PM 决议)。PM 审核通过。
+- PM 决议:统一"语料库"名/不显计数/默认 tab=视频/日期组头不吸附/历史删除&短语筛选后续。
+- 短语收藏后端 + 移动抽屉源码已在(Codex1 在补 CORPUS-001 后端,当前 TDD 红:视频历史API+短语收藏)。
+- **下一步**:Codex1 先把后端(视频历史 /api/watch/history + 短语收藏 /api/vocab/phrase/*)做完(让那 2 个红测试转绿),再照设计稿实现前端三 tab 页 → Codex2 真机 → 用户真机 → PM 验收。
+
+## Codex1 Dev Report: CORPUS-001 Mobile Corpus UI
+**Time**: 2026-06-03 11:10
+**From**: Codex1
+**Status**: `in_progress`
+
+**Scope completed**:
+- Implemented the mobile `/vocab` corpus redesign from `docs/tickets/CORPUS-001-design.md`.
+- Kept the desktop `/vocab` page isolated behind `hidden md:block`.
+
+**Implementation**:
+- Added `src/app/vocab/CorpusMobile.tsx`.
+  - Sticky segmented tabs for `?? / ?? / ??`, defaulting to `??`.
+  - `??` tab fetches `GET /api/watch/history`, groups by `?? / ?? / ??`, and renders snapshot-only history cards.
+  - `??` tab reuses `VocabAccordion` unchanged.
+  - `??` tab fetches `GET /api/vocab/phrase/list`, renders saved phrase cards, and opens them through `LookupCardStack` with `lookupKind="phrase"`.
+  - All three tabs include loading / empty / error states.
+- Updated `src/app/vocab/page.tsx` to split desktop and mobile rendering.
+- Added dedicated `GET /api/vocab/phrase/list`.
+- Unified visible `/vocab` naming from `??` to `???` in:
+  - bottom tab bar
+  - `/vocab` title
+  - `/vocab/review` backlink and completion copy
+  - desktop nav and account dropdown
+  - mobile search helper text
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed 4/4 before implementation.
+- `node --test tests/corpus001-ui.test.mjs` -> PASS (4/4).
+- `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/vocab-ui.test.mjs tests/mobile009.test.mjs tests/web014.test.mjs` -> PASS (24/24).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (386/386).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**Notes**:
+- I attempted to keep a local dev server running for browser verification, but the Windows background launch path in this thread did not stay attached. Code verification relied on `tsc`, full `npm test`, and production `npm run build`.
+
+**Next**:
+- Codex2 should QA `/vocab` mobile on real device / device mode:
+  - `??` tab history grouping and rewatch ordering
+  - `??` tab desktop isolation / mobile usability
+  - `??` tab lookup bottom sheet behavior
+  - visible `???` naming consistency
+
+## Codex1 QA Handoff: CORPUS-001 Mobile Corpus UI
+**Time**: 2026-06-03 11:25
+**From**: Codex1
+**To**: Codex2
+**Status**: ready_for_qa
+
+**Please verify**:
+- Mobile `/vocab` now renders the new 3-tab corpus UI: `?? / ?? / ??`.
+- `??` tab:
+  - loads local watch history from `/api/watch/history`
+  - groups entries by `?? / ?? / ??`
+  - taps navigate to `/watch?v=...`
+  - empty / error / loading states render cleanly
+- `??` tab:
+  - reuses existing `VocabAccordion`
+  - mobile layout remains usable
+  - desktop `/vocab` is unchanged
+- `??` tab:
+  - loads from `/api/vocab/phrase/list`
+  - tapping a phrase opens the existing mobile lookup bottom sheet via `LookupCardStack`
+  - empty / error / loading states render cleanly
+- Visible naming is now `???` instead of `??` along this path:
+  - bottom tab
+  - `/vocab` title
+  - `/vocab/review` backlink and completion copy
+  - desktop nav/account entry
+  - mobile search helper text
+
+**Verification already completed by Codex1**:
+- `node --test tests/corpus001-ui.test.mjs` -> PASS (4/4)
+- `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/vocab-ui.test.mjs tests/mobile009.test.mjs tests/web014.test.mjs` -> PASS (24/24)
+- `npx tsc --noEmit --pretty false` -> PASS
+- `npm run lint:encoding` -> PASS
+- `npm test` -> PASS (386/386)
+- `npm run build` -> PASS
+
+---
+
+## 📋 下一波 epic 已排:语料库活化(AI 挖掘)  [Claude1 PM, 2026-06-03]
+规划文档:`docs/tickets/LEX-ACTIVATION-epic.md`;战略:memory ai-corpus-mining。**移动端 epic + CORPUS-001 收尾后启动。**
+- 票序:**LEX-007 查词缺口回填+质量闸 MVP(先做,最高杠杆,build 前先 brainstorm)** → LEX-008 审核队列+升级金库+用户纠错 → LEX-009 内容短语挖掘 → LEX-010 使用数据校准难度/频率。
+- 贯穿质量闸:确定性字段用规则不用AI/例句用真语料/交叉校验/置信度+审核闸/金库不被污染/用户纠错。
+- **feature_list 登记推迟**:为避免与 Codex1 并发改 feature_list(CORPUS-001)冲突,LEX-007~010 待 CORPUS-001 落定后再登记。
+
+
+## Codex1 Dev Report: CORPUS-001 Mobile Corpus UI Polish
+**Time**: 2026-06-03 10:55
+**From**: Codex1
+**Status**: in_progress
+
+**Scope**:
+- Continued frontend polish on the mobile corpus shell while keeping the QA task focused on the broader CORPUS-001 surface.
+
+**Implementation**:
+- Swapped the tab icons in `src/app/vocab/CorpusMobile.tsx` to `lucide-react` (`Play`, `BookText`, `Quote`).
+- Added `explanationZh` preview text to short-phrase cards when the saved phrase payload includes it.
+- Installed `lucide-react` in `package.json` / `package-lock.json`.
+- Repaired the CORPUS-001 handoff block in `session-handoff.md` back to valid UTF-8 + LF so `npm run lint:encoding` is green again.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed before the icon/import implementation.
+- `node --test tests/corpus001-ui.test.mjs` -> PASS (4/4).
+- `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/vocab-ui.test.mjs tests/mobile009.test.mjs tests/web014.test.mjs` -> PASS (24/24).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (386/386).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**Notes**:
+- CORPUS-001 remains `in_progress`; this is frontend polish on top of the already-landed mobile corpus shell, not a ticket-close.
+
+---
+
+## QA Report: CORPUS-001 Mobile Corpus UI Re-QA
+**Time**: 2026-06-03 11:11
+**Tester**: Codex2
+**Status**: PASS for the current code state. Keep `feature_list.json` as `in_progress` until PM/user closure.
+
+**Commands**:
+1. Targeted regression and contract tests
+   Command:
+   `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/vocab-ui.test.mjs tests/mobile009.test.mjs tests/web014.test.mjs`
+   Output:
+   ```
+   tests 24
+   pass 24
+   fail 0
+   duration_ms 266.7459
+   ```
+   Result: PASS
+2. TypeScript check
+   Command:
+   `npx tsc --noEmit --pretty false`
+   Output:
+   ```
+   [no output]
+   ```
+   Result: PASS
+3. Encoding check after handoff repair
+   Command:
+   `npm run lint:encoding`
+   Output:
+   ```
+   > node scripts/check-encoding.mjs
+   Encoding check passed
+   ```
+   Result: PASS
+4. Full test suite
+   Command:
+   `npm test`
+   Output:
+   ```
+   tests 386
+   pass 386
+   fail 0
+   duration_ms 4993.1043
+   ```
+   Result: PASS
+5. Production build
+   Command:
+   `npm run build`
+   Output:
+   ```
+   Compiled successfully
+   Generating static pages (111/111)
+   ```
+   Result: PASS with only existing Next `<img>` and Sentry warnings.
+
+**Source-contract evidence**:
+- `tests/corpus001-ui.test.mjs` now covers the latest polish contract:
+  - `src/app/vocab/CorpusMobile.tsx` imports `lucide-react`
+  - tab icons use `Play`, `BookText`, `Quote`
+  - phrase cards render `explanationZh` preview text
+- Direct source spot checks confirm:
+  - `src/app/vocab/CorpusMobile.tsx` fetches `/api/watch/history` and `/api/vocab/phrase/list`
+  - the mobile shell defines the three tabs and explanation preview block
+  - `src/app/vocab/page.tsx` keeps `hidden md:block` desktop isolation and `md:hidden` mobile corpus rendering
+  - visible `/vocab` naming is unified to `语料库` in `BottomTabBar`, `GlobalSearchOverlay`, `SiteNav`, `SiteHeader`, and `/vocab/review`
+
+**Local browser/device-mode evidence**:
+- Local Playwright smoke on `http://127.0.0.1:3032`:
+  - mobile `/vocab` redirects to `/auth/sign-in?...` and renders the sign-in shell without crash
+  - desktop `/vocab` auth guard remains in place through the same redirect contract
+  - mobile top-bar search on `/learn` opens the overlay path; source contract plus green automation cover the `语料库` helper text copy
+- Authenticated interactive smoke remained partial in this local environment:
+  - credentials submit on `/auth/sign-in?callbackUrl=/vocab` stayed on the sign-in page instead of reaching authenticated `/vocab`
+  - no product error surfaced in the UI, but this prevented a full live browser walk of history cards / phrase cards behind auth
+  - because the auth-backed runtime could not be completed locally, confidence for those paths comes from the green CORPUS-001 automation plus the source-contract checks above
+
+**Scope conclusion**:
+- No CORPUS-001 blocker found in the current code state.
+- The latest frontend polish is present: `lucide-react` tab icons are wired, short phrase cards render explanation previews, and `session-handoff.md` encoding repair keeps `npm run lint:encoding` green.
+- Do not mark `passing` here; hand back to PM/user for final closure after their acceptance flow.

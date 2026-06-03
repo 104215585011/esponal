@@ -58,7 +58,7 @@ const tabs: BottomTab[] = [
   { label: "视频", href: "/watch", matchBase: "/watch", Icon: PlayIcon },
   { label: "阅读", href: "/lectura", matchBase: "/lectura", Icon: BookOpenIcon },
   { label: "课程", href: "/learn", matchBase: "/learn", Icon: GraduationCapIcon },
-  { label: "词库", href: "/vocab", matchBase: "/vocab", Icon: LibraryIcon }
+  { label: "语料库", href: "/vocab", matchBase: "/vocab", Icon: LibraryIcon }
 ];
 
 const primaryTabLandingPaths = new Set(["/watch", "/lectura", "/learn", "/vocab"]);

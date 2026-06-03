@@ -150,13 +150,13 @@ export default function ReviewClient() {
     return (
       <div className="rounded-2xl border border-gray-100 bg-surface p-8 text-center shadow-card">
         <p className="text-lg font-semibold text-gray-900">完成</p>
-        <p className="mt-2 text-sm text-gray-500">今天这一轮复习已经清空，可以回词库继续积累。</p>
+        <p className="mt-2 text-sm text-gray-500">今天这一轮复习已经清空，可以回语料库继续积累。</p>
         <div className="mt-6 flex items-center justify-center gap-3">
           <Link
             className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white"
             href="/vocab"
           >
-            回到词库
+            回到语料库
           </Link>
           <Link
             className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-gray-200 px-5 text-sm font-semibold text-gray-700"

@@ -102,7 +102,7 @@ export async function SiteHeader({
                   className="block rounded-card px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
                   href="/vocab"
                 >
-                  我的词库
+                  我的语料库
                 </Link>
                 <Link
                   className="block rounded-card px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
