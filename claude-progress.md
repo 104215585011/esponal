@@ -5422,3 +5422,20 @@ feature_list.json 更新：
 - `npm test` -> fails in unrelated existing work outside CORPUS-001:
   - `tests/infra002.test.mjs` mojibake hints in `docs/superpowers/specs/2026-06-03-lex-007-design.md`, `src/lib/lexicon-quality.ts`, and `src/lib/lexicon.ts`
   - `tests/lex007.test.mjs` module resolution failure for `@/lib` imported from `src/lib/lexicon.ts`
+
+### Session #CORPUS-001 Debug Error Detail - 2026-06-03 15:03
+
+**Goal**: Surface the actual client-side failure reason after the new on-page debug strip proved the video tab enters `error` immediately on deployed `/vocab`.
+
+**Done**:
+- Extended `LoadableState<T>` in `src/app/vocab/CorpusMobile.tsx` with `errorDetail`.
+- Added `formatErrorDetail()` so fetch/parse/timeout failures render as readable `ErrorName: message` text.
+- The `?debugCorpus=1` strip now shows:
+  - `history detail: ...`
+  - `phrases detail: ...`
+- Watchdog-driven error fallback now also stamps a visible `"watchdog timeout"` detail.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed before implementation on the new `errorDetail` / `formatErrorDetail` / inline detail text contract.
+- `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
+- `npx tsc --noEmit --pretty false` -> pass.

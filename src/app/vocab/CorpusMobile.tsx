@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 14:06
+// Timestamp: 2026-06-03 15:03
 "use client";
 
 import Link from "next/link";
@@ -39,6 +39,7 @@ type LoadableState<T> = {
   status: "idle" | "loading" | "ready" | "error";
   items: T[];
   requestedAt: number | null;
+  errorDetail: string | null;
 };
 
 type LookupStackCard = {
@@ -133,6 +134,14 @@ function getPhraseKindLabel(kind: PhraseKind) {
   return "固定搭配";
 }
 
+function formatErrorDetail(error: unknown) {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`;
+  }
+
+  return String(error);
+}
+
 export default function CorpusMobile({ words }: CorpusMobileProps) {
   const searchParams = useSearchParams();
   const debugCorpus = searchParams.get("debugCorpus") === "1";
@@ -140,12 +149,14 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
   const [videoState, setVideoState] = useState<LoadableState<VideoView>>({
     status: "idle",
     items: [],
-    requestedAt: null
+    requestedAt: null,
+    errorDetail: null
   });
   const [phraseState, setPhraseState] = useState<LoadableState<SavedPhrase>>({
     status: "idle",
     items: [],
-    requestedAt: null
+    requestedAt: null,
+    errorDetail: null
   });
   const [cards, setCards] = useState<LookupStackCard[]>([]);
 
@@ -157,7 +168,12 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
     const timer = setTimeout(() => {
       setVideoState((current) =>
         current.status === "loading"
-          ? { status: "error", items: current.items, requestedAt: current.requestedAt }
+          ? {
+              status: "error",
+              items: current.items,
+              requestedAt: current.requestedAt,
+              errorDetail: current.errorDetail ?? "watchdog timeout"
+            }
           : current
       );
     }, CORPUS_FETCH_TIMEOUT_MS + 1000);
@@ -173,7 +189,12 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
     const timer = setTimeout(() => {
       setPhraseState((current) =>
         current.status === "loading"
-          ? { status: "error", items: current.items, requestedAt: current.requestedAt }
+          ? {
+              status: "error",
+              items: current.items,
+              requestedAt: current.requestedAt,
+              errorDetail: current.errorDetail ?? "watchdog timeout"
+            }
           : current
       );
     }, CORPUS_FETCH_TIMEOUT_MS + 1000);
@@ -189,7 +210,12 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
     let cancelled = false;
 
     async function loadHistory() {
-      setVideoState({ status: "loading", items: [], requestedAt: Date.now() });
+      setVideoState({
+        status: "loading",
+        items: [],
+        requestedAt: Date.now(),
+        errorDetail: null
+      });
 
       try {
         const payload = await fetchJsonWithTimeout<{ videos?: VideoView[] }>(
@@ -201,12 +227,18 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
         setVideoState({
           status: "ready",
           items: Array.isArray(payload.videos) ? payload.videos : [],
-          requestedAt: null
+          requestedAt: null,
+          errorDetail: null
         });
       } catch (error) {
         if (cancelled) return;
         console.error("Load watch history failed", error);
-        setVideoState({ status: "error", items: [], requestedAt: null });
+        setVideoState({
+          status: "error",
+          items: [],
+          requestedAt: null,
+          errorDetail: formatErrorDetail(error)
+        });
       }
     }
 
@@ -228,7 +260,8 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
       setPhraseState((current) => ({
         ...current,
         status: "loading",
-        requestedAt: Date.now()
+        requestedAt: Date.now(),
+        errorDetail: null
       }));
 
       try {
@@ -241,12 +274,18 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
         setPhraseState({
           status: "ready",
           items: Array.isArray(payload.phrases) ? payload.phrases : [],
-          requestedAt: null
+          requestedAt: null,
+          errorDetail: null
         });
       } catch (error) {
         if (cancelled) return;
         console.error("Load saved phrases failed", error);
-        setPhraseState({ status: "error", items: [], requestedAt: null });
+        setPhraseState({
+          status: "error",
+          items: [],
+          requestedAt: null,
+          errorDetail: formatErrorDetail(error)
+        });
       }
     }
 
@@ -301,11 +340,11 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
   }
 
   function retryVideo() {
-    setVideoState({ status: "idle", items: [], requestedAt: null });
+    setVideoState({ status: "idle", items: [], requestedAt: null, errorDetail: null });
   }
 
   function retryPhrase() {
-    setPhraseState({ status: "idle", items: [], requestedAt: null });
+    setPhraseState({ status: "idle", items: [], requestedAt: null, errorDetail: null });
   }
 
   const videoGroups = groupByDate(videoState.items);
@@ -347,7 +386,9 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
         {debugCorpus ? (
           <div className="mt-2 rounded-2xl border border-amber-200/60 bg-amber-50/90 px-3 py-2 text-[11px] leading-5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/70 dark:text-amber-100">
             <div>history: {videoState.status} ({videoState.items.length})</div>
+            <div>history detail: {videoState.errorDetail ?? "ok"}</div>
             <div>phrases: {phraseState.status} ({phraseState.items.length})</div>
+            <div>phrases detail: {phraseState.errorDetail ?? "ok"}</div>
             <div>active: {activeTab}</div>
           </div>
         ) : null}
