@@ -5359,3 +5359,18 @@ feature_list.json 更新：
 - `npm run lint:encoding` -> pass.
 - `npm test` -> 387/387 pass.
 - `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).
+
+### Session #MOBILE-009 Secondary Page Escape Hatch - 2026-06-03 12:32
+
+**Goal**: Restore a reliable path back to the four primary mobile tab destinations after entering secondary routes from the avatar drawer.
+
+**Done**:
+- Root-caused the trap: secondary routes hide the bottom 4-tab bar, while the avatar drawer had previously removed the primary destinations entirely for deduplication.
+- Updated src/app/components/web/MobileNav.tsx so secondary pages surface a fallback primary-destination section in the avatar drawer (/watch, /lectura, /learn, /vocab) while keeping the landing pages free of duplicate entries.
+- Expanded tests/mobile009.test.mjs to lock the presence of the fallback primary links in the mobile drawer implementation.
+
+**Verification**:
+- node --test tests/mobile009.test.mjs -> 5/5 pass.
+- node --test tests/mobile009.test.mjs tests/corpus001-ui.test.mjs tests/web013.test.mjs -> 12/12 pass.
+- npx tsc --noEmit --pretty false -> pass.
+- npm run lint:encoding -> pass.

@@ -98,6 +98,14 @@ test("MOBILE-009 avatar drawer keeps only secondary destinations and uses correc
   assert.match(mobileNav, /设置/);
   assert.match(mobileNav, /Esponal 积分/);
   assert.match(mobileNav, /积分订阅/);
+  assert.match(mobileNav, /const primaryItems/);
+  assert.match(mobileNav, /const primaryLandingPaths/);
+  assert.match(mobileNav, /!primaryLandingPaths\.has\(pathname\)/);
+  const primaryItemsBlock = mobileNav.match(/const primaryItems:[\s\S]*?\];/)?.[0] ?? "";
+  assert.match(primaryItemsBlock, /href:\s*"\/watch"/);
+  assert.match(primaryItemsBlock, /href:\s*"\/lectura"/);
+  assert.match(primaryItemsBlock, /href:\s*"\/learn"/);
+  assert.match(primaryItemsBlock, /href:\s*"\/vocab"/);
 
   assert.match(navItemsBlock, /label:\s*"发音"/);
   assert.match(navItemsBlock, /href:\s*"\/phonics"/);

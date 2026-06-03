@@ -29,6 +29,18 @@ const navItems: MobileNavItem[] = [
   { label: "拆解", href: "/dissect" }
 ];
 
+// Primary destinations normally live in the mobile bottom tab bar, but it is
+// hidden on secondary pages. The drawer surfaces them as a fallback there,
+// gated on !primaryLandingPaths.has(pathname) to avoid duplicating the tabs.
+const primaryItems: MobileNavItem[] = [
+  { label: "视频", href: "/watch" },
+  { label: "阅读", href: "/lectura" },
+  { label: "课程", href: "/learn" },
+  { label: "语料库", href: "/vocab" }
+];
+
+const primaryLandingPaths = new Set(["/watch", "/lectura", "/learn", "/vocab"]);
+
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -182,6 +194,25 @@ export function MobileNav({
                 </div>
               </div>
             </section>
+          ) : null}
+
+          {!primaryLandingPaths.has(pathname) ? (
+            <div>
+              <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                前往
+              </div>
+              <div className="space-y-1">
+                {primaryItems.map((item) => (
+                  <DrawerLink
+                    active={isActivePath(pathname, item.href)}
+                    href={item.href}
+                    key={item.label}
+                    label={item.label}
+                    onClick={() => setOpen(false)}
+                  />
+                ))}
+              </div>
+            </div>
           ) : null}
 
           <div>
