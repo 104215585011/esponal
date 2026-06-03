@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BookText, Play, Quote } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import EmptyState from "@/app/components/ui/EmptyState";
 import VocabAccordion, {
   type VocabWord
@@ -13,6 +13,8 @@ import { LookupCardStack } from "@/app/watch/LookupCard";
 
 type CorpusMobileProps = {
   words: VocabWord[];
+  initialVideoViews: VideoView[];
+  initialPhrases: SavedPhrase[];
 };
 
 type PhraseKind = "collocation" | "phrase" | "idiom";
@@ -54,30 +56,8 @@ type LookupStackCard = {
   onRelatedPhraseClick?: (lemma: string, kind: PhraseKind) => void;
 };
 
-const CORPUS_FETCH_TIMEOUT_MS = 5000;
-
 function makeLookupId(prefix: string, value: string) {
   return `${prefix}-${value}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-async function fetchJsonWithTimeout<T>(input: string): Promise<T> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), CORPUS_FETCH_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(input, {
-      cache: "no-store",
-      signal: controller.signal
-    });
-
-    if (!response.ok) {
-      throw new Error(`${input} ${response.status}`);
-    }
-
-    return (await response.json()) as T;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 function formatViewedTime(dateValue: string) {
@@ -134,167 +114,27 @@ function getPhraseKindLabel(kind: PhraseKind) {
   return "固定搭配";
 }
 
-function formatErrorDetail(error: unknown) {
-  if (error instanceof Error) {
-    return `${error.name}: ${error.message}`;
-  }
-
-  return String(error);
-}
-
-export default function CorpusMobile({ words }: CorpusMobileProps) {
+export default function CorpusMobile({
+  words,
+  initialVideoViews,
+  initialPhrases
+}: CorpusMobileProps) {
   const searchParams = useSearchParams();
   const debugCorpus = searchParams.get("debugCorpus") === "1";
   const [activeTab, setActiveTab] = useState<"video" | "word" | "phrase">("video");
   const [videoState, setVideoState] = useState<LoadableState<VideoView>>({
-    status: "idle",
-    items: [],
+    status: "ready",
+    items: initialVideoViews,
     requestedAt: null,
     errorDetail: null
   });
   const [phraseState, setPhraseState] = useState<LoadableState<SavedPhrase>>({
-    status: "idle",
-    items: [],
+    status: "ready",
+    items: initialPhrases,
     requestedAt: null,
     errorDetail: null
   });
   const [cards, setCards] = useState<LookupStackCard[]>([]);
-
-  useEffect(() => {
-    if (videoState.status !== "loading" || videoState.requestedAt === null) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setVideoState((current) =>
-        current.status === "loading"
-          ? {
-              status: "error",
-              items: current.items,
-              requestedAt: current.requestedAt,
-              errorDetail: current.errorDetail ?? "watchdog timeout"
-            }
-          : current
-      );
-    }, CORPUS_FETCH_TIMEOUT_MS + 1000);
-
-    return () => clearTimeout(timer);
-  }, [videoState.status, videoState.requestedAt]);
-
-  useEffect(() => {
-    if (phraseState.status !== "loading" || phraseState.requestedAt === null) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setPhraseState((current) =>
-        current.status === "loading"
-          ? {
-              status: "error",
-              items: current.items,
-              requestedAt: current.requestedAt,
-              errorDetail: current.errorDetail ?? "watchdog timeout"
-            }
-          : current
-      );
-    }, CORPUS_FETCH_TIMEOUT_MS + 1000);
-
-    return () => clearTimeout(timer);
-  }, [phraseState.status, phraseState.requestedAt]);
-
-  useEffect(() => {
-    if (videoState.status !== "idle") {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadHistory() {
-      setVideoState({
-        status: "loading",
-        items: [],
-        requestedAt: Date.now(),
-        errorDetail: null
-      });
-
-      try {
-        const payload = await fetchJsonWithTimeout<{ videos?: VideoView[] }>(
-          "/api/watch/history"
-        );
-        if (cancelled) return;
-        console.info("[CORPUS] history loaded", payload.videos?.length ?? 0);
-
-        setVideoState({
-          status: "ready",
-          items: Array.isArray(payload.videos) ? payload.videos : [],
-          requestedAt: null,
-          errorDetail: null
-        });
-      } catch (error) {
-        if (cancelled) return;
-        console.error("Load watch history failed", error);
-        setVideoState({
-          status: "error",
-          items: [],
-          requestedAt: null,
-          errorDetail: formatErrorDetail(error)
-        });
-      }
-    }
-
-    void loadHistory();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [videoState.status]);
-
-  useEffect(() => {
-    if (activeTab !== "phrase" || phraseState.status !== "idle") {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadPhrases() {
-      setPhraseState((current) => ({
-        ...current,
-        status: "loading",
-        requestedAt: Date.now(),
-        errorDetail: null
-      }));
-
-      try {
-        const payload = await fetchJsonWithTimeout<{ phrases?: SavedPhrase[] }>(
-          "/api/vocab/phrase/list"
-        );
-        if (cancelled) return;
-        console.info("[CORPUS] phrases loaded", payload.phrases?.length ?? 0);
-
-        setPhraseState({
-          status: "ready",
-          items: Array.isArray(payload.phrases) ? payload.phrases : [],
-          requestedAt: null,
-          errorDetail: null
-        });
-      } catch (error) {
-        if (cancelled) return;
-        console.error("Load saved phrases failed", error);
-        setPhraseState({
-          status: "error",
-          items: [],
-          requestedAt: null,
-          errorDetail: formatErrorDetail(error)
-        });
-      }
-    }
-
-    void loadPhrases();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, phraseState.status]);
 
   function pushWordLookup(form: string) {
     const normalizedForm = form.trim().toLowerCase();
@@ -340,11 +180,21 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
   }
 
   function retryVideo() {
-    setVideoState({ status: "idle", items: [], requestedAt: null, errorDetail: null });
+    setVideoState({
+      status: "ready",
+      items: initialVideoViews,
+      requestedAt: null,
+      errorDetail: null
+    });
   }
 
   function retryPhrase() {
-    setPhraseState({ status: "idle", items: [], requestedAt: null, errorDetail: null });
+    setPhraseState({
+      status: "ready",
+      items: initialPhrases,
+      requestedAt: null,
+      errorDetail: null
+    });
   }
 
   const videoGroups = groupByDate(videoState.items);

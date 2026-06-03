@@ -7,6 +7,11 @@ import VocabAccordion, {
 import CorpusMobile from "@/app/vocab/CorpusMobile";
 import VocabDashboard from "@/app/vocab/VocabDashboard";
 import { getAuthOptions } from "@/lib/auth";
+import {
+  getSavedPhrasesByUser,
+  getVideoViewsByUser,
+  type SavePhraseKind
+} from "@/lib/corpus";
 import { getDueReviewCount, getVocabStats, getWordsByUser } from "@/lib/vocab";
 import type { VerbConjugations } from "@/lib/conjugate";
 
@@ -110,10 +115,12 @@ export default async function VocabPage() {
     redirect("/api/auth/signin");
   }
 
-  const [words, dueCount, stats] = await Promise.all([
+  const [words, dueCount, stats, videoViews, savedPhrases] = await Promise.all([
     getWordsByUser(session.user.id),
     getDueReviewCount(session.user.id),
-    getVocabStats(session.user.id)
+    getVocabStats(session.user.id),
+    getVideoViewsByUser(session.user.id),
+    getSavedPhrasesByUser(session.user.id)
   ]);
 
   const serializedWords: VocabWord[] = words
@@ -152,6 +159,22 @@ export default async function VocabPage() {
 
       return right.localeCompare(left);
     });
+  const serializedVideoViews = videoViews.map((view) => ({
+    id: view.id,
+    videoId: view.videoId,
+    title: view.title,
+    channelTitle: view.channelTitle,
+    thumbnail: view.thumbnail,
+    viewedAt: view.viewedAt.toISOString()
+  }));
+  const serializedPhrases = savedPhrases.map((phrase) => ({
+    id: phrase.id,
+    lemma: phrase.lemma,
+    kind: phrase.kind as SavePhraseKind,
+    translationZh: phrase.translationZh,
+    explanationZh: phrase.explanationZh,
+    createdAt: phrase.createdAt.toISOString()
+  }));
 
   return (
     <main className="min-h-screen bg-app text-gray-900">
@@ -184,7 +207,11 @@ export default async function VocabPage() {
         </section>
       </div>
       <div className="md:hidden">
-        <CorpusMobile words={serializedWords} />
+        <CorpusMobile
+          words={serializedWords}
+          initialVideoViews={serializedVideoViews}
+          initialPhrases={serializedPhrases}
+        />
       </div>
     </main>
   );

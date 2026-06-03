@@ -5439,3 +5439,20 @@ feature_list.json 更新：
 - Red check: `node --test tests/corpus001-ui.test.mjs` failed before implementation on the new `errorDetail` / `formatErrorDetail` / inline detail text contract.
 - `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
 - `npx tsc --noEmit --pretty false` -> pass.
+
+### Session #CORPUS-001 Server-Hydrated Mobile Corpus - 2026-06-03 15:12
+
+**Goal**: Remove the flaky mobile client-fetch dependency by hydrating `/vocab` mobile tabs from the already-authenticated server page.
+
+**Done**:
+- Updated `src/app/vocab/page.tsx` to load `getVideoViewsByUser()` and `getSavedPhrasesByUser()` alongside the existing word/stats data.
+- Serialized those results into `serializedVideoViews` and `serializedPhrases`.
+- Passed both into `CorpusMobile` as `initialVideoViews` / `initialPhrases`.
+- Updated `src/app/vocab/CorpusMobile.tsx` so the mobile `视频` and `短语` tabs initialize directly in `ready` state from server props instead of relying on client-side fetch on first paint.
+- Kept the `?debugCorpus=1` overlay so deployed-device verification can still show live item counts and state.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed before implementation on the new server-hydration contract.
+- `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm test` -> 397/397 pass.

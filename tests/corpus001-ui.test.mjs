@@ -12,9 +12,16 @@ test("CORPUS-001 mobile vocab page splits desktop and mobile corpus layouts", as
   const page = await readText(pagePath);
 
   assert.match(page, /CorpusMobile/);
+  assert.match(page, /getVideoViewsByUser/);
+  assert.match(page, /getSavedPhrasesByUser/);
+  assert.match(page, /serializedVideoViews/);
+  assert.match(page, /serializedPhrases/);
   assert.match(page, /className="hidden md:block"/);
   assert.match(page, /className="md:hidden"/);
-  assert.match(page, /<CorpusMobile words=\{serializedWords\} \/>/);
+  assert.match(page, /<CorpusMobile/);
+  assert.match(page, /words=\{serializedWords\}/);
+  assert.match(page, /initialVideoViews=\{serializedVideoViews\}/);
+  assert.match(page, /initialPhrases=\{serializedPhrases\}/);
   assert.match(page, /语料库|璇枡搴?/);
 });
 
@@ -37,6 +44,8 @@ test("CORPUS-001 mobile corpus shell provides three tabs, lazy loaders, and phra
 
   assert.match(mobile, /"use client"/);
   assert.match(mobile, /useState/);
+  assert.match(mobile, /initialVideoViews: VideoView\[]/);
+  assert.match(mobile, /initialPhrases: SavedPhrase\[]/);
   assert.match(mobile, /"video" \| "word" \| "phrase"/);
   assert.match(mobile, /useState<"video" \| "word" \| "phrase">\("video"\)/);
   assert.match(mobile, /pb-\[calc\(3\.5rem\+env\(safe-area-inset-bottom\)\)\]/);
@@ -49,17 +58,7 @@ test("CORPUS-001 mobile corpus shell provides three tabs, lazy loaders, and phra
   assert.match(mobile, /LookupCardStack/);
   assert.match(mobile, /lookupKind:\s*"phrase"/);
   assert.match(mobile, /phraseKind:/);
-  assert.match(mobile, /fetchJsonWithTimeout<\{ videos\?: VideoView\[] \}>/);
-  assert.match(mobile, /fetchJsonWithTimeout<\{ phrases\?: SavedPhrase\[] \}>/);
-  assert.match(mobile, /"\/api\/watch\/history"/);
-  assert.match(mobile, /"\/api\/vocab\/phrase\/list"/);
-  assert.match(mobile, /AbortController/);
-  assert.match(mobile, /CORPUS_FETCH_TIMEOUT_MS = 5000/);
-  assert.match(mobile, /controller\.abort\(\)/);
   assert.match(mobile, /requestedAt: number \| null/);
-  assert.match(mobile, /setTimeout\(\(\) =>/);
-  assert.match(mobile, /console\.info\("\[CORPUS\] history loaded"/);
-  assert.match(mobile, /console\.info\("\[CORPUS\] phrases loaded"/);
   assert.match(mobile, /debugCorpus/);
   assert.match(mobile, /useSearchParams/);
   assert.match(mobile, /history: \{videoState\.status\}/);
@@ -67,7 +66,11 @@ test("CORPUS-001 mobile corpus shell provides three tabs, lazy loaders, and phra
   assert.match(mobile, /phrases: \{phraseState\.status\}/);
   assert.match(mobile, /phrases detail: \{phraseState\.errorDetail \?\? "ok"\}/);
   assert.match(mobile, /errorDetail: string \| null/);
-  assert.match(mobile, /formatErrorDetail/);
+  assert.match(mobile, /status: "ready"/);
+  assert.match(mobile, /items: initialVideoViews/);
+  assert.match(mobile, /items: initialVideoViews,\s*requestedAt: null,\s*errorDetail: null/);
+  assert.match(mobile, /items: initialPhrases/);
+  assert.match(mobile, /items: initialPhrases,\s*requestedAt: null,\s*errorDetail: null/);
   assert.match(mobile, /kind="loading-failed"/);
   assert.match(mobile, /kind="empty"/);
   assert.match(mobile, /from "lucide-react"/);
