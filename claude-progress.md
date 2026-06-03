@@ -5530,3 +5530,22 @@ feature_list.json 更新：
 - Playwright/dev-server smoke on `http://127.0.0.1:3013/`:
   - mobile 390x844: `#tools display=none`, `#video-sections display=block`, 5 learning cards, first card width 140px, no horizontal document overflow (`bodyScrollWidth=390`)
   - desktop 1280x900: `#tools display=block`, 5 learning cards
+
+### Session #MOBILE-003 Homepage Revert - 2026-06-04 00:18
+
+**Goal**: Revert the MOBILE-003 homepage content redesign after user feedback: "首页还是还原吧".
+
+**Done**:
+- Restored `src/app/page.tsx` to the pre-MOBILE-003 homepage layout.
+- Restored `src/app/components/web/HomeHero.tsx` to the pre-MOBILE-003 hero.
+- Restored `tests/home001.test.mjs` to the previous HOME-001 contract.
+- Removed `tests/mobile003.test.mjs` so the abandoned mobile redesign no longer gates the reverted homepage.
+- Updated `feature_list.json` for `MOBILE-003` back to `not_started` with explicit revert evidence.
+- Left shared mobile navigation/top bar and unrelated MOBILE-002/LEX/CORPUS changes untouched.
+
+**Verification**:
+- `node --test tests/home001.test.mjs` -> 4/4 pass.
+- `npm run lint:encoding` -> pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm test` -> 399/399 pass.
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only.

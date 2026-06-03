@@ -46,7 +46,7 @@ test("HOME-001 homepage adds learning path and tools while keeping curated video
 test("HOME-001 learning path uses desktop arrows and logged-in-only progress lines", async () => {
   const page = await readText("src/app/page.tsx");
 
-  assert.match(page, /mt-8 hidden text-lg text-zinc-300 lg:block/);
+  assert.match(page, /hidden lg:block text-gray-300 mt-8 text-lg/);
   assert.match(page, /userId && stats \? `已收藏 \$\{stats\.totalSaved\} 词` : undefined/);
   assert.match(page, /userId \? `已读 \$\{readCount\} 篇` : undefined/);
 });
@@ -55,9 +55,7 @@ test("HOME-001 learning path cards reserve progress space and keep equal heights
   const page = await readText("src/app/page.tsx");
 
   assert.match(page, /data-testid="learning-step-card"/);
-  assert.match(page, /min-h-\[150px\]/);
-  assert.match(page, /md:min-h-\[220px\]/);
-  assert.match(page, /md:w-auto md:min-w-0 md:flex-1/);
+  assert.match(page, /flex min-h-\[220px\] min-w-0 flex-1 flex-col/);
   assert.match(page, /mt-3 min-h-\[22px\]/);
   assert.match(page, /className="mt-auto inline-flex/);
 });

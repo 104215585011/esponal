@@ -1691,16 +1691,13 @@
     "area": "frontend",
     "title": "首页 / 学习路径 移动端重设计",
     "user_visible_behavior": "手机首页是清晰的学习动线枢纽,成人学习者一眼知道今天做什么。将来承载『学习路线集成每日阅读』日循环(见 PATH-001,低优先暂不做)。",
-    "status": "ready_for_qa",
+    "status": "not_started",
     "verification": [
-      "docs/tickets/MOBILE-003-design.md section 10 / 12 PM decisions implemented for home content only",
-      "Mobile / home: compact hero, horizontal learning path cards, mobile tools hidden, real curated video stream rendered through channel API and VideoCard",
-      "Desktop / home: SiteHeader/nav/tab shell untouched, desktop tools section remains visible, desktop learning cards remain equal-height flex cards",
-      "Automated verification: node --test tests/mobile003.test.mjs tests/home001.test.mjs; npx tsc --noEmit --pretty false; npm run lint:encoding; npm test; npm run build",
-      "Playwright smoke on http://127.0.0.1:3013/ at 390x844 and 1280x900"
+      "Reverted by user request on 2026-06-04; homepage content restored to pre-MOBILE-003 layout",
+      "Re-run MOBILE-003 only if PM/user wants a new home mobile redesign direction"
     ],
-    "evidence": "2026-06-03 16:45 Codex1 implemented MOBILE-003 home content mobile redesign without touching shared tab/top-bar navigation. Changed src/app/components/web/HomeHero.tsx and src/app/page.tsx; added tests/mobile003.test.mjs and updated tests/home001.test.mjs. Mobile hero is compact with desktop scale retained, ParticleBackground desktop-only, logged-in CTA points to /learn, tools CTA hidden on mobile. Home learning path is mobile snap-x 140px cards with text progress only on mobile and desktop equal-height cards retained. Tools section is hidden on mobile but visible on desktop. Home now fetches curatedChannels[0] with maxResults=8 and renders real selectedVideos through VideoCard; fallback keeps #video-sections anchor hidden if API data is unavailable. Verification: node --test tests/home001.test.mjs tests/mobile003.test.mjs -> 8/8 pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass; npm test -> 403/403 pass; npm run build -> pass with existing <img> and Sentry warnings only. Playwright/dev-server smoke on port 3013: mobile 390x844 toolsDisplay=none, videoSectionDisplay=block, cardCount=5, firstCardWidth=140, bodyScrollWidth=390; desktop 1280x900 toolsDisplay=block, cardCount=5. MOBILE-003 ready for Codex2 QA and user device check; Codex1 did not mark passing.",
-    "notes": "Design: docs/tickets/MOBILE-003-design.md. PM decisions: mobile tools hidden; real curated video stream L2; mobile learning progress ring removed in favor of text; keep independent / home content page; section title remains 学习路径. Scope guard: do not touch BottomTabBar/MobileNav/MobileTopBar/SiteHeader for this ticket."
+    "evidence": "2026-06-04 Codex1 reverted the MOBILE-003 homepage implementation by user request: restored src/app/page.tsx, src/app/components/web/HomeHero.tsx, and tests/home001.test.mjs to the pre-MOBILE-003 versions; removed tests/mobile003.test.mjs so the reverted homepage is no longer gated by the abandoned redesign contract. Shared mobile tab/top-bar shell remains untouched. This reverts only homepage content implementation, not unrelated prior MOBILE-002/LEX/CORPUS work.",
+    "notes": "User requested 首页还是还原吧 on 2026-06-04 after seeing the mobile homepage. Previous design doc remains in docs/tickets/MOBILE-003-design.md for reference, but implementation is intentionally reverted. Do not restart MOBILE-003 without a new PM/user direction."
   },
   "92": {
     "id": "MOBILE-004",

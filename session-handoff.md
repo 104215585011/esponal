@@ -12570,6 +12570,34 @@ lectura 移动端 §10 改版完成:每句小喇叭(/api/tts)取代底部 prev/p
 
 ---
 
+## Codex1 Handoff: MOBILE-003 homepage reverted by user request
+**Time**: 2026-06-04 00:18
+**Developer**: Codex1
+**Status**: REVERTED / NOT_STARTED
+
+**Reason**
+- User feedback: "首页还是还原吧" after seeing the MOBILE-003 mobile homepage redesign.
+
+**What changed**
+- Restored `src/app/page.tsx` to the pre-MOBILE-003 homepage layout.
+- Restored `src/app/components/web/HomeHero.tsx` to the pre-MOBILE-003 hero.
+- Restored `tests/home001.test.mjs` to the previous HOME-001 contract.
+- Removed `tests/mobile003.test.mjs`.
+- Updated `feature_list.json` so `MOBILE-003` is no longer `ready_for_qa`; it is back to `not_started` with revert evidence.
+
+**What did not change**
+- Shared mobile tab/top-bar shell was not touched.
+- Prior MOBILE-002, LEX-007, CORPUS, and spike work from the same earlier pushed commit was not reverted.
+
+**Verification**
+- `node --test tests/home001.test.mjs` -> PASS (4/4)
+- `npm run lint:encoding` -> PASS
+- `npx tsc --noEmit --pretty false` -> PASS
+- `npm test` -> PASS (399/399)
+- `npm run build` -> PASS, with existing Next `<img>` and Sentry warnings only
+
+---
+
 ## ▶ 派单 Codex1 — MOBILE-004 课程(learn)移动端实现  [Claude1 PM, 2026-06-03]
 设计稿 `docs/tickets/MOBILE-004-design.md`(+§12 PM 决议),PM 审核通过。改 /learn 总览 + /learn/[slug] 单元详情移动端,**不动 tab/顶栏/共享件,桌面不回退**。
 - 总览:Hero 收矮、统计轻量横排、起步卡、9 单元改"扫读卡"(移动隐藏 verb chips、留1条目标,md: 还原完整)。
