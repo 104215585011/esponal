@@ -5456,3 +5456,77 @@ feature_list.json 更新：
 - `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
 - `npx tsc --noEmit --pretty false` -> pass.
 - `npm test` -> 397/397 pass.
+
+### Session #LEX-007 QA Blocker Fix and Handoff - 2026-06-03 15:44
+
+**Goal**: Officially take over the in-flight LEX-007 quality-gate work, close the Codex2 blocker on lexicon read filtering, and register the ticket for re-QA now that CORPUS-001 no longer blocks `feature_list.json`.
+
+**Done**:
+- Verified the existing LEX-007 implementation already landed across `prisma/schema.prisma`, `prisma/migrations/20260603130000_add_lexicon_status/migration.sql`, `src/lib/lexicon-quality.ts`, `src/lib/dictionary.ts`, `src/lib/lexicon.ts`, and `src/app/api/vocab/lookup/route.ts`.
+- Kept the TDD follow-up fix in `src/lib/lexicon.ts`: `findConstructionEntry()` and `findRelatedPhraseEntries()` now both apply `status: { in: ["vault", "candidate"] }`, matching the main `findLexiconLookupEntry()` quality gate.
+- Kept the regression coverage in `tests/lex007.test.mjs` that locks those two auxiliary read paths behind the same vault/candidate status filter.
+- Registered `LEX-007` in `feature_list.json` with status `ready_for_qa` and concrete evidence, now that `CORPUS-001` has already been closed and the earlier concurrent-edit concern is gone.
+- Added a formal Codex1 handoff entry to `session-handoff.md` so Codex2 can re-QA from the current code state rather than from the older assistant-only notes.
+
+**Verification**:
+- `node --test tests/lex007.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 398/398 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+### Session #MOBILE-002 Section-10 Redesign - 2026-06-03 16:04
+
+**Goal**: Finish the PM-approved MOBILE-002 rework from `docs/tickets/MOBILE-002-design.md` section 10 after true-device feedback invalidated the earlier bottom transport design.
+
+**Done**:
+- Rewrote `tests/mobile002.test.mjs` around the section-10 contract so the red path now expects sentence-level mobile TTS triggers, a simplified mobile bottom bar, and the preserved responsive typography ladder.
+- Added `stopSpeaking()` to `src/lib/speak.ts` so mobile sentence playback and desktop paragraph playback can share a clean stop path.
+- Reworked `src/app/lectura/LecturaReader.tsx`:
+  - introduced `splitParagraphSentences()` and `playingSentenceKey`
+  - replaced the old mobile previous/play/next transport with per-sentence speaker buttons
+  - kept desktop paragraph audio controls and ReadingDock unchanged
+  - simplified the mobile bar to font size + read only while still hiding it during lookup
+- Tightened `/lectura/[slug]` header spacing and `/lectura` card density to match the PM's polish/tighter-layout feedback.
+- Left the shared MOBILE-000 lookup drawer/stack untouched and did not touch untracked `docs/tickets/MOBILE-002.md`.
+
+**Verification**:
+- `node --test tests/mobile002.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 399/399 pass.
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only.
+- Attempted a detached local dev server on `http://localhost:3000`, but this Windows thread did not keep `next dev` attached; QA should rely on the green test/build evidence or restart `npm run dev` interactively.
+
+### Session #MOBILE-003 Home Mobile Content Redesign - 2026-06-03 16:45
+
+**Goal**: Implement the PM-approved `docs/tickets/MOBILE-003-design.md` section 10 / 12 redesign for the `/` home content area only, without touching the shared mobile tab bar or top bar.
+
+**Done**:
+- Updated `src/app/components/web/HomeHero.tsx`:
+  - compact mobile hero spacing/height
+  - desktop hero scale retained with `md:min-h-[460px]`
+  - particle canvas hidden on mobile
+  - logged-in primary CTA goes to `/learn`
+  - tools CTA hidden on mobile
+- Updated `src/app/page.tsx`:
+  - mobile-safe bottom padding for the existing app shell/tab area
+  - mobile learning path is a horizontal snap carousel with compact cards
+  - progress rings remain desktop-only; mobile progress is text-only
+  - tools section is hidden on mobile and remains visible on desktop
+  - selected video stream now fetches `curatedChannels[0]` with `maxResults=8` and renders real `VideoCard` items
+  - fallback keeps the `#video-sections` anchor if the channel API has no data
+- Added `tests/mobile003.test.mjs` and updated `tests/home001.test.mjs` to lock the new contract.
+- Marked `MOBILE-003` as `ready_for_qa` in `feature_list.json` with concrete evidence.
+
+**Verification**:
+- Red check: `node --test tests/mobile003.test.mjs` failed on the old implementation before code changes.
+- `node --test tests/mobile003.test.mjs` -> 4/4 pass.
+- `node --test tests/home001.test.mjs tests/mobile003.test.mjs` -> 8/8 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 403/403 pass.
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only.
+- Playwright/dev-server smoke on `http://127.0.0.1:3013/`:
+  - mobile 390x844: `#tools display=none`, `#video-sections display=block`, 5 learning cards, first card width 140px, no horizontal document overflow (`bodyScrollWidth=390`)
+  - desktop 1280x900: `#tools display=block`, 5 learning cards

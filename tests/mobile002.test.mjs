@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-03 15:44
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import test from "node:test";
@@ -13,6 +14,8 @@ test("MOBILE-002 design and ticket are present", async () => {
   assert.match(design, /底部控制条/);
   assert.match(design, /不做双语对照/);
   assert.match(design, /连续朗读:纳入本票/);
+  assert.match(design, /播放改逐句小喇叭/);
+  assert.match(design, /底部条只留 字号 \+ 已读/);
 });
 
 test("MOBILE-002 article shell hides top read status on mobile only", async () => {
@@ -34,7 +37,19 @@ test("MOBILE-002 reader typography and desktop-only preferences are responsive",
   assert.match(reader, /hidden md:flex md:opacity-0 md:group-hover:opacity-100/);
 });
 
-test("MOBILE-002 mobile reading bar is thumb reachable and hides under lookup sheet", async () => {
+test("MOBILE-002 mobile detail swaps to sentence-level TTS triggers", async () => {
+  const reader = await readText("src/app/lectura/LecturaReader.tsx");
+
+  assert.match(reader, /import \{[^}]*speak[^}]*\} from "@\/lib\/speak"/);
+  assert.match(reader, /function splitParagraphSentences/);
+  assert.match(reader, /playingSentenceKey/);
+  assert.match(reader, /speak\(sentenceText,\s*\{/);
+  assert.match(reader, /aria-label=\{`播放句子 \$\{sentence\.sentenceIndex \+ 1\}`\}/);
+  assert.match(reader, /data-testid="lectura-sentence-play"/);
+  assert.match(reader, /inline-flex md:hidden/);
+});
+
+test("MOBILE-002 mobile reading bar is simplified to font size and read only", async () => {
   const reader = await readText("src/app/lectura/LecturaReader.tsx");
 
   assert.match(reader, /function MobileReadingBar/);
@@ -44,20 +59,17 @@ test("MOBILE-002 mobile reading bar is thumb reachable and hides under lookup sh
   assert.match(reader, /rounded-full border border-zinc-200\/60 bg-white\/80/);
   assert.match(reader, /dark:border-zinc-800\/60 dark:bg-zinc-900\/80 md:hidden/);
   assert.match(reader, /aria-label=\{`字号：\$\{fontSizeLabels\[fontSize\]\}`\}/);
-  assert.match(reader, /SkipBack/);
-  assert.match(reader, /SkipForward/);
-  assert.match(reader, /Check/);
-  assert.match(reader, /bg-brand-500 text-white shadow-md shadow-brand-500\/25/);
+  assert.doesNotMatch(reader, /SkipBack/);
+  assert.doesNotMatch(reader, /SkipForward/);
+  assert.doesNotMatch(reader, /播放上一段/);
+  assert.doesNotMatch(reader, /播放下一段/);
 });
 
-test("MOBILE-002 mobile controls cycle size, auto-continue audio, and mark read", async () => {
+test("MOBILE-002 mobile controls still cycle size and mark read", async () => {
   const reader = await readText("src/app/lectura/LecturaReader.tsx");
 
   assert.match(reader, /const cycleFontSize = \(\) =>/);
   assert.match(reader, /fontSize === "sm" \? "md" : fontSize === "md" \? "lg" : "sm"/);
-  assert.match(reader, /playParagraphAudio\(paragraphIndex \+ 1\)/);
-  assert.match(reader, /playPreviousParagraph/);
-  assert.match(reader, /playNextParagraph/);
   assert.match(reader, /onMarkAsRead=\{markAsRead\}/);
   assert.match(reader, /disabled=\{isMarked\}/);
 });

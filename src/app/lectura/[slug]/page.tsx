@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 15:05
+// Timestamp: 2026-06-03 15:44
 import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/app/components/web/BackLink";
@@ -61,12 +61,12 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
           </div>
         </div>
 
-        <h1 className="mt-6 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 md:mt-8 md:text-3xl lg:text-4xl">
+        <h1 className="mt-5 text-[28px] font-bold leading-[1.12] tracking-tight text-zinc-900 dark:text-zinc-50 md:mt-8 md:text-3xl lg:text-4xl">
           {story.title}
         </h1>
-        <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 font-normal">{story.titleZh}</p>
+        <p className="mt-2 text-sm font-normal text-zinc-500 dark:text-zinc-400">{story.titleZh}</p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-zinc-400">
+        <div className="mt-3 flex flex-wrap items-center gap-2.5 text-sm text-gray-500 dark:text-zinc-400">
           <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${levelStyle[story.level]}`}
           >
@@ -78,11 +78,11 @@ export default async function LecturaReadPage({ params }: LecturaReadPageProps) 
           <span className="text-[12px] text-gray-400 dark:text-zinc-500">{story.source}</span>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8 md:mt-10">
           <LecturaReader story={story} isRead={isRead} />
         </div>
 
-        <footer className="mt-16 border-t border-gray-100 dark:border-zinc-800/60 pt-6 text-center text-xs text-gray-400 dark:text-zinc-500">
+        <footer className="mt-12 border-t border-gray-100 pt-6 text-center text-xs text-gray-400 dark:border-zinc-800/60 dark:text-zinc-500">
           <p>约 {story.durationMin} 分钟 · 点任意单词查义</p>
           {!userId ? <p className="mt-2">登录后可保存阅读记录</p> : null}
         </footer>

@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 13:00
+// Timestamp: 2026-06-03 15:44
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import assert from "node:assert/strict";
@@ -139,6 +139,17 @@ test("LEX-007 lookup read only serves vault and candidate, with review queue and
   // upsert must never overwrite a vault or human-rejected entry from auto backfill
   assert.match(lexicon, /"vault"[\s\S]*"rejected"|"rejected"[\s\S]*"vault"/);
   assert.match(lexicon, /incrementLookupCount/);
+});
+
+test("LEX-007 construction and related-phrase reads also gate on vault/candidate", async () => {
+  const lexicon = await readText("src/lib/lexicon.ts");
+  const constructionBlock =
+    lexicon.match(/export async function findConstructionEntry[\s\S]*?\n}/)?.[0] ?? "";
+  const relatedBlock =
+    lexicon.match(/export async function findRelatedPhraseEntries[\s\S]*?\n}/)?.[0] ?? "";
+
+  assert.match(constructionBlock, /status:\s*\{\s*in:\s*\[\s*"vault",\s*"candidate"\s*\]/);
+  assert.match(relatedBlock, /status:\s*\{\s*in:\s*\[\s*"vault",\s*"candidate"\s*\]/);
 });
 
 test("LEX-007 backfill is confidence-aware and feeds status into the lexicon", async () => {

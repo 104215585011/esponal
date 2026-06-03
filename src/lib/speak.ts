@@ -10,16 +10,22 @@ type SpeakOptions = {
 
 let currentAudio: HTMLAudioElement | null = null;
 
+export function stopSpeaking() {
+  if (!currentAudio) {
+    return;
+  }
+
+  currentAudio.pause();
+  currentAudio.currentTime = 0;
+  currentAudio = null;
+}
+
 export function speak(text: string, options: SpeakOptions = {}) {
   if (typeof window === "undefined" || !text.trim()) {
     return false;
   }
 
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
-  }
+  stopSpeaking();
 
   const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}`);
   audio.playbackRate = options.rate ?? getPlaybackRate();

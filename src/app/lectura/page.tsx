@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 14:33
+// Timestamp: 2026-06-03 16:04
 // Keep for tests: border-emerald-100 ml-1.5 text-emerald-500
 import Link from "next/link";
 import { getServerSession } from "next-auth";
@@ -38,12 +38,12 @@ export default async function LecturaIndexPage() {
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
-      <section className="mx-auto max-w-app-shell px-4 py-6 md:py-10">
-        <header className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-zinc-100">
+      <section className="mx-auto max-w-app-shell px-4 py-5 md:py-8">
+        <header className="mb-6 md:mb-7">
+          <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-gray-900 dark:text-zinc-100 md:text-[32px]">
             Lectura · 西语短文阅读
           </h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-zinc-400">
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500 dark:text-zinc-400">
             适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
           </p>
           {userId ? (
@@ -76,13 +76,13 @@ export default async function LecturaIndexPage() {
           ) : null}
         </header>
 
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
           {sortedStories.map((story) => {
             const isRead = readSlugs.has(story.slug);
 
             return (
               <Link
-                className={`group flex flex-col gap-3 rounded-2xl border p-4 md:p-5 shadow-card transition-all active:scale-[0.98] md:hover:-translate-y-[2px] md:hover:border-brand-200 md:dark:hover:border-brand-800 md:hover:shadow-elevated ${
+                className={`group flex flex-col gap-2.5 rounded-[20px] border p-4 shadow-card transition-all active:scale-[0.98] md:p-[18px] md:hover:-translate-y-[2px] md:hover:border-brand-200 md:dark:hover:border-brand-800 md:hover:shadow-elevated ${
                   isRead 
                     ? "border-brand-100/60 dark:border-brand-900/30 bg-brand-50/5 dark:bg-brand-950/2" 
                     : "border-zinc-200/60 dark:border-zinc-800/60 bg-surface"
@@ -106,11 +106,11 @@ export default async function LecturaIndexPage() {
                   </div>
                 </div>
 
-                <div>
-                  <p className="text-base font-semibold text-gray-900 dark:text-zinc-100 group-hover:text-brand-700 dark:group-hover:text-brand-400">
+                <div className="space-y-0.5">
+                  <p className="text-[15px] font-semibold leading-6 text-gray-900 dark:text-zinc-100 group-hover:text-brand-700 dark:group-hover:text-brand-400">
                     {story.titleZh}
                   </p>
-                  <p className="mt-0.5 text-[13px] italic text-gray-500 dark:text-zinc-400">
+                  <p className="text-[13px] italic text-gray-500 dark:text-zinc-400">
                     {story.title}
                   </p>
                 </div>
@@ -119,7 +119,7 @@ export default async function LecturaIndexPage() {
                   {story.summaryZh}
                 </p>
 
-                <p className="mt-auto text-[11px] text-gray-400 dark:text-zinc-500">{story.source}</p>
+                <p className="mt-auto pt-1 text-[11px] text-gray-400 dark:text-zinc-500">{story.source}</p>
               </Link>
             );
           })}

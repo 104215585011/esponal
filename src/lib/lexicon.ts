@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 13:00
+// Timestamp: 2026-06-03 15:44
 import {
   Prisma,
   type CefrLevel,
@@ -117,6 +117,7 @@ export async function findConstructionEntry(lemma: string): Promise<LexiconEntry
   return prisma.lexiconEntry.findFirst({
     where: {
       kind: "construction",
+      status: { in: ["vault", "candidate"] },
       OR: [
         { lemma: normalized },
         { forms: { has: normalized } }
@@ -132,6 +133,7 @@ export async function findRelatedPhraseEntries(lemma: string): Promise<LexiconEn
   const candidates = await prisma.lexiconEntry.findMany({
     where: {
       kind: { in: ["collocation", "phrase", "idiom"] },
+      status: { in: ["vault", "candidate"] },
       lemma: { contains: normalized }
     },
     orderBy: [

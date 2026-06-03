@@ -1,14 +1,16 @@
-// Timestamp: 2026-06-02 15:05
+// Timestamp: 2026-06-03 15:44
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LookupCard, LookupCardStack } from "@/app/watch/LookupCard";
+import { Volume2, Pause, Check } from "lucide-react";
+import { LookupCardStack } from "@/app/watch/LookupCard";
 import {
   PHRASE_HIGHLIGHT_CLASSES,
   buildPhraseSegments,
   type PhraseSpan
 } from "@/app/components/vocab/PhraseText";
 import { getPlaybackRate, usePlaybackRate } from "@/lib/playback-rate";
+import { speak, stopSpeaking } from "@/lib/speak";
 import { ReadingPreferences, type ReadingFontSize, type ReadingLookupMode } from "./ReadingPreferences";
 import { ReadingDock } from "./ReadingDock";
 import { useReadingPosition } from "@/hooks/useReadingPosition";
@@ -33,58 +35,59 @@ type ActiveLookup = {
   cards: ActiveLookupCard[];
 };
 
-type IconProps = {
-  className?: string;
+type ParagraphSentence = {
+  text: string;
+  endTokenIndex: number;
 };
 
-function Check({ className }: IconProps) {
-  return (
-    <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24">
-      <path d="m5 12 4 4 10-10" />
-    </svg>
-  );
-}
-
-function Pause({ className }: IconProps) {
-  return (
-    <svg aria-hidden="true" className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
-    </svg>
-  );
-}
-
-function Play({ className }: IconProps) {
-  return (
-    <svg aria-hidden="true" className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  );
-}
-
-function SkipBack({ className }: IconProps) {
-  return (
-    <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="M19 20 9 12l10-8v16zM5 19V5" />
-    </svg>
-  );
-}
-
-function SkipForward({ className }: IconProps) {
-  return (
-    <svg aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="m5 4 10 8-10 8V4zM19 5v14" />
-    </svg>
-  );
-}
+type MobileReadingBarProps = {
+  activeLookup: ActiveLookup | null;
+  fontSize: ReadingFontSize;
+  isMarked: boolean;
+  onCycleFontSize: () => void;
+  onMarkAsRead: () => void;
+};
 
 function splitParagraphTokens(text: string) {
   return text.match(/\S+|\s+/g) ?? [];
 }
 
+function splitParagraphSentences(text: string): ParagraphSentence[] {
+  const tokens = splitParagraphTokens(text);
+  const sentences: ParagraphSentence[] = [];
+  let buffer = "";
+
+  for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex += 1) {
+    const token = tokens[tokenIndex];
+    buffer += token;
+
+    const trimmed = token.trim();
+    const isBoundary = /[.!?]["'”’»)\]]*$/u.test(trimmed);
+    const isLastToken = tokenIndex === tokens.length - 1;
+
+    if ((isBoundary || isLastToken) && buffer.trim()) {
+      sentences.push({
+        text: buffer.trim(),
+        endTokenIndex: tokenIndex
+      });
+      buffer = "";
+    }
+  }
+
+  if (buffer.trim()) {
+    sentences.push({
+      text: buffer.trim(),
+      endTokenIndex: tokens.length - 1
+    });
+  }
+
+  return sentences;
+}
+
 function normalizeLookupWord(token: string) {
   return token
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/^[^a-záéíóúñü]+|[^a-záéíóúñü]+$/gi, "")
     .trim();
@@ -102,74 +105,34 @@ const fontSizeLabels: Record<ReadingFontSize, string> = {
   lg: "大"
 };
 
-type MobileReadingBarProps = {
-  activeLookup: ActiveLookup | null;
-  fontSize: ReadingFontSize;
-  isMarked: boolean;
-  isPlaying: boolean;
-  onCycleFontSize: () => void;
-  onMarkAsRead: () => void;
-  onPlayPause: () => void;
-  onPlayPrevious: () => void;
-  onPlayNext: () => void;
-};
-
 function MobileReadingBar({
   activeLookup,
   fontSize,
   isMarked,
-  isPlaying,
   onCycleFontSize,
-  onMarkAsRead,
-  onPlayPause,
-  onPlayPrevious,
-  onPlayNext
+  onMarkAsRead
 }: MobileReadingBarProps) {
   if (activeLookup) return null;
 
   return (
     <nav
       aria-label="阅读控制"
-      className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-30 flex h-16 items-center justify-between gap-1 rounded-full border border-zinc-200/60 bg-white/80 px-3 shadow-elevated backdrop-blur-md transition-all duration-300 ease-out dark:border-zinc-800/60 dark:bg-zinc-900/80 md:hidden"
+      className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-30 flex h-16 items-center justify-between gap-2 rounded-full border border-zinc-200/60 bg-white/80 px-3 shadow-elevated backdrop-blur-md transition-all duration-300 ease-out dark:border-zinc-800/60 dark:bg-zinc-900/80 md:hidden"
     >
       <button
         aria-label={`字号：${fontSizeLabels[fontSize]}`}
-        className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-600 transition-transform active:scale-90 active:bg-zinc-100 dark:text-zinc-300 dark:active:bg-zinc-800"
+        className="flex h-11 min-w-[88px] items-center justify-center rounded-full text-zinc-600 transition-transform active:scale-90 active:bg-zinc-100 dark:text-zinc-300 dark:active:bg-zinc-800"
         onClick={onCycleFontSize}
         type="button"
       >
         <span className="font-display text-sm font-semibold">Aa</span>
       </button>
       <button
-        aria-label="播放上一段"
-        className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition-transform active:scale-90 dark:text-zinc-400"
-        onClick={onPlayPrevious}
-        type="button"
-      >
-        <SkipBack className="h-5 w-5" />
-      </button>
-      <button
-        aria-label={isPlaying ? "暂停朗读" : "播放朗读"}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-md shadow-brand-500/25 transition-all active:scale-95"
-        onClick={onPlayPause}
-        type="button"
-      >
-        {isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current translate-x-[1px]" />}
-      </button>
-      <button
-        aria-label="播放下一段"
-        className="flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition-transform active:scale-90 dark:text-zinc-400"
-        onClick={onPlayNext}
-        type="button"
-      >
-        <SkipForward className="h-5 w-5" />
-      </button>
-      <button
         aria-label={isMarked ? "已读" : "标记为已读"}
         className={
           isMarked
-            ? "flex h-11 w-11 cursor-default items-center justify-center rounded-full bg-brand-500 text-white shadow-md shadow-brand-500/20 transition-all"
-            : "flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 text-zinc-400 transition-all hover:text-brand-500 active:scale-90 dark:border-zinc-800 dark:text-zinc-500"
+            ? "flex h-11 min-w-[88px] cursor-default items-center justify-center rounded-full bg-brand-500 text-white shadow-md shadow-brand-500/20 transition-all"
+            : "flex h-11 min-w-[88px] items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition-all active:scale-90 dark:border-zinc-800 dark:text-zinc-400"
         }
         disabled={isMarked}
         onClick={onMarkAsRead}
@@ -179,11 +142,12 @@ function MobileReadingBar({
       </button>
     </nav>
   );
-};
+}
 
 export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
+  const [playingSentenceKey, setPlayingSentenceKey] = useState<string | null>(null);
   const [isMarked, setIsMarked] = useState(isRead);
   const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
   const [phraseSpansByParagraph, setPhraseSpansByParagraph] = useState<Record<number, PhraseSpan[]>>({});
@@ -205,10 +169,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     const savedMode = localStorage.getItem("read-pref-mode") as ReadingLookupMode;
     if (savedMode && ["float", "dock"].includes(savedMode)) {
       setLookupMode(savedMode);
-    } else {
-      if (typeof window !== "undefined" && window.innerWidth < 1024) {
-        setLookupMode("float");
-      }
+    } else if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setLookupMode("float");
     }
   }, []);
 
@@ -234,7 +196,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     }
   }, [playbackRate]);
 
-  const stopCurrentAudio = () => {
+  const stopCurrentAudio = useCallback(() => {
     if (!currentAudioRef.current) {
       return;
     }
@@ -243,7 +205,13 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     currentAudioRef.current.currentTime = 0;
     currentAudioRef.current = null;
     setPlayingParagraphIndex(null);
-  };
+  }, []);
+
+  const stopAllReadingAudio = useCallback(() => {
+    stopCurrentAudio();
+    stopSpeaking();
+    setPlayingSentenceKey(null);
+  }, [stopCurrentAudio]);
 
   const openLookup = (
     target: HTMLElement,
@@ -322,8 +290,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     });
   };
 
-  const playParagraphAudio = (paragraphIndex: number) => {
-    stopCurrentAudio();
+  const playParagraphAudio = useCallback((paragraphIndex: number) => {
+    stopAllReadingAudio();
 
     const audio = new Audio(`/audio/lectura/${story.slug}/p${paragraphIndex}.mp3`);
     audio.playbackRate = getPlaybackRate();
@@ -335,9 +303,6 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
       () => {
         currentAudioRef.current = null;
         setPlayingParagraphIndex(null);
-        if (paragraphIndex + 1 < story.paragraphs.length) {
-          playParagraphAudio(paragraphIndex + 1);
-        }
       },
       { once: true }
     );
@@ -354,7 +319,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
       currentAudioRef.current = null;
       setPlayingParagraphIndex(null);
     });
-  };
+  }, [stopAllReadingAudio, story.slug]);
 
   const toggleParagraphAudio = (paragraphIndex: number) => {
     if (playingParagraphIndex === paragraphIndex) {
@@ -365,18 +330,21 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     playParagraphAudio(paragraphIndex);
   };
 
-  const playPreviousParagraph = () => {
-    playParagraphAudio(Math.max((playingParagraphIndex ?? 0) - 1, 0));
-  };
-
-  const playNextParagraph = () => {
-    const nextIndex = playingParagraphIndex === null ? 0 : playingParagraphIndex + 1;
-    if (nextIndex >= story.paragraphs.length) {
-      stopCurrentAudio();
+  const playSentenceAudio = (sentenceText: string, sentenceKey: string) => {
+    if (playingSentenceKey === sentenceKey) {
+      stopSpeaking();
+      setPlayingSentenceKey(null);
       return;
     }
 
-    playParagraphAudio(nextIndex);
+    stopCurrentAudio();
+    setPlayingParagraphIndex(null);
+
+    speak(sentenceText, {
+      rate: getPlaybackRate(),
+      onStart: () => setPlayingSentenceKey(sentenceKey),
+      onEnd: () => setPlayingSentenceKey((current) => (current === sentenceKey ? null : current))
+    });
   };
 
   const markAsRead = useCallback(async () => {
@@ -443,6 +411,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveLookup(null);
+        stopAllReadingAudio();
       }
     };
 
@@ -453,9 +422,9 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
       cancelled = true;
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
-      stopCurrentAudio();
+      stopAllReadingAudio();
     };
-  }, []);
+  }, [stopAllReadingAudio]);
 
   useEffect(() => {
     let cancelled = false;
@@ -521,9 +490,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     : null;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 items-start w-full relative">
-      {/* Left/Main Column - Article Content */}
-      <div className="flex-1 min-w-0 max-w-[65ch] w-full mx-auto">
+    <div className="relative flex w-full flex-col items-start gap-10 lg:flex-row">
+      <div className="mx-auto w-full max-w-[65ch] min-w-0 flex-1">
         <div className="hidden md:flex justify-end mb-6">
           <ReadingPreferences
             fontSize={fontSize}
@@ -544,33 +512,49 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
               tokens.map((token) => ({ text: token, isWord: !!normalizeLookupWord(token) })),
               phraseSpansByParagraph[paragraphIndex] ?? []
             );
-            const isPlaying = playingParagraphIndex === paragraphIndex;
+            const sentences = splitParagraphSentences(paragraph);
+            const sentenceByEndToken = new Map(
+              sentences.map((sentence, sentenceIndex) => [
+                sentence.endTokenIndex,
+                {
+                  ...sentence,
+                  sentenceIndex,
+                  key: `${paragraphIndex}-${sentenceIndex}`
+                }
+              ])
+            );
+            const isPlayingParagraph = playingParagraphIndex === paragraphIndex;
+            let tokenCursor = -1;
 
             return (
               <div
                 className={`group mb-6 md:mb-8 flex md:gap-3 border-l-2 pl-3 md:pl-3.5 transition ${
-                  isPlaying ? "border-brand-500 bg-brand-50/40 dark:bg-brand-950/20" : "border-transparent"
+                  isPlayingParagraph ? "border-brand-500 bg-brand-50/40 dark:bg-brand-950/20" : "border-transparent"
                 }`}
                 data-testid="lectura-paragraph"
                 id={`p${paragraphIndex}`}
                 key={paragraphIndex}
               >
                 <button
-                  aria-label={isPlaying ? "Stop paragraph audio" : "Play paragraph audio"}
+                  aria-label={isPlayingParagraph ? "Stop paragraph audio" : "Play paragraph audio"}
                   className={`mt-1 hidden md:flex md:opacity-0 md:group-hover:opacity-100 h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition ${
-                    isPlaying
+                    isPlayingParagraph
                       ? "border-brand-500 bg-brand-50 text-brand-600 dark:border-brand-500 dark:bg-brand-950/30 dark:text-brand-400 opacity-100"
                       : "border-gray-200 bg-white text-gray-400 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500 hover:border-brand-500 hover:text-brand-600 dark:hover:border-brand-500 dark:hover:text-brand-400"
                   }`}
                   onClick={() => toggleParagraphAudio(paragraphIndex)}
                   type="button"
                 >
-                  {isPlaying ? "||" : ">"}
+                  {isPlayingParagraph ? <Pause className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
                 </button>
                 <p className="min-w-0 flex-1">
-                  {phraseSegments.map((segment, tokenIndex) => {
-                    if (segment.type === "phrase") {
-                      return (
+                  {phraseSegments.map((segment, segmentIndex) => {
+                    const consumedTokenCount = segment.type === "phrase" ? segment.tokens.length : 1;
+                    tokenCursor += consumedTokenCount;
+                    const sentence = sentenceByEndToken.get(tokenCursor);
+
+                    const renderedSegment =
+                      segment.type === "phrase" ? (
                         <span
                           className={PHRASE_HIGHLIGHT_CLASSES}
                           key={`phrase-${segment.span.start}-${segment.span.end}`}
@@ -602,36 +586,56 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                             );
                           })}
                         </span>
-                      );
-                    }
+                      ) : (() => {
+                        const token = segment.token.text;
+                        const normalized = normalizeLookupWord(token);
+                        if (!normalized) {
+                          return <span key={`token-${segmentIndex}`}>{token}</span>;
+                        }
 
-                    const token = segment.token.text;
-                    const normalized = normalizeLookupWord(token);
-                    if (!normalized) {
-                      return <span key={tokenIndex}>{token}</span>;
-                    }
+                        return (
+                          <span
+                            className={`cursor-pointer rounded-sm transition hover:bg-brand-50 dark:hover:bg-brand-950/30 ${
+                              savedSet.has(normalized) ? "saved-word" : ""
+                            }`}
+                            key={`token-${segmentIndex}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
+                              }
+                            }}
+                            role="button"
+                            tabIndex={0}
+                          >
+                            {token}
+                          </span>
+                        );
+                      })();
 
                     return (
-                      <span
-                        className={`cursor-pointer rounded-sm transition hover:bg-brand-50 dark:hover:bg-brand-950/30 ${
-                          savedSet.has(normalized) ? "saved-word" : ""
-                        }`}
-                        key={tokenIndex}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            openLookup(event.currentTarget as HTMLElement, paragraphIndex, normalized);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        {token}
+                      <span key={`segment-${paragraphIndex}-${segmentIndex}`}>
+                        {renderedSegment}
+                        {sentence ? (
+                          <button
+                            aria-label={`播放句子 ${sentence.sentenceIndex + 1}`}
+                            className={`ml-1 inline-flex md:hidden h-6 w-6 items-center justify-center rounded-full border align-middle transition ${
+                              playingSentenceKey === sentence.key
+                                ? "border-brand-500 bg-brand-500 text-white shadow-sm shadow-brand-500/25"
+                                : "border-zinc-200 bg-white/80 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-400"
+                            }`}
+                            data-testid="lectura-sentence-play"
+                            onClick={() => playSentenceAudio(sentence.text, sentence.key)}
+                            type="button"
+                          >
+                            <Volume2 className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
                       </span>
                     );
                   })}
@@ -650,22 +654,20 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
         ) : null}
       </div>
 
-      {/* Right Column - Reading Dock (Only rendered when Mode B is set, hides via Tailwind on small screens) */}
       {lookupMode === "dock" && (
-        <aside className="w-80 shrink-0 sticky top-24 hidden lg:block self-start">
+        <aside className="hidden w-80 shrink-0 self-start sticky top-24 lg:block">
           <ReadingDock
             activeLookup={dockLookup}
             onClose={() => setActiveLookup(null)}
             onCloseCard={closeStackCard}
             onExampleWordClick={openNestedWord}
             onRelatedPhraseClick={openNestedPhrase}
-            storySlug={story.slug}
             paragraphs={story.paragraphs}
+            storySlug={story.slug}
           />
         </aside>
       )}
 
-      {/* Floating Card Popover (Mode A, always used on mobile/tablet viewports) */}
       {activeLookup
         ? (() => {
             const paragraph = story.paragraphs[activeLookup.paragraphIndex] ?? "";
@@ -674,15 +676,13 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
                 ? Math.min(activeLookup.anchorX, window.innerWidth - 340)
                 : activeLookup.anchorX;
             const top =
-              typeof window !== "undefined" &&
-              activeLookup.anchorY + 280 > window.innerHeight
+              typeof window !== "undefined" && activeLookup.anchorY + 280 > window.innerHeight
                 ? activeLookup.anchorY - 300
                 : activeLookup.anchorY;
+
             return (
               <div
-                className={`fixed z-50 transition-all ${
-                  lookupMode === "dock" ? "lg:hidden" : ""
-                }`}
+                className={`fixed z-50 transition-all ${lookupMode === "dock" ? "lg:hidden" : ""}`}
                 style={{ left, top, width: 320 }}
               >
                 <LookupCardStack
@@ -711,18 +711,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
         activeLookup={activeLookup}
         fontSize={fontSize}
         isMarked={isMarked}
-        isPlaying={playingParagraphIndex !== null}
         onCycleFontSize={cycleFontSize}
         onMarkAsRead={markAsRead}
-        onPlayNext={playNextParagraph}
-        onPlayPause={() => {
-          if (playingParagraphIndex === null) {
-            playParagraphAudio(0);
-            return;
-          }
-          stopCurrentAudio();
-        }}
-        onPlayPrevious={playPreviousParagraph}
       />
     </div>
   );
