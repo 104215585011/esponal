@@ -1,6 +1,7 @@
-// Timestamp: 2026-06-02 16:05
+// Timestamp: 2026-06-03 01:11
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
+import { Suspense } from "react";
 import { BottomTabBar } from "@/app/components/web/BottomTabBar";
 import { ServiceWorkerRegister } from "@/app/components/web/ServiceWorkerRegister";
 import "./globals.css";
@@ -61,7 +62,9 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ServiceWorkerRegister />
         {children}
-        <BottomTabBar />
+        <Suspense fallback={null}>
+          <BottomTabBar />
+        </Suspense>
       </body>
     </html>
   );

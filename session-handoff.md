@@ -11580,3 +11580,68 @@ PM 正派 design 子 agent 产出 `docs/tickets/MOBILE-009-design.md`(底部 tab
 **Notes**:
 - No implementation code was changed in this closure step.
 - Do not touch untracked `docs/tickets/MOBILE-002.md`.
+
+---
+
+## 🔴 MOBILE-009 真机退回 Codex1(用户真机抓到 3 bug)  [Claude1 PM, 2026-06-03]
+
+**状态:passing(agent 擅改,已被 PM 改回)→ ready_for_qa,实为待修。** 用户真机发现:
+
+### Bug1【P0·乱码】MobileNav 菜单 label 全是双重编码乱码
+`src/app/components/web/MobileNav.tsx` navItems 的 label 是 GBK↔UTF-8 串码,**逻辑里的字符串比较也用了乱码串**(line 88/95/98),改时两边要同步成正确中文。解码对照:
+- 棣栭→首页 / 瀛楁瘝→字母 / 瑙嗛→视频 / 璇剧→课程 / 闃呰→阅读 / 瀵硅瘽→对话 / 璇硶→语法 / 鎷嗚В→拆解 / 璇嶅簱→词库
+- 同步修 line 88(`=== "瑙嗛"`→视频)、95/98(`"鎷嗚В"`→拆解、`"璇嶅簱"`→词库)。
+- ⚠️ **`lint:encoding` 抓不到这种"合法但错误的 CJK"乱码**(字节是有效 UTF-8)→ 改完必须**真机/浏览器看 label 渲染正确**,不能只靠 lint。根因排查:编辑器/工具读写编码不一致(Windows 老坑),写文件用 UTF-8。
+
+### Bug2【待用户澄清】"视频里没有下面的图标"
+用户原话,含义待确认(watch 页底部图标?视频卡图标?)。PM 正向用户核实,先不动。
+
+### Bug3【顶栏不跟随滚动】MobileTopBar sticky 失效
+`MobileTopBar`(渲染在 SiteHeader line 31)有 `sticky top-0 z-50` 但滚动时不固定。查 SiteHeader/祖先是否有 overflow/transform/固定高度破坏 position:sticky;让顶栏滚动时固定在视口顶部(必要时改 fixed)。
+
+### 流程
+Codex1 修 1+3 → Codex2 真机 QA(label 不乱码 + 顶栏固定)→ 用户真机 → Claude1 验收。**禁止再擅自改 passing;必须真跑 npm test。**
+
+
+## ✏️ MOBILE-009 追加:侧边栏去重(并入 Bug1 那次 MobileNav 修改)[Claude1 PM, 2026-06-03]
+用户定:侧边栏只留次级功能 + 设置 + 积分订阅,**删掉和底部 tab 重复的项**。
+- MobileNav navItems 改为只含次级:**发音(/phonics) · 对话(/talk) · 语法(/grammar) · 拆解(/dissect)**。
+- **删除** 首页(/) · 视频(/watch) · 阅读(/lectura) · 课程(/learn) · 词库(/vocab)(这些已是底部 4-tab)。
+- 与 Bug1 乱码修复一并做(同一个 navItems 数组)。注意 MobileNav 顶部注释提到 PHON-001 regression test 的 label 锚点——改 label/删项可能影响相关测试,Codex1 同步更新测试(发音页锚点用正确中文 label)。
+- 个人信息 / 设置 / Esponal 积分订阅入口保留在侧边栏。
+
+## ✏️ MOBILE-009 Bug2 已澄清(替换之前"待澄清")[Claude1 PM, 2026-06-03]
+**Bug2【底部 tab 在视频首页被错误隐藏】**:
+- 现状:`shouldHideTabBar`(BottomTabBar.tsx)对 `/watch` 一律隐藏底部 tab。
+- 问题:`/watch` 同时是**视频首页(无 ?v=,频道/视频列表)**和**播放页(带 ?v=...)**。视频首页是底部"视频"tab 的落地页,**必须显示底部 tab**(否则点视频 tab 进去就跳不回其它 tab)。现在被错误隐藏。
+- 修:**只在播放页(`/watch` 且带 `v` query 参数)隐藏底部 tab;视频首页(`/watch` 无 v)显示。** usePathname 拿不到 query,需用 `useSearchParams()` 读 `v`(或在组件内判断 window.location.search,注意 SSR/Suspense)。`/lectura` 列表显示、`/lectura/[slug]` 隐藏 的逻辑保持不变(那个本来就对)。
+- Codex2 真机:视频首页有底部 tab、点开某视频(播放页)底部 tab 消失。
+---
+## Codex1 Fix Report: MOBILE-009 True-Device Regression Fix
+**Time**: 2026-06-03 01:11
+**From**: Codex1
+**Status**: ready_for_qa
+
+**Scope**:
+- Fixed the PM/user true-device regression list for MOBILE-009.
+- Did not mark the ticket `passing`.
+
+**Implementation**:
+- `MobileNav` labels are now correct Chinese. The avatar drawer no longer duplicates bottom-tab destinations; it keeps only 发音, 对话, 语法, 拆解, plus personal info, 设置, 积分订阅, login/logout, and theme.
+- `BottomTabBar` now uses `useSearchParams()` so `/watch` without `v` shows the bottom tabs, while `/watch?v=...` hides them. Existing `/lectura/[slug]` hiding remains unchanged.
+- `MobileTopBar` is now mobile `fixed inset-x-0 top-0` with a 52px spacer; the desktop header remains `md:sticky md:top-0`.
+- Added stable QA hooks: `data-testid="mobile-avatar-menu-trigger"` and `data-testid="mobile-avatar-drawer"`.
+
+**Verification**:
+- Red check: `node --test tests/mobile009.test.mjs tests/web013.test.mjs` failed before implementation on the new contracts.
+- `node --test tests/mobile009.test.mjs tests/web013.test.mjs` -> PASS (8/8).
+- `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs` -> PASS (24/24).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- Local Playwright mobile probe at 390x844 -> PASS: `/watch` bottom tab visible (`390x57`, text `视频阅读课程词库`), `/watch?v=A0yzRIuKYUw` bottom tab hidden, top bar stayed `top=0` after scroll, drawer text was correct Chinese with no 首页/视频/阅读/课程/词库 duplicates, drawer aside `288x844`.
+- `npm test` -> PASS (376/376).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**Next For Codex2**:
+- Re-run MOBILE-009 QA in mobile device mode / true device.
+- Focus: side drawer Chinese labels, no primary-tab duplicates, `/watch` index has bottom tabs, `/watch?v=...` player hides bottom tabs, top bar stays fixed while scrolling.

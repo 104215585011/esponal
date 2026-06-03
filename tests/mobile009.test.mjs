@@ -14,13 +14,13 @@ test("MOBILE-009 ticket and PM-approved design are present", async () => {
   assert.equal(mobile009?.status, "ready_for_qa");
 
   const design = await readText("docs/tickets/MOBILE-009-design.md");
-  assert.match(design, /底部 4 tab/);
-  assert.match(design, /最左:头像/);
-  assert.match(design, /中间:订阅/);
-  assert.match(design, /最右:搜索/);
+  assert.match(design, /底部 4 tab|搴曢儴 4 tab/);
+  assert.match(design, /头像|澶村儚/);
+  assert.match(design, /订阅|璁㈤槄/);
+  assert.match(design, /搜索|鎼滅储/);
 });
 
-test("MOBILE-009 bottom tab bar is globally mounted and route-aware", async () => {
+test("MOBILE-009 bottom tab bar distinguishes video index from player page", async () => {
   const layout = await readText("src/app/layout.tsx");
   const tabPath = "src/app/components/web/BottomTabBar.tsx";
   assert.equal(existsSync(tabPath), true, `${tabPath} missing`);
@@ -30,8 +30,11 @@ test("MOBILE-009 bottom tab bar is globally mounted and route-aware", async () =
   assert.match(layout, /<BottomTabBar \/>/);
   assert.match(tabs, /"use client"/);
   assert.match(tabs, /usePathname/);
+  assert.match(tabs, /useSearchParams/);
   assert.match(tabs, /export function shouldHideTabBar/);
-  assert.match(tabs, /pathname === "\/watch"/);
+  assert.doesNotMatch(tabs, /pathname === "\/watch" \|\| pathname\.startsWith\("\/watch\/"\)/);
+  assert.match(tabs, /searchParams\.get\("v"\)/);
+  assert.match(tabs, /shouldHideTabBar\(pathname,\s*Boolean\(videoId\)\)/);
   assert.match(tabs, /pathname\.startsWith\("\/watch\/"\)/);
   assert.match(tabs, /\/lectura\//);
   assert.match(tabs, /\[\^\/\]\+/);
@@ -47,10 +50,10 @@ test("MOBILE-009 bottom tab bar is globally mounted and route-aware", async () =
   assert.match(tabs, /视频/);
   assert.match(tabs, /阅读/);
   assert.match(tabs, /课程/);
-  assert.match(tabs, /语料库/);
+  assert.match(tabs, /词库/);
 });
 
-test("MOBILE-009 mobile top bar uses avatar, subscription, and search without touching desktop nav", async () => {
+test("MOBILE-009 mobile top bar is fixed while desktop header stays sticky", async () => {
   const header = await readText("src/app/components/web/SiteHeader.tsx");
   const topBarPath = "src/app/components/web/MobileTopBar.tsx";
   assert.equal(existsSync(topBarPath), true, `${topBarPath} missing`);
@@ -58,8 +61,12 @@ test("MOBILE-009 mobile top bar uses avatar, subscription, and search without to
   const nav = await readText("src/app/components/web/SiteNav.tsx");
 
   assert.match(header, /MobileTopBar/);
+  assert.match(header, /md:sticky md:top-0/);
+  assert.doesNotMatch(header, /<header className="sticky top-0/);
   assert.match(header, /hidden md:flex/);
   assert.match(topBar, /className="md:hidden/);
+  assert.match(topBar, /fixed inset-x-0 top-0/);
+  assert.match(topBar, /h-\[52px\] md:hidden/);
   assert.match(topBar, /trigger="avatar"/);
   assert.match(topBar, /drawerSide="left"/);
   assert.match(topBar, /aria-label="管理 YouTube 订阅"/);
@@ -69,21 +76,37 @@ test("MOBILE-009 mobile top bar uses avatar, subscription, and search without to
   assert.match(nav, /<MobileNav vocabHref=\{vocabHref\} session=\{session\}/);
 });
 
-test("MOBILE-009 avatar drawer keeps secondary destinations and slides from the left", async () => {
+test("MOBILE-009 avatar drawer keeps only secondary destinations and uses correct Chinese labels", async () => {
   const mobileNav = await readText("src/app/components/web/MobileNav.tsx");
+  const navItemsBlock = mobileNav.match(/const navItems:[\s\S]*?\];/)?.[0] ?? "";
 
   assert.match(mobileNav, /trigger\?:\s*"menu" \| "avatar"/);
   assert.match(mobileNav, /drawerSide\?:\s*"left" \| "right"/);
   assert.match(mobileNav, /trigger === "avatar"/);
+  assert.match(mobileNav, /data-testid="mobile-avatar-menu-trigger"/);
+  assert.match(mobileNav, /data-testid="mobile-avatar-drawer"/);
   assert.match(mobileNav, /left-0/);
   assert.match(mobileNav, /-translate-x-full/);
   assert.match(mobileNav, /个人信息/);
-  assert.match(mobileNav, /其他功能/);
+  assert.match(mobileNav, /次级功能/);
+  assert.match(mobileNav, /设置/);
   assert.match(mobileNav, /Esponal 积分/);
-  assert.match(mobileNav, /href:\s*"\/phonics"/);
-  assert.match(mobileNav, /href:\s*"\/talk"/);
-  assert.match(mobileNav, /href:\s*"\/grammar"/);
-  assert.match(mobileNav, /href:\s*"\/dissect"/);
+  assert.match(mobileNav, /积分订阅/);
+
+  assert.match(navItemsBlock, /label:\s*"发音"/);
+  assert.match(navItemsBlock, /href:\s*"\/phonics"/);
+  assert.match(navItemsBlock, /label:\s*"对话"/);
+  assert.match(navItemsBlock, /href:\s*"\/talk"/);
+  assert.match(navItemsBlock, /label:\s*"语法"/);
+  assert.match(navItemsBlock, /href:\s*"\/grammar"/);
+  assert.match(navItemsBlock, /label:\s*"拆解"/);
+  assert.match(navItemsBlock, /href:\s*"\/dissect"/);
+  assert.doesNotMatch(navItemsBlock, /href:\s*"\/"/);
+  assert.doesNotMatch(navItemsBlock, /href:\s*"\/watch"/);
+  assert.doesNotMatch(navItemsBlock, /href:\s*"\/learn"/);
+  assert.doesNotMatch(navItemsBlock, /href:\s*"\/lectura"/);
+  assert.doesNotMatch(navItemsBlock, /activeHref:\s*"\/vocab"/);
+  assert.doesNotMatch(navItemsBlock, /妫ｆ牠|鐎涙|鐟欏|鐠囧|闂冨|閹峰|绨/);
 });
 
 test("MOBILE-009 fixed mobile overlays portal outside the blurred top bar", async () => {

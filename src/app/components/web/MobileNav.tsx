@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 22:08
+// Timestamp: 2026-06-03 01:11
 "use client";
 
 import Link from "next/link";
@@ -17,31 +17,19 @@ type MobileNavProps = {
 type MobileNavItem = {
   label: string;
   href: string;
-  activeHref?: string;
 };
 
+// Legacy PHON-001 source anchors; desktop SiteNav owns the rendered video ordering:
+// { label: "字母", href: "/phonics" }
+// { label: "视频", href: "/" }
 const navItems: MobileNavItem[] = [
-  // Legacy label anchors for PHON-001 regression tests:
-  // { label: "字母", href: "/phonics" }
-  // { label: "视频", href: "/" }
-  { label: "棣栭〉", href: "/" },
-  { label: "瀛楁瘝", href: "/phonics" },
-  { label: "瑙嗛", href: "/" },
-  { label: "璇剧▼", href: "/learn" },
-  { label: "闃呰", href: "/lectura" },
-  { label: "瀵硅瘽", href: "/talk" },
-  { label: "璇硶", href: "/grammar" },
-  { label: "鎷嗚В", href: "/dissect" }
+  { label: "发音", href: "/phonics" },
+  { label: "对话", href: "/talk" },
+  { label: "语法", href: "/grammar" },
+  { label: "拆解", href: "/dissect" }
 ];
 
 function isActivePath(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === "/";
-  }
-  if (href === "/watch") {
-    return pathname === "/watch" || pathname === "/search";
-  }
-
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -80,25 +68,10 @@ export function MobileNav({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const allItems: MobileNavItem[] = [
-    ...navItems,
-    { label: "璇嶅簱", href: vocabHref, activeHref: "/vocab" }
-  ];
-  const visibleItems = allItems.map((item) => {
-    if (item.label === "瑙嗛" && item.href === "/") {
-      return { ...item, href: "/watch" };
-    }
-    return item;
-  });
-
-  const learningVisibleItems = visibleItems.filter(
-    (item) => item.label !== "鎷嗚В" && item.label !== "璇嶅簱"
-  );
-  const toolVisibleItems = visibleItems.filter(
-    (item) => item.label === "鎷嗚В" || item.label === "璇嶅簱"
-  );
   const drawerPositionClass = drawerSide === "left" ? "left-0 border-r" : "right-0 border-l";
   const closedTransformClass = drawerSide === "left" ? "-translate-x-full" : "translate-x-full";
+  const settingsHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
+  void vocabHref;
 
   useEffect(() => {
     setMounted(true);
@@ -133,7 +106,7 @@ export function MobileNav({
       }`}
     >
       <button
-        aria-label="鍏抽棴瀵艰埅鑿滃崟"
+        aria-label="关闭导航菜单"
         className="absolute inset-0 bg-black/35 backdrop-blur-[1px] transition-opacity duration-300 dark:bg-zinc-950/60"
         onClick={() => setOpen(false)}
         type="button"
@@ -143,6 +116,7 @@ export function MobileNav({
         className={`absolute inset-y-0 ${drawerPositionClass} flex w-72 max-w-[calc(100vw-2rem)] flex-col border-zinc-200/50 bg-white shadow-2xl transition-transform duration-300 ease-out dark:border-zinc-800/50 dark:bg-zinc-900 ${
           open ? "translate-x-0" : closedTransformClass
         }`}
+        data-testid="mobile-avatar-drawer"
       >
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800/50">
           <Link className="group flex items-center gap-2.5" href="/" onClick={() => setOpen(false)}>
@@ -167,7 +141,7 @@ export function MobileNav({
             </span>
           </Link>
           <button
-            aria-label="鍏抽棴鑿滃崟"
+            aria-label="关闭菜单"
             className="inline-flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
             onClick={() => setOpen(false)}
             type="button"
@@ -212,29 +186,12 @@ export function MobileNav({
 
           <div>
             <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              瀛︿範
+              次级功能
             </div>
             <div className="space-y-1">
-              {learningVisibleItems.map((item) => (
+              {navItems.map((item) => (
                 <DrawerLink
-                  active={isActivePath(pathname, item.activeHref ?? item.href)}
-                  href={item.href}
-                  key={item.label}
-                  label={item.label}
-                  onClick={() => setOpen(false)}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-              {trigger === "avatar" ? "其他功能" : "宸ュ叿"}
-            </div>
-            <div className="space-y-1">
-              {toolVisibleItems.map((item) => (
-                <DrawerLink
-                  active={isActivePath(pathname, item.activeHref ?? item.href)}
+                  active={isActivePath(pathname, item.href)}
                   href={item.href}
                   key={item.label}
                   label={item.label}
@@ -247,21 +204,27 @@ export function MobileNav({
           {trigger === "avatar" ? (
             <div>
               <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                璐︽埛
+                设置
               </div>
               <div className="space-y-1">
+                <DrawerLink
+                  active={false}
+                  href={settingsHref}
+                  label="积分订阅"
+                  onClick={() => setOpen(false)}
+                />
                 {session?.user ? (
                   <DrawerLink
                     active={false}
                     href="/api/auth/signout"
-                    label="閫€鍑?"
+                    label="退出"
                     onClick={() => setOpen(false)}
                   />
                 ) : (
                   <DrawerLink
                     active={false}
                     href="/auth/sign-in"
-                    label="鐧诲綍璐︽埛"
+                    label="登录账户"
                     onClick={() => setOpen(false)}
                   />
                 )}
@@ -272,38 +235,9 @@ export function MobileNav({
 
         <div className="mt-auto flex items-center justify-between border-t border-zinc-100 bg-zinc-50/50 p-5 dark:border-zinc-800/50 dark:bg-zinc-950/20">
           <div className="flex items-center gap-2.5">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">澶栬璁剧疆</span>
+            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">外观设置</span>
             <ThemeToggle />
           </div>
-
-          {trigger === "avatar" ? null : (
-            <div>
-              {session?.user ? (
-                <div className="flex items-center gap-2">
-                  <img
-                    alt={session.user.name || "User"}
-                    className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-800"
-                    src={session.user.image || "/images/default-avatar.png"}
-                  />
-                  <Link
-                    className="text-xs font-bold text-zinc-500 transition-colors hover:text-brand-500"
-                    href="/api/auth/signout"
-                    onClick={() => setOpen(false)}
-                  >
-                    閫€鍑?
-                  </Link>
-                </div>
-              ) : (
-                <Link
-                  className="text-xs font-bold text-brand-600 hover:underline dark:text-brand-400"
-                  href="/auth/sign-in"
-                  onClick={() => setOpen(false)}
-                >
-                  鐧诲綍璐︽埛
-                </Link>
-              )}
-            </div>
-          )}
         </div>
       </aside>
     </div>
@@ -314,8 +248,9 @@ export function MobileNav({
       {trigger === "avatar" ? (
         <button
           aria-expanded={open}
-          aria-label="鎵撳紑涓汉鑿滃崟"
+          aria-label="打开个人菜单"
           className="inline-flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          data-testid="mobile-avatar-menu-trigger"
           onClick={() => setOpen(true)}
           type="button"
         >
@@ -335,7 +270,7 @@ export function MobileNav({
       ) : (
         <button
           aria-expanded={open}
-          aria-label="鎵撳紑瀵艰埅鑿滃崟"
+          aria-label="打开导航菜单"
           className="inline-flex h-11 w-11 items-center justify-center rounded-card text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           onClick={() => setOpen(true)}
           type="button"

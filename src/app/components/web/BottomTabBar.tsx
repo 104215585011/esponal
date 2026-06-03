@@ -1,8 +1,8 @@
-// Timestamp: 2026-06-02 16:05
+// Timestamp: 2026-06-03 01:11
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 type IconProps = {
   className?: string;
@@ -58,16 +58,20 @@ const tabs: BottomTab[] = [
   { label: "视频", href: "/watch", matchBase: "/watch", Icon: PlayIcon },
   { label: "阅读", href: "/lectura", matchBase: "/lectura", Icon: BookOpenIcon },
   { label: "课程", href: "/learn", matchBase: "/learn", Icon: GraduationCapIcon },
-  { label: "语料库", href: "/vocab", matchBase: "/vocab", Icon: LibraryIcon }
+  { label: "词库", href: "/vocab", matchBase: "/vocab", Icon: LibraryIcon }
 ];
 
 function startsWith(pathname: string, base: string) {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 
-export function shouldHideTabBar(pathname: string) {
-  if (pathname === "/watch" || pathname.startsWith("/watch/")) {
+export function shouldHideTabBar(pathname: string, hasWatchVideo = false) {
+  if (pathname.startsWith("/watch/")) {
     return true;
+  }
+
+  if (pathname === "/watch") {
+    return hasWatchVideo;
   }
 
   if (!pathname.startsWith("/lectura/")) {
@@ -79,8 +83,10 @@ export function shouldHideTabBar(pathname: string) {
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const videoId = searchParams.get("v")?.trim() ?? "";
 
-  if (shouldHideTabBar(pathname)) {
+  if (shouldHideTabBar(pathname, Boolean(videoId))) {
     return null;
   }
 

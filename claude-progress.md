@@ -1,3 +1,25 @@
+### Session #MOBILE-009 True-Device Regression Fix - 2026-06-03 01:11
+
+**Goal**: Fix PM/user true-device regressions for MOBILE-009 without marking the UI ticket `passing`.
+
+**Done (Codex1)**:
+- Restored `MobileNav` drawer labels to correct Chinese and removed duplicated primary tab destinations from the drawer. It now keeps secondary destinations only: 发音, 对话, 语法, 拆解, plus personal info, 设置, 积分订阅, login/logout, and theme.
+- Changed `BottomTabBar` to read `useSearchParams()`: `/watch` without `v` shows the bottom tab bar, while `/watch?v=...` hides it. `/lectura/[slug]` hiding remains unchanged.
+- Changed mobile top bar from constrained sticky to `fixed inset-x-0 top-0` with a 52px spacer; desktop header remains `md:sticky md:top-0`.
+- Added stable drawer test ids and updated MOBILE-009 / WEB-013 tests for the new contract.
+
+**Verification**:
+- Red check: `node --test tests/mobile009.test.mjs tests/web013.test.mjs` failed before implementation on the new contracts.
+- `node --test tests/mobile009.test.mjs tests/web013.test.mjs` -> pass (8/8).
+- `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs` -> pass (24/24).
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- Playwright mobile probe at 390x844: `/watch` bottom tab visible (`390x57`, text `视频阅读课程词库`), `/watch?v=A0yzRIuKYUw` bottom tab hidden, top bar stayed `top=0` after scroll, drawer text was correct Chinese with no 首页/视频/阅读/课程/词库 duplicates, drawer aside `288x844`.
+- `npm test` -> pass (376/376).
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-009` remains `ready_for_qa`; Codex2 and user true-device QA are next. Codex1 did not mark `passing`.
+
 ### Session #MOBILE-009 Codex2 Re-QA Pass - 2026-06-02 22:30
 
 **Goal**: Close MOBILE-009 after Codex2 confirmed the blocker fix.

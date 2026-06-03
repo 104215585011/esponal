@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 16:05
+// Timestamp: 2026-06-03 01:11
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -26,7 +26,7 @@ export async function SiteHeader({
   const vocabHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-300">
+    <header className="z-50 border-b border-zinc-200/50 shadow-sm transition-all duration-300 dark:border-zinc-800/50 md:sticky md:top-0">
       <div className="absolute inset-0 z-[-1] glass-header" />
       <MobileTopBar
         initialQuery={initialQuery}
