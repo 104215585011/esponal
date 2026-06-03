@@ -155,6 +155,13 @@ enum CefrLevel {
   C2
 }
 
+enum LexiconStatus {
+  vault
+  candidate
+  review
+  rejected
+}
+
 model LexiconEntry {
   id            String      @id @default(cuid())
   kind          LexiconKind
@@ -176,6 +183,7 @@ model LexiconEntry {
   licenseCode   String
   qualityScore  Int         @default(0)
   lookupCount   Int         @default(0)
+  status        LexiconStatus @default(vault)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -183,6 +191,7 @@ model LexiconEntry {
   @@index([level])
   @@index([frequency])
   @@index([lookupCount])
+  @@index([status])
 }
 
 model SavedPhrase {

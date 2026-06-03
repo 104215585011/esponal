@@ -3,12 +3,15 @@ import { NextResponse } from "next/server";
 import { getAuthOptions } from "@/lib/auth";
 import { type DictionaryEntry, lookupDictionary } from "@/lib/dictionary";
 import {
+  deriveScoreSignals,
   findLexiconLookupEntry,
   findConstructionEntry,
   findRelatedPhraseEntries,
   incrementLookupCount,
+  scoreLexiconEntry,
   upsertLexiconEntry
 } from "@/lib/lexicon";
+import { isLemmaInDict } from "@/lib/dictionary";
 import { reportLookupFailure } from "@/lib/monitor";
 import { getWordWithEncounters } from "@/lib/vocab";
 import {
@@ -105,20 +108,26 @@ function mapLexiconEntryToLookupPayload(entry: LexiconEntry, word: string, relat
 
 function scheduleLexiconBackfill(entry: DictionaryEntry) {
   setTimeout(() => {
-    void upsertLexiconEntry({
-      kind: "word",
-      lemma: entry.lemma,
-      displayForm: entry.lemma,
-      forms: [entry.word, entry.lemma],
-      partOfSpeech: entry.partOfSpeech,
-      translationZh: entry.meanings[0] ?? null,
-      explanationZh: entry.meanings.join("；") || null,
-      examples: entry.examples,
-      morphology: entry.conjugations ?? entry.nounForms ?? entry.adjectiveForms ?? null,
-      sources: ["external-lookup"],
-      licenseCode: "external-lookup",
-      qualityScore: 1
-    }).catch((error) => {
+    void (async () => {
+      const lemmaInDict = await isLemmaInDict(entry.lemma);
+      const { score, status } = scoreLexiconEntry(deriveScoreSignals(entry, lemmaInDict));
+
+      await upsertLexiconEntry({
+        kind: "word",
+        lemma: entry.lemma,
+        displayForm: entry.lemma,
+        forms: [entry.word, entry.lemma],
+        partOfSpeech: entry.partOfSpeech,
+        translationZh: entry.meanings[0] ?? null,
+        explanationZh: entry.meanings.join("；") || null,
+        examples: entry.examples,
+        morphology: entry.conjugations ?? entry.nounForms ?? entry.adjectiveForms ?? null,
+        sources: ["external-lookup"],
+        licenseCode: "external-lookup",
+        qualityScore: score,
+        status
+      });
+    })().catch((error) => {
       console.warn("Lexicon backfill failed:", error instanceof Error ? error.message : error);
     });
   }, 0);

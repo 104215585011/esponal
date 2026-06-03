@@ -1,7 +1,8 @@
-// Timestamp: 2026-06-03 13:05
+// Timestamp: 2026-06-03 14:06
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { BookText, Play, Quote } from "lucide-react";
 import { useEffect, useState } from "react";
 import EmptyState from "@/app/components/ui/EmptyState";
@@ -133,6 +134,8 @@ function getPhraseKindLabel(kind: PhraseKind) {
 }
 
 export default function CorpusMobile({ words }: CorpusMobileProps) {
+  const searchParams = useSearchParams();
+  const debugCorpus = searchParams.get("debugCorpus") === "1";
   const [activeTab, setActiveTab] = useState<"video" | "word" | "phrase">("video");
   const [videoState, setVideoState] = useState<LoadableState<VideoView>>({
     status: "idle",
@@ -341,6 +344,13 @@ export default function CorpusMobile({ words }: CorpusMobileProps) {
             );
           })}
         </div>
+        {debugCorpus ? (
+          <div className="mt-2 rounded-2xl border border-amber-200/60 bg-amber-50/90 px-3 py-2 text-[11px] leading-5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/70 dark:text-amber-100">
+            <div>history: {videoState.status} ({videoState.items.length})</div>
+            <div>phrases: {phraseState.status} ({phraseState.items.length})</div>
+            <div>active: {activeTab}</div>
+          </div>
+        ) : null}
       </div>
 
       {activeTab === "video" ? (

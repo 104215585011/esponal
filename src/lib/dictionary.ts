@@ -285,6 +285,16 @@ async function fetchAIEntry(
   };
 }
 
+// LEX-007: whether a lemma (or form) is present in the bundled lemma dictionary.
+// Used as a zero-cost confidence signal for the lexicon quality gate.
+export async function isLemmaInDict(value: string): Promise<boolean> {
+  const normalized = normalizeWord(value);
+  if (!normalized) return false;
+  const lemmaDict = await loadLemmaDict();
+  if (lemmaDict[normalized]) return true;
+  return Object.values(lemmaDict).some((entry) => entry.lemma === normalized);
+}
+
 export async function lookupDictionary(wordInput: string): Promise<DictionaryEntry | null> {
   const word = normalizeWord(wordInput);
   if (!word) return null;

@@ -60,6 +60,10 @@ test("CORPUS-001 mobile corpus shell provides three tabs, lazy loaders, and phra
   assert.match(mobile, /setTimeout\(\(\) =>/);
   assert.match(mobile, /console\.info\("\[CORPUS\] history loaded"/);
   assert.match(mobile, /console\.info\("\[CORPUS\] phrases loaded"/);
+  assert.match(mobile, /debugCorpus/);
+  assert.match(mobile, /useSearchParams/);
+  assert.match(mobile, /history: \{videoState\.status\}/);
+  assert.match(mobile, /phrases: \{phraseState\.status\}/);
   assert.match(mobile, /kind="loading-failed"/);
   assert.match(mobile, /kind="empty"/);
   assert.match(mobile, /from "lucide-react"/);

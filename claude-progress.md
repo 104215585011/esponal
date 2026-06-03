@@ -5405,3 +5405,20 @@ feature_list.json 更新：
 - `node --test tests/corpus001-ui.test.mjs tests/ops002.test.mjs` -> 11/11 pass.
 - `npm test` -> 387/387 pass.
 - `npm run build` -> pass (existing `<img>` and Sentry warnings unchanged).
+
+### Session #CORPUS-001 On-Page Debug Overlay - 2026-06-03 14:55
+
+**Goal**: Stop relying on unreliable mobile console output and expose the corpus client state directly on the page for production debugging.
+
+**Done**:
+- Added `useSearchParams()` in `src/app/vocab/CorpusMobile.tsx`.
+- Added a mobile-only debug strip that appears only when `/vocab?debugCorpus=1` is present.
+- The strip shows live `history` and `phrases` statuses plus item counts, and the current active tab, so deployed-device debugging can continue without browser console access.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed before implementation on the new `debugCorpus` / `useSearchParams` / inline status contract.
+- `node --test tests/corpus001-ui.test.mjs` -> 4/4 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm test` -> fails in unrelated existing work outside CORPUS-001:
+  - `tests/infra002.test.mjs` mojibake hints in `docs/superpowers/specs/2026-06-03-lex-007-design.md`, `src/lib/lexicon-quality.ts`, and `src/lib/lexicon.ts`
+  - `tests/lex007.test.mjs` module resolution failure for `@/lib` imported from `src/lib/lexicon.ts`

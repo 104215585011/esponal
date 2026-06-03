@@ -1,5 +1,11 @@
-// Timestamp: 2026-05-28 11:35
-import { Prisma, type CefrLevel, type LexiconEntry, type LexiconKind } from "@prisma/client";
+// Timestamp: 2026-06-03 13:00
+import {
+  Prisma,
+  type CefrLevel,
+  type LexiconEntry,
+  type LexiconKind,
+  type LexiconStatus
+} from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type LexiconUpsertInput = {
@@ -21,7 +27,18 @@ export type LexiconUpsertInput = {
   sources: string[];
   licenseCode: string;
   qualityScore?: number;
+  status?: LexiconStatus;
 };
+
+// LEX-007 quality gate: pure scoring lives in lexicon-quality.ts (no DB deps,
+// so it stays unit-testable). Re-exported here for existing call sites.
+export {
+  LEXICON_CANDIDATE_THRESHOLD,
+  scoreLexiconEntry,
+  deriveScoreSignals,
+  type LexiconScoreSignals,
+  type LexiconScoreResult
+} from "@/lib/lexicon-quality";
 
 export function normalizeLexiconText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -57,9 +74,12 @@ export async function findLexiconLookupEntry(lemma: string): Promise<LexiconEntr
   const normalized = normalizeLexiconText(lemma);
   if (!normalized) return null;
 
+  // Only vault (license-clean) and candidate (AI-mined, high local confidence)
+  // entries may be served. review / rejected fall through to the AI lookup.
   const word = await prisma.lexiconEntry.findFirst({
     where: {
       kind: "word",
+      status: { in: ["vault", "candidate"] },
       OR: [
         { lemma: normalized },
         { forms: { has: normalized } }
@@ -71,11 +91,22 @@ export async function findLexiconLookupEntry(lemma: string): Promise<LexiconEntr
   return prisma.lexiconEntry.findFirst({
     where: {
       kind: { in: ["construction", "collocation", "phrase", "idiom"] },
+      status: { in: ["vault", "candidate"] },
       OR: [
         { lemma: normalized },
         { forms: { has: normalized } }
       ]
     }
+  });
+}
+
+// Low-confidence AI-mined entries awaiting human review, highest demand first.
+// LEX-008 will turn this into an admin review/upgrade queue.
+export async function listReviewQueue(limit = 50): Promise<LexiconEntry[]> {
+  return prisma.lexiconEntry.findMany({
+    where: { status: "review" },
+    orderBy: { lookupCount: "desc" },
+    take: limit
   });
 }
 
@@ -119,6 +150,23 @@ export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<Lex
   const lemma = normalizeLexiconText(input.lemma);
   const displayForm = input.displayForm ?? input.lemma.trim();
   const forms = normalizeForms(lemma, displayForm, input.forms);
+  const status = input.status ?? "vault";
+
+  // Guard: an auto/AI write must never overwrite a license-clean vault entry
+  // or a human-rejected entry. Bump its demand counter and leave it untouched.
+  const existing = await prisma.lexiconEntry.findUnique({
+    where: { kind_lemma: { kind, lemma } }
+  });
+  if (existing && (existing.status === "vault" || existing.status === "rejected")) {
+    return prisma.lexiconEntry.update({
+      where: { id: existing.id },
+      data: { lookupCount: { increment: 1 } }
+    });
+  }
+
+  // Never downgrade an already-promoted candidate back to review on re-mine.
+  const updateStatus =
+    existing?.status === "candidate" && status === "review" ? "candidate" : status;
 
   return prisma.lexiconEntry.upsert({
     where: {
@@ -142,7 +190,8 @@ export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<Lex
       collocations: input.collocations?.map(normalizeLexiconText) ?? [],
       sources: unique(input.sources.map(normalizeLexiconText)),
       licenseCode: input.licenseCode,
-      qualityScore: input.qualityScore ?? 0
+      qualityScore: input.qualityScore ?? 0,
+      status
     },
     update: {
       displayForm,
@@ -160,7 +209,9 @@ export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<Lex
       collocations: input.collocations?.map(normalizeLexiconText) ?? [],
       sources: unique(input.sources.map(normalizeLexiconText)),
       licenseCode: input.licenseCode,
-      qualityScore: input.qualityScore ?? 0
+      qualityScore: input.qualityScore ?? 0,
+      status: updateStatus,
+      lookupCount: { increment: 1 }
     }
   });
 }
