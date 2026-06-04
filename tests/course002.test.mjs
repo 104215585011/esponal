@@ -34,6 +34,7 @@ test("COURSE-002 grammar content defines homepage order and required groups", as
   assert.match(content, /group:\s*"名词性别"/);
   assert.match(content, /group:\s*"常见辨析"/);
   assert.match(content, /查看相关语法/);
+  assert.match(content, /slug:\s*"regular-ar"[\s\S]*?conjugations:\s*conjugations\(\["hablo", "hablas", "habla", "hablamos", "habláis", "hablan"\]\)/);
 });
 
 test("COURSE-002 grammar pages render required responsive layout and semantic tables", async () => {

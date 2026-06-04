@@ -27,7 +27,7 @@ export type GrammarTopic = {
   related?: Array<{ label: string; slug: string }>;
 };
 
-export const COURSE_002_UPDATED_AT = "2026-05-13 14:20";
+export const COURSE_002_UPDATED_AT = "2026-06-04 16:02";
 
 const standardPronouns = [
   ["yo", "我，第一人称单数"],
@@ -124,6 +124,7 @@ export const grammarTopics: GrammarTopic[] = [
     intro: "以 -ar 结尾的规则动词按固定词尾变位，是西语动词的最大类别。",
     analogy:
       "中文动词不变形，但西语动词会随人称改变。-ar 动词最多，记住词尾 -o / -as / -a / -amos / -áis / -an 就能套用所有规则 -ar 动词。",
+    conjugations: conjugations(["hablo", "hablas", "habla", "hablamos", "habláis", "hablan"]),
     rules: [
       "去掉 -ar，得到词根（hablar → habl-）。",
       "yo: -o → hablo",

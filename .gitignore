@@ -41,3 +41,6 @@ data/lexicon-verb-refresh-progress.json
 data/lexicon-verb-refresh-skipped.json
 .tmp-lex002/
 .tmp-lex002-step4/
+
+# all temp/scratch QA artifacts (prevent recurring pollution)
+.tmp-*

@@ -1,3 +1,33 @@
+### Session #Codex2 Re-check - 2026-06-04 16:20
+
+**Goal**: Reconcile ticket state with the latest Codex2 QA re-check before cutting a clean mobile checkpoint commit.
+
+**QA outcome**:
+- `MOBILE-008`: Codex2 re-check passed. Mobile `/grammar/regular-ar` now visibly renders the conjugation table and the “左右滑动看全表” cue; `/grammar`, `/grammar/[slug]`, and `/dissect` mobile smoke passed alongside focused tests.
+- `MOBILE-006`: Codex2 could only lightly re-check the list view. Mobile `/talk` looks correct and focused tests pass, but `/talk/[characterId]` still redirects to sign-in in the current QA environment, so the ticket should remain `ready_for_qa` instead of `passing`.
+
+**State**:
+- `MOBILE-008` is now eligible for `passing`.
+- `MOBILE-006` should stay `ready_for_qa` until an authenticated detail-session QA pass is available.
+
+### Session #MOBILE-008 QA Blocker Fix - 2026-06-04 16:02
+
+**Goal**: Fix the Codex2 QA blocker on MOBILE-008 where the grammar detail page had mobile table UI but no live topic content actually rendering a conjugation table.
+
+**Done (Codex1)**:
+- Updated [content/grammar/topics.ts](/C:/Users/wang/esponal/content/grammar/topics.ts:30) so `regular-ar` now includes a real `conjugations(["hablo", "hablas", "habla", "hablamos", "habláis", "hablan"])` payload instead of relying on a dead conditional branch.
+- Updated [tests/course002.test.mjs](/C:/Users/wang/esponal/tests/course002.test.mjs:1) to lock that `regular-ar` continues to ship a real conjugation table source, so the MOBILE-008 table-scroll cue remains attached to visible user content rather than source-only markup.
+
+**Verification**:
+- `node --test tests/course002.test.mjs tests/mobile008.test.mjs` -> 6/6 pass.
+- `node --test tests/course006.test.mjs tests/course005.test.mjs` -> 17/17 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 427/427 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: The specific MOBILE-008 QA blocker is fixed; the ticket remains `ready_for_qa` and should go back to Codex2 for a quick re-check of mobile `/grammar/regular-ar`.
+
 ### Session #MOBILE-008 Grammar + Dissect Mobile Redesign - 2026-06-04 15:02
 
 **Goal**: Implement the approved `docs/tickets/MOBILE-008-design.md` mobile redesign for `/grammar`, `/grammar/[slug]`, and `/dissect` after handing MOBILE-006 to Codex2 QA, while preserving shared shell boundaries and desktop behavior.
