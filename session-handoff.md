@@ -1,3 +1,196 @@
+## Codex1 Dev Report: MOBILE-008 Grammar + Dissect Mobile Redesign
+**Time**: 2026-06-04 15:02
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Scope**:
+- Implement the approved mobile redesign for `/grammar`, `/grammar/[slug]`, and `/dissect`.
+- Preserve shared shell boundaries (`SiteHeader`, `BackLink`, lookup shared components) and keep desktop behavior behind `md:` / `lg:` branches.
+
+**Implementation**:
+- Added `tests/mobile008.test.mjs` first so the contract now locks the grammar safe-area shell, compact zinc mobile cards, detail-page table-scroll cue, dissect touch-target sizing, and narrow-screen popover width constraints.
+- `src/app/grammar/page.tsx`: mobile-safe container padding, tighter hero/header spacing, compact topic selector spacing, denser topic cards, `line-clamp` copy control, and zinc-only surfaces.
+- `src/app/grammar/[slug]/page.tsx`: safe-area container, tighter detail header, mobile "左右滑动看全表" cue, zinc table header/body cleanup, denser comparison/example cards, and chip-style related links.
+- `src/app/dissect/page.tsx`: removed the root gray text override so the route follows the shared `bg-app` shell cleanly.
+- `src/app/dissect/DissectorClient.tsx`: safe-area-aware container padding, larger mobile textarea/buttons, compact output shell, constrained inline popovers for skeleton/content/phrase lookups, and UTF-8-safe Chinese helper copy for InterlinearGloss and gustar inversion notes.
+- `tests/course006.test.mjs`: aligned older dissect regression expectations with the refreshed zinc/mobile class structure.
+
+**Verification**:
+- Red check: `node --test tests/mobile008.test.mjs` failed before implementation.
+- `node --test tests/mobile008.test.mjs` -> 3/3 pass.
+- `node --test tests/course002.test.mjs tests/course005.test.mjs` -> 15/15 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 427/427 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Compare mobile `/grammar` and `/grammar/[slug]` against `docs/tickets/MOBILE-008-design.md`, especially safe-area spacing above the home bar, topic-card density, and whether the table-scroll cue makes horizontal tables discoverable without affecting desktop.
+- Check `/dissect` on a narrow viewport with long words/phrases near the right edge and near the bottom of the result card: skeleton popover, content-word lookup stack, and phrase lookup stack should all stay inside the viewport and feel tappable.
+- Re-check that desktop grammar/dissect layout remains on the original branch and that no shared shell/lookup component regressed.
+
+## Codex1 Dev Report: MOBILE-006 Talk Mockup Pass
+**Time**: 2026-06-04 14:34
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa follow-up
+
+**Scope**:
+- Keep the earlier MOBILE-006 mobile shell migration.
+- Push `/talk` and `/talk/[characterId]` closer to `docs/tickets/MOBILE-006-mockup.html`.
+- Preserve shared shell boundaries and desktop behavior.
+
+**Implementation**:
+- Tightened `tests/mobile006.test.mjs` first so the contract now locks the mobile list, detail header, sidebar breakpoint, day pill, mini avatar, safe-area composer, and SVG control structure more precisely.
+- `src/app/talk/page.tsx`: readable Chinese list copy and stable `ES / UK / US / FR / JP` text avatar badges.
+- `src/app/talk/[characterId]/page.tsx` + `TalkCharacterShell.tsx`: mobile back header, badge avatar accent, online dot, and `h-[calc(100dvh-52px)]` shell aligned more closely to the approved mockup while keeping the desktop branch.
+- `src/app/talk/[characterId]/TalkClient.tsx`: day pill, assistant mini avatar, safe-area composer, SVG controls, and normalized voice-recognition / empty-state / fallback copy using Unicode-safe source strings instead of mojibake.
+- `tests/talk002.test.mjs` and `tests/talk006.test.mjs`: updated source-contract assertions so TALK regressions follow the corrected Unicode strings.
+
+**Verification**:
+- Red check: `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs` failed before the final alignment pass.
+- `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs` -> 15/15 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 424/424 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Compare mobile `/talk` and `/talk/[characterId]` directly against `docs/tickets/MOBILE-006-mockup.html`, especially list density, top header rhythm, avatar badge treatment, and bottom composer spacing above the home bar.
+- Confirm the mobile voice/fallback/status copy is readable Chinese with no mojibake.
+- Re-check desktop `/talk` list/detail remains on the original non-mobile branch.
+
+## Codex1 Dev Report: MOBILE-004 Learn Overview Mockup Pass
+**Time**: 2026-06-04 13:24
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa follow-up
+
+**Scope**:
+- Keep the already-approved MOBILE-004 detail/foundation mobile work.
+- Push `/learn` overview closer to `docs/tickets/MOBILE-004-mockup.html`.
+- Preserve shared shell boundaries and desktop `md:` isolation.
+
+**Implementation**:
+- Tightened `tests/mobile004.test.mjs` first so the overview contract now locks the approved mobile mockup structure more precisely: white head with kicker dot, `27px` title rhythm, three compact stat cards, dedicated foundation card, section spacing, 44px numbered badges, and desktop branch isolation.
+- Reworked `src/app/learn/page.tsx` into explicit mobile and desktop render paths. Mobile `/learn` now uses the lighter white overview head, compact stat row, dedicated foundation card, and tighter nine-unit vertical list that tracks the mockup much more closely.
+- Desktop `/learn` keeps the richer gradient hero and larger course-card composition behind `md:` and was not collapsed into the mobile structure.
+- Shared top bar / bottom bar components were not touched in this pass.
+
+**Verification**:
+- Red check: the tightened `node --test tests/mobile004.test.mjs tests/course003.test.mjs` contract failed before the final overview alignment pass.
+- `node --test tests/mobile004.test.mjs tests/course003.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 424/424 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Compare mobile `/learn` directly against `docs/tickets/MOBILE-004-mockup.html`, especially the overview head spacing, three-stat row, foundation card, and nine-unit list density.
+- Confirm desktop `/learn` still stays on the richer non-mobile branch.
+- Re-check `/learn/[slug]` phrase stacking, anchor chips, and the sky-to-zinc cleanup remain intact after the overview rewrite.
+
+## Codex1 Dev Report: Global Typography Standardization
+**Time**: 2026-06-04 13:02
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: shared-baseline follow-up
+
+**Scope**:
+- Global typography standardization across mobile and desktop.
+- Replace the old `Inter / Outfit` system with `Plus Jakarta Sans` (Latin / numbers) + `Noto Sans SC` (Chinese).
+- This is a shared baseline pass, not a standalone product ticket.
+
+**Implementation**:
+- `src/app/layout.tsx`: root `next/font` import changed to `Plus_Jakarta_Sans` + `Noto_Sans_SC`, exposing `--font-plus-jakarta` and `--font-noto-sc`.
+- `tailwind.config.ts`: both `font-sans` and `font-display` now map to the approved two-font stack.
+- `src/app/globals.css`: removed the old Google Fonts import and old Inter / Outfit / serif preview stacks; remaining typography utility classes now use the shared approved stack.
+- `src/app/learn/phase-1/page.tsx`: removed a hard-coded `PingFang SC` override so it follows the same shared stack.
+- `src/app/watch/TranscriptPanel.tsx` and `src/app/watch/pdf-helpers.ts`: canvas-rendered transcript / PDF output now uses the same Plus Jakarta Sans + Noto Sans SC stack.
+- Added `tests/typography001.test.mjs` to lock the contract.
+
+**Verification**:
+- Red check: `node --test tests/typography001.test.mjs` failed 3/3 before implementation.
+- `node --test tests/typography001.test.mjs tests/scaffold.test.mjs tests/home001.test.mjs tests/mobile003.test.mjs tests/mobile009.test.mjs` -> 23/23 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 424/424 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Shared shell and homepage should now visually inherit the cleaner standardized type rhythm on real mobile and desktop.
+- No route should regress because of missing font variables or hard-coded fallback stacks.
+- Transcript/PDF export should continue to render Chinese correctly after the font-stack swap.
+
+---
+
+## Codex1 Dev Report: MOBILE-003 Mockup Fidelity + Shared Shell Visual Polish
+**Time**: 2026-06-04 12:08
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa follow-up
+
+**Scope**:
+- Keep the existing `MOBILE-009` shell structure and IA.
+- Bring mobile `/` much closer to `docs/tickets/MOBILE-003-mockup.html`.
+- Allow the shared mobile top/bottom bars to adopt the mockup's visual treatment only; no shell interaction/IA rewrite.
+- Desktop `/` remains isolated behind `md:` behavior.
+
+**Implementation**:
+- `src/app/components/web/HomeHero.tsx`: upgraded the mobile hero to a tighter mockup-like rhythm with larger title scale, brand glow, calmer supporting copy, and a more premium emerald CTA; desktop hero path remains separate.
+- `src/app/page.tsx`: mobile home now uses a connected two-cell stats slab, a denser three-card learning rail with emerald numbered badges, no mobile tools section, and no mobile video feed; desktop still renders the richer learning cards/progress treatment.
+- `src/app/components/web/MobileTopBar.tsx`: kept the current top-bar structure but changed the surface to lighter white/glass, subtler borders, and tighter spacing.
+- `src/app/components/web/BottomTabBar.tsx`: kept the existing tab destinations/visibility rules but moved to lighter glass styling, calmer active-state treatment, and tighter icon/label spacing.
+- Tightened contracts in `tests/mobile003.test.mjs`, `tests/mobile009.test.mjs`, `tests/home001.test.mjs`, `tests/web001.test.mjs`, `tests/web009.test.mjs`, and `tests/web010.test.mjs`.
+
+**Verification**:
+- Red check: `node --test tests/mobile003.test.mjs tests/mobile009.test.mjs` failed before implementation.
+- `node --test tests/mobile003.test.mjs tests/mobile009.test.mjs tests/home001.test.mjs` -> 15/15 pass.
+- `node --test tests/web001.test.mjs tests/web009.test.mjs tests/web010.test.mjs` -> 10/10 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 421/421 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Mobile `/`: compare the first screen directly against `docs/tickets/MOBILE-003-mockup.html` for hero rhythm, CTA weight, connected stat slab, and the denser three-card learning rail.
+- Confirm mobile `/` still has no mobile tools block and no mobile video feed.
+- Shared mobile shell: top bar and bottom tab bar should feel lighter and more refined, but destinations, hiding rules, and drawer/search behavior must stay exactly as before.
+- Desktop `/`: no regression in desktop hero/tooling/learning-card behavior.
+
+---
+
+## Codex1 QA Fix Report: MOBILE-006 Talk Mojibake + MOBILE-007 Drawer Drag Close
+**Time**: 2026-06-04 11:18
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa follow-up
+
+**User feedback fixed**:
+- `/talk` list showed mojibake avatar glyphs in mobile cards.
+- Phonics rule drawer visually had a pull handle but did not support pulling down to close.
+
+**Implementation**:
+- `src/app/talk/page.tsx`: replaced mojibake flag/emoji avatars with stable text badges `ES`, `UK`, `US`, `FR`, `JP`; kept header copy and `推荐` badge readable Chinese.
+- `src/app/phonics/AlphabetGrid.tsx`: added pointer drag handling to the mobile rule drawer handle. Dragging downward moves the sheet; releasing past 80px closes it; shorter/cancelled drags reset to `translateY(0)`.
+- Added regression coverage in `tests/mobile006.test.mjs` and `tests/mobile007.test.mjs`.
+
+**Verification**:
+- Red check: `node --test tests/mobile006.test.mjs tests/mobile007.test.mjs` failed before implementation on mojibake badges and missing pull-down handlers.
+- `node --test tests/mobile006.test.mjs tests/mobile007.test.mjs` -> 11/11 pass.
+- Related regression slice `node --test tests/talk002.test.mjs tests/talk003.test.mjs tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs tests/mobile006.test.mjs tests/mobile007.test.mjs` -> 36/36 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 419/419 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- `/talk` mobile list should show clean text badges, not mojibake/emoji glyphs.
+- `/phonics` mobile rule drawer should close when dragged down far enough from the handle, and rebound when the drag is short.
+
+---
+
 ## Codex1 Dev Report: MOBILE-003 Home Mobile Redesign v2
 **Time**: 2026-06-04 11:06
 **From**: Codex1 (DEV)
@@ -12784,3 +12977,57 @@ lectura 移动端 §10 改版完成:每句小喇叭(/api/tts)取代底部 prev/p
 - Mobile `/talk`: app-shell top bar, compact cards, no desktop header feel.
 - Mobile `/talk/[characterId]`: 100dvh-52px shell, back header, right drawer trigger, message area scroll, composer remains reachable above keyboard/home bar, drawer breakpoint at `md`.
 - Desktop talk list/detail: prior desktop sidebar and chat layout remain intact.
+
+---
+
+## ▶▶ B 移动补全 — 实现派单(Codex1)· 干净现代视觉已定档  [Claude1 PM, 2026-06-03]
+
+**视觉基准(全员遵守)**:`docs/tickets/MOBILE-design-language.md` + 三个批准模型(直接打开看,照着还原):
+- 首页:`docs/tickets/MOBILE-003-mockup.html`(用户批准 v3,**去精选视频**)
+- 课程:`docs/tickets/MOBILE-004-mockup.html`(批准)
+- 对话:`docs/tickets/MOBILE-006-mockup.html`(批准)
+
+### 字体(重要,看对的关键)
+项目需引入 **Plus Jakarta Sans**(拉丁/数字/序号)+ **Noto Sans SC**(中文,300/400/500/700),用 next/font 自托管。这是"干净现代"观感的一半,别省。
+
+### 各页实现
+1. **MOBILE-003 首页**(`src/app/page.tsx` + HomeHero):**照 MOBILE-003-mockup.html 1:1 还原** → 顶栏 / Hero(纯白/大标题/听懂翡翠/翡翠CTA)/ 两格统计 / 学习路径翡翠数字徽标横滑卡。**去掉精选视频区**。之前那版"太丑"已还原,重做以模型为准。
+2. **MOBILE-004 课程**(`/learn` 总览 + `[slug]`):总览照 MOBILE-004-mockup.html(概览头+三格统计+起步卡+9单元竖向清单,翡翠数字徽标/已学填实心);[slug] 详情照 MOBILE-004-design.md 布局 + 设计语言视觉。
+3. **MOBILE-006 对话**(`/talk` + `/talk/[characterId]`):聊天页照 MOBILE-006-mockup.html(聊天头/IM气泡/西语点词查走 MOBILE-000 抽屉/中文翻译行/输入区语音+翡翠发送/`100dvh-52px`避键盘);列表页照 MOBILE-006-design.md + 设计语言。
+4. **MOBILE-007 发音** + **MOBILE-008 grammar/dissect**:**无模型**,照各自 design.md(已含 v2 视觉对齐段)+ MOBILE-design-language.md + 以三个模型为手感参照,直接实现(干净现代:白底/无衬线/翡翠点缀/轻卡片)。
+
+### 通用铁律
+- 颜色映射项目 token:翡翠=brand-500/600、灰=zinc 系;**禁 sky/purple**(顺手清各页残留 sky/gray 债)。
+- **复用 MOBILE-009 外壳(顶栏/底部tab)+ MOBILE-000 查词抽屉,不改共享件**;**桌面 md: 不回退**。
+- 触摸≥44px、安全区、内容给顶栏+底部tab留白;UTF-8 正确中文(防乱码)。
+- **血泪三戒**:不改共享/桌面;Codex2+用户真机实际打开每页不崩不乱码排版好;勿带 scratch/临时文件入 git。
+- 流程:Codex1 实现(可一页一提交)→ Codex2 真机 QA → 用户真机 → Claude1 一张张验收关票。
+
+> 设计阶段全部完成(PM 派 design 子 agent + 自做模型 + 用户批准)。进入实现阶段。
+
+---
+
+## 🔧 强化派单:learn/talk 必须对模型 1:1 复刻 + 字体  [Claude1 PM, 2026-06-03]
+首页 1:1 重做已 421/421 全绿、对上模型,验证了"给模型 + 要求 1:1"这套有效。**learn / talk 照此执行:**
+- **严格 1:1 复刻批准的模型**,逐元素对照像素级还原(非"参考精神"):
+  - 课程:`docs/tickets/MOBILE-004-mockup.html`
+  - 对话:`docs/tickets/MOBILE-006-mockup.html`
+  - 实现前先在浏览器打开模型,对照间距/字号/圆角/颜色/阴影/布局一一还原;偏差视为不合格。
+- **字体对齐模型**:模型用 Plus Jakarta Sans(拉丁/数字)+ Noto Sans SC(中文)。若全站统一字体方案不同(当前 Inter/Outfit),PM 倾向**换成模型字体以保 1:1**;Codex 实现时若全站换字体影响大,先在 session-handoff 反馈 PM 再定,别擅自用别的字体糊弄。
+- 其余铁律同前(复用外壳/查词抽屉、桌面 md: 不回退、禁 sky、≥44px、UTF-8、血泪三戒)。
+- phonics/grammar 无模型,照设计语言 + 三个模型手感,同样追求干净现代、别跑偏。
+
+## ✅ 核验:MOBILE-003 首页(1:1 重做后)  [Claude1 PM, 2026-06-03]
+npm test 421/421 全绿;HOME-001/MOBILE-003/WEB-001/009/010/welcome 全 ✔;结构对上模型(stats/横滑学习路径/glass shell)。**待确认**:字体仍 Inter/Outfit ≠ 模型 Plus Jakarta+Noto Sans SC(PM 已标,等用户定是否强制换)。其余 OK,接近可关 passing(待用户真机 + 字体决定)。
+
+---
+
+## ▶ 派单 Codex1 — 全站字体换成设计语言字体(用户拍板:换)  [Claude1 PM, 2026-06-03]
+**全站(含桌面)把字体从 Inter/Outfit 换成:**
+- **Plus Jakarta Sans**(拉丁/数字/序号)+ **Noto Sans SC**(中文,300/400/500/700)。
+- 实现:`src/app/layout.tsx` 用 next/font/google 自托管这两个;`tailwind.config.ts` 的 font-family token 映射(sans→Noto Sans SC 栈含 Plus Jakarta 兜拉丁;display/数字→Plus Jakarta Sans)。移除 Inter/Outfit。
+- 这是全站标准化(对齐 MOBILE-design-language.md + 批准模型),桌面一起换,属有意统一不算回退。
+- 验证:npm test 全绿 + build 过;若有测试断言旧字体名(Inter/Outfit/layout),一并更新。换完首页即达成对模型的真 1:1。
+- 换完 PM 复核 + 用户真机 → 关 MOBILE-003。
+
+> 字体口径确定:全站 Plus Jakarta Sans + Noto Sans SC。learn/talk/phonics/grammar 实现一律用这套(已写进各派单)。

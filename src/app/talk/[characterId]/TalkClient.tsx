@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 12:31
+// Timestamp: 2026-06-04 14:34
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +15,7 @@ type Message = {
 };
 
 type TalkClientProps = {
+  characterBadge: string;
   characterId: string;
   characterName: string;
   locale: string;
@@ -88,7 +89,7 @@ function formatDuration(totalSeconds: number) {
 
 function TypingDots() {
   return (
-    <span aria-label="对方正在输入" className="inline-flex gap-1 py-1">
+    <span aria-label="\u5bf9\u65b9\u6b63\u5728\u8f93\u5165" className="inline-flex gap-1 py-1">
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 [animation-delay:-0.3s] dark:bg-zinc-600" />
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 [animation-delay:-0.15s] dark:bg-zinc-600" />
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 dark:bg-zinc-600" />
@@ -96,7 +97,44 @@ function TypingDots() {
   );
 }
 
+function MessageDayPill() {
+  return (
+    <div className="flex justify-center">
+      <span className="inline-flex rounded-full bg-black/[0.04] px-3 py-1 text-[10.5px] text-zinc-500 dark:bg-white/[0.06] dark:text-zinc-400">
+        今天
+      </span>
+    </div>
+  );
+}
+
+function AssistantMiniAvatar({ characterBadge }: { characterBadge: string }) {
+  return (
+    <span
+      aria-hidden
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 font-display text-[10px] font-semibold text-brand-700 ring-1 ring-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-900/40"
+    >
+      {characterBadge}
+    </span>
+  );
+}
+
+function TypingDotsPill() {
+  return (
+    <span
+      aria-label="\u5bf9\u65b9\u6b63\u5728\u8f93\u5165"
+      className="inline-flex rounded-full bg-black/[0.04] px-3 py-1 text-[10.5px]"
+    >
+      <span className="inline-flex gap-1">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 [animation-delay:-0.3s] dark:bg-zinc-600" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 [animation-delay:-0.15s] dark:bg-zinc-600" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 dark:bg-zinc-600" />
+      </span>
+    </span>
+  );
+}
+
 export function TalkClient({
+  characterBadge,
   characterId,
   characterName,
   locale,
@@ -168,7 +206,7 @@ export function TalkClient({
         `/api/talk/history?sessionId=${encodeURIComponent(sessionIdToLoad)}&characterId=${encodeURIComponent(characterId)}`
       );
       if (!response.ok) {
-        if (!cancelled) setStatusMessage("无法加载这段对话");
+        if (!cancelled) setStatusMessage("\u65e0\u6cd5\u52a0\u8f7d\u8fd9\u6bb5\u5bf9\u8bdd");
         return;
       }
 
@@ -178,7 +216,7 @@ export function TalkClient({
       if (item.characterId !== characterId) {
         setSessionId(null);
         setMessages([]);
-        setStatusMessage("无法访问该会话（角色不匹配）");
+        setStatusMessage("\u65e0\u6cd5\u8bbf\u95ee\u8be5\u4f1a\u8bdd\uff08\u89d2\u8272\u4e0d\u5339\u914d\uff09");
         router.replace(`/talk/${characterId}`, { scroll: false });
         return;
       }
@@ -323,7 +361,7 @@ export function TalkClient({
         }
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "对话失败";
+      const message = error instanceof Error ? error.message : "\u53d1\u9001\u5931\u8d25";
       setStatusMessage(message);
       setMessages((prev) => {
         if (prev[prev.length - 1]?.role === "assistant" && !prev[prev.length - 1].content) {
@@ -407,11 +445,11 @@ export function TalkClient({
 
   async function transcribeRecordedAudio(blob: Blob) {
     setRecognizing(true);
-    setStatusMessage("识别中...");
+    setStatusMessage("\u8bc6\u522b\u4e2d...");
     try {
       const audioBase64 = await blobToBase64(blob);
       if (!audioBase64) {
-        setStatusMessage("没有录到声音，再试一次");
+        setStatusMessage("\u6ca1\u6709\u5f55\u5230\u58f0\u97f3\uff0c\u518d\u8bd5\u4e00\u6b21");
         return;
       }
 
@@ -431,7 +469,7 @@ export function TalkClient({
           status: response.status,
           unavailableReason: payload.unavailableReason ?? null
         });
-        setStatusMessage("本机识别不可用，已切换到浏览器识别");
+        setStatusMessage("\u672c\u5730\u8bc6\u522b\u4e0d\u53ef\u7528\uff0c\u5df2\u5207\u6362\u6d4f\u89c8\u5668\u8bed\u97f3\u8bc6\u522b");
         startSpeechRecognitionFallback();
         return;
       }
@@ -440,7 +478,7 @@ export function TalkClient({
       setStatusMessage(null);
     } catch (error) {
       console.warn("[talk] local recognition request failed; falling back to browser recognition", error);
-      setStatusMessage("本机识别不可用，已切换到浏览器识别");
+      setStatusMessage("\u672c\u5730\u8bc6\u522b\u8bf7\u6c42\u5931\u8d25\uff0c\u5df2\u5207\u6362\u6d4f\u89c8\u5668\u8bed\u97f3\u8bc6\u522b");
       startSpeechRecognitionFallback();
     } finally {
       setRecognizing(false);
@@ -452,7 +490,7 @@ export function TalkClient({
 
     const Recognition = getSpeechRecognitionCtor();
     if (!Recognition) {
-      setStatusMessage("当前浏览器不支持语音识别，请用 Chrome 或 Edge");
+      setStatusMessage("\u5f53\u524d\u6d4f\u89c8\u5668\u4e0d\u652f\u6301\u8bed\u97f3\u8bc6\u522b\uff0c\u8bf7\u4f7f\u7528 Chrome \u6216 Edge");
       return;
     }
 
@@ -486,13 +524,13 @@ export function TalkClient({
       recognition.onerror = (event) => {
         const code = event.error ?? "unknown";
         if (code === "no-speech") {
-          setStatusMessage("没听到声音，再试一次");
+          setStatusMessage("\u6ca1\u6709\u542c\u6e05\uff0c\u8bf7\u518d\u8bf4\u4e00\u6b21");
         } else if (code === "not-allowed" || code === "service-not-allowed") {
-          setStatusMessage("浏览器拒绝了麦克风权限");
+          setStatusMessage("\u6ca1\u6709\u9ea6\u514b\u98ce\u6743\u9650\uff0c\u8bf7\u68c0\u67e5\u6d4f\u89c8\u5668\u8bbe\u7f6e");
         } else if (code === "audio-capture") {
-          setStatusMessage("找不到麦克风设备");
+          setStatusMessage("\u6ca1\u6709\u68c0\u6d4b\u5230\u9ea6\u514b\u98ce");
         } else {
-          setStatusMessage(`识别错误：${code}`);
+          setStatusMessage(`\u8bed\u97f3\u8bc6\u522b\u5931\u8d25\uff1a${code}`);
         }
         setRecording(false);
         setInterimTranscript("");
@@ -510,7 +548,7 @@ export function TalkClient({
       setRecording(true);
       startRecordingTimer();
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "无法启动识别");
+      setStatusMessage(error instanceof Error ? error.message : "\u8bed\u97f3\u8bc6\u522b\u542f\u52a8\u5931\u8d25");
     }
   }
 
@@ -540,7 +578,7 @@ export function TalkClient({
       recorder.onerror = () => {
         cleanupMediaRecorder();
         setRecording(false);
-        setStatusMessage("录音失败，已切换到浏览器语音识别");
+        setStatusMessage("\u5f55\u97f3\u5931\u8d25\uff0c\u5df2\u5207\u6362\u6d4f\u89c8\u5668\u8bed\u97f3\u8bc6\u522b");
         startSpeechRecognitionFallback();
       };
       recorder.onstop = () => {
@@ -557,7 +595,7 @@ export function TalkClient({
       startRecordingTimer();
     } catch (error) {
       cleanupMediaRecorder();
-      const message = error instanceof Error ? error.message : "无法启动录音";
+      const message = error instanceof Error ? error.message : "\u5f55\u97f3\u542f\u52a8\u5931\u8d25";
       setStatusMessage(message);
       startSpeechRecognitionFallback();
     }
@@ -584,20 +622,18 @@ export function TalkClient({
         data-testid="talk-message-list"
         ref={listRef}
       >
+        {messages.length > 0 ? <MessageDayPill /> : null}
+
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-6 text-center">
             <span
               aria-hidden
-              className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-3xl ring-1 ring-brand-100 dark:bg-brand-950/40 dark:ring-brand-900/40"
+              className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 font-display text-[20px] font-semibold text-brand-700 ring-1 ring-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-900/40"
             >
-              馃挰
+              {characterBadge}
             </span>
-            <p className="font-display text-[15px] font-medium text-zinc-700 dark:text-zinc-200">
-              和 {characterName} 开始对话吧
-            </p>
-            <p className="mt-1.5 max-w-xs text-[13px] font-light leading-relaxed text-zinc-500 dark:text-zinc-400">
-              打字或按麦克风说话。{characterName} 会用对应语言回复并朗读，气泡里的西语也可以点词查词。
-            </p>
+            <p className="font-display text-[15px] font-medium text-zinc-700 dark:text-zinc-200">{`\u548c ${characterName} \u5f00\u59cb\u5bf9\u8bdd\u5427`}</p>
+            <p className="mt-1.5 max-w-xs text-[13px] font-light leading-relaxed text-zinc-500 dark:text-zinc-400">{`\u6253\u5b57\u6216\u6309\u9ea6\u514b\u98ce\u8bf4\u8bdd\u3002${characterName} \u4f1a\u7528\u5bf9\u5e94\u8bed\u8a00\u56de\u590d\u5e76\u6717\u8bfb\uff0c\u6c14\u6ce1\u91cc\u7684\u5916\u8bed\u4e5f\u53ef\u4ee5\u70b9\u8bcd\u67e5\u8be2\u3002`}</p>
           </div>
         ) : (
           messages.map((message, index) => {
@@ -616,71 +652,74 @@ export function TalkClient({
                 data-role={message.role}
                 key={index}
               >
-                <div
-                  className={`max-w-[85%] px-3.5 py-2.5 shadow-sm ${
-                    isUser
-                      ? "rounded-2xl rounded-br-md bg-brand-600 text-white dark:bg-brand-500"
-                      : "glass-card rounded-2xl rounded-bl-md border border-zinc-200/60 bg-white/80 text-zinc-800 dark:border-zinc-800/50 dark:bg-zinc-900/70 dark:text-zinc-100"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                    {canLookupAssistantMessage ? (
-                      <SpanishText
-                        text={message.content}
-                        translation=""
-                        source={{
-                          type: "talk",
-                          url: `/talk/${characterId}?session=${sessionId ?? ""}#m${index}`,
-                          characterId,
-                          sessionId: sessionId ?? "",
-                          messageIndex: index,
-                          sentence: message.content
-                        }}
-                      />
-                    ) : message.content ? (
-                      message.content
-                    ) : (
-                      <TypingDots />
-                    )}
-                  </p>
+                {isUser ? (
+                  <div className="max-w-[82%] rounded-2xl rounded-br-md bg-brand-600 px-3.5 py-2.5 text-white shadow-sm dark:bg-brand-500">
+                    <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{message.content}</p>
+                  </div>
+                ) : (
+                  <div className="flex max-w-[85%] items-end gap-2">
+                    <AssistantMiniAvatar characterBadge={characterBadge} />
+                    <div className="glass-card rounded-2xl rounded-bl-md border border-zinc-200/60 bg-white/80 px-3.5 py-2.5 text-zinc-800 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/70 dark:text-zinc-100">
+                      <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
+                        {canLookupAssistantMessage ? (
+                          <SpanishText
+                            text={message.content}
+                            translation=""
+                            source={{
+                              type: "talk",
+                              url: `/talk/${characterId}?session=${sessionId ?? ""}#m${index}`,
+                              characterId,
+                              sessionId: sessionId ?? "",
+                              messageIndex: index,
+                              sentence: message.content
+                            }}
+                          />
+                        ) : message.content ? (
+                          message.content
+                        ) : (
+                          <TypingDotsPill />
+                        )}
+                      </p>
 
-                  {!isUser && message.corrections && message.corrections.length > 0 ? (
-                    <div className="mt-2.5 rounded-card border border-amber-200/50 bg-amber-50/60 p-2.5 text-[12px] font-light text-amber-800 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-300">
-                      <p className="font-display font-semibold">修正建议</p>
-                      <ul className="mt-1 list-disc space-y-0.5 pl-4">
-                        {message.corrections.map((item, correctionIndex) => (
-                          <li key={correctionIndex}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
+                      {message.corrections && message.corrections.length > 0 ? (
+                        <div className="mt-2.5 rounded-card border border-amber-200/50 bg-amber-50/60 p-2.5 text-[12px] font-light text-amber-800 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-300">
+                          <p className="font-display font-semibold">{"\u4fee\u6b63\u5efa\u8bae"}</p>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                            {message.corrections.map((item, correctionIndex) => (
+                              <li key={correctionIndex}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
 
-                  {!isUser && message.newWords && message.newWords.length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {message.newWords.map((word, wordIndex) => (
-                        <span
-                          className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
-                          key={wordIndex}
+                      {message.newWords && message.newWords.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {message.newWords.map((word, wordIndex) => (
+                            <span
+                              className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                              key={wordIndex}
+                            >
+                              {word}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {message.content ? (
+                        <button
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] text-zinc-400 transition hover:text-brand-600 dark:text-zinc-500 dark:hover:text-brand-400"
+                          onClick={() => void playTTS(message.content)}
+                          type="button"
                         >
-                          {word}
-                        </span>
-                      ))}
+                          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                          \u6717\u8bfb
+                        </button>
+                      ) : null}
                     </div>
-                  ) : null}
-
-                  {!isUser && message.content ? (
-                    <button
-                      className="mt-2 inline-flex items-center gap-1 text-[11px] text-zinc-400 transition hover:text-brand-600 dark:text-zinc-500 dark:hover:text-brand-400"
-                      onClick={() => void playTTS(message.content)}
-                      type="button"
-                    >
-                      <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                      重播
-                    </button>
-                  ) : null}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })
@@ -698,7 +737,7 @@ export function TalkClient({
         {recording ? (
           <div className="mb-2 flex items-center gap-2 text-[12px] text-brand-600 dark:text-brand-400">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
-            <span>正在聆听 {formatDuration(recordingSeconds)}</span>
+            <span>{"\u6b63\u5728\u8046\u542c "}{formatDuration(recordingSeconds)}</span>
             {interimTranscript ? (
               <span className="truncate italic text-zinc-500 dark:text-zinc-400">
                 {interimTranscript}
@@ -708,7 +747,7 @@ export function TalkClient({
         ) : null}
 
         {recognizing ? (
-          <p className="mb-2 text-[12px] text-brand-600 dark:text-brand-400">识别中...</p>
+          <p className="mb-2 text-[12px] text-brand-600 dark:text-brand-400">{"\u8bc6\u522b\u4e2d..."}</p>
         ) : null}
 
         <div className="flex items-end gap-2">
@@ -722,13 +761,13 @@ export function TalkClient({
                 if (input.trim()) void send(input.trim());
               }
             }}
-            placeholder={streaming ? "对方正在回复..." : "输入消息，或按麦克风说话"}
+            placeholder={streaming ? "\u5bf9\u65b9\u6b63\u5728\u56de\u590d..." : "\u8f93\u5165\u6d88\u606f\uff0c\u6216\u6309\u9ea6\u514b\u98ce\u8bf4\u8bdd"}
             rows={1}
             value={input}
           />
 
           <button
-            aria-label={recording ? "停止录音" : "开始语音输入"}
+            aria-label={recording ? "\u505c\u6b62\u5f55\u97f3" : "\u5f00\u59cb\u8bed\u97f3\u8f93\u5165"}
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
               recording
                 ? "animate-pulse border-red-400 bg-red-50 text-red-600 dark:bg-red-950/30"
@@ -753,7 +792,7 @@ export function TalkClient({
           </button>
 
           <button
-            aria-label="发送"
+            aria-label="\u53d1\u9001"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition active:scale-95 hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600"
             disabled={!input.trim() || streaming || recognizing}
             type="submit"

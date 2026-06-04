@@ -5,20 +5,23 @@ import test from "node:test";
 
 const readText = (filePath) => readFile(filePath, "utf8");
 
-test("MOBILE-004 learn overview uses mobile-safe spacing and compact scan cards", async () => {
+test("MOBILE-004 learn overview follows the approved mockup structure on mobile", async () => {
   const source = await readText("src/app/learn/page.tsx");
 
   assert.match(source, /pb-\[calc\(3\.5rem\+env\(safe-area-inset-bottom\)\+16px\)\]/);
   assert.match(source, /pt-5/);
   assert.match(source, /md:py-10/);
-  assert.match(source, /px-5 py-6 text-white shadow-card/);
-  assert.match(source, /line-clamp-3 md:line-clamp-none/);
-  assert.match(source, /mt-7 grid grid-cols-1 gap-3 md:mt-8 md:grid-cols-2 md:gap-5 xl:grid-cols-3/);
-  assert.match(source, /active:scale-\[0\.99\]/);
-  assert.match(source, /md:rounded-hero md:p-5 md:card-hover-lift md:active:scale-100/);
-  assert.match(source, /mt-5 hidden flex-wrap gap-2 md:flex/);
-  assert.match(source, /hidden md:flex/);
-  assert.match(source, /line-clamp-1 md:line-clamp-none/);
+  assert.match(source, /<div className="md:hidden">[\s\S]*9 个单元/);
+  assert.match(source, /kickerDot/);
+  assert.match(source, /text-\[27px\] font-bold leading-\[1\.36\]/);
+  assert.match(source, /mt-\[18px\] grid grid-cols-3 gap-\[10px\]/);
+  assert.match(source, /rounded-\[14px\] border border-zinc-200\/70 bg-white px-\[14px\] py-\[13px\]/);
+  assert.match(source, /mt-\[22px\] flex items-center gap-\[14px\] rounded-\[20px\]/);
+  assert.match(source, /mt-\[34px\] px-\[22px\]/);
+  assert.match(source, /mt-\[14px\] flex flex-col gap-\[11px\] px-\[22px\]/);
+  assert.match(source, /h-\[44px\] w-\[44px\] rounded-\[13px\]/);
+  assert.match(source, /className="mt-\[36px\] px-\[22px\] text-\[11px\]/);
+  assert.match(source, /className="hidden md:block">[\s\S]*Esponal Curriculum/);
 });
 
 test("MOBILE-004 learn detail adds mobile anchor chips and safe-area spacing", async () => {

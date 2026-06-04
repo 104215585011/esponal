@@ -42,7 +42,7 @@ test("TALK-006 talk client records with MediaRecorder and only falls back to Web
   assert.match(client, /async function startRecording\(\)[\s\S]*new MediaRecorder\(stream/);
   assert.match(client, /recognizing/);
   assert.match(client, /recordingSeconds/);
-  assert.match(client, /setStatusMessage\("本机识别不可用，已切换到浏览器识别"\)/);
+  assert.match(client, /setStatusMessage\("\\u672c\\u5730\\u8bc6\\u522b\\u4e0d\\u53ef\\u7528\\uff0c\\u5df2\\u5207\\u6362\\u6d4f\\u89c8\\u5668\\u8bed\\u97f3\\u8bc6\\u522b"\)/);
   assert.doesNotMatch(client, /setStatusMessage\(`?Whisper/);
   assert.doesNotMatch(client, /setStatusMessage\([\s\S]*missing_env/);
 });

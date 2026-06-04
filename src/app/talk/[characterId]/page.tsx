@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 12:13
+// Timestamp: 2026-06-04 14:07
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -16,12 +16,12 @@ type Props = {
   searchParams?: { session?: string };
 };
 
-const LANG_FLAG: Record<string, string> = {
-  carlos: "馃嚥馃嚱",
-  emma: "馃嚞馃嚙",
-  jake: "馃嚭馃嚫",
-  sophie: "馃嚝馃嚪",
-  kenji: "馃嚡馃嚨"
+const LANG_BADGE: Record<string, string> = {
+  carlos: "ES",
+  emma: "UK",
+  jake: "US",
+  sophie: "FR",
+  kenji: "JP"
 };
 
 const LOCALE: Record<string, string> = {
@@ -43,7 +43,7 @@ export default async function TalkCharacterPage({ params, searchParams }: Props)
 
   return (
     <TalkCharacterShell
-      characterFlag={LANG_FLAG[character.id] ?? "馃寪"}
+      characterBadge={LANG_BADGE[character.id] ?? "AI"}
       characterId={character.id}
       characterLanguage={character.language}
       characterName={character.name}

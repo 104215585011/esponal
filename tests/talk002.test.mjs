@@ -119,5 +119,5 @@ test("TALK-002 rejects cross-character session history and continuation", async 
 
   assert.match(client, /item\.characterId !== characterId/);
   assert.match(client, /router\.replace\(`\/talk\/\$\{characterId\}`/);
-  assert.match(client, /setStatusMessage\("无法访问该会话（角色不匹配）"\)/);
+  assert.match(client, /setStatusMessage\("\\u65e0\\u6cd5\\u8bbf\\u95ee\\u8be5\\u4f1a\\u8bdd\\uff08\\u89d2\\u8272\\u4e0d\\u5339\\u914d\\uff09"\)/);
 });

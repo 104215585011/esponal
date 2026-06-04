@@ -1,4 +1,4 @@
-// COURSE-001 change timestamp: 2026-05-13 13:54
+// COURSE-001 change timestamp: 2026-06-04 13:02
 import AudioButton from "@/app/components/audio/AudioButton";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import pronunciationContent from "../../../../content/curriculum/pronunciation-rules.json";
@@ -36,7 +36,7 @@ export default function PhaseOnePage() {
   return (
     <main
       className="min-h-screen bg-app text-gray-900"
-      style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
+      style={{ fontFamily: 'var(--font-plus-jakarta), var(--font-noto-sc), "Microsoft YaHei", sans-serif' }}
     >
       <SiteHeader />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-8 sm:py-14">

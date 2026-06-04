@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 01:11
+// Timestamp: 2026-06-04 12:08
 "use client";
 
 import { GlobalSearchOverlay } from "@/app/components/web/GlobalSearchOverlay";
@@ -17,14 +17,14 @@ export function MobileTopBar({
 }: MobileTopBarProps) {
   return (
     <>
-      <div className="md:hidden fixed inset-x-0 top-0 z-50 border-b border-zinc-200/50 bg-white/70 px-4 backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/70">
+      <div className="md:hidden fixed inset-x-0 top-0 z-50 border-b border-zinc-200/60 bg-white/78 px-5 backdrop-blur-[16px] dark:border-zinc-800/60 dark:bg-zinc-950/78">
         <div className="flex h-[52px] items-center justify-between">
           <MobileNav drawerSide="left" session={session} trigger="avatar" vocabHref="/vocab" />
 
           <button
             aria-disabled="true"
             aria-label="管理 YouTube 订阅"
-            className="inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-full px-3 text-xs font-semibold text-zinc-500 transition active:scale-95 dark:text-zinc-400"
+            className="inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-zinc-600 transition active:scale-95 dark:text-zinc-300"
             title="YouTube 订阅管理稍后开放"
             type="button"
           >

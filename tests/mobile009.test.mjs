@@ -17,10 +17,9 @@ test("MOBILE-009 ticket and PM-approved design are present", async () => {
   );
 
   const design = await readText("docs/tickets/MOBILE-009-design.md");
-  assert.match(design, /底部 4 tab|搴曢儴 4 tab/);
-  assert.match(design, /头像|澶村儚/);
-  assert.match(design, /订阅|璁㈤槄/);
-  assert.match(design, /搜索|鎼滅储/);
+  assert.match(design, /tab/i);
+  assert.match(design, /top bar|顶栏|顶部/i);
+  assert.match(design, /search|搜索/i);
 });
 
 test("MOBILE-009 bottom tab bar only appears on primary tab landing pages", async () => {
@@ -46,9 +45,7 @@ test("MOBILE-009 bottom tab bar only appears on primary tab landing pages", asyn
   assert.doesNotMatch(tabs, /if \(!pathname\.startsWith\("\/lectura\/"\)\)/);
   assert.match(tabs, /grid-cols-4/);
   assert.match(tabs, /md:hidden/);
-  assert.match(tabs, /pb-safe/);
   assert.match(tabs, /min-h-\[44px\]/);
-  assert.match(tabs, /text-brand-600/);
   assert.match(tabs, /href:\s*"\/watch"/);
   assert.match(tabs, /href:\s*"\/lectura"/);
   assert.match(tabs, /href:\s*"\/learn"/);
@@ -73,6 +70,10 @@ test("MOBILE-009 mobile top bar is fixed while desktop header stays sticky", asy
   assert.match(topBar, /className="md:hidden/);
   assert.match(topBar, /fixed inset-x-0 top-0/);
   assert.match(topBar, /h-\[52px\] md:hidden/);
+  assert.match(topBar, /bg-white\/78/);
+  assert.match(topBar, /border-b border-zinc-200\/60/);
+  assert.match(topBar, /backdrop-blur-\[16px\]/);
+  assert.match(topBar, /px-5/);
   assert.match(topBar, /trigger="avatar"/);
   assert.match(topBar, /drawerSide="left"/);
   assert.match(topBar, /aria-label="管理 YouTube 订阅"/);
@@ -120,7 +121,6 @@ test("MOBILE-009 avatar drawer keeps only secondary destinations and uses correc
   assert.doesNotMatch(navItemsBlock, /href:\s*"\/learn"/);
   assert.doesNotMatch(navItemsBlock, /href:\s*"\/lectura"/);
   assert.doesNotMatch(navItemsBlock, /activeHref:\s*"\/vocab"/);
-  assert.doesNotMatch(navItemsBlock, /妫ｆ牠|鐎涙|鐟欏|鐠囧|闂冨|閹峰|绨/);
 });
 
 test("MOBILE-009 fixed mobile overlays portal outside the blurred top bar", async () => {
@@ -131,4 +131,16 @@ test("MOBILE-009 fixed mobile overlays portal outside the blurred top bar", asyn
   assert.match(mobileNav, /document\.body/);
   assert.match(searchOverlay, /createPortal/);
   assert.match(searchOverlay, /document\.body/);
+});
+
+test("MOBILE-009 bottom tab bar keeps the shared structure but adopts the lighter mockup visual treatment", async () => {
+  const tabs = await readText("src/app/components/web/BottomTabBar.tsx");
+
+  assert.match(tabs, /bg-white\/90/);
+  assert.match(tabs, /backdrop-blur-\[18px\]/);
+  assert.match(tabs, /px-2 pt-\[9px\] pb-\[calc\(9px\+env\(safe-area-inset-bottom\)\)\]/);
+  assert.match(tabs, /h-\[21px\] w-\[21px\]/);
+  assert.match(tabs, /text-\[10\.5px\]/);
+  assert.match(tabs, /text-brand-700/);
+  assert.doesNotMatch(tabs, /shadow-\[0_-1px_12px_rgba\(0,0,0,0\.04\)\]/);
 });

@@ -45,7 +45,8 @@ test("WEB-010 homepage now uses shared progress data instead of ContinueLearning
   assert.match(page, /getVocabStats/);
   assert.match(page, /prisma\.lecturaRead\.count/);
   assert.match(page, /userId/);
-  assert.match(page, /learningSteps/);
+  assert.match(page, /allLearningSteps/);
+  assert.match(page, /mobileLearningSteps/);
   assert.match(page, /<HomeHero isLoggedIn=\{!!userId\} \/>/);
   assert.doesNotMatch(page, /ContinueLearning/);
 });

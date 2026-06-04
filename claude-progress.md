@@ -1,3 +1,128 @@
+### Session #MOBILE-008 Grammar + Dissect Mobile Redesign - 2026-06-04 15:02
+
+**Goal**: Implement the approved `docs/tickets/MOBILE-008-design.md` mobile redesign for `/grammar`, `/grammar/[slug]`, and `/dissect` after handing MOBILE-006 to Codex2 QA, while preserving shared shell boundaries and desktop behavior.
+
+**Done (Codex1)**:
+- Added [tests/mobile008.test.mjs](/C:/Users/wang/esponal/tests/mobile008.test.mjs) first so the new contract locks the grammar safe-area shell, compact zinc card treatment, mobile table-scroll cue, dissect touch targets, and narrow-screen popover constraints.
+- Reworked [src/app/grammar/page.tsx](/C:/Users/wang/esponal/src/app/grammar/page.tsx) so mobile `/grammar` now uses safe-area bottom spacing, tighter header rhythm, denser topic cards, `line-clamp` copy control, and zinc-only surfaces while desktop sidebars and layout stay behind `lg:` / `md:` branches.
+- Reworked [src/app/grammar/[slug]/page.tsx](/C:/Users/wang/esponal/src/app/grammar/[slug]/page.tsx) so grammar detail now matches the mobile design language more closely: safe-area shell, tighter title spacing, mobile table-scroll hint, zinc table headers/rows, denser comparison/example cards, and chip-style related links.
+- Updated [src/app/dissect/page.tsx](/C:/Users/wang/esponal/src/app/dissect/page.tsx) and [src/app/dissect/DissectorClient.tsx](/C:/Users/wang/esponal/src/app/dissect/DissectorClient.tsx) to remove remaining root gray debt, add safe-area-aware container padding, enlarge the textarea/buttons for mobile touch ergonomics, constrain inline popovers on narrow screens, and normalize InterlinearGloss / gustar helper copy in UTF-8-safe Chinese.
+- Updated [tests/course006.test.mjs](/C:/Users/wang/esponal/tests/course006.test.mjs) so the older dissect regression contract follows the refreshed zinc/mobile class structure instead of the pre-MOBILE-008 gray layout assumptions.
+
+**Verification**:
+- Red check: `node --test tests/mobile008.test.mjs` failed before implementation.
+- `node --test tests/mobile008.test.mjs` -> 3/3 pass.
+- `node --test tests/course002.test.mjs tests/course005.test.mjs` -> 15/15 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 427/427 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-008` moved to `ready_for_qa`; Codex2 should compare mobile `/grammar`, `/grammar/[slug]`, and `/dissect` directly against `docs/tickets/MOBILE-008-design.md`, especially safe-area spacing above the home bar, table-scroll discoverability, and whether all three dissect popover types stay inside the viewport on narrow screens.
+
+### Session #MOBILE-006 Talk Mockup Pass - 2026-06-04 14:34
+
+**Goal**: Push mobile talk closer to `docs/tickets/MOBILE-006-mockup.html` after the earlier shell migration, while keeping the shared app shell boundary, desktop talk layout, and existing TALK session logic intact.
+
+**Done (Codex1)**:
+- Tightened [tests/mobile006.test.mjs](/C:/Users/wang/esponal/tests/mobile006.test.mjs) so the contract now locks the mobile list, detail shell, sidebar breakpoint, day pill, mini avatar, safe-area composer, and SVG icon structure more precisely.
+- Updated [src/app/talk/page.tsx](/C:/Users/wang/esponal/src/app/talk/page.tsx) to keep readable Chinese list copy and stable `ES / UK / US / FR / JP` text avatar badges instead of fragile glyph avatars.
+- Updated [src/app/talk/[characterId]/page.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/page.tsx) and [src/app/talk/[characterId]/TalkCharacterShell.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/TalkCharacterShell.tsx) so the mobile detail view uses the approved back-header rhythm, badge avatar accent, and `h-[calc(100dvh-52px)]` shell while preserving the desktop branch.
+- Updated [src/app/talk/[characterId]/TalkClient.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/TalkClient.tsx) to match the mockup structure more closely: centered day pill, assistant mini avatar, safe-area composer, SVG controls, and normalized voice-recognition / fallback / empty-state copy with UTF-8-safe Unicode escapes instead of mojibake.
+- Updated [tests/talk002.test.mjs](/C:/Users/wang/esponal/tests/talk002.test.mjs) and [tests/talk006.test.mjs](/C:/Users/wang/esponal/tests/talk006.test.mjs) so TALK source-contract assertions follow the corrected Unicode strings.
+
+**Verification**:
+- Red check: `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs` failed before the final string/contract alignment pass.
+- `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs` -> 15/15 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 424/424 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-006` remains `ready_for_qa`; Codex2 should compare mobile `/talk` and `/talk/[characterId]` directly against `docs/tickets/MOBILE-006-mockup.html`, especially the mobile header rhythm, card density, composer clearance above the home bar, and readable fallback/status copy.
+
+### Session #MOBILE-004 Learn Mockup Pass - 2026-06-04 13:24
+
+**Goal**: Push the `/learn` overview closer to `docs/tickets/MOBILE-004-mockup.html` after the global typography pass, while keeping the previously approved `/learn/[slug]` mobile changes, shared shell boundaries, and desktop behavior intact.
+
+**Done (Codex1)**:
+- Tightened [tests/mobile004.test.mjs](/C:/Users/wang/esponal/tests/mobile004.test.mjs) first so the overview contract now locks the mobile mockup structure more precisely: kicker dot, `27px` title rhythm, three-stat row, foundation card, section spacing, 44px number badges, and desktop branch isolation.
+- Reworked [src/app/learn/page.tsx](/C:/Users/wang/esponal/src/app/learn/page.tsx) into explicit mobile/desktop branches. Mobile `/learn` now uses the lighter white overview head, three compact stat cards, a dedicated foundation entry card, and a tighter nine-unit vertical list that matches the approved mockup direction much more closely; desktop keeps its richer gradient hero and larger course cards behind `md:`.
+- Kept the detail/foundation behavior already landed for MOBILE-004 and did not touch shared `MOBILE-009` top/bottom shell components.
+
+**Verification**:
+- Red check: the tightened `node --test tests/mobile004.test.mjs tests/course003.test.mjs` contract failed before the final overview alignment pass.
+- `node --test tests/mobile004.test.mjs tests/course003.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 424/424 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-004` remains `ready_for_qa`; Codex2 should compare mobile `/learn` directly against `docs/tickets/MOBILE-004-mockup.html`, especially the overview head/stat/foundation/unit-list density, while also checking that desktop `/learn` remains on its original richer branch.
+
+### Session #TYPOGRAPHY Global Font Standardization - 2026-06-04 13:02
+
+**Goal**: Replace the old Inter / Outfit typography system with the approved global pair `Plus Jakarta Sans` (Latin / numbers) + `Noto Sans SC` (Chinese), so homepage and the rest of the app line up with the approved clean-modern mockup language across mobile and desktop.
+
+**Done (Codex1)**:
+- Updated [src/app/layout.tsx](/C:/Users/wang/esponal/src/app/layout.tsx) to self-host `Plus_Jakarta_Sans` and `Noto_Sans_SC` via `next/font/google`, exposing `--font-plus-jakarta` and `--font-noto-sc` at the root.
+- Updated [tailwind.config.ts](/C:/Users/wang/esponal/tailwind.config.ts) so both `font-sans` and `font-display` resolve to the new two-font stack instead of Inter / Outfit.
+- Updated [src/app/globals.css](/C:/Users/wang/esponal/src/app/globals.css) to remove the old Google Fonts import and switch the remaining global/editorial utility classes to the new shared stack.
+- Updated [src/app/learn/phase-1/page.tsx](/C:/Users/wang/esponal/src/app/learn/phase-1/page.tsx) to remove the hard-coded `PingFang SC` font-family override.
+- Updated [src/app/watch/TranscriptPanel.tsx](/C:/Users/wang/esponal/src/app/watch/TranscriptPanel.tsx) and [src/app/watch/pdf-helpers.ts](/C:/Users/wang/esponal/src/app/watch/pdf-helpers.ts) so canvas-rendered transcript/PDF output uses the same approved font pair.
+- Added [tests/typography001.test.mjs](/C:/Users/wang/esponal/tests/typography001.test.mjs) to lock the new typography contract.
+
+**Verification**:
+- Red check: `node --test tests/typography001.test.mjs` failed 3/3 before implementation.
+- `node --test tests/typography001.test.mjs tests/scaffold.test.mjs tests/home001.test.mjs tests/mobile003.test.mjs tests/mobile009.test.mjs` -> 23/23 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 424/424 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: Typography baseline is now standardized for the whole app. Next implementation item should be the `MOBILE-004 / MOBILE-006` 1:1 mockup passes on top of this new baseline.
+
+### Session #MOBILE-003 Mockup Fidelity + Shell Polish - 2026-06-04 12:08
+
+**Goal**: Push the mobile homepage much closer to `docs/tickets/MOBILE-003-mockup.html` and let the existing shared mobile top/bottom bars adopt the same visual quality, without changing shell structure/IA or regressing desktop.
+
+**Done (Codex1)**:
+- Tightened [src/app/components/web/HomeHero.tsx](/C:/Users/wang/esponal/src/app/components/web/HomeHero.tsx) to a more mockup-faithful mobile hero: larger title ladder, brand glow, tighter copy rhythm, and a more premium emerald CTA while preserving the desktop hero path behind `md:`.
+- Reworked [src/app/page.tsx](/C:/Users/wang/esponal/src/app/page.tsx) so mobile `/` now uses the connected two-cell stat slab, a denser three-card learning rail with emerald numbered badges, no mobile tools section, and no mobile video feed; desktop keeps its richer card/ring layout through separate `md:` rendering.
+- Polished [src/app/components/web/MobileTopBar.tsx](/C:/Users/wang/esponal/src/app/components/web/MobileTopBar.tsx) and [src/app/components/web/BottomTabBar.tsx](/C:/Users/wang/esponal/src/app/components/web/BottomTabBar.tsx) to match the mockup mood with lighter white/glass surfaces, subtler borders, tighter spacing, and calmer brand-active treatment, while preserving the existing MOBILE-009 shell structure and IA.
+- Tightened `MOBILE-003`, `MOBILE-009`, and homepage regression contracts in [tests/mobile003.test.mjs](/C:/Users/wang/esponal/tests/mobile003.test.mjs), [tests/mobile009.test.mjs](/C:/Users/wang/esponal/tests/mobile009.test.mjs), [tests/home001.test.mjs](/C:/Users/wang/esponal/tests/home001.test.mjs), [tests/web001.test.mjs](/C:/Users/wang/esponal/tests/web001.test.mjs), [tests/web009.test.mjs](/C:/Users/wang/esponal/tests/web009.test.mjs), and [tests/web010.test.mjs](/C:/Users/wang/esponal/tests/web010.test.mjs).
+
+**Verification**:
+- Red check: `node --test tests/mobile003.test.mjs tests/mobile009.test.mjs` failed before implementation on the stricter homepage/shell visual contracts.
+- `node --test tests/mobile003.test.mjs tests/mobile009.test.mjs tests/home001.test.mjs` -> 15/15 pass.
+- `node --test tests/web001.test.mjs tests/web009.test.mjs tests/web010.test.mjs` -> 10/10 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 421/421 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-003` remains `ready_for_qa`; Codex2 should re-check the homepage against the approved mockup and also regression-check the shared mobile shell's lighter top/bottom visual treatment on a real device.
+
+### Session #MOBILE-006/#MOBILE-007 QA Fixes - 2026-06-04 11:18
+
+**Goal**: Fix user-reported talk mojibake and add the expected pull-down close interaction to the phonics rule drawer.
+
+**Done (Codex1)**:
+- Updated [src/app/talk/page.tsx](/C:/Users/wang/esponal/src/app/talk/page.tsx) to replace mojibake flag glyphs with stable text badges (`ES`, `UK`, `US`, `FR`, `JP`) and keep talk list Chinese copy readable.
+- Updated [src/app/phonics/AlphabetGrid.tsx](/C:/Users/wang/esponal/src/app/phonics/AlphabetGrid.tsx) so the mobile rule drawer handle supports pointer drag: downward drag follows the finger, release past 80px closes, shorter/cancelled drags rebound.
+- Added regression coverage to [tests/mobile006.test.mjs](/C:/Users/wang/esponal/tests/mobile006.test.mjs) and [tests/mobile007.test.mjs](/C:/Users/wang/esponal/tests/mobile007.test.mjs).
+
+**Verification**:
+- Red check: `node --test tests/mobile006.test.mjs tests/mobile007.test.mjs` failed on talk mojibake and missing drawer pull-down support before implementation.
+- `node --test tests/mobile006.test.mjs tests/mobile007.test.mjs` -> 11/11 pass.
+- Related regression slice `node --test tests/talk002.test.mjs tests/talk003.test.mjs tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs tests/mobile006.test.mjs tests/mobile007.test.mjs` -> 36/36 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 419/419 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: MOBILE-006 and MOBILE-007 remain `ready_for_qa`; Codex2 should re-check talk list copy/avatar badges and phonics drawer pull-down close.
+
 ### Session #MOBILE-003 Home Mobile Redesign v2 - 2026-06-04 11:06
 
 **Goal**: Implement the user-approved redone `docs/tickets/MOBILE-003-design.md` v2/mockup direction for `/` mobile homepage content only, without touching shared mobile shell or regressing desktop.

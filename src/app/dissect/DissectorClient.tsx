@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 09:12
+// Timestamp: 2026-06-04 15:02
 "use client";
 
 import Link from "next/link";
@@ -15,7 +15,7 @@ import {
   usePhraseSpans,
   type PhraseSpan
 } from "@/app/components/vocab/PhraseText";
-import { LookupCard, LookupCardStack } from "@/app/watch/LookupCard";
+import { LookupCardStack } from "@/app/watch/LookupCard";
 
 type ActivePopover = {
   lemma: string;
@@ -42,27 +42,28 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
   }
 
   return (
-    <div className="border-t border-zinc-200 dark:border-zinc-800/80 mt-4 pt-4">
+    <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800/80">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">逐词对照</p>
+        <p className="font-display text-sm font-semibold text-zinc-900 dark:text-zinc-50">逐词对照</p>
         <p className="text-xs text-zinc-400 dark:text-zinc-500">AI 辅助分析</p>
       </div>
+      <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500 md:hidden">→ 左右滑动看逐词</p>
 
       {analysis === "loading" ? (
-        <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">
-          分析中…
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-500">
+          分析中...
         </div>
       ) : null}
 
       {analysis === "error" ? (
-        <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-500">
           分析暂不可用
         </div>
       ) : null}
 
       {analysis && analysis !== "loading" && analysis !== "error" ? (
-        <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 px-4 py-4">
-          <div className="flex flex-nowrap items-start overflow-x-auto gap-4 pb-2">
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50/70 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <div className="flex flex-nowrap items-start gap-4 overflow-x-auto pb-2">
             {analysis.tokens.map((token, index) => {
               const impliedSubject =
                 analysis.impliedSubject?.insertBeforeIndex === index
@@ -72,15 +73,17 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
               return (
                 <div className="contents" key={`${token.form}-${index}`}>
                   {impliedSubject ? (
-                    <div className="inline-flex shrink-0 flex-col items-center min-w-[3.5rem] max-w-[8rem] text-center">
-                      <span className="whitespace-nowrap bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 rounded px-1.5 font-medium">
+                    <div className="inline-flex min-w-[3.5rem] max-w-[8rem] shrink-0 flex-col items-center text-center">
+                      <span className="whitespace-nowrap rounded bg-brand-50 px-1.5 font-medium text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
                         ({impliedSubject.pronoun})
                       </span>
-                      <span className="max-w-full break-words text-sm italic leading-tight text-brand-400 dark:text-brand-500">[{impliedSubject.english}]</span>
+                      <span className="max-w-full break-words text-sm italic leading-tight text-brand-400 dark:text-brand-500">
+                        [{impliedSubject.english}]
+                      </span>
                       <span className="text-[10px] text-brand-300 dark:text-brand-700">省略</span>
                     </div>
                   ) : null}
-                  <div className="inline-flex shrink-0 flex-col items-center min-w-[3.5rem] max-w-[8rem] text-center">
+                  <div className="inline-flex min-w-[3.5rem] max-w-[8rem] shrink-0 flex-col items-center text-center">
                     <span className="whitespace-nowrap text-lg font-medium text-zinc-900 dark:text-zinc-50">{token.form}</span>
                     <span className="max-w-full break-words text-sm leading-tight text-zinc-400 dark:text-zinc-500">
                       {token.isPunctuation ? "" : token.english}
@@ -95,8 +98,8 @@ function InterlinearGloss({ analysis }: { analysis: AnalysisState }) {
             {analysis.naturalEnglish}
           </p>
           {analysis.inversionNote === "gustar" ? (
-            <p className="text-xs text-gray-400 mt-1">
-              ⓘ gustar 型：西语以「喜欢的事物」为主语，英语翻转为「人」做主语
+            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+              注：gustar 句型里，西语把“喜欢的对象”放在主语位置，英语会翻成“人”来做主语。
             </p>
           ) : null}
         </div>
@@ -182,6 +185,7 @@ export function DissectorClient() {
       return { ...prev, cards: nextCards };
     });
   };
+
   const [analysis, setAnalysis] = useState<AnalysisState>(null);
   const requestIdRef = useRef(0);
 
@@ -190,22 +194,20 @@ export function DissectorClient() {
   const summary = useMemo(() => summarizeDissection(tokens), [tokens]);
 
   const activeMatch = activePopover
-    ? tokens.find(
-        (token) => token.lemma === activePopover.lemma && token.entry !== null
-      )
+    ? tokens.find((token) => token.lemma === activePopover.lemma && token.entry !== null)
     : null;
   const activeEntry = activeMatch?.entry ?? null;
   const activeLemma = activeMatch?.lemma ?? activePopover?.lemma ?? "";
-  const activeStyle = activeEntry
-    ? getAggregationStyle(activeEntry.category)
-    : null;
+  const activeStyle = activeEntry ? getAggregationStyle(activeEntry.category) : null;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <p className="text-sm font-medium text-brand-600 dark:text-brand-400 font-display">工具</p>
-        <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50 font-display tracking-tight">句子拆解器</h1>
-        <p className="mt-3 text-base leading-7 text-zinc-600 dark:text-zinc-400 font-light">
+    <div className="mx-auto w-full max-w-3xl px-4 pt-4 pb-[calc(3.5rem+env(safe-area-inset-bottom)+16px)] sm:px-6 md:py-10">
+      <header className="mb-6 md:mb-8">
+        <p className="font-display text-sm font-medium text-brand-600 dark:text-brand-400">工具</p>
+        <h1 className="mt-2 text-2xl leading-snug md:text-3xl font-display font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          句子拆解器
+        </h1>
+        <p className="mt-3 line-clamp-3 text-base font-light leading-7 text-zinc-600 dark:text-zinc-400 md:line-clamp-none">
           粘贴任意西语句子，先看骨架词，再异步补上逐词对照和省略主语提示。
         </p>
       </header>
@@ -215,7 +217,7 @@ export function DissectorClient() {
           西语句子
         </label>
         <textarea
-          className="min-h-[96px] w-full resize-y rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/70 glass-card px-4 py-3 text-base leading-7 text-zinc-900 dark:text-zinc-100 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100/50 shadow-sm"
+          className="min-h-[112px] md:min-h-[96px] w-full resize-y rounded-surface border border-zinc-200 bg-white px-4 py-3 text-base leading-7 text-zinc-900 shadow-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100/50 dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-100"
           data-testid="dissect-input"
           id="dissect-input"
           onChange={(event) => {
@@ -231,7 +233,7 @@ export function DissectorClient() {
         />
         <div className="flex flex-wrap items-center gap-3">
           <button
-            className="rounded-full bg-brand-500 hover:bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white transition shadow-lg shadow-brand-500/10"
+            className="flex-1 sm:flex-none rounded-full bg-brand-500 px-6 py-3 md:py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/10 transition hover:bg-brand-600 active:scale-[0.98] md:active:scale-100"
             onClick={async () => {
               const sentence = input.trim();
               const requestId = requestIdRef.current + 1;
@@ -275,7 +277,7 @@ export function DissectorClient() {
             拆解
           </button>
           <button
-            className="rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 px-4 py-2.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            className="flex-1 sm:flex-none rounded-full border border-zinc-200 bg-white px-4 py-3 md:py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300 dark:hover:bg-zinc-800 md:active:scale-100"
             onClick={() => {
               setInput(DEFAULT_DISSECT_SENTENCE);
               setActivePopover(null);
@@ -290,8 +292,11 @@ export function DissectorClient() {
         </div>
       </div>
 
-      <section className="mt-8 rounded-surface border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 glass-card p-6 shadow-sm" data-testid="dissect-output">
-        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 font-display">拆解结果</p>
+      <section
+        className="mt-6 rounded-surface border border-zinc-200/50 bg-white/70 p-4 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/70 md:mt-8 md:p-6"
+        data-testid="dissect-output"
+      >
+        <p className="font-display text-sm font-semibold text-zinc-900 dark:text-zinc-50">拆解结果</p>
         {phraseSpans.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {phraseSpans.map((span) => (
@@ -300,19 +305,14 @@ export function DissectorClient() {
                   className={PHRASE_HIGHLIGHT_CLASSES}
                   onClick={() => {
                     setActivePopover(null);
-                    openLookup(
-                      `phrase-${span.start}-${span.end}`,
-                      span.lemma,
-                      "phrase",
-                      span.kind
-                    );
+                    openLookup(`phrase-${span.start}-${span.end}`, span.lemma, "phrase", span.kind);
                   }}
                   type="button"
                 >
                   {span.surface}
                 </button>
                 {activeContent?.anchorId === `phrase-${span.start}-${span.end}` ? (
-                  <div className="absolute left-0 top-full z-20 mt-2">
+                  <div className="absolute left-0 top-full z-20 mt-2 w-[min(20rem,calc(100vw-2rem))] max-w-sm">
                     <LookupCardStack
                       cards={activeContent.cards.map((card) => ({
                         ...card,
@@ -356,7 +356,7 @@ export function DissectorClient() {
                 <span className="relative inline" key={contentAnchorId}>
                   <button
                     aria-expanded={isContentActive}
-                    className="rounded px-0.5 text-zinc-900 dark:text-zinc-100 underline-offset-4 transition hover:bg-brand-50 dark:hover:bg-brand-950/50 hover:text-brand-700 dark:hover:text-brand-300 hover:underline"
+                    className="rounded px-0.5 text-zinc-900 underline-offset-4 transition hover:bg-brand-50 hover:text-brand-700 hover:underline dark:text-zinc-100 dark:hover:bg-brand-950/50 dark:hover:text-brand-300"
                     onClick={() => {
                       setActivePopover(null);
                       openLookup(contentAnchorId, token.raw);
@@ -366,24 +366,24 @@ export function DissectorClient() {
                     {token.raw}
                   </button>
                   {isContentActive ? (
-                    <div className="absolute left-0 top-full z-20 mt-2">
-                        <LookupCardStack
-                          cards={activeContent.cards.map((card) => ({
-                            ...card,
-                            onClose: () => closeStackCard(card.id),
-                            onExampleWordClick: openNestedWord,
-                            onRelatedPhraseClick: openNestedPhrase,
-                            originalSentence: input,
-                            translatedSentence: "",
-                            source: {
-                              type: "course",
-                              url: "/dissect",
-                              courseRef: "dissect",
-                              sentence: input
-                            }
-                          }))}
-                          onCloseCard={closeStackCard}
-                        />
+                    <div className="absolute left-0 top-full z-20 mt-2 w-[min(20rem,calc(100vw-2rem))] max-w-sm">
+                      <LookupCardStack
+                        cards={activeContent.cards.map((card) => ({
+                          ...card,
+                          onClose: () => closeStackCard(card.id),
+                          onExampleWordClick: openNestedWord,
+                          onRelatedPhraseClick: openNestedPhrase,
+                          originalSentence: input,
+                          translatedSentence: "",
+                          source: {
+                            type: "course",
+                            url: "/dissect",
+                            courseRef: "dissect",
+                            sentence: input
+                          }
+                        }))}
+                        onCloseCard={closeStackCard}
+                      />
                     </div>
                   ) : null}
                 </span>
@@ -407,20 +407,16 @@ export function DissectorClient() {
                   ].join(" ")}
                   onClick={() => {
                     setActiveContent(null);
-                    setActivePopover(
-                      isActive ? null : { lemma: token.lemma!, anchorId }
-                    );
+                    setActivePopover(isActive ? null : { lemma: token.lemma!, anchorId });
                   }}
                   type="button"
                 >
                   {token.raw}
-                  <sup className={`ml-0.5 text-[10px] font-medium ${style.textClass}`}>
-                    {style.badge}
-                  </sup>
+                  <sup className={`ml-0.5 text-[10px] font-medium ${style.textClass}`}>{style.badge}</sup>
                 </button>
                 {isActive && activeEntry && activeStyle ? (
-                  <div className="absolute left-0 top-full z-20 mt-2 w-72 rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-elevated glass-card">
-                    <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50 font-display">
+                  <div className="absolute left-0 top-full z-20 mt-2 w-[min(18rem,calc(100vw-2rem))] max-w-[18rem] rounded-card border border-zinc-200 bg-white p-4 shadow-elevated dark:border-zinc-800 dark:bg-zinc-900">
+                    <p className="font-display text-base font-semibold text-zinc-900 dark:text-zinc-50">
                       {activeLemma}{" "}
                       <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                         {activeStyle.categoryLabel}
@@ -429,12 +425,8 @@ export function DissectorClient() {
                     <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                       ≈ English &quot;{activeEntry.english}&quot;
                     </p>
-                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      {activeEntry.chinese.join(" / ")}
-                    </p>
-                    <p className="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-                      {activeEntry.esEnContrast}
-                    </p>
+                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{activeEntry.chinese.join(" / ")}</p>
+                    <p className="mt-3 text-sm leading-6 text-zinc-700 dark:text-zinc-300">{activeEntry.esEnContrast}</p>
                     <Link
                       className="mt-4 inline-flex text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
                       href={getFoundationDayHref(activeStyle.foundationDay)}
@@ -455,4 +447,3 @@ export function DissectorClient() {
     </div>
   );
 }
-

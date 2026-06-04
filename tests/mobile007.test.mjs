@@ -48,11 +48,29 @@ test("MOBILE-007 alphabet rule drawer has mobile safe area and scroll lock", () 
   assert.match(grid, /useEffect/);
   assert.match(grid, /document\.body\.style\.overflow = "hidden"/);
   assert.match(grid, /document\.body\.style\.overflow = previousOverflow/);
-  assert.match(grid, /mx-auto mt-3 mb-1 h-1 w-12 rounded-full bg-zinc-200/);
+  assert.match(grid, /mx-auto mt-3 mb-1 h-1 w-12 touch-none rounded-full bg-zinc-200/);
   assert.match(grid, /pb-\[calc\(env\(safe-area-inset-bottom\)\+20px\)\]/);
   assert.match(grid, /min-h-\[40px\]/);
   assert.match(grid, /sm:items-center/);
   assert.match(grid, /sm:rounded-card/);
+});
+
+test("MOBILE-007 alphabet rule drawer supports pull-down dismissal", () => {
+  const grid = readText("src/app/phonics/AlphabetGrid.tsx");
+
+  assert.match(grid, /dragStartYRef/);
+  assert.match(grid, /drawerOffset/);
+  assert.match(grid, /handleDrawerPointerDown/);
+  assert.match(grid, /handleDrawerPointerMove/);
+  assert.match(grid, /handleDrawerPointerEnd/);
+  assert.match(grid, /event\.clientY - dragStartYRef\.current/);
+  assert.match(grid, /if \(drawerOffsetRef\.current > 80\)/);
+  assert.match(grid, /setSelectedLetter\(null\)/);
+  assert.match(grid, /style=\{\{ transform: `translateY\(\$\{drawerOffset\}px\)` \}\}/);
+  assert.match(grid, /onPointerDown=\{handleDrawerPointerDown\}/);
+  assert.match(grid, /onPointerMove=\{handleDrawerPointerMove\}/);
+  assert.match(grid, /onPointerUp=\{handleDrawerPointerEnd\}/);
+  assert.match(grid, /onPointerCancel=\{handleDrawerPointerCancel\}/);
 });
 
 test("MOBILE-007 intro chips are thumb-sized and use lucide audio icons", () => {

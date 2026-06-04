@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-02 13:55
+// Timestamp: 2026-06-04 13:02
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -100,6 +100,7 @@ const PDF_MARGIN_X = 106;
 const PDF_TOP_MARGIN = 118;
 const PDF_BOTTOM_MARGIN = 118;
 const PDF_TIMESTAMP_WIDTH = 92;
+const PDF_FONT_STACK = '"Plus Jakarta Sans", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
 
 function normalizeLookupWord(token: string) {
   return token
@@ -373,10 +374,10 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, PDF_CANVAS_WIDTH, PDF_CANVAS_HEIGHT);
     context.fillStyle = "#18181b";
-    context.font = '700 38px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.font = `700 38px ${PDF_FONT_STACK}`;
     context.fillText("Esponal 字幕讲义", PDF_MARGIN_X, 76);
     context.fillStyle = "#71717a";
-    context.font = '500 18px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.font = `500 18px ${PDF_FONT_STACK}`;
     context.fillText(title, PDF_MARGIN_X, 108);
     context.fillStyle = "#10b981";
     context.fillRect(PDF_MARGIN_X, 128, PDF_CANVAS_WIDTH - PDF_MARGIN_X * 2, 4);
@@ -387,7 +388,7 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
     if (!context) return;
     const pageNumber = pages.length + 1;
     context.fillStyle = "#71717a";
-    context.font = '500 16px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.font = `500 16px ${PDF_FONT_STACK}`;
     context.textAlign = "center";
     context.fillText(`第 ${pageNumber} 页`, PDF_CANVAS_WIDTH / 2, PDF_CANVAS_HEIGHT - 48);
     context.textAlign = "right";
@@ -406,13 +407,13 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
 
   for (const row of rows) {
     if (!context) continue;
-    context.font = displayMode === "spanish" ? '600 25px Arial, sans-serif' : '600 23px Arial, sans-serif';
+    context.font = displayMode === "spanish" ? `600 25px ${PDF_FONT_STACK}` : `600 23px ${PDF_FONT_STACK}`;
     const spanishLines =
       displayMode !== "chinese" ? wrapCanvasText(context, row.spanish, textWidth) : [];
     context.font =
       displayMode === "chinese"
-        ? '500 25px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif'
-        : '500 21px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+        ? `500 25px ${PDF_FONT_STACK}`
+        : `500 21px ${PDF_FONT_STACK}`;
     const chineseLines =
       displayMode !== "spanish" ? wrapCanvasText(context, row.chinese, textWidth) : [];
     const blockHeight =
@@ -427,13 +428,13 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
     }
 
     context.fillStyle = "#71717a";
-    context.font = '700 16px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+    context.font = `700 16px ${PDF_FONT_STACK}`;
     context.fillText(`[${formatTimestamp(row.start)}]`, PDF_MARGIN_X, y + 20);
 
     let textY = y + 20;
     if (spanishLines.length) {
       context.fillStyle = "#18181b";
-      context.font = displayMode === "spanish" ? '600 25px Arial, sans-serif' : '600 23px Arial, sans-serif';
+      context.font = displayMode === "spanish" ? `600 25px ${PDF_FONT_STACK}` : `600 23px ${PDF_FONT_STACK}`;
       for (const line of spanishLines) {
         context.fillText(line, textX, textY);
         textY += displayMode === "spanish" ? 32 : 29;
@@ -445,8 +446,8 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
       context.fillStyle = displayMode === "chinese" ? "#18181b" : "#71717a";
       context.font =
         displayMode === "chinese"
-          ? '500 25px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif'
-          : '500 21px "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+          ? `500 25px ${PDF_FONT_STACK}`
+          : `500 21px ${PDF_FONT_STACK}`;
       for (const line of chineseLines) {
         context.fillText(line, textX, textY);
         textY += displayMode === "chinese" ? 32 : 27;

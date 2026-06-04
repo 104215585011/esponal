@@ -1,20 +1,22 @@
-// Timestamp: 2026-06-03 01:11
+// Timestamp: 2026-06-04 13:02
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Noto_Sans_SC, Plus_Jakarta_Sans } from "next/font/google";
 import { Suspense } from "react";
 import { BottomTabBar } from "@/app/components/web/BottomTabBar";
 import { ServiceWorkerRegister } from "@/app/components/web/ServiceWorkerRegister";
 import "./globals.css";
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-plus-jakarta",
   display: "swap",
 });
 
-const outfit = Outfit({
+const notoSansSc = Noto_Sans_SC({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-noto-sc",
   display: "swap",
 });
 
@@ -43,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="zh-CN" className={`${plusJakartaSans.variable} ${notoSansSc.variable}`}>
       <head>
         <script
           dangerouslySetInnerHTML={{

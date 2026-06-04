@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 12:06
+// Timestamp: 2026-06-04 11:18
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { MobileTopBar } from "@/app/components/web/MobileTopBar";
@@ -8,12 +8,12 @@ import { TALK_CHARACTERS } from "@/lib/talk/characters";
 
 export const dynamic = "force-dynamic";
 
-const LANG_FLAG: Record<string, string> = {
-  carlos: "馃嚥馃嚱",
-  emma: "馃嚞馃嚙",
-  jake: "馃嚭馃嚫",
-  sophie: "馃嚝馃嚪",
-  kenji: "馃嚡馃嚨"
+const LANG_BADGE: Record<string, string> = {
+  carlos: "ES",
+  emma: "UK",
+  jake: "US",
+  sophie: "FR",
+  kenji: "JP"
 };
 
 const orderedCharacters = [
@@ -32,7 +32,7 @@ export default async function TalkIndexPage() {
       <section className="mx-auto max-w-app-shell px-4 py-6 md:py-10">
         <header className="mb-5 md:mb-8">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 md:text-3xl">
-            选一位 AI 老师
+            选择一位 AI 老师
           </h1>
           <p className="mt-1.5 text-[13px] font-light leading-relaxed text-zinc-500 dark:text-zinc-400 md:text-sm">
             用真人感的对话练口语。Carlos 是西语母语者，也是 Esponal 的默认推荐。
@@ -48,9 +48,9 @@ export default async function TalkIndexPage() {
             >
               <span
                 aria-hidden
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-2xl ring-1 ring-brand-100 dark:bg-brand-950/40 dark:ring-brand-900/40 md:h-14 md:w-14 md:text-3xl"
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 font-display text-sm font-bold tracking-normal text-brand-700 ring-1 ring-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-900/40 md:h-14 md:w-14 md:text-base"
               >
-                {LANG_FLAG[character.id] ?? "馃寪"}
+                {LANG_BADGE[character.id] ?? "AI"}
               </span>
 
               <div className="min-w-0 flex-1">

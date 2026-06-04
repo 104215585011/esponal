@@ -67,7 +67,7 @@ test("WEB-009 homepage hero follows the current CTA contract", async () => {
   assert.match(page, /getServerSession/);
   assert.match(page, /getAuthOptions/);
   assert.match(page, /<HomeHero isLoggedIn=\{!!userId\} \/>/);
-  assert.match(hero, /西班牙语，从听懂开始/);
+  assert.match(hero, /西班牙语，[\s\S]*从<span className="text-brand-700 md:text-brand-500">听懂<\/span>开始/);
   assert.match(hero, /\/phonics/);
   assert.match(hero, /#tools/);
   assert.doesNotMatch(hero, /InstallPrompt/);

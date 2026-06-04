@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 01:33
+// Timestamp: 2026-06-04 12:08
 "use client";
 
 import Link from "next/link";
@@ -93,9 +93,9 @@ export function BottomTabBar() {
   return (
     <nav
       aria-label="主导航"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200/60 bg-white/80 pb-safe shadow-[0_-1px_12px_rgba(0,0,0,0.04)] backdrop-blur-xl dark:border-zinc-800/60 dark:bg-zinc-950/80 dark:shadow-[0_-1px_12px_rgba(0,0,0,0.4)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200/60 bg-white/90 backdrop-blur-[18px] dark:border-zinc-800/60 dark:bg-zinc-950/90 md:hidden"
     >
-      <ul className="grid h-14 grid-cols-4 items-stretch">
+      <ul className="grid grid-cols-4 items-stretch px-2 pt-[9px] pb-[calc(9px+env(safe-area-inset-bottom))]">
         {tabs.map(({ label, href, matchBase, Icon }) => {
           const active = startsWith(pathname, matchBase);
 
@@ -103,15 +103,15 @@ export function BottomTabBar() {
             <li className="flex min-h-[44px]" key={href}>
               <Link
                 aria-current={active ? "page" : undefined}
-                className={`group flex flex-1 select-none flex-col items-center justify-center gap-0.5 transition-[color,transform] duration-150 active:scale-95 ${
+                className={`group flex flex-1 select-none flex-col items-center justify-center gap-[3px] transition-[color,transform] duration-150 active:scale-95 ${
                   active
-                    ? "text-brand-600 dark:text-brand-400"
+                    ? "text-brand-700 dark:text-brand-400"
                     : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                 }`}
                 href={href}
               >
-                <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.4 : 2} />
-                <span className={`text-[10px] leading-none tracking-tight ${active ? "font-semibold" : "font-medium"}`}>
+                <Icon className="h-[21px] w-[21px]" strokeWidth={active ? 2.3 : 1.9} />
+                <span className={`text-[10.5px] leading-none ${active ? "font-bold" : "font-medium"}`}>
                   {label}
                 </span>
               </Link>

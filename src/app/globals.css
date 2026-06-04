@@ -1,5 +1,4 @@
-/* Timestamp: 2026-05-28 08:53 */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap");
+/* Timestamp: 2026-06-04 13:02 */
 
 @tailwind base;
 @tailwind components;
@@ -20,7 +19,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-plus-jakarta), var(--font-noto-sc), Arial, Helvetica, sans-serif;
 }
 
 .pb-safe {
@@ -94,15 +93,15 @@ body {
 }
 
 .ed-display {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-plus-jakarta), var(--font-noto-sc), Arial, Helvetica, sans-serif;
 }
 
 .ed-body {
-  font-family: "EB Garamond", Georgia, serif;
+  font-family: var(--font-plus-jakarta), var(--font-noto-sc), Arial, Helvetica, sans-serif;
 }
 
 .ed-sans {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-plus-jakarta), var(--font-noto-sc), system-ui, sans-serif;
 }
 
 .ed-sans ::selection {
@@ -203,7 +202,7 @@ body {
 }
 
 .ed-marginnote {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-plus-jakarta), var(--font-noto-sc), system-ui, sans-serif;
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;

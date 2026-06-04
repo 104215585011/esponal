@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 10:37
+// Timestamp: 2026-06-04 11:18
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -50,8 +50,11 @@ function AudioButton({
 
 export function AlphabetGrid({ letters }: AlphabetGridProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const dragStartYRef = useRef<number | null>(null);
+  const drawerOffsetRef = useRef(0);
   const [playingKey, setPlayingKey] = useState<AudioKey | null>(null);
   const [selectedLetter, setSelectedLetter] = useState<AlphabetLetter | null>(null);
+  const [drawerOffset, setDrawerOffset] = useState(0);
 
   useEffect(() => {
     if (!selectedLetter) return;
@@ -62,6 +65,12 @@ export function AlphabetGrid({ letters }: AlphabetGridProps) {
     return () => {
       document.body.style.overflow = previousOverflow;
     };
+  }, [selectedLetter]);
+
+  useEffect(() => {
+    setDrawerOffset(0);
+    drawerOffsetRef.current = 0;
+    dragStartYRef.current = null;
   }, [selectedLetter]);
 
   function play(src: string, key: AudioKey) {
@@ -88,13 +97,54 @@ export function AlphabetGrid({ letters }: AlphabetGridProps) {
     event.stopPropagation();
   }
 
+  function handleDrawerPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    dragStartYRef.current = event.clientY;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleDrawerPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (dragStartYRef.current === null) return;
+
+    const nextOffset = Math.max(0, event.clientY - dragStartYRef.current);
+    drawerOffsetRef.current = nextOffset;
+    setDrawerOffset(nextOffset);
+  }
+
+  function handleDrawerPointerEnd() {
+    dragStartYRef.current = null;
+
+    if (drawerOffsetRef.current > 80) {
+      setSelectedLetter(null);
+      return;
+    }
+
+    drawerOffsetRef.current = 0;
+    setDrawerOffset(0);
+  }
+
+  function handleDrawerPointerCancel() {
+    dragStartYRef.current = null;
+    drawerOffsetRef.current = 0;
+    setDrawerOffset(0);
+  }
+
   function renderRuleModal() {
     if (!selectedLetter?.rules?.length) return null;
 
     return (
       <div className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm px-0 sm:items-center sm:justify-center sm:px-4">
-        <div className="glass-card w-full rounded-t-card border border-zinc-200/20 bg-surface p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-elevated dark:border-zinc-800/50 dark:bg-zinc-900 sm:max-w-lg sm:rounded-card sm:pb-5">
-          <div className="mx-auto mt-3 mb-1 h-1 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800 sm:hidden" aria-hidden />
+        <div
+          className="glass-card w-full rounded-t-card border border-zinc-200/20 bg-surface p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-elevated transition-transform duration-200 ease-out dark:border-zinc-800/50 dark:bg-zinc-900 sm:max-w-lg sm:rounded-card sm:pb-5"
+          onPointerCancel={handleDrawerPointerCancel}
+          onPointerMove={handleDrawerPointerMove}
+          onPointerUp={handleDrawerPointerEnd}
+          style={{ transform: `translateY(${drawerOffset}px)` }}
+        >
+          <div
+            className="mx-auto mt-3 mb-1 h-1 w-12 touch-none rounded-full bg-zinc-200 dark:bg-zinc-800 sm:hidden"
+            aria-hidden
+            onPointerDown={handleDrawerPointerDown}
+          />
           <div className="mb-4 flex items-start justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
             <div>
               <div className="font-serif text-4xl leading-none text-zinc-950 dark:text-zinc-100">

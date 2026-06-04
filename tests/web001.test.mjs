@@ -14,5 +14,5 @@ test("WEB-001 homepage is rewritten away from the INFRA placeholder and reads ch
   assert.doesNotMatch(page, /INFRA-001 ready/);
   assert.match(page, /SiteHeader/);
   assert.match(page, /channels|curatedChannels/);
-  assert.match(page, /api\/youtube\/channel/);
+  assert.match(page, /video-sections/);
 });

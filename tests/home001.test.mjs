@@ -13,7 +13,7 @@ test("HOME-001 keeps HomeHero but makes it session-aware", async () => {
 
   assert.match(source, /type HomeHeroProps = \{\s*isLoggedIn:\s*boolean;/);
   assert.match(source, /export function HomeHero\(\{ isLoggedIn \}: HomeHeroProps\)/);
-  assert.match(source, /西班牙语，[\s\S]*从<span className="text-brand-600 md:text-brand-500">听懂<\/span>开始/);
+  assert.match(source, /西班牙语，[\s\S]*从<span className="text-brand-700 md:text-brand-500">听懂<\/span>开始/);
   assert.match(source, /\/phonics/);
   assert.match(source, /#tools/);
   assert.doesNotMatch(source, /InstallPrompt/);
@@ -40,7 +40,7 @@ test("HOME-001 homepage adds learning path and tools while keeping curated video
   assert.match(page, /\/vocab/);
   assert.match(page, /curatedChannels/);
   assert.match(page, /video-sections/);
-  assert.match(page, /Esponal · 为中文母语者设计的西语学习平台/);
+  assert.match(page, /Esponal 为中文母语者设计的西语学习平台/);
 });
 
 test("HOME-001 learning path keeps desktop arrows and desktop-only progress rings", async () => {
@@ -59,5 +59,5 @@ test("HOME-001 learning path cards reserve progress space and keep desktop equal
   assert.match(page, /flex flex-none basis-\[195px\] snap-start flex-col/);
   assert.match(page, /md:min-h-\[220px\] md:min-w-0 md:flex-1/);
   assert.match(page, /mt-3 min-h-\[22px\]/);
-  assert.match(page, /className="mt-auto flex/);
+  assert.match(page, /className="mt-auto inline-flex/);
 });

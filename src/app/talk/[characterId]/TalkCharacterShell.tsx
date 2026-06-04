@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 12:11
+// Timestamp: 2026-06-04 14:09
 "use client";
 
 import { useState } from "react";
@@ -9,21 +9,21 @@ import { TalkClient } from "./TalkClient";
 import { TalkSidebar } from "./TalkSidebar";
 
 type TalkCharacterShellProps = {
+  characterBadge: string;
   characterId: string;
   characterName: string;
   characterLanguage: string;
   characterStyle: string;
-  characterFlag: string;
   initialSessionId: string | null;
   locale: string;
 };
 
 export function TalkCharacterShell({
+  characterBadge,
   characterId,
   characterName,
   characterLanguage,
   characterStyle,
-  characterFlag,
   initialSessionId,
   locale
 }: TalkCharacterShellProps) {
@@ -52,13 +52,24 @@ export function TalkCharacterShell({
           </svg>
         </button>
 
-        <div className="min-w-0 text-center">
-          <h1 className="truncate font-display text-[15px] font-semibold text-zinc-900 dark:text-zinc-50">
-            {characterName}
-          </h1>
-          <p className="truncate text-[11px] font-light text-zinc-400 dark:text-zinc-500">
-            {characterLanguage}
-          </p>
+        <div className="min-w-0">
+          <div className="flex items-center justify-center gap-2">
+            <span
+              aria-hidden
+              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 font-display text-[11px] font-semibold text-brand-700 ring-1 ring-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-900/40"
+            >
+              {characterBadge}
+              <span className="absolute -bottom-0.5 -right-0.5 h-[11px] w-[11px] rounded-full bg-brand-500 ring-2 ring-white dark:ring-zinc-950" />
+            </span>
+            <div className="min-w-0 text-left">
+              <h1 className="truncate font-display text-[15px] font-semibold text-zinc-900 dark:text-zinc-50">
+                {characterName}
+              </h1>
+              <p className="truncate text-[11px] font-light text-zinc-400 dark:text-zinc-500">
+                {characterLanguage}
+              </p>
+            </div>
+          </div>
         </div>
 
         <button
@@ -98,8 +109,12 @@ export function TalkCharacterShell({
             <div className="hidden md:block">
               <BackLink href="/talk" label="对话" />
               <header className="mb-3 mt-2 flex items-center gap-3">
-                <span aria-hidden className="text-3xl">
-                  {characterFlag}
+                <span
+                  aria-hidden
+                  className="relative flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 font-display text-sm font-semibold text-brand-700 ring-1 ring-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-900/40"
+                >
+                  {characterBadge}
+                  <span className="absolute -bottom-0.5 -right-0.5 h-[11px] w-[11px] rounded-full bg-brand-500 ring-2 ring-white dark:ring-zinc-950" />
                 </span>
                 <div>
                   <h1 className="font-display text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
@@ -120,6 +135,7 @@ export function TalkCharacterShell({
             />
 
             <TalkClient
+              characterBadge={characterBadge}
               characterId={characterId}
               characterName={characterName}
               initialSessionId={initialSessionId}

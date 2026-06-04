@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 15:47
+// Timestamp: 2026-06-04 13:02
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -7,8 +7,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        display: ["var(--font-outfit)", "sans-serif"],
+        sans: ["var(--font-plus-jakarta)", "var(--font-noto-sc)", "sans-serif"],
+        display: ["var(--font-plus-jakarta)", "var(--font-noto-sc)", "sans-serif"],
       },
       colors: {
         brand: {

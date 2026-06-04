@@ -66,7 +66,7 @@ test("COURSE-006 prompt and client source lock the new implied-subject cases and
   assert.match(client, /"error"/);
   assert.match(client, /fetch\("\/api\/dissect\/analyze"/);
   assert.match(client, /setActivePopover\(null\)/);
-  assert.match(client, /text-xs text-gray-400 mt-1/);
+  assert.match(client, /mt-1 text-xs text-zinc-400 dark:text-zinc-500/);
   assert.match(client, /inversionNote/);
   assert.match(client, /gustar/);
   assert.match(client, /naturalEnglish/);
@@ -77,8 +77,8 @@ test("COURSE-006 prompt and client source lock the new implied-subject cases and
 test("COURSE-006 interlinear gloss UI uses aligned token columns and separate natural English footer", async () => {
   const client = await readText("src/app/dissect/DissectorClient.tsx");
 
-  assert.match(client, /flex flex-nowrap items-start overflow-x-auto/);
-  assert.match(client, /inline-flex shrink-0 flex-col items-center/);
+  assert.match(client, /flex flex-nowrap items-start gap-4 overflow-x-auto/);
+  assert.match(client, /inline-flex min-w-\[3\.5rem\] max-w-\[8rem\] shrink-0 flex-col items-center/);
   assert.match(client, /min-w-\[3\.5rem\]/);
   assert.match(client, /bg-brand-50/);
   assert.match(client, /text-brand-600/);
