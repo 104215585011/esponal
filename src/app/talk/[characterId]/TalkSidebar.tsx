@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 16:10
+// Timestamp: 2026-06-04 12:19
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,6 +15,8 @@ type TalkSessionItem = {
 type TalkSidebarProps = {
   characterId: string;
   characterName: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 type SessionsResponse = {
@@ -43,18 +45,29 @@ async function readItems(url: string) {
   return payload.items ?? [];
 }
 
-export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
+export function TalkSidebar({
+  characterId,
+  characterName,
+  open = false,
+  onOpenChange
+}: TalkSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeSessionId = searchParams.get("session");
 
   const [sessions, setSessions] = useState<TalkSessionItem[]>([]);
   const [archivedSessions, setArchivedSessions] = useState<TalkSessionItem[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [confirmingSession, setConfirmingSession] = useState<TalkSessionItem | null>(null);
+
+  const setIsOpen = useCallback(
+    (nextOpen: boolean) => {
+      onOpenChange?.(nextOpen);
+    },
+    [onOpenChange]
+  );
 
   const loadSessions = useCallback(async () => {
     setLoading(true);
@@ -107,9 +120,11 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
       body: JSON.stringify({ characterId })
     });
     if (!response.ok) return;
+
     const payload = (await response.json()) as { item?: TalkSessionItem };
     const session = payload.item;
     if (!session) return;
+
     setSessions((prev) => [session, ...prev.filter((item) => item.id !== session.id)]);
     setStatusMessage(null);
     router.replace(`/talk/${characterId}?session=${session.id}`, { scroll: false });
@@ -195,24 +210,26 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
               className="line-clamp-1 flex-1 text-sm font-medium font-display transition-opacity duration-150"
               key={session.title}
             >
-              {session.title || "新会话"}
+              {session.title || "新对话"}
             </span>
             <span className="shrink-0 text-[11px] text-gray-400 dark:text-zinc-500">
               {formatRelativeTime(session.updatedAt)}
             </span>
           </div>
           {session.lastMessagePreview ? (
-            <p className="mt-1 line-clamp-1 text-[12px] text-gray-400 dark:text-zinc-500 font-light">{session.lastMessagePreview}</p>
+            <p className="mt-1 line-clamp-1 text-[12px] font-light text-gray-400 dark:text-zinc-500">
+              {session.lastMessagePreview}
+            </p>
           ) : null}
         </button>
 
         <button
           aria-label="归档此对话"
-          className="opacity-100 rounded-card px-2 py-1 text-sm text-gray-400 dark:text-zinc-500 transition hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-600 dark:hover:text-zinc-300 lg:opacity-0 lg:group-hover:opacity-100"
+          className="rounded-card px-2.5 py-2 text-sm text-gray-400 opacity-100 transition hover:bg-gray-100 hover:text-gray-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 md:opacity-0 md:group-hover:opacity-100"
           onClick={() => setConfirmingSession(session)}
           type="button"
         >
-          🗑
+          馃棏
         </button>
       </div>
     );
@@ -220,9 +237,9 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
 
   function renderArchivedSection() {
     return (
-      <div className="mt-3 border-t border-gray-100 dark:border-zinc-800/60 pt-3">
+      <div className="mt-3 border-t border-gray-100 pt-3 dark:border-zinc-800/60">
         <button
-          className="flex w-full items-center justify-between rounded-card px-2 py-2 text-left text-sm text-gray-500 dark:text-zinc-400 transition hover:bg-gray-50 dark:hover:bg-zinc-800/40"
+          className="flex w-full items-center justify-between rounded-card px-2 py-2 text-left text-sm text-gray-500 transition hover:bg-gray-50 dark:text-zinc-400 dark:hover:bg-zinc-800/40"
           onClick={() => setIsArchiveOpen((prev) => !prev)}
           type="button"
         >
@@ -231,20 +248,22 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
         </button>
 
         {isArchiveOpen ? (
-          <div className="mt-2 space-y-1 rounded-card bg-gray-50 dark:bg-zinc-950/20 p-2 text-gray-500 dark:text-zinc-400">
+          <div className="mt-2 space-y-1 rounded-card bg-gray-50 p-2 text-gray-500 dark:bg-zinc-950/20 dark:text-zinc-400">
             {sortedArchivedSessions.length === 0 ? (
               <p className="px-2 py-3 text-[12px]">7 天内归档的对话会出现在这里</p>
             ) : (
               sortedArchivedSessions.map((session) => (
                 <div className="flex items-center gap-2 rounded-card px-2 py-2" key={session.id}>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm text-zinc-800 dark:text-zinc-200">{session.title || "新会话"}</p>
+                    <p className="line-clamp-1 text-sm text-zinc-800 dark:text-zinc-200">
+                      {session.title || "新对话"}
+                    </p>
                     <p className="mt-1 text-[11px] text-gray-400 dark:text-zinc-500">
                       {formatRelativeTime(session.archivedAt ?? session.updatedAt)}
                     </p>
                   </div>
                   <button
-                    className="shrink-0 text-[12px] font-medium text-brand-600 dark:text-brand-400 transition hover:text-brand-700 dark:hover:text-brand-300"
+                    className="shrink-0 text-[12px] font-medium text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
                     onClick={() => void restoreSession(session)}
                     type="button"
                   >
@@ -261,9 +280,9 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
 
   function renderContent() {
     return (
-      <div className="flex h-full flex-col bg-app px-3 py-3">
+      <div className="flex h-full flex-col bg-app px-3 py-3 pt-[calc(env(safe-area-inset-top)+8px)] md:pt-3">
         <button
-          className="flex h-9 w-full items-center gap-2 rounded-card bg-brand-50 dark:bg-brand-950/40 px-3 text-sm font-medium text-brand-700 dark:text-brand-300 transition hover:bg-brand-100 dark:hover:bg-brand-900/40"
+          className="flex h-11 md:h-9 w-full items-center gap-2 rounded-card bg-brand-50 px-3 text-sm font-medium text-brand-700 transition hover:bg-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:hover:bg-brand-900/40"
           onClick={() => void createSession()}
           type="button"
         >
@@ -278,9 +297,11 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
 
           {sortedSessions.length === 0 && !loading ? (
             <div className="px-2 py-8 text-sm text-gray-500 dark:text-zinc-400">
-              <p>↑</p>
-              <p className="mt-2 font-display">还没有和 {characterName} 聊过</p>
-              <p className="mt-1 text-[12px] text-gray-400 dark:text-zinc-500 font-light">点上方「+ 新对话」开始</p>
+              <p>→</p>
+              <p className="mt-2 font-display">还没和 {characterName} 聊过</p>
+              <p className="mt-1 text-[12px] font-light text-gray-400 dark:text-zinc-500">
+                点上面「新对话」开始
+              </p>
             </div>
           ) : null}
 
@@ -293,24 +314,16 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
 
   return (
     <>
-      <button
-        aria-label="打开会话列表"
-        className="mb-3 inline-flex h-9 items-center gap-2 rounded-card border border-gray-200 dark:border-zinc-800 bg-surface dark:bg-zinc-900 px-3 text-sm text-gray-600 dark:text-zinc-300 shadow-sm lg:hidden"
-        onClick={() => setIsOpen(true)}
-        type="button"
-      >
-        <span aria-hidden>☰</span>
-        <span>会话</span>
-      </button>
+      <aside className="hidden h-full md:block">{renderContent()}</aside>
 
-      <aside className="hidden h-full lg:block">{renderContent()}</aside>
-
-      {isOpen ? (
-        <div className="fixed inset-0 z-40 flex lg:hidden">
-          <div className="h-full w-[80vw] max-w-sm shadow-elevated border-r border-zinc-200 dark:border-zinc-800">{renderContent()}</div>
+      {open ? (
+        <div className="fixed inset-0 z-[60] flex md:hidden">
+          <div className="flex h-full w-[82vw] max-w-sm flex-col border-r border-zinc-200/50 bg-white shadow-hero dark:border-zinc-800/40 dark:bg-[#09090B]">
+            {renderContent()}
+          </div>
           <button
             aria-label="关闭会话列表"
-            className="h-full w-[20vw] flex-1 bg-black/30"
+            className="h-full flex-1 bg-black/40 backdrop-blur-[2px]"
             onClick={() => setIsOpen(false)}
             type="button"
           />
@@ -318,22 +331,24 @@ export function TalkSidebar({ characterId, characterName }: TalkSidebarProps) {
       ) : null}
 
       {confirmingSession ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-          <div className="w-full max-w-sm rounded-hero bg-surface dark:bg-zinc-900 p-6 shadow-elevated border border-zinc-200/30 dark:border-zinc-800/50 glass-card">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-zinc-50 font-display">归档此对话？</h2>
-            <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-zinc-400 font-light">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30 px-4">
+          <div className="glass-card w-full max-w-sm rounded-hero border border-zinc-200/30 bg-surface p-6 shadow-elevated dark:border-zinc-800/50 dark:bg-zinc-900">
+            <h2 className="font-display text-base font-semibold text-gray-900 dark:text-zinc-50">
+              归档此对话？
+            </h2>
+            <p className="mt-2 text-sm font-light leading-relaxed text-gray-500 dark:text-zinc-400">
               归档后会从列表移除。7 天内可在底部「归档」抽屉里恢复，之后将永久删除。
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
-                className="rounded-full px-4 py-2 text-sm text-gray-500 dark:text-zinc-400 transition hover:bg-gray-100 dark:hover:bg-zinc-800"
+                className="rounded-full px-4 py-2 text-sm text-gray-500 transition hover:bg-gray-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 onClick={() => setConfirmingSession(null)}
                 type="button"
               >
                 取消
               </button>
               <button
-                className="rounded-full bg-brand-50 dark:bg-brand-950/40 px-4 py-2 text-sm font-semibold text-brand-700 dark:text-brand-300 transition hover:bg-brand-100 dark:hover:bg-brand-900/40"
+                className="rounded-full bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100 dark:bg-brand-950/40 dark:text-brand-300 dark:hover:bg-brand-900/40"
                 onClick={() => void confirmArchive()}
                 type="button"
               >

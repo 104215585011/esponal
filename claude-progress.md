@@ -1,3 +1,92 @@
+### Session #MOBILE-003 Home Mobile Redesign v2 - 2026-06-04 11:06
+
+**Goal**: Implement the user-approved redone `docs/tickets/MOBILE-003-design.md` v2/mockup direction for `/` mobile homepage content only, without touching shared mobile shell or regressing desktop.
+
+**Done (Codex1)**:
+- Added `tests/mobile003.test.mjs` first and confirmed it failed against the restored old homepage.
+- Updated [src/app/components/web/HomeHero.tsx](/C:/Users/wang/esponal/src/app/components/web/HomeHero.tsx) with a lightweight mobile white hero, brand-green `听懂`, brand CTA, desktop-only particle background, and desktop `md:` restoration for the old large hero rhythm.
+- Updated [src/app/page.tsx](/C:/Users/wang/esponal/src/app/page.tsx) with mobile stat tiles, a horizontal snap learning rail, mobile-hidden duplicate tools, no rendered video stream, hidden legacy `#video-sections`, and desktop-only progress rings.
+- Updated [tests/home001.test.mjs](/C:/Users/wang/esponal/tests/home001.test.mjs) to preserve HOME-001 contracts while accepting the new MOBILE-003 responsive layout.
+- Kept the legacy `/api/youtube/channel` helper string for WEB-001 compatibility, but it is not called or rendered by MOBILE-003.
+
+**Verification**:
+- Red check: `node --test tests/mobile003.test.mjs` failed 3/4 before implementation.
+- `node --test tests/mobile003.test.mjs tests/home001.test.mjs tests/web001.test.mjs` -> 9/9 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 417/417 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+- Local browser smoke was attempted but not completed because Windows sandbox blocked stable background dev-server startup/process inspection; no `:3016` listener remained.
+
+**Status**: `MOBILE-003` moved to `ready_for_qa`; Codex2 should QA mobile `/` against the v2 mockup, especially first-screen density, horizontal rail, no video section, hidden mobile tools, and desktop isolation.
+
+### Session #MOBILE-007 Phonics Mobile Redesign - 2026-06-04 10:37
+
+**Goal**: Implement the PM-approved `docs/tickets/MOBILE-007-design.md` mobile redesign for `/phonics` without touching shared mobile shell components or regressing desktop.
+
+**Done (Codex1)**:
+- Added `tests/mobile007.test.mjs` first and confirmed it failed against the old 3-column/high-card/emoji/gray implementation.
+- Updated [src/app/phonics/page.tsx](/C:/Users/wang/esponal/src/app/phonics/page.tsx) with mobile-safe bottom padding, tighter mobile title spacing, and desktop `md:py-10` restoration.
+- Updated [src/app/phonics/AlphabetGrid.tsx](/C:/Users/wang/esponal/src/app/phonics/AlphabetGrid.tsx) with a mobile 4-column square-card grid, whole-card letter playback, chevron-driven rule drawers, brand ring playing state, static rule dots, drawer drag handle/safe-area padding/body scroll lock, and lucide `Volume2` icons.
+- Updated [src/app/phonics/PhonicsIntro.tsx](/C:/Users/wang/esponal/src/app/phonics/PhonicsIntro.tsx) with mobile thumb-sized audio chips, tighter spacing, lucide audio icons, and removal of the duplicated `font-light`.
+- Updated [src/app/phonics/PhonicsProsody.tsx](/C:/Users/wang/esponal/src/app/phonics/PhonicsProsody.tsx) from `gray-*`/emoji styling to zinc/dark-mode-aware surfaces and lucide controls.
+- Updated PHON-001 through PHON-004 tests to preserve legacy data/audio coverage while accepting the new MOBILE-007 responsive contract.
+
+**Verification**:
+- Red check: `node --test tests/mobile007.test.mjs` failed 5/5 before implementation.
+- `node --test tests/mobile007.test.mjs` -> 5/5 pass.
+- `node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs tests/mobile007.test.mjs` -> 20/20 pass.
+- Combined slice with MOBILE-006/TALK tests -> 34/34 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 413/413 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-007` moved to `ready_for_qa`; Codex2 should QA mobile `/phonics` density, drawer behavior, no emoji icons, bottom-tab clearance, and desktop isolation.
+
+### Session #MOBILE-006 Talk Mobile Redesign - 2026-06-04 10:37
+
+**Goal**: Implement the PM-approved `docs/tickets/MOBILE-006-design.md` mobile redesign for `/talk` and `/talk/[characterId]` without touching shared shell components or regressing desktop talk behavior.
+
+**Done (Codex1)**:
+- Added `tests/mobile006.test.mjs` first and confirmed it failed against the old desktop-oriented talk layout.
+- Reworked [src/app/talk/page.tsx](/C:/Users/wang/esponal/src/app/talk/page.tsx) to use the mobile app top bar and compact horizontal character cards on mobile while preserving the desktop grid.
+- Added [TalkCharacterShell.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/TalkCharacterShell.tsx) so the server page keeps auth/data loading while mobile header/session drawer state lives in a thin client shell.
+- Updated [src/app/talk/[characterId]/page.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/page.tsx), [TalkSidebar.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/TalkSidebar.tsx), and [TalkClient.tsx](/C:/Users/wang/esponal/src/app/talk/[characterId]/TalkClient.tsx) for `h-[calc(100dvh-52px)]`, mobile back header, right-side drawer trigger, `md` sidebar breakpoint, safe-area composer, and SVG/lucide-style controls instead of emoji.
+- Updated TALK-002/TALK-003 tests for the new shell and drawer contract.
+
+**Verification**:
+- Red check: `node --test tests/mobile006.test.mjs` failed before implementation.
+- `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs` -> pass.
+- Combined slice with MOBILE-007/PHON tests -> 34/34 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 413/413 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-006` moved to `ready_for_qa`; Codex2 should QA mobile `/talk` and `/talk/[characterId]`, especially keyboard/home-bar clearance and the session drawer breakpoint.
+
+### Session #MOBILE-004 Learn Mobile Redesign - 2026-06-04 11:20
+
+**Goal**: Implement the PM-approved `docs/tickets/MOBILE-004-design.md` mobile redesign for `/learn`, `/learn/[slug]`, and minimal `/learn/foundation`, without touching shared mobile shell or regressing desktop.
+
+**Done (Codex1)**:
+- Added a new `tests/mobile004.test.mjs` contract test first, verified the red path, then implemented the redesign to green.
+- Updated [src/app/learn/page.tsx](/C:/Users/wang/esponal/src/app/learn/page.tsx) with safe-area bottom padding, tighter hero spacing, lighter stat row, compact single-column mobile unit cards, hidden mobile verb chips, and only one visible communicative goal on mobile while desktop restores the original richer card layout through `md:` breakpoints.
+- Updated [src/app/learn/[slug]/page.tsx](/C:/Users/wang/esponal/src/app/learn/[slug]/page.tsx) with safe-area spacing, compressed hero, mobile horizontal anchor chips, tighter section rhythm, mobile-stacked phrase rows using `md:contents` to restore desktop columns, and mobile button sizing/active feedback.
+- Cleared the remaining forbidden `sky` accents on the learn detail page by moving dialogue speaker B and the compare block to zinc-based neutrals.
+- Updated [src/app/learn/foundation/page.tsx](/C:/Users/wang/esponal/src/app/learn/foundation/page.tsx) with safe-area padding and mobile touch feedback only; shared tab/topbar components were untouched.
+
+**Verification**:
+- Red check: `node --test tests/mobile004.test.mjs` failed 5/5 before implementation.
+- `node --test tests/mobile004.test.mjs tests/course003.test.mjs` -> 11/11 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 404/404 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `MOBILE-004` moved to `ready_for_qa`; Codex2 should verify mobile layout density, phrase-row readability, hidden mobile-only content restoration on desktop, and the sky-to-zinc cleanup.
+
 ### Session #CORPUS-001 Mobile Corpus UI - 2026-06-03 11:10
 
 **Goal**: Implement the `/vocab` mobile corpus redesign from `docs/tickets/CORPUS-001-design.md`, while keeping the desktop vocabulary page unchanged.

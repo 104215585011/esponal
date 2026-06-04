@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-04 10:37
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
@@ -25,7 +26,8 @@ test("PHON-003 uses a modal rule viewer instead of inline grid expansion", async
 
   assert.match(grid, /selectedLetter/);
   assert.match(grid, /查看发音/);
-  assert.match(grid, /bg-brand-400 rounded-full/);
+  assert.match(grid, /rounded-full bg-brand-400/);
+  assert.match(grid, /<ChevronRight/);
   assert.match(grid, /fixed inset-0 z-50/);
   assert.match(grid, /lg:max-w-lg|sm:max-w-lg/);
   assert.match(grid, /rounded-t-card|rounded-card/);

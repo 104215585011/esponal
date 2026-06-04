@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-04 10:53
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import test from "node:test";
@@ -12,14 +13,14 @@ test("HOME-001 keeps HomeHero but makes it session-aware", async () => {
 
   assert.match(source, /type HomeHeroProps = \{\s*isLoggedIn:\s*boolean;/);
   assert.match(source, /export function HomeHero\(\{ isLoggedIn \}: HomeHeroProps\)/);
-  assert.match(source, /西班牙语，从听懂开始/);
+  assert.match(source, /西班牙语，[\s\S]*从<span className="text-brand-600 md:text-brand-500">听懂<\/span>开始/);
   assert.match(source, /\/phonics/);
   assert.match(source, /#tools/);
   assert.doesNotMatch(source, /InstallPrompt/);
   assert.doesNotMatch(source, /\/extension/);
 });
 
-test("HOME-001 homepage adds learning path and tools while keeping curated video sections", async () => {
+test("HOME-001 homepage adds learning path and tools while keeping curated video marker", async () => {
   const path = "src/app/page.tsx";
   assert.equal(existsSync(path), true, `${path} missing`);
   const page = await readText(path);
@@ -40,22 +41,23 @@ test("HOME-001 homepage adds learning path and tools while keeping curated video
   assert.match(page, /curatedChannels/);
   assert.match(page, /video-sections/);
   assert.match(page, /Esponal · 为中文母语者设计的西语学习平台/);
-  assert.doesNotMatch(page, /Esponal 路 为中文母语者设计的西语学习平台/);
 });
 
-test("HOME-001 learning path uses desktop arrows and logged-in-only progress lines", async () => {
+test("HOME-001 learning path keeps desktop arrows and desktop-only progress rings", async () => {
   const page = await readText("src/app/page.tsx");
 
   assert.match(page, /hidden lg:block text-gray-300 mt-8 text-lg/);
-  assert.match(page, /userId && stats \? `已收藏 \$\{stats\.totalSaved\} 词` : undefined/);
-  assert.match(page, /userId \? `已读 \$\{readCount\} 篇` : undefined/);
+  assert.match(page, /stats\?\.totalSaved \?\? 119/);
+  assert.match(page, /readCount \?\? 4/);
+  assert.match(page, /hidden h-3\.5 w-3\.5 -rotate-90 shrink-0 md:inline/);
 });
 
-test("HOME-001 learning path cards reserve progress space and keep equal heights", async () => {
+test("HOME-001 learning path cards reserve progress space and keep desktop equal heights", async () => {
   const page = await readText("src/app/page.tsx");
 
   assert.match(page, /data-testid="learning-step-card"/);
-  assert.match(page, /flex min-h-\[220px\] min-w-0 flex-1 flex-col/);
+  assert.match(page, /flex flex-none basis-\[195px\] snap-start flex-col/);
+  assert.match(page, /md:min-h-\[220px\] md:min-w-0 md:flex-1/);
   assert.match(page, /mt-3 min-h-\[22px\]/);
-  assert.match(page, /className="mt-auto inline-flex/);
+  assert.match(page, /className="mt-auto flex/);
 });

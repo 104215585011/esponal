@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-04 10:37
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
@@ -17,9 +18,9 @@ test("PHON-004 adds a bottom prosody module under the alphabet grid", async () =
   );
 
   assert.match(component, /重音 & 连读/);
-  assert.match(component, /mt-12/);
-  assert.match(component, /pt-10/);
-  assert.match(component, /border-t border-gray-100/);
+  assert.match(component, /md:mt-12/);
+  assert.match(component, /md:pt-10/);
+  assert.match(component, /border-t border-zinc-100/);
   assert.match(component, /Acentuación/);
   assert.match(component, /Sinalefa/);
 });

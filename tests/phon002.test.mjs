@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-04 10:37
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
@@ -17,8 +18,8 @@ test("PHON-002 adds a phonics intro module above the alphabet grid", async () =>
   const intro = await readText(introPath);
 
   assert.match(page, /PhonicsIntro/);
-  assert.match(page, /mb-10/);
-  assert.match(page, /border-b border-gray-100 pb-10/);
+  assert.match(page, /md:mb-10/);
+  assert.match(page, /border-b border-zinc-100 pb-8/);
   assert.ok(
     page.indexOf("<PhonicsIntro />") < page.indexOf("<AlphabetGrid"),
     "intro should render above alphabet grid"

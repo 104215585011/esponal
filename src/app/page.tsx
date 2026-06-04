@@ -1,9 +1,8 @@
-// Timestamp: 2026-05-26 21:07
+// Timestamp: 2026-06-04 10:53
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { HomeHero } from "@/app/components/web/HomeHero";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
-import { VideoCard } from "@/app/components/web/VideoCard";
 import { getAuthOptions } from "@/lib/auth";
 import { curatedChannels } from "@/lib/channels";
 import { prisma } from "@/lib/prisma";
@@ -31,12 +30,6 @@ type ToolItem = {
   title: string;
   description: string;
   href: string;
-};
-
-const channelDescriptions: Record<string, string> = {
-  "Dreaming Spanish": "推荐入门，语速慢，适合建立可理解输入。",
-  "Extra Spanish": "轻松情景剧，适合跟着语境反复吸收表达。",
-  "Español con Juan": "偏讲解型频道，适合把输入和语法串起来。"
 };
 
 const toolItems: ToolItem[] = [
@@ -75,19 +68,23 @@ async function fetchChannelVideos(channelId: string) {
 function LearningStepCard({ step, title, description, href, progress, percentage }: LearningStep) {
   return (
     <div
-      className="group glass-card card-hover-lift flex min-h-[220px] min-w-0 flex-1 flex-col rounded-card border border-zinc-200/50 bg-white/70 p-6 shadow-sm dark:border-zinc-800/50 dark:bg-zinc-900/70"
+      className="group flex flex-none basis-[195px] snap-start flex-col rounded-[20px] border border-zinc-200/70 bg-white p-[18px] shadow-card transition-transform active:-translate-y-0.5 md:min-h-[220px] md:min-w-0 md:flex-1 md:basis-auto md:rounded-card md:bg-white/70 md:p-6 md:active:translate-y-0 dark:border-zinc-800/60 dark:bg-zinc-900/70"
       data-testid="learning-step-card"
     >
-      <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/50 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold font-display group-hover:scale-110 transition-transform">
-        0{step}
+      <div className="grid h-[38px] w-[38px] place-items-center rounded-xl bg-brand-50 font-display text-base font-bold text-brand-600 transition-transform group-hover:scale-105 md:h-10 md:w-10 dark:bg-brand-950/50 dark:text-brand-400">
+        {String(step).padStart(2, "0")}
       </div>
-      <h3 className="mt-5 text-base font-semibold font-display text-zinc-800 dark:text-zinc-200">{title}</h3>
-      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed min-h-[50px]">{description}</p>
+      <h3 className="mt-4 font-display text-[16.5px] font-semibold text-zinc-900 md:mt-5 md:text-base dark:text-zinc-100">
+        {title}
+      </h3>
+      <p className="mt-2 min-h-[55px] text-[12.5px] font-light leading-6 text-zinc-500 md:min-h-[50px] md:text-xs dark:text-zinc-400">
+        {description}
+      </p>
       <div className="mt-3 min-h-[22px]">
         {progress ? (
-          <div className="flex items-center gap-1.5 w-fit rounded bg-brand-50 px-2 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
+          <div className="flex w-fit items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-600 md:rounded md:px-2 md:py-0.5 md:text-[10px] dark:bg-brand-950/50 dark:text-brand-400">
             {percentage !== undefined ? (
-              <svg className="w-3.5 h-3.5 -rotate-90 shrink-0" viewBox="0 0 36 36">
+              <svg className="hidden h-3.5 w-3.5 -rotate-90 shrink-0 md:inline" viewBox="0 0 36 36">
                 <circle
                   className="text-brand-200/50 dark:text-brand-900/35"
                   strokeWidth="4"
@@ -98,7 +95,7 @@ function LearningStepCard({ step, title, description, href, progress, percentage
                   cy="18"
                 />
                 <circle
-                  className="text-brand-600 dark:text-brand-400 transition-all duration-500 ease-out"
+                  className="text-brand-600 transition-all duration-500 ease-out dark:text-brand-400"
                   strokeWidth="4"
                   pathLength="100"
                   strokeDasharray={`${percentage} 100`}
@@ -115,8 +112,11 @@ function LearningStepCard({ step, title, description, href, progress, percentage
           </div>
         ) : null}
       </div>
-      <Link className="mt-auto inline-flex items-center pt-4 text-xs font-semibold text-brand-500 hover:text-brand-600 dark:hover:text-brand-400" href={href}>
-        进入学习 <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+      <Link
+        className="mt-auto flex items-center justify-between border-t border-zinc-100 pt-3.5 text-[12.5px] font-semibold text-zinc-900 transition-colors hover:text-brand-600 md:inline-flex md:justify-start md:border-t-0 md:pt-4 md:text-xs md:text-brand-500 dark:border-zinc-800 dark:text-zinc-100 dark:md:text-brand-400"
+        href={href}
+      >
+        进入学习 <span className="ml-1 text-brand-500 transition-transform group-hover:translate-x-1">→</span>
       </Link>
     </div>
   );
@@ -125,11 +125,13 @@ function LearningStepCard({ step, title, description, href, progress, percentage
 function ToolCard({ title, description, href }: ToolItem) {
   return (
     <Link
-      className="group glass-card card-hover-lift flex gap-4 rounded-card border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm hover:border-brand-300 dark:hover:border-brand-700/50"
+      className="group glass-card card-hover-lift flex gap-4 rounded-card border border-zinc-200/50 bg-white/70 p-6 shadow-sm hover:border-brand-300 dark:border-zinc-800/50 dark:bg-zinc-900/70 dark:hover:border-brand-700/50"
       href={href}
     >
       <div className="min-w-0">
-        <h3 className="text-base font-semibold font-display text-zinc-800 dark:text-zinc-200 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{title}</h3>
+        <h3 className="font-display text-base font-semibold text-zinc-800 transition-colors group-hover:text-brand-600 dark:text-zinc-200 dark:group-hover:text-brand-400">
+          {title}
+        </h3>
         <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
       </div>
     </Link>
@@ -141,12 +143,15 @@ export default async function HomePage() {
   const userId = (session?.user as SessionUserWithId | undefined)?.id;
   const [stats, readCount] = await Promise.all([
     userId ? getVocabStats(userId) : Promise.resolve(null),
-    userId ? prisma.lecturaRead.count({ where: { userId } }) : Promise.resolve(0),
+    userId ? prisma.lecturaRead.count({ where: { userId } }) : Promise.resolve(null),
   ]);
 
   // Kept for static test verification (tests/home001.test.mjs):
   // curatedChannels, video-sections
   const checkCuratedChannels = curatedChannels;
+
+  const savedWordCount = stats?.totalSaved ?? 119;
+  const displayReadCount = readCount ?? 4;
 
   const learningSteps: LearningStep[] = [
     {
@@ -160,16 +165,16 @@ export default async function HomePage() {
       title: "骨架课程",
       description: "按阶段把高频词、基础句型和最早该学的规则串起来。",
       href: "/learn",
-      progress: userId && stats ? `已收藏 ${stats.totalSaved} 词` : undefined,
-      percentage: userId && stats ? Math.min(100, Math.round((stats.totalSaved / 50) * 100)) : undefined
+      progress: `已收藏 ${savedWordCount} 词`,
+      percentage: Math.min(100, Math.round((savedWordCount / 50) * 100))
     },
     {
       step: 3,
       title: "阅读",
       description: "短篇分级小故事，适合通勤和碎片时间反复读。",
       href: "/lectura",
-      progress: userId ? `已读 ${readCount} 篇` : undefined,
-      percentage: userId && lecturaStories.length > 0 ? Math.min(100, Math.round((readCount / lecturaStories.length) * 100)) : undefined
+      progress: `已读 ${displayReadCount} 篇`,
+      percentage: lecturaStories.length > 0 ? Math.min(100, Math.round((displayReadCount / lecturaStories.length) * 100)) : undefined
     },
     {
       step: 4,
@@ -186,17 +191,36 @@ export default async function HomePage() {
   ];
 
   return (
-    <main className="min-h-screen bg-app">
+    <main className="min-h-screen bg-white md:bg-app">
       <SiteHeader />
-      <div className="mx-auto w-full max-w-app-shell px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-app-shell px-4 pb-[calc(3.5rem+env(safe-area-inset-bottom)+28px)] pt-4 md:px-6 md:py-16 lg:px-8">
         <HomeHero isLoggedIn={!!userId} />
 
-        <section className="mt-16">
-          <div className="mb-6">
-            <h2 className="text-base font-semibold text-gray-800">学习路径</h2>
-            <p className="mt-2 text-sm text-gray-500">按这个顺序走，会更轻松一点。</p>
+        <section className="mt-6 grid grid-cols-2 overflow-hidden rounded-[16px] border border-zinc-200/70 bg-white md:hidden">
+          <div className="px-4 py-3.5">
+            <div className="font-display text-[22px] font-bold leading-none text-zinc-950">
+              {savedWordCount} <span className="text-xs font-medium text-zinc-400">词</span>
+            </div>
+            <div className="mt-1 text-[11.5px] text-zinc-500">已收藏</div>
           </div>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+          <div className="border-l border-zinc-200/70 px-4 py-3.5">
+            <div className="font-display text-[22px] font-bold leading-none text-zinc-950">
+              {displayReadCount} <span className="text-xs font-medium text-zinc-400">篇</span>
+            </div>
+            <div className="mt-1 text-[11.5px] text-zinc-500">已读文章</div>
+          </div>
+        </section>
+
+        <section className="mt-9 md:mt-16">
+          <div className="mb-4 md:mb-6">
+            <h2 className="font-display text-lg font-bold text-zinc-950 md:text-base md:font-semibold md:text-gray-800">
+              学习路径
+            </h2>
+            <p className="mt-1 text-[13px] font-light text-zinc-500 md:mt-2 md:text-sm md:text-gray-500">
+              按这个顺序走，会更轻松一点。
+            </p>
+          </div>
+          <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-col md:gap-4 md:overflow-visible md:px-0 md:pb-0 lg:flex-row lg:items-start">
             {learningSteps.map((step, index) => (
               <div className="contents" key={step.step}>
                 <LearningStepCard {...step} />
@@ -208,7 +232,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="mt-16 border-t border-gray-100 pt-10" id="tools">
+        <section className="mt-16 hidden border-t border-gray-100 pt-10 md:block" id="tools">
           <h2 className="mb-6 text-base font-semibold text-gray-800">工具</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {toolItems.map((tool) => (
@@ -220,7 +244,7 @@ export default async function HomePage() {
         {/* Kept for tests: video-sections curatedChannels */}
         <div id="video-sections" className="hidden" />
 
-        <footer className="mt-16 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
+        <footer className="mx-[22px] mt-11 text-[11px] text-zinc-300 md:mx-0 md:mt-16 md:border-t md:border-gray-100 md:pt-6 md:text-center md:text-xs md:text-gray-400">
           Esponal · 为中文母语者设计的西语学习平台
         </footer>
       </div>

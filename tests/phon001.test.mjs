@@ -1,3 +1,4 @@
+// Timestamp: 2026-06-04 10:37
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
@@ -42,16 +43,18 @@ test("PHON-001 page renders the approved alphabet layout and audio controls", as
   assert.match(page, /SPANISH_ALPHABET/);
   assert.doesNotMatch(page, /登录后可记录已学字母/);
 
-  assert.match(grid, /grid-cols-3/);
+  assert.match(grid, /grid-cols-4/);
   assert.match(grid, /sm:grid-cols-4/);
   assert.match(grid, /lg:grid-cols-5/);
   assert.doesNotMatch(grid, /lg:grid-cols-6/);
   assert.match(grid, /font-serif/);
   assert.match(grid, /text-\[56px\]|text-6xl|text-7xl/);
+  assert.match(grid, /text-\[34px\]/);
   assert.match(grid, /bg-brand-50/);
   assert.match(grid, /text-brand-700/);
   assert.match(grid, /西语独有/);
-  assert.match(grid, /🔊 \{label\}/);
+  assert.match(grid, /<Volume2/);
+  assert.doesNotMatch(grid, /🔊/);
   assert.match(grid, /label=\{letter\.name\}/);
   assert.match(grid, /label=\{letter\.example\}/);
   assert.match(grid, /getPlaybackRate/);

@@ -57,17 +57,17 @@ test("TALK-003 archive and restore APIs keep ownership, archivedAt, and ACTIVE f
   assert.match(chatService, /where:\s*\{[\s\S]*id:\s*input\.sessionId[\s\S]*userId:\s*input\.userId[\s\S]*characterId:\s*character\.id[\s\S]*status:\s*"ACTIVE"/);
 });
 
-test("TALK-003 sidebar exposes desktop hover archive, mobile always-visible archive, and restore drawer", async () => {
+test("TALK-003 sidebar keeps desktop hover archive, mobile always-visible archive, and restore drawer", async () => {
   const sidebar = await readText("src/app/talk/[characterId]/TalkSidebar.tsx");
 
   assert.match(sidebar, /group-hover:opacity-100/);
-  assert.match(sidebar, /lg:opacity-0/);
+  assert.match(sidebar, /md:opacity-0/);
   assert.match(sidebar, /opacity-100/);
-  assert.match(sidebar, /🗑/);
+  assert.match(sidebar, /馃棏/);
   assert.match(sidebar, /归档此对话/);
   assert.match(sidebar, /归档后会从列表移除/);
   assert.match(sidebar, /底部「归档」抽屉里恢复/);
-  assert.match(sidebar, /归档/);
+  assert.match(sidebar, /归档（/);
   assert.match(sidebar, /恢复/);
   assert.match(sidebar, /includeArchived=true/);
   assert.match(sidebar, /\/api\/talk\/sessions\/\$\{session\.id\}/);

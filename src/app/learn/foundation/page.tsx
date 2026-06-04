@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 16:05
+// Timestamp: 2026-06-04 11:11
 import Link from "next/link";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -8,7 +8,7 @@ export default function FoundationOverviewPage() {
   return (
     <main className="min-h-screen bg-app">
       <SiteHeader />
-      <div className="mx-auto max-w-app-shell px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-app-shell px-4 pt-5 pb-[calc(3.5rem+env(safe-area-inset-bottom)+16px)] sm:px-6 md:py-10 lg:px-8">
         <BackLink href="/learn" label="课程" />
         <section className="mt-4 max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400 font-display">
@@ -25,7 +25,7 @@ export default function FoundationOverviewPage() {
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {foundationLessons.map((lesson) => (
             <Link
-              className={`group rounded-hero border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-6 shadow-sm glass-card card-hover-lift hover:border-amber-300 dark:hover:border-amber-700/50 ${
+              className={`group rounded-hero border border-zinc-200/50 bg-white/70 p-5 shadow-sm glass-card transition-transform active:scale-[0.99] hover:border-amber-300 dark:border-zinc-800/50 dark:bg-zinc-900/70 dark:hover:border-amber-700/50 md:p-6 md:card-hover-lift md:active:scale-100 ${
                 lesson.day === 1 ? "lg:col-span-2" : ""
               }`}
               href={`/learn/foundation/day-${lesson.day}`}
@@ -50,7 +50,7 @@ export default function FoundationOverviewPage() {
 
         <Link
           href="/dissect"
-          className="mt-8 flex flex-col gap-4 rounded-hero border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 p-5 glass-card card-hover-lift shadow-sm hover:border-brand-300 sm:flex-row sm:items-center"
+          className="mt-8 flex flex-col gap-4 rounded-hero border border-zinc-200/50 bg-white/70 p-5 glass-card shadow-sm transition-transform active:scale-[0.99] hover:border-brand-300 dark:border-zinc-800/50 dark:bg-zinc-900/70 md:card-hover-lift md:active:scale-100 sm:flex-row sm:items-center"
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-950/50 text-2xl font-bold text-brand-600 dark:text-brand-400 font-display">
             📐

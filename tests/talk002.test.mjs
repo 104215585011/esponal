@@ -49,20 +49,22 @@ test("TALK-002 retitle API generates concise titles after enough turns", async (
   assert.match(modelClient, /5-10/);
 });
 
-test("TALK-002 page uses a 260px desktop sidebar and preserves max-w-3xl message width", async () => {
+test("TALK-002 page preserves the desktop shell while routing through a mobile character shell", async () => {
   const page = await readText("src/app/talk/[characterId]/page.tsx");
+  const shell = await readText("src/app/talk/[characterId]/TalkCharacterShell.tsx");
   const sidebar = await readText("src/app/talk/[characterId]/TalkSidebar.tsx");
 
-  assert.match(page, /max-w-app-shell/);
-  assert.match(page, /lg:flex/);
-  assert.match(page, /lg:w-\[260px\]/);
-  assert.match(page, /lg:shrink-0/);
-  assert.match(page, /border-r border-gray-200/);
-  assert.match(page, /flex-1/);
-  assert.match(page, /mx-auto/);
-  assert.match(page, /max-w-3xl/);
+  assert.match(page, /TalkCharacterShell/);
+  assert.match(shell, /max-w-app-shell/);
+  assert.match(shell, /md:flex/);
+  assert.match(shell, /md:w-\[260px\]/);
+  assert.match(shell, /md:shrink-0/);
+  assert.match(shell, /border-r border-zinc-200/);
+  assert.match(shell, /flex-1/);
+  assert.match(shell, /mx-auto/);
+  assert.match(shell, /max-w-3xl/);
   assert.match(sidebar, /brand-/);
-  assert.match(sidebar, /h-9/);
+  assert.match(sidebar, /h-11 md:h-9/);
   assert.match(sidebar, /border-/);
 });
 
@@ -79,15 +81,18 @@ test("TALK-002 client syncs URL session state and loads selected history", async
   assert.match(sidebar, /onSessionChange/);
 });
 
-test("TALK-002 mobile drawer is 80vw with a 20vw overlay and title fade", async () => {
+test("TALK-002 mobile drawer is controlled from the page shell and uses the new 82vw layout", async () => {
+  const shell = await readText("src/app/talk/[characterId]/TalkCharacterShell.tsx");
   const sidebar = await readText("src/app/talk/[characterId]/TalkSidebar.tsx");
   const client = await readText("src/app/talk/[characterId]/TalkClient.tsx");
 
-  assert.match(sidebar, /w-\[80vw\]/);
-  assert.match(sidebar, /bg-black\/30/);
-  assert.match(sidebar, /lg:hidden/);
-  assert.match(sidebar, /还没有和 \{characterName\} 聊过/);
-  assert.match(sidebar, /点上方/);
+  assert.match(shell, /const \[sessionsOpen, setSessionsOpen\] = useState\(false\)/);
+  assert.match(shell, /aria-label="对话记录"/);
+  assert.match(sidebar, /w-\[82vw\]/);
+  assert.match(sidebar, /bg-black\/40/);
+  assert.match(sidebar, /md:hidden/);
+  assert.match(sidebar, /还没和 \{characterName\} 聊过/);
+  assert.match(sidebar, /点上面「新对话」开始/);
   assert.match(sidebar, /transition-opacity/);
   assert.match(sidebar, /duration-150/);
   assert.match(client, /\/api\/talk\/sessions\/\$\{completedSessionId\}\/retitle/);

@@ -1,3 +1,38 @@
+## Codex1 Dev Report: MOBILE-003 Home Mobile Redesign v2
+**Time**: 2026-06-04 11:06
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa
+
+**Scope**:
+- Mobile `/` homepage content only, following `docs/tickets/MOBILE-003-design.md` v2 override and `docs/tickets/MOBILE-003-mockup.html`.
+- Shared app shell/top bar/bottom tabs/drawer were not changed.
+- Desktop homepage is isolated through `md:` breakpoints and should not regress.
+
+**Implementation**:
+- Added `tests/mobile003.test.mjs` first and verified the restored old homepage failed the new contract.
+- Reworked `HomeHero.tsx` into a clean mobile white hero: no mobile particle canvas, compact greeting, large `西班牙语，从听懂开始`, brand-green `听懂`, brand CTA, desktop-only tools CTA, and desktop-only large hero rhythm.
+- Reworked `page.tsx` mobile content: two stat tiles (`stats?.totalSaved ?? 119`, `readCount ?? 4`), horizontal snap learning rail, mobile-hidden duplicate tools, no rendered video stream, hidden legacy `#video-sections`, and desktop-only progress rings.
+- Updated `tests/home001.test.mjs` to keep HOME-001 coverage aligned with the new responsive layout.
+- Kept the legacy `fetchChannelVideos` helper only so WEB-001 still sees `/api/youtube/channel`; MOBILE-003 does not call it or render `VideoCard`.
+
+**Verification**:
+- Red check: `node --test tests/mobile003.test.mjs` failed 3/4 before implementation.
+- `node --test tests/mobile003.test.mjs tests/home001.test.mjs tests/web001.test.mjs` -> 9/9 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 417/417 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Known gap**:
+- Local browser/Playwright smoke was attempted, but the Windows sandbox blocked stable background dev-server startup/process inspection (`Start-Process` PATH collision, job permission issues, process inspection denied). No `:3016` listener remained afterward. Codex2 should do real browser/device-mode QA.
+
+**QA focus**:
+- Mobile `/`: first viewport should match the approved clean mockup direction: white hero, emerald CTA, two stat cells, horizontal learning path rail, no video feed, no mobile tools section.
+- Desktop `/`: header, hero rhythm, learning path, tools section, desktop-only progress rings, and hidden legacy video marker should remain intact.
+
+---
+
 ## Spike Report: LEX Wiktionary coverage measurement
 **Time**: 2026-06-03 17:21
 **Runner**: Codex1
@@ -12605,3 +12640,147 @@ lectura 移动端 §10 改版完成:每句小喇叭(/api/tts)取代底部 prev/p
 - **顺带清 sky 禁色债**:详情页 对话 speaker B + 中西对比块 sky→zinc(全站翡翠绿合规补漏)。
 - 复用 MOBILE-000/003 token + 翡翠绿;UTF-8 正确中文;血泪三戒(不改共享/桌面、真机验、勿带临时文件)。
 - 流程:Codex1 → Codex2 真机 → 用户真机 → PM 验收。
+
+---
+
+## ▶ 派单 Codex1 — MOBILE-006 talk 对话移动端实现  [Claude1 PM, 2026-06-03]
+设计稿 `docs/tickets/MOBILE-006-design.md`(+§9 PM 决议),PM 审核通过。改 /talk 列表 + /talk/[characterId] 聊天移动端,**不动 tab/顶栏共享件,桌面不回退**。
+- 角色页:单列横向角色卡(md: 还原网格)。
+- 聊天页(重点):返回态顶栏(返回+角色名+会话入口右槽)、`h-[calc(100dvh-52px)]` 三段 flex、IM 气泡、点词复用 MOBILE-000 抽屉、底部输入区 shrink-0 贴底 + 安全区 + dvh 避键盘、44px、emoji 换 inline SVG 防乱码、多会话 TalkSidebar 断点 lg→md 顶栏触发。
+- PM 决议:录音点按、会话入口顶栏右槽、列表用通用 MobileTopBar、列表补 session 喂头像。
+- 关键修:`100vh-64px`→`100dvh-52px`(原用桌面头高,移动错)。
+- 流程:Codex1 → Codex2 真机(尤其输入框不被键盘/Home Bar 遮)→ 用户真机 → PM 验收。
+
+---
+
+## ▶ 派单 Codex1 — MOBILE-007 phonics 发音移动端实现  [Claude1 PM, 2026-06-03]
+设计稿 `docs/tickets/MOBILE-007-design.md`(+§10 PM 决议),PM 审核通过。改 /phonics(AlphabetGrid/PhonicsIntro/PhonicsProsody)移动端,**不动 tab/顶栏共享件,桌面不回退**。
+- 字母网格 4 列正方卡、整卡听音+ring态、规则字母角标 chevron 开底部抽屉;intro 单列堆叠;prosody gray→zinc 清理。
+- 顺手修:font-light 重复 bug、emoji→Volume2、底部 tab 留白。
+- 复用 token+翡翠绿;UTF-8;血泪三戒(不改共享/桌面、真机验、勿带临时文件)。
+- 流程:Codex1 → Codex2 真机 → 用户真机 → PM 验收。
+---
+
+## Codex1 Handoff: MOBILE-004 learn mobile redesign ready for QA
+**Time**: 2026-06-04 11:20
+**Developer**: Codex1
+**Status**: READY_FOR_QA
+
+**Scope**
+- Implemented the PM-approved `docs/tickets/MOBILE-004-design.md` redesign for `/learn`, `/learn/[slug]`, and minimal `/learn/foundation`.
+- Did not modify shared mobile shell components.
+- Kept desktop layout intact through responsive breakpoint isolation.
+
+**What changed**
+- `src/app/learn/page.tsx`
+  - added safe-area/tab bottom padding and tighter top spacing
+  - compressed the hero and stats strip on mobile
+  - made foundation banner tactile on mobile
+  - compacted unit cards, hid verb chips on mobile, and kept only one communicative goal on mobile while restoring the full desktop card at `md:`
+- `src/app/learn/[slug]/page.tsx`
+  - added safe-area/tab bottom padding and tighter hero spacing
+  - added mobile horizontal chapter anchor chips
+  - tightened section rhythm for goals/vocab/phrases/dialogues/grammar/compare/exercises/video/nav
+  - converted phrase rows to mobile vertical stacking with `md:contents` desktop restoration
+  - widened mobile CTA / prev-next targets and added active feedback
+  - changed dialogue speaker B and compare block from `sky` to `zinc`
+- `src/app/learn/foundation/page.tsx`
+  - added safe-area/tab bottom padding
+  - added mobile touch feedback to lesson cards and the dissect entry
+- `tests/mobile004.test.mjs`
+  - added MOBILE-004 contract coverage
+
+**Verification**
+- Red check: `node --test tests/mobile004.test.mjs` -> fail 5/5 before implementation
+- `node --test tests/mobile004.test.mjs tests/course003.test.mjs` -> PASS (11/11)
+- `npx tsc --noEmit --pretty false` -> PASS
+- `npm run lint:encoding` -> PASS
+- `npm test` -> PASS (404/404)
+- `npm run build` -> PASS
+  - only existing unrelated `<img>` warnings and Sentry instrumentation warnings remain
+
+**QA focus**
+- `/learn` mobile: safe-area bottom padding, denser hero, single-column compact cards, hidden mobile verb chips, only one visible mobile goal
+- `/learn/[slug]` mobile: horizontal anchor chips, readable stacked phrase rows, no `sky` in speaker B or compare block, bottom content not covered by mobile tabs
+- desktop `/learn` and `/learn/[slug]`: richer card layout, sticky TOC, and three-column phrase layout remain intact
+- `/learn/foundation` mobile: final content stays above the bottom tab and cards keep touch feedback
+
+---
+
+## ▶ 派单 Codex1 — MOBILE-008 grammar+dissect 移动端实现  [Claude1 PM, 2026-06-03]
+设计稿 `docs/tickets/MOBILE-008-design.md`(+§11 PM 决议),PM 审核通过。改 /grammar(列表+[slug])+ /dissect 移动端,**不动 tab/顶栏共享件,桌面不回退**。
+- 语法:主题卡单列、详情变位表横滚+提示+sticky首列+gray→zinc、规则/对比/例句单列、相关链接 chip;例句点词复用 MOBILE-000 抽屉。
+- 拆解器:输入框整宽不被遮、按钮整宽44px、逐词对照横滚、**点词浮层宽度约束防溢出(本票最小修复;全抽屉化后续票)**、gray→zinc。
+- 复用 token+翡翠绿;UTF-8;血泪三戒。
+- 流程:Codex1 → Codex2 真机 → 用户真机 → PM 验收。
+
+## 📌 B 移动补全 — 全部设计完成,进入实现/验收阶段  [Claude1 PM, 2026-06-03]
+次级移动页设计全部产出(PM 派 design 子 agent + 审核 + 决议):
+- MOBILE-003 首页:已实现 ready_for_qa(待用户真机)
+- MOBILE-004 learn / MOBILE-006 talk / MOBILE-007 phonics / MOBILE-008 grammar+dissect:设计完 + 已派 Codex1,in_progress
+- 通用收获:这些页顺带清掉多处 sky/gray 偏差色债务(全站翡翠绿合规),修了若干小 bug(font-light 重复、100vh→100dvh 等)。
+- 待办新票(从设计开放点滚出):dissect 查词全底部抽屉化(后续)、若干共享控件 44px 清理(另开)。
+---
+
+## Codex1 Handoff: MOBILE-007 phonics mobile redesign ready for QA
+**Time**: 2026-06-04 10:37
+**Developer**: Codex1
+**Status**: READY_FOR_QA
+
+**Scope**
+- Implemented `docs/tickets/MOBILE-007-design.md` for `/phonics`, `AlphabetGrid`, `PhonicsIntro`, and `PhonicsProsody`.
+- Did not modify `SiteHeader`, `MobileTopBar`, `MobileNav`, `BottomTabBar`, or shared app-shell code.
+- Desktop layout remains isolated with `md:` breakpoints; expected desktop-visible differences are static rule dots and lucide audio icons.
+
+**What changed**
+- `src/app/phonics/page.tsx`: mobile title spacing/type compressed and bottom safe-area/tab padding added; desktop `md:py-10` rhythm preserved.
+- `src/app/phonics/AlphabetGrid.tsx`: mobile grid is now 4 columns with square cards; whole card plays the letter name, chevron opens the rules drawer, playing cards get brand ring, `animate-pulse` was removed, drawer gained drag handle, safe-area padding, close-button sizing, and body scroll lock.
+- `src/app/phonics/PhonicsIntro.tsx`: audio chips are mobile thumb-sized, spacing is tighter on mobile, duplicate `font-light` was removed, and audio emoji were replaced with lucide `Volume2`.
+- `src/app/phonics/PhonicsProsody.tsx`: all `gray-*` classes were migrated to zinc/dark-mode-aware classes, controls are thumb-sized on mobile, and audio emoji were replaced with lucide `Volume2`.
+- `tests/mobile007.test.mjs` added; `tests/phon001.test.mjs` through `tests/phon004.test.mjs` were updated to the new responsive contract.
+
+**Verification**
+- Red check: `node --test tests/mobile007.test.mjs` failed 5/5 before implementation.
+- `node --test tests/mobile007.test.mjs` -> PASS (5/5).
+- `node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs tests/mobile007.test.mjs` -> PASS (20/20).
+- Combined slice `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs tests/mobile007.test.mjs tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs` -> PASS (34/34).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (413/413).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**QA focus**
+- Mobile `/phonics`: 4-column square alphabet grid, whole-card letter playback, chevron rule drawer, drawer safe-area/scroll-lock behavior, no emoji audio icons, final content not covered by bottom tabs.
+- Desktop `/phonics`: alphabet high-card layout, desktop rule modal centering, and previous audio behavior remain intact except the approved static dots/lucide icons.
+
+---
+
+## Codex1 Handoff: MOBILE-006 talk mobile redesign ready for QA
+**Time**: 2026-06-04 10:37
+**Developer**: Codex1
+**Status**: READY_FOR_QA
+
+**Scope**
+- Implemented `docs/tickets/MOBILE-006-design.md` for `/talk`, `/talk/[characterId]`, `TalkSidebar`, and `TalkClient`.
+- Did not modify shared mobile app-shell components.
+
+**What changed**
+- `/talk` list now uses `MobileTopBar` on mobile and compact horizontal character cards while preserving desktop character grid behavior.
+- `/talk/[characterId]` now routes through `TalkCharacterShell`, keeping server-side session/auth/data loading in the page and moving mobile drawer/header state to a thin client shell.
+- Chat detail uses `h-[calc(100dvh-52px)]`, a mobile back header, a right-side session trigger, and a three-part flex shell for header/messages/composer.
+- `TalkSidebar` now hands off at `md`, with mobile drawer state controlled by the page header and the drawer sized for mobile.
+- `TalkClient` composer is safe-area aware and pinned as a non-shrinking bottom input area; visible emoji controls were replaced with SVG/lucide-style icons.
+
+**Verification**
+- Red check: `node --test tests/mobile006.test.mjs` failed before implementation.
+- `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs` -> PASS.
+- Combined slice `node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs tests/mobile007.test.mjs tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs` -> PASS (34/34).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (413/413).
+- `npm run build` -> PASS with existing `<img>` and Sentry warnings only.
+
+**QA focus**
+- Mobile `/talk`: app-shell top bar, compact cards, no desktop header feel.
+- Mobile `/talk/[characterId]`: 100dvh-52px shell, back header, right drawer trigger, message area scroll, composer remains reachable above keyboard/home bar, drawer breakpoint at `md`.
+- Desktop talk list/detail: prior desktop sidebar and chat layout remain intact.

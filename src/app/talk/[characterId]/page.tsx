@@ -1,17 +1,14 @@
-// Timestamp: 2026-05-26 16:18
+// Timestamp: 2026-06-04 12:13
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { SiteHeader } from "@/app/components/web/SiteHeader";
-import { BackLink } from "@/app/components/web/BackLink";
 import { getAuthOptions } from "@/lib/auth";
 import { getTalkCharacterById, TALK_CHARACTERS } from "@/lib/talk/characters";
-import { TalkClient } from "./TalkClient";
-import { TalkSidebar } from "./TalkSidebar";
+import { TalkCharacterShell } from "./TalkCharacterShell";
 
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
-  return TALK_CHARACTERS.map((c) => ({ characterId: c.id }));
+  return TALK_CHARACTERS.map((character) => ({ characterId: character.id }));
 }
 
 type Props = {
@@ -20,11 +17,11 @@ type Props = {
 };
 
 const LANG_FLAG: Record<string, string> = {
-  carlos: "🇲🇽",
-  emma: "🇬🇧",
-  jake: "🇺🇸",
-  sophie: "🇫🇷",
-  kenji: "🇯🇵"
+  carlos: "馃嚥馃嚱",
+  emma: "馃嚞馃嚙",
+  jake: "馃嚭馃嚫",
+  sophie: "馃嚝馃嚪",
+  kenji: "馃嚡馃嚨"
 };
 
 const LOCALE: Record<string, string> = {
@@ -45,39 +42,14 @@ export default async function TalkCharacterPage({ params, searchParams }: Props)
   }
 
   return (
-    <main className="min-h-screen bg-app">
-      <SiteHeader />
-      <section className="mx-auto flex h-[calc(100vh-64px)] w-full max-w-app-shell lg:flex">
-        <div className="border-r border-gray-200 dark:border-zinc-800/80 px-4 pt-4 lg:w-[260px] lg:shrink-0">
-          <TalkSidebar characterId={character.id} characterName={character.name} />
-        </div>
-
-        <div className="min-w-0 flex-1 px-4 pt-4">
-          <div className="mx-auto flex h-full max-w-3xl flex-col">
-            <BackLink href="/talk" label="对话" />
-            <header className="mb-3 mt-2 flex items-center gap-3">
-              <span aria-hidden className="text-3xl">
-                {LANG_FLAG[character.id] ?? "🌐"}
-              </span>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 font-display">
-                  {character.name}
-                </h1>
-                <p className="text-[13px] text-zinc-500 dark:text-zinc-400 font-light">
-                  {character.language} · {character.style}
-                </p>
-              </div>
-            </header>
-
-            <TalkClient
-              characterId={character.id}
-              characterName={character.name}
-              initialSessionId={searchParams?.session ?? null}
-              locale={LOCALE[character.id] ?? "es-MX"}
-            />
-          </div>
-        </div>
-      </section>
-    </main>
+    <TalkCharacterShell
+      characterFlag={LANG_FLAG[character.id] ?? "馃寪"}
+      characterId={character.id}
+      characterLanguage={character.language}
+      characterName={character.name}
+      characterStyle={character.style}
+      initialSessionId={searchParams?.session ?? null}
+      locale={LOCALE[character.id] ?? "es-MX"}
+    />
   );
 }

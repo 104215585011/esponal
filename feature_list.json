@@ -1691,13 +1691,15 @@
     "area": "frontend",
     "title": "首页 / 学习路径 移动端重设计",
     "user_visible_behavior": "手机首页是清晰的学习动线枢纽,成人学习者一眼知道今天做什么。将来承载『学习路线集成每日阅读』日循环(见 PATH-001,低优先暂不做)。",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
-      "Reverted by user request on 2026-06-04; homepage content restored to pre-MOBILE-003 layout",
-      "Re-run MOBILE-003 only if PM/user wants a new home mobile redesign direction"
+      "Follow docs/tickets/MOBILE-003-design.md v2 override and docs/tickets/MOBILE-003-mockup.html",
+      "Mobile homepage content only: lightweight hero, two stat tiles, horizontal learning path, hidden tools, no video stream",
+      "Desktop homepage remains isolated with md: breakpoints",
+      "Run MOBILE-003 focused tests, HOME-001 regression, npm test, and npm run build"
     ],
-    "evidence": "2026-06-04 Codex1 reverted the MOBILE-003 homepage implementation by user request: restored src/app/page.tsx, src/app/components/web/HomeHero.tsx, and tests/home001.test.mjs to the pre-MOBILE-003 versions; removed tests/mobile003.test.mjs so the reverted homepage is no longer gated by the abandoned redesign contract. Shared mobile tab/top-bar shell remains untouched. This reverts only homepage content implementation, not unrelated prior MOBILE-002/LEX/CORPUS work.",
-    "notes": "User requested 首页还是还原吧 on 2026-06-04 after seeing the mobile homepage. Previous design doc remains in docs/tickets/MOBILE-003-design.md for reference, but implementation is intentionally reverted. Do not restart MOBILE-003 without a new PM/user direction."
+    "evidence": "2026-06-04 Codex1 reverted the MOBILE-003 homepage implementation by user request: restored src/app/page.tsx, src/app/components/web/HomeHero.tsx, and tests/home001.test.mjs to the pre-MOBILE-003 versions; removed tests/mobile003.test.mjs so the reverted homepage is no longer gated by the abandoned redesign contract. Shared mobile tab/top-bar shell remains untouched. This reverts only homepage content implementation, not unrelated prior MOBILE-002/LEX/CORPUS work. | 2026-06-04 10:37 status correction: MOBILE-003 remains reverted/not_started per the 2026-06-04 user request and homepage revert verification; current mobile implementation work moved on to MOBILE-006/MOBILE-007. | 2026-06-04 10:53 user confirmed the redone MOBILE-003 ticket should be implemented first; Codex1 restarted MOBILE-003 from the approved v2/mockup direction. | 2026-06-04 11:06 Codex1 implemented MOBILE-003 v2/mockup direction: mobile homepage content now uses lightweight white hero, brand CTA, two stat tiles, horizontal learning rail, hidden mobile tools, and no rendered video stream; desktop uses md: breakpoints, keeps tool section and desktop-only progress rings. Added tests/mobile003.test.mjs and updated HOME-001 tests. Verification: red check node --test tests/mobile003.test.mjs failed 3/4 before implementation; node --test tests/mobile003.test.mjs tests/home001.test.mjs tests/web001.test.mjs pass 9/9; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test pass 417/417; npm run build pass with existing <img> and Sentry warnings only. Local Playwright/browser smoke was not completed because Windows sandbox blocked stable background dev-server startup/process inspection; no :3016 listener remained.",
+    "notes": "User requested 首页还是还原吧 on 2026-06-04 after seeing the previous mobile homepage. New direction received 2026-06-04: implement the approved v2/mockup direction in docs/tickets/MOBILE-003-design.md, keeping scope to mobile homepage content and preserving desktop. Ready for Codex2 QA plus Gemini1 visual review on true mobile."
   },
   "92": {
     "id": "MOBILE-004",
@@ -1705,12 +1707,16 @@
     "area": "frontend",
     "title": "learn 课程 移动端重设计",
     "user_visible_behavior": "手机上学体系课程(总览/单元/起步课/拆解器)顺手,长内容移动端排版良好。",
-    "status": "in_progress",
+    "status": "ready_for_qa",
     "verification": [
-      "占位,轮到时细化 ticket"
+      "node --test tests/mobile004.test.mjs tests/course003.test.mjs 通过",
+      "npx tsc --noEmit --pretty false 通过",
+      "npm run lint:encoding 通过",
+      "npm test 通过",
+      "npm run build 通过"
     ],
-    "evidence": "",
-    "notes": "PM 占位 2026-06-01。epic T2-④。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-004.md。"
+    "evidence": "2026-06-04 Codex1按 docs/tickets/MOBILE-004-design.md §1-§12 实现 /learn、/learn/[slug]、/learn/foundation 的移动端重排：主容器加入 safe-area + bottom-tab 留白，overview hero/card 信息密度收紧，unit card 在移动端隐藏 verb chips 并仅保留 1 条 communicative goal，detail hero 收紧并新增 mobile anchor chip bar，phrases 改为移动端竖排 + desktop md:contents 三列恢复，dialogue speaker B 与 compare 区域从 sky 改为 zinc，foundation 页补齐移动端触感与底部留白；未触碰共享 tab/topbar，桌面通过 md/lg 断点保持原布局。验证：node --test tests/mobile004.test.mjs tests/course003.test.mjs 11/11 pass，npx tsc --noEmit --pretty false pass，npm run lint:encoding pass，npm test 404/404 pass，npm run build pass（仅既有 <img> 与 Sentry warning）。",
+    "notes": "PM 占位 2026-06-01。epic T2-④。依赖 MOBILE-000。2026-06-04 已进入 ready_for_qa，等待 Codex2 做移动端/桌面隔离 QA。"
   },
   "93": {
     "id": "MOBILE-005",
@@ -1731,11 +1737,11 @@
     "area": "frontend",
     "title": "talk AI 对话 移动端重设计",
     "user_visible_behavior": "手机上 AI 对话练习(含语音)顺手,气泡查词不被裁剪。",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "占位,轮到时细化 ticket"
     ],
-    "evidence": "",
+    "evidence": "2026-06-04 10:37 Codex1 implemented the PM-approved talk mobile redesign from docs/tickets/MOBILE-006-design.md: /talk now uses the mobile app shell top bar and compact horizontal character cards; /talk/[characterId] uses a thin client TalkCharacterShell with mobile back header, right-side session drawer trigger, and h-[calc(100dvh-52px)] detail shell; TalkSidebar now hands off at md and mobile drawer is controlled from the page header; TalkClient bottom composer is shrink-0/safe-area aware and visible emoji icons were replaced with inline SVG/lucide-style controls. Verification: red node --test tests/mobile006.test.mjs failed before implementation; node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs -> pass; combined mobile/talk/phonics slice node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs tests/mobile007.test.mjs tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs -> 34/34 pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass. Final verification: npm test -> 413/413 pass; npm run build -> pass with existing <img> and Sentry warnings only.",
     "notes": "PM 占位 2026-06-01。epic T3-⑥(亮点但低频)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-006.md。"
   },
   "95": {
@@ -1744,11 +1750,11 @@
     "area": "frontend",
     "title": "phonics 发音 移动端重设计",
     "user_visible_behavior": "手机上学字母/发音规则顺手。",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "verification": [
       "占位,轮到时细化 ticket"
     ],
-    "evidence": "",
+    "evidence": "2026-06-04 10:37 Codex1 implemented the PM-approved phonics mobile redesign from docs/tickets/MOBILE-007-design.md: /phonics now reserves bottom-tab safe area, compresses the mobile title, uses thumb-sized intro chips with lucide Volume2, renders a 4-column mobile alphabet grid with square cards and whole-card letter playback, separates rule drawers behind a chevron trigger, removes animate-pulse, adds rule drawer drag handle/safe-area padding/body scroll lock, and converts PhonicsProsody from gray/emoji to zinc/dark-mode/lucide controls. Verification: red node --test tests/mobile007.test.mjs failed 5/5 before implementation; node --test tests/mobile007.test.mjs -> 5/5 pass; phonics regression slice node --test tests/phon001.test.mjs tests/phon002.test.mjs tests/phon003.test.mjs tests/phon004.test.mjs tests/mobile007.test.mjs -> 20/20 pass; combined mobile/talk/phonics slice -> 34/34 pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass. Final verification: npm test -> 413/413 pass; npm run build -> pass with existing <img> and Sentry warnings only.",
     "notes": "PM 占位 2026-06-01。epic T3-⑦(入门期一次性用,频次低)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-007.md。"
   },
   "96": {
@@ -1762,7 +1768,7 @@
       "占位,轮到时细化 ticket"
     ],
     "evidence": "",
-    "notes": "PM 占位 2026-06-01。epic T3-⑧(工具按需,最后)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-008.md。"
+    "notes": "PM 占位 2026-06-01。epic T3-⑧(工具按需,最后)。依赖 MOBILE-000。轮到时写 docs/tickets/MOBILE-008.md。2026-06-04 10:53 Codex1 paused this placeholder so the user-requested redone MOBILE-003 ticket can be the single in_progress feature."
   },
   "97": {
     "id": "PATH-001",

@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-26 16:20
+// Timestamp: 2026-06-04 12:31
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -42,7 +42,6 @@ type RecognizeResponse = {
   unavailableReason?: string;
 };
 
-// 浏览器原生 SpeechRecognition 类型（不在默认 TS lib 里，简化声明）
 type SpeechRecognitionEventLike = {
   resultIndex: number;
   results: ArrayLike<{
@@ -50,6 +49,7 @@ type SpeechRecognitionEventLike = {
     0: { transcript: string };
   }>;
 };
+
 type SpeechRecognitionLike = {
   lang: string;
   continuous: boolean;
@@ -61,15 +61,16 @@ type SpeechRecognitionLike = {
   onerror: ((event: { error?: string }) => void) | null;
   onend: (() => void) | null;
 };
+
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
 function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
   if (typeof window === "undefined") return null;
-  const w = window as unknown as {
+  const currentWindow = window as unknown as {
     SpeechRecognition?: SpeechRecognitionCtor;
     webkitSpeechRecognition?: SpeechRecognitionCtor;
   };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+  return currentWindow.SpeechRecognition ?? currentWindow.webkitSpeechRecognition ?? null;
 }
 
 function isSpanishLookupCharacter(characterId: string, locale: string) {
@@ -78,6 +79,20 @@ function isSpanishLookupCharacter(characterId: string, locale: string) {
     characterId === "carlos" ||
     characterId.startsWith("es-") ||
     normalizedLocale.startsWith("spanish")
+  );
+}
+
+function formatDuration(totalSeconds: number) {
+  return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
+}
+
+function TypingDots() {
+  return (
+    <span aria-label="对方正在输入" className="inline-flex gap-1 py-1">
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 [animation-delay:-0.3s] dark:bg-zinc-600" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 [animation-delay:-0.15s] dark:bg-zinc-600" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-zinc-300 dark:bg-zinc-600" />
+    </span>
   );
 }
 
@@ -108,10 +123,8 @@ export function TalkClient({
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<number | null>(null);
   const messagesRef = useRef<Message[]>([]);
-  // 记录会话开始时输入框已有的文本，识别到的内容追加在后面
   const baseInputRef = useRef<string>("");
 
-  // 滚到底
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
@@ -120,7 +133,6 @@ export function TalkClient({
     messagesRef.current = messages;
   }, [messages]);
 
-  // 全局倍速实时作用于正在播放的 TTS
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = playbackRate;
   }, [playbackRate]);
@@ -224,13 +236,14 @@ export function TalkClient({
 
   async function playTTS(text: string) {
     try {
-      const resp = await fetch("/api/talk/synthesize", {
+      const response = await fetch("/api/talk/synthesize", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ characterId, text })
       });
-      if (!resp.ok) return;
-      const blob = await resp.blob();
+      if (!response.ok) return;
+
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       if (audioRef.current) {
         audioRef.current.pause();
@@ -242,7 +255,7 @@ export function TalkClient({
       audio.addEventListener("error", () => URL.revokeObjectURL(url), { once: true });
       audio.play().catch(() => URL.revokeObjectURL(url));
     } catch {
-      // 静默：TTS 不通不影响主对话流
+      // TTS fail-open
     }
   }
 
@@ -262,18 +275,18 @@ export function TalkClient({
     const messageCountAfterDone = messagesRef.current.length + 2;
 
     try {
-      const resp = await fetch("/api/talk/message", {
+      const response = await fetch("/api/talk/message", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ characterId, message: text, sessionId })
       });
 
-      if (!resp.ok || !resp.body) {
-        const detail = await resp.text().catch(() => "");
-        throw new Error(`HTTP ${resp.status}: ${detail.slice(0, 200)}`);
+      if (!response.ok || !response.body) {
+        const detail = await response.text().catch(() => "");
+        throw new Error(`HTTP ${response.status}: ${detail.slice(0, 200)}`);
       }
 
-      const reader = resp.body.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -309,10 +322,9 @@ export function TalkClient({
           }
         }
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "对话失败";
-      setStatusMessage(msg);
-      // 把空的 assistant 占位 pop 掉
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "对话失败";
+      setStatusMessage(message);
       setMessages((prev) => {
         if (prev[prev.length - 1]?.role === "assistant" && !prev[prev.length - 1].content) {
           return prev.slice(0, -1);
@@ -324,7 +336,6 @@ export function TalkClient({
     }
 
     if (finalAssistantText) {
-      // 不 await，让 UI 立即响应
       void playTTS(finalAssistantText);
     }
 
@@ -439,14 +450,14 @@ export function TalkClient({
   function startSpeechRecognitionFallback() {
     if (recording) return;
 
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) {
-      setStatusMessage("当前浏览器不支持语音识别（请用 Chrome 或 Edge）");
+    const Recognition = getSpeechRecognitionCtor();
+    if (!Recognition) {
+      setStatusMessage("当前浏览器不支持语音识别，请用 Chrome 或 Edge");
       return;
     }
 
     try {
-      const recognition = new Ctor();
+      const recognition = new Recognition();
       recognition.lang = locale;
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -455,8 +466,8 @@ export function TalkClient({
       recognition.onresult = (event) => {
         let finalChunk = "";
         let interimChunk = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
+        for (let index = event.resultIndex; index < event.results.length; index++) {
+          const result = event.results[index];
           const text = result[0].transcript;
           if (result.isFinal) {
             finalChunk += text;
@@ -498,8 +509,8 @@ export function TalkClient({
       recognition.start();
       setRecording(true);
       startRecordingTimer();
-    } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : "无法启动识别");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "无法启动识别");
     }
   }
 
@@ -509,10 +520,7 @@ export function TalkClient({
     setInterimTranscript("");
     baseInputRef.current = input;
 
-    if (
-      typeof MediaRecorder === "undefined" ||
-      !navigator.mediaDevices?.getUserMedia
-    ) {
+    if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) {
       startSpeechRecognitionFallback();
       return;
     }
@@ -520,9 +528,7 @@ export function TalkClient({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mimeType = getPreferredRecordingMimeType();
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
 
       audioChunksRef.current = [];
       mediaStreamRef.current = stream;
@@ -549,9 +555,9 @@ export function TalkClient({
       recorder.start();
       setRecording(true);
       startRecordingTimer();
-    } catch (err) {
+    } catch (error) {
       cleanupMediaRecorder();
-      const message = err instanceof Error ? err.message : "无法启动录音";
+      const message = error instanceof Error ? error.message : "无法启动录音";
       setStatusMessage(message);
       startSpeechRecognitionFallback();
     }
@@ -573,17 +579,24 @@ export function TalkClient({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* 消息流 */}
       <div
-        className="flex-1 space-y-4 overflow-y-auto pb-3"
+        className="flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 md:space-y-4 md:px-0 md:py-0 md:pb-3"
         data-testid="talk-message-list"
         ref={listRef}
       >
         {messages.length === 0 ? (
-          <div className="rounded-hero border border-dashed border-zinc-200 dark:border-zinc-800/80 bg-white/30 dark:bg-zinc-900/30 p-6 text-center text-sm text-zinc-500 dark:text-zinc-400 glass-card">
-            <p className="font-display">开始一段对话吧。你可以打字，也可以点麦克风按钮说话。</p>
-            <p className="mt-2 text-[12px] text-zinc-450 dark:text-zinc-500 font-light">
-              {characterName} 会用对应语言回复你，并自动朗读出来。
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+            <span
+              aria-hidden
+              className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-3xl ring-1 ring-brand-100 dark:bg-brand-950/40 dark:ring-brand-900/40"
+            >
+              馃挰
+            </span>
+            <p className="font-display text-[15px] font-medium text-zinc-700 dark:text-zinc-200">
+              和 {characterName} 开始对话吧
+            </p>
+            <p className="mt-1.5 max-w-xs text-[13px] font-light leading-relaxed text-zinc-500 dark:text-zinc-400">
+              打字或按麦克风说话。{characterName} 会用对应语言回复并朗读，气泡里的西语也可以点词查词。
             </p>
           </div>
         ) : (
@@ -596,6 +609,7 @@ export function TalkClient({
               !isAssistantStreaming &&
               Boolean(message.content) &&
               isSpanishLookupCharacter(characterId, locale);
+
             return (
               <div
                 className={`flex ${isUser ? "justify-end" : "justify-start"}`}
@@ -603,10 +617,10 @@ export function TalkClient({
                 key={index}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
+                  className={`max-w-[85%] px-3.5 py-2.5 shadow-sm ${
                     isUser
-                      ? "bg-brand-600 dark:bg-brand-500 text-white"
-                      : "border border-zinc-200/50 dark:border-zinc-800/50 bg-white/70 dark:bg-zinc-900/70 text-zinc-800 dark:text-zinc-100 glass-card"
+                      ? "rounded-2xl rounded-br-md bg-brand-600 text-white dark:bg-brand-500"
+                      : "glass-card rounded-2xl rounded-bl-md border border-zinc-200/60 bg-white/80 text-zinc-800 dark:border-zinc-800/50 dark:bg-zinc-900/70 dark:text-zinc-100"
                   }`}
                 >
                   <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
@@ -623,17 +637,19 @@ export function TalkClient({
                           sentence: message.content
                         }}
                       />
-                    ) : message.content || (
-                      <span className="text-zinc-400 dark:text-zinc-650">…</span>
+                    ) : message.content ? (
+                      message.content
+                    ) : (
+                      <TypingDots />
                     )}
                   </p>
 
                   {!isUser && message.corrections && message.corrections.length > 0 ? (
-                    <div className="mt-3 rounded-card border border-amber-200/50 dark:border-amber-900/30 bg-amber-50/60 dark:bg-amber-950/20 p-2.5 text-[12px] text-amber-800 dark:text-amber-300 font-light">
-                      <p className="font-semibold font-display">修正建议</p>
+                    <div className="mt-2.5 rounded-card border border-amber-200/50 bg-amber-50/60 p-2.5 text-[12px] font-light text-amber-800 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-300">
+                      <p className="font-display font-semibold">修正建议</p>
                       <ul className="mt-1 list-disc space-y-0.5 pl-4">
-                        {message.corrections.map((item, idx) => (
-                          <li key={idx}>{item}</li>
+                        {message.corrections.map((item, correctionIndex) => (
+                          <li key={correctionIndex}>{item}</li>
                         ))}
                       </ul>
                     </div>
@@ -641,10 +657,10 @@ export function TalkClient({
 
                   {!isUser && message.newWords && message.newWords.length > 0 ? (
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {message.newWords.map((word, idx) => (
+                      {message.newWords.map((word, wordIndex) => (
                         <span
-                          className="rounded-full bg-brand-50 dark:bg-brand-950/40 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:text-brand-300"
-                          key={idx}
+                          className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                          key={wordIndex}
                         >
                           {word}
                         </span>
@@ -654,11 +670,14 @@ export function TalkClient({
 
                   {!isUser && message.content ? (
                     <button
-                      className="mt-2 text-[11px] text-zinc-400 dark:text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-300"
+                      className="mt-2 inline-flex items-center gap-1 text-[11px] text-zinc-400 transition hover:text-brand-600 dark:text-zinc-500 dark:hover:text-brand-400"
                       onClick={() => void playTTS(message.content)}
                       type="button"
                     >
-                      ▶ 重播
+                      <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                      重播
                     </button>
                   ) : null}
                 </div>
@@ -668,27 +687,33 @@ export function TalkClient({
         )}
       </div>
 
-      {/* 输入 + 麦克风 */}
       <form
-        className="border-t border-zinc-100 dark:border-zinc-800/80 pb-4 pt-3"
+        className="shrink-0 border-t border-zinc-100 bg-white/85 backdrop-blur-xl px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2.5 dark:border-zinc-800/80 dark:bg-zinc-950/80 md:bg-transparent md:px-0 md:pb-4 md:pt-3 md:backdrop-blur-none"
         onSubmit={handleSubmit}
       >
         {statusMessage ? (
           <p className="mb-2 text-[12px] text-red-500">{statusMessage}</p>
         ) : null}
+
         {recording ? (
-          <p className="mb-2 text-[12px] text-brand-650 dark:text-brand-400">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500 align-middle" />
-            {" "}正在录音 {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}{" "}
-            <span className="italic text-zinc-500 dark:text-zinc-400">{interimTranscript}</span>
-          </p>
+          <div className="mb-2 flex items-center gap-2 text-[12px] text-brand-600 dark:text-brand-400">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            <span>正在聆听 {formatDuration(recordingSeconds)}</span>
+            {interimTranscript ? (
+              <span className="truncate italic text-zinc-500 dark:text-zinc-400">
+                {interimTranscript}
+              </span>
+            ) : null}
+          </div>
         ) : null}
+
         {recognizing ? (
-          <p className="mb-2 text-[12px] text-brand-650 dark:text-brand-400">识别中...</p>
+          <p className="mb-2 text-[12px] text-brand-600 dark:text-brand-400">识别中...</p>
         ) : null}
+
         <div className="flex items-end gap-2">
           <textarea
-            className="min-h-[48px] max-h-32 flex-1 resize-none rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-100 outline-none transition focus:border-brand-500 dark:focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-900/20"
+            className="min-h-[44px] max-h-32 flex-1 resize-none rounded-[22px] border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[15px] leading-relaxed text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-100 dark:focus:border-brand-400 dark:focus:bg-zinc-900 dark:focus:ring-brand-900/20"
             disabled={streaming || recognizing}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => {
@@ -697,32 +722,53 @@ export function TalkClient({
                 if (input.trim()) void send(input.trim());
               }
             }}
-            placeholder={streaming ? "..." : "输入或按麦克风说话（Enter 发送，Shift+Enter 换行）"}
+            placeholder={streaming ? "对方正在回复..." : "输入消息，或按麦克风说话"}
             rows={1}
             value={input}
           />
 
           <button
-            aria-label={recording ? "停止录音" : "开始录音"}
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition ${
+            aria-label={recording ? "停止录音" : "开始语音输入"}
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition active:scale-95 ${
               recording
-                ? "border-red-400 bg-red-50 dark:bg-red-950/30 text-red-600 animate-pulse"
-                : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:border-brand-450 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+                ? "animate-pulse border-red-400 bg-red-50 text-red-600 dark:bg-red-950/30"
+                : "border-zinc-200 bg-white text-zinc-500 hover:border-brand-400 hover:text-brand-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-brand-500 dark:hover:text-brand-400"
             }`}
             disabled={streaming || recognizing}
             onClick={recording ? stopRecording : () => void startRecording()}
             type="button"
           >
-            {recording ? "■" : "🎤"}
+            {recording ? (
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+              </svg>
+            ) : (
+              <svg className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} viewBox="0 0 24 24">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 10a7 7 0 0 0 14 0" />
+                <path d="M12 17v4" />
+                <path d="M8 21h8" />
+              </svg>
+            )}
           </button>
 
           <button
             aria-label="发送"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition active:scale-95 hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600"
             disabled={!input.trim() || streaming || recognizing}
             type="submit"
           >
-            ➤
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 19V5M5 12l7-7 7 7" />
+            </svg>
           </button>
         </div>
       </form>
