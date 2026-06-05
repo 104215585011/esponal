@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esponal · 会员定价页模型 (CREDITS-FE · 干净现代)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;--bg-soft:#f7f8f7;--ink:#121413;--ink-2:#3f433f;--muted:#8a8f88;
+    --line:#eceeec;--brand:#10b981;--brand-deep:#059669;--brand-soft:#ecf8f2;--card:#ffffff;
+    --shadow:0 1px 2px rgba(16,24,20,.04), 0 8px 24px -16px rgba(16,24,20,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9eae8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;
+    font-family:"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-family:"Plus Jakarta Sans","Noto Sans SC",sans-serif}
+  .phone{width:390px;max-width:100%;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--bg);
+    box-shadow:0 40px 90px -20px rgba(0,0,0,.4),0 0 0 10px #16181a,0 0 0 11px #2a2d30}
+  .scroll{height:100%;overflow-y:auto;overflow-x:hidden}.scroll::-webkit-scrollbar{display:none}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:13px 18px;
+    background:rgba(255,255,255,.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+  .back{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+  .back svg{width:20px;height:20px;stroke:currentColor}
+  .topbar .t{font-size:15px;font-weight:600;color:var(--ink)}
+  .bal{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--brand-deep);
+    background:var(--brand-soft);padding:5px 11px;border-radius:999px}
+  .bal .num{font-size:13px}
+
+  .head{padding:26px 22px 0;text-align:center}
+  .head h1{font-size:23px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+  .head p{margin-top:8px;font-size:13px;color:var(--muted);font-weight:300}
+
+  /* tab switch */
+  .tabs{margin:20px 22px 0;display:flex;background:var(--bg-soft);border:1px solid var(--line);border-radius:13px;padding:4px;gap:4px}
+  .tabs button{flex:1;border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);
+    padding:9px 0;border-radius:9px;cursor:pointer;transition:all .18s}
+  .tabs button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow)}
+  .save{display:inline-block;margin-left:5px;font-size:10px;color:var(--brand-deep);background:var(--brand-soft);padding:1px 6px;border-radius:999px;vertical-align:middle}
+
+  .plans{padding:18px 22px 0;display:flex;flex-direction:column;gap:14px}
+  .plan{border:1px solid var(--line);border-radius:20px;padding:20px;background:var(--card);box-shadow:var(--shadow);position:relative}
+  .plan.feat{border-color:var(--brand);box-shadow:0 10px 30px -14px rgba(16,185,129,.4)}
+  .plan .rec{position:absolute;top:-10px;left:20px;background:var(--brand);color:#fff;font-size:10.5px;font-weight:700;padding:3px 11px;border-radius:999px;box-shadow:0 4px 10px -3px rgba(16,185,129,.6)}
+  .plan .nm{font-size:15px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .plan .nm .inf{font-size:11px;font-weight:500;color:var(--muted)}
+  .plan .price{margin-top:10px;display:flex;align-items:baseline;gap:3px}
+  .plan .price .p{font-family:"Plus Jakarta Sans";font-size:30px;font-weight:800;color:var(--ink);line-height:1}
+  .plan .price .u{font-size:12.5px;color:var(--muted);font-weight:500}
+  .plan .sub{margin-top:3px;font-size:11.5px;color:var(--muted)}
+  .plan .quota{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--brand-deep);background:var(--brand-soft);padding:6px 11px;border-radius:10px}
+  .plan ul{list-style:none;margin:14px 0 0;display:flex;flex-direction:column;gap:9px}
+  .plan li{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;color:var(--ink-2);font-weight:400;line-height:1.4}
+  .plan li svg{flex:0 0 16px;width:16px;height:16px;stroke:var(--brand);margin-top:1px}
+  .cta{margin-top:18px;width:100%;border:0;font-family:inherit;font-size:14px;font-weight:600;padding:13px 0;border-radius:12px;cursor:pointer}
+  .cta.primary{background:var(--brand);color:#fff;box-shadow:0 8px 18px -8px rgba(16,185,129,.55)}
+  .cta.ghost{background:var(--bg-soft);color:var(--ink-2);border:1px solid var(--line)}
+  .cta.cur{background:transparent;color:var(--muted);border:1px dashed var(--line);cursor:default}
+  .cta .soon{font-size:10px;opacity:.85;font-weight:500}
+
+  /* lifetime scarcity */
+  .scar{margin-top:12px}
+  .scar .row{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-bottom:5px}
+  .scar .bar{height:5px;background:var(--line);border-radius:999px;overflow:hidden}
+  .scar .bar i{display:block;height:100%;background:var(--brand);border-radius:999px}
+
+  .note{padding:18px 26px 30px;text-align:center;font-size:11px;color:var(--muted);font-weight:300;line-height:1.6}
+  .view{display:none}.view.on{display:flex;flex-direction:column;gap:14px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scroll">
+    <div class="topbar">
+      <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></div>
+      <span class="t">会员</span>
+      <span class="bal">⚡ <span class="num">320</span> 配额</span>
+    </div>
+
+    <div class="head">
+      <h1>选择适合你的方案</h1>
+      <p>解锁更多配额与功能，学得更深更顺。</p>
+    </div>
+
+    <div class="tabs">
+      <button class="on" onclick="sw('m',this)">月付</button>
+      <button onclick="sw('y',this)">年付 <span class="save">省16%</span></button>
+      <button onclick="sw('l',this)">共建者</button>
+    </div>
+
+    <div class="plans">
+      <!-- 月付 -->
+      <div class="view on" id="m">
+        <div class="plan">
+          <div class="nm">免费 <span class="inf">永久</span></div>
+          <div class="price"><span class="p">¥0</span></div>
+          <div class="sub">注册赠送，体验核心功能</div>
+          <div class="quota">⚡ 注册一次性 50 配额</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>平台字幕 · 本地查词 · 复习</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>收藏上限 50 词</li>
+          </ul>
+          <button class="cta cur">当前方案</button>
+        </div>
+
+        <div class="plan feat">
+          <span class="rec">推荐</span>
+          <div class="nm">进阶</div>
+          <div class="price"><span class="p">¥38</span><span class="u">/月</span></div>
+          <div class="sub">3 天免费试用</div>
+          <div class="quota">⚡ 500 配额 / 月</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>无限收藏</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>高质量断句字幕 + 中文翻译</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>短语 / 搭配高亮</li>
+          </ul>
+          <button class="cta primary">立即订阅 <span class="soon">· 即将开放</span></button>
+        </div>
+
+        <div class="plan">
+          <div class="nm">高阶</div>
+          <div class="price"><span class="p">¥48</span><span class="u">/月</span></div>
+          <div class="sub">3 天免费试用</div>
+          <div class="quota">⚡ 1000 配额 / 月</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>包含进阶全部</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>新功能优先体验</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>优先技术支持</li>
+          </ul>
+          <button class="cta ghost">升级到高阶 <span class="soon">· 即将开放</span></button>
+        </div>
+      </div>
+
+      <!-- 年付 -->
+      <div class="view" id="y">
+        <div class="plan feat">
+          <span class="rec">推荐 · 省16%</span>
+          <div class="nm">进阶</div>
+          <div class="price"><span class="p">¥365</span><span class="u">/年</span></div>
+          <div class="sub">≈ ¥30/月 · 3 天免费试用</div>
+          <div class="quota">⚡ 500 配额 / 月</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>无限收藏 · 高质量字幕翻译 · 短语高亮</li>
+          </ul>
+          <button class="cta primary">立即订阅 <span class="soon">· 即将开放</span></button>
+        </div>
+        <div class="plan">
+          <div class="nm">高阶</div>
+          <div class="price"><span class="p">¥458</span><span class="u">/年</span></div>
+          <div class="sub">≈ ¥38/月 · 3 天免费试用</div>
+          <div class="quota">⚡ 1000 配额 / 月</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>进阶全部 + 新功能优先 + 优先支持</li>
+          </ul>
+          <button class="cta ghost">升级到高阶 <span class="soon">· 即将开放</span></button>
+        </div>
+      </div>
+
+      <!-- 共建者 -->
+      <div class="view" id="l">
+        <div class="plan">
+          <div class="nm">终身进阶 <span class="inf">买断 · 无需续费</span></div>
+          <div class="price"><span class="p">¥1498</span></div>
+          <div class="sub">一次性 · 永久</div>
+          <div class="quota">⚡ 500 配额 / 月 · 累加不清零</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>含进阶全部 · 专属会员编号</li>
+          </ul>
+          <div class="scar"><div class="row"><span>188 位共建者已加入</span><span>限量 500</span></div><div class="bar"><i style="width:38%"></i></div></div>
+          <button class="cta ghost" style="margin-top:14px">成为共建者 <span class="soon">· 即将开放</span></button>
+        </div>
+        <div class="plan feat">
+          <span class="rec">推荐</span>
+          <div class="nm">终身高阶 <span class="inf">买断 · 无需续费</span></div>
+          <div class="price"><span class="p">¥1998</span></div>
+          <div class="sub">一次性 · 永久</div>
+          <div class="quota">⚡ 1000 配额 / 月 · 累加不清零</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/></svg>含高阶全部 · 新功能优先 · 专属编号</li>
+          </ul>
+          <div class="scar"><div class="row"><span>350 位共建者已加入</span><span>限量 500</span></div><div class="bar"><i style="width:70%"></i></div></div>
+          <button class="cta primary" style="margin-top:14px">成为共建者 <span class="soon">· 即将开放</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">配额用于 AI 加工(对话 / 字幕翻译 / 发音 / 短语提取)。看缓存视频、本地查词、复习、收藏不耗配额。</div>
+  </div>
+</div>
+<script>
+  function sw(id, btn){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    document.getElementById(id).classList.add('on');
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+</script>
+</body>
+</html>

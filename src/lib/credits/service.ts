@@ -1,5 +1,5 @@
 // Timestamp: 2026-06-04 17:23
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../prisma.ts";
 import { deduct, grantSignup } from "./account.ts";
 import { SIGNUP_GRANT_MINOR } from "./config.ts";
 

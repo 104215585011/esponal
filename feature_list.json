@@ -1925,5 +1925,21 @@
     ],
     "evidence": "2026-06-05 Codex1 implemented Phase 2 in isolated worktree `.worktrees/codex-credits-phase1` from `docs/superpowers/plans/2026-06-05-credits-phase-2.md`. Added `src/lib/credits/runtime.ts` for lazy monthly refresh, credit snapshot reads, `requireCredits`, and `requirePlan`; hardened `src/lib/credits/service.ts` so `spendCredits()` rejects `costMinor <= 0`. Wired spend/gate hooks into `src/app/api/talk/message/route.ts` (pre-stream credit gate, post-success talk spend), `src/app/api/tts/route.ts` (cache-hit free, uncached synth gated/spent), `src/app/api/vocab/lookup/route.ts` (local lexicon free, external fallback gated/spent), `src/app/api/lexicon/detect-phrases/route.ts` (premium+ gate plus per-sentence billing), and `src/app/api/subtitle/route.ts` (cache-hit free, logged-in uncached website subtitle path gated/spent by duration bucket). Added `tests/credits-phase2.test.mjs` to lock runtime refresh, service guard, all five spend hooks, and machine-readable credits error codes. Verification: focused credits/route regression slice passed 54/54; `npx tsc --noEmit --pretty false` passed; `npm run lint:encoding` passed; `npm test` passed 446/446.",
     "notes": "Spec: docs/superpowers/specs/2026-06-01-credits-billing-design.md. Plan: docs/superpowers/plans/2026-06-05-credits-phase-2.md. Scope is backend spend-point integration only: talk turn, TTS, lookup fallback, phrase detection, and subtitle unlock. Anonymous subtitle / lookup behavior remains intentionally unchanged in Phase 2; only logged-in users hit the new meter there. Phase 3 frontend quota surfaces and payment integration are still separate follow-ups."
+  },
+  "107": {
+    "id": "CREDITS-FE-001",
+    "priority": 106,
+    "area": "fullstack",
+    "title": "积分前端(web+移动:余额展示/会员定价页/账户页/不足提示)",
+    "user_visible_behavior": "web 与移动端都能看到配额余额 + 会员入口;/membership 定价页(月付/年付/共建者三 tab + 套餐,购买暂占位);账户页看等级/余额/用量流水;积分不足时非模态内联提示+跳升级。",
+    "status": "ready_for_qa",
+    "verification": [
+      "node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs ??",
+      "node --test tests/phon001.test.mjs ??",
+      "npx tsc --noEmit --pretty false ??",
+      "npm test ??"
+    ],
+    "evidence": "2026-06-05 Codex1 delivered the first CREDITS-FE-001 slice plus the Phase 2 signup-grant P0 fix. Added `src/lib/credits/summary.ts` to unify lazy signup grant + monthly refresh aware credit reads, added authenticated `GET /api/credits` in `src/app/api/credits/route.ts`, and built the flagship `/membership` surface in `src/app/membership/page.tsx` + `MembershipTabs.tsx` with monthly / yearly / founder tabs, current-plan highlight, quota pill, and placeholder purchase CTAs. Wired shared shell surfaces so desktop `SiteHeader` and the mobile avatar drawer expose balance + `/membership` entry via `SiteHeader.tsx`, `SiteNav.tsx`, `MobileTopBar.tsx`, and `MobileNav.tsx`. Fixed the Phase 2 free-tier blocker by calling `ensureSignupGrant()` inside `requireCredits()` and `requirePlan()` so new users receive the 50-credit signup grant before any balance or plan guard. Added/updated source-contract coverage in `tests/credits-fe001.test.mjs`, `tests/credits-phase2.test.mjs`, and refreshed `tests/phon001.test.mjs` to the current clean UTF-8 phonics content. Verification: `node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs` pass, `node --test tests/phon001.test.mjs` pass, `npx tsc --noEmit --pretty false` pass, `npm test` pass 450/450.",
+    "notes": "PM ticket 2026-06-04. This pass covers the balance summary API, shared balance/member entry, the approved `/membership` pricing page, and the signup-grant P0 discovered during Phase 2 audit. Account ledger page and inline insufficient-credits upgrade prompt remain follow-up surface work unless PM splits them into a separate ticket. Next step: Codex2 true-device QA on `/membership`, desktop header balance pill, and mobile drawer balance/member entry."
   }
 }

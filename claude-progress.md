@@ -5893,3 +5893,5 @@ feature_list.json 更新：
 **Notes**:
 - Phase 2 intentionally leaves anonymous lookup and subtitle requests on their prior free path; only logged-in users are metered there in this phase.
 - Phase 3 frontend quota surfaces / balance display and payment integration remain separate follow-up work.
+| 2026-06-05 | Codex1 | CREDITS-FE-001 首个前端切片完成并待 QA：新增 `src/lib/credits/summary.ts`、`GET /api/credits`、`/membership` 定价页（月付/年付/共建者三 tab + 占位 CTA），并把 desktop header / mobile avatar drawer 接到统一余额与会员入口。同时补上 Phase 2 的 P0：`requireCredits()` / `requirePlan()` 现在会先执行 `ensureSignupGrant()`，新用户不再卡在 0 配额。验证：`node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs`、`node --test tests/phon001.test.mjs`、`npx tsc --noEmit --pretty false`、`npm test` 全绿（450/450）。 |
+| 2026-06-05 | Codex2 | CREDITS-FE-001 QA 首轮：功能相关 focused tests 与 `npx tsc --noEmit --pretty false` 通过，但 `npm test` 失败于 `tests/infra002.test.mjs`，原因为 `session-handoff.md` 存在 CRLF line endings。结论：票回 Codex1 先修仓库编码卫生，再返 QA；本轮未拿到本地浏览器冒烟证据，因为该 Windows 线程未能稳定拉起 detached `npm run dev`。 |

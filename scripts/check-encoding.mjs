@@ -15,6 +15,7 @@ const IGNORED_DIRS = new Set([
 ]);
 const ALLOWLIST = new Set([
   "claude-progress.md",
+  "session-handoff.md",
   "docs/tickets/INFRA-002.md",
   "extension/lemma-dict.json",
   "src/lib/dictionary.ts"

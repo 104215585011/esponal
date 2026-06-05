@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-03 01:11
+// Timestamp: 2026-06-05 10:38
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -7,10 +7,15 @@ import { SiteNav } from "@/app/components/web/SiteNav";
 import { ThemeToggle } from "@/app/components/web/ThemeToggle";
 import { GlobalSearchOverlay } from "@/app/components/web/GlobalSearchOverlay";
 import { getAuthOptions } from "@/lib/auth";
+import { getCreditSummary } from "@/lib/credits/summary";
 
 type SiteHeaderProps = {
   searchAction?: string;
   initialQuery?: string;
+};
+
+type SessionUserWithId = {
+  id?: string;
 };
 
 const DEFAULT_AVATAR_SRC = "/images/default-avatar.png";
@@ -22,13 +27,16 @@ export async function SiteHeader({
   initialQuery = ""
 }: SiteHeaderProps) {
   const session = await getServerSession(getAuthOptions());
+  const userId = (session?.user as SessionUserWithId | undefined)?.id;
   const displayName = session?.user?.name?.trim() || "Esponal User";
   const vocabHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
+  const creditSummary = userId ? await getCreditSummary(userId) : null;
 
   return (
     <header className="z-50 border-b border-zinc-200/50 shadow-sm transition-all duration-300 dark:border-zinc-800/50 md:sticky md:top-0">
       <div className="absolute inset-0 z-[-1] glass-header" />
       <MobileTopBar
+        creditSummary={creditSummary}
         initialQuery={initialQuery}
         searchAction={searchAction}
         session={session}
@@ -56,7 +64,7 @@ export async function SiteHeader({
           </span>
         </Link>
 
-        <SiteNav vocabHref={vocabHref} session={session} />
+        <SiteNav vocabHref={vocabHref} session={session} creditSummary={creditSummary} />
 
         <form
           action={searchAction}
@@ -86,6 +94,16 @@ export async function SiteHeader({
           <ThemeToggle />
         </div>
 
+        {creditSummary ? (
+          <Link
+            className="hidden lg:inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3.5 py-2 text-sm font-semibold text-brand-700 transition hover:border-brand-200 hover:bg-brand-100/80"
+            href="/membership"
+          >
+            <span>⚡</span>
+            <span>{creditSummary.balanceDisplay} 配额</span>
+          </Link>
+        ) : null}
+
         <div className="hidden lg:block shrink-0">
           {session?.user ? (
             <details className="relative">
@@ -98,6 +116,14 @@ export async function SiteHeader({
                 />
               </summary>
               <div className="absolute right-0 mt-2 w-40 rounded-card border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-elevated">
+                {creditSummary ? (
+                  <Link
+                    className="mb-1 block rounded-card px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+                    href="/membership"
+                  >
+                    {creditSummary.balanceDisplay} 配额
+                  </Link>
+                ) : null}
                 <Link
                   className="block rounded-card px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"
                   href="/vocab"

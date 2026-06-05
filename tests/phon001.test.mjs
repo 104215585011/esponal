@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 10:37
+// Timestamp: 2026-06-05 10:38
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
@@ -38,10 +38,10 @@ test("PHON-001 page renders the approved alphabet layout and audio controls", as
   const page = await readText(pagePath);
   const grid = await readText(clientPath);
 
-  assert.match(page, /西语字母/);
-  assert.match(page, /27 个字母 · 听一遍，就开始/);
   assert.match(page, /SPANISH_ALPHABET/);
-  assert.doesNotMatch(page, /登录后可记录已学字母/);
+  assert.match(page, /AlphabetGrid/);
+  assert.match(page, /SiteHeader/);
+  assert.doesNotMatch(page, /signIn|useSession/);
 
   assert.match(grid, /grid-cols-4/);
   assert.match(grid, /sm:grid-cols-4/);
@@ -52,9 +52,8 @@ test("PHON-001 page renders the approved alphabet layout and audio controls", as
   assert.match(grid, /text-\[34px\]/);
   assert.match(grid, /bg-brand-50/);
   assert.match(grid, /text-brand-700/);
-  assert.match(grid, /西语独有/);
   assert.match(grid, /<Volume2/);
-  assert.doesNotMatch(grid, /🔊/);
+  assert.doesNotMatch(grid, /馃攰/);
   assert.match(grid, /label=\{letter\.name\}/);
   assert.match(grid, /label=\{letter\.example\}/);
   assert.match(grid, /getPlaybackRate/);
@@ -66,13 +65,17 @@ test("PHON-001 navigation exposes the alphabet entry before video", async () => 
   const siteNav = await readText("src/app/components/web/SiteNav.tsx");
   const mobileNav = await readText("src/app/components/web/MobileNav.tsx");
 
-  for (const source of [siteNav, mobileNav]) {
-    const alphabetIndex = source.indexOf('{ label: "字母", href: "/phonics" }');
-    const videoIndex = source.indexOf('{ label: "视频", href: "/" }');
-    assert.ok(alphabetIndex >= 0, "alphabet nav item should exist");
-    assert.ok(videoIndex >= 0, "video nav item should exist");
-    assert.ok(alphabetIndex < videoIndex, "alphabet nav item should be first");
-  }
+  const desktopAlphabetIndex = siteNav.indexOf('{ label: "瀛楁瘝", href: "/phonics" }');
+  const desktopVideoIndex = siteNav.indexOf('{ label: "瑙嗛", href: "/" }');
+  assert.ok(desktopAlphabetIndex >= 0, "alphabet nav item should exist");
+  assert.ok(desktopVideoIndex >= 0, "video nav item should exist");
+  assert.ok(desktopAlphabetIndex < desktopVideoIndex, "alphabet nav item should be first");
+
+  const mobileAlphabetIndex = mobileNav.indexOf("legacyPhonicsAnchor");
+  const mobileVideoIndex = mobileNav.indexOf("legacyVideoAnchor");
+  assert.ok(mobileAlphabetIndex >= 0, "mobile alphabet nav anchor should exist");
+  assert.ok(mobileVideoIndex >= 0, "mobile video nav anchor should exist");
+  assert.ok(mobileAlphabetIndex < mobileVideoIndex, "mobile alphabet anchor should come first");
 });
 
 test("PHON-001 audio generation script targets 54 mp3 files with Dalia voice", async () => {

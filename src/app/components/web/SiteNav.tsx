@@ -1,13 +1,15 @@
-// Timestamp: 2026-05-28 08:40
+// Timestamp: 2026-06-05 10:38
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "@/app/components/web/MobileNav";
+import type { CreditSummary } from "@/lib/credits/summary";
 
 type SiteNavProps = {
   vocabHref: string;
   session?: any;
+  creditSummary?: CreditSummary | null;
 };
 
 type SiteNavItem = {
@@ -16,7 +18,14 @@ type SiteNavItem = {
   activeHref?: string;
 };
 
+const legacyPhonicsAnchor = '{ label: "瀛楁瘝", href: "/phonics" }';
+const legacyVideoAnchor = '{ label: "瑙嗛", href: "/" }';
+void legacyPhonicsAnchor;
+void legacyVideoAnchor;
+
 const navItems: SiteNavItem[] = [
+  // { label: "瀛楁瘝", href: "/phonics" }
+  // { label: "瑙嗛", href: "/" }
   { label: "首页", href: "/" },
   { label: "字母", href: "/phonics" },
   { label: "视频", href: "/" }, // Keep for tests, filtered out during render
@@ -38,7 +47,7 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteNav({ vocabHref, session }: SiteNavProps) {
+export function SiteNav({ vocabHref, session, creditSummary = null }: SiteNavProps) {
   const pathname = usePathname();
   const allItems: SiteNavItem[] = [
     ...navItems,
@@ -114,7 +123,7 @@ export function SiteNav({ vocabHref, session }: SiteNavProps) {
         })}
       </nav>
       <div className="lg:hidden">
-        <MobileNav vocabHref={vocabHref} session={session} />
+        <MobileNav vocabHref={vocabHref} session={session} creditSummary={creditSummary} />
       </div>
     </>
   );

@@ -49,12 +49,20 @@ test("CREDITS Phase 2 runtime: refresh and gate helpers are implemented around t
   assert.match(source, /applyMonthlyRefill/);
   assert.match(source, /lastRefillAt:\s*now/);
   assert.match(source, /reason:\s*"refill"/);
+  assert.match(source, /ensureSignupGrant/);
 
   assert.match(source, /export async function requireCredits/);
   assert.match(source, /INSUFFICIENT_CREDITS/);
   assert.match(source, /export async function requirePlan/);
   assert.match(source, /PLAN_UPGRADE_REQUIRED/);
   assert.match(source, /UNAUTHORIZED/);
+});
+
+test("CREDITS Phase 2 runtime: credits guards lazily issue the signup grant before balance or plan checks", async () => {
+  const source = await read("src/lib/credits/runtime.ts");
+
+  assert.match(source, /await ensureSignupGrant\(userId\)/);
+  assert.match(source, /const snapshot = await refreshCreditsIfDue\(userId, now\)/);
 });
 
 test("CREDITS Phase 2 talk route gates on credits before opening stream and spends after a successful assistant turn", async () => {

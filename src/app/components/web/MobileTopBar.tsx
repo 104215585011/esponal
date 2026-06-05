@@ -1,25 +1,34 @@
-// Timestamp: 2026-06-04 12:08
+// Timestamp: 2026-06-05 10:38
 "use client";
 
 import { GlobalSearchOverlay } from "@/app/components/web/GlobalSearchOverlay";
 import { MobileNav } from "@/app/components/web/MobileNav";
+import type { CreditSummary } from "@/lib/credits/summary";
 
 type MobileTopBarProps = {
   searchAction?: string;
   initialQuery?: string;
   session?: any;
+  creditSummary?: CreditSummary | null;
 };
 
 export function MobileTopBar({
   searchAction = "/search",
   initialQuery = "",
-  session
+  session,
+  creditSummary = null
 }: MobileTopBarProps) {
   return (
     <>
       <div className="md:hidden fixed inset-x-0 top-0 z-50 border-b border-zinc-200/60 bg-white/78 px-5 backdrop-blur-[16px] dark:border-zinc-800/60 dark:bg-zinc-950/78">
         <div className="flex h-[52px] items-center justify-between">
-          <MobileNav drawerSide="left" session={session} trigger="avatar" vocabHref="/vocab" />
+          <MobileNav
+            creditSummary={creditSummary}
+            drawerSide="left"
+            session={session}
+            trigger="avatar"
+            vocabHref="/vocab"
+          />
 
           <button
             aria-disabled="true"

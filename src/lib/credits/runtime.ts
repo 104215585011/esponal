@@ -2,6 +2,7 @@
 import { prisma } from "../prisma.ts";
 import { applyMonthlyRefill } from "./account.ts";
 import { PLAN_CONFIG, type CreditSource, type Plan } from "./config.ts";
+import { ensureSignupGrant } from "./service.ts";
 
 export type UserCreditSnapshot = {
   plan: Plan;
@@ -118,6 +119,7 @@ export async function requireCredits(
     return { ok: false, code: "UNAUTHORIZED", snapshot: null };
   }
 
+  await ensureSignupGrant(userId);
   const snapshot = await refreshCreditsIfDue(userId, now);
   if (!snapshot) {
     return { ok: false, code: "UNAUTHORIZED", snapshot: null };
@@ -139,6 +141,7 @@ export async function requirePlan(
     return { ok: false, code: "UNAUTHORIZED", snapshot: null };
   }
 
+  await ensureSignupGrant(userId);
   const snapshot = await refreshCreditsIfDue(userId, now);
   if (!snapshot) {
     return { ok: false, code: "UNAUTHORIZED", snapshot: null };
