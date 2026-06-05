@@ -3,7 +3,7 @@
 **Goal**: Reconcile ticket state with the latest Codex2 QA re-check before cutting a clean mobile checkpoint commit.
 
 **QA outcome**:
-- `MOBILE-008`: Codex2 re-check passed. Mobile `/grammar/regular-ar` now visibly renders the conjugation table and the “左右滑动看全表” cue; `/grammar`, `/grammar/[slug]`, and `/dissect` mobile smoke passed alongside focused tests.
+- `MOBILE-008`: Codex2 re-check passed. Mobile `/grammar/regular-ar` now visibly renders the conjugation table and the 鈥滃乏鍙虫粦鍔ㄧ湅鍏ㄨ〃鈥?cue; `/grammar`, `/grammar/[slug]`, and `/dissect` mobile smoke passed alongside focused tests.
 - `MOBILE-006`: Codex2 could only lightly re-check the list view. Mobile `/talk` looks correct and focused tests pass, but `/talk/[characterId]` still redirects to sign-in in the current QA environment, so the ticket should remain `ready_for_qa` instead of `passing`.
 
 **State**:
@@ -15,7 +15,7 @@
 **Goal**: Fix the Codex2 QA blocker on MOBILE-008 where the grammar detail page had mobile table UI but no live topic content actually rendering a conjugation table.
 
 **Done (Codex1)**:
-- Updated [content/grammar/topics.ts](/C:/Users/wang/esponal/content/grammar/topics.ts:30) so `regular-ar` now includes a real `conjugations(["hablo", "hablas", "habla", "hablamos", "habláis", "hablan"])` payload instead of relying on a dead conditional branch.
+- Updated [content/grammar/topics.ts](/C:/Users/wang/esponal/content/grammar/topics.ts:30) so `regular-ar` now includes a real `conjugations(["hablo", "hablas", "habla", "hablamos", "habl谩is", "hablan"])` payload instead of relying on a dead conditional branch.
 - Updated [tests/course002.test.mjs](/C:/Users/wang/esponal/tests/course002.test.mjs:1) to lock that `regular-ar` continues to ship a real conjugation table source, so the MOBILE-008 table-scroll cue remains attached to visible user content rather than source-only markup.
 
 **Verification**:
@@ -159,7 +159,7 @@
 
 **Done (Codex1)**:
 - Added `tests/mobile003.test.mjs` first and confirmed it failed against the restored old homepage.
-- Updated [src/app/components/web/HomeHero.tsx](/C:/Users/wang/esponal/src/app/components/web/HomeHero.tsx) with a lightweight mobile white hero, brand-green `听懂`, brand CTA, desktop-only particle background, and desktop `md:` restoration for the old large hero rhythm.
+- Updated [src/app/components/web/HomeHero.tsx](/C:/Users/wang/esponal/src/app/components/web/HomeHero.tsx) with a lightweight mobile white hero, brand-green `鍚噦`, brand CTA, desktop-only particle background, and desktop `md:` restoration for the old large hero rhythm.
 - Updated [src/app/page.tsx](/C:/Users/wang/esponal/src/app/page.tsx) with mobile stat tiles, a horizontal snap learning rail, mobile-hidden duplicate tools, no rendered video stream, hidden legacy `#video-sections`, and desktop-only progress rings.
 - Updated [tests/home001.test.mjs](/C:/Users/wang/esponal/tests/home001.test.mjs) to preserve HOME-001 contracts while accepting the new MOBILE-003 responsive layout.
 - Kept the legacy `/api/youtube/channel` helper string for WEB-001 compatibility, but it is not called or rendered by MOBILE-003.
@@ -247,13 +247,13 @@
 **Goal**: Implement the `/vocab` mobile corpus redesign from `docs/tickets/CORPUS-001-design.md`, while keeping the desktop vocabulary page unchanged.
 
 **Done (Codex1)**:
-- Added `src/app/vocab/CorpusMobile.tsx` as the new mobile-only `/vocab` surface with three tabs: 视频, 单词, 短语.
+- Added `src/app/vocab/CorpusMobile.tsx` as the new mobile-only `/vocab` surface with three tabs: 瑙嗛, 鍗曡瘝, 鐭.
 - Split `src/app/vocab/page.tsx` into `hidden md:block` desktop content and `md:hidden` mobile corpus content.
-- Reused `VocabAccordion` unchanged for the 单词 tab.
-- Wired 视频 tab to `GET /api/watch/history` with grouped history cards, loading skeletons, empty state, and error retry.
-- Added dedicated `GET /api/vocab/phrase/list` and wired 短语 tab to it with loading, empty, and error states.
+- Reused `VocabAccordion` unchanged for the 鍗曡瘝 tab.
+- Wired 瑙嗛 tab to `GET /api/watch/history` with grouped history cards, loading skeletons, empty state, and error retry.
+- Added dedicated `GET /api/vocab/phrase/list` and wired 鐭 tab to it with loading, empty, and error states.
 - Reused `LookupCardStack` for phrase cards so mobile taps open the existing lookup bottom sheet.
-- Unified visible `/vocab` naming from `词库` to `语料库` across the bottom tab, vocab page title, review backlink/copy, desktop nav/account entry, and mobile search helper copy.
+- Unified visible `/vocab` naming from `璇嶅簱` to `璇枡搴揱 across the bottom tab, vocab page title, review backlink/copy, desktop nav/account entry, and mobile search helper copy.
 
 **Verification**:
 - Red check: `node --test tests/corpus001-ui.test.mjs` failed 4/4 before implementation.
@@ -319,7 +319,7 @@
 **Goal**: Fix the remaining MOBILE-009 true-device search overlay mojibake reported by the user.
 
 **What changed**:
-- Rewrote `GlobalSearchOverlay` copy to readable Chinese: aria-label `搜索`, placeholder `搜索内容...`, button `取消`, and helper text `搜索视频、课程、阅读和词库内容`.
+- Rewrote `GlobalSearchOverlay` copy to readable Chinese: aria-label `鎼滅储`, placeholder `鎼滅储鍐呭...`, button `鍙栨秷`, and helper text `鎼滅储瑙嗛銆佽绋嬨€侀槄璇诲拰璇嶅簱鍐呭`.
 - Preserved the existing portal-to-body overlay, Escape close, backdrop close, body scroll lock, and autofocus behavior.
 - Added `tests/mobile009-search.test.mjs` to lock the readable Chinese copy and reject common mojibake glyphs.
 
@@ -327,7 +327,7 @@
 - `node --test tests/mobile009-search.test.mjs tests/mobile009.test.mjs` -> 6/6 pass.
 - `npx tsc --noEmit --pretty false` -> pass.
 - `npm run lint:encoding` -> pass.
-- Mobile Playwright probe confirmed placeholder `搜索内容...`, text `取消搜索视频、课程、阅读和词库内容`, and focused input.
+- Mobile Playwright probe confirmed placeholder `鎼滅储鍐呭...`, text `鍙栨秷鎼滅储瑙嗛銆佽绋嬨€侀槄璇诲拰璇嶅簱鍐呭`, and focused input.
 - `npm test` -> 377/377 pass.
 - `npm run build` -> pass with existing `<img>` and Sentry warnings only.
 
@@ -338,7 +338,7 @@
 **Goal**: Fix PM/user true-device regressions for MOBILE-009 without marking the UI ticket `passing`.
 
 **Done (Codex1)**:
-- Restored `MobileNav` drawer labels to correct Chinese and removed duplicated primary tab destinations from the drawer. It now keeps secondary destinations only: 发音, 对话, 语法, 拆解, plus personal info, 设置, 积分订阅, login/logout, and theme.
+- Restored `MobileNav` drawer labels to correct Chinese and removed duplicated primary tab destinations from the drawer. It now keeps secondary destinations only: 鍙戦煶, 瀵硅瘽, 璇硶, 鎷嗚В, plus personal info, 璁剧疆, 绉垎璁㈤槄, login/logout, and theme.
 - Changed `BottomTabBar` to read `useSearchParams()`: `/watch` without `v` shows the bottom tab bar, while `/watch?v=...` hides it. `/lectura/[slug]` hiding remains unchanged.
 - Changed mobile top bar from constrained sticky to `fixed inset-x-0 top-0` with a 52px spacer; desktop header remains `md:sticky md:top-0`.
 - Added stable drawer test ids and updated MOBILE-009 / WEB-013 tests for the new contract.
@@ -349,7 +349,7 @@
 - `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/mobile000.test.mjs tests/web009.test.mjs tests/mobile009.test.mjs` -> pass (24/24).
 - `npx tsc --noEmit --pretty false` -> pass.
 - `npm run lint:encoding` -> pass.
-- Playwright mobile probe at 390x844: `/watch` bottom tab visible (`390x57`, text `视频阅读课程词库`), `/watch?v=A0yzRIuKYUw` bottom tab hidden, top bar stayed `top=0` after scroll, drawer text was correct Chinese with no 首页/视频/阅读/课程/词库 duplicates, drawer aside `288x844`.
+- Playwright mobile probe at 390x844: `/watch` bottom tab visible (`390x57`, text `瑙嗛闃呰璇剧▼璇嶅簱`), `/watch?v=A0yzRIuKYUw` bottom tab hidden, top bar stayed `top=0` after scroll, drawer text was correct Chinese with no 棣栭〉/瑙嗛/闃呰/璇剧▼/璇嶅簱 duplicates, drawer aside `288x844`.
 - `npm test` -> pass (376/376).
 - `npm run build` -> pass with existing `<img>` and Sentry warnings only.
 
@@ -486,7 +486,7 @@
 
 ### Session #MOBILE-001 Mobile Mode Switches Restoration - 2026-06-02 13:55
 
-**Goal**: Restore the bilingual/monolingual switches ("双语 / 西语 / 中文") and sentence/line switches ("按句 / 按行") on mobile transcript panel.
+**Goal**: Restore the bilingual/monolingual switches ("鍙岃 / 瑗胯 / 涓枃") and sentence/line switches ("鎸夊彞 / 鎸夎") on mobile transcript panel.
 
 **Done (Codex1)**:
 - Updated `TranscriptPanel.tsx` to branch the header toolbar: desktop gets the original layout, and mobile gets a dedicated, compact flex toolbar styled with HSL-tailored colors (`bg-zinc-900/60`, `border-zinc-800/60`, `text-[10px]`) which fits neatly on mobile screens.
@@ -795,7 +795,7 @@
 **Done (Codex1)**:
 - Added collapsible/compact volume control logic to `src/app/watch/WatchMobileLayout.tsx` utilizing a custom `isVolumeOpen` state toggle (on volume icon click).
 - Replaced all non-generated Tailwind classes `h-4.5`/`w-4.5` with generated `h-[18px]/w-[18px]` arbitrary dimension classes across layout components (`WatchMobileLayout.tsx`, `WatchDesktopLayout.tsx`, `MobileNav.tsx`, `SiteHeader.tsx`, and `ReadingPreferences.tsx`).
-- Replaced all invalid GBK mojibake unicode characters (literal `鐠`, `闁` and corrupt history text blocks) in `session-handoff.md` to restore standard UTF-8 Chinese characters or safe escaped Unicode string references (`\\u9420`).
+- Replaced all invalid GBK mojibake unicode characters (literal `閻燻, `闂乣 and corrupt history text blocks) in `session-handoff.md` to restore standard UTF-8 Chinese characters or safe escaped Unicode string references (`\\u9420`).
 - Added layout check assertions and collapsible volume tests in `tests/watch005.test.mjs`.
 
 **Verification**:
@@ -855,7 +855,7 @@
 **Done (Gemini1/Codex1)**:
 - Oversaw visual translation: Created the updated mobile drawer design spec at `docs/tickets/MOBILE-000-design.md` detailing Tailwind styling, sky-blue color tokens, and elevated card structures.
 - Mockup generation: Generated a premium mobile sheet UI mockup matching the spec and linked it in the design spec.
-- Code facelift: Upgraded the LookupCard interior layout to match the design (large word title, Lucide Volume2 play button, right-aligned Heart icon, "已学习" badge, card-ified examples, and related phrases).
+- Code facelift: Upgraded the LookupCard interior layout to match the design (large word title, Lucide Volume2 play button, right-aligned Heart icon, "宸插涔? badge, card-ified examples, and related phrases).
 - Preservation of test compatibility: Maintained full regression coverage for `vocab010.test.mjs` and other tests by conditionally outputting the expected amber classes in desktop layout.
 - MobileLookupSheet dark mode: Adjusted drawer background to `dark:bg-[#09090B]` to integrate with Esponal's dark theme token.
 
@@ -897,7 +897,7 @@
 **Done (Codex1)**:
 - Replaced the `.srt` download path in `src/app/watch/TranscriptPanel.tsx` with a programmatic PDF generator. It builds full `pdfRows` from `sentenceGroups` or `transcriptCues`, so export content is not limited by transcript virtualization.
 - Added browser-canvas PDF page rendering with timestamps, Spanish-on-top / Chinese-below layout, pagination, and a no-dependency PDF byte writer. This avoids `window.print()` and avoids bundling jsPDF or a large CJK font.
-- Updated the toolbar button to `下载 PDF`, with `aria-label="下载当前字幕为 PDF 讲义"` and a disabled `生成中...` state.
+- Updated the toolbar button to `涓嬭浇 PDF`, with `aria-label="涓嬭浇褰撳墠瀛楀箷涓?PDF 璁蹭箟"` and a disabled `鐢熸垚涓?..` state.
 - Added `tests/watch009.test.mjs`, removed the superseded WATCH-008 test, and adjusted WATCH-007 compatibility coverage.
 
 **Verification**:
@@ -953,7 +953,7 @@
 **Done (Codex1)**:
 - Added `tests/watch007.test.mjs` with contract coverage for transcript mode state/localStorage, toolbar controls, print download, print rows, and mojibake guards.
 - Updated `src/app/watch/TranscriptPanel.tsx` with `sentence` / `cue` transcript modes, localStorage persistence (`esponal_transcript_mode`), follow-mode reset on switch, restored per-cue row rendering, and preserved lookup/phrase highlighting/card-stack behavior in both modes.
-- Added a `下载` toolbar action that renders `#print-transcript-area` and calls `window.print()` instead of bundling jsPDF/CJK fonts.
+- Added a `涓嬭浇` toolbar action that renders `#print-transcript-area` and calls `window.print()` instead of bundling jsPDF/CJK fonts.
 - Added print-only CSS in `src/app/globals.css` so browser "Save as PDF" prints only the transcript rows with timestamps.
 
 **Verification**:
@@ -991,12 +991,12 @@
 
 ### Session #WATCH-005 & Watch Page Layout Redesign - 2026-05-31 13:20
 
-**Goal**: Disable YouTube native closed captions and implement the Watch Page Layout Redesign including TranscriptPanel sentences card styling, absolute position of "回到当前位置" button, and SubtitlePanel overlay bottom-12 positioning with backdrop-blur.
+**Goal**: Disable YouTube native closed captions and implement the Watch Page Layout Redesign including TranscriptPanel sentences card styling, absolute position of "鍥炲埌褰撳墠浣嶇疆" button, and SubtitlePanel overlay bottom-12 positioning with backdrop-blur.
 
 **Completed (Codex1)**:
 - Updated `src/app/watch/WatchClient.tsx` to set YouTube parameter `cc_load_policy=0` and remove `&hl=es&cc_lang_pref=es`.
-- Removed "回到当前位置" from bottom center of player in `src/app/watch/WatchClient.tsx`.
-- Updated `src/app/watch/TranscriptPanel.tsx` to render "回到当前位置" button inside `TranscriptPanel` (absolute `bottom-6 left-1/2 -translate-x-1/2 z-20`) and grouped sentences in `.group/sentence` containers with divider line and highlight styles.
+- Removed "鍥炲埌褰撳墠浣嶇疆" from bottom center of player in `src/app/watch/WatchClient.tsx`.
+- Updated `src/app/watch/TranscriptPanel.tsx` to render "鍥炲埌褰撳墠浣嶇疆" button inside `TranscriptPanel` (absolute `bottom-6 left-1/2 -translate-x-1/2 z-20`) and grouped sentences in `.group/sentence` containers with divider line and highlight styles.
 - Updated `src/app/watch/SubtitlePanel.tsx` overlay to lift to `bottom-12` and wrap with translucent backdrop-blur card.
 - Updated `feature_list.json` and `session-handoff.md` to register `WATCH-005` and `WATCH-006` as `ready_for_qa` and request QA from Codex2.
 
@@ -1026,8 +1026,8 @@
 **Goal**: Fix user-visible mojibake reported in the `/watch` right transcript empty state and verify related extension subtitle copy did not regress.
 
 **Done**:
-- Restored the transcript empty-state copy in `src/app/watch/TranscriptPanel.tsx`: `在 YouTube 打开`, `安装扩展`, `去 YouTube 看一遍，扩展会自动采集回来。`, `装上 Esponal 扩展后，在 YouTube 看一遍即可自动归档。`, `这个视频暂时没有高质量字幕`, `Esponal 只能在有字幕的视频上工作`, `这个视频没有字幕`, and `↺ 回到当前位置`.
-- Confirmed `extension/background.js`, `extension/popup.js`, and `tests/ext008.test.mjs` contain the intended real Chinese / `✓` strings rather than mojibake.
+- Restored the transcript empty-state copy in `src/app/watch/TranscriptPanel.tsx`: `鍦?YouTube 鎵撳紑`, `瀹夎鎵╁睍`, `鍘?YouTube 鐪嬩竴閬嶏紝鎵╁睍浼氳嚜鍔ㄩ噰闆嗗洖鏉ャ€俙, `瑁呬笂 Esponal 鎵╁睍鍚庯紝鍦?YouTube 鐪嬩竴閬嶅嵆鍙嚜鍔ㄥ綊妗ｃ€俙, `杩欎釜瑙嗛鏆傛椂娌℃湁楂樿川閲忓瓧骞昤, `Esponal 鍙兘鍦ㄦ湁瀛楀箷鐨勮棰戜笂宸ヤ綔`, `杩欎釜瑙嗛娌℃湁瀛楀箷`, and `鈫?鍥炲埌褰撳墠浣嶇疆`.
+- Confirmed `extension/background.js`, `extension/popup.js`, and `tests/ext008.test.mjs` contain the intended real Chinese / `鉁揱 strings rather than mojibake.
 - Added a WATCH-004 guard test that asserts the user-facing transcript Chinese copy exists and common mojibake hints do not appear in `TranscriptPanel.tsx`.
 - Rewrote the top WATCH-004 handoff record back to readable UTF-8 Chinese.
 
@@ -1070,10 +1070,10 @@
 - Re-ran production build:
   `npm run build` -> pass (only pre-existing Next `<img>` and Sentry instrumentation warnings).
 - Started local `next dev` on port `3012` and opened `/watch?v=MzvNM8llsw` with Playwright.
-- Confirmed WATCH-004 empty-state / transcript shell copy is correct at runtime (刷新字幕, ES + 中, 仅西语, 仅中文, 点击字幕跳转, 这个视频暂时没有高质量字幕, CTA buttons).
+- Confirmed WATCH-004 empty-state / transcript shell copy is correct at runtime (鍒锋柊瀛楀箷, ES + 涓? 浠呰タ璇? 浠呬腑鏂? 鐐瑰嚮瀛楀箷璺宠浆, 杩欎釜瑙嗛鏆傛椂娌℃湁楂樿川閲忓瓧骞? CTA buttons).
 
 **Blocked / Not fully verified**:
-- The verification item “Dreaming Spanish 类视频右侧中文成句通顺无残句” could not be completed in local runtime because subtitle providers returned empty cues in the local environment:
+- The verification item 鈥淒reaming Spanish 绫昏棰戝彸渚т腑鏂囨垚鍙ラ€氶『鏃犳畫鍙モ€?could not be completed in local runtime because subtitle providers returned empty cues in the local environment:
   `APIFY_API_TOKEN not set` and `Apify fetched 0 cues for MzvNM8llsw es`.
 - This means the sentence-level rendering contract is strongly covered by tests, but a real subtitle-backed runtime pass still needs an environment with available subtitle data.
 
@@ -1098,33 +1098,21 @@
 - `npm test` -> 323/323 pass
 
 **Status**: WATCH-004 implementation complete. Handing off to Codex2 QA, then Gemini1 visual review.
-### Session #SUBS-003 字幕缓存延长 30 天 - 2026-05-31 10:30
+### Session #SUBS-003 瀛楀箷缂撳瓨寤堕暱 30 澶?- 2026-05-31 10:30
 
-**Goal**: 降低 Supadata/Apify/Whisper 上游额度消耗。决策放弃 Postgres 持久化,改最小改动延长 Redis TTL(字幕通用、不绑用户)。
-
-**Done (Claude1, 经 PM 同意代为实现单常量改动)**:
-- `src/app/api/subtitle/route.ts`: `SUBTITLE_CACHE_TTL` 由 86400(24h) 改为 2592000(30天),仅此一行,缓存 envelope/读写逻辑未动。
-- `npm test` → 320/320 pass。
-- `feature_list.json` SUBS-003 `todo → passing` + evidence。
-
-**Status**: `SUBS-003` → **passing**,关闭。
-
+**Goal**: 闄嶄綆 Supadata/Apify/Whisper 涓婃父棰濆害娑堣€椼€傚喅绛栨斁寮?Postgres 鎸佷箙鍖?鏀规渶灏忔敼鍔ㄥ欢闀?Redis TTL(瀛楀箷閫氱敤銆佷笉缁戠敤鎴?銆?
+**Done (Claude1, 缁?PM 鍚屾剰浠ｄ负瀹炵幇鍗曞父閲忔敼鍔?**:
+- `src/app/api/subtitle/route.ts`: `SUBTITLE_CACHE_TTL` 鐢?86400(24h) 鏀逛负 2592000(30澶?,浠呮涓€琛?缂撳瓨 envelope/璇诲啓閫昏緫鏈姩銆?- `npm test` 鈫?320/320 pass銆?- `feature_list.json` SUBS-003 `todo 鈫?passing` + evidence銆?
+**Status**: `SUBS-003` 鈫?**passing**,鍏抽棴銆?
 ---
 
-### Session #SUBS-002 PM 验收关闭 - 2026-05-31 10:10
+### Session #SUBS-002 PM 楠屾敹鍏抽棴 - 2026-05-31 10:10
 
-**Goal**: 收尾 SUBS-002，把 Codex1 已交付的 Supadata 接入从 `todo` 推到 `passing`。
-
+**Goal**: 鏀跺熬 SUBS-002锛屾妸 Codex1 宸蹭氦浠樼殑 Supadata 鎺ュ叆浠?`todo` 鎺ㄥ埌 `passing`銆?
 **Done (PM/Claude1)**:
-- 复核代码 `src/app/api/subtitle/route.ts`：回退链 Supadata→Apify→Whisper、source/X-Subtitle-Source 头、cue ms→秒归一化过 clampOverlappingCues、缺 key/空/报错均返回 [] 优雅降级 —— 与 ticket 实施要求逐条对上。
-- 重跑 `node --test tests/subs002.test.mjs` → 3/3 pass；`npm test` → 320/320 pass。
-- 运行时验收：线上 `https://esponalsssssss.vercel.app/api/subtitle` fast-path HTTP 200 确认端点存活；PM 本人线上实测三条（supadata 主力 / 无轨视频降级 / 二次请求缓存命中）确认通过。
-- `feature_list.json` SUBS-002 `todo → passing` + 写入 evidence。
-
-**Note**: 本地 `.env` 无 SUPADATA_API_KEY（仅 Vercel Production 有），故运行时实测对线上部署进行。后续「字幕持久化到 Postgres（一次抓取永不二次付费）」为独立议题 SUBS-003，尚未开 ticket。
-
-**Status**: `SUBS-002` → **passing**，关闭。
-
+- 澶嶆牳浠ｇ爜 `src/app/api/subtitle/route.ts`锛氬洖閫€閾?Supadata鈫扐pify鈫扺hisper銆乻ource/X-Subtitle-Source 澶淬€乧ue ms鈫掔褰掍竴鍖栬繃 clampOverlappingCues銆佺己 key/绌?鎶ラ敊鍧囪繑鍥?[] 浼橀泤闄嶇骇 鈥斺€?涓?ticket 瀹炴柦瑕佹眰閫愭潯瀵逛笂銆?- 閲嶈窇 `node --test tests/subs002.test.mjs` 鈫?3/3 pass锛沗npm test` 鈫?320/320 pass銆?- 杩愯鏃堕獙鏀讹細绾夸笂 `https://esponalsssssss.vercel.app/api/subtitle` fast-path HTTP 200 纭绔偣瀛樻椿锛汸M 鏈汉绾夸笂瀹炴祴涓夋潯锛坰upadata 涓诲姏 / 鏃犺建瑙嗛闄嶇骇 / 浜屾璇锋眰缂撳瓨鍛戒腑锛夌‘璁ら€氳繃銆?- `feature_list.json` SUBS-002 `todo 鈫?passing` + 鍐欏叆 evidence銆?
+**Note**: 鏈湴 `.env` 鏃?SUPADATA_API_KEY锛堜粎 Vercel Production 鏈夛級锛屾晠杩愯鏃跺疄娴嬪绾夸笂閮ㄧ讲杩涜銆傚悗缁€屽瓧骞曟寔涔呭寲鍒?Postgres锛堜竴娆℃姄鍙栨案涓嶄簩娆′粯璐癸級銆嶄负鐙珛璁 SUBS-003锛屽皻鏈紑 ticket銆?
+**Status**: `SUBS-002` 鈫?**passing**锛屽叧闂€?
 ---
 
 ### Session #SUBS-002-SUPADATA-INTEGRATION - 2026-05-30 18:35
@@ -1152,7 +1140,7 @@
 **Goal**: Widen video player and right-side subtitles, overlay subtitle panels inside player container, remove chapters list, and minimize margins.
 
 **Completed**:
-- Adjusted layout margins on `/watch` in [WatchClient.tsx](file:///C:/Users/wang/esponal/src/app/watch/WatchClient.tsx) by setting container max-width to `none` and margins to `px-2` to maximize video and text area (两边留白只留一点点).
+- Adjusted layout margins on `/watch` in [WatchClient.tsx](file:///C:/Users/wang/esponal/src/app/watch/WatchClient.tsx) by setting container max-width to `none` and margins to `px-2` to maximize video and text area (涓よ竟鐣欑櫧鍙暀涓€鐐圭偣).
 - Removed mock chapters list and UI references to yield space for vertical screen expansion.
 - Refactored [SubtitlePanel.tsx](file:///C:/Users/wang/esponal/src/app/watch/SubtitlePanel.tsx) to support `isOverlay?: boolean` property. When in overlay mode, it displays with a translucent glass dark backdrop (`bg-black/65 backdrop-blur-md`), accessible word and phrase contrast adjustments, and pops settings popovers and LookupCardStack upwards instead of downwards (avoiding container cropping).
 - Mounted `SubtitlePanel` overlay inside the player container in [WatchClient.tsx](file:///C:/Users/wang/esponal/src/app/watch/WatchClient.tsx), handling desktop normal and fullscreen display dynamically while removing redundant custom overlays.
@@ -1233,10 +1221,10 @@
 - Added reflexive lookup expansion in `scripts/lexicon/real-morphology.mjs`, so reflexive verbs now keep natural forms like `me levanto` while also exposing bare lookup forms like `levanto`.
 - Strengthened refresh context notes for reflexive and accented verbs.
 - Expanded `tests/lex002-step4.test.mjs` to lock the one-letter dirty-row guard and reflexive bare-form lookup behavior.
-- Repaired the live `e` row from bad verb data to `partOfSpeech="conj"`, `translationZh="和（元音前）"`, `forms=["e"]`, `morphology=null`.
+- Repaired the live `e` row from bad verb data to `partOfSpeech="conj"`, `translationZh="鍜岋紙鍏冮煶鍓嶏級"`, `forms=["e"]`, `morphology=null`.
 - Reran the skipped verbs with real writes:
   - `pedir`, `levantarse`, `sentarse` refreshed on the first targeted rerun
-  - `sonreír` refreshed on a final single-lemma retry after confirming DeepSeek could return a full paradigm
+  - `sonre铆r` refreshed on a final single-lemma retry after confirming DeepSeek could return a full paradigm
 
 **Verification**:
 - Focused tests: `node --test tests\lex002-step4.test.mjs` -> 6/6 pass.
@@ -1244,9 +1232,9 @@
 - Full suite: `npm test` -> 316/316 pass.
 - Live DB checks:
   - `e` now reads as conjunction with only `["e"]`
-  - `pedir` now includes `pido`, `pidió`, `pidiendo`
+  - `pedir` now includes `pido`, `pidi贸`, `pidiendo`
   - `levantarse` / `sentarse` now include both reflexive and bare forms (`me levanto` + `levanto`, `me siento` + `siento`)
-  - `sonreír` now has a full real morphology payload
+  - `sonre铆r` now has a full real morphology payload
 
 **Status**: LEX-005 is back to handoff-ready for PM/Codex2 spot-check. LEX-002 remains the active `in_progress` ticket, and the next dev step is the Step 4 pilot write.
 
@@ -1261,7 +1249,7 @@
   - strict JSON call path with `LEXICON_B1_MOCK_RESPONSES` test override
   - canonical lemma normalization, CEFR / POS normalization, example normalization
   - real verb morphology flattening and smoke gate for `poder`, `querer`, `estar`, `tener`, `ir`, `ser`, and `hacer`
-  - person-key normalization for `tú`, `él/ella/usted`, `ellos/ellas/ustedes`, and numeric array-style keys
+  - person-key normalization for `t煤`, `茅l/ella/usted`, `ellos/ellas/ustedes`, and numeric array-style keys
 - Added `scripts/lexicon/seed-b1-words.mjs` for LEX-002 Step 4:
   - default dry-run, `--write`, `--input`, `--skipped`, `--limit`, `--resume`, `--concurrency`
   - skips proper nouns / non-Spanish / outside B1-C1 entries into skipped JSON
@@ -1274,12 +1262,12 @@
 
 **Dry-run evidence**:
 - Real Step 4 sample from a temporary CSV:
-  - kept: `aprovechar` B1 verb with `aprovecho/aproveché/aprovecharé/aprovechando`; `entorno` B1 noun; `desafío` B1 noun
+  - kept: `aprovechar` B1 verb with `aprovecho/aprovech茅/aprovechar茅/aprovechando`; `entorno` B1 noun; `desaf铆o` B1 noun
   - skipped: `johnny` as English proper noun; `poder` as A1/outside target
 - Real LEX-005 sample against Neon:
-  - `poder`: before `podo/podes/podió/poderé`; after `puedo/puedes/pudo/podré/pudiendo`
-  - `querer`: before `quero/querió/quereré`; after `quiero/quiso/querré`
-  - `estar`: before `esto/estó`; after `estoy/está/estuvo`
+  - `poder`: before `podo/podes/podi贸/poder茅`; after `puedo/puedes/pudo/podr茅/pudiendo`
+  - `querer`: before `quero/queri贸/querer茅`; after `quiero/quiso/querr茅`
+  - `estar`: before `esto/est贸`; after `estoy/est谩/estuvo`
 
 **Verification**:
 - Red check: `node --test tests\lex002-step4.test.mjs` failed 4/4 before scripts existed.
@@ -1321,12 +1309,12 @@
 **Goal**: PM hit the context limit, so Codex1 took over the step-3 candidate CSV review gate and decided whether the rebuilt CSV could move toward Step 4.
 
 **Completed**:
-- Sampled `data/wordlist-b1-candidates.csv` head and stratified ranks. First self-review rejected the CSV: high-frequency forms such as `está/estás/están` were still standalone candidates, and simplemma projected several obvious nominal/adjectival forms into false infinitives (`esposa -> esposar`, `hermana -> hermanar`, `segura -> segurar`).
+- Sampled `data/wordlist-b1-candidates.csv` head and stratified ranks. First self-review rejected the CSV: high-frequency forms such as `est谩/est谩s/est谩n` were still standalone candidates, and simplemma projected several obvious nominal/adjectival forms into false infinitives (`esposa -> esposar`, `hermana -> hermanar`, `segura -> segurar`).
 - Added a conservative guard layer to `scripts/lexicon/build-wordlist-candidates.mjs`:
   - manual high-frequency form overrides for common existing verbs/constructions (`estar`, `haber`, `ser/ir`, `tener`, `poder`, `querer`, `hacer`, `decir`, `saber`, `sentir`, `gustar`, etc.)
   - false-infinitive projection guard for obvious nominal/adjectival `-ar` projections
   - new stats: `manual_overrides` and `guarded_lemma`
-- Added a focused regression test covering `está`, `siento`, `gusta`, and `esposa`.
+- Added a focused regression test covering `est谩`, `siento`, `gusta`, and `esposa`.
 - Regenerated `data/wordlist-b1-candidates.csv` from the real source.
 
 **Verification**:
@@ -1337,7 +1325,7 @@
   - ranks 201-1000: `multiNoLemma=2`
   - ranks 1001-5000: `multiNoLemma=21`
   - ranks 5001-15000: `multiNoLemma=74`
-  - probe forms `está/estás/están/creo/gusta/debe/debería/puedo/quiero/hizo/siento/he/hay/ven` no longer appear as candidates.
+  - probe forms `est谩/est谩s/est谩n/creo/gusta/debe/deber铆a/puedo/quiero/hizo/siento/he/hay/ven` no longer appear as candidates.
 - `npm test`: 309/309 pass.
 - `npm run lint:encoding -- --files ...`: pass.
 
@@ -1351,7 +1339,7 @@
 
 **Completed**:
 - Updated `docs/tickets/LEX-002.md` Step 4 with a hard gate: verb `forms[]` + `morphology` must be real and verifiable, not generated from the old naive conjugator unless it passes irregular smoke checks.
-- Added required smoke examples for `poder` (`puedo/puedes/pude/pudo/pudiendo/podré`), `querer` (`quiero/quieres/quise/querré`), and `estar` (`estoy/está/estuvo`).
+- Added required smoke examples for `poder` (`puedo/puedes/pude/pudo/pudiendo/podr茅`), `querer` (`quiero/quieres/quise/querr茅`), and `estar` (`estoy/est谩/estuvo`).
 - Added independent backlog ticket `docs/tickets/LEX-FORMS-001.md` for repairing existing A1-A2 word-kind verb morphology. This keeps the historical data cleanup separate from LEX-002's B1+ expansion.
 - Registered `LEX-FORMS-001` in `feature_list.json` as `todo`.
 
@@ -1623,10 +1611,8 @@
 
 ### QA Session #WATCH-002 Recheck - 2026-05-28 09:46
 
-**Goal**: Codex2补齐 WATCH-002 视觉截图证据，并复测视频页核心交互。
-
-**Result**: PARTIAL PASS。`WATCH-002` 继续保持 `in_progress`，返回 Codex1 补结束态推荐卡。
-
+**Goal**: Codex2琛ラ綈 WATCH-002 瑙嗚鎴浘璇佹嵁锛屽苟澶嶆祴瑙嗛椤垫牳蹇冧氦浜掋€?
+**Result**: PARTIAL PASS銆俙WATCH-002` 缁х画淇濇寔 `in_progress`锛岃繑鍥?Codex1 琛ョ粨鏉熸€佹帹鑽愬崱銆?
 **Verification**:
 - `npm test`: 256/256 pass.
 - `npm run build`: pass; generated static pages 107/107. Existing `<img>` and Sentry warnings only.
@@ -1649,7 +1635,7 @@
 **Goal**: Implement the WATCH-002 video player page frontend redesign based on the approved UI review.
 
 **Completed**:
-- **WatchClient.tsx**: New centralized client component managing YouTube Player lifecycle, 100ms time polling, auto-pause on word lookup, auto-resume on lookup close, shared speed/seek callbacks, desktop two-column layout (`lg:flex-row`), and mobile tab switcher (字幕/转写/查词/推荐).
+- **WatchClient.tsx**: New centralized client component managing YouTube Player lifecycle, 100ms time polling, auto-pause on word lookup, auto-resume on lookup close, shared speed/seek callbacks, desktop two-column layout (`lg:flex-row`), and mobile tab switcher (瀛楀箷/杞啓/鏌ヨ瘝/鎺ㄨ崘).
 - **SubtitlePanel.tsx**: Refactored to props-driven architecture, bilingual subtitle display (Spanish primary, Chinese gray), settings popover (size, display mode, speed), saved-word dotted underlines, vocabulary highlight via `/api/vocab/highlight`.
 - **TranscriptPanel.tsx**: Refactored to props-driven, active cue emerald highlight, 5-second detached browsing auto-restore, merged short cues, progressive loading.
 - **WatchSidebar.tsx**: New sidebar component with lookup/related tabs, auto-focus on active lookup.
@@ -1660,7 +1646,7 @@
 - `npm run build`: Production build completed successfully.
 - Design constraints: All 7 UI-DESIGN-CONSTRAINTS.md prohibitions verified clean.
 
-**Status**: `in_progress` — frontend implementation complete, pending Codex2 QA verification.
+**Status**: `in_progress` 鈥?frontend implementation complete, pending Codex2 QA verification.
 
 ---
 
@@ -1701,7 +1687,7 @@
   - Implemented immersive reading view (max-width `65ch`, Eb Garamond / Playfair Display font styling).
   - Wired settings popover to change font size (sm/md/lg) and lookup mode (dock vs float).
   - Implemented client-side localStorage reading position hook `useReadingPosition` for scroll restoration.
-  - Implemented silent `已读` badge at the end of the text on 90% scroll complete.
+  - Implemented silent `宸茶` badge at the end of the text on 90% scroll complete.
   - Styled already-saved words with a subtle dotted underline (`text-decoration-style: dotted`).
   - Implemented all Light/Dark/Mobile and word clicked layout variations.
 - **NAV-001 Fix**:
@@ -1812,9 +1798,9 @@
   - Verified tests passed and updated `feature_list.json` to `passing`.
 - **NAV-001**:
   - **SiteNav.tsx**: Semantically grouped links into learning items and tool items, and added a vertical divider between the groups on desktop.
-  - **MobileNav.tsx**: Reworked mobile drawer with a glassmorphism backdrop, branded logo header, uppercase section titles ("学习" vs "工具"), active indicators (left-colored border), and full dark mode support.
+  - **MobileNav.tsx**: Reworked mobile drawer with a glassmorphism backdrop, branded logo header, uppercase section titles ("瀛︿範" vs "宸ュ叿"), active indicators (left-colored border), and full dark mode support.
   - **GlobalSearchOverlay.tsx**: Created a new full-screen mobile search overlay with a search input, cancel button, and backdrop close behavior.
-  - **SiteHeader.tsx**: Wired `GlobalSearchOverlay` mobile trigger button and updated desktop search placeholder to "搜索内容...".
+  - **SiteHeader.tsx**: Wired `GlobalSearchOverlay` mobile trigger button and updated desktop search placeholder to "鎼滅储鍐呭...".
 
 **Verification**:
 - `npm test`: 256/256 tests passed.
@@ -1939,7 +1925,7 @@
 **Completed**:
 - Modified `src/app/page.tsx` to remove YouTube video fetches and sections rendering from the homepage.
 - Updated `src/app/watch/page.tsx` to query and render the three YouTube channels when no video ID parameter is provided.
-- Modified `SiteNav.tsx` and `MobileNav.tsx` to map "视频" navigation links to `/watch` in the UI while keeping static string contracts.
+- Modified `SiteNav.tsx` and `MobileNav.tsx` to map "瑙嗛" navigation links to `/watch` in the UI while keeping static string contracts.
 - Updated E2E tests in `tests/e2e/anon-home-to-watch.spec.ts` to navigate to `/watch` when locating video cards.
 
 **Verification**:
@@ -1952,14 +1938,14 @@
 
 **Goal**: Codex2 QA retest for the homepage navigation text adjustments and logo redirect behavior.
 
-**Result**: PASS. PC and mobile navigation updated to list "首页" first while hiding the duplicate "视频" item. Clicking the Esponal logo successfully routes to "/".
+**Result**: PASS. PC and mobile navigation updated to list "棣栭〉" first while hiding the duplicate "瑙嗛" item. Clicking the Esponal logo successfully routes to "/".
 
 **Verification**:
 - `npm test`: 253/253 pass.
 - `npm run build`: pass.
 - Code inspection confirmed:
-  - `{ label: "首页", href: "/" }` prepended to `navItems`.
-  - `{ label: "视频", href: "/" }` kept for compatibility with static regex tests, but filtered out in JSX render.
+  - `{ label: "棣栭〉", href: "/" }` prepended to `navItems`.
+  - `{ label: "瑙嗛", href: "/" }` kept for compatibility with static regex tests, but filtered out in JSX render.
   - Logo routes to `/`.
 
 ---
@@ -2012,7 +1998,7 @@
 **Completed**:
 - Updated `LearningStepCard` to use an equal-height flex column layout.
 - Reserved a fixed progress-badge slot for every card, including cards without progress text.
-- Anchored the `进入学习` CTA to the bottom of each card.
+- Anchored the `杩涘叆瀛︿範` CTA to the bottom of each card.
 - Added a regression test for the equal-height layout contract.
 
 **Verification**:
@@ -2101,12 +2087,12 @@
 
 **Goal**: Claude2 visual acceptance for all three P2 tickets.
 
-**Result**: All three PASS. One encoding bug fixed inline: `·` (U+00B7) corrupted to 「路」 in VocabDashboard.tsx, page.tsx, and two test files. Fixed and re-verified: npm test 249/249.
+**Result**: All three PASS. One encoding bug fixed inline: `路` (U+00B7) corrupted to 銆岃矾銆?in VocabDashboard.tsx, page.tsx, and two test files. Fixed and re-verified: npm test 249/249.
 
 **Status updates**:
-- VOCAB-011 → passing
-- READ-001（阅读记录）→ passing
-- HOME-001 → passing
+- VOCAB-011 鈫?passing
+- READ-001锛堥槄璇昏褰曪級鈫?passing
+- HOME-001 鈫?passing
 
 **All P2 tickets complete. Platform now has: LookupCard saved state, vocab dashboard, reading history, and homepage with learning path.**
 
@@ -2343,7 +2329,7 @@
 - Source contract checks passed:
   - `content/phonics/alphabet.ts` defines `PronunciationRule` data and `rules?:` on alphabet letters.
   - rule-backed letters include reviewed variable sets B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z.
-  - `src/app/phonics/AlphabetGrid.tsx` uses the reviewed modal/sheet interaction with `rounded-t-card`, `sm:max-w-lg`, the `bg-brand-400` indicator dot, and `查看发音` trigger.
+  - `src/app/phonics/AlphabetGrid.tsx` uses the reviewed modal/sheet interaction with `rounded-t-card`, `sm:max-w-lg`, the `bg-brand-400` indicator dot, and `鏌ョ湅鍙戦煶` trigger.
   - generated audio inventory includes 84 `syllables/*.mp3` files plus the expanded rule-word set.
 - `npm test`: 237/237 pass.
 - `npm run build`: pass with existing `<img>` and Sentry warnings.
@@ -2380,8 +2366,8 @@
 - `node --test tests/course005.test.mjs tests/course006.test.mjs`: 15/15 pass.
 - Source contract checks passed:
   - `src/app/api/dissect/analyze/route.ts` exports `POST`, validates `sentence`, returns 400 for bad input, and contains the `tokens` / `impliedSubject` / `naturalEnglish` / `insertBeforeIndex` JSON contract.
-  - `src/app/dissect/DissectorClient.tsx` keeps immediate skeleton highlighting and adds async `analysis` state, `fetch("/api/dissect/analyze")`, `分析中…`, `分析暂不可用`, `逐词对照`, implied-subject styling, and natural-English footer rendering.
-  - Gloss layout uses `flex flex-nowrap overflow-x-auto`, token columns with `inline-flex flex-col items-center min-w-[2rem]`, brand-highlighted implied subject chips, and the `→` footer row.
+  - `src/app/dissect/DissectorClient.tsx` keeps immediate skeleton highlighting and adds async `analysis` state, `fetch("/api/dissect/analyze")`, `鍒嗘瀽涓€, `鍒嗘瀽鏆備笉鍙敤`, `閫愯瘝瀵圭収`, implied-subject styling, and natural-English footer rendering.
+  - Gloss layout uses `flex flex-nowrap overflow-x-auto`, token columns with `inline-flex flex-col items-center min-w-[2rem]`, brand-highlighted implied subject chips, and the `鈫抈 footer row.
 - `npm test`: 237/237 pass.
 - `npm run build`: pass with existing `<img>` and Sentry warnings.
 
@@ -2395,7 +2381,7 @@
 **Completed**:
 - Added `src/app/dissect/analysis.ts` with shared types plus a local fallback analyzer that tokenizes punctuation separately, infers simple omitted subjects, and builds glosses from function words and dictionary lookups.
 - Added `src/app/api/dissect/analyze/route.ts` to validate `sentence`, call DeepSeek in JSON mode when configured, and fall back to the local analyzer when the model is unavailable.
-- Reworked `src/app/dissect/DissectorClient.tsx` to keep the existing immediate skeleton highlight while adding `analysis` async state, `分析中…` / `分析暂不可用` states, and a separate `逐词对照` card.
+- Reworked `src/app/dissect/DissectorClient.tsx` to keep the existing immediate skeleton highlight while adding `analysis` async state, `鍒嗘瀽涓€ / `鍒嗘瀽鏆備笉鍙敤` states, and a separate `閫愯瘝瀵圭収` card.
 - Rendered aligned token columns, inserted omitted-subject chips in brand styling, and added the natural-English footer row.
 - Added `tests/course006.test.mjs`.
 
@@ -2415,7 +2401,7 @@
 **Completed**:
 - Added `content/phonics/prosody.ts` with three stress rules, six clickable example words, and three sinalefa sentences with merge-span metadata.
 - Added `src/app/phonics/PhonicsProsody.tsx` and mounted it below `AlphabetGrid` in `src/app/phonics/page.tsx`.
-- Rendered the reviewed two-block layout: `Acentuación` and `Sinalefa`, with stressed syllables in `font-bold text-brand-600` and merged vowels in `border-b-2 border-brand-400`.
+- Rendered the reviewed two-block layout: `Acentuaci贸n` and `Sinalefa`, with stressed syllables in `font-bold text-brand-600` and merged vowels in `border-b-2 border-brand-400`.
 - Extended `scripts/generate-phonics-audio.mjs` to generate `/audio/phonics/stress/*.mp3` and `/audio/phonics/sinalefa/*.mp3`.
 - Added `tests/phon004.test.mjs`.
 
@@ -2434,7 +2420,7 @@
 
 **Completed**:
 - Extended `content/phonics/alphabet.ts` with `PronunciationRule` / `PronunciationRuleWord` data for the reviewed variable letters: B/V, C, CH, D, G, H, LL, Q, R, X, Y, and Z.
-- Reworked `src/app/phonics/AlphabetGrid.tsx` so letters with rules show a small brand dot plus a `查看发音` trigger, then open a desktop modal / mobile bottom sheet instead of expanding the grid inline.
+- Reworked `src/app/phonics/AlphabetGrid.tsx` so letters with rules show a small brand dot plus a `鏌ョ湅鍙戦煶` trigger, then open a desktop modal / mobile bottom sheet instead of expanding the grid inline.
 - Added per-rule condition chips, syllable playback buttons, and example-word rows inside the modal while keeping plain fixed-pronunciation letters visually unchanged.
 - Extended `scripts/generate-phonics-audio.mjs` to derive syllable audio and rule-word audio from `SPANISH_ALPHABET`, then generated the new `/audio/phonics/syllables/*.mp3` set and expanded word inventory.
 - Added `tests/phon003.test.mjs` and updated `tests/phon001.test.mjs` so the shared `AudioButton` abstraction remains covered without depending on the old inline JSX literals.
@@ -2454,7 +2440,7 @@
 
 **Completed**:
 - Added `content/phonics/foundations.ts` with structured data for vowels, strong/weak vowel examples, diphthongs, and the extra audio-generation word list.
-- Added `src/app/phonics/PhonicsIntro.tsx` with three reviewed sections: `Vocales`, `Vocales fuertes / débiles`, and `Diptongo`, all wired to the existing playback-rate audio behavior.
+- Added `src/app/phonics/PhonicsIntro.tsx` with three reviewed sections: `Vocales`, `Vocales fuertes / d茅biles`, and `Diptongo`, all wired to the existing playback-rate audio behavior.
 - Inserted the intro module above `AlphabetGrid` in `src/app/phonics/page.tsx` with the requested `mb-10 border-b border-gray-100 pb-10` separation.
 - Extended `scripts/generate-phonics-audio.mjs` to load PHON-002 foundation words and generated `bueno`, `ciudad`, and `aire` audio assets plus text caches.
 - Added `tests/phon002.test.mjs` and updated `tests/phon001.test.mjs` so PHON-001 still requires the original 27 core word files while allowing new phonics words to coexist.
@@ -2474,7 +2460,7 @@
 
 **Goal**: Codex2 QA for archive-session flow, 7-day cleanup, and cron wiring on `/talk/[characterId]`.
 
-**Result**: PASS for functional QA. Because TALK-003 is a UI ticket, `feature_list.json` remains `ready_for_qa`; 待 Claude2 UI 验收.
+**Result**: PASS for functional QA. Because TALK-003 is a UI ticket, `feature_list.json` remains `ready_for_qa`; 寰?Claude2 UI 楠屾敹.
 
 **Verification**:
 - `node --test tests/talk003.test.mjs`: 3/3 pass.
@@ -2497,10 +2483,10 @@
 **Goal**: Apply PM's small return items: unify TALK-006 fallback copy and fix PHON-001 accent marks plus regenerated audio.
 
 **Completed**:
-- Replaced TALK-006's user-visible downgrade copy with `本机识别不可用，已切换到浏览器识别` in both fallback branches.
+- Replaced TALK-006's user-visible downgrade copy with `鏈満璇嗗埆涓嶅彲鐢紝宸插垏鎹㈠埌娴忚鍣ㄨ瘑鍒玚 in both fallback branches.
 - Moved `unavailableReason` details out of UI and into `console.warn`.
 - Added a focused TALK-006 test guard so the fallback copy does not expose `Whisper` or `missing_env`.
-- Corrected PHON-001 examples to `día`, `jamón`, and `xilófono`.
+- Corrected PHON-001 examples to `d铆a`, `jam贸n`, and `xil贸fono`.
 - Added focused PHON-001 coverage for the accented examples.
 - Updated `scripts/generate-phonics-audio.mjs` with per-file text cache markers and regenerated the affected phonics word audio.
 
@@ -2521,15 +2507,15 @@
 
 **Goal**: Codex2 QA for PHON-001 Stage 0 alphabet pronunciation page on `/phonics`.
 
-**Result**: PASS for functional QA. Because PHON-001 is a UI ticket, `feature_list.json` remains `ready_for_qa`; 待 Claude2 UI 验收.
+**Result**: PASS for functional QA. Because PHON-001 is a UI ticket, `feature_list.json` remains `ready_for_qa`; 寰?Claude2 UI 楠屾敹.
 
 **Verification**:
 - `npm test`: 222/222 pass.
 - `node --test tests/phon001.test.mjs`: 6/6 pass.
 - `node --test tests/phon001.test.mjs tests/web013.test.mjs tests/web009.test.mjs tests/audio002.test.mjs`: 18/18 pass.
 - `npm run build`: pass; existing `<img>` and Sentry warnings remain.
-- Source/assets: `/phonics` imports `SiteHeader`, static alphabet has 27 entries including `Ñ`, grid classes are `grid-cols-3 sm:grid-cols-4 lg:grid-cols-5`, audio uses `getPlaybackRate()`, nav first item is `字母`, VISION Stage 0 is `🟢 部分完成`, letters MP3 count 27 min 7776 bytes, words MP3 count 27 min 8208 bytes.
-- Served HTML smoke on `http://127.0.0.1:3007/phonics`: HTTP 200, 27 cards, 54 audio buttons, first desktop/mobile nav is `字母`, `Ñ` badge/styling present, no deferred login/progress prompt, hero present.
+- Source/assets: `/phonics` imports `SiteHeader`, static alphabet has 27 entries including `脩`, grid classes are `grid-cols-3 sm:grid-cols-4 lg:grid-cols-5`, audio uses `getPlaybackRate()`, nav first item is `瀛楁瘝`, VISION Stage 0 is `馃煝 閮ㄥ垎瀹屾垚`, letters MP3 count 27 min 7776 bytes, words MP3 count 27 min 8208 bytes.
+- Served HTML smoke on `http://127.0.0.1:3007/phonics`: HTTP 200, 27 cards, 54 audio buttons, first desktop/mobile nav is `瀛楁瘝`, `脩` badge/styling present, no deferred login/progress prompt, hero present.
 
 **Browser note**:
 - Codex in-app browser navigation to `127.0.0.1:3007` and `localhost:3007` was blocked with `net::ERR_BLOCKED_BY_CLIENT`; served HTML and source checks were used for DOM/UI contract evidence.
@@ -2544,10 +2530,10 @@
 **Completed**:
 - Added `/phonics` with `SiteHeader`, hero copy, and the approved 27-letter alphabet grid.
 - Added static alphabet data in `content/phonics/alphabet.ts`.
-- Added `AlphabetGrid` with 3/4/5 columns, 3-line card hierarchy, labeled letter/example audio buttons, playback-rate integration, and `Ñ` brand treatment.
+- Added `AlphabetGrid` with 3/4/5 columns, 3-line card hierarchy, labeled letter/example audio buttons, playback-rate integration, and `脩` brand treatment.
 - Added `scripts/generate-phonics-audio.mjs`, `npm run audio:phonics`, and 54 generated mp3 assets.
-- Added `字母` as the first desktop/mobile nav item.
-- Updated `VISION.md` Stage 0 to `🟢 部分完成`.
+- Added `瀛楁瘝` as the first desktop/mobile nav item.
+- Updated `VISION.md` Stage 0 to `馃煝 閮ㄥ垎瀹屾垚`.
 
 **Verification**:
 - Baseline `npm test`: 216/216 pass.
@@ -2557,13 +2543,13 @@
 - `npm run lint:encoding`: pass.
 - `npm run build`: pass; existing `<img>`, Sentry, and Redis warnings remain.
 - `npm test`: 222/222 pass.
-- Browser smoke on `http://127.0.0.1:3006/phonics`: title/subtitle, first nav item `字母`, 27 cards, desktop 5-column grid, and `Ñ` badge confirmed.
+- Browser smoke on `http://127.0.0.1:3006/phonics`: title/subtitle, first nav item `瀛楁瘝`, 27 cards, desktop 5-column grid, and `脩` badge confirmed.
 
 **Status**: `PHON-001` is `ready_for_qa`; handoff returned to Codex2 and then Claude2 UI acceptance.
 
-# Esponal �?进度日志
+# Esponal 锟?杩涘害鏃ュ織
 
-> 每轮新会话先读本文件，每轮会话结束后更新�?
+> 姣忚疆鏂颁細璇濆厛璇绘湰鏂囦欢锛屾瘡杞細璇濈粨鏉熷悗鏇存柊锟?
 ### QA Session #TALK-005 - 2026-05-24
 
 **Goal**: Codex2 QA for the talk LookupCard left clipping fix in commit `c8a86f6`.
@@ -2633,31 +2619,31 @@
 
 **Status**: `TALK-002` remains `ready_for_qa`; handoff returned to Codex2.
 
-## 当前已验证状�?
-**仓库根目�?*：`C:\Users\wang\esponal`
+## 褰撳墠宸查獙璇佺姸锟?
+**浠撳簱鏍圭洰锟?*锛歚C:\Users\wang\esponal`
 
-**标准启动路径**：`npm run dev`（访�?http://localhost:3000�?
-**标准验证路径**：`npm test`
+**鏍囧噯鍚姩璺緞**锛歚npm run dev`锛堣锟?http://localhost:3000锟?
+**鏍囧噯楠岃瘉璺緞**锛歚npm test`
 
-**当前最高优先级未完成功�?*：`WEB-005`（Web 端点击查词）
+**褰撳墠鏈€楂樹紭鍏堢骇鏈畬鎴愬姛锟?*锛歚WEB-005`锛圵eb 绔偣鍑绘煡璇嶏級
 
-**当前 blocker**：无
+**褰撳墠 blocker**锛氭棤
 
-**已验证通过的功�?*（Priority 0�?3，共 14 个）�?- `INFRA-001`：项目脚手架
-- `VOCAB-001`：词汇数据模�?- `COURSE-001`：阶段一课程页面�?00 �?+ 300 WAV TTS 资产�?- `COURSE-002`：语法知识库
-- `VOCAB-002`：词�?Web 界面
-- `EXT-001`：Chrome 插件脚手�?- `EXT-002`：YouTube 双语字幕叠加
-- `EXT-003`：词形还�?+ 点击查词
-- `EXT-004`：已学词高亮
-- `VOCAB-003`：遭遇记录跳回视�?- `WEB-001`：首页频道卡片流（Codex2 复验通过�?026-05-14，三频道真实数据加载确认�?- `WEB-002`：YouTube Data API 接入（Codex2 复验通过�?026-05-14，三接口 HTTP 200 + 正确 channelTitle�?- `WEB-003`：播放器页基础
-- `WEB-004`：Web 端双语字幕（SubtitlePanel 100ms 轮询 + /api/subtitle 路由�?
-**待完成功能（按优先级�?*�?1. `WEB-005` �?Web 端点击查词（ticket 已写好，依赖 WEB-004 ✅）
-2. `WEB-006` �?Web 端词语高亮（ticket 已写好，依赖 WEB-005�?
-**重要运行环境注意**�?- dev server 必须�?`NODE_OPTIONS=--use-env-proxy` 启动，否�?Node.js 内置 fetch 不走系统代理，无法访�?`googleapis.com`
-- 本机代理端口：`127.0.0.1:7897`（`.env` 中已配置 `HTTPS_PROXY` �?`HTTP_PROXY`�?
+**宸查獙璇侀€氳繃鐨勫姛锟?*锛圥riority 0锟?3锛屽叡 14 涓級锟?- `INFRA-001`锛氶」鐩剼鎵嬫灦
+- `VOCAB-001`锛氳瘝姹囨暟鎹ā锟?- `COURSE-001`锛氶樁娈典竴璇剧▼椤甸潰锟?00 锟?+ 300 WAV TTS 璧勪骇锟?- `COURSE-002`锛氳娉曠煡璇嗗簱
+- `VOCAB-002`锛氳瘝锟?Web 鐣岄潰
+- `EXT-001`锛欳hrome 鎻掍欢鑴氭墜锟?- `EXT-002`锛歒ouTube 鍙岃瀛楀箷鍙犲姞
+- `EXT-003`锛氳瘝褰㈣繕锟?+ 鐐瑰嚮鏌ヨ瘝
+- `EXT-004`锛氬凡瀛﹁瘝楂樹寒
+- `VOCAB-003`锛氶伃閬囪褰曡烦鍥炶锟?- `WEB-001`锛氶椤甸閬撳崱鐗囨祦锛圕odex2 澶嶉獙閫氳繃锟?026-05-14锛屼笁棰戦亾鐪熷疄鏁版嵁鍔犺浇纭锟?- `WEB-002`锛歒ouTube Data API 鎺ュ叆锛圕odex2 澶嶉獙閫氳繃锟?026-05-14锛屼笁鎺ュ彛 HTTP 200 + 姝ｇ‘ channelTitle锟?- `WEB-003`锛氭挱鏀惧櫒椤靛熀纭€
+- `WEB-004`锛歐eb 绔弻璇瓧骞曪紙SubtitlePanel 100ms 杞 + /api/subtitle 璺敱锟?
+**寰呭畬鎴愬姛鑳斤紙鎸変紭鍏堢骇锟?*锟?1. `WEB-005` 锟?Web 绔偣鍑绘煡璇嶏紙ticket 宸插啓濂斤紝渚濊禆 WEB-004 鉁咃級
+2. `WEB-006` 锟?Web 绔瘝璇珮浜紙ticket 宸插啓濂斤紝渚濊禆 WEB-005锟?
+**閲嶈杩愯鐜娉ㄦ剰**锟?- dev server 蹇呴』锟?`NODE_OPTIONS=--use-env-proxy` 鍚姩锛屽惁锟?Node.js 鍐呯疆 fetch 涓嶈蛋绯荤粺浠ｇ悊锛屾棤娉曡锟?`googleapis.com`
+- 鏈満浠ｇ悊绔彛锛歚127.0.0.1:7897`锛坄.env` 涓凡閰嶇疆 `HTTPS_PROXY` 锟?`HTTP_PROXY`锟?
 ---
 
-## 会话记录
+## 浼氳瘽璁板綍
 
 ### QA Session #TALK-002 - 2026-05-23
 
@@ -2693,7 +2679,7 @@
 - Added `generateSessionTitle()` in `src/lib/talk/model-client.ts` with DeepSeek support and safe fallback.
 - Changed first-message fallback titles from 80 chars to 30 chars.
 - Reworked `/talk/[characterId]` into `max-w-app-shell` flex layout: 260px desktop sidebar + right `mx-auto max-w-3xl` chat column.
-- Added `TalkSidebar` with full-width `+ 新对话`, active 2px brand rail, 80vw mobile drawer + 20vw overlay, empty state, and 150ms title transition.
+- Added `TalkSidebar` with full-width `+ 鏂板璇漙, active 2px brand rail, 80vw mobile drawer + 20vw overlay, empty state, and 150ms title transition.
 - Updated `TalkClient` to read `?session=`, load selected history, update URL on session creation, refresh the sidebar, and trigger retitle after 4 turns.
 - Moved `TALK-002` to `ready_for_qa`.
 
@@ -2726,7 +2712,7 @@
 - Completed Carlos/es-* assistant messages use `SpanishText`.
 - User messages, non-Spanish characters, and streaming assistant messages remain plain text.
 - `sourceType=talk` is accepted by `LookupCard`, `/api/vocab/add`, and `src/lib/vocab.ts`.
-- `/vocab` displays talk encounters as `talk · Carlos` and links back to the talk URL.
+- `/vocab` displays talk encounters as `talk 路 Carlos` and links back to the talk URL.
 
 **Next**:
 - No Codex2 blocker for TALK-001.
@@ -2740,7 +2726,7 @@
 - Kept user messages, non-Spanish characters, and the actively streaming assistant message as plain text.
 - Extended `LookupSource`, `/api/vocab/add`, and `src/lib/vocab.ts` to support `sourceType=talk`.
 - Saved talk metadata through `courseRef` shaped like `talk:{characterId}:{sessionId}:m{messageIndex}`.
-- Updated `/vocab` encounter display to show talk sources as `talk · Carlos`.
+- Updated `/vocab` encounter display to show talk sources as `talk 路 Carlos`.
 - Added `tests/talk001.test.mjs`.
 - Moved `TALK-001` to `ready_for_qa`.
 
@@ -2834,7 +2820,7 @@
 
 **Completed**:
 - Verified WEB-015 app-shell width source contracts and preserved narrow reading pages.
-- Verified COURSE-005 function-word dictionary, `/dissect`, foundation overview/day pages, `/learn` banner, and `拆解` navigation.
+- Verified COURSE-005 function-word dictionary, `/dissect`, foundation overview/day pages, `/learn` banner, and `鎷嗚В` navigation.
 - Verified VOCAB-009 Phase A+B `SpanishText` extraction and `/grammar/[slug]` integration boundaries.
 - Verified hotfixes: reverse active-cue scan, `/watch` `lg:justify-start`, and `/watch` `lg:mt-2` BackLink breathing.
 - Moved WEB-015, COURSE-005, and VOCAB-009 to `passing`.
@@ -2908,7 +2894,7 @@
 
 **Completed**:
 - Added `src/content/foundation.ts` with 7 static Chinese lessons and structured comparison/contrast/usage data.
-- Added `/learn/foundation` overview with 7 day cards, Day 1 `lg:col-span-2`, and amber "推荐先读" pill.
+- Added `/learn/foundation` overview with 7 day cards, Day 1 `lg:col-span-2`, and amber "鎺ㄨ崘鍏堣" pill.
 - Added `/learn/foundation/[day]` detail route with static params, BackLink, four required content sections, 3-column comparison rows, contrast quote blocks, usage examples, and tri-link navigation.
 - Added amber foundation banner under the existing `/learn` hero.
 - Extended `tests/course005.test.mjs` with Phase 3 contracts.
@@ -2969,1270 +2955,1005 @@
 **Next**:
 - Codex2 QA should verify WEB-015, then hand to Claude2 for final UI acceptance.
 
-### 会话 #EXT-008-FIX3 — 2026-05-21
+### 浼氳瘽 #EXT-008-FIX3 鈥?2026-05-21
 
-**本轮目标**：修复 EXT-008 字幕缓存污染：非西语 timedtext 被强制归到 `es`，且 write-once 导致污染缓存无法自愈。
+**鏈疆鐩爣**锛氫慨澶?EXT-008 瀛楀箷缂撳瓨姹℃煋锛氶潪瑗胯 timedtext 琚己鍒跺綊鍒?`es`锛屼笖 write-once 瀵艰嚧姹℃煋缂撳瓨鏃犳硶鑷剤銆?
+**宸插畬鎴?*锛?- `extension/harvest.js` 鍒犻櫎 `normalizeLang`锛屾敼涓轰弗鏍?`isSpanishLang(code)`锛屽彧鍏佽 `es` / `es-*`銆?- `handleCapturedTimedtext` 鏂板 `capturedVideoId` 鏍￠獙锛岃姹?captured timedtext URL 鐨?`v` 鍙傛暟绛変簬褰撳墠椤甸潰瑙嗛 ID锛岄伩鍏嶅箍鍛?棰勭儹瑙嗛瀛楀箷姹℃煋椤甸潰瑙嗛缂撳瓨銆?- `handleCapturedTimedtext` 鐩存帴浣跨敤 URL 涓殑 `langParam`锛岄潪瑗胯绔嬪嵆 return锛屼笉鍐嶆妸 `en` 绛夎瑷€寮鸿浆涓?`es`銆?- `src/app/api/subtitle/ingest/route.ts` 鍒犻櫎 `redis.get` / `written:false` write-once 鍒嗘敮锛涘甫鏈夋晥 token 鐨?ingest 濮嬬粓瑕嗙洊缂撳瓨锛岃姹℃煋 key 鍙涓嬩竴娆℃纭?harvest 淇銆?- `tests/ext008.test.mjs` 鏂板濂戠害锛氬繀椤绘湁 `isSpanishLang` / `langParam`锛屼笉寰楁湁 `normalizeLang`锛宨ngest 璺敱涓嶅緱鍐嶈蛋 `redis.get` / `written:false`銆?- 浣跨敤鐢熶骇 build env 閲嶆柊 build/package 鎵╁睍锛屾洿鏂?`public/extension/esponal-extension.zip`銆?
+**楠岃瘉璁板綍**锛?- TDD 绾㈢伅锛歚node --test tests/ext008.test.mjs` 鍦ㄥ疄鐜板墠鍥犵己 `isSpanishLang` 鍜屼粛鏈?`redis.get` 璺緞澶辫触銆?- 瀹炵幇鍚庯細`node --test tests/ext008.test.mjs` 8/8 閫氳繃銆?- 杩藉姞瑙嗛 ID guard 绾㈢伅锛歚node --test tests/ext008.test.mjs` 鍥犵己 `capturedVideoId` 澶辫触锛涘疄鐜板悗 8/8 閫氳繃銆?- `tar -tf public/extension/esponal-extension.zip`锛氬寘鍚?`dist/harvest.js`銆乣dist/esponal-site.js`銆乣dist/hook-timedtext.js`銆?- `npm run lint:encoding`锛氶€氳繃銆?- `npm test`锛?73/173 閫氳繃銆?- `npm run build`锛氶€氳繃锛涗粎鏃㈡湁 `<img>`銆丼entry 璀﹀憡銆?
+**鍚庣画蹇呴』楠岃瘉**锛?- 宸?push/deploy 鍚庨噸鏂拌杞芥墿灞曞畬鎴愮敓浜?E2E銆?- 闈炵洰鏍?timedtext `v=oSKwZT3-x7U lang=en`銆乣v=S6O_x19Vvd8 lang=ar` 娌℃湁瑙﹀彂 ingest銆?- 鐩爣 timedtext `v=1A9kpjdYJUg lang=es` 瑙﹀彂 `/api/subtitle/ingest` 200锛宺esponse `{"success":true,"cueCount":808,"written":true}`銆?- `/api/subtitle?v=1A9kpjdYJUg` 杩斿洖瑗胯 cues锛屽紑澶翠负 `驴C贸mo cambi贸 tu vida aprender espa帽ol?`锛屾薄鏌撶紦瀛樺凡瑕嗙洊銆?
+### 浼氳瘽 #EXT-008-FIX2 鈥?2026-05-21
 
-**已完成**：
-- `extension/harvest.js` 删除 `normalizeLang`，改为严格 `isSpanishLang(code)`，只允许 `es` / `es-*`。
-- `handleCapturedTimedtext` 新增 `capturedVideoId` 校验，要求 captured timedtext URL 的 `v` 参数等于当前页面视频 ID，避免广告/预热视频字幕污染页面视频缓存。
-- `handleCapturedTimedtext` 直接使用 URL 中的 `langParam`，非西语立即 return，不再把 `en` 等语言强转为 `es`。
-- `src/app/api/subtitle/ingest/route.ts` 删除 `redis.get` / `written:false` write-once 分支；带有效 token 的 ingest 始终覆盖缓存，让污染 key 可被下一次正确 harvest 修复。
-- `tests/ext008.test.mjs` 新增契约：必须有 `isSpanishLang` / `langParam`，不得有 `normalizeLang`，ingest 路由不得再走 `redis.get` / `written:false`。
-- 使用生产 build env 重新 build/package 扩展，更新 `public/extension/esponal-extension.zip`。
+**鏈疆鐩爣**锛氫慨澶?EXT-008 FIX1 绔埌绔け璐ュ悗鐨?CORS preflight 鎷︽埅锛歒ouTube origin 璋?`/api/subtitle/ingest` 鏃剁己 `Access-Control-Allow-Origin`銆?
+**宸插畬鎴?*锛?- 鏇存柊 `src/app/api/subtitle/ingest/route.ts`锛屾柊澧?`CORS_HEADERS`銆乣OPTIONS()` 204 preflight handler銆?- 鏂板 `withCorsHeaders()` / `jsonResponse()` helper锛屾妸 POST 璺敱鍐呮墍鏈?JSON 鍝嶅簲缁熶竴甯︿笂 CORS headers銆?- 淇濈暀 429 鍝嶅簲鐨?`Retry-After` header銆?- 鏇存柊 `tests/ext008.test.mjs`锛屾柊澧?CORS header銆丱PTIONS handler銆佸崟涓€ response helper 濂戠害銆?- `feature_list.json` 涓?`EXT-008` 淇濇寔 `ready_for_qa`锛岃拷鍔?FIX2 evidence銆?
+**楠岃瘉璁板綍**锛?- TDD 绾㈢伅锛歚node --test tests/ext008.test.mjs` 鍦ㄥ疄鐜板墠鍥犵己 `CORS_HEADERS` 澶辫触銆?- 瀹炵幇鍚庯細`node --test tests/ext008.test.mjs` 8/8 閫氳繃銆?- `npm run lint:encoding`锛氶€氳繃銆?- `npm test`锛?73/173 閫氳繃銆?- `npm run build`锛氶€氳繃锛涗粎鏃㈡湁 `<img>`銆丼entry 璀﹀憡銆?
+**鍚庣画蹇呴』楠岃瘉**锛?- 宸?push 鍒?`origin/main`锛岀敓浜?OPTIONS preflight 楠岃瘉閫氳繃锛?04 + CORS headers銆?- Chrome remote debugging + 鏈湴鎵╁睍鐪熸満楠岃瘉閫氳繃锛歒ouTube `/api/timedtext` 200锛宍/api/subtitle/ingest` POST 200锛宺esponse `{"success":true,"cueCount":19,"written":true}`銆?- 浠嶅彲瑙佹棫 EXT-002 content.js 瀵?localhost translate/highlight 鐨?CORS warning锛屼絾涓嶅奖鍝?EXT-008 ingest銆?
+### 浼氳瘽 #EXT-008-FIX 鈥?2026-05-21
 
-**验证记录**：
-- TDD 红灯：`node --test tests/ext008.test.mjs` 在实现前因缺 `isSpanishLang` 和仍有 `redis.get` 路径失败。
-- 实现后：`node --test tests/ext008.test.mjs` 8/8 通过。
-- 追加视频 ID guard 红灯：`node --test tests/ext008.test.mjs` 因缺 `capturedVideoId` 失败；实现后 8/8 通过。
-- `tar -tf public/extension/esponal-extension.zip`：包含 `dist/harvest.js`、`dist/esponal-site.js`、`dist/hook-timedtext.js`。
-- `npm run lint:encoding`：通过。
-- `npm test`：173/173 通过。
-- `npm run build`：通过；仅既有 `<img>`、Sentry 警告。
+**鏈疆鐩爣**锛氫慨澶?EXT-008 鐪熸満澶辫触锛歝ontent script 鐩存帴 fetch YouTube 瀛楀箷缂?PO Token锛屽鑷村彧鎷垮埌绌哄３ JSON銆?
+**宸插畬鎴?*锛?- 鏂板 `extension/hook-timedtext.js`锛屽湪 YouTube 椤甸潰 MAIN world hook `window.fetch` 鍜?`XMLHttpRequest`锛屾崟鑾?YouTube player 鑷繁璇锋眰鍒扮殑 `/api/timedtext?` 鍝嶅簲浣撱€?- 鏇存柊 `extension/background.js`锛屾柊澧?`esponal-install-hook` 娑堟伅澶勭悊锛岀敤 `chrome.scripting.executeScript({ world: "MAIN", files: ["dist/hook-timedtext.js"] })` 娉ㄥ叆 hook銆?- 鏇存柊 `extension/harvest.js`锛岀Щ闄ょ洿鎺?`fetch(track.baseUrl + "&fmt=json3")` 璺緞锛屾敼涓虹洃鍚?`esponal-captured-timedtext`銆佽В鏋?JSON3銆佸幓閲嶅苟娌跨敤鏃㈡湁 `/api/subtitle/ingest`銆?- 鏇存柊 `extension/manifest.json`銆乣extension/scripts/build.mjs`銆乣extension/scripts/package.mjs`锛岀‘淇?`dist/hook-timedtext.js` 鍙闂€佸彲鏋勫缓銆佸彲鎵撳寘銆?- 鎵╁睍 `tests/ext008.test.mjs` 鍜?`tests/extension.test.mjs`锛岃鐩?hook 鏂囦欢銆丮AIN world 娉ㄥ叆銆乵anifest web_accessible_resources銆乸ackage contents锛屼互鍙娾€滀笉鍐嶇洿鎺?fetch YouTube track baseUrl鈥濈殑鍥炲綊濂戠害銆?- 閲嶆柊鐢熸垚 `public/extension/esponal-extension.zip`銆?- `feature_list.json` 涓?`EXT-008` 鏀逛负 `ready_for_qa`锛岀瓑寰?Codex2 鐪熸満 QA銆?
+**楠岃瘉璁板綍**锛?- `node --test tests/ext008.test.mjs tests/extension.test.mjs`锛?2/12 閫氳繃銆?- `npm run build` in `extension/`锛氶€氳繃銆?- `npm run package` in `extension/`锛氶€氳繃锛寊ip 鍐呭惈 `dist/hook-timedtext.js`銆?- `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`锛?4/24 閫氳繃銆?- `npm run lint:encoding`锛氶€氳繃銆?- `npm test`锛?73/173 閫氳繃銆?- `npm run build`锛氶€氳繃锛涗粎鏃㈡湁 `<img>`銆丼entry銆乴ocal Redis `ECONNREFUSED` 鍣０銆?
+**鏈鐩栭闄?*锛?- 鏈疆 Codex1 鏈仛鐪熷疄 Chrome/YouTube E2E銆傚師鍥狅細鏈湴 shell 鏈毚闇叉墿灞曟瀯寤烘墍闇€ `EXT_INGEST_TOKEN` / `ESPONAL_APP_ORIGIN`锛屼笖鏈氦浜掑紡瀹夎鎵╁睍鍒?Chrome銆侰odex2/PM 闇€瑕佹寜 `docs/tickets/EXT-008-FIX.md` 鐪熸満楠岃瘉 PO Token-backed timedtext capture銆?
+### 浼氳瘽 #1 锟?2026-05-13
 
-**后续必须验证**：
-- 已 push/deploy 后重新装载扩展完成生产 E2E。
-- 非目标 timedtext `v=oSKwZT3-x7U lang=en`、`v=S6O_x19Vvd8 lang=ar` 没有触发 ingest。
-- 目标 timedtext `v=1A9kpjdYJUg lang=es` 触发 `/api/subtitle/ingest` 200，response `{"success":true,"cueCount":808,"written":true}`。
-- `/api/subtitle?v=1A9kpjdYJUg` 返回西语 cues，开头为 `¿Cómo cambió tu vida aprender español?`，污染缓存已覆盖。
+**鏈疆鐩爣**锛氫骇鍝佽锟?+ 椤圭洰瑙勮寖寤虹珛
 
-### 会话 #EXT-008-FIX2 — 2026-05-21
+**宸插畬锟?*锟?- 璋冪爺瑗胯楂樻晥瀛︿範鏂规硶锛圫RS/FSRS銆佸彲鐞嗚В杈撳叆銆丼entence Mining銆丼hadowing锟?- 鐮旂┒绔炲搧锛欴uolingo銆丩ingQ銆丩anguage Reactor銆丏ejaVocab
+- 纭畾浜у搧瀹氫綅锛氬叴瓒ｉ┍鍔ㄥ涔犱即渚ｏ紝闈炲己鍒舵墦鍗¤锟?- 纭畾鎶€鏈柟妗堬細Web 绔叆闂ㄥ寘 + Chrome 鎻掍欢 + 鍏变韩璇嶅簱锛堟柟锟?C锟?- 瀹屾垚浜у搧璁捐鏂囨。锛歚docs/superpowers/specs/2026-05-13-esponal-design.md`
+- 寤虹珛椤圭洰瑙勮寖浣撶郴锛欳LAUDE.md銆丄GENTS.md銆佽鑹叉枃浠躲€乫eature_list.json 锟?
+**杩愯杩囩殑楠岃瘉**锛歚npm test`锛坰caffold 娴嬭瘯閫氳繃锟?
+**宸茶褰曡瘉锟?*锛氳璁℃枃锟?commit `6689048`
 
-**本轮目标**：修复 EXT-008 FIX1 端到端失败后的 CORS preflight 拦截：YouTube origin 调 `/api/subtitle/ingest` 时缺 `Access-Control-Allow-Origin`。
+**鎻愪氦璁板綍**锟?- `6689048` Add product design spec for Esponal Spanish learning platform
 
-**已完成**：
-- 更新 `src/app/api/subtitle/ingest/route.ts`，新增 `CORS_HEADERS`、`OPTIONS()` 204 preflight handler。
-- 新增 `withCorsHeaders()` / `jsonResponse()` helper，把 POST 路由内所有 JSON 响应统一带上 CORS headers。
-- 保留 429 响应的 `Retry-After` header。
-- 更新 `tests/ext008.test.mjs`，新增 CORS header、OPTIONS handler、单一 response helper 契约。
-- `feature_list.json` 中 `EXT-008` 保持 `ready_for_qa`，追加 FIX2 evidence。
+**宸茬煡椋庨櫓鎴栨湭瑙ｅ喅闂**锟?- AI 鍐呭鐢熸垚锛圡iniMax API锛夎川閲忛渶瑕佷汉宸ュ鏍告満锟?- YouTube 瀛楀箷鎻愬彇锛氳嚜鍔ㄧ敓鎴愬瓧骞曞噯纭巼锟?85-90%
+- 瑗胯璇嶅舰杩樺師锛氱敓鍍昏瘝/淇氳鍙兘澶辫触锛岄渶闄嶇骇澶勭悊
+- API Key 宸插湪瀵硅瘽涓嚭鐜帮紝鎻愰啋鐢ㄦ埛淇敼瀵嗙爜
 
-**验证记录**：
-- TDD 红灯：`node --test tests/ext008.test.mjs` 在实现前因缺 `CORS_HEADERS` 失败。
-- 实现后：`node --test tests/ext008.test.mjs` 8/8 通过。
-- `npm run lint:encoding`：通过。
-- `npm test`：173/173 通过。
-- `npm run build`：通过；仅既有 `<img>`、Sentry 警告。
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?Claude1锛圥M锛夊惎锟?`VOCAB-001` ticket锛屼氦锟?Codex1 瀹炵幇璇嶆眹鏁版嵁妯″瀷锛堟棤 UI 璇勫闇€瑕侊級
 
-**后续必须验证**：
-- 已 push 到 `origin/main`，生产 OPTIONS preflight 验证通过：204 + CORS headers。
-- Chrome remote debugging + 本地扩展真机验证通过：YouTube `/api/timedtext` 200，`/api/subtitle/ingest` POST 200，response `{"success":true,"cueCount":19,"written":true}`。
-- 仍可见旧 EXT-002 content.js 对 localhost translate/highlight 的 CORS warning，但不影响 EXT-008 ingest。
+### 浼氳瘽 #2 锟?2026-05-13
 
-### 会话 #EXT-008-FIX — 2026-05-21
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `VOCAB-001` 璇嶆眹鏁版嵁妯″瀷锛屽苟纭宸ヤ綔娴佹枃浠舵槸鍚︽崯鍧忥拷?
+**宸插畬锟?*锟?- 纭 `AGENTS.md`銆佽鑹叉枃浠躲€乣claude-progress.md`銆乣feature_list.json`銆乣session-handoff.md`銆佷骇鍝佽璁℃枃妗ｅ湪纾佺洏涓婁负 UTF-8 鍙锛汸owerShell 杈撳嚭涔辩爜涓嶆槸鏂囦欢鍐呭鎹熷潖
+- 纭 `feature_list.json` 鍙 JSON 瑙ｆ瀽锛屾湭淇敼浠讳綍鍔熻兘锟?`status` 锟?`evidence`
+- 鏂板 Prisma 璇嶆眹妯″瀷锛歚WordStatus`銆乣Word`銆乣WordEncounter`
+- 鏂板璇嶆眹杩佺Щ SQL锛歚prisma/migrations/20260513093000_add_vocab_models/migration.sql`
+- 鏂板璇嶅簱宸ュ叿鍑芥暟锛歚createWord`銆乣addEncounter`銆乣getWordsByUser`銆乣getWordWithEncounters`
+- 鏂板 `tests/vocab.test.mjs`
+- 鐢熸垚 `package-lock.json`
 
-**本轮目标**：修复 EXT-008 真机失败：content script 直接 fetch YouTube 字幕缺 PO Token，导致只拿到空壳 JSON。
+**杩愯杩囩殑楠岃瘉**锟?- `npm test`锟?/8 閫氳繃
+- `npm run lint`锛氶€氳繃
+- `npx prisma validate`锛氶€氳繃锛堜复鏃惰缃湰锟?`DATABASE_URL`锟?- `npx prisma generate`锛氶€氳繃
+- `npm run build`锛氶€氳繃
+- `npx prisma migrate diff --from-empty --to-schema-datamodel prisma\schema.prisma --script`锛氶€氳繃锛岃緭鍑哄寘锟?VOCAB-001 鐩稿叧 SQL
 
-**已完成**：
-- 新增 `extension/hook-timedtext.js`，在 YouTube 页面 MAIN world hook `window.fetch` 和 `XMLHttpRequest`，捕获 YouTube player 自己请求到的 `/api/timedtext?` 响应体。
-- 更新 `extension/background.js`，新增 `esponal-install-hook` 消息处理，用 `chrome.scripting.executeScript({ world: "MAIN", files: ["dist/hook-timedtext.js"] })` 注入 hook。
-- 更新 `extension/harvest.js`，移除直接 `fetch(track.baseUrl + "&fmt=json3")` 路径，改为监听 `esponal-captured-timedtext`、解析 JSON3、去重并沿用既有 `/api/subtitle/ingest`。
-- 更新 `extension/manifest.json`、`extension/scripts/build.mjs`、`extension/scripts/package.mjs`，确保 `dist/hook-timedtext.js` 可访问、可构建、可打包。
-- 扩展 `tests/ext008.test.mjs` 和 `tests/extension.test.mjs`，覆盖 hook 文件、MAIN world 注入、manifest web_accessible_resources、package contents，以及“不再直接 fetch YouTube track baseUrl”的回归契约。
-- 重新生成 `public/extension/esponal-extension.zip`。
-- `feature_list.json` 中 `EXT-008` 改为 `ready_for_qa`，等待 Codex2 真机 QA。
+**鏈畬鎴愭垨闃诲**锟?- 宸茶В鍐筹細鏈満 `5432` 锟?`linguaai-postgres` 鍗犵敤锛孍sponal 宸插浐瀹氭敼鐢ㄦ湰锟?`5433`锟?- 宸蹭慨姝ｏ細VOCAB migration 鏃堕棿鎴冲師鏈棭锟?init migration锛屽锟?shadow DB 鍏堣窇璇嶅簱杩佺Щ鏃舵壘涓嶅埌 `User` 琛紱宸查噸鍛藉悕锟?`20260513113000_add_vocab_models`锟?
+**浼氳瘽 #2 琛ュ厖璁板綍 锟?2026-05-13 11:17**锟?- `docker-compose.yml`锛歅ostgres 鏀逛负 `5433:5432`
+- `.env.example` 涓庢湰锟?`.env`锛歚DATABASE_URL` 鏀逛负 `localhost:5433`
+- `.gitignore`锛氬姞锟?`.claude`
+- `docker compose up -d postgres`锛氶€氳繃锛宍esponal-postgres-1` 鏄犲皠锟?`5433`
+- `npx prisma migrate dev --name add_vocab_models`锛氶€氳繃锛屽凡搴旂敤 init + VOCAB migrations
+- `npm test`锟?/8 閫氳繃
 
-**验证记录**：
-- `node --test tests/ext008.test.mjs tests/extension.test.mjs`：12/12 通过。
-- `npm run build` in `extension/`：通过。
-- `npm run package` in `extension/`：通过，zip 内含 `dist/hook-timedtext.js`。
-- `node --test tests/extension.test.mjs tests/ext002.test.mjs tests/ext005.test.mjs tests/ext008.test.mjs tests/web004.test.mjs tests/web012-whisper.test.mjs`：24/24 通过。
-- `npm run lint:encoding`：通过。
-- `npm test`：173/173 通过。
-- `npm run build`：通过；仅既有 `<img>`、Sentry、local Redis `ECONNREFUSED` 噪声。
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?浜ょ粰 Codex2 娴嬭瘯 `VOCAB-001`锟?
+### 浼氳瘽 #3 锟?2026-05-13
 
-**未覆盖风险**：
-- 本轮 Codex1 未做真实 Chrome/YouTube E2E。原因：本地 shell 未暴露扩展构建所需 `EXT_INGEST_TOKEN` / `ESPONAL_APP_ORIGIN`，且未交互式安装扩展到 Chrome。Codex2/PM 需要按 `docs/tickets/EXT-008-FIX.md` 真机验证 PO Token-backed timedtext capture。
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `VOCAB-001` 璇嶆眹鏁版嵁妯″瀷锟?
+**宸插畬锟?*锟?- 锟?`ROLE-QA.md` 鎵ц楠屾敹娴佺▼
+- 纭 Esponal Postgres 浣跨敤鏈満 `5433`锛孯edis 浣跨敤 `6379`
+- 澶嶅埗 `.env.example` 涓烘湰锟?`.env`
+- 杩愯 `npx prisma migrate dev`锛岀‘璁ゆ暟鎹簱锟?schema 鍚屾
+- 杩愯 `npm test`锟?/8 閫氳繃
+- 浣跨敤涓存椂 Prisma 鑴氭湰鐪熷疄鍒涘缓 `User`銆乣Word`銆乣WordEncounter`锛屽苟锟?`userId+lemma` 鏌ヨ楠岃瘉 forms 锟?encounters 杩斿洖姝ｇ‘
+- 鏇存柊 `feature_list.json`锛歚VOCAB-001` 鏍囪锟?`passing` 骞跺～锟?evidence
+- 锟?`session-handoff.md` 鍐欏叆娴嬭瘯 Report
 
-### 会话 #1 �?2026-05-13
+**杩愯杩囩殑楠岃瘉**锟?- `docker compose up -d postgres redis`锛氶€氳繃
+- `docker ps`锛氱‘锟?`esponal-postgres-1` 锟?`0.0.0.0:5433->5432/tcp`
+- `npx prisma migrate dev`锛氶€氳繃锛岃緭锟?`Already in sync, no schema change or pending migration was found.`
+- `npm test`锟?/8 閫氳繃
+- 涓存椂 Prisma CRUD 鑴氭湰锛氶€氳繃锛岃繑锟?`ok: true`銆乣lemma: ir`銆乣forms: [ir, fui, fueron, vas]`銆乣encounterCount: 1`
 
-**本轮目标**：产品设�?+ 项目规范建立
+**缁撹**锟?`VOCAB-001` 閫氳繃 Codex2 楠屾敹锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?锟?PM 鍚姩涓嬩竴涓渶楂樹紭鍏堢骇浠诲姟锛涙寜褰撳墠 handoff锛宍EXT-001` 鍙湪 `VOCAB-001` 閫氳繃鍚庡惎鍔紝`COURSE-001/COURSE-002/VOCAB-002` 浠嶉渶 Claude2 UI 璇勫锟?
+### 浼氳瘽 #4 锟?2026-05-13
 
-**已完�?*�?- 调研西语高效学习方法（SRS/FSRS、可理解输入、Sentence Mining、Shadowing�?- 研究竞品：Duolingo、LingQ、Language Reactor、DejaVocab
-- 确定产品定位：兴趣驱动学习伴侣，非强制打卡课�?- 确定技术方案：Web 端入门包 + Chrome 插件 + 共享词库（方�?C�?- 完成产品设计文档：`docs/superpowers/specs/2026-05-13-esponal-design.md`
-- 建立项目规范体系：CLAUDE.md、AGENTS.md、角色文件、feature_list.json �?
-**运行过的验证**：`npm test`（scaffold 测试通过�?
-**已记录证�?*：设计文�?commit `6689048`
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `EXT-001` Chrome 鎻掍欢鑴氭墜鏋讹拷?
+**宸插畬锟?*锟?- 鏂板 `extension/` 鐙珛鎻掍欢鐩綍
+- 鏂板 Manifest V3 閰嶇疆锛歚manifest.json`
+- 鏂板 service worker锛歚background.js`
+- 鏂板 YouTube watch 椤甸潰 content script锛歚content.js`
+- 鏂板鏋佺畝 popup锛歚popup.html`銆乣popup.js`
+- 鏂板鎻掍欢鐙珛鏋勫缓閰嶇疆锛歚extension/package.json`銆乣extension/package-lock.json`
+- 鏂板 `tests/extension.test.mjs`
+- 鏇存柊 `feature_list.json`锛歚EXT-001` 鏍囦负 `ready_for_qa`锛岀瓑锟?Codex2 楠屾敹
+- 鏇存柊 `session-handoff.md`锛氳褰曟湰杞敼鍔ㄤ笌锟?QA 锟?
+**杩愯杩囩殑楠岃瘉**锟?- `npm test`锟?2/12 閫氳繃
+- `npm install --cache ..\.npm-cache`锛堝湪 `extension/` 涓嬶級锛氶€氳繃
+- `npm run build`锛堝湪 `extension/` 涓嬶級锛氶€氳繃
 
-**提交记录**�?- `6689048` Add product design spec for Esponal Spanish learning platform
+**鏈獙锟?*锟?- Chrome 鎵╁睍绠＄悊椤靛姞锟?- YouTube 椤甸潰 icon 婵€锟?- 娴忚锟?console 锟?uncaught error
+- background service worker 鏃ュ織鍙
 
-**已知风险或未解决问题**�?- AI 内容生成（MiniMax API）质量需要人工审核机�?- YouTube 字幕提取：自动生成字幕准确率�?85-90%
-- 西语词形还原：生僻词/俚语可能失败，需降级处理
-- API Key 已在对话中出现，提醒用户修改密码
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?浜ょ粰 Codex2 楠屾敹 `EXT-001`锟?
+### 浼氳瘽 #5 锟?2026-05-13
 
-**下一步最佳动�?*�?Claude1（PM）启�?`VOCAB-001` ticket，交�?Codex1 实现词汇数据模型（无 UI 评审需要）
+**鏈疆鐩爣**锛欳odex2 鐙珛楠屾敹 `EXT-001` Chrome 鎻掍欢鑴氭墜鏋讹拷?
+**宸插畬锟?*锟?- 璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣session-handoff.md`銆乣feature_list.json`
+- 纭 `EXT-001` 褰撳墠鐘舵€佷负 `ready_for_qa`
+- 妫€锟?`extension/manifest.json`銆乣background.js`銆乣content.js`銆乣popup.html`銆乣popup.js`銆乣package.json`
+- 杩愯 `npm test`锟?2/12 閫氳繃
+- 杩愯 `npm run build`锛堝湪 `extension/` 涓嬶級锛氶€氳繃锛岃緭锟?`dist\content.js`銆乣dist\background.js`銆乣dist\popup.js`
+- 浣跨敤涓存椂 Chrome profile + DevTools Protocol 灏濊瘯楠岃瘉 YouTube watch 椤甸潰娉ㄥ叆
 
-### 会话 #2 �?2026-05-13
+**楠屾敹缁撴灉**锛氬け璐ワ拷?
+**澶辫触璇佹嵁**锟?- Chrome 璋冭瘯鐩爣涓浘鍑虹幇 `Service Worker chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js`锛岃鏄庢墿灞曟湁琚姞杞斤拷?- YouTube 椤甸潰 reload 鍚庯紝`document.documentElement.dataset.esponalExtensionReady` 杩斿洖 `null`锟?- `document.documentElement.classList.contains("esponal-extension-ready")` 杩斿洖 `false`锟?- CDP execution contexts 涓病锟?`chrome-extension://...` isolated context锛岃锟?`content.js` 鏈湪 YouTube watch 椤甸潰鎵ц锟?
+**褰撳墠鐘讹拷?*锟?- `feature_list.json` 鏈敼锟?`passing`锟?- `session-handoff.md` 宸插啓锟?EXT-001 澶辫触 QA report锟?- 涓嬩竴姝ュ簲杩斿洖 Codex1 淇 content script 鏈敞鍏ラ棶棰橈拷?
+### 浼氳瘽 #6 锟?2026-05-13
 
-**本轮目标**：Codex1 实现 `VOCAB-001` 词汇数据模型，并确认工作流文件是否损坏�?
-**已完�?*�?- 确认 `AGENTS.md`、角色文件、`claude-progress.md`、`feature_list.json`、`session-handoff.md`、产品设计文档在磁盘上为 UTF-8 可读；PowerShell 输出乱码不是文件内容损坏
-- 确认 `feature_list.json` 可被 JSON 解析，未修改任何功能�?`status` �?`evidence`
-- 新增 Prisma 词汇模型：`WordStatus`、`Word`、`WordEncounter`
-- 新增词汇迁移 SQL：`prisma/migrations/20260513093000_add_vocab_models/migration.sql`
-- 新增词库工具函数：`createWord`、`addEncounter`、`getWordsByUser`、`getWordWithEncounters`
-- 新增 `tests/vocab.test.mjs`
-- 生成 `package-lock.json`
+**鏈疆鐩爣**锛欳odex1 淇 Codex2 鍙戠幇锟?`EXT-001` content script 鏈敞鍏ラ棶棰橈拷?
+**宸插畬锟?*锟?- 鏍规嵁 Codex2 澶辫触 report 瀹氫綅鍒版墿灞曠己锟?YouTube host permission 鐨勯闄╃偣
+- `extension/manifest.json` 澧炲姞 `https://www.youtube.com/*` host permission
+- `tests/extension.test.mjs` 鍚屾楠岃瘉 YouTube host permission
+- `.gitignore` 澧炲姞 `.qa`
+- `feature_list.json` 淇濇寔 `EXT-001` 锟?`ready_for_qa`锛屾洿锟?Codex1 淇 evidence
+- `session-handoff.md` 鍐欏叆 Codex1 淇璁板綍
 
-**运行过的验证**�?- `npm test`�?/8 通过
-- `npm run lint`：通过
-- `npx prisma validate`：通过（临时设置本�?`DATABASE_URL`�?- `npx prisma generate`：通过
-- `npm run build`：通过
-- `npx prisma migrate diff --from-empty --to-schema-datamodel prisma\schema.prisma --script`：通过，输出包�?VOCAB-001 相关 SQL
+**杩愯杩囩殑楠岃瘉**锟?- `npm test`锟?2/12 閫氳繃
+- `npm run build`锛堝湪 `extension/` 涓嬶級锛氶€氳繃
+- Playwright bundled Chromium 鍔犺浇褰撳墠 `extension/` 鍚庢墦寮€ YouTube watch 椤甸潰锛岄獙锟?service worker 锟?`chrome-extension://.../background.js`锛岄〉锟?marker 杩斿洖 `readyDataset: "true"`銆乣readyClass: true`
 
-**未完成或阻塞**�?- 已解决：本机 `5432` �?`linguaai-postgres` 占用，Esponal 已固定改用本�?`5433`�?- 已修正：VOCAB migration 时间戳原本早�?init migration，导�?shadow DB 先跑词库迁移时找不到 `User` 表；已重命名�?`20260513113000_add_vocab_models`�?
-**会话 #2 补充记录 �?2026-05-13 11:17**�?- `docker-compose.yml`：Postgres 改为 `5433:5432`
-- `.env.example` 与本�?`.env`：`DATABASE_URL` 改为 `localhost:5433`
-- `.gitignore`：加�?`.claude`
-- `docker compose up -d postgres`：通过，`esponal-postgres-1` 映射�?`5433`
-- `npx prisma migrate dev --name add_vocab_models`：通过，已应用 init + VOCAB migrations
-- `npm test`�?/8 通过
+**鏈畬锟?*锟?- Codex2 锟?agent 澶嶉獙浠嶉渶鎵ц锛沗EXT-001` 涓嶈兘锟?Codex1 鑷鏍囪 `passing`锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?鎭㈠/閲嶅惎 Codex2 锟?agent锛屽 `EXT-001` 鍋氭渶锟?QA锟?
 
-**下一步最佳动�?*�?交给 Codex2 测试 `VOCAB-001`�?
-### 会话 #3 �?2026-05-13
+### 浼氳瘽 #7 锟?2026-05-13
 
-**本轮目标**：Codex2 验收 `VOCAB-001` 词汇数据模型�?
-**已完�?*�?- �?`ROLE-QA.md` 执行验收流程
-- 确认 Esponal Postgres 使用本机 `5433`，Redis 使用 `6379`
-- 复制 `.env.example` 为本�?`.env`
-- 运行 `npx prisma migrate dev`，确认数据库�?schema 同步
-- 运行 `npm test`�?/8 通过
-- 使用临时 Prisma 脚本真实创建 `User`、`Word`、`WordEncounter`，并�?`userId+lemma` 查询验证 forms �?encounters 返回正确
-- 更新 `feature_list.json`：`VOCAB-001` 标记�?`passing` 并填�?evidence
-- �?`session-handoff.md` 写入测试 Report
+**鏈疆鐩爣**锛欳odex2 澶嶉獙 `EXT-001` Chrome 鎻掍欢鑴氭墜鏋朵慨澶嶏拷?
+**宸插畬锟?*锟?- 閲嶆柊璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣session-handoff.md`銆乣feature_list.json`
+- 纭 `EXT-001` 淇鍚庝粛澶勪簬 `ready_for_qa`
+- 杩愯 `npm test`锟?2/12 閫氳繃
+- 杩愯 `npm run build`锛坄extension/`锛夛細閫氳繃锛岀敓锟?`dist/content.js`銆乣dist/background.js`銆乣dist/popup.js`
+- 浣跨敤 Playwright bundled Chromium 鍔犺浇 `C:\Users\wang\esponal\extension` 骞舵墦寮€ YouTube watch 椤甸潰
+- 楠岃瘉鎵╁睍 service worker 锟?`chrome-extension://.../background.js`
+- 楠岃瘉 `document.documentElement.dataset.esponalExtensionReady === "true"`
+- 楠岃瘉 `document.documentElement.classList.contains("esponal-extension-ready") === true`
+- 楠岃瘉 `pageErrorCount = 0`
+- 鏇存柊 `feature_list.json`锛歚EXT-001.status = passing`锛屽～锟?QA evidence
+- 鏇存柊 `session-handoff.md`锛氬啓鍏ュ畬锟?QA report
 
-**运行过的验证**�?- `docker compose up -d postgres redis`：通过
-- `docker ps`：确�?`esponal-postgres-1` �?`0.0.0.0:5433->5432/tcp`
-- `npx prisma migrate dev`：通过，输�?`Already in sync, no schema change or pending migration was found.`
-- `npm test`�?/8 通过
-- 临时 Prisma CRUD 脚本：通过，返�?`ok: true`、`lemma: ir`、`forms: [ir, fui, fueron, vas]`、`encounterCount: 1`
+**鍓╀綑闄愬埗**锟?- Chromium 鑷姩鍖栨棤娉曠洿鎺ヨ锟?toolbar icon 瑙嗚婵€娲荤姸鎬侊紱浠ユ墿灞曞姞杞藉拰 YouTube matched content script 鎴愬姛娉ㄥ叆浣滀负鍔熻兘璇佹嵁锟?- YouTube 椤甸潰鍑虹幇 1 鏉¤祫锟?403 console error锛屼笉灞炰簬鎵╁睍 uncaught exception锟?
+**缁撹**锛歚EXT-001` 閫氳繃 Codex2 澶嶉獙锟?
+### 浼氳瘽 #8 锟?2026-05-13
 
-**结论**�?`VOCAB-001` 通过 Codex2 验收�?
-**下一步最佳动�?*�?�?PM 启动下一个最高优先级任务；按当前 handoff，`EXT-001` 可在 `VOCAB-001` 通过后启动，`COURSE-001/COURSE-002/VOCAB-002` 仍需 Claude2 UI 评审�?
-### 会话 #4 �?2026-05-13
+**鏈疆鐩爣**锛欳odex1 骞惰寮€锟?`COURSE-001`銆乣COURSE-002`銆乣VOCAB-002`锟?
+**宸插畬锟?*锟?- 鍚姩涓変釜 worker 鍒嗗埆瀹炵幇璇剧▼闃舵涓€銆佽娉曠煡璇嗗簱銆佽瘝锟?Web 鐣岄潰
+- `COURSE-001`锛氭柊锟?`/learn/phase-1`銆佸彂闊宠鍒欏唴瀹广€侀樁娈典竴璇嶆眹 seed銆侀煶棰戞寜閽粍浠朵笌娴嬭瘯
+- `COURSE-002`锛氭柊锟?`/grammar`銆乣/grammar/[slug]`銆佽娉曞唴瀹广€佺Щ鍔ㄧ璇濋閫夋嫨鍣ㄤ笌娴嬭瘯
+- `VOCAB-002`锛氭柊锟?`/vocab` 鏈嶅姟绔〉闈€佺櫥褰曢噸瀹氬悜銆佽瘝锟?Accordion 瀹㈡埛绔粍浠朵笌娴嬭瘯
+- 鏇存柊 `feature_list.json`锛氫笁涓姛鑳芥爣璁颁负 `ready_for_qa`锛岀瓑锟?Codex2 楠屾敹
 
-**本轮目标**：Codex1 实现 `EXT-001` Chrome 插件脚手架�?
-**已完�?*�?- 新增 `extension/` 独立插件目录
-- 新增 Manifest V3 配置：`manifest.json`
-- 新增 service worker：`background.js`
-- 新增 YouTube watch 页面 content script：`content.js`
-- 新增极简 popup：`popup.html`、`popup.js`
-- 新增插件独立构建配置：`extension/package.json`、`extension/package-lock.json`
-- 新增 `tests/extension.test.mjs`
-- 更新 `feature_list.json`：`EXT-001` 标为 `ready_for_qa`，等�?Codex2 验收
-- 更新 `session-handoff.md`：记录本轮改动与�?QA �?
-**运行过的验证**�?- `npm test`�?2/12 通过
-- `npm install --cache ..\.npm-cache`（在 `extension/` 下）：通过
-- `npm run build`（在 `extension/` 下）：通过
+**杩愯杩囩殑楠岃瘉**锟?- `npm test`锟?1/21 閫氳繃
+- `npm run build`锛氶€氳繃
+- HTTP smoke锛歚/learn/phase-1` 杩斿洖 200
+- HTTP smoke锛歚/grammar` 杩斿洖 200锛岄〉闈㈠寘鍚€岃娉曠煡璇嗗簱锟?- HTTP smoke锛歚/grammar/ser` 杩斿洖 200锛岄〉闈㈠寘鍚€宻er 鐜板湪鏃跺彉浣嶏拷?- HTTP smoke锛氭湭鐧诲綍璁块棶 `/vocab` 杩斿洖 307锛孡ocation 锟?`/api/auth/signin`
 
-**未验�?*�?- Chrome 扩展管理页加�?- YouTube 页面 icon 激�?- 浏览�?console �?uncaught error
-- background service worker 日志可见
+**闇€锟?Codex2 閲嶇偣妫€锟?*锟?- `COURSE-001` 褰撳墠锟?18 涓唬琛ㄨ瘝 seed锛屽苟鍦ㄥ唴瀹规枃浠朵腑鏍囨敞 `targetCount: 300`锛涘皻鏈ˉ榻愬畬锟?300 璇嶏拷?- `COURSE-001` 闊抽鐩墠鏄潤鎬佽矾寰勫绾︼紝鐪熷疄 mp3 灏氭湭鐢熸垚锛涙寜閽細鍦ㄦ枃浠剁己澶辨椂鏄剧ず銆岄煶棰戞殏鏃朵笉鍙敤銆嶏拷?
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?浜ょ粰 Codex2 楠屾敹 `COURSE-001`銆乣COURSE-002`銆乣VOCAB-002`銆傝嫢 `COURSE-001` 锟?300 璇嶆垨闊抽鏂囦欢瑕佹眰涓嶉€氳繃锛岃繑锟?Codex1 琛ュ唴瀹逛笌闊抽璧勪骇锟?
 
-**下一步最佳动�?*�?交给 Codex2 验收 `EXT-001`�?
-### 会话 #5 �?2026-05-13
+### 浼氳瘽 #9 锟?2026-05-13
 
-**本轮目标**：Codex2 独立验收 `EXT-001` Chrome 插件脚手架�?
-**已完�?*�?- 读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`、`feature_list.json`
-- 确认 `EXT-001` 当前状态为 `ready_for_qa`
-- 检�?`extension/manifest.json`、`background.js`、`content.js`、`popup.html`、`popup.js`、`package.json`
-- 运行 `npm test`�?2/12 通过
-- 运行 `npm run build`（在 `extension/` 下）：通过，输�?`dist\content.js`、`dist\background.js`、`dist\popup.js`
-- 使用临时 Chrome profile + DevTools Protocol 尝试验证 YouTube watch 页面注入
-
-**验收结果**：失败�?
-**失败证据**�?- Chrome 调试目标中曾出现 `Service Worker chrome-extension://fignfifoniblkonapihmkfakmlgkbkcf/service_worker.js`，说明扩展有被加载�?- YouTube 页面 reload 后，`document.documentElement.dataset.esponalExtensionReady` 返回 `null`�?- `document.documentElement.classList.contains("esponal-extension-ready")` 返回 `false`�?- CDP execution contexts 中没�?`chrome-extension://...` isolated context，说�?`content.js` 未在 YouTube watch 页面执行�?
-**当前状�?*�?- `feature_list.json` 未改�?`passing`�?- `session-handoff.md` 已写�?EXT-001 失败 QA report�?- 下一步应返回 Codex1 修复 content script 未注入问题�?
-### 会话 #6 �?2026-05-13
-
-**本轮目标**：Codex1 修复 Codex2 发现�?`EXT-001` content script 未注入问题�?
-**已完�?*�?- 根据 Codex2 失败 report 定位到扩展缺�?YouTube host permission 的风险点
-- `extension/manifest.json` 增加 `https://www.youtube.com/*` host permission
-- `tests/extension.test.mjs` 同步验证 YouTube host permission
-- `.gitignore` 增加 `.qa`
-- `feature_list.json` 保持 `EXT-001` �?`ready_for_qa`，更�?Codex1 修复 evidence
-- `session-handoff.md` 写入 Codex1 修复记录
-
-**运行过的验证**�?- `npm test`�?2/12 通过
-- `npm run build`（在 `extension/` 下）：通过
-- Playwright bundled Chromium 加载当前 `extension/` 后打开 YouTube watch 页面，验�?service worker �?`chrome-extension://.../background.js`，页�?marker 返回 `readyDataset: "true"`、`readyClass: true`
-
-**未完�?*�?- Codex2 �?agent 复验仍需执行；`EXT-001` 不能�?Codex1 自行标记 `passing`�?
-**下一步最佳动�?*�?恢复/重启 Codex2 �?agent，对 `EXT-001` 做最�?QA�?
-
-### 会话 #7 �?2026-05-13
-
-**本轮目标**：Codex2 复验 `EXT-001` Chrome 插件脚手架修复�?
-**已完�?*�?- 重新读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`、`feature_list.json`
-- 确认 `EXT-001` 修复后仍处于 `ready_for_qa`
-- 运行 `npm test`�?2/12 通过
-- 运行 `npm run build`（`extension/`）：通过，生�?`dist/content.js`、`dist/background.js`、`dist/popup.js`
-- 使用 Playwright bundled Chromium 加载 `C:\Users\wang\esponal\extension` 并打开 YouTube watch 页面
-- 验证扩展 service worker �?`chrome-extension://.../background.js`
-- 验证 `document.documentElement.dataset.esponalExtensionReady === "true"`
-- 验证 `document.documentElement.classList.contains("esponal-extension-ready") === true`
-- 验证 `pageErrorCount = 0`
-- 更新 `feature_list.json`：`EXT-001.status = passing`，填�?QA evidence
-- 更新 `session-handoff.md`：写入完�?QA report
-
-**剩余限制**�?- Chromium 自动化无法直接观�?toolbar icon 视觉激活状态；以扩展加载和 YouTube matched content script 成功注入作为功能证据�?- YouTube 页面出现 1 条资�?403 console error，不属于扩展 uncaught exception�?
-**结论**：`EXT-001` 通过 Codex2 复验�?
-### 会话 #8 �?2026-05-13
-
-**本轮目标**：Codex1 并行开�?`COURSE-001`、`COURSE-002`、`VOCAB-002`�?
-**已完�?*�?- 启动三个 worker 分别实现课程阶段一、语法知识库、词�?Web 界面
-- `COURSE-001`：新�?`/learn/phase-1`、发音规则内容、阶段一词汇 seed、音频按钮组件与测试
-- `COURSE-002`：新�?`/grammar`、`/grammar/[slug]`、语法内容、移动端话题选择器与测试
-- `VOCAB-002`：新�?`/vocab` 服务端页面、登录重定向、词�?Accordion 客户端组件与测试
-- 更新 `feature_list.json`：三个功能标记为 `ready_for_qa`，等�?Codex2 验收
-
-**运行过的验证**�?- `npm test`�?1/21 通过
-- `npm run build`：通过
-- HTTP smoke：`/learn/phase-1` 返回 200
-- HTTP smoke：`/grammar` 返回 200，页面包含「语法知识库�?- HTTP smoke：`/grammar/ser` 返回 200，页面包含「ser 现在时变位�?- HTTP smoke：未登录访问 `/vocab` 返回 307，Location �?`/api/auth/signin`
-
-**需�?Codex2 重点检�?*�?- `COURSE-001` 当前�?18 个代表词 seed，并在内容文件中标注 `targetCount: 300`；尚未补齐完�?300 词�?- `COURSE-001` 音频目前是静态路径契约，真实 mp3 尚未生成；按钮会在文件缺失时显示「音频暂时不可用」�?
-**下一步最佳动�?*�?交给 Codex2 验收 `COURSE-001`、`COURSE-002`、`VOCAB-002`。若 `COURSE-001` �?300 词或音频文件要求不通过，返�?Codex1 补内容与音频资产�?
-
-### 会话 #9 �?2026-05-13
-
-**本轮目标**：Codex2 真实验收 COURSE-001、COURSE-002、VOCAB-002 三个 ready_for_qa ticket�?
-**已完�?*�?- �?Codex2 流程读取 AGENTS.md、roles/ROLE-QA.md、session-handoff.md、feature_list.json、设计规格�?- 运行 git status --short，开始时为空输出，确�?QA 前工作区干净�?- 运行 npm test�?1/21 通过�?- 运行 npm run build：通过，Next 生成 /learn/phase-1�?grammar�?grammar/[slug]�?vocab�?- 复用 3000 dev server 时发�?.next stale chunk 500；用临时 Node harness 启动干净 Next dev -p 3002 后完�?HTTP smoke�?- /learn/phase-1 返回 200 且关键文案存在，�?phase1-words.json 只有 18 个词，public/audio/words 不存在，COURSE-001 判定失败�?- /grammar �?/grammar/ser HTTP smoke 通过，六个核心动词、阴阳性规则、ser vs estar 内容�?UI 结构核查通过，COURSE-002 标记 passing�?- /vocab 未登录访�?307 �?/api/auth/signin；源码确�?getServerSession(authOptions)、未登录 redirect、登录后 getWordsByUser、Accordion 展开结构，VOCAB-002 标记 passing�?- 更新 feature_list.json、session-handoff.md�?
-**运行过的验证**�?- git status --short
+**鏈疆鐩爣**锛欳odex2 鐪熷疄楠屾敹 COURSE-001銆丆OURSE-002銆乂OCAB-002 涓変釜 ready_for_qa ticket锟?
+**宸插畬锟?*锟?- 锟?Codex2 娴佺▼璇诲彇 AGENTS.md銆乺oles/ROLE-QA.md銆乻ession-handoff.md銆乫eature_list.json銆佽璁¤鏍硷拷?- 杩愯 git status --short锛屽紑濮嬫椂涓虹┖杈撳嚭锛岀‘锟?QA 鍓嶅伐浣滃尯骞插噣锟?- 杩愯 npm test锟?1/21 閫氳繃锟?- 杩愯 npm run build锛氶€氳繃锛孨ext 鐢熸垚 /learn/phase-1锟?grammar锟?grammar/[slug]锟?vocab锟?- 澶嶇敤 3000 dev server 鏃跺彂锟?.next stale chunk 500锛涚敤涓存椂 Node harness 鍚姩骞插噣 Next dev -p 3002 鍚庡畬锟?HTTP smoke锟?- /learn/phase-1 杩斿洖 200 涓斿叧閿枃妗堝瓨鍦紝锟?phase1-words.json 鍙湁 18 涓瘝锛宲ublic/audio/words 涓嶅瓨鍦紝COURSE-001 鍒ゅ畾澶辫触锟?- /grammar 锟?/grammar/ser HTTP smoke 閫氳繃锛屽叚涓牳蹇冨姩璇嶃€侀槾闃虫€ц鍒欍€乻er vs estar 鍐呭锟?UI 缁撴瀯鏍告煡閫氳繃锛孋OURSE-002 鏍囪 passing锟?- /vocab 鏈櫥褰曡锟?307 锟?/api/auth/signin锛涙簮鐮佺‘锟?getServerSession(authOptions)銆佹湭鐧诲綍 redirect銆佺櫥褰曞悗 getWordsByUser銆丄ccordion 灞曞紑缁撴瀯锛孷OCAB-002 鏍囪 passing锟?- 鏇存柊 feature_list.json銆乻ession-handoff.md锟?
+**杩愯杩囩殑楠岃瘉**锟?- git status --short
 - npm test
 - npm run build
 - Node harness: next dev -p 3002 + HTTP smoke for /learn/phase-1, /grammar, /grammar/ser, /vocab
-- node/rg 内容与源码核查：phase1 words count、audio assets、grammar topics、vocab auth/accordion structure
+- node/rg 鍐呭涓庢簮鐮佹牳鏌ワ細phase1 words count銆乤udio assets銆乬rammar topics銆乿ocab auth/accordion structure
 
-**结论**�?- COURSE-001：失败，需 Codex1 补齐 300 词与真实 mp3 音频资产�?- COURSE-002：通过，feature_list.json 已标�?passing�?- VOCAB-002：通过，feature_list.json 已标�?passing；登录态真�?DB 页面渲染未执行，原因是本轮无可用登录 session fixture�?
-**下一步最佳动�?*：Codex1 修复 COURSE-001 的内容与音频资产后重新提�?QA；PM 可在不依�?COURSE-001 完成度的前提下决定是否启动其�?ticket�?
-### 会话 #10 �?2026-05-13
+**缁撹**锟?- COURSE-001锛氬け璐ワ紝闇€ Codex1 琛ラ綈 300 璇嶄笌鐪熷疄 mp3 闊抽璧勪骇锟?- COURSE-002锛氶€氳繃锛宖eature_list.json 宸叉爣锟?passing锟?- VOCAB-002锛氶€氳繃锛宖eature_list.json 宸叉爣锟?passing锛涚櫥褰曟€佺湡锟?DB 椤甸潰娓叉煋鏈墽琛岋紝鍘熷洜鏄湰杞棤鍙敤鐧诲綍 session fixture锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锛欳odex1 淇 COURSE-001 鐨勫唴瀹逛笌闊抽璧勪骇鍚庨噸鏂版彁锟?QA锛汸M 鍙湪涓嶄緷锟?COURSE-001 瀹屾垚搴︾殑鍓嶆彁涓嬪喅瀹氭槸鍚﹀惎鍔ㄥ叾锟?ticket锟?
+### 浼氳瘽 #10 锟?2026-05-13
 
-**本轮目标**：Codex1 修复 Codex2 退回的 `COURSE-001`�?
-**失败原因**�?- `content/curriculum/phase1-words.json` 只有 18 �?seed 词，不满�?300 词要求�?- `public/audio/words/` 不存在，没有可播�?TTS 音频资产�?
-**已完�?*�?- �?`phase1-words.json` 扩展为完�?`targetCount=300`�?00 个名词�?00 个动词�?00 个形容词/副词�?- 使用本机 Windows SAPI 西语声音 `Microsoft Sabina Desktop` 生成 300 个真实可播放 WAV 音频文件，路径为 `public/audio/words/*.wav`�?- 加严 `tests/course001.test.mjs`：要求正�?300 个词、每个词有对应音频资产且文件大小大于 1024 bytes�?- 更新 `feature_list.json` �?`COURSE-001` evidence，保�?`ready_for_qa`，等�?Codex2 复验�?
-**运行过的验证**�?- `node --test tests/course001.test.mjs`�?/3 通过
-- `npm test`�?1/21 通过
-- `npm run build`：通过
-- 干净 Next dev harness `-p 3003`：`/learn/phase-1` 返回 200；`/audio/words/casa.wav` 返回 200 `audio/wav`
+**鏈疆鐩爣**锛欳odex1 淇 Codex2 閫€鍥炵殑 `COURSE-001`锟?
+**澶辫触鍘熷洜**锟?- `content/curriculum/phase1-words.json` 鍙湁 18 锟?seed 璇嶏紝涓嶆弧锟?300 璇嶈姹傦拷?- `public/audio/words/` 涓嶅瓨鍦紝娌℃湁鍙挱锟?TTS 闊抽璧勪骇锟?
+**宸插畬锟?*锟?- 锟?`phase1-words.json` 鎵╁睍涓哄畬锟?`targetCount=300`锟?00 涓悕璇嶏拷?00 涓姩璇嶏拷?00 涓舰瀹硅瘝/鍓瘝锟?- 浣跨敤鏈満 Windows SAPI 瑗胯澹伴煶 `Microsoft Sabina Desktop` 鐢熸垚 300 涓湡瀹炲彲鎾斁 WAV 闊抽鏂囦欢锛岃矾寰勪负 `public/audio/words/*.wav`锟?- 鍔犱弗 `tests/course001.test.mjs`锛氳姹傛锟?300 涓瘝銆佹瘡涓瘝鏈夊搴旈煶棰戣祫浜т笖鏂囦欢澶у皬澶т簬 1024 bytes锟?- 鏇存柊 `feature_list.json` 锟?`COURSE-001` evidence锛屼繚锟?`ready_for_qa`锛岀瓑锟?Codex2 澶嶉獙锟?
+**杩愯杩囩殑楠岃瘉**锟?- `node --test tests/course001.test.mjs`锟?/3 閫氳繃
+- `npm test`锟?1/21 閫氳繃
+- `npm run build`锛氶€氳繃
+- 骞插噣 Next dev harness `-p 3003`锛歚/learn/phase-1` 杩斿洖 200锛沗/audio/words/casa.wav` 杩斿洖 200 `audio/wav`
 
-**限制说明**�?- 本机没有 `ffmpeg` �?MP3 编码器，因此本轮生成的是 WAV 资产而不�?MP3。它们是真实西语 TTS 音频，可播放；如 PM/QA 强制要求 MP3 格式，需要补编码器或�?Azure TTS 生成�?
-**下一步最佳动�?*�?交给 Codex2 复验 `COURSE-001`。若 WAV 格式可接受，通过后由 Codex2 标记 `passing`；若必须 MP3，返�?PM 决策音频生成方式�?
-### 会话 #11 �?2026-05-13
+**闄愬埗璇存槑**锟?- 鏈満娌℃湁 `ffmpeg` 锟?MP3 缂栫爜鍣紝鍥犳鏈疆鐢熸垚鐨勬槸 WAV 璧勪骇鑰屼笉锟?MP3銆傚畠浠槸鐪熷疄瑗胯 TTS 闊抽锛屽彲鎾斁锛涘 PM/QA 寮哄埗瑕佹眰 MP3 鏍煎紡锛岄渶瑕佽ˉ缂栫爜鍣ㄦ垨锟?Azure TTS 鐢熸垚锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?浜ょ粰 Codex2 澶嶉獙 `COURSE-001`銆傝嫢 WAV 鏍煎紡鍙帴鍙楋紝閫氳繃鍚庣敱 Codex2 鏍囪 `passing`锛涜嫢蹇呴』 MP3锛岃繑锟?PM 鍐崇瓥闊抽鐢熸垚鏂瑰紡锟?
+### 浼氳瘽 #11 锟?2026-05-13
 
-**本轮目标**：Codex2 复验 `COURSE-001` 300 词与音频资产修复�?
-**已完�?*�?- �?Codex2 流程读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`、`feature_list.json`、设计规格与 `claude-progress.md`�?- 运行 `git status --short`，开始时为空输出，确�?QA 前工作区干净�?- 核查 `content/curriculum/phase1-words.json`：`targetCount=300`，`words.length=300`，词性统计为 noun=100、verb=100、adjective=100，必填字段无缺失�?- 核查 `public/audio/words`：存�?300 �?WAV 文件，抽�?`abierto.wav`、`abrir-2.wav`、`abrir.wav` 均大�?1024 bytes�?- 运行 `node --test tests/course001.test.mjs`�?/3 通过�?- 运行 `npm test`�?1/21 通过�?- 运行 `npm run build`：通过，`/learn/phase-1` 正常静态生成�?- 使用干净 Next dev harness `-p 3006` �?HTTP smoke：`/learn/phase-1` 返回 200，包含「阶段一：入门词汇与发音」「发音规则」「高频词汇」；`/audio/words/casa.wav` 返回 200 `audio/wav`，长�?68416 bytes�?- 判定 WAV 作为真实可播�?TTS 音频可接受，更新 `feature_list.json`：`COURSE-001.status = passing` 并填�?Codex2 evidence�?- 更新 `session-handoff.md` 写入完整测试 report�?
-**运行过的验证**�?- `git status --short`
-- Node JSON/content 核查
+**鏈疆鐩爣**锛欳odex2 澶嶉獙 `COURSE-001` 300 璇嶄笌闊抽璧勪骇淇锟?
+**宸插畬锟?*锟?- 锟?Codex2 娴佺▼璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣session-handoff.md`銆乣feature_list.json`銆佽璁¤鏍间笌 `claude-progress.md`锟?- 杩愯 `git status --short`锛屽紑濮嬫椂涓虹┖杈撳嚭锛岀‘锟?QA 鍓嶅伐浣滃尯骞插噣锟?- 鏍告煡 `content/curriculum/phase1-words.json`锛歚targetCount=300`锛宍words.length=300`锛岃瘝鎬х粺璁′负 noun=100銆乿erb=100銆乤djective=100锛屽繀濉瓧娈垫棤缂哄け锟?- 鏍告煡 `public/audio/words`锛氬瓨锟?300 锟?WAV 鏂囦欢锛屾娊锟?`abierto.wav`銆乣abrir-2.wav`銆乣abrir.wav` 鍧囧ぇ锟?1024 bytes锟?- 杩愯 `node --test tests/course001.test.mjs`锟?/3 閫氳繃锟?- 杩愯 `npm test`锟?1/21 閫氳繃锟?- 杩愯 `npm run build`锛氶€氳繃锛宍/learn/phase-1` 姝ｅ父闈欐€佺敓鎴愶拷?- 浣跨敤骞插噣 Next dev harness `-p 3006` 锟?HTTP smoke锛歚/learn/phase-1` 杩斿洖 200锛屽寘鍚€岄樁娈典竴锛氬叆闂ㄨ瘝姹囦笌鍙戦煶銆嶃€屽彂闊宠鍒欍€嶃€岄珮棰戣瘝姹囥€嶏紱`/audio/words/casa.wav` 杩斿洖 200 `audio/wav`锛岄暱锟?68416 bytes锟?- 鍒ゅ畾 WAV 浣滀负鐪熷疄鍙挱锟?TTS 闊抽鍙帴鍙楋紝鏇存柊 `feature_list.json`锛歚COURSE-001.status = passing` 骞跺～锟?Codex2 evidence锟?- 鏇存柊 `session-handoff.md` 鍐欏叆瀹屾暣娴嬭瘯 report锟?
+**杩愯杩囩殑楠岃瘉**锟?- `git status --short`
+- Node JSON/content 鏍告煡
 - `Get-ChildItem public/audio/words -Filter *.wav`
 - `node --test tests/course001.test.mjs`
 - `npm test`
 - `npm run build`
 - Node harness: `next dev -p 3006` + HTTP smoke for `/learn/phase-1` and `/audio/words/casa.wav`
 
-**结论**�?`COURSE-001` 通过 Codex2 复验。不需�?Codex1 继续修；�?PM 后续强制要求 MP3 容器，应作为新产品决策或新任务处理�?
-**下一步最佳动�?*�?PM 可启动当前最高优先级未完成功�?`EXT-002`�?### 会话 #12 �?2026-05-13
+**缁撹**锟?`COURSE-001` 閫氳繃 Codex2 澶嶉獙銆備笉闇€锟?Codex1 缁х画淇紱锟?PM 鍚庣画寮哄埗瑕佹眰 MP3 瀹瑰櫒锛屽簲浣滀负鏂颁骇鍝佸喅绛栨垨鏂颁换鍔″鐞嗭拷?
+**涓嬩竴姝ユ渶浣冲姩锟?*锟?PM 鍙惎鍔ㄥ綋鍓嶆渶楂樹紭鍏堢骇鏈畬鎴愬姛锟?`EXT-002`锟?### 浼氳瘽 #12 锟?2026-05-13
 
-**本轮目标**：Codex1 实现 `EXT-002` YouTube 双语字幕叠加�?**已完�?*�?- 新增 `src/app/api/translate/route.ts`，提�?`POST /api/translate`
-- 通过 MiniMax OpenAI-compatible `chat/completions` 调用 `abab5.5-chat`
-- 接入 Redis 字幕缓存，key �?`subtitle:${sha256(text)}`，TTL 7 �?- `extension/content.js` 实现 YouTube 字幕提取、叠加层注入、双语渲染、中文显隐切换与持久�?- `extension/popup.html`、`extension/popup.js` 新增中文字幕切换按钮�?badge 状�?- `.env.example` 新增 `MINIMAX_API_KEY`、`MINIMAX_GROUP_ID`
-- 新增 `tests/ext002.test.mjs`，并同步更新 `tests/extension.test.mjs`
-- 更新 `feature_list.json`：`EXT-002.status = ready_for_qa`
-- 更新 `session-handoff.md` 写入 Codex1 实现记录�?QA 提示
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `EXT-002` YouTube 鍙岃瀛楀箷鍙犲姞锟?**宸插畬锟?*锟?- 鏂板 `src/app/api/translate/route.ts`锛屾彁锟?`POST /api/translate`
+- 閫氳繃 MiniMax OpenAI-compatible `chat/completions` 璋冪敤 `abab5.5-chat`
+- 鎺ュ叆 Redis 瀛楀箷缂撳瓨锛宬ey 锟?`subtitle:${sha256(text)}`锛孴TL 7 锟?- `extension/content.js` 瀹炵幇 YouTube 瀛楀箷鎻愬彇銆佸彔鍔犲眰娉ㄥ叆銆佸弻璇覆鏌撱€佷腑鏂囨樉闅愬垏鎹笌鎸佷箙锟?- `extension/popup.html`銆乣extension/popup.js` 鏂板涓枃瀛楀箷鍒囨崲鎸夐挳锟?badge 鐘讹拷?- `.env.example` 鏂板 `MINIMAX_API_KEY`銆乣MINIMAX_GROUP_ID`
+- 鏂板 `tests/ext002.test.mjs`锛屽苟鍚屾鏇存柊 `tests/extension.test.mjs`
+- 鏇存柊 `feature_list.json`锛歚EXT-002.status = ready_for_qa`
+- 鏇存柊 `session-handoff.md` 鍐欏叆 Codex1 瀹炵幇璁板綍锟?QA 鎻愮ず
 
-**运行过的验证**�?- `npm test`�?5/25 通过
-- `npm run build`：通过
-- `npm run build`（`extension/`）：通过
+**杩愯杩囩殑楠岃瘉**锟?- `npm test`锟?5/25 閫氳繃
+- `npm run build`锛氶€氳繃
+- `npm run build`锛坄extension/`锛夛細閫氳繃
 
-**限制说明**�?- 当前自动化测试只做结构与静态契约验证，不会真实请求 MiniMax API
-- 若本�?`.env` 未填�?`MINIMAX_API_KEY` / `MINIMAX_GROUP_ID`，`/api/translate` 会降级回传原文，便于本地继续联调
+**闄愬埗璇存槑**锟?- 褰撳墠鑷姩鍖栨祴璇曞彧鍋氱粨鏋勪笌闈欐€佸绾﹂獙璇侊紝涓嶄細鐪熷疄璇锋眰 MiniMax API
+- 鑻ユ湰锟?`.env` 鏈～锟?`MINIMAX_API_KEY` / `MINIMAX_GROUP_ID`锛宍/api/translate` 浼氶檷绾у洖浼犲師鏂囷紝渚夸簬鏈湴缁х画鑱旇皟
 
-**下一步最佳动�?*：交�?Codex2 �?`session-handoff.md` �?`EXT-002` 做真实验收�?
-### 会话 #13 �?2026-05-13
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氫氦锟?Codex2 锟?`session-handoff.md` 锟?`EXT-002` 鍋氱湡瀹為獙鏀讹拷?
+### 浼氳瘽 #13 锟?2026-05-13
 
-**本轮目标**：Codex2 验收 `EXT-002` YouTube 双语字幕叠加�? 
-**已完�?*�?- 运行 `npm test`�?5/25 通过
-- 运行根目�?`npm run build`，通过
-- 运行 `extension/` �?`npm run build`，生�?`dist/content.js`
-- 核查 `src/app/api/translate/route.ts`、`extension/content.js`、`extension/manifest.json`、`.env.example`，确�?MiniMax、Redis cache、MutationObserver、overlay、toggle、storage 权限和环境变量都存在
-- �?Playwright bundled Chromium 实测扩展注入：确�?extension service worker 已加载、content script 注入成功、overlay DOM 已挂载、无 uncaught page error
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `EXT-002` YouTube 鍙岃瀛楀箷鍙犲姞锟? 
+**宸插畬锟?*锟?- 杩愯 `npm test`锟?5/25 閫氳繃
+- 杩愯鏍圭洰锟?`npm run build`锛岄€氳繃
+- 杩愯 `extension/` 锟?`npm run build`锛岀敓锟?`dist/content.js`
+- 鏍告煡 `src/app/api/translate/route.ts`銆乣extension/content.js`銆乣extension/manifest.json`銆乣.env.example`锛岀‘锟?MiniMax銆丷edis cache銆丮utationObserver銆乷verlay銆乼oggle銆乻torage 鏉冮檺鍜岀幆澧冨彉閲忛兘瀛樺湪
+- 锟?Playwright bundled Chromium 瀹炴祴鎵╁睍娉ㄥ叆锛氱‘锟?extension service worker 宸插姞杞姐€乧ontent script 娉ㄥ叆鎴愬姛銆乷verlay DOM 宸叉寕杞姐€佹棤 uncaught page error
 
-**未完成或阻塞**�?- 未能�?Playwright Chromium 中取得真�?YouTube 字幕段，无法完成“自动出现双语字�?/ 跟随进度更新 / 抽查中文翻译”运行时验收
-- 用户示例视频 `A0yzRIuKYUw` 当前显示“Este vídeo ya no está disponible�?- 替代公开视频 `n-594Ztjk4w` 当前触发 YouTube 反机器人登录页“`Inicia sesión para confirmar que no eres un bot`”，视频暂停且无字幕 segment
+**鏈畬鎴愭垨闃诲**锟?- 鏈兘锟?Playwright Chromium 涓彇寰楃湡锟?YouTube 瀛楀箷娈碉紝鏃犳硶瀹屾垚鈥滆嚜鍔ㄥ嚭鐜板弻璇瓧锟?/ 璺熼殢杩涘害鏇存柊 / 鎶芥煡涓枃缈昏瘧鈥濊繍琛屾椂楠屾敹
+- 鐢ㄦ埛绀轰緥瑙嗛 `A0yzRIuKYUw` 褰撳墠鏄剧ず鈥淓ste v铆deo ya no est谩 disponible锟?- 鏇夸唬鍏紑瑙嗛 `n-594Ztjk4w` 褰撳墠瑙﹀彂 YouTube 鍙嶆満鍣ㄤ汉鐧诲綍椤碘€渀Inicia sesi贸n para confirmar que no eres un bot`鈥濓紝瑙嗛鏆傚仠涓旀棤瀛楀箷 segment
 
-**结论**：`EXT-002` 暂不标记 `passing`，保�?`ready_for_qa`；详细失败证据已写入 `session-handoff.md`
+**缁撹**锛歚EXT-002` 鏆備笉鏍囪 `passing`锛屼繚锟?`ready_for_qa`锛涜缁嗗け璐ヨ瘉鎹凡鍐欏叆 `session-handoff.md`
 
-**下一步最佳动�?*：提供一个当前可在未登录 Playwright Chromium 中直接播放并产出西语字幕�?YouTube 视频，或提供可复用登录�?fixture 后重新验收�?
-### 会话 #14 �?2026-05-13
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氭彁渚涗竴涓綋鍓嶅彲鍦ㄦ湭鐧诲綍 Playwright Chromium 涓洿鎺ユ挱鏀惧苟浜у嚭瑗胯瀛楀箷锟?YouTube 瑙嗛锛屾垨鎻愪緵鍙鐢ㄧ櫥褰曪拷?fixture 鍚庨噸鏂伴獙鏀讹拷?
+### 浼氳瘽 #14 锟?2026-05-13
 
-**本轮目标**：Codex2 �?fixture 方案复验 `EXT-002`�? 
-**已完�?*�?- `npm test`�?5/25 通过
-- 根目�?`npm run build`：通过
-- `extension/` �?`npm run build`：通过，生�?`dist/content.js`
-- 核查 `content.js` / `route.ts` / `manifest.json` / `.env.example`，结构项齐全
-- �?Playwright 本地 fixture 注入 `extension/dist/content.js` 做无 YouTube 依赖的运行时验证
+**鏈疆鐩爣**锛欳odex2 锟?fixture 鏂规澶嶉獙 `EXT-002`锟? 
+**宸插畬锟?*锟?- `npm test`锟?5/25 閫氳繃
+- 鏍圭洰锟?`npm run build`锛氶€氳繃
+- `extension/` 锟?`npm run build`锛氶€氳繃锛岀敓锟?`dist/content.js`
+- 鏍告煡 `content.js` / `route.ts` / `manifest.json` / `.env.example`锛岀粨鏋勯」榻愬叏
+- 锟?Playwright 鏈湴 fixture 娉ㄥ叆 `extension/dist/content.js` 鍋氭棤 YouTube 渚濊禆鐨勮繍琛屾椂楠岃瘉
 
-**失败证据**�?- `node tests\tmp_ext002_fixture.mjs` 输出 `pageErrors: ["chrome is not defined"]`
-- `overlayExists = false`，`readyDataset = null`，`readyClass = false`
-- 说明 `extension/content.js` 顶层 `chrome.*` 调用缺少 `typeof chrome !== "undefined"` 保护
+**澶辫触璇佹嵁**锟?- `node tests\tmp_ext002_fixture.mjs` 杈撳嚭 `pageErrors: ["chrome is not defined"]`
+- `overlayExists = false`锛宍readyDataset = null`锛宍readyClass = false`
+- 璇存槑 `extension/content.js` 椤跺眰 `chrome.*` 璋冪敤缂哄皯 `typeof chrome !== "undefined"` 淇濇姢
 
-**结论**：`EXT-002` 复验失败，保�?`ready_for_qa`
+**缁撹**锛歚EXT-002` 澶嶉獙澶辫触锛屼繚锟?`ready_for_qa`
 
-**下一步最佳动�?*：Codex1 修复 `extension/content.js` �?`chrome.*` 环境保护后重新提 QA�?
-### 会话 #15 �?2026-05-13
+**涓嬩竴姝ユ渶浣冲姩锟?*锛欳odex1 淇 `extension/content.js` 锟?`chrome.*` 鐜淇濇姢鍚庨噸鏂版彁 QA锟?
+### 浼氳瘽 #15 锟?2026-05-13
 
-**本轮目标**：Codex2 �?`EXT-002` 做第三次 fixture 复验�? 
-**已完�?*�?- 重跑 `node tests\tmp_ext002_fixture.mjs`
-- fixture 输出 `pageErrors = []`
-- fixture 输出 `overlayExists = true`，`readyDataset = "true"`，`readyClass = true`
-- �?`EXT-002` 更新�?`passing`
+**鏈疆鐩爣**锛欳odex2 锟?`EXT-002` 鍋氱涓夋 fixture 澶嶉獙锟? 
+**宸插畬锟?*锟?- 閲嶈窇 `node tests\tmp_ext002_fixture.mjs`
+- fixture 杈撳嚭 `pageErrors = []`
+- fixture 杈撳嚭 `overlayExists = true`锛宍readyDataset = "true"`锛宍readyClass = true`
+- 锟?`EXT-002` 鏇存柊锟?`passing`
 
-**结论**：`EXT-002` 通过第三�?QA 验收
-### 会话 #16 �?2026-05-13
+**缁撹**锛歚EXT-002` 閫氳繃绗笁锟?QA 楠屾敹
+### 浼氳瘽 #16 锟?2026-05-13
 
-**本轮目标**：Codex1 实现 `EXT-003` 词形还原 + 点击查词�?**已完�?*�?- 新增 `extension/lemma-dict.json`，当前包�?660 条高频词形映�?- 新增 `src/app/api/lemmatize/route.ts`
-- 新增 `src/app/api/vocab/add/route.ts`
-- 扩展 `extension/content.js`，实现字幕词 span 包裹、查词卡片、加入词库、ESC/点击外部关闭�?`chrome.*` 保护
-- 新增 `tests/ext003.test.mjs`
-- 更新 `feature_list.json`：`EXT-003.status = ready_for_qa`
-- 更新 `session-handoff.md` 写入 Codex1 实现记录
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `EXT-003` 璇嶅舰杩樺師 + 鐐瑰嚮鏌ヨ瘝锟?**宸插畬锟?*锟?- 鏂板 `extension/lemma-dict.json`锛屽綋鍓嶅寘锟?660 鏉￠珮棰戣瘝褰㈡槧锟?- 鏂板 `src/app/api/lemmatize/route.ts`
+- 鏂板 `src/app/api/vocab/add/route.ts`
+- 鎵╁睍 `extension/content.js`锛屽疄鐜板瓧骞曡瘝 span 鍖呰９銆佹煡璇嶅崱鐗囥€佸姞鍏ヨ瘝搴撱€丒SC/鐐瑰嚮澶栭儴鍏抽棴锟?`chrome.*` 淇濇姢
+- 鏂板 `tests/ext003.test.mjs`
+- 鏇存柊 `feature_list.json`锛歚EXT-003.status = ready_for_qa`
+- 鏇存柊 `session-handoff.md` 鍐欏叆 Codex1 瀹炵幇璁板綍
 
-**运行过的验证**�?- `node --test tests/ext003.test.mjs`�?/4 通过
-- `npm test`�?9/29 通过
-- `npm run build`：通过
-- `npm run build`（`extension/`）：通过
+**杩愯杩囩殑楠岃瘉**锟?- `node --test tests/ext003.test.mjs`锟?/4 閫氳繃
+- `npm test`锟?9/29 閫氳繃
+- `npm run build`锛氶€氳繃
+- `npm run build`锛坄extension/`锛夛細閫氳繃
 
-**下一步最佳动�?*：交�?Codex2 验收 `EXT-003`�?### 会话 #17 �?2026-05-13
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氫氦锟?Codex2 楠屾敹 `EXT-003`锟?### 浼氳瘽 #17 锟?2026-05-13
 
-**本轮目标**：Codex1 实现 `VOCAB-003` 遭遇记录跳回视频�?**已完�?*�?- 新增 `src/app/components/vocab/videoHref.ts`
-- 更新 `src/app/components/vocab/VocabAccordion.tsx`，让「跳回视频」链接动态拼�?`t` 参数并新标签页打开
-- 新增 `tests/vocab003.test.mjs`
-- 更新 `feature_list.json`：`VOCAB-003.status = ready_for_qa`
-- 更新 `session-handoff.md` 写入 Codex1 实现记录
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `VOCAB-003` 閬亣璁板綍璺冲洖瑙嗛锟?**宸插畬锟?*锟?- 鏂板 `src/app/components/vocab/videoHref.ts`
+- 鏇存柊 `src/app/components/vocab/VocabAccordion.tsx`锛岃銆岃烦鍥炶棰戙€嶉摼鎺ュ姩鎬佹嫾锟?`t` 鍙傛暟骞舵柊鏍囩椤垫墦寮€
+- 鏂板 `tests/vocab003.test.mjs`
+- 鏇存柊 `feature_list.json`锛歚VOCAB-003.status = ready_for_qa`
+- 鏇存柊 `session-handoff.md` 鍐欏叆 Codex1 瀹炵幇璁板綍
 
-**运行过的验证**�?- `node --test tests/vocab003.test.mjs`�?/1 通过
-- `npm test`�?0/30 通过
+**杩愯杩囩殑楠岃瘉**锟?- `node --test tests/vocab003.test.mjs`锟?/1 閫氳繃
+- `npm test`锟?0/30 閫氳繃
 
-**下一步最佳动�?*：交�?Codex2 验收 `VOCAB-003`�?### 会话 #18 - 2026-05-13
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氫氦锟?Codex2 楠屾敹 `VOCAB-003`锟?### 浼氳瘽 #18 - 2026-05-13
 
-**本轮目标**：Codex2 联合验收 `EXT-003`、`EXT-004`、`VOCAB-003`
-**已完�?*
-- 运行 `npm test`，结�?30/30 通过
-- 运行根目�?`npm run build`，通过；路由包�?`/api/lemmatize` �?`/api/vocab/add`
-- 运行 `extension/npm run build`，通过并生�?`dist/content.js`
-- 核查 `extension/lemma-dict.json`，确�?`fui -> ir`、`hablan -> hablar`
-- 核查 `src/app/api/lemmatize/route.ts`、`src/app/api/vocab/add/route.ts` 均存�?- �?Playwright fixture 注入 `extension/dist/content.js`，确�?`.esponal-word` 渲染 2 �?span，且 `pageErrors = []`
-- 核查 `src/app/api/vocab/highlight/route.ts` 不存在，`extension/content.js` 中未实现 `#86EFAC` / `#93C5FD`，判�?`EXT-004` 未通过
-- 核查 `src/app/components/vocab/videoHref.ts` 存在，`node --test tests/vocab003.test.mjs` 通过
-- 更新 `feature_list.json`：`EXT-003 -> passing`、`VOCAB-003 -> passing`；`EXT-004` 保持未通过
-- 更新 `session-handoff.md` 写入完整 QA report
+**鏈疆鐩爣**锛欳odex2 鑱斿悎楠屾敹 `EXT-003`銆乣EXT-004`銆乣VOCAB-003`
+**宸插畬锟?*
+- 杩愯 `npm test`锛岀粨锟?30/30 閫氳繃
+- 杩愯鏍圭洰锟?`npm run build`锛岄€氳繃锛涜矾鐢卞寘锟?`/api/lemmatize` 锟?`/api/vocab/add`
+- 杩愯 `extension/npm run build`锛岄€氳繃骞剁敓锟?`dist/content.js`
+- 鏍告煡 `extension/lemma-dict.json`锛岀‘锟?`fui -> ir`銆乣hablan -> hablar`
+- 鏍告煡 `src/app/api/lemmatize/route.ts`銆乣src/app/api/vocab/add/route.ts` 鍧囧瓨锟?- 锟?Playwright fixture 娉ㄥ叆 `extension/dist/content.js`锛岀‘锟?`.esponal-word` 娓叉煋 2 锟?span锛屼笖 `pageErrors = []`
+- 鏍告煡 `src/app/api/vocab/highlight/route.ts` 涓嶅瓨鍦紝`extension/content.js` 涓湭瀹炵幇 `#86EFAC` / `#93C5FD`锛屽垽锟?`EXT-004` 鏈€氳繃
+- 鏍告煡 `src/app/components/vocab/videoHref.ts` 瀛樺湪锛宍node --test tests/vocab003.test.mjs` 閫氳繃
+- 鏇存柊 `feature_list.json`锛歚EXT-003 -> passing`銆乣VOCAB-003 -> passing`锛沗EXT-004` 淇濇寔鏈€氳繃
+- 鏇存柊 `session-handoff.md` 鍐欏叆瀹屾暣 QA report
 
-**结论**
-- `EXT-003`：passing
-- `EXT-004`：failed，缺�?`/api/vocab/highlight` 路由与字幕高亮颜色实�?- `VOCAB-003`：passing
+**缁撹**
+- `EXT-003`锛歱assing
+- `EXT-004`锛歠ailed锛岀己锟?`/api/vocab/highlight` 璺敱涓庡瓧骞曢珮浜鑹插疄锟?- `VOCAB-003`锛歱assing
 
-**下一步最佳动�?*：交�?Codex1 实现 `EXT-004` 后重新提 QA
-### 会话 #19 - 2026-05-13
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氫氦锟?Codex1 瀹炵幇 `EXT-004` 鍚庨噸鏂版彁 QA
+### 浼氳瘽 #19 - 2026-05-13
 
-**本轮目标**：Codex1 实现 `EXT-004` 已学词高�?**已完�?*
-- 新增 `src/app/api/vocab/highlight/route.ts`，支持批量返�?`course` / `saved` / `unknown`
-- 基于 `content/curriculum/phase1-words.json` 标记课程词；登录态下结合 Prisma `Word` + `forms` 标记已保存词
-- 更新 `extension/content.js`，为字幕�?span 批量请求高亮状态，写入 `data-status`，并应用 `#86EFAC` �?`#93C5FD`
-- 新增 `tests/ext004.test.mjs`
-- 更新 `feature_list.json`、`session-handoff.md`
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `EXT-004` 宸插璇嶉珮锟?**宸插畬锟?*
+- 鏂板 `src/app/api/vocab/highlight/route.ts`锛屾敮鎸佹壒閲忚繑锟?`course` / `saved` / `unknown`
+- 鍩轰簬 `content/curriculum/phase1-words.json` 鏍囪璇剧▼璇嶏紱鐧诲綍鎬佷笅缁撳悎 Prisma `Word` + `forms` 鏍囪宸蹭繚瀛樿瘝
+- 鏇存柊 `extension/content.js`锛屼负瀛楀箷锟?span 鎵归噺璇锋眰楂樹寒鐘舵€侊紝鍐欏叆 `data-status`锛屽苟搴旂敤 `#86EFAC` 锟?`#93C5FD`
+- 鏂板 `tests/ext004.test.mjs`
+- 鏇存柊 `feature_list.json`銆乣session-handoff.md`
 
-**运行过的验证**
-- `node --test tests/ext004.test.mjs`�?/2 通过
-- `npm test`�?2/32 通过
-- `npm run build`：通过
-- `extension/npm run build`：通过
+**杩愯杩囩殑楠岃瘉**
+- `node --test tests/ext004.test.mjs`锟?/2 閫氳繃
+- `npm test`锟?2/32 閫氳繃
+- `npm run build`锛氶€氳繃
+- `extension/npm run build`锛氶€氳繃
 
-**备注**
-- 根目�?build 仍有既有 `ioredis` `ECONNREFUSED` warning，但不影响构建完�?
-**下一步最佳动�?*：交�?Codex2 重新验收 `EXT-004`
-### 会话 #20 - 2026-05-13
+**澶囨敞**
+- 鏍圭洰锟?build 浠嶆湁鏃㈡湁 `ioredis` `ECONNREFUSED` warning锛屼絾涓嶅奖鍝嶆瀯寤哄畬锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氫氦锟?Codex2 閲嶆柊楠屾敹 `EXT-004`
+### 浼氳瘽 #20 - 2026-05-13
 
-**本轮目标**：Codex2 复验 `EXT-004` 并把 QA 结果真正写回仓库
-**已完�?*
-- 重新读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`
-- 运行 `npm test`，结�?32/32 通过
-- 运行根目�?`npm run build`，通过，产物包�?`/api/vocab/highlight`
-- 运行 `extension/npm run build`，通过并重新生�?`dist/content.js`
-- 核查 `src/app/api/vocab/highlight/route.ts`，确认包�?`course` / `saved` / `unknown`、`getServerSession(authOptions)`、`phase1-words.json`
-- 核查 `extension/content.js` �?`extension/dist/content.js`，确认包�?`/api/vocab/highlight`、`data-status`、`#86EFAC`、`#93C5FD`，以及顶�?`chrome.*` 环境保护
-- 更新 `feature_list.json`：`EXT-004.status = passing`，填�?Codex2 QA evidence
-- 更新 `session-handoff.md`，补写完�?QA report
+**鏈疆鐩爣**锛欳odex2 澶嶉獙 `EXT-004` 骞舵妸 QA 缁撴灉鐪熸鍐欏洖浠撳簱
+**宸插畬锟?*
+- 閲嶆柊璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣session-handoff.md`
+- 杩愯 `npm test`锛岀粨锟?32/32 閫氳繃
+- 杩愯鏍圭洰锟?`npm run build`锛岄€氳繃锛屼骇鐗╁寘锟?`/api/vocab/highlight`
+- 杩愯 `extension/npm run build`锛岄€氳繃骞堕噸鏂扮敓锟?`dist/content.js`
+- 鏍告煡 `src/app/api/vocab/highlight/route.ts`锛岀‘璁ゅ寘锟?`course` / `saved` / `unknown`銆乣getServerSession(authOptions)`銆乣phase1-words.json`
+- 鏍告煡 `extension/content.js` 锟?`extension/dist/content.js`锛岀‘璁ゅ寘锟?`/api/vocab/highlight`銆乣data-status`銆乣#86EFAC`銆乣#93C5FD`锛屼互鍙婇《锟?`chrome.*` 鐜淇濇姢
+- 鏇存柊 `feature_list.json`锛歚EXT-004.status = passing`锛屽～锟?Codex2 QA evidence
+- 鏇存柊 `session-handoff.md`锛岃ˉ鍐欏畬锟?QA report
 
-**运行过的验证**
+**杩愯杩囩殑楠岃瘉**
 - `npm test`
 - `npm run build`
-- `npm run build`（工作目�?`extension/`�?- `rg -n "course|saved|unknown|getServerSession|phase1-words" src\app\api\vocab\highlight\route.ts`
+- `npm run build`锛堝伐浣滅洰锟?`extension/`锟?- `rg -n "course|saved|unknown|getServerSession|phase1-words" src\app\api\vocab\highlight\route.ts`
 - `rg -n "/api/vocab/highlight|data-status|#86EFAC|#93C5FD" extension\content.js extension\dist\content.js`
 - `rg -n "typeof chrome !== \"undefined\"" extension\content.js extension\dist\content.js`
 
-**结论**
-- `EXT-004`：passing
-- 当前 `feature_list.json` �?10 个功能均�?`passing`
+**缁撹**
+- `EXT-004`锛歱assing
+- 褰撳墠 `feature_list.json` 锟?10 涓姛鑳藉潎锟?`passing`
 
-**备注**
-- 根目�?`npm run build` 末尾仍有既有 `ioredis` `ECONNREFUSED` warning，但未导致构建失败，也不是本轮新增问�?
-**下一步最佳动�?*：当�?Priority 0-9 功能已全部通过；后续可�?PM 启动新的 ticket 或下一阶段规划
-### 会话 #21 - 2026-05-14
+**澶囨敞**
+- 鏍圭洰锟?`npm run build` 鏈熬浠嶆湁鏃㈡湁 `ioredis` `ECONNREFUSED` warning锛屼絾鏈鑷存瀯寤哄け璐ワ紝涔熶笉鏄湰杞柊澧為棶锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氬綋锟?Priority 0-9 鍔熻兘宸插叏閮ㄩ€氳繃锛涘悗缁彲锟?PM 鍚姩鏂扮殑 ticket 鎴栦笅涓€闃舵瑙勫垝
+### 浼氳瘽 #21 - 2026-05-14
 
-**本轮目标**：Codex1 实现 `WEB-002` YouTube Data API 接入
-**已完�?*
-- 新增 `src/lib/channels.ts`，写�?3 个策划频�?- 新增 `src/lib/youtube.ts`，封�?YouTube Data API 调用、Redis 缓存、缩略图选择与结果规范化
-- 新增 `src/app/api/youtube/channel/route.ts`，支持频道上传视频列表查询与 1 小时缓存
-- 新增 `src/app/api/youtube/search/route.ts`，支持西语视频搜索与 15 分钟缓存
-- 新增 `tests/web002.test.mjs`
-- 更新 `feature_list.json`、`session-handoff.md`
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `WEB-002` YouTube Data API 鎺ュ叆
+**宸插畬锟?*
+- 鏂板 `src/lib/channels.ts`锛屽啓锟?3 涓瓥鍒掗锟?- 鏂板 `src/lib/youtube.ts`锛屽皝锟?YouTube Data API 璋冪敤銆丷edis 缂撳瓨銆佺缉鐣ュ浘閫夋嫨涓庣粨鏋滆鑼冨寲
+- 鏂板 `src/app/api/youtube/channel/route.ts`锛屾敮鎸侀閬撲笂浼犺棰戝垪琛ㄦ煡璇笌 1 灏忔椂缂撳瓨
+- 鏂板 `src/app/api/youtube/search/route.ts`锛屾敮鎸佽タ璇棰戞悳绱笌 15 鍒嗛挓缂撳瓨
+- 鏂板 `tests/web002.test.mjs`
+- 鏇存柊 `feature_list.json`銆乣session-handoff.md`
 
-**运行过的验证**
-- `node --test tests/web002.test.mjs`�?/3 通过
-- `npm test`�?5/35 通过
-- `npm run build`：通过
+**杩愯杩囩殑楠岃瘉**
+- `node --test tests/web002.test.mjs`锟?/3 閫氳繃
+- `npm test`锟?5/35 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 当前验证不调用真�?YouTube API，真实联调依赖本�?`.env` 中的 `YOUTUBE_API_KEY`
-- 路由已标�?`force-dynamic`，避免查询参�?API 在构建阶段触发动态路由噪�?
-**下一步最佳动�?*：交�?Codex2 验收 `WEB-002`
+**澶囨敞**
+- 褰撳墠楠岃瘉涓嶈皟鐢ㄧ湡锟?YouTube API锛岀湡瀹炶仈璋冧緷璧栨湰锟?`.env` 涓殑 `YOUTUBE_API_KEY`
+- 璺敱宸叉爣锟?`force-dynamic`锛岄伩鍏嶆煡璇㈠弬锟?API 鍦ㄦ瀯寤洪樁娈佃Е鍙戝姩鎬佽矾鐢卞櫔锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氫氦锟?Codex2 楠屾敹 `WEB-002`
 
-### 会话 #22 - 2026-05-14
+### 浼氳瘽 #22 - 2026-05-14
 
-**本轮目标**：Codex2 验收 `WEB-002` YouTube Data API 接入
-**已完�?*
-- 读取 `AGENTS.md`、`roles/ROLE-QA.md`、`feature_list.json`、`session-handoff.md`
-- 运行 `npm test`，结�?35/35 通过
-- 运行 `npm run build`，结果通过
-- 核查 `src/lib/channels.ts`，确认至少包�?3 个策划频�?ID
-- 核查 `src/app/api/youtube/channel/route.ts` �?`src/app/api/youtube/search/route.ts` 均存�?- 核查 `.env.example`，确认包�?`YOUTUBE_API_KEY`
-- 启动临时 Next dev server �?`http://127.0.0.1:3002`
-- 实际调用 `GET /api/youtube/search?q=hola&maxResults=5`，确认接口联通并返回真实 YouTube 数据
-- 更新 `feature_list.json`、`session-handoff.md` 记录 QA 失败证据
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `WEB-002` YouTube Data API 鎺ュ叆
+**宸插畬锟?*
+- 璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣feature_list.json`銆乣session-handoff.md`
+- 杩愯 `npm test`锛岀粨锟?35/35 閫氳繃
+- 杩愯 `npm run build`锛岀粨鏋滈€氳繃
+- 鏍告煡 `src/lib/channels.ts`锛岀‘璁よ嚦灏戝寘锟?3 涓瓥鍒掗锟?ID
+- 鏍告煡 `src/app/api/youtube/channel/route.ts` 锟?`src/app/api/youtube/search/route.ts` 鍧囧瓨锟?- 鏍告煡 `.env.example`锛岀‘璁ゅ寘锟?`YOUTUBE_API_KEY`
+- 鍚姩涓存椂 Next dev server 锟?`http://127.0.0.1:3002`
+- 瀹為檯璋冪敤 `GET /api/youtube/search?q=hola&maxResults=5`锛岀‘璁ゆ帴鍙ｈ仈閫氬苟杩斿洖鐪熷疄 YouTube 鏁版嵁
+- 鏇存柊 `feature_list.json`銆乣session-handoff.md` 璁板綍 QA 澶辫触璇佹嵁
 
-**运行过的验证**
-- `npm test`�?5/35 通过
-- `npm run build`：通过
-- `GET http://127.0.0.1:3002/api/youtube/search?q=hola&maxResults=5`：HTTP 200，返�?5 条视频数据，但顶层结构为 `{ "videos": [...] }`
+**杩愯杩囩殑楠岃瘉**
+- `npm test`锟?5/35 閫氳繃
+- `npm run build`锛氶€氳繃
+- `GET http://127.0.0.1:3002/api/youtube/search?q=hola&maxResults=5`锛欻TTP 200锛岃繑锟?5 鏉¤棰戞暟鎹紝浣嗛《灞傜粨鏋勪负 `{ "videos": [...] }`
 
-**结论**
-- `WEB-002` 本轮 **未通过**
-- 失败原因不是环境，而是 API 返回结构�?ticket 不符：验收要求“直接返回视频数组”，当前 `youtube/search` �?`youtube/channel` 都返�?`NextResponse.json({ videos })`
+**缁撹**
+- `WEB-002` 鏈疆 **鏈€氳繃**
+- 澶辫触鍘熷洜涓嶆槸鐜锛岃€屾槸 API 杩斿洖缁撴瀯锟?ticket 涓嶇锛氶獙鏀惰姹傗€滅洿鎺ヨ繑鍥炶棰戞暟缁勨€濓紝褰撳墠 `youtube/search` 锟?`youtube/channel` 閮借繑锟?`NextResponse.json({ videos })`
 
-**下一步最佳动�?*：返�?Codex1，将两个路由的成功响应从对象包裹改为顶层数组后重新提 QA
+**涓嬩竴姝ユ渶浣冲姩锟?*锛氳繑锟?Codex1锛屽皢涓や釜璺敱鐨勬垚鍔熷搷搴斾粠瀵硅薄鍖呰９鏀逛负椤跺眰鏁扮粍鍚庨噸鏂版彁 QA
 
-### �Ự #23 - 2026-05-14
+### 锟结话 #23 - 2026-05-14
 
-**����Ŀ��**��Codex1 ʵ�� `WEB-001` ��ҳ��`WEB-003` ������ҳ����˳���޸� `WEB-002` �� QA ʧ�ܷ�����Լ
-**�����?*
-- ��д `src/app/page.tsx`��������ҳƵ����������������������
-- ���� `src/app/components/web/SiteHeader.tsx`��`src/app/components/web/VideoCard.tsx`
-- ���� `src/app/search/page.tsx` �н���ҳ����
-- ���� `src/app/watch/page.tsx`��`src/app/watch/SubtitlePanel.tsx`��`src/app/watch/WatchSidebar.tsx`
-- ���� `src/lib/site-url.ts`��`src/lib/youtube-shared.ts`
-- �޸� `src/lib/channels.ts` Ƶ��������
-- �޸� `src/app/api/youtube/channel/route.ts` �� `src/app/api/youtube/search/route.ts` �ķ��ؽṹΪ���� JSON ����
-- ���� `tests/web001.test.mjs`��`tests/web003.test.mjs`����ǿ `tests/web002.test.mjs`�������� `tests/scaffold.test.mjs`
-- ���� `feature_list.json`��`session-handoff.md`
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex1 实锟斤拷 `WEB-001` 锟斤拷页锟斤拷`WEB-003` 锟斤拷锟斤拷锟斤拷页锟斤拷锟斤拷顺锟斤拷锟睫革拷 `WEB-002` 锟斤拷 QA 失锟杰凤拷锟斤拷锟斤拷约
+**锟斤拷锟斤拷锟?*
+- 锟斤拷写 `src/app/page.tsx`锟斤拷锟斤拷锟斤拷锟斤拷页频锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+- 锟斤拷锟斤拷 `src/app/components/web/SiteHeader.tsx`锟斤拷`src/app/components/web/VideoCard.tsx`
+- 锟斤拷锟斤拷 `src/app/search/page.tsx` 锟叫斤拷锟斤拷页锟斤拷锟斤拷
+- 锟斤拷锟斤拷 `src/app/watch/page.tsx`锟斤拷`src/app/watch/SubtitlePanel.tsx`锟斤拷`src/app/watch/WatchSidebar.tsx`
+- 锟斤拷锟斤拷 `src/lib/site-url.ts`锟斤拷`src/lib/youtube-shared.ts`
+- 锟睫革拷 `src/lib/channels.ts` 频锟斤拷锟斤拷锟斤拷锟斤拷
+- 锟睫革拷 `src/app/api/youtube/channel/route.ts` 锟斤拷 `src/app/api/youtube/search/route.ts` 锟侥凤拷锟截结构为锟斤拷锟斤拷 JSON 锟斤拷锟斤拷
+- 锟斤拷锟斤拷 `tests/web001.test.mjs`锟斤拷`tests/web003.test.mjs`锟斤拷锟斤拷强 `tests/web002.test.mjs`锟斤拷锟斤拷锟斤拷锟斤拷 `tests/scaffold.test.mjs`
+- 锟斤拷锟斤拷 `feature_list.json`锟斤拷`session-handoff.md`
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node --test tests/web001.test.mjs tests/web002.test.mjs tests/web003.test.mjs`
 - `npm run build`
 - `npm test`
 
-**���?*
-- `node --test ...`��5/5 ͨ��
-- `npm run build`��ͨ��
-- `npm test`��37/37 ͨ��
+**锟斤拷锟?*
+- `node --test ...`锟斤拷5/5 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
+- `npm test`锟斤拷37/37 通锟斤拷
 
-**��һ����Ѷ���?*������ Codex2 ���� `WEB-002`�������� `WEB-001`��`WEB-003`��
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟斤拷 Codex2 锟斤拷锟斤拷 `WEB-002`锟斤拷锟斤拷锟斤拷锟斤拷 `WEB-001`锟斤拷`WEB-003`锟斤拷
 
-### �Ự #24 - 2026-05-14
+### 锟结话 #24 - 2026-05-14
 
-**����Ŀ��**��Codex1 ʵ�� `WEB-004` Web ��˫����Ļ�������еȴ� Codex2 ���� `WEB-001/WEB-002/WEB-003`
-**�����?*
-- ���� `src/app/api/subtitle/route.ts`����ȡ YouTube timedtext json3 ��Ļ������ 24 Сʱ
-- ��д `src/app/watch/SubtitlePanel.tsx`������ YouTube iframe API���� `player.getCurrentTime()` ÿ 100ms ͬ����ǰ������Ļ
-- ��Ļ���ʱ����?`/api/translate`������ `Map` �������ķ���
-- ���� `src/app/watch/page.tsx`��Ϊ iframe �ṩ�ȶ� id �Խӹܲ�����ʵ��
-- ���� `tests/web004.test.mjs`
-- ���� `feature_list.json`��`session-handoff.md`
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex1 实锟斤拷 `WEB-004` Web 锟斤拷双锟斤拷锟斤拷幕锟斤拷锟斤拷锟斤拷锟叫等达拷 Codex2 锟斤拷锟斤拷 `WEB-001/WEB-002/WEB-003`
+**锟斤拷锟斤拷锟?*
+- 锟斤拷锟斤拷 `src/app/api/subtitle/route.ts`锟斤拷锟斤拷取 YouTube timedtext json3 锟斤拷幕锟斤拷锟斤拷锟斤拷 24 小时
+- 锟斤拷写 `src/app/watch/SubtitlePanel.tsx`锟斤拷锟斤拷锟斤拷 YouTube iframe API锟斤拷锟斤拷 `player.getCurrentTime()` 每 100ms 同锟斤拷锟斤拷前锟斤拷锟斤拷锟斤拷幕
+- 锟斤拷幕锟斤拷锟绞憋拷锟斤拷锟?`/api/translate`锟斤拷锟斤拷锟斤拷 `Map` 锟斤拷锟斤拷锟斤拷锟侥凤拷锟斤拷
+- 锟斤拷锟斤拷 `src/app/watch/page.tsx`锟斤拷为 iframe 锟结供锟饺讹拷 id 锟皆接管诧拷锟斤拷锟斤拷实锟斤拷
+- 锟斤拷锟斤拷 `tests/web004.test.mjs`
+- 锟斤拷锟斤拷 `feature_list.json`锟斤拷`session-handoff.md`
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node --test tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���?*
-- `node --test tests/web004.test.mjs`��2/2 ͨ��
-- `npm test`��39/39 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node --test tests/web004.test.mjs`锟斤拷2/2 通锟斤拷
+- `npm test`锟斤拷39/39 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��һ����Ѷ���?*������ Codex2 ���� `WEB-004`��ͬʱ�ȴ������� `WEB-001/WEB-002/WEB-003` �� QA �����?
-### �Ự #25 - 2026-05-14
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟斤拷 Codex2 锟斤拷锟斤拷 `WEB-004`锟斤拷同时锟饺达拷锟斤拷锟斤拷锟斤拷 `WEB-001/WEB-002/WEB-003` 锟斤拷 QA 锟斤拷锟斤拷锟?
+### 锟结话 #25 - 2026-05-14
 
-**����Ŀ��**��Codex2 �������� `WEB-001`��`WEB-002`��`WEB-003`
-**�����?*
-- �� AGENTS / ROLE-QA �����ض� `feature_list.json`��`session-handoff.md`��`claude-progress.md`
-- ��ʵ���� `npm test`���ڼ䷢�ֲ����е� `WEB-004` �����أ����������´��������ܻ��ߣ�ȷ�����½���?`39/39` ͨ��
-- ��ʵ���� `npm run build`��ͨ���������������?`/api/subtitle`��`/api/youtube/channel`��`/api/youtube/search`��`/watch`
-- ������ʱ Next dev server�����?`/api/youtube/search`��`/api/youtube/channel`��`/`��`/watch` HTTP ����
-- ȷ�� `src/app/page.tsx` �����ɵ� `INFRA-001 ready` ռλ�İ�
-- ׷�Ӽ����ҳ�߻�Ƶ����ʵ����������?Dreaming Spanish �� Espanol con Juan ����Ƶ���ӿ� 500���� Extra Spanish ���÷��� TheOdd1sOut ����
-- ���� `feature_list.json`��`session-handoff.md`
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex2 锟斤拷锟斤拷锟斤拷锟斤拷 `WEB-001`锟斤拷`WEB-002`锟斤拷`WEB-003`
+**锟斤拷锟斤拷锟?*
+- 锟斤拷 AGENTS / ROLE-QA 锟斤拷锟斤拷锟截讹拷 `feature_list.json`锟斤拷`session-handoff.md`锟斤拷`claude-progress.md`
+- 锟斤拷实锟斤拷锟斤拷 `npm test`锟斤拷锟节间发锟街诧拷锟斤拷锟叫碉拷 `WEB-004` 锟斤拷锟斤拷锟截ｏ拷锟斤拷锟斤拷锟斤拷锟斤拷锟铰达拷锟斤拷锟斤拷锟斤拷锟杰伙拷锟竭ｏ拷确锟斤拷锟斤拷锟铰斤拷锟斤拷?`39/39` 通锟斤拷
+- 锟斤拷实锟斤拷锟斤拷 `npm run build`锟斤拷通锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟?`/api/subtitle`锟斤拷`/api/youtube/channel`锟斤拷`/api/youtube/search`锟斤拷`/watch`
+- 锟斤拷锟斤拷锟斤拷时 Next dev server锟斤拷锟斤拷锟?`/api/youtube/search`锟斤拷`/api/youtube/channel`锟斤拷`/`锟斤拷`/watch` HTTP 锟斤拷锟斤拷
+- 确锟斤拷 `src/app/page.tsx` 锟斤拷锟斤拷锟缴碉拷 `INFRA-001 ready` 占位锟侥帮拷
+- 追锟接硷拷锟斤拷锟揭筹拷呋锟狡碉拷锟斤拷锟绞碉拷锟斤拷锟斤拷锟斤拷锟斤拷锟?Dreaming Spanish 锟斤拷 Espanol con Juan 锟斤拷锟斤拷频锟斤拷锟接匡拷 500锟斤拷锟斤拷 Extra Spanish 锟斤拷锟矫凤拷锟斤拷 TheOdd1sOut 锟斤拷锟斤拷
+- 锟斤拷锟斤拷 `feature_list.json`锟斤拷`session-handoff.md`
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `npm test`
 - `npm run build`
-- ��ʱ dev server + `GET /api/youtube/search?q=hola&maxResults=3`
-- ��ʱ dev server + `GET /api/youtube/channel?id=UCo8bcnLyZH8tBIH9V1mLgqQ&maxResults=3`
-- ��ʱ dev server + `GET /`
+- 锟斤拷时 dev server + `GET /api/youtube/search?q=hola&maxResults=3`
+- 锟斤拷时 dev server + `GET /api/youtube/channel?id=UCo8bcnLyZH8tBIH9V1mLgqQ&maxResults=3`
+- 锟斤拷时 dev server + `GET /`
 - `Select-String -Path src\app\page.tsx -Pattern 'INFRA-001 ready'`
-- ��ʱ dev server + `GET /watch?v=dQw4w9WgXcQ`
-- ����������`GET /api/youtube/channel?id=UCxZBjsGkdFIBxN-PQ5MZPSA&maxResults=12`
-- ����������`GET /api/youtube/channel?id=UCLKsD7YzCkTFT5AhFgkWN_g&maxResults=12`
+- 锟斤拷时 dev server + `GET /watch?v=dQw4w9WgXcQ`
+- 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷`GET /api/youtube/channel?id=UCxZBjsGkdFIBxN-PQ5MZPSA&maxResults=12`
+- 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷`GET /api/youtube/channel?id=UCLKsD7YzCkTFT5AhFgkWN_g&maxResults=12`
 
-**���?*
-- `WEB-001`��δͨ������ҳ�����߻�Ƶ����ʵ���� 500��������ɿ�״�?- `WEB-002`��δͨ��������������Լ���޸�������ʵƵ���������쳣/ʧ��
-- `WEB-003`��ͨ�������� `feature_list.json` ����?`passing`
+**锟斤拷锟?*
+- `WEB-001`锟斤拷未通锟斤拷锟斤拷锟斤拷页锟斤拷锟斤拷锟竭伙拷频锟斤拷锟斤拷实锟斤拷锟斤拷 500锟斤拷锟斤拷锟斤拷锟斤拷煽锟阶达拷?- `WEB-002`锟斤拷未通锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷约锟斤拷锟睫革拷锟斤拷锟斤拷锟斤拷实频锟斤拷锟斤拷锟斤拷锟斤拷锟届常/失锟斤拷
+- `WEB-003`锟斤拷通锟斤拷锟斤拷锟斤拷锟斤拷 `feature_list.json` 锟斤拷锟斤拷?`passing`
 
-**��һ����Ѷ���?*��Codex1 �޸� `WEB-001` / `WEB-002` ��Ƶ�� ID �� uploads playlist ��������������ύ��?Codex2 ���顣
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷Codex1 锟睫革拷 `WEB-001` / `WEB-002` 锟斤拷频锟斤拷 ID 锟斤拷 uploads playlist 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷峤伙拷锟?Codex2 锟斤拷锟介。
 
 ### Session #26 - 2026-05-14
 
-**本轮目标**：Codex2 复验 WEB-001、WEB-002（频�?ID 修正后），首次验 WEB-004
+**鏈疆鐩爣**锛欳odex2 澶嶉獙 WEB-001銆乄EB-002锛堥锟?ID 淇鍚庯級锛岄娆￠獙 WEB-004
 
-**已完�?*�?- PM 修正 `src/lib/channels.ts`：Dreaming Spanish(`UCouyFdE9-Lrjo3M_2idKq1A`)、Spanish Okay(`UCW1FQuVy10_biDAxAj1iTEQ`)、Easy Spanish(`UCAL4AMMMXKxHDu3FqZV6CbQ`)
-- Codex2 修正 `tests/web002.test.mjs` 中频道名断言（与新频道列表一致）
-- `npm test`: 39/39 通过；`npm run build`: 通过
-- WEB-004：SubtitlePanel.tsx 100ms setInterval 确认�?api/subtitle 返回 200 + []，标�?passing
-- WEB-001/WEB-002 第一轮复验失败：dev server �?.env 写入前启动，环境变量未载入，导致误判 API Key 无效
-- 第二轮复验：发现真正根因——Node.js 内置 fetch 不走系统代理，需 `NODE_OPTIONS=--use-env-proxy`
-- 修复�?dev server 正常连�?googleapis.com；三个频道接口均返回 HTTP 200 + 正确 channelTitle
-- 首页加载 Dreaming Spanish 26 条、Spanish Okay 26 条、Easy Spanish 74 条真实视频卡�?- 更新 `feature_list.json`：WEB-001/WEB-002/WEB-004 全部标记 passing
+**宸插畬锟?*锟?- PM 淇 `src/lib/channels.ts`锛欴reaming Spanish(`UCouyFdE9-Lrjo3M_2idKq1A`)銆丼panish Okay(`UCW1FQuVy10_biDAxAj1iTEQ`)銆丒asy Spanish(`UCAL4AMMMXKxHDu3FqZV6CbQ`)
+- Codex2 淇 `tests/web002.test.mjs` 涓閬撳悕鏂█锛堜笌鏂伴閬撳垪琛ㄤ竴鑷达級
+- `npm test`: 39/39 閫氳繃锛沗npm run build`: 閫氳繃
+- WEB-004锛歋ubtitlePanel.tsx 100ms setInterval 纭锟?api/subtitle 杩斿洖 200 + []锛屾爣锟?passing
+- WEB-001/WEB-002 绗竴杞楠屽け璐ワ細dev server 锟?.env 鍐欏叆鍓嶅惎鍔紝鐜鍙橀噺鏈浇鍏ワ紝瀵艰嚧璇垽 API Key 鏃犳晥
+- 绗簩杞楠岋細鍙戠幇鐪熸鏍瑰洜鈥斺€擭ode.js 鍐呯疆 fetch 涓嶈蛋绯荤粺浠ｇ悊锛岄渶 `NODE_OPTIONS=--use-env-proxy`
+- 淇锟?dev server 姝ｅ父杩烇拷?googleapis.com锛涗笁涓閬撴帴鍙ｅ潎杩斿洖 HTTP 200 + 姝ｇ‘ channelTitle
+- 棣栭〉鍔犺浇 Dreaming Spanish 26 鏉°€丼panish Okay 26 鏉°€丒asy Spanish 74 鏉＄湡瀹炶棰戝崱锟?- 鏇存柊 `feature_list.json`锛歐EB-001/WEB-002/WEB-004 鍏ㄩ儴鏍囪 passing
 
-**运行过的验证**�?- `npm test`�?9/39
-- `npm run build`：通过
-- `GET /api/youtube/channel?id=UCouyFdE9-Lrjo3M_2idKq1A` �?HTTP 200，channelTitle: "Dreaming Spanish"
-- `GET /api/youtube/channel?id=UCW1FQuVy10_biDAxAj1iTEQ` �?HTTP 200，channelTitle: "Spanish Okay"
-- `GET /api/youtube/search?q=hola` �?HTTP 200，西语内�?- `GET /` �?HTTP 200，三频道真实视频卡片渲染
-- `GET /api/subtitle?v=dQw4w9WgXcQ&lang=es` �?HTTP 200，`[]`
+**杩愯杩囩殑楠岃瘉**锟?- `npm test`锟?9/39
+- `npm run build`锛氶€氳繃
+- `GET /api/youtube/channel?id=UCouyFdE9-Lrjo3M_2idKq1A` 锟?HTTP 200锛宑hannelTitle: "Dreaming Spanish"
+- `GET /api/youtube/channel?id=UCW1FQuVy10_biDAxAj1iTEQ` 锟?HTTP 200锛宑hannelTitle: "Spanish Okay"
+- `GET /api/youtube/search?q=hola` 锟?HTTP 200锛岃タ璇唴锟?- `GET /` 锟?HTTP 200锛屼笁棰戦亾鐪熷疄瑙嗛鍗＄墖娓叉煋
+- `GET /api/subtitle?v=dQw4w9WgXcQ&lang=es` 锟?HTTP 200锛宍[]`
 
-**结论**�?- WEB-001：passing
-- WEB-002：passing
-- WEB-003：passing（上一轮已通过�?- WEB-004：passing
+**缁撹**锟?- WEB-001锛歱assing
+- WEB-002锛歱assing
+- WEB-003锛歱assing锛堜笂涓€杞凡閫氳繃锟?- WEB-004锛歱assing
 
-**PM 写好�?ticket**�?- WEB-005 Web 端点击查词（移植 EXT-003，新�?LookupCard.tsx�?- WEB-006 Web 端词语高亮（移植 EXT-004，调�?/api/vocab/highlight�?
-**下一步最佳动�?*：Codex1 实现 WEB-005（先）→ Codex2 验收 �?Codex1 实现 WEB-006 �?Codex2 验收
+**PM 鍐欏ソ锟?ticket**锟?- WEB-005 Web 绔偣鍑绘煡璇嶏紙绉绘 EXT-003锛屾柊锟?LookupCard.tsx锟?- WEB-006 Web 绔瘝璇珮浜紙绉绘 EXT-004锛岃皟锟?/api/vocab/highlight锟?
+**涓嬩竴姝ユ渶浣冲姩锟?*锛欳odex1 瀹炵幇 WEB-005锛堝厛锛夆啋 Codex2 楠屾敹 锟?Codex1 瀹炵幇 WEB-006 锟?Codex2 楠屾敹
 
 ### Session #27 - 2026-05-14
 
-**����Ŀ��**��Codex1 ʵ�� `WEB-005` Web �˵����ʣ�������Ϊ�ɽ��� Codex2 �� QA ״̬
-**�����**
-- �½� `src/app/watch/LookupCard.tsx`������ `/api/lemmatize` ��ѯ�ʸ�����λ˵�������Ժ���������
-- �� `src/app/watch/SubtitlePanel.tsx` �аѵ�ǰ������Ļ���ʲ�ɿɵ�� span������󵯳���ʿ�Ƭ
-- ��ʿ�Ƭ���� `/api/vocab/add`���ύ `sourceUrl`��`timestampSec`��`originalSentence`��`translatedSentence`
-- ֧�� `Escape` �رա�����ⲿ�رա���Ļ�л�ʱ�Զ����𣬱�������Ļͬ��
-- ���� `tests/web005.test.mjs`
-- ���� `feature_list.json`��`session-handoff.md`
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex1 实锟斤拷 `WEB-005` Web 锟剿碉拷锟斤拷锟绞ｏ拷锟斤拷锟斤拷锟斤拷为锟缴斤拷锟斤拷 Codex2 锟斤拷 QA 状态
+**锟斤拷锟斤拷锟?*
+- 锟铰斤拷 `src/app/watch/LookupCard.tsx`锟斤拷锟斤拷锟斤拷 `/api/lemmatize` 锟斤拷询锟绞革拷锟斤拷锟斤拷位说锟斤拷锟斤拷锟斤拷锟皆猴拷锟斤拷锟斤拷锟斤拷锟斤拷
+- 锟斤拷 `src/app/watch/SubtitlePanel.tsx` 锟叫把碉拷前锟斤拷锟斤拷锟斤拷幕锟斤拷锟绞诧拷煽傻锟斤拷 span锟斤拷锟斤拷锟斤拷蟮锟斤拷锟绞匡拷片
+- 锟斤拷士锟狡拷锟斤拷锟?`/api/vocab/add`锟斤拷锟结交 `sourceUrl`锟斤拷`timestampSec`锟斤拷`originalSentence`锟斤拷`translatedSentence`
+- 支锟斤拷 `Escape` 锟截闭★拷锟斤拷锟斤拷獠匡拷乇铡锟斤拷锟侥伙拷谢锟绞憋拷远锟斤拷锟斤拷穑锟斤拷锟斤拷锟斤拷锟侥煌拷锟?- 锟斤拷锟斤拷 `tests/web005.test.mjs`
+- 锟斤拷锟斤拷 `feature_list.json`锟斤拷`session-handoff.md`
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node tests/web005.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���**
-- `node tests/web005.test.mjs`��2/2 ͨ��
-- `npm test`��41/41 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node tests/web005.test.mjs`锟斤拷2/2 通锟斤拷
+- `npm test`锟斤拷41/41 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��ע**
-- �����Ի�������е� `SiteHeader.tsx` `<img>` lint warning
-- Redis δ����ʱ�Ի���ּ��е� `ioredis ECONNREFUSED` warning������Ӱ�� WEB-005 �������Խ��
-
-**��һ����Ѷ���**������ Codex2 ���� `WEB-005`��ͨ�����ٿ�ʼ `WEB-006`
+**锟斤拷注**
+- 锟斤拷锟斤拷锟皆伙拷锟斤拷锟斤拷锟斤拷械锟?`SiteHeader.tsx` `<img>` lint warning
+- Redis 未锟斤拷锟斤拷时锟皆伙拷锟斤拷旨锟斤拷械锟?`ioredis ECONNREFUSED` warning锟斤拷锟斤拷锟斤拷影锟斤拷 WEB-005 锟斤拷锟斤拷锟斤拷锟皆斤拷锟?
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟斤拷 Codex2 锟斤拷锟斤拷 `WEB-005`锟斤拷通锟斤拷锟斤拷锟劫匡拷始 `WEB-006`
 
 ### Session #28 - 2026-05-14
 
-**本轮目标**：Codex2 验收 `WEB-005` Web 端点击查�?**已完�?*
-- 重新读取 AGENTS / ROLE-QA / session-handoff，确认验收目标与步骤
-- 运行 `node tests/web005.test.mjs`�?/2 通过
-- 运行 `npm test`�?1/41 通过
-- 运行 `npm run build`，通过
-- 核对 `src/app/watch/LookupCard.tsx`：存�?`/api/lemmatize` 调用与加入词库逻辑
-- 核对 `src/app/watch/SubtitlePanel.tsx`：存在逐词 span 渲染、点�?键盘 handler、LookupCard 挂载�?100ms 字幕同步轮询
-- 更新 `feature_list.json` �?`session-handoff.md`
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `WEB-005` Web 绔偣鍑绘煡锟?**宸插畬锟?*
+- 閲嶆柊璇诲彇 AGENTS / ROLE-QA / session-handoff锛岀‘璁ら獙鏀剁洰鏍囦笌姝ラ
+- 杩愯 `node tests/web005.test.mjs`锟?/2 閫氳繃
+- 杩愯 `npm test`锟?1/41 閫氳繃
+- 杩愯 `npm run build`锛岄€氳繃
+- 鏍稿 `src/app/watch/LookupCard.tsx`锛氬瓨锟?`/api/lemmatize` 璋冪敤涓庡姞鍏ヨ瘝搴撻€昏緫
+- 鏍稿 `src/app/watch/SubtitlePanel.tsx`锛氬瓨鍦ㄩ€愯瘝 span 娓叉煋銆佺偣锟?閿洏 handler銆丩ookupCard 鎸傝浇锟?100ms 瀛楀箷鍚屾杞
+- 鏇存柊 `feature_list.json` 锟?`session-handoff.md`
 
-**结果**
-- `WEB-005`：passing
+**缁撴灉**
+- `WEB-005`锛歱assing
 
-**备注**
-- 构建仍会出现既有�?`SiteHeader.tsx` `<img>` lint warning
-- Redis 未启动时仍会出现既有�?`ioredis ECONNREFUSED` warning
-- 两项都不阻塞本票验收
+**澶囨敞**
+- 鏋勫缓浠嶄細鍑虹幇鏃㈡湁锟?`SiteHeader.tsx` `<img>` lint warning
+- Redis 鏈惎鍔ㄦ椂浠嶄細鍑虹幇鏃㈡湁锟?`ioredis ECONNREFUSED` warning
+- 涓ら」閮戒笉闃诲鏈エ楠屾敹
 
-**下一步最佳动�?*：Codex1 开�?`WEB-006`
+**涓嬩竴姝ユ渶浣冲姩锟?*锛欳odex1 寮€锟?`WEB-006`
 ### Session #29 - 2026-05-14
 
-**����Ŀ��**��Codex1 ʵ�� `WEB-006` Web �˴��������������Ϊ�ɽ��� Codex2 �� QA ״̬
-**�����**
-- �޸� `src/app/watch/SubtitlePanel.tsx`������Ļ�л�ʱ�ѵ�ǰ���ӵĹ�һ������ POST �� `/api/vocab/highlight`
-- ���ݷ��ص� `course/saved/unknown` Ϊ��Ļ��Ӧ�ø���ɫ���γ̴� `#86EFAC`���ʿ�� `#93C5FD`
-- �� `401` ������ʧ������Ĭ������δ��¼��ӿ��쳣ʱ��������ֻ����Ϊ�޸���
-- ���� `tests/web006.test.mjs`
-- ���� `feature_list.json`��`session-handoff.md`
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex1 实锟斤拷 `WEB-006` Web 锟剿达拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟轿拷山锟斤拷锟?Codex2 锟斤拷 QA 状态
+**锟斤拷锟斤拷锟?*
+- 锟睫革拷 `src/app/watch/SubtitlePanel.tsx`锟斤拷锟斤拷锟斤拷幕锟叫伙拷时锟窖碉拷前锟斤拷锟接的癸拷一锟斤拷锟斤拷锟斤拷 POST 锟斤拷 `/api/vocab/highlight`
+- 锟斤拷锟捷凤拷锟截碉拷 `course/saved/unknown` 为锟斤拷幕锟斤拷应锟矫革拷锟斤拷色锟斤拷锟轿程达拷 `#86EFAC`锟斤拷锟绞匡拷锟?`#93C5FD`
+- 锟斤拷 `401` 锟斤拷锟斤拷锟斤拷失锟斤拷锟斤拷锟斤拷默锟斤拷锟斤拷锟斤拷未锟斤拷录锟斤拷涌锟斤拷斐Ｊ憋拷锟斤拷锟斤拷锟斤拷锟街伙拷锟斤拷锟轿拷薷锟斤拷锟?- 锟斤拷锟斤拷 `tests/web006.test.mjs`
+- 锟斤拷锟斤拷 `feature_list.json`锟斤拷`session-handoff.md`
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node tests/web006.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���**
-- `node tests/web006.test.mjs`��1/1 ͨ��
-- `npm test`��42/42 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node tests/web006.test.mjs`锟斤拷1/1 通锟斤拷
+- `npm test`锟斤拷42/42 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��ע**
-- �����Ի�������е� `SiteHeader.tsx` `<img>` lint warning
-- Redis δ����ʱ�Ի���ּ��е� `ioredis ECONNREFUSED` warning������Ӱ�� WEB-006 �������Խ��
+**锟斤拷注**
+- 锟斤拷锟斤拷锟皆伙拷锟斤拷锟斤拷锟斤拷械锟?`SiteHeader.tsx` `<img>` lint warning
+- Redis 未锟斤拷锟斤拷时锟皆伙拷锟斤拷旨锟斤拷械锟?`ioredis ECONNREFUSED` warning锟斤拷锟斤拷锟斤拷影锟斤拷 WEB-006 锟斤拷锟斤拷锟斤拷锟皆斤拷锟?
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟斤拷 Codex2 锟斤拷锟斤拷 `WEB-006`
 
-**��һ����Ѷ���**������ Codex2 ���� `WEB-006`
-
-
-### Session #30 - 2026-05-14
-
-**����Ŀ��**��Codex2 ���� `WEB-006` Web �˴����������ͬ������״̬
-**�����**
-- ���¶�ȡ AGENTS / ROLE-QA / session-handoff��ȷ�� `WEB-006` Ϊ��ǰΨһ�����չ���
-- ���� `node tests/web006.test.mjs`��1/1 ͨ��
-- ���� `npm test`��42/42 ͨ��
-- ���� `npm run build`��ͨ��
-- �˶� `src/app/watch/SubtitlePanel.tsx`��ȷ�ϰ��� `/api/vocab/highlight` ���á�`#86EFAC`��`#93C5FD`���Լ� `response.status === 401` �ľ�Ĭ������֧
-- ���� `feature_list.json`��`session-handoff.md`��`claude-progress.md`
-
-**���**
-- `WEB-006`��`passing`
-- ��ǰ `feature_list.json` ȫ�� 16 �����ܾ��� `passing`
-
-**��ע**
-- �����Ի���ּ��е� `SiteHeader.tsx` `<img>` lint warning
-- Redis δ����ʱ�Ի���ּ��е� `ioredis ECONNREFUSED` warning
-- ���δ�������� QA
-
-**��һ����Ѷ���**����ǰƱ����ȫ��ͨ�������� PM �����Ƿ������β����ʾ����һ�׶ι滮
-### 会话 #27 — 2026-05-14
-
-**本轮目标**：WEB-005、WEB-006 实现与验收
-
-**已完成**：
-- Codex1 实现 WEB-005：新增 src/app/watch/LookupCard.tsx，修改 SubtitlePanel.tsx 为逐词 span + onClick 查词，新增 tests/web005.test.mjs
-- Codex2 验收 WEB-005：通过，status → passing
-- Codex1 实现 WEB-006：修改 SubtitlePanel.tsx 接入 /api/vocab/highlight，课程词 #86EFAC / 词库词 #93C5FD，新增 tests/web006.test.mjs
-- Codex2 验收 WEB-006：通过，status → passing
-
-**验收结论**：
-- WEB-005：passing
-- WEB-006：passing
-- feature_list.json 全部 16 个功能均为 passing
-
-**Phase 2 完成**：Web 视频平台（WEB-001 ~ WEB-006）全部通过
-
-**下一步最佳动作**：
-由 PM 规划 Phase 3，或部署到 Vercel 解决 Mixed Content 问题（Chrome 插件 localhost → HTTPS）
 
 ### Session #30 - 2026-05-14
 
-**����Ŀ��**��Codex1 �޸� `DEPLOY-001`����� Vercel ������ `/api/auth/[...nextauth]` ����֤���������� PrismaAdapter ��ʼ�����µ� `Failed to collect page data`
-**�����**
-- �� `src/app/api/auth/[...nextauth]/route.ts` ���� `export const dynamic = "force-dynamic"`
-- ���� `src/lib/auth.ts`���� NextAuth adapter/provider ��Ϊ���ڻ���������������ʼ�������⹹���׶�������ִ�� `PrismaAdapter(prisma)`
-- ��ȱ�����ݿ⻷������ʱ�� session strategy ����Ϊ `jwt`����ֹ���������ݿ� session ��ʼ��
-- ���� `tests/deploy001.test.mjs`��У�� NextAuth route �� dynamic ������ authOptions �Ļ�����������
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex2 锟斤拷锟斤拷 `WEB-006` Web 锟剿达拷锟斤拷锟斤拷锟斤拷锟斤拷锟酵拷锟斤拷锟斤拷锟阶刺?**锟斤拷锟斤拷锟?*
+- 锟斤拷锟铰讹拷取 AGENTS / ROLE-QA / session-handoff锟斤拷确锟斤拷 `WEB-006` 为锟斤拷前唯一锟斤拷锟斤拷锟秸癸拷锟斤拷
+- 锟斤拷锟斤拷 `node tests/web006.test.mjs`锟斤拷1/1 通锟斤拷
+- 锟斤拷锟斤拷 `npm test`锟斤拷42/42 通锟斤拷
+- 锟斤拷锟斤拷 `npm run build`锟斤拷通锟斤拷
+- 锟剿讹拷 `src/app/watch/SubtitlePanel.tsx`锟斤拷确锟较帮拷锟斤拷 `/api/vocab/highlight` 锟斤拷锟矫★拷`#86EFAC`锟斤拷`#93C5FD`锟斤拷锟皆硷拷 `response.status === 401` 锟侥撅拷默锟斤拷锟斤拷锟斤拷支
+- 锟斤拷锟斤拷 `feature_list.json`锟斤拷`session-handoff.md`锟斤拷`claude-progress.md`
 
-**���й�����֤**
+**锟斤拷锟?*
+- `WEB-006`锟斤拷`passing`
+- 锟斤拷前 `feature_list.json` 全锟斤拷 16 锟斤拷锟斤拷锟杰撅拷锟斤拷 `passing`
+
+**锟斤拷注**
+- 锟斤拷锟斤拷锟皆伙拷锟斤拷旨锟斤拷械锟?`SiteHeader.tsx` `<img>` lint warning
+- Redis 未锟斤拷锟斤拷时锟皆伙拷锟斤拷旨锟斤拷械锟?`ioredis ECONNREFUSED` warning
+- 锟斤拷锟筋都未锟斤拷锟斤拷锟斤拷锟斤拷 QA
+
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷前票锟斤拷锟斤拷全锟斤拷通锟斤拷锟斤拷锟斤拷锟斤拷 PM 锟斤拷锟斤拷锟角凤拷锟斤拷锟斤拷锟轿诧拷锟斤拷锟绞撅拷锟斤拷锟揭伙拷锥喂婊?### 浼氳瘽 #27 鈥?2026-05-14
+
+**鏈疆鐩爣**锛歐EB-005銆乄EB-006 瀹炵幇涓庨獙鏀?
+**宸插畬鎴?*锛?- Codex1 瀹炵幇 WEB-005锛氭柊澧?src/app/watch/LookupCard.tsx锛屼慨鏀?SubtitlePanel.tsx 涓洪€愯瘝 span + onClick 鏌ヨ瘝锛屾柊澧?tests/web005.test.mjs
+- Codex2 楠屾敹 WEB-005锛氶€氳繃锛宻tatus 鈫?passing
+- Codex1 瀹炵幇 WEB-006锛氫慨鏀?SubtitlePanel.tsx 鎺ュ叆 /api/vocab/highlight锛岃绋嬭瘝 #86EFAC / 璇嶅簱璇?#93C5FD锛屾柊澧?tests/web006.test.mjs
+- Codex2 楠屾敹 WEB-006锛氶€氳繃锛宻tatus 鈫?passing
+
+**楠屾敹缁撹**锛?- WEB-005锛歱assing
+- WEB-006锛歱assing
+- feature_list.json 鍏ㄩ儴 16 涓姛鑳藉潎涓?passing
+
+**Phase 2 瀹屾垚**锛歐eb 瑙嗛骞冲彴锛圵EB-001 ~ WEB-006锛夊叏閮ㄩ€氳繃
+
+**涓嬩竴姝ユ渶浣冲姩浣?*锛?鐢?PM 瑙勫垝 Phase 3锛屾垨閮ㄧ讲鍒?Vercel 瑙ｅ喅 Mixed Content 闂锛圕hrome 鎻掍欢 localhost 鈫?HTTPS锛?
+### Session #30 - 2026-05-14
+
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex1 锟睫革拷 `DEPLOY-001`锟斤拷锟斤拷锟?Vercel 锟斤拷锟斤拷锟斤拷 `/api/auth/[...nextauth]` 锟斤拷锟斤拷证锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷 PrismaAdapter 锟斤拷始锟斤拷锟斤拷锟铰碉拷 `Failed to collect page data`
+**锟斤拷锟斤拷锟?*
+- 锟斤拷 `src/app/api/auth/[...nextauth]/route.ts` 锟斤拷锟斤拷 `export const dynamic = "force-dynamic"`
+- 锟斤拷锟斤拷 `src/lib/auth.ts`锟斤拷锟斤拷 NextAuth adapter/provider 锟斤拷为锟斤拷锟节伙拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷始锟斤拷锟斤拷锟斤拷锟解构锟斤拷锟阶讹拷锟斤拷锟斤拷锟斤拷执锟斤拷 `PrismaAdapter(prisma)`
+- 锟斤拷缺锟斤拷锟斤拷锟捷库环锟斤拷锟斤拷锟斤拷时锟斤拷 session strategy 锟斤拷锟斤拷为 `jwt`锟斤拷锟斤拷止锟斤拷锟斤拷锟斤拷锟斤拷锟捷匡拷 session 锟斤拷始锟斤拷
+- 锟斤拷锟斤拷 `tests/deploy001.test.mjs`锟斤拷校锟斤拷 NextAuth route 锟斤拷 dynamic 锟斤拷锟斤拷锟斤拷 authOptions 锟侥伙拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node tests/deploy001.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���**
-- `node tests/deploy001.test.mjs`��2/2 ͨ��
-- `npm test`��44/44 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node tests/deploy001.test.mjs`锟斤拷2/2 通锟斤拷
+- `npm test`锟斤拷44/44 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��ע**
-- �����Ի�������е� `SiteHeader.tsx` `<img>` lint warning
-- Redis δ����ʱ�Ի���ּ��е� `ioredis ECONNREFUSED` warning
-- ������ȷ�ϲ��ٳ��� `/api/auth/[...nextauth]` �� `Failed to collect page data`
-- Vercel ���²�����δ�ڵ�ǰ�Ự��ʵ����֤����ҪԶ������һ�ֲ���ȷ��
+**锟斤拷注**
+- 锟斤拷锟斤拷锟皆伙拷锟斤拷锟斤拷锟斤拷械锟?`SiteHeader.tsx` `<img>` lint warning
+- Redis 未锟斤拷锟斤拷时锟皆伙拷锟斤拷旨锟斤拷械锟?`ioredis ECONNREFUSED` warning
+- 锟斤拷锟斤拷锟斤拷确锟较诧拷锟劫筹拷锟斤拷 `/api/auth/[...nextauth]` 锟斤拷 `Failed to collect page data`
+- Vercel 锟斤拷锟铰诧拷锟斤拷锟斤拷未锟节碉拷前锟结话锟斤拷实锟斤拷锟斤拷证锟斤拷锟斤拷要远锟斤拷锟斤拷锟斤拷一锟街诧拷锟斤拷确锟斤拷
 
-**��һ����Ѷ���**�����ͱ����޸����� Vercel ���²���ȷ�ϲ��ٳ��� `Failed to collect page data`
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟酵憋拷锟斤拷锟睫革拷锟斤拷锟斤拷 Vercel 锟斤拷锟铰诧拷锟斤拷确锟较诧拷锟劫筹拷锟斤拷 `Failed to collect page data`
 
 ### Session #31 - 2026-05-14
 
-**����Ŀ��**�������ӹ� `DEPLOY-001`���� NextAuth ��ʼ����ģ�鼶������Ϊ���躯������һ������ Vercel ��������Ϊ
-**�����**
-- �� `src/lib/auth.ts` �ӵ���ģ�鼶 `authOptions` ��Ϊ���� `getAuthOptions()`
-- ���ڴ��� `DATABASE_URL` ʱ�Ű��� `require("@/lib/prisma")` ������ `PrismaAdapter(prisma)`
-- �� `src/app/api/auth/[...nextauth]/route.ts` ��Ϊ�� `GET/POST` ���������е��� `NextAuth(getAuthOptions())`
-- ͬ������ `SiteHeader`��`watch/page.tsx`��`vocab/page.tsx`��`/api/vocab/add`��`/api/vocab/highlight` �� `getServerSession` ����
-- ���� `tests/ext003.test.mjs`��`tests/ext004.test.mjs`��`tests/vocab-ui.test.mjs` �Ծ� `authOptions` ��ʽ�Ķ���
+**锟斤拷锟斤拷目锟斤拷**锟斤拷锟斤拷锟斤拷锟接癸拷 `DEPLOY-001`锟斤拷锟斤拷 NextAuth 锟斤拷始锟斤拷锟斤拷模锟介级锟斤拷锟斤拷锟斤拷为锟斤拷锟借函锟斤拷锟斤拷锟斤拷一锟斤拷锟斤拷锟斤拷 Vercel 锟斤拷锟斤拷锟斤拷锟斤拷为
+**锟斤拷锟斤拷锟?*
+- 锟斤拷 `src/lib/auth.ts` 锟接碉拷锟斤拷模锟介级 `authOptions` 锟斤拷为锟斤拷锟斤拷 `getAuthOptions()`
+- 锟斤拷锟节达拷锟斤拷 `DATABASE_URL` 时锟脚帮拷锟斤拷 `require("@/lib/prisma")` 锟斤拷锟斤拷锟斤拷 `PrismaAdapter(prisma)`
+- 锟斤拷 `src/app/api/auth/[...nextauth]/route.ts` 锟斤拷为锟斤拷 `GET/POST` 锟斤拷锟斤拷锟斤拷锟斤拷锟叫碉拷锟斤拷 `NextAuth(getAuthOptions())`
+- 同锟斤拷锟斤拷锟斤拷 `SiteHeader`锟斤拷`watch/page.tsx`锟斤拷`vocab/page.tsx`锟斤拷`/api/vocab/add`锟斤拷`/api/vocab/highlight` 锟斤拷 `getServerSession` 锟斤拷锟斤拷
+- 锟斤拷锟斤拷 `tests/ext003.test.mjs`锟斤拷`tests/ext004.test.mjs`锟斤拷`tests/vocab-ui.test.mjs` 锟皆撅拷 `authOptions` 锟斤拷式锟侥讹拷锟斤拷
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node tests/deploy001.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���**
-- `node tests/deploy001.test.mjs`��2/2 ͨ��
-- `npm test`��44/44 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node tests/deploy001.test.mjs`锟斤拷2/2 通锟斤拷
+- `npm test`锟斤拷44/44 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��ע**
-- ����������� `DATABASE_URL/NEXTAUTH_SECRET/GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET` ����������֤ `npm run build` ��ͨ��
-- �����Ի���ּ��е� `SiteHeader.tsx` `<img>` lint warning �� `ioredis ECONNREFUSED` warning����������������
+**锟斤拷注**
+- 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟?`DATABASE_URL/NEXTAUTH_SECRET/GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET` 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷证 `npm run build` 锟斤拷通锟斤拷
+- 锟斤拷锟斤拷锟皆伙拷锟斤拷旨锟斤拷械锟?`SiteHeader.tsx` `<img>` lint warning 锟斤拷 `ioredis ECONNREFUSED` warning锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 
-**��һ����Ѷ���**�����ͱ��β����޸����� Vercel ���²������� commit
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟酵憋拷锟轿诧拷锟斤拷锟睫革拷锟斤拷锟斤拷 Vercel 锟斤拷锟铰诧拷锟斤拷锟斤拷锟斤拷 commit
 
 ### Session #32 - 2026-05-14
 
-**����Ŀ��**�������޸� `DEPLOY-001` �� Vercel Prisma Client ��������
-**Vercel ������־����**��Զ�˹���ʧ�ܵ��ѱ�Ϊ Prisma Client δ�� Vercel �����������ɣ���־��ȷ��ʾ��Ҫ�ڹ������������� `prisma generate`��
-**��Ҫ����**��Vercel ��ǰ��־��ʾ����ֿ�Ϊ `github.com/104215585011/esponalsssssss`��commit `79c9a10`�������ص�ǰ�ֿ� remote �� `github.com/104215585011/esponal.git`�������ύ��ͬ����Ҫȷ�� Vercel ��Ŀ�Ƿ�ָ����ȷ�ֿ��ͬ�����롣
+**锟斤拷锟斤拷目锟斤拷**锟斤拷锟斤拷锟斤拷锟睫革拷 `DEPLOY-001` 锟斤拷 Vercel Prisma Client 锟斤拷锟斤拷锟斤拷锟斤拷
+**Vercel 锟斤拷锟斤拷锟斤拷志锟斤拷锟斤拷**锟斤拷远锟剿癸拷锟斤拷失锟杰碉拷锟窖憋拷为 Prisma Client 未锟斤拷 Vercel 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟缴ｏ拷锟斤拷志锟斤拷确锟斤拷示锟斤拷要锟节癸拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷 `prisma generate`锟斤拷
+**锟斤拷要锟斤拷锟斤拷**锟斤拷Vercel 锟斤拷前锟斤拷志锟斤拷示锟斤拷锟斤拷挚锟轿?`github.com/104215585011/esponalsssssss`锟斤拷commit `79c9a10`锟斤拷锟斤拷锟斤拷锟截碉拷前锟街匡拷 remote 锟斤拷 `github.com/104215585011/esponal.git`锟斤拷锟斤拷锟斤拷锟结交锟斤拷同锟斤拷锟斤拷要确锟斤拷 Vercel 锟斤拷目锟角凤拷指锟斤拷锟斤拷确锟街匡拷锟酵拷锟斤拷锟斤拷搿?
+**锟斤拷锟斤拷锟?*
+- 锟斤拷 `package.json` 锟斤拷锟斤拷 `postinstall: prisma generate`锟斤拷锟斤拷 Vercel install 锟阶讹拷锟斤拷锟斤拷 Prisma Client锟斤拷
+- 锟斤拷锟斤拷 `build` 为 `next build`锟斤拷锟斤拷锟斤拷 Windows 锟斤拷锟截憋拷锟斤拷锟斤拷锟斤拷锟斤拷 Prisma query engine DLL 锟斤拷锟斤拷锟斤拷
+- 锟斤拷锟斤拷 `tests/deploy001.test.mjs`锟斤拷锟斤拷锟斤拷 `postinstall` 锟斤拷锟斤拷 Prisma Client 锟侥诧拷锟斤拷约锟斤拷锟斤拷
 
-**�����**
-- �� `package.json` ���� `postinstall: prisma generate`���� Vercel install �׶����� Prisma Client��
-- ���� `build` Ϊ `next build`������ Windows ���ر��������� Prisma query engine DLL ������
-- ���� `tests/deploy001.test.mjs`������ `postinstall` ���� Prisma Client �Ĳ���Լ����
-
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node tests/deploy001.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���**
-- `node tests/deploy001.test.mjs`��3/3 ͨ��
-- `npm test`��45/45 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node tests/deploy001.test.mjs`锟斤拷3/3 通锟斤拷
+- `npm test`锟斤拷45/45 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��ע**
-- ֱ�Ӱ� `prisma generate && next build` �Ž� build �ű�ʱ������ Windows ��� Node/Prisma ������ס `query_engine-windows.dll.node` ���� EPERM rename��Vercel �Ǹɾ� Linux ����������Ϊ�˱������ؿ����ԣ����� `postinstall` ������
-- �����Ի���ּ��е� `SiteHeader.tsx` `<img>` lint warning �� Redis δ����ʱ�� `ioredis ECONNREFUSED` warning����������������
+**锟斤拷注**
+- 直锟接帮拷 `prisma generate && next build` 锟脚斤拷 build 锟脚憋拷时锟斤拷锟斤拷锟斤拷 Windows 锟斤拷锟?Node/Prisma 锟斤拷锟斤拷锟斤拷住 `query_engine-windows.dll.node` 锟斤拷锟斤拷 EPERM rename锟斤拷Vercel 锟角干撅拷 Linux 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷为锟剿憋拷锟斤拷锟斤拷锟截匡拷锟斤拷锟皆ｏ拷锟斤拷锟斤拷 `postinstall` 锟斤拷锟斤拷锟斤拷
+- 锟斤拷锟斤拷锟皆伙拷锟斤拷旨锟斤拷械锟?`SiteHeader.tsx` `<img>` lint warning 锟斤拷 Redis 未锟斤拷锟斤拷时锟斤拷 `ioredis ECONNREFUSED` warning锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 
-**��һ����Ѷ���**��ȷ�� Vercel ��Ŀ������ǰ��������ύ�Ĳֿ�/commit��Ȼ�����²���
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷确锟斤拷 Vercel 锟斤拷目锟斤拷锟斤拷锟斤拷前锟斤拷锟斤拷锟斤拷锟斤拷峤伙拷牟挚锟?commit锟斤拷然锟斤拷锟斤拷锟铰诧拷锟斤拷
 
 ### Session #33 - 2026-05-14
 
-**����Ŀ��**��Codex1 �����䲿�� ticket �̶� Vercel ֻ��װ/���� Web ����Ŀ�������� Chrome extension ��������
-**�����**
-- ���� `vercel.json`����ʽ���� `installCommand: npm install` �� `buildCommand: npm run build`��
-- ������ `package.json` �� `postinstall: prisma generate`��ȷ�� Vercel �Ի����� Prisma Client��
-- ȷ�ϸ� `package.json` û�� `extension` / `esbuild` ��� install/build �ű���
-- ���� deploy ���Ը��ǣ�Vercel ����ֻ���� Web ����Ŀ���� scripts ������ Chrome extension��
+**锟斤拷锟斤拷目锟斤拷**锟斤拷Codex1 锟斤拷锟斤拷锟戒部锟斤拷 ticket 锟教讹拷 Vercel 只锟斤拷装/锟斤拷锟斤拷 Web 锟斤拷锟斤拷目锟斤拷锟斤拷锟斤拷锟斤拷 Chrome extension 锟斤拷锟斤拷锟斤拷锟斤拷
+**锟斤拷锟斤拷锟?*
+- 锟斤拷锟斤拷 `vercel.json`锟斤拷锟斤拷式锟斤拷锟斤拷 `installCommand: npm install` 锟斤拷 `buildCommand: npm run build`锟斤拷
+- 锟斤拷锟斤拷锟斤拷 `package.json` 锟斤拷 `postinstall: prisma generate`锟斤拷确锟斤拷 Vercel 锟皆伙拷锟斤拷锟斤拷 Prisma Client锟斤拷
+- 确锟较革拷 `package.json` 没锟斤拷 `extension` / `esbuild` 锟斤拷锟?install/build 锟脚憋拷锟斤拷
+- 锟斤拷锟斤拷 deploy 锟斤拷锟皆革拷锟角ｏ拷Vercel 锟斤拷锟斤拷只锟斤拷锟斤拷 Web 锟斤拷锟斤拷目锟斤拷锟斤拷 scripts 锟斤拷锟斤拷锟斤拷 Chrome extension锟斤拷
 
-**���й�����֤**
+**锟斤拷锟叫癸拷锟斤拷锟斤拷证**
 - `node tests/deploy001.test.mjs`
 - `npm test`
 - `npm run build`
 
-**���**
-- `node tests/deploy001.test.mjs`��5/5 ͨ��
-- `npm test`��47/47 ͨ��
-- `npm run build`��ͨ��
+**锟斤拷锟?*
+- `node tests/deploy001.test.mjs`锟斤拷5/5 通锟斤拷
+- `npm test`锟斤拷47/47 通锟斤拷
+- `npm run build`锟斤拷通锟斤拷
 
-**��ע**
-- ����Ŀû�� workspaces��Ҳû�нű������ `extension/`��
-- ����û���޸� `.env`��û���ύ�κ���Կ��
+**锟斤拷注**
+- 锟斤拷锟斤拷目没锟斤拷 workspaces锟斤拷也没锟叫脚憋拷锟斤拷锟斤拷锟?`extension/`锟斤拷
+- 锟斤拷锟斤拷没锟斤拷锟睫革拷 `.env`锟斤拷没锟斤拷锟结交锟轿猴拷锟斤拷钥锟斤拷
 
-**��һ����Ѷ���**�����ͺ��� Vercel ���²������� commit��
+**锟斤拷一锟斤拷锟斤拷讯锟斤拷锟?*锟斤拷锟斤拷锟酵猴拷锟斤拷 Vercel 锟斤拷锟铰诧拷锟斤拷锟斤拷锟斤拷 commit锟斤拷
 
 ### Session #34 - 2026-05-14
 
-**本轮目标**：Codex1 修复 `/api/subtitle` 只请求单一西语字幕轨导致返回空数组的问题。
-
-**根因**
-- `src/app/api/subtitle/route.ts` 之前只请求 `lang=${lang}&fmt=json3`。
-- YouTube 很多西语视频字幕实际挂在 `es-419`、`es-MX` 或自动字幕 `kind=asr` 下，首个源为空时没有继续尝试 fallback。
-
-**已完成**
-- 为 `tests/web004.test.mjs` 增加字幕 fallback 结构断言，先确认旧实现失败。
-- `src/app/api/subtitle/route.ts` 改为按顺序尝试：`es` json3、`es-419` json3、`es-MX` json3、`es` 自动字幕 `kind=asr&tlang=es` json3。
-- 只要任一源解析出非空字幕 cues 就立即返回；全部为空才返回 `[]`。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 淇 `/api/subtitle` 鍙姹傚崟涓€瑗胯瀛楀箷杞ㄥ鑷磋繑鍥炵┖鏁扮粍鐨勯棶棰樸€?
+**鏍瑰洜**
+- `src/app/api/subtitle/route.ts` 涔嬪墠鍙姹?`lang=${lang}&fmt=json3`銆?- YouTube 寰堝瑗胯瑙嗛瀛楀箷瀹為檯鎸傚湪 `es-419`銆乣es-MX` 鎴栬嚜鍔ㄥ瓧骞?`kind=asr` 涓嬶紝棣栦釜婧愪负绌烘椂娌℃湁缁х画灏濊瘯 fallback銆?
+**宸插畬鎴?*
+- 涓?`tests/web004.test.mjs` 澧炲姞瀛楀箷 fallback 缁撴瀯鏂█锛屽厛纭鏃у疄鐜板け璐ャ€?- `src/app/api/subtitle/route.ts` 鏀逛负鎸夐『搴忓皾璇曪細`es` json3銆乣es-419` json3銆乣es-MX` json3銆乣es` 鑷姩瀛楀箷 `kind=asr&tlang=es` json3銆?- 鍙浠讳竴婧愯В鏋愬嚭闈炵┖瀛楀箷 cues 灏辩珛鍗宠繑鍥烇紱鍏ㄩ儴涓虹┖鎵嶈繑鍥?`[]`銆?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #35 - 2026-05-14
 
-**本轮目标**：Codex1 重写 `/api/subtitle` 字幕获取逻辑，先查询 YouTube 可用字幕轨道，再按 `lang_code + name` 精确拉取字幕。
-
-**根因**
-- 直接猜 `lang=es` / `es-419` / `es-MX` 仍可能拿不到字幕，因为 YouTube timedtext 对具名字幕轨道需要带 `name` 参数。
-- 需要先通过 `type=list` 获取轨道列表，再选择西语轨道构造精确字幕 URL。
-
-**已完成**
-- `src/app/api/subtitle/route.ts` 改为两步获取：先请求 `timedtext?type=list`，解析 XML 中 `lang_code` 和 `name`；再请求 `timedtext?lang=...&name=...&fmt=json3`。
-- 增加 YouTube 请求 `User-Agent` header。
-- 增加诊断日志：`[subtitle] list tracks:` 和 `[subtitle] selected lang:`。
-- 非 JSON 响应会安全返回 `[]`，不抛错。
-- 字幕缓存 namespace 改为 `youtube:subtitle:v2`，避免旧空数组缓存继续命中。
-- `tests/web004.test.mjs` 更新为验证两步协议和日志/防护逻辑。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 閲嶅啓 `/api/subtitle` 瀛楀箷鑾峰彇閫昏緫锛屽厛鏌ヨ YouTube 鍙敤瀛楀箷杞ㄩ亾锛屽啀鎸?`lang_code + name` 绮剧‘鎷夊彇瀛楀箷銆?
+**鏍瑰洜**
+- 鐩存帴鐚?`lang=es` / `es-419` / `es-MX` 浠嶅彲鑳芥嬁涓嶅埌瀛楀箷锛屽洜涓?YouTube timedtext 瀵瑰叿鍚嶅瓧骞曡建閬撻渶瑕佸甫 `name` 鍙傛暟銆?- 闇€瑕佸厛閫氳繃 `type=list` 鑾峰彇杞ㄩ亾鍒楄〃锛屽啀閫夋嫨瑗胯杞ㄩ亾鏋勯€犵簿纭瓧骞?URL銆?
+**宸插畬鎴?*
+- `src/app/api/subtitle/route.ts` 鏀逛负涓ゆ鑾峰彇锛氬厛璇锋眰 `timedtext?type=list`锛岃В鏋?XML 涓?`lang_code` 鍜?`name`锛涘啀璇锋眰 `timedtext?lang=...&name=...&fmt=json3`銆?- 澧炲姞 YouTube 璇锋眰 `User-Agent` header銆?- 澧炲姞璇婃柇鏃ュ織锛歚[subtitle] list tracks:` 鍜?`[subtitle] selected lang:`銆?- 闈?JSON 鍝嶅簲浼氬畨鍏ㄨ繑鍥?`[]`锛屼笉鎶涢敊銆?- 瀛楀箷缂撳瓨 namespace 鏀逛负 `youtube:subtitle:v2`锛岄伩鍏嶆棫绌烘暟缁勭紦瀛樼户缁懡涓€?- `tests/web004.test.mjs` 鏇存柊涓洪獙璇佷袱姝ュ崗璁拰鏃ュ織/闃叉姢閫昏緫銆?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #36 - 2026-05-14
 
-**本轮目标**：Codex1 按新 ticket 将 `/api/subtitle` 从手写 YouTube timedtext URL 改为使用 `youtube-transcript` 包。
-
-**已完成**
-- 安装 `youtube-transcript` 依赖。
-- 重写 `src/app/api/subtitle/route.ts`：使用 `YoutubeTranscript.fetchTranscript(videoId, { lang })` 获取字幕。
-- 保留 Redis 缓存逻辑，缓存 namespace 改为 `youtube:subtitle:transcript`，TTL 24h。
-- 将 `youtube-transcript` 返回的 `{ text, duration, offset }` 转为现有 `{ start, dur, text }`，毫秒转秒。
-- 增加日志：`[subtitle] fetched ... cues for ...` 和 `[subtitle] youtube-transcript failed: ...`。
-- 更新 `tests/web004.test.mjs`，验证依赖、转换逻辑和日志合同。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 鎸夋柊 ticket 灏?`/api/subtitle` 浠庢墜鍐?YouTube timedtext URL 鏀逛负浣跨敤 `youtube-transcript` 鍖呫€?
+**宸插畬鎴?*
+- 瀹夎 `youtube-transcript` 渚濊禆銆?- 閲嶅啓 `src/app/api/subtitle/route.ts`锛氫娇鐢?`YoutubeTranscript.fetchTranscript(videoId, { lang })` 鑾峰彇瀛楀箷銆?- 淇濈暀 Redis 缂撳瓨閫昏緫锛岀紦瀛?namespace 鏀逛负 `youtube:subtitle:transcript`锛孴TL 24h銆?- 灏?`youtube-transcript` 杩斿洖鐨?`{ text, duration, offset }` 杞负鐜版湁 `{ start, dur, text }`锛屾绉掕浆绉掋€?- 澧炲姞鏃ュ織锛歚[subtitle] fetched ... cues for ...` 鍜?`[subtitle] youtube-transcript failed: ...`銆?- 鏇存柊 `tests/web004.test.mjs`锛岄獙璇佷緷璧栥€佽浆鎹㈤€昏緫鍜屾棩蹇楀悎鍚屻€?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 首次 `npm install youtube-transcript` 因 npm 使用全局 `C:\Program Files\nodejs\node_cache` 无权限失败；改用 `C:\tmp\npm-cache` 后安装成功。
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- 棣栨 `npm install youtube-transcript` 鍥?npm 浣跨敤鍏ㄥ眬 `C:\Program Files\nodejs\node_cache` 鏃犳潈闄愬け璐ワ紱鏀圭敤 `C:\tmp\npm-cache` 鍚庡畨瑁呮垚鍔熴€?- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #37 - 2026-05-14
 
-**本轮目标**：Codex1 排查并修复 YouTube iframe API postMessage origin mismatch 与播放器打不开风险。
-
-**排查结论**
-- `npm run build` 本地通过，`youtube-transcript` 没有引入构建错误。
-- `youtube-transcript` 只在 `src/app/api/subtitle/route.ts` 服务端 route 中 import，没有进入客户端组件。
-- 源码中没有写死旧 Vercel URL，也没有 `origin=` iframe query。
-- `SubtitlePanel.tsx` 的 `YT.Player` 初始化之前没有传 origin；在 Vercel preview URL 高频变化时，显式使用当前页面 origin 更稳。
-
-**已完成**
-- `src/app/watch/SubtitlePanel.tsx` 的 `YT.Player` 初始化增加 `playerVars.origin = window.location.origin`。
-- 更新 `tests/web004.test.mjs`，断言使用动态 origin 且不包含 `vercel.app` 写死域名。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 鎺掓煡骞朵慨澶?YouTube iframe API postMessage origin mismatch 涓庢挱鏀惧櫒鎵撲笉寮€椋庨櫓銆?
+**鎺掓煡缁撹**
+- `npm run build` 鏈湴閫氳繃锛宍youtube-transcript` 娌℃湁寮曞叆鏋勫缓閿欒銆?- `youtube-transcript` 鍙湪 `src/app/api/subtitle/route.ts` 鏈嶅姟绔?route 涓?import锛屾病鏈夎繘鍏ュ鎴风缁勪欢銆?- 婧愮爜涓病鏈夊啓姝绘棫 Vercel URL锛屼篃娌℃湁 `origin=` iframe query銆?- `SubtitlePanel.tsx` 鐨?`YT.Player` 鍒濆鍖栦箣鍓嶆病鏈変紶 origin锛涘湪 Vercel preview URL 楂橀鍙樺寲鏃讹紝鏄惧紡浣跨敤褰撳墠椤甸潰 origin 鏇寸ǔ銆?
+**宸插畬鎴?*
+- `src/app/watch/SubtitlePanel.tsx` 鐨?`YT.Player` 鍒濆鍖栧鍔?`playerVars.origin = window.location.origin`銆?- 鏇存柊 `tests/web004.test.mjs`锛屾柇瑷€浣跨敤鍔ㄦ€?origin 涓斾笉鍖呭惈 `vercel.app` 鍐欐鍩熷悕銆?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #38 - 2026-05-14
 
-**本轮目标**：Codex1 修复 React 重渲染与 YouTube iframe API 生命周期冲突，避免旧 interval 对已重建 iframe 调用 `getCurrentTime()` / postMessage。
-
-**根因**
-- `SubtitlePanel.tsx` 的播放器初始化 effect 依赖 `[iframeId, subtitleCues, videoId]`。
-- 字幕数据加载后 `subtitleCues` 更新会导致 effect 清理并重新 `new YT.Player(...)`，旧 interval 与新 iframe 加载时序可能交错，引发 postMessage origin mismatch 或播放器初始化异常。
-
-**已完成**
-- 新增 `subtitleCuesRef` 保存最新字幕数组，播放器 polling 从 ref 读取字幕，避免 player effect 依赖 `subtitleCues`。
-- `getCurrentTime()` 调用包进 `try/catch`，player 未就绪或 iframe 切换中时静默跳过。
-- `new YT.Player(...)` 前检查 `playerRef.current`，避免重复初始化。
-- `onReady` 中才启动 100ms polling interval。
-- cleanup 中清理 interval，并用 try/catch 安全销毁 player，随后置空 `playerRef.current`。
-- 更新 `tests/web004.test.mjs`，覆盖 `subtitleCuesRef`、try/catch、动态 origin、以及不再依赖 `[iframeId, subtitleCues, videoId]`。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 淇 React 閲嶆覆鏌撲笌 YouTube iframe API 鐢熷懡鍛ㄦ湡鍐茬獊锛岄伩鍏嶆棫 interval 瀵瑰凡閲嶅缓 iframe 璋冪敤 `getCurrentTime()` / postMessage銆?
+**鏍瑰洜**
+- `SubtitlePanel.tsx` 鐨勬挱鏀惧櫒鍒濆鍖?effect 渚濊禆 `[iframeId, subtitleCues, videoId]`銆?- 瀛楀箷鏁版嵁鍔犺浇鍚?`subtitleCues` 鏇存柊浼氬鑷?effect 娓呯悊骞堕噸鏂?`new YT.Player(...)`锛屾棫 interval 涓庢柊 iframe 鍔犺浇鏃跺簭鍙兘浜ら敊锛屽紩鍙?postMessage origin mismatch 鎴栨挱鏀惧櫒鍒濆鍖栧紓甯搞€?
+**宸插畬鎴?*
+- 鏂板 `subtitleCuesRef` 淇濆瓨鏈€鏂板瓧骞曟暟缁勶紝鎾斁鍣?polling 浠?ref 璇诲彇瀛楀箷锛岄伩鍏?player effect 渚濊禆 `subtitleCues`銆?- `getCurrentTime()` 璋冪敤鍖呰繘 `try/catch`锛宲layer 鏈氨缁垨 iframe 鍒囨崲涓椂闈欓粯璺宠繃銆?- `new YT.Player(...)` 鍓嶆鏌?`playerRef.current`锛岄伩鍏嶉噸澶嶅垵濮嬪寲銆?- `onReady` 涓墠鍚姩 100ms polling interval銆?- cleanup 涓竻鐞?interval锛屽苟鐢?try/catch 瀹夊叏閿€姣?player锛岄殢鍚庣疆绌?`playerRef.current`銆?- 鏇存柊 `tests/web004.test.mjs`锛岃鐩?`subtitleCuesRef`銆乼ry/catch銆佸姩鎬?origin銆佷互鍙婁笉鍐嶄緷璧?`[iframeId, subtitleCues, videoId]`銆?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #39 - 2026-05-14
 
-**本轮目标**：Codex1 实现 WEB-004-FIX 修订版，将 `/api/subtitle` 改为 Edge Runtime，并卸载 `youtube-transcript`。
-
-**已完成**
-- 执行 `npm uninstall youtube-transcript`，移除依赖和 lockfile 记录。
-- 完整替换 `src/app/api/subtitle/route.ts` 为 Edge Runtime route：`export const runtime = "edge"`。
-- Edge route 不再 import `getCachedJson` / `ioredis` / `youtube-transcript`。
-- 使用 Edge `fetch` 请求 YouTube `timedtext?type=list`，解析 XML 中 `lang_code` 和 `name`，优先 `es` / `es-419` / `es-MX`。
-- 使用选中的 track 构造 `fmt=json3` timedtext 请求，解析为现有 `{ start, dur, text }` 字幕格式。
-- 加入 `User-Agent` / `Accept-Language` headers 和诊断日志：`[subtitle] edge list tracks:`、`[subtitle] edge selected lang:`、`[subtitle] fetched`、`[subtitle] edge fetch failed:`。
-- 因 Edge Runtime 不能用 Redis client，改用响应头 `Cache-Control: s-maxage=86400, stale-while-revalidate=3600`。
-- 更新 `tests/web004.test.mjs`，断言 Edge Runtime、timedtext list/json3、无 `youtube-transcript`、无 `getCachedJson`。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 WEB-004-FIX 淇鐗堬紝灏?`/api/subtitle` 鏀逛负 Edge Runtime锛屽苟鍗歌浇 `youtube-transcript`銆?
+**宸插畬鎴?*
+- 鎵ц `npm uninstall youtube-transcript`锛岀Щ闄や緷璧栧拰 lockfile 璁板綍銆?- 瀹屾暣鏇挎崲 `src/app/api/subtitle/route.ts` 涓?Edge Runtime route锛歚export const runtime = "edge"`銆?- Edge route 涓嶅啀 import `getCachedJson` / `ioredis` / `youtube-transcript`銆?- 浣跨敤 Edge `fetch` 璇锋眰 YouTube `timedtext?type=list`锛岃В鏋?XML 涓?`lang_code` 鍜?`name`锛屼紭鍏?`es` / `es-419` / `es-MX`銆?- 浣跨敤閫変腑鐨?track 鏋勯€?`fmt=json3` timedtext 璇锋眰锛岃В鏋愪负鐜版湁 `{ start, dur, text }` 瀛楀箷鏍煎紡銆?- 鍔犲叆 `User-Agent` / `Accept-Language` headers 鍜岃瘖鏂棩蹇楋細`[subtitle] edge list tracks:`銆乣[subtitle] edge selected lang:`銆乣[subtitle] fetched`銆乣[subtitle] edge fetch failed:`銆?- 鍥?Edge Runtime 涓嶈兘鐢?Redis client锛屾敼鐢ㄥ搷搴斿ご `Cache-Control: s-maxage=86400, stale-while-revalidate=3600`銆?- 鏇存柊 `tests/web004.test.mjs`锛屾柇瑷€ Edge Runtime銆乼imedtext list/json3銆佹棤 `youtube-transcript`銆佹棤 `getCachedJson`銆?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- `npm run build` 出现预期提示：Using edge runtime on a page currently disables static generation for that page。
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- `npm run build` 鍑虹幇棰勬湡鎻愮ず锛歎sing edge runtime on a page currently disables static generation for that page銆?- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #40 - 2026-05-14
 
-**本轮目标**：Codex1 推送 PM 新增的 Apify 字幕抓取实现。
-
-**已完成**
-- 检查本地未提交改动：`src/app/api/subtitle/route.ts` 与 `vercel.json`。
-- 确认代码未写入 Apify token 明文，仅通过 `process.env.APIFY_API_TOKEN` 读取。
-- `/api/subtitle` 改为使用 Apify actor `streamers/youtube-scraper` 同步抓取 YouTube 字幕 SRT。
-- 新增 SRT 解析逻辑，将 SRT 转为现有 `{ start, dur, text }` 格式。
-- 保留 Redis 缓存：`subtitle:${videoId}:${lang}`，TTL 86400 秒。
-- `vercel.json` 为 subtitle function 设置 `maxDuration: 60`。
-- 更新 `tests/web004.test.mjs`，断言 Apify、SRT、Redis cache 合同。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 鎺ㄩ€?PM 鏂板鐨?Apify 瀛楀箷鎶撳彇瀹炵幇銆?
+**宸插畬鎴?*
+- 妫€鏌ユ湰鍦版湭鎻愪氦鏀瑰姩锛歚src/app/api/subtitle/route.ts` 涓?`vercel.json`銆?- 纭浠ｇ爜鏈啓鍏?Apify token 鏄庢枃锛屼粎閫氳繃 `process.env.APIFY_API_TOKEN` 璇诲彇銆?- `/api/subtitle` 鏀逛负浣跨敤 Apify actor `streamers/youtube-scraper` 鍚屾鎶撳彇 YouTube 瀛楀箷 SRT銆?- 鏂板 SRT 瑙ｆ瀽閫昏緫锛屽皢 SRT 杞负鐜版湁 `{ start, dur, text }` 鏍煎紡銆?- 淇濈暀 Redis 缂撳瓨锛歚subtitle:${videoId}:${lang}`锛孴TL 86400 绉掋€?- `vercel.json` 涓?subtitle function 璁剧疆 `maxDuration: 60`銆?- 鏇存柊 `tests/web004.test.mjs`锛屾柇瑷€ Apify銆丼RT銆丷edis cache 鍚堝悓銆?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `npm test`：47/47 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?7/47 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 生产环境需要配置 `APIFY_API_TOKEN`。
-- 构建仍有既有的 `SiteHeader.tsx` `<img>` lint warning 和 Node `url.parse()` deprecation warning，不阻塞。
-- 本次没有修改 `.env`，没有提交任何密钥。
-
+**澶囨敞**
+- 鐢熶骇鐜闇€瑕侀厤缃?`APIFY_API_TOKEN`銆?- 鏋勫缓浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning 鍜?Node `url.parse()` deprecation warning锛屼笉闃诲銆?- 鏈娌℃湁淇敼 `.env`锛屾病鏈夋彁浜や换浣曞瘑閽ャ€?
 ### Session #41 - 2026-05-15
 
-**本轮目标**：PM 写 WEB-007 ticket，播放页重设计
-
-**背景**：
-WEB-004/005/006 全部通过。字幕、翻译、查词、高亮功能均已验收。
-用户提出将播放页改为双列布局：左大播放器 + 右全文双语字幕面板，
-相关视频改为悬停弹出覆层。UI 模型已由 Claude2 完成并通过 PM 评审（`mockup-watch.html`）。
-
-**新增 Ticket：WEB-007 — 播放页重设计（双语字幕面板布局）**
+**鏈疆鐩爣**锛歅M 鍐?WEB-007 ticket锛屾挱鏀鹃〉閲嶈璁?
+**鑳屾櫙**锛?WEB-004/005/006 鍏ㄩ儴閫氳繃銆傚瓧骞曘€佺炕璇戙€佹煡璇嶃€侀珮浜姛鑳藉潎宸查獙鏀躲€?鐢ㄦ埛鎻愬嚭灏嗘挱鏀鹃〉鏀逛负鍙屽垪甯冨眬锛氬乏澶ф挱鏀惧櫒 + 鍙冲叏鏂囧弻璇瓧骞曢潰鏉匡紝
+鐩稿叧瑙嗛鏀逛负鎮仠寮瑰嚭瑕嗗眰銆俇I 妯″瀷宸茬敱 Claude2 瀹屾垚骞堕€氳繃 PM 璇勫锛坄mockup-watch.html`锛夈€?
+**鏂板 Ticket锛歐EB-007 鈥?鎾斁椤甸噸璁捐锛堝弻璇瓧骞曢潰鏉垮竷灞€锛?*
 
 ---
 
 #### WEB-007 Ticket
 
-**优先级**：P1
-**依赖**：WEB-004 ✅、WEB-005 ✅、WEB-006 ✅
-**UI 规范**：`mockup-watch.html`（项目根目录，已通过 PM + Claude2 评审）
-**执行人**：Codex1 实现 → Codex2 验收
+**浼樺厛绾?*锛歅1
+**渚濊禆**锛歐EB-004 鉁呫€乄EB-005 鉁呫€乄EB-006 鉁?**UI 瑙勮寖**锛歚mockup-watch.html`锛堥」鐩牴鐩綍锛屽凡閫氳繃 PM + Claude2 璇勫锛?**鎵ц浜?*锛欳odex1 瀹炵幇 鈫?Codex2 楠屾敹
 
-**需求背景**：
-当前播放页字幕叠在视频下方黑色面板，一次只显示一句。
-新设计：左侧大播放器垂直居中，右侧显示完整双语字幕面板（全篇），
-相关视频改为右边缘悬停弹出覆层。
+**闇€姹傝儗鏅?*锛?褰撳墠鎾斁椤靛瓧骞曞彔鍦ㄨ棰戜笅鏂归粦鑹查潰鏉匡紝涓€娆″彧鏄剧ず涓€鍙ャ€?鏂拌璁★細宸︿晶澶ф挱鏀惧櫒鍨傜洿灞呬腑锛屽彸渚ф樉绀哄畬鏁村弻璇瓧骞曢潰鏉匡紙鍏ㄧ瘒锛夛紝
+鐩稿叧瑙嗛鏀逛负鍙宠竟缂樻偓鍋滃脊鍑鸿灞傘€?
+**甯冨眬瑙勬牸**锛?- 鏁翠綋锛氫袱鍒楋紝宸?63% 鍙?37%锛屽彸渚ц创鍙宠竟缂?- 宸﹀垪锛氳棰戞挱鏀惧櫒锛?6:9锛夊瀭鐩村眳涓?+ 鏍囬/棰戦亾 + 绔犺妭鍗犱綅锛?-4 鏉?mock 绔犺妭锛孶I 浠呭睍绀猴紝涓嶆帴鍚庣锛?- 鍙冲垪锛歍ranscriptPanel锛屽叏绡囧弻璇瓧骞曪紝椤堕儴鏈変笁涓垏鎹?tab锛圗S+涓?/ 浠呰タ璇?/ 浠呬腑鏂囷級
+- 鍙宠竟缂橈細RelatedPanel 瑕嗗眰锛?4脳48px 绠ご tab锛屾偓鍋?120ms 灞曞紑锛?00ms 鍚庢敹璧凤紝鐐瑰嚮鍥哄畾
 
-**布局规格**：
-- 整体：两列，左 63% 右 37%，右侧贴右边缘
-- 左列：视频播放器（16:9）垂直居中 + 标题/频道 + 章节占位（3-4 条 mock 章节，UI 仅展示，不接后端）
-- 右列：TranscriptPanel，全篇双语字幕，顶部有三个切换 tab（ES+中 / 仅西语 / 仅中文）
-- 右边缘：RelatedPanel 覆层，24×48px 箭头 tab，悬停 120ms 展开，300ms 后收起，点击固定
+**缁勪欢鍙樻洿**锛?
+1. **鍒犻櫎** `SubtitlePanel.tsx` 鍦?`watch/page.tsx` 涓殑浣跨敤锛堥粦鑹插瓧骞曟潯绉婚櫎锛?   - `SubtitlePanel.tsx` 鏂囦欢鏈韩淇濈暀锛屼絾浠庨〉闈腑鍗歌浇
 
-**组件变更**：
+2. **鏂板缓** `src/app/watch/TranscriptPanel.tsx`锛堝鎴风缁勪欢锛夛細
+   - 鍔犺浇瀛楀箷锛歚GET /api/subtitle?v={videoId}&lang=es`锛屾嬁鍒板叏閮?cues
+   - 缈昏瘧锛氬姣忔潯 cue 璋冪敤 `POST /api/translate`锛?*闄愭祦**锛氭瘡鎵规渶澶?5 涓苟鍙戯紝棣栧睆浼樺厛锛屽悗鍙板紓姝ュ畬鎴愬叾浣?   - 灞曠ず锛氭椂闂存埑锛坔over 鎵嶆樉绀猴級+ 瑗胯琛?+ 涓枃琛岋紝鎸?`mockup-watch.html` 鏍峰紡
+   - 楂樹寒锛氭帴鏀?`currentTimeSec` prop锛屾壘鍒板綋鍓?cue锛屽姞缁胯壊宸﹁竟妗?+ 瀛椾綋鍔犵矖锛屾棤鑳屾櫙鑹插～鍏?   - 鑷姩婊氬姩锛氬綋鍓?cue 婊氬叆鍙鍖猴紝鐢ㄦ埛鎵嬪姩婊氬姩鍚庡仠姝紝鏄剧ず銆屸啌 鍥炲埌褰撳墠浣嶇疆銆嶆诞鍔ㄦ寜閽?   - 鐐瑰嚮 cue锛氳皟鐢ㄧ埗灞備紶鍏ョ殑 `onSeek(start)` 鍥炶皟
+   - tab 鍒囨崲锛欵S+涓?/ 浠呰タ璇?/ 浠呬腑鏂囷紝鎺у埗 `cue-zh` 琛岀殑鏄剧ず闅愯棌
+   - 澶嶇敤 `LookupCard`锛氱偣鍑昏タ璇涓殑鍗曡瘝浠嶅彲鏌ヨ瘝锛堥€昏緫浠?SubtitlePanel 杩佺Щ杩囨潵锛?
+3. **鏂板缓** `src/app/watch/RelatedPanel.tsx`锛堝鎴风缁勪欢锛夛細
+   - 鎺ユ敹 `relatedVideos` prop
+   - 鍙宠竟缂?tab锛?4脳48px锛屽崐閫忔槑鐧借壊锛屼粎涓夎竟杈规锛?   - 鎮仠 120ms 鈫?灞曞紑锛岀寮€ 300ms 鈫?鏀惰捣锛堟湭鍥哄畾鏃讹級
+   - 鐐瑰嚮 tab 鎴?鍥哄畾"鎸夐挳 鈫?鍥哄畾灞曞紑锛屽啀鐐瑰彇娑堝浐瀹?   - 鍐呴儴锛氳棰戝崱鐗囧垪琛紙thumbnail + 鏍囬 + 棰戦亾锛夛紝澶嶇敤鐜版湁 `VideoCard`
 
-1. **删除** `SubtitlePanel.tsx` 在 `watch/page.tsx` 中的使用（黑色字幕条移除）
-   - `SubtitlePanel.tsx` 文件本身保留，但从页面中卸载
+4. **淇敼** `src/app/watch/page.tsx`锛?   - 甯冨眬鏀逛负 `flex` 涓ゅ垪锛堝乏 63% 鍙?37%锛夛紝鍙充晶鏃犲彸 padding锛堣创杈癸級
+   - 宸﹀垪锛歚flex-col justify-center`锛屽唴鍚?video iframe + meta + 绔犺妭鍖?   - 鍙冲垪锛歚TranscriptPanel`锛屼紶鍏?`videoId`銆乣currentTimeSec`銆乣onSeek`
+   - `RelatedPanel` 瑕嗙洊鍦ㄥ彸渚э紝`position: fixed/absolute` right: 0
+   - `YT.Player` 瀹炰緥鍜?`currentTimeSec` 鐘舵€佹彁鍗囧埌 page 绾э紙鎴栦繚鐣欏湪 TranscriptPanel 鍐呴儴绠＄悊锛?   - 绉婚櫎 `WatchSidebar` 寮曠敤
 
-2. **新建** `src/app/watch/TranscriptPanel.tsx`（客户端组件）：
-   - 加载字幕：`GET /api/subtitle?v={videoId}&lang=es`，拿到全部 cues
-   - 翻译：对每条 cue 调用 `POST /api/translate`，**限流**：每批最多 5 个并发，首屏优先，后台异步完成其余
-   - 展示：时间戳（hover 才显示）+ 西语行 + 中文行，按 `mockup-watch.html` 样式
-   - 高亮：接收 `currentTimeSec` prop，找到当前 cue，加绿色左边框 + 字体加粗，无背景色填充
-   - 自动滚动：当前 cue 滚入可视区，用户手动滚动后停止，显示「↓ 回到当前位置」浮动按钮
-   - 点击 cue：调用父层传入的 `onSeek(start)` 回调
-   - tab 切换：ES+中 / 仅西语 / 仅中文，控制 `cue-zh` 行的显示隐藏
-   - 复用 `LookupCard`：点击西语行中的单词仍可查词（逻辑从 SubtitlePanel 迁移过来）
+5. **淇敼** `src/app/watch/WatchSidebar.tsx`锛?   - 鏆傛椂淇濈暀鏂囦欢锛屼絾 page.tsx 涓嶅啀寮曠敤
+   - 璇嶆眹 tab 鍔熻兘鍚庣画鍙︾珛 ticket
 
-3. **新建** `src/app/watch/RelatedPanel.tsx`（客户端组件）：
-   - 接收 `relatedVideos` prop
-   - 右边缘 tab（24×48px，半透明白色，仅三边边框）
-   - 悬停 120ms → 展开，离开 300ms → 收起（未固定时）
-   - 点击 tab 或"固定"按钮 → 固定展开，再点取消固定
-   - 内部：视频卡片列表（thumbnail + 标题 + 频道），复用现有 `VideoCard`
+**鎾斁鍣ㄩ泦鎴?*锛?- YouTube iframe API锛坄YT.Player`锛夊垵濮嬪寲閫昏緫浠?SubtitlePanel 杩佺Щ鑷?TranscriptPanel 鎴?page 灞?- `currentTimeSec` 姣?100ms poll 涓€娆★紙浠呮挱鏀句腑锛夛紝鏆傚仠鏃跺仠姝?poll
+- `onSeek(start)` 鈫?`player.seekTo(start, true)` + `player.playVideo()`
 
-4. **修改** `src/app/watch/page.tsx`：
-   - 布局改为 `flex` 两列（左 63% 右 37%），右侧无右 padding（贴边）
-   - 左列：`flex-col justify-center`，内含 video iframe + meta + 章节区
-   - 右列：`TranscriptPanel`，传入 `videoId`、`currentTimeSec`、`onSeek`
-   - `RelatedPanel` 覆盖在右侧，`position: fixed/absolute` right: 0
-   - `YT.Player` 实例和 `currentTimeSec` 状态提升到 page 级（或保留在 TranscriptPanel 内部管理）
-   - 移除 `WatchSidebar` 引用
+**娴嬭瘯瑕佹眰锛圕odex2 楠屾敹锛?*锛?- `npm test` 閫氳繃锛堟洿鏂?`tests/web004.test.mjs`锛屾柇瑷€ TranscriptPanel 瀛樺湪銆丼ubtitlePanel 浠?page 绉婚櫎锛?- `npm run build` 閫氳繃
+- 鏂板 `tests/web007.test.mjs`锛氭柇瑷€ TranscriptPanel銆丷elatedPanel 鏂囦欢瀛樺湪锛屽叧閿?prop/鎺ュ彛鍚堝悓
 
-5. **修改** `src/app/watch/WatchSidebar.tsx`：
-   - 暂时保留文件，但 page.tsx 不再引用
-   - 词汇 tab 功能后续另立 ticket
-
-**播放器集成**：
-- YouTube iframe API（`YT.Player`）初始化逻辑从 SubtitlePanel 迁移至 TranscriptPanel 或 page 层
-- `currentTimeSec` 每 100ms poll 一次（仅播放中），暂停时停止 poll
-- `onSeek(start)` → `player.seekTo(start, true)` + `player.playVideo()`
-
-**测试要求（Codex2 验收）**：
-- `npm test` 通过（更新 `tests/web004.test.mjs`，断言 TranscriptPanel 存在、SubtitlePanel 从 page 移除）
-- `npm run build` 通过
-- 新增 `tests/web007.test.mjs`：断言 TranscriptPanel、RelatedPanel 文件存在，关键 prop/接口合同
-
-**不做（本 ticket 范围外）**：
-- 真实章节数据接入（章节区显示 mock 数据即可）
-- 词汇 tab / 本视频词汇面板（后续 ticket）
-- 移动端响应式（后续 ticket）
-
+**涓嶅仛锛堟湰 ticket 鑼冨洿澶栵級**锛?- 鐪熷疄绔犺妭鏁版嵁鎺ュ叆锛堢珷鑺傚尯鏄剧ず mock 鏁版嵁鍗冲彲锛?- 璇嶆眹 tab / 鏈棰戣瘝姹囬潰鏉匡紙鍚庣画 ticket锛?- 绉诲姩绔搷搴斿紡锛堝悗缁?ticket锛?
 ---
 
-**下一步最佳动作**：交给 Codex1 实现 WEB-007
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氫氦缁?Codex1 瀹炵幇 WEB-007
 
 ### Session #42 - 2026-05-15
 
-**本轮目标**：Codex1 实现 `WEB-007` 播放器页重设计。
-**已完成**
-- 新增 `src/app/watch/TranscriptPanel.tsx`，用整篇 transcript 取代旧的底部黑色字幕条。
-- TranscriptPanel 接入 `/api/subtitle`，按最多 5 并发调用 `/api/translate`，首屏 cues 优先翻译。
-- TranscriptPanel 保留逐词点击查词能力，继续复用 `LookupCard`，并把课程词/词库词高亮迁移到整篇 transcript。
-- TranscriptPanel 内部接管 YouTube iframe API 轮询与 `seekTo()` 跳转，支持 active cue 自动滚动、手动滚动后“回到当前位置”按钮。
-- 新增 `src/app/watch/RelatedPanel.tsx`，实现右边缘 hover 展开、离开收起、点击固定的相关视频覆层。
-- 重写 `src/app/watch/page.tsx` 为 63/37 双列布局，左侧播放器 + meta + mock chapters，右侧 TranscriptPanel，页面不再挂载 `SubtitlePanel` 或 `WatchSidebar`。
-- 更新 `tests/web003.test.mjs`、`tests/web004.test.mjs`，并新增 `tests/web007.test.mjs` 覆盖新页面契约。
-- 保持 `src/app/watch/SubtitlePanel.tsx` 与 `src/app/watch/WatchSidebar.tsx` 文件存在，但不再由页面入口使用。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `WEB-007` 鎾斁鍣ㄩ〉閲嶈璁°€?**宸插畬鎴?*
+- 鏂板 `src/app/watch/TranscriptPanel.tsx`锛岀敤鏁寸瘒 transcript 鍙栦唬鏃х殑搴曢儴榛戣壊瀛楀箷鏉°€?- TranscriptPanel 鎺ュ叆 `/api/subtitle`锛屾寜鏈€澶?5 骞跺彂璋冪敤 `/api/translate`锛岄灞?cues 浼樺厛缈昏瘧銆?- TranscriptPanel 淇濈暀閫愯瘝鐐瑰嚮鏌ヨ瘝鑳藉姏锛岀户缁鐢?`LookupCard`锛屽苟鎶婅绋嬭瘝/璇嶅簱璇嶉珮浜縼绉诲埌鏁寸瘒 transcript銆?- TranscriptPanel 鍐呴儴鎺ョ YouTube iframe API 杞涓?`seekTo()` 璺宠浆锛屾敮鎸?active cue 鑷姩婊氬姩銆佹墜鍔ㄦ粴鍔ㄥ悗鈥滃洖鍒板綋鍓嶄綅缃€濇寜閽€?- 鏂板 `src/app/watch/RelatedPanel.tsx`锛屽疄鐜板彸杈圭紭 hover 灞曞紑銆佺寮€鏀惰捣銆佺偣鍑诲浐瀹氱殑鐩稿叧瑙嗛瑕嗗眰銆?- 閲嶅啓 `src/app/watch/page.tsx` 涓?63/37 鍙屽垪甯冨眬锛屽乏渚ф挱鏀惧櫒 + meta + mock chapters锛屽彸渚?TranscriptPanel锛岄〉闈笉鍐嶆寕杞?`SubtitlePanel` 鎴?`WatchSidebar`銆?- 鏇存柊 `tests/web003.test.mjs`銆乣tests/web004.test.mjs`锛屽苟鏂板 `tests/web007.test.mjs` 瑕嗙洊鏂伴〉闈㈠绾︺€?- 淇濇寔 `src/app/watch/SubtitlePanel.tsx` 涓?`src/app/watch/WatchSidebar.tsx` 鏂囦欢瀛樺湪锛屼絾涓嶅啀鐢遍〉闈㈠叆鍙ｄ娇鐢ㄣ€?
+**杩愯杩囩殑楠岃瘉**
 - `node tests/web004.test.mjs`
 - `node tests/web007.test.mjs`
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node tests/web004.test.mjs`：2/2 通过
-- `node tests/web007.test.mjs`：2/2 通过
-- `npm test`：49/49 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node tests/web004.test.mjs`锛?/2 閫氳繃
+- `node tests/web007.test.mjs`锛?/2 閫氳繃
+- `npm test`锛?9/49 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- `npm run build` 仍会出现既有的 `SiteHeader.tsx` `<img>` lint warning。
-- 构建输出仍有既有的 Node `url.parse()` deprecation warnings，不阻塞本票。
-- 本轮未改动 `.env`，未提交任何密钥文件。
-
-**下一步最佳动作**：交给 Codex2 按 `WEB-007` 新布局做 QA 验收，并确认 transcript / related overlay 的结构契约与构建结果。
-
+**澶囨敞**
+- `npm run build` 浠嶄細鍑虹幇鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning銆?- 鏋勫缓杈撳嚭浠嶆湁鏃㈡湁鐨?Node `url.parse()` deprecation warnings锛屼笉闃诲鏈エ銆?- 鏈疆鏈敼鍔?`.env`锛屾湭鎻愪氦浠讳綍瀵嗛挜鏂囦欢銆?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氫氦缁?Codex2 鎸?`WEB-007` 鏂板竷灞€鍋?QA 楠屾敹锛屽苟纭 transcript / related overlay 鐨勭粨鏋勫绾︿笌鏋勫缓缁撴灉銆?
 ### Session #43 - 2026-05-15
 
-**本轮目标**：Codex2 验收 `WEB-007` 播放器页重设计。
-
-**已完成**
-- 读取 `AGENTS.md`、`roles/ROLE-QA.md`、`session-handoff.md`、`feature_list.json`、`claude-progress.md`。
-- 运行 `npm test`，49/49 通过。
-- 运行 `npm run build`，构建通过；仅保留既有 `SiteHeader.tsx` `<img>` warning 与 Node `url.parse()` deprecation warnings。
-- 检查 `src/app/watch/page.tsx`，确认挂载 `TranscriptPanel` / `RelatedPanel`，未 import 或渲染 `SubtitlePanel` / `WatchSidebar`。
-- 检查 `TranscriptPanel.tsx`，确认包含 `/api/subtitle`、`/api/translate`、`/api/vocab/highlight`、`LookupCard`、`seekTo`、`scrollIntoView`、三种显示模式与高亮颜色。
-- 检查 `RelatedPanel.tsx`，确认包含 `relatedVideos`、120ms 展开、300ms 收起、pinned/pin toggle 与右侧 overlay/tab 样式。
-- 运行 `node tests/web004.test.mjs` 与 `node tests/web007.test.mjs`，均 2/2 通过。
-- 检查 `feature_list.json` 可解析，且 QA 更新前 `WEB-007.status` 为 `ready_for_qa`。
-- 更新 `feature_list.json`：`WEB-007.status = passing`，填写 Codex2 QA evidence。
-- 更新 `session-handoff.md`：追加 Codex2 QA Report。
-
-**结论**：`WEB-007` Codex2 功能验收通过。后续如需 UI 视觉终验，可交给 Claude2。
-
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `WEB-007` 鎾斁鍣ㄩ〉閲嶈璁°€?
+**宸插畬鎴?*
+- 璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣session-handoff.md`銆乣feature_list.json`銆乣claude-progress.md`銆?- 杩愯 `npm test`锛?9/49 閫氳繃銆?- 杩愯 `npm run build`锛屾瀯寤洪€氳繃锛涗粎淇濈暀鏃㈡湁 `SiteHeader.tsx` `<img>` warning 涓?Node `url.parse()` deprecation warnings銆?- 妫€鏌?`src/app/watch/page.tsx`锛岀‘璁ゆ寕杞?`TranscriptPanel` / `RelatedPanel`锛屾湭 import 鎴栨覆鏌?`SubtitlePanel` / `WatchSidebar`銆?- 妫€鏌?`TranscriptPanel.tsx`锛岀‘璁ゅ寘鍚?`/api/subtitle`銆乣/api/translate`銆乣/api/vocab/highlight`銆乣LookupCard`銆乣seekTo`銆乣scrollIntoView`銆佷笁绉嶆樉绀烘ā寮忎笌楂樹寒棰滆壊銆?- 妫€鏌?`RelatedPanel.tsx`锛岀‘璁ゅ寘鍚?`relatedVideos`銆?20ms 灞曞紑銆?00ms 鏀惰捣銆乸inned/pin toggle 涓庡彸渚?overlay/tab 鏍峰紡銆?- 杩愯 `node tests/web004.test.mjs` 涓?`node tests/web007.test.mjs`锛屽潎 2/2 閫氳繃銆?- 妫€鏌?`feature_list.json` 鍙В鏋愶紝涓?QA 鏇存柊鍓?`WEB-007.status` 涓?`ready_for_qa`銆?- 鏇存柊 `feature_list.json`锛歚WEB-007.status = passing`锛屽～鍐?Codex2 QA evidence銆?- 鏇存柊 `session-handoff.md`锛氳拷鍔?Codex2 QA Report銆?
+**缁撹**锛歚WEB-007` Codex2 鍔熻兘楠屾敹閫氳繃銆傚悗缁闇€ UI 瑙嗚缁堥獙锛屽彲浜ょ粰 Claude2銆?
 ### Session #42 - 2026-05-15
 
-**本轮目标**：WEB-007 实现、验收、UI 视觉终验，修复 active 行中文颜色
+**鏈疆鐩爣**锛歐EB-007 瀹炵幇銆侀獙鏀躲€乁I 瑙嗚缁堥獙锛屼慨澶?active 琛屼腑鏂囬鑹?
+**宸插畬鎴?*锛?- Codex1 瀹炵幇 WEB-007锛氭柊寤?TranscriptPanel.tsx銆丷elatedPanel.tsx锛岄噸鏋?watch/page.tsx锛岀Щ闄ら粦鑹插瓧骞曟潯
+- Codex2 鍔熻兘楠屾敹锛?9/49 閫氳繃锛宐uild 閫氳繃锛學EB-007 status = passing
+- Claude2 UI 瑙嗚缁堥獙锛氭湁鏉′欢閫氳繃锛屽彂鐜?active 琛屼腑鏂囬鑹叉湭鍒囨崲锛圥1锛?- Codex1 淇 P1锛歍ranscriptPanel.tsx 绗?678 琛?isActive 鏃?text-gray-500 鈫?text-gray-600
+- 淇鍚?npm test 49/49锛宐uild 閫氳繃锛學EB-007 姝ｅ紡鍏抽棴
 
-**已完成**：
-- Codex1 实现 WEB-007：新建 TranscriptPanel.tsx、RelatedPanel.tsx，重构 watch/page.tsx，移除黑色字幕条
-- Codex2 功能验收：49/49 通过，build 通过，WEB-007 status = passing
-- Claude2 UI 视觉终验：有条件通过，发现 active 行中文颜色未切换（P1）
-- Codex1 修复 P1：TranscriptPanel.tsx 第 678 行 isActive 时 text-gray-500 → text-gray-600
-- 修复后 npm test 49/49，build 通过，WEB-007 正式关闭
+**褰撳墠鏈€楂樹紭鍏堢骇鏈畬鎴愬姛鑳?*锛氬緟 PM 瑙勫垝 Phase 3
 
-**当前最高优先级未完成功能**：待 PM 规划 Phase 3
-
-**下一步最佳动作**：PM 规划下一阶段
+**涓嬩竴姝ユ渶浣冲姩浣?*锛歅M 瑙勫垝涓嬩竴闃舵
 
 ### Session #44 - 2026-05-15
 
-**本轮目标**：Codex1 实现 `AUTH-001` 完整认证系统（Google OAuth + 邮箱密码）。
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `AUTH-001` 瀹屾暣璁よ瘉绯荤粺锛圙oogle OAuth + 閭瀵嗙爜锛夈€?
+**宸插畬鎴?*
+- 鍦?`prisma/schema.prisma` 鐨?`User` model 澧炲姞 nullable `password String?`锛岀敤浜庨偖绠卞瘑鐮佺敤鎴蜂繚瀛?bcrypt hash锛孏oogle 鐢ㄦ埛淇濇寔 null銆?- 杩愯 `npx prisma migrate dev --name add-user-password`锛屽凡鐢熸垚骞跺簲鐢?`prisma/migrations/20260515022642_add_user_password/migration.sql`銆?- 瀹夎 `bcryptjs` 涓?`@types/bcryptjs`銆?- 鏂板 `src/app/api/auth/register/route.ts`锛屾敮鎸侀偖绠辨牸寮忔牎楠屻€佸瘑鐮佹渶灏?8 浣嶃€侀偖绠辨煡閲嶃€乥crypt hash銆佸垱寤虹敤鎴峰苟杩斿洖 201銆?- 鏇存柊 `src/lib/auth.ts`锛屽姞鍏?`CredentialsProvider`锛屼娇鐢?bcrypt compare 楠岃瘉瀵嗙爜锛汫oogle 鐢ㄦ埛鍥?`password = null` 浼氭嫆缁?credentials 鐧诲綍锛泂ession 缁熶竴涓?`jwt`銆?- 鏂板 `src/app/auth/sign-in/page.tsx` 鍜?`src/app/auth/sign-up/page.tsx`锛屾寜 `mockup-signin.html` / `mockup-signup.html` 鐨勭櫧鍗°€佺豢鑹蹭富棰樺疄鐜扮櫥褰曞拰娉ㄥ唽娴佺▼銆?- 鏂板 `tests/auth001.test.mjs`锛屾洿鏂?`tests/deploy001.test.mjs` 涓?AUTH-001 鍚庣殑 JWT session 绾﹀畾銆?- 鏇存柊 `feature_list.json`锛屾柊澧?`AUTH-001` 骞舵爣璁颁负 `ready_for_qa`銆?
+**杩愯杩囩殑楠岃瘉**
+- `node tests/auth001.test.mjs` -> 6/6 閫氳繃
+- `npm test` -> 55/55 閫氳繃
+- `npm run build` -> 閫氳繃
 
-**已完成**
-- 在 `prisma/schema.prisma` 的 `User` model 增加 nullable `password String?`，用于邮箱密码用户保存 bcrypt hash，Google 用户保持 null。
-- 运行 `npx prisma migrate dev --name add-user-password`，已生成并应用 `prisma/migrations/20260515022642_add_user_password/migration.sql`。
-- 安装 `bcryptjs` 与 `@types/bcryptjs`。
-- 新增 `src/app/api/auth/register/route.ts`，支持邮箱格式校验、密码最少 8 位、邮箱查重、bcrypt hash、创建用户并返回 201。
-- 更新 `src/lib/auth.ts`，加入 `CredentialsProvider`，使用 bcrypt compare 验证密码；Google 用户因 `password = null` 会拒绝 credentials 登录；session 统一为 `jwt`。
-- 新增 `src/app/auth/sign-in/page.tsx` 和 `src/app/auth/sign-up/page.tsx`，按 `mockup-signin.html` / `mockup-signup.html` 的白卡、绿色主题实现登录和注册流程。
-- 新增 `tests/auth001.test.mjs`，更新 `tests/deploy001.test.mjs` 中 AUTH-001 后的 JWT session 约定。
-- 更新 `feature_list.json`，新增 `AUTH-001` 并标记为 `ready_for_qa`。
-
-**运行过的验证**
-- `node tests/auth001.test.mjs` -> 6/6 通过
-- `npm test` -> 55/55 通过
-- `npm run build` -> 通过
-
-**备注**
-- `npx prisma migrate dev` 的 Prisma Client generate 阶段曾出现 Windows 文件 rename EPERM，但后续 `npm run build` 通过，说明当前生成产物足以完成构建。
-- `npm run build` 仍有既有 `SiteHeader.tsx` `<img>` lint warning 与 Node `url.parse()` deprecation warnings，未阻塞构建。
-- 本轮未修改 `.env`，未提交任何密钥文件。
-
-**下一步最佳动作**：交给 Codex2 按 AUTH-001 验收标准测试 Google 登录、邮箱注册、邮箱登录和错误提示。
-
-**AUTH-001 补充记录（2026-05-15 10:33）**
-- 为兼容既有词库接口，`src/lib/auth.ts` 已补充 `jwt` / `session` callbacks，把用户 id 保留到 JWT session 的 `session.user.id`。
-- 已重新运行 `node tests/auth001.test.mjs`、`npm test` 与 `npm run build`，均通过。
-
+**澶囨敞**
+- `npx prisma migrate dev` 鐨?Prisma Client generate 闃舵鏇惧嚭鐜?Windows 鏂囦欢 rename EPERM锛屼絾鍚庣画 `npm run build` 閫氳繃锛岃鏄庡綋鍓嶇敓鎴愪骇鐗╄冻浠ュ畬鎴愭瀯寤恒€?- `npm run build` 浠嶆湁鏃㈡湁 `SiteHeader.tsx` `<img>` lint warning 涓?Node `url.parse()` deprecation warnings锛屾湭闃诲鏋勫缓銆?- 鏈疆鏈慨鏀?`.env`锛屾湭鎻愪氦浠讳綍瀵嗛挜鏂囦欢銆?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氫氦缁?Codex2 鎸?AUTH-001 楠屾敹鏍囧噯娴嬭瘯 Google 鐧诲綍銆侀偖绠辨敞鍐屻€侀偖绠辩櫥褰曞拰閿欒鎻愮ず銆?
+**AUTH-001 琛ュ厖璁板綍锛?026-05-15 10:33锛?*
+- 涓哄吋瀹规棦鏈夎瘝搴撴帴鍙ｏ紝`src/lib/auth.ts` 宸茶ˉ鍏?`jwt` / `session` callbacks锛屾妸鐢ㄦ埛 id 淇濈暀鍒?JWT session 鐨?`session.user.id`銆?- 宸查噸鏂拌繍琛?`node tests/auth001.test.mjs`銆乣npm test` 涓?`npm run build`锛屽潎閫氳繃銆?
 ### Session #45 - 2026-05-15
 
-**本轮目标**：Codex2 验收 `AUTH-001` 完整认证系统（Google OAuth + 邮箱密码）。
-
-**已完成**
-- 按 Codex2 流程读取 `AGENTS.md`、`roles/ROLE-QA.md`、`claude-progress.md`、`feature_list.json`、`session-handoff.md`，定位 `AUTH-001` 与 Codex1 Dev Report。
-- 运行 `npm test`，55/55 通过。
-- 运行 `npm run build`，构建通过；仅保留既有 `SiteHeader.tsx` `<img>` warning 与 Node `url.parse()` deprecation warnings。
-- 核查 `prisma/schema.prisma`、`prisma/migrations/20260515022642_add_user_password/migration.sql`、`package.json`、`src/app/api/auth/register/route.ts`、`src/lib/auth.ts`、`src/app/auth/sign-in/page.tsx`、`src/app/auth/sign-up/page.tsx`，AUTH-001 结构合同全部通过。
-- 使用临时 dev server `npm run dev -- -p 3004` 做 HTTP smoke，`/auth/sign-in` 与 `/auth/sign-up` 均返回 200，随后确认 3004 无监听。
-- 更新 `feature_list.json`：`AUTH-001.status = passing`，填写 Codex2 QA evidence。
-- 更新 `session-handoff.md`：追加 Codex2 QA Report。
-
-**结论**：`AUTH-001` Codex2 功能验收通过。
-
-**备注**
-- 未修改 `.env`，未提交任何密钥文件。
-- 未 revert 或覆盖 WEB-007 未提交文件。
-- Google OAuth 真实外部授权流程仍依赖环境变量与 provider 配置，本轮确认登录页、provider 调用和页面 HTTP 可访问。
-
-**下一步最佳动作**：PM 规划下一阶段或安排真实 OAuth 环境联调。
-
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `AUTH-001` 瀹屾暣璁よ瘉绯荤粺锛圙oogle OAuth + 閭瀵嗙爜锛夈€?
+**宸插畬鎴?*
+- 鎸?Codex2 娴佺▼璇诲彇 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣claude-progress.md`銆乣feature_list.json`銆乣session-handoff.md`锛屽畾浣?`AUTH-001` 涓?Codex1 Dev Report銆?- 杩愯 `npm test`锛?5/55 閫氳繃銆?- 杩愯 `npm run build`锛屾瀯寤洪€氳繃锛涗粎淇濈暀鏃㈡湁 `SiteHeader.tsx` `<img>` warning 涓?Node `url.parse()` deprecation warnings銆?- 鏍告煡 `prisma/schema.prisma`銆乣prisma/migrations/20260515022642_add_user_password/migration.sql`銆乣package.json`銆乣src/app/api/auth/register/route.ts`銆乣src/lib/auth.ts`銆乣src/app/auth/sign-in/page.tsx`銆乣src/app/auth/sign-up/page.tsx`锛孉UTH-001 缁撴瀯鍚堝悓鍏ㄩ儴閫氳繃銆?- 浣跨敤涓存椂 dev server `npm run dev -- -p 3004` 鍋?HTTP smoke锛宍/auth/sign-in` 涓?`/auth/sign-up` 鍧囪繑鍥?200锛岄殢鍚庣‘璁?3004 鏃犵洃鍚€?- 鏇存柊 `feature_list.json`锛歚AUTH-001.status = passing`锛屽～鍐?Codex2 QA evidence銆?- 鏇存柊 `session-handoff.md`锛氳拷鍔?Codex2 QA Report銆?
+**缁撹**锛歚AUTH-001` Codex2 鍔熻兘楠屾敹閫氳繃銆?
+**澶囨敞**
+- 鏈慨鏀?`.env`锛屾湭鎻愪氦浠讳綍瀵嗛挜鏂囦欢銆?- 鏈?revert 鎴栬鐩?WEB-007 鏈彁浜ゆ枃浠躲€?- Google OAuth 鐪熷疄澶栭儴鎺堟潈娴佺▼浠嶄緷璧栫幆澧冨彉閲忎笌 provider 閰嶇疆锛屾湰杞‘璁ょ櫥褰曢〉銆乸rovider 璋冪敤鍜岄〉闈?HTTP 鍙闂€?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛歅M 瑙勫垝涓嬩竴闃舵鎴栧畨鎺掔湡瀹?OAuth 鐜鑱旇皟銆?
 ### Session #42 - 2026-05-15
 
-**本轮目标**：PM 生成 COURSE-003 所需的 9 个单元内容数据，并写 COURSE-004 音频生成 ticket
+**鏈疆鐩爣**锛歅M 鐢熸垚 COURSE-003 鎵€闇€鐨?9 涓崟鍏冨唴瀹规暟鎹紝骞跺啓 COURSE-004 闊抽鐢熸垚 ticket
 
-**背景**
-AUTH-001 已验收通过，全部 17 个功能均为 passing。
-用户要求推进课程系统：从单页 phase-1 扩展为 9 单元 A1/A2 课程（仿 Aula Internacional 体系）。
+**鑳屾櫙**
+AUTH-001 宸查獙鏀堕€氳繃锛屽叏閮?17 涓姛鑳藉潎涓?passing銆?鐢ㄦ埛瑕佹眰鎺ㄨ繘璇剧▼绯荤粺锛氫粠鍗曢〉 phase-1 鎵╁睍涓?9 鍗曞厓 A1/A2 璇剧▼锛堜豢 Aula Internacional 浣撶郴锛夈€?
+**宸插畬鎴?*
 
-**已完成**
+鍐呭鏁版嵁鐢熸垚锛圥M 鑱岃矗锛夛細
+- 妫€鏌ュ苟淇 `content/curriculum/unidad-9.json` JSON 瑙ｆ瀽閿欒锛坈ompareCards body 涓殑寮紩鍙凤級
+- 琛ュ叏 `content/curriculum/unidad-2.json` ~ `unidad-8.json`锛堜箣鍓嶈 linter hook 瑕嗙洊涓?stub 鐗堟湰锛?- 姣忎釜鍗曞厓鏍囧噯锛? 涓瘝姹囧垎缁勩€? 娈靛璇濓紙鍚?5-6 琛岋級銆?-4 寮犺娉曞崱锛堣鐩?coreVerbs锛夈€? 寮犱腑瑗垮姣斿崱銆? 缁勭粌涔狅紙濉┖+缈昏瘧锛?
+鏈€缁堥獙璇侊紙PowerShell ConvertFrom-Json锛夛細
+- 鍏ㄩ儴 9 涓枃浠?JSON 鏍煎紡鍚堟硶锛屾棤瑙ｆ瀽閿欒
+- unidad-1 ~ unidad-9锛歷ocabGroups=4, dialogues=2, grammar鈮?, compare=3, ex=2 鉁?
+鏂板 Tickets锛?- `docs/tickets/COURSE-003.md`锛堝凡瀛樺湪锛屼笂涓€杞啓濂斤級锛? 鍗曞厓璇剧▼椤靛疄鐜帮紝浜?Codex1
+- `docs/tickets/COURSE-004.md`锛堟湰杞柊澧烇級锛氭壒閲?TTS 闊抽鐢熸垚鑴氭湰锛屼娇鐢?msedge-tts锛屼氦 Codex1
 
-内容数据生成（PM 职责）：
-- 检查并修复 `content/curriculum/unidad-9.json` JSON 解析错误（compareCards body 中的弯引号）
-- 补全 `content/curriculum/unidad-2.json` ~ `unidad-8.json`（之前被 linter hook 覆盖为 stub 版本）
-- 每个单元标准：4 个词汇分组、2 段对话（各 5-6 行）、3-4 张语法卡（覆盖 coreVerbs）、3 张中西对比卡、2 组练习（填空+翻译）
-
-最终验证（PowerShell ConvertFrom-Json）：
-- 全部 9 个文件 JSON 格式合法，无解析错误
-- unidad-1 ~ unidad-9：vocabGroups=4, dialogues=2, grammar≥3, compare=3, ex=2 ✅
-
-新增 Tickets：
-- `docs/tickets/COURSE-003.md`（已存在，上一轮写好）：9 单元课程页实现，交 Codex1
-- `docs/tickets/COURSE-004.md`（本轮新增）：批量 TTS 音频生成脚本，使用 msedge-tts，交 Codex1
-
-feature_list.json 更新：
-- 新增 COURSE-003（status: backlog）
-- 新增 COURSE-004（status: backlog）
-
-**下一步最佳动作**：交 Codex1 并行执行 COURSE-003（页面实现）和 COURSE-004（音频生成脚本）
+feature_list.json 鏇存柊锛?- 鏂板 COURSE-003锛坰tatus: backlog锛?- 鏂板 COURSE-004锛坰tatus: backlog锛?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氫氦 Codex1 骞惰鎵ц COURSE-003锛堥〉闈㈠疄鐜帮級鍜?COURSE-004锛堥煶棰戠敓鎴愯剼鏈級
 
 ### Session #46 - 2026-05-15
 
-**本轮目标**：Codex1 实现 `COURSE-003` 的课程总览页与单元详情页，并把课程数据读取链路稳定下来。
-**已完成**
-- 复核 `AGENTS.md`、`ROLE-DEV.md`、`feature_list.json`、`session-handoff.md` 与 `docs/tickets/COURSE-003.md`，确认当前只处理 COURSE-003。
-- 重新校验 `content/curriculum/*.json`，确认 `units-manifest.json` 与 `unidad-1` 到 `unidad-9` 均可解析。
-- 新增 `src/lib/curriculum.ts`，集中读取 `units-manifest.json` 与单元内容 JSON，并在缺文件时回退到 `unidad-1.json`。
-- 新增 `src/app/learn/page.tsx`，实现 9 单元总览页，展示单元卡片、A1/A2 badge、时长、核心动词与目标摘要。
-- 新增 `src/app/learn/[slug]/page.tsx`，实现 sticky 目录、hero、目标、词汇、句型、对话、语法表、对比卡、练习折叠答案、推荐视频和上下单元导航。
-- 更新 `src/app/components/web/SiteHeader.tsx`，将“课程”入口从 `/learn/phase-1` 改为 `/learn`。
-- 更新 `src/app/components/audio/AudioButton.tsx`，空 `audioSrc` 时直接返回，满足 COURSE-003 静默降级要求。
-- 重写 `tests/course003.test.mjs` 的 overview 断言，去掉受编码影响的脆弱文案匹配，改为结构契约验证。
-- 更新 `feature_list.json`：`COURSE-003` 设为 `ready_for_qa` 并补充 evidence。
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `COURSE-003` 鐨勮绋嬫€昏椤典笌鍗曞厓璇︽儏椤碉紝骞舵妸璇剧▼鏁版嵁璇诲彇閾捐矾绋冲畾涓嬫潵銆?**宸插畬鎴?*
+- 澶嶆牳 `AGENTS.md`銆乣ROLE-DEV.md`銆乣feature_list.json`銆乣session-handoff.md` 涓?`docs/tickets/COURSE-003.md`锛岀‘璁ゅ綋鍓嶅彧澶勭悊 COURSE-003銆?- 閲嶆柊鏍￠獙 `content/curriculum/*.json`锛岀‘璁?`units-manifest.json` 涓?`unidad-1` 鍒?`unidad-9` 鍧囧彲瑙ｆ瀽銆?- 鏂板 `src/lib/curriculum.ts`锛岄泦涓鍙?`units-manifest.json` 涓庡崟鍏冨唴瀹?JSON锛屽苟鍦ㄧ己鏂囦欢鏃跺洖閫€鍒?`unidad-1.json`銆?- 鏂板 `src/app/learn/page.tsx`锛屽疄鐜?9 鍗曞厓鎬昏椤碉紝灞曠ず鍗曞厓鍗＄墖銆丄1/A2 badge銆佹椂闀裤€佹牳蹇冨姩璇嶄笌鐩爣鎽樿銆?- 鏂板 `src/app/learn/[slug]/page.tsx`锛屽疄鐜?sticky 鐩綍銆乭ero銆佺洰鏍囥€佽瘝姹囥€佸彞鍨嬨€佸璇濄€佽娉曡〃銆佸姣斿崱銆佺粌涔犳姌鍙犵瓟妗堛€佹帹鑽愯棰戝拰涓婁笅鍗曞厓瀵艰埅銆?- 鏇存柊 `src/app/components/web/SiteHeader.tsx`锛屽皢鈥滆绋嬧€濆叆鍙ｄ粠 `/learn/phase-1` 鏀逛负 `/learn`銆?- 鏇存柊 `src/app/components/audio/AudioButton.tsx`锛岀┖ `audioSrc` 鏃剁洿鎺ヨ繑鍥烇紝婊¤冻 COURSE-003 闈欓粯闄嶇骇瑕佹眰銆?- 閲嶅啓 `tests/course003.test.mjs` 鐨?overview 鏂█锛屽幓鎺夊彈缂栫爜褰卞搷鐨勮剢寮辨枃妗堝尮閰嶏紝鏀逛负缁撴瀯濂戠害楠岃瘉銆?- 鏇存柊 `feature_list.json`锛歚COURSE-003` 璁句负 `ready_for_qa` 骞惰ˉ鍏?evidence銆?
+**杩愯杩囩殑楠岃瘉**
+- `node tests/course003.test.mjs` -> 6/6 閫氳繃
+- `npm test` -> 61/61 閫氳繃
+- `npm run build` -> 閫氳繃
 
-**运行过的验证**
-- `node tests/course003.test.mjs` -> 6/6 通过
-- `npm test` -> 61/61 通过
-- `npm run build` -> 通过
-
-**备注**
-- `npm run build` 仍有既有的 `SiteHeader.tsx` `<img>` lint warning，以及 Node `url.parse()` deprecation warnings，未阻塞本票。
-- 尝试用临时端口 `3005` 做 dev smoke check 时，后台 `npm run dev` 进程在绑定端口前退出，因此没有把这一步记为通过证据。
-
-**下一步最佳动作**：交给 Codex2 按 COURSE-003 验收标准检查 `/learn` 与 `/learn/[slug]` 页面结构、推荐视频跳转与音频静默降级。
-
+**澶囨敞**
+- `npm run build` 浠嶆湁鏃㈡湁鐨?`SiteHeader.tsx` `<img>` lint warning锛屼互鍙?Node `url.parse()` deprecation warnings锛屾湭闃诲鏈エ銆?- 灏濊瘯鐢ㄤ复鏃剁鍙?`3005` 鍋?dev smoke check 鏃讹紝鍚庡彴 `npm run dev` 杩涚▼鍦ㄧ粦瀹氱鍙ｅ墠閫€鍑猴紝鍥犳娌℃湁鎶婅繖涓€姝ヨ涓洪€氳繃璇佹嵁銆?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氫氦缁?Codex2 鎸?COURSE-003 楠屾敹鏍囧噯妫€鏌?`/learn` 涓?`/learn/[slug]` 椤甸潰缁撴瀯銆佹帹鑽愯棰戣烦杞笌闊抽闈欓粯闄嶇骇銆?
 ### Session #47 - 2026-05-15
 
-**本轮目标**：Codex2 验收 `COURSE-003` 9单元课程系统。
-**已完成**：
-- 按 Codex2 流程复核 `AGENTS.md`、`roles/ROLE-QA.md`、`claude-progress.md`、`feature_list.json` 与 `session-handoff.md`，定位 `COURSE-003` 为 `ready_for_qa`
-- 运行 `npm test`，61/61 全部通过，其中包含 6 条 COURSE-003 结构断言
-- 运行 `npm run build`，构建通过，Next 输出中包含 `/learn` 与 `/learn/unidad-1` ~ `/learn/unidad-9`
-- 核查 `src/app/learn/page.tsx`：确认 `getAllUnits()`、9 单元卡片、`href={`/learn/${unit.slug}`}`、`coreVerbs` 与 `communicativeGoals` 结构存在
-- 核查 `src/app/learn/[slug]/page.tsx`：确认 `generateStaticParams()`、sticky TOC、`details/summary` 练习答案、推荐视频 `/watch?v=` 跳转、上下单元导航全部存在
-- 核查 `src/app/components/audio/AudioButton.tsx`：确认空 `src` 时直接 `return`，满足静默降级
-- 更新 `feature_list.json`：`COURSE-003.status = passing`，补充 Codex2 QA evidence
-- 更新 `session-handoff.md`：追加完整 Codex2 QA report
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `COURSE-003` 9鍗曞厓璇剧▼绯荤粺銆?**宸插畬鎴?*锛?- 鎸?Codex2 娴佺▼澶嶆牳 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣claude-progress.md`銆乣feature_list.json` 涓?`session-handoff.md`锛屽畾浣?`COURSE-003` 涓?`ready_for_qa`
+- 杩愯 `npm test`锛?1/61 鍏ㄩ儴閫氳繃锛屽叾涓寘鍚?6 鏉?COURSE-003 缁撴瀯鏂█
+- 杩愯 `npm run build`锛屾瀯寤洪€氳繃锛孨ext 杈撳嚭涓寘鍚?`/learn` 涓?`/learn/unidad-1` ~ `/learn/unidad-9`
+- 鏍告煡 `src/app/learn/page.tsx`锛氱‘璁?`getAllUnits()`銆? 鍗曞厓鍗＄墖銆乣href={`/learn/${unit.slug}`}`銆乣coreVerbs` 涓?`communicativeGoals` 缁撴瀯瀛樺湪
+- 鏍告煡 `src/app/learn/[slug]/page.tsx`锛氱‘璁?`generateStaticParams()`銆乻ticky TOC銆乣details/summary` 缁冧範绛旀銆佹帹鑽愯棰?`/watch?v=` 璺宠浆銆佷笂涓嬪崟鍏冨鑸叏閮ㄥ瓨鍦?- 鏍告煡 `src/app/components/audio/AudioButton.tsx`锛氱‘璁ょ┖ `src` 鏃剁洿鎺?`return`锛屾弧瓒抽潤榛橀檷绾?- 鏇存柊 `feature_list.json`锛歚COURSE-003.status = passing`锛岃ˉ鍏?Codex2 QA evidence
+- 鏇存柊 `session-handoff.md`锛氳拷鍔犲畬鏁?Codex2 QA report
 
-**运行过的验证**：
-- `npm test` -> 61/61 pass
+**杩愯杩囩殑楠岃瘉**锛?- `npm test` -> 61/61 pass
 - `npm run build` -> pass
-- `rg -n "getAllUnits|/learn/\\$\\{unit\\.slug\\}|coreVerbs|communicativeGoals|9 个单元|unit\\.slug" src/app/learn/page.tsx`
+- `rg -n "getAllUnits|/learn/\\$\\{unit\\.slug\\}|coreVerbs|communicativeGoals|9 涓崟鍏億unit\\.slug" src/app/learn/page.tsx`
 - `rg -n "generateStaticParams|sticky|details|summary|/watch\\?v=|img.youtube.com|prevUnit|nextUnit|vocabGroups|phrases|dialogues|grammarCards|compareCards|exercises" src/app/learn/[slug]/page.tsx`
 - `rg -n "if \\(!src\\)|new Audio\\(|return;|setUnavailable" src/app/components/audio/AudioButton.tsx`
 
-**结论**：`COURSE-003` Codex2 功能验收通过。
-**下一步最佳动作**：继续推进 `COURSE-004` 音频批量生成，或启动 `VOCAB-004` 词汇库扩充。
-
+**缁撹**锛歚COURSE-003` Codex2 鍔熻兘楠屾敹閫氳繃銆?**涓嬩竴姝ユ渶浣冲姩浣?*锛氱户缁帹杩?`COURSE-004` 闊抽鎵归噺鐢熸垚锛屾垨鍚姩 `VOCAB-004` 璇嶆眹搴撴墿鍏呫€?
 ### Session #48 - 2026-05-15
 
-**本轮目标**：Codex1 实现 `COURSE-004` 9 单元课程音频批量生成。
-**已完成**
-- 安装 `msedge-tts`，并用项目本地 npm cache 解决 Windows 全局 cache `EPERM`。
-- 新增 `scripts/generate-unit-audio.mjs`，支持按单元运行、稳定 slug、长文件名截断 + hash、独立 `.tmp-*` 临时目录、3 次重试和幂等 skip。
-- 新增 `tests/course004.test.mjs`，验证脚本入口、临时目录隔离/重试逻辑，以及所有课程音频产物与 `audioSrc`。
-- 实际生成 `public/audio/units/unidad-1` ~ `unidad-9` 的 MP3 文件，并回填全部 `content/curriculum/unidad-*.json` 的词汇、句型、对话 `audioSrc`。
-- 处理中间执行问题：
-  - 单实例并发 TTS 会产生 0 字节文件，改为每条任务独立实例
-  - 长句 slug 触发 Windows 路径长度限制，改为可读前缀 + hash
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `COURSE-004` 9 鍗曞厓璇剧▼闊抽鎵归噺鐢熸垚銆?**宸插畬鎴?*
+- 瀹夎 `msedge-tts`锛屽苟鐢ㄩ」鐩湰鍦?npm cache 瑙ｅ喅 Windows 鍏ㄥ眬 cache `EPERM`銆?- 鏂板 `scripts/generate-unit-audio.mjs`锛屾敮鎸佹寜鍗曞厓杩愯銆佺ǔ瀹?slug銆侀暱鏂囦欢鍚嶆埅鏂?+ hash銆佺嫭绔?`.tmp-*` 涓存椂鐩綍銆? 娆￠噸璇曞拰骞傜瓑 skip銆?- 鏂板 `tests/course004.test.mjs`锛岄獙璇佽剼鏈叆鍙ｃ€佷复鏃剁洰褰曢殧绂?閲嶈瘯閫昏緫锛屼互鍙婃墍鏈夎绋嬮煶棰戜骇鐗╀笌 `audioSrc`銆?- 瀹為檯鐢熸垚 `public/audio/units/unidad-1` ~ `unidad-9` 鐨?MP3 鏂囦欢锛屽苟鍥炲～鍏ㄩ儴 `content/curriculum/unidad-*.json` 鐨勮瘝姹囥€佸彞鍨嬨€佸璇?`audioSrc`銆?- 澶勭悊涓棿鎵ц闂锛?  - 鍗曞疄渚嬪苟鍙?TTS 浼氫骇鐢?0 瀛楄妭鏂囦欢锛屾敼涓烘瘡鏉′换鍔＄嫭绔嬪疄渚?  - 闀垮彞 slug 瑙﹀彂 Windows 璺緞闀垮害闄愬埗锛屾敼涓哄彲璇诲墠缂€ + hash
 
-**运行过的验证**
+**杩愯杩囩殑楠岃瘉**
 - `node scripts/generate-unit-audio.mjs --unit=unidad-1`
 - `node scripts/generate-unit-audio.mjs --unit=unidad-9`
 - `node scripts/generate-unit-audio.mjs`
@@ -4240,198 +3961,130 @@ feature_list.json 更新：
 - `npm test`
 - `npm run build`
 
-**结果**
-- `node scripts/generate-unit-audio.mjs` 重跑成功，全部文件走 skip 分支，确认幂等
-- `node tests/course004.test.mjs`：3/3 通过
-- `npm test`：64/64 通过
-- `npm run build`：通过
+**缁撴灉**
+- `node scripts/generate-unit-audio.mjs` 閲嶈窇鎴愬姛锛屽叏閮ㄦ枃浠惰蛋 skip 鍒嗘敮锛岀‘璁ゅ箓绛?- `node tests/course004.test.mjs`锛?/3 閫氳繃
+- `npm test`锛?4/64 閫氳繃
+- `npm run build`锛氶€氳繃
 
-**备注**
-- 仍有既有 `<img>` lint warning 与 Node `url.parse()` deprecation warnings，未阻塞本票。
-- `COURSE-004` 已更新为 `ready_for_qa`。
-
+**澶囨敞**
+- 浠嶆湁鏃㈡湁 `<img>` lint warning 涓?Node `url.parse()` deprecation warnings锛屾湭闃诲鏈エ銆?- `COURSE-004` 宸叉洿鏂颁负 `ready_for_qa`銆?
 ### Session #49 - 2026-05-15
 
-**本轮目标**：Codex2 验收 `COURSE-004` 9 单元课程音频。
-
-**已完成**
-- 复核 `AGENTS.md`、`roles/ROLE-QA.md`、`feature_list.json`、`session-handoff.md` 中与 `COURSE-004` 相关的 QA 要求。
-- 运行 `npm test`，基线通过 64/64。
-- 运行 `node tests/course004.test.mjs`，专项结构测试通过 3/3。
-- 运行 `npm run build`，构建通过；仅保留既有 `<img>` lint warning 与 Node `url.parse()` deprecation warnings。
-- 遍历 `public/audio/units/unidad-1..9`，确认共有 362 个 MP3 文件，全部大于 1KB，最小文件 8352 bytes。
-- 遍历 `content/curriculum/unidad-*.json`，确认 361/361 个词汇、句型、对话 `audioSrc` 均已回填，且全部指向 `/audio/units/unidad-N/*.mp3`。
-- 重跑 `node scripts/generate-unit-audio.mjs --unit=unidad-9`，确认输出全部走 `skip`，幂等成立。
-- 启动临时 dev server `npm run dev -- -p 3006`，确认 `/learn/unidad-1` 返回 200，页面包含音频按钮与 MP3 路径，`/audio/units/unidad-1/hola.mp3` 返回 200 且 `Content-Type: audio/mpeg`。
-- 更新 `feature_list.json`：`COURSE-004.status = passing`，补充 Codex2 QA evidence。
-- 更新 `session-handoff.md`，写入完整 QA report。
-
-**运行过的验证**
+**鏈疆鐩爣**锛欳odex2 楠屾敹 `COURSE-004` 9 鍗曞厓璇剧▼闊抽銆?
+**宸插畬鎴?*
+- 澶嶆牳 `AGENTS.md`銆乣roles/ROLE-QA.md`銆乣feature_list.json`銆乣session-handoff.md` 涓笌 `COURSE-004` 鐩稿叧鐨?QA 瑕佹眰銆?- 杩愯 `npm test`锛屽熀绾块€氳繃 64/64銆?- 杩愯 `node tests/course004.test.mjs`锛屼笓椤圭粨鏋勬祴璇曢€氳繃 3/3銆?- 杩愯 `npm run build`锛屾瀯寤洪€氳繃锛涗粎淇濈暀鏃㈡湁 `<img>` lint warning 涓?Node `url.parse()` deprecation warnings銆?- 閬嶅巻 `public/audio/units/unidad-1..9`锛岀‘璁ゅ叡鏈?362 涓?MP3 鏂囦欢锛屽叏閮ㄥぇ浜?1KB锛屾渶灏忔枃浠?8352 bytes銆?- 閬嶅巻 `content/curriculum/unidad-*.json`锛岀‘璁?361/361 涓瘝姹囥€佸彞鍨嬨€佸璇?`audioSrc` 鍧囧凡鍥炲～锛屼笖鍏ㄩ儴鎸囧悜 `/audio/units/unidad-N/*.mp3`銆?- 閲嶈窇 `node scripts/generate-unit-audio.mjs --unit=unidad-9`锛岀‘璁よ緭鍑哄叏閮ㄨ蛋 `skip`锛屽箓绛夋垚绔嬨€?- 鍚姩涓存椂 dev server `npm run dev -- -p 3006`锛岀‘璁?`/learn/unidad-1` 杩斿洖 200锛岄〉闈㈠寘鍚煶棰戞寜閽笌 MP3 璺緞锛宍/audio/units/unidad-1/hola.mp3` 杩斿洖 200 涓?`Content-Type: audio/mpeg`銆?- 鏇存柊 `feature_list.json`锛歚COURSE-004.status = passing`锛岃ˉ鍏?Codex2 QA evidence銆?- 鏇存柊 `session-handoff.md`锛屽啓鍏ュ畬鏁?QA report銆?
+**杩愯杩囩殑楠岃瘉**
 - `npm test`
 - `node tests/course004.test.mjs`
 - `npm run build`
 - `node scripts/generate-unit-audio.mjs --unit=unidad-9`
-- Node 脚本核查 MP3 文件数量、大小、audioSrc 覆盖率
-- 临时 `npm run dev -- -p 3006` + HTTP smoke for `/learn/unidad-1` and `/audio/units/unidad-1/hola.mp3`
+- Node 鑴氭湰鏍告煡 MP3 鏂囦欢鏁伴噺銆佸ぇ灏忋€乤udioSrc 瑕嗙洊鐜?- 涓存椂 `npm run dev -- -p 3006` + HTTP smoke for `/learn/unidad-1` and `/audio/units/unidad-1/hola.mp3`
 
-**结论**
-- `COURSE-004` 通过 Codex2 验收，状态已更新为 `passing`。
-
-**备注**
-- 当前仓库未安装 `playwright`，本轮未能做真实浏览器点击播放事件监听；已用页面渲染 + 静态音频资源 200/audio-mpeg 返回作为最接近可执行的替代验证。
-- 未修改 `.env`，未提交任何密钥文件。
-
-**下一步最佳动作**：推进 `VOCAB-004`，把课文点词与词典查询接到已完成的课程页与音频链路上。
-
+**缁撹**
+- `COURSE-004` 閫氳繃 Codex2 楠屾敹锛岀姸鎬佸凡鏇存柊涓?`passing`銆?
+**澶囨敞**
+- 褰撳墠浠撳簱鏈畨瑁?`playwright`锛屾湰杞湭鑳藉仛鐪熷疄娴忚鍣ㄧ偣鍑绘挱鏀句簨浠剁洃鍚紱宸茬敤椤甸潰娓叉煋 + 闈欐€侀煶棰戣祫婧?200/audio-mpeg 杩斿洖浣滀负鏈€鎺ヨ繎鍙墽琛岀殑鏇夸唬楠岃瘉銆?- 鏈慨鏀?`.env`锛屾湭鎻愪氦浠讳綍瀵嗛挜鏂囦欢銆?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氭帹杩?`VOCAB-004`锛屾妸璇炬枃鐐硅瘝涓庤瘝鍏告煡璇㈡帴鍒板凡瀹屾垚鐨勮绋嬮〉涓庨煶棰戦摼璺笂銆?
 ### Session #50 - 2026-05-15
 
-**本轮目标**：修复生产环境 `/api/translate` 500，消除 transcript 页面连续翻译报错。
-
-**已完成**
-- 读取生产错误日志，定位 `/api/translate` 在 transcript 请求期间持续返回 500。
-- 根因分析确认：`src/app/api/translate/route.ts` 缺少 Redis 缓存与腾讯翻译调用的降级保护，任一异常都会触发统一 500；`.env.example` 也未声明腾讯密钥变量。
-- 更新 `src/app/api/translate/route.ts`：新增 `safeCacheGet` / `safeCacheSet`；翻译调用失败时回退原文并返回 `degraded: true`，不再把前端整片打红；请求解析失败改为 400。
-- 更新 `.env.example`：新增 `TENCENT_SECRET_ID` 与 `TENCENT_SECRET_KEY`。
-- 更新 `tests/ext002.test.mjs`：新增 translate 路由降级与腾讯环境变量文档断言。
-
-**运行过的验证**
+**鏈疆鐩爣**锛氫慨澶嶇敓浜х幆澧?`/api/translate` 500锛屾秷闄?transcript 椤甸潰杩炵画缈昏瘧鎶ラ敊銆?
+**宸插畬鎴?*
+- 璇诲彇鐢熶骇閿欒鏃ュ織锛屽畾浣?`/api/translate` 鍦?transcript 璇锋眰鏈熼棿鎸佺画杩斿洖 500銆?- 鏍瑰洜鍒嗘瀽纭锛歚src/app/api/translate/route.ts` 缂哄皯 Redis 缂撳瓨涓庤吘璁炕璇戣皟鐢ㄧ殑闄嶇骇淇濇姢锛屼换涓€寮傚父閮戒細瑙﹀彂缁熶竴 500锛沗.env.example` 涔熸湭澹版槑鑵捐瀵嗛挜鍙橀噺銆?- 鏇存柊 `src/app/api/translate/route.ts`锛氭柊澧?`safeCacheGet` / `safeCacheSet`锛涚炕璇戣皟鐢ㄥけ璐ユ椂鍥為€€鍘熸枃骞惰繑鍥?`degraded: true`锛屼笉鍐嶆妸鍓嶇鏁寸墖鎵撶孩锛涜姹傝В鏋愬け璐ユ敼涓?400銆?- 鏇存柊 `.env.example`锛氭柊澧?`TENCENT_SECRET_ID` 涓?`TENCENT_SECRET_KEY`銆?- 鏇存柊 `tests/ext002.test.mjs`锛氭柊澧?translate 璺敱闄嶇骇涓庤吘璁幆澧冨彉閲忔枃妗ｆ柇瑷€銆?
+**杩愯杩囩殑楠岃瘉**
 - `node --test tests/ext002.test.mjs` -> 4/4 pass
 - `npm test` -> 64/64 pass
 - `npm run build` -> pass
 
-**结果**
-- `/api/translate` 不再因为缓存层或腾讯翻译异常直接返回 500。
-- 线上重新部署后，前端 transcript 至少会降级显示，不会继续刷屏报错。
-
-**备注**
-- 若 Vercel 未配置 `TENCENT_SECRET_ID` / `TENCENT_SECRET_KEY`，修复后会回退原文而不是生成真正中文翻译；这是降级保护，不是最终翻译质量目标。
-
-**下一步最佳动作**：把这次 hotfix 推上去并在 Vercel Production 补齐腾讯翻译环境变量后重部署。
-
+**缁撴灉**
+- `/api/translate` 涓嶅啀鍥犱负缂撳瓨灞傛垨鑵捐缈昏瘧寮傚父鐩存帴杩斿洖 500銆?- 绾夸笂閲嶆柊閮ㄧ讲鍚庯紝鍓嶇 transcript 鑷冲皯浼氶檷绾ф樉绀猴紝涓嶄細缁х画鍒峰睆鎶ラ敊銆?
+**澶囨敞**
+- 鑻?Vercel 鏈厤缃?`TENCENT_SECRET_ID` / `TENCENT_SECRET_KEY`锛屼慨澶嶅悗浼氬洖閫€鍘熸枃鑰屼笉鏄敓鎴愮湡姝ｄ腑鏂囩炕璇戯紱杩欐槸闄嶇骇淇濇姢锛屼笉鏄渶缁堢炕璇戣川閲忕洰鏍囥€?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氭妸杩欐 hotfix 鎺ㄤ笂鍘诲苟鍦?Vercel Production 琛ラ綈鑵捐缈昏瘧鐜鍙橀噺鍚庨噸閮ㄧ讲銆?
 ### Session #51 - 2026-05-15
 
-**本轮目标**：Codex1 实现 `VOCAB-004` 生词系统升级：词典查询、出处追踪、生词本展示和课程点词接入。
-
-**已完成**
-- 新增 Prisma 字段与 migration：`Word.dictData`、`Word.partOfSpeech`、`WordEncounter.sourceType`、`WordEncounter.courseRef`。
-- 新增 `src/lib/dictionary.ts` 与 `/api/vocab/lookup`，支持有道 API 环境变量、Redis 缓存和本地 fallback。
-- 修复并兼容 `/api/lemmatize`，改为复用词典 lookup，保留旧调用面。
-- 扩展 `/api/vocab/add` 保存词典数据和视频/课程出处。
-- 升级 `LookupCard` 显示词性、义项、例句、音标，并携带出处保存。
-- 新增 `CourseLookupText`，接入 `/learn/[slug]` 的词汇、句型、对话点击查词。
-- 升级 `/vocab` 展示义项、例句、视频出处和课程出处。
-- `.env.example` 新增 `YOUDAO_APP_KEY` / `YOUDAO_APP_SECRET`。
-- 新增 `tests/vocab004.test.mjs`。
-- 更新 `feature_list.json`：`VOCAB-004.status = ready_for_qa`。
-
-**验证**
+**鏈疆鐩爣**锛欳odex1 瀹炵幇 `VOCAB-004` 鐢熻瘝绯荤粺鍗囩骇锛氳瘝鍏告煡璇€佸嚭澶勮拷韪€佺敓璇嶆湰灞曠ず鍜岃绋嬬偣璇嶆帴鍏ャ€?
+**宸插畬鎴?*
+- 鏂板 Prisma 瀛楁涓?migration锛歚Word.dictData`銆乣Word.partOfSpeech`銆乣WordEncounter.sourceType`銆乣WordEncounter.courseRef`銆?- 鏂板 `src/lib/dictionary.ts` 涓?`/api/vocab/lookup`锛屾敮鎸佹湁閬?API 鐜鍙橀噺銆丷edis 缂撳瓨鍜屾湰鍦?fallback銆?- 淇骞跺吋瀹?`/api/lemmatize`锛屾敼涓哄鐢ㄨ瘝鍏?lookup锛屼繚鐣欐棫璋冪敤闈€?- 鎵╁睍 `/api/vocab/add` 淇濆瓨璇嶅吀鏁版嵁鍜岃棰?璇剧▼鍑哄銆?- 鍗囩骇 `LookupCard` 鏄剧ず璇嶆€с€佷箟椤广€佷緥鍙ャ€侀煶鏍囷紝骞舵惡甯﹀嚭澶勪繚瀛樸€?- 鏂板 `CourseLookupText`锛屾帴鍏?`/learn/[slug]` 鐨勮瘝姹囥€佸彞鍨嬨€佸璇濈偣鍑绘煡璇嶃€?- 鍗囩骇 `/vocab` 灞曠ず涔夐」銆佷緥鍙ャ€佽棰戝嚭澶勫拰璇剧▼鍑哄銆?- `.env.example` 鏂板 `YOUDAO_APP_KEY` / `YOUDAO_APP_SECRET`銆?- 鏂板 `tests/vocab004.test.mjs`銆?- 鏇存柊 `feature_list.json`锛歚VOCAB-004.status = ready_for_qa`銆?
+**楠岃瘉**
 - `npm test` -> 70/70 pass
 - `npx prisma generate --no-engine` -> pass
 - `npm run build` -> pass
 
-**备注**
-- 普通 `npx prisma generate` 在本机 Windows 下因 query engine DLL rename EPERM 失败，使用 `--no-engine` 成功刷新类型；构建通过。
-- build 仍有既有 `<img>` warning 与 Node `url.parse()` deprecation warning，非本票阻塞。
-
+**澶囨敞**
+- 鏅€?`npx prisma generate` 鍦ㄦ湰鏈?Windows 涓嬪洜 query engine DLL rename EPERM 澶辫触锛屼娇鐢?`--no-engine` 鎴愬姛鍒锋柊绫诲瀷锛涙瀯寤洪€氳繃銆?- build 浠嶆湁鏃㈡湁 `<img>` warning 涓?Node `url.parse()` deprecation warning锛岄潪鏈エ闃诲銆?
 ---
 
-## Session #43 �� 2026-05-15��PM��
+## Session #43 锟斤拷 2026-05-15锟斤拷PM锟斤拷
 
-**��ɫ**��Claude1��PM��
+**锟斤拷色**锟斤拷Claude1锟斤拷PM锟斤拷
 
-### ���ֵ�����
-- lemma-dict.json 660�����η���ȫ��Ϊ �������𻵣�����ʹ���ʵ�ʲ�����
-- �ٶ� MT �ʵ�治֧����������ĵ� dict �ֶ�
-- dictionaryapi.dev ��֧����������
+### 锟斤拷锟街碉拷锟斤拷锟斤拷
+- lemma-dict.json 660锟斤拷锟斤拷锟轿凤拷锟斤拷全锟斤拷为 锟斤拷锟斤拷锟斤拷锟金坏ｏ拷锟斤拷锟斤拷使锟斤拷锟绞碉拷什锟斤拷锟斤拷锟?- 锟劫讹拷 MT 锟绞碉拷娌恢э拷锟斤拷锟斤拷锟斤拷锟斤拷锟侥碉拷 dict 锟街讹拷
+- dictionaryapi.dev 锟斤拷支锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 
-### �������
-1. ����ٶ� MT ���� + GLM-5�������� DashScope��AI ���ɴʵ���Ŀ
-   - ���� .env: BAIDU_MT_API_KEY / BAIDU_MT_SECRET_KEY / DASHSCOPE_API_KEY / DASHSCOPE_MODEL
-   - /api/lemmatize ���������� Redis ���� �� GLM-5 ���ɴ���+����+����
-2. LookupCard ��������ʾ��������б� + ���俨Ƭ
-3. �޸� prompt bug��vivir ������Ⱦ���дʵĻ��棩
-4. �޸� morphInfo ������ʾ�����˺� ? �ַ����ֶΣ�
-5. ���� scripts/clear-dict-cache.mjs����� Redis �ʵ仺�棩
-6. Codex1 ������� VOCAB-004 ʣ�ಿ�֣��ʵ����� + source ׷�� + vocab/lookup �ӿڣ�
+### 锟斤拷锟斤拷锟斤拷锟?1. 锟斤拷锟斤拷俣锟?MT 锟斤拷锟斤拷 + GLM-5锟斤拷锟斤拷锟斤拷锟斤拷 DashScope锟斤拷AI 锟斤拷锟缴词碉拷锟斤拷目
+   - 锟斤拷锟斤拷 .env: BAIDU_MT_API_KEY / BAIDU_MT_SECRET_KEY / DASHSCOPE_API_KEY / DASHSCOPE_MODEL
+   - /api/lemmatize 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷 Redis 锟斤拷锟斤拷 锟斤拷 GLM-5 锟斤拷锟缴达拷锟斤拷+锟斤拷锟斤拷+锟斤拷锟斤拷
+2. LookupCard 锟斤拷锟斤拷锟斤拷锟斤拷示锟斤拷锟斤拷锟斤拷锟斤拷斜锟?+ 锟斤拷锟戒卡片
+3. 锟睫革拷 prompt bug锟斤拷vivir 锟斤拷锟斤拷锟斤拷染锟斤拷锟叫词的伙拷锟芥）
+4. 锟睫革拷 morphInfo 锟斤拷锟斤拷锟斤拷示锟斤拷锟斤拷锟剿猴拷 ? 锟街凤拷锟斤拷锟街段ｏ拷
+5. 锟斤拷锟斤拷 scripts/clear-dict-cache.mjs锟斤拷锟斤拷锟?Redis 锟绞典缓锟芥）
+6. Codex1 锟斤拷锟斤拷锟斤拷锟?VOCAB-004 剩锟洁部锟街ｏ拷锟绞碉拷锟斤拷锟斤拷 + source 追锟斤拷 + vocab/lookup 锟接口ｏ拷
 
-### ��ǰ״̬
-- VOCAB-004��Codex1 ���ύ feat(VOCAB-004)���� Codex2 QA ����
-- ������������ά�� passing
+### 锟斤拷前状态
+- VOCAB-004锟斤拷Codex1 锟斤拷锟结交 feat(VOCAB-004)锟斤拷锟斤拷 Codex2 QA 锟斤拷锟斤拷
+- 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷维锟斤拷 passing
 
-### ����
-- Codex2 �� VOCAB-004 ���� QA ����
+### 锟斤拷锟斤拷
+- Codex2 锟斤拷 VOCAB-004 锟斤拷锟斤拷 QA 锟斤拷锟斤拷
 
 ### Session #52 - 2026-05-16
 
-**本轮目标**：补充 8 个模式类语法主题到 content/grammar/topics.ts
+**鏈疆鐩爣**锛氳ˉ鍏?8 涓ā寮忕被璇硶涓婚鍒?content/grammar/topics.ts
 
-**已完成**
-- 更新 `GrammarGroup` union 类型，新增 `"句型结构"` 分组。
-- 更新 `grammarGroups` 数组，加入 `"句型结构"`。
-- 向 `grammarTopics` 数组追加 8 个新主题：
-  - `regular-ar`：规则动词 -ar 变位
-  - `regular-er-ir`：规则动词 -er / -ir 变位
-  - `stem-changing`：词干变音动词（e→ie / o→ue / e→i）
-  - `reflexive-verbs`：反身动词（me/te/se/nos/os/se）
-  - `gustar`：gustar 型动词（句型结构分组）
-  - `articles`：冠词用法
-  - `adjective-agreement`：形容词性数一致
-  - `ir-a-infinitive`：ir a + 动词原形（句型结构分组）
-- 修复字符串内部 ASCII 双引号冲突，改用 `「」` 引号。
-
-**运行过的验证**
-- `npx tsc --noEmit`：通过
-- `npm run build`：通过
-- `git push origin main`：已推送
-
-**结果**
-- 语法页新增 8 条语法卡，侧边栏增加「句型结构」分组。
-
-**下一步最佳动作**：Codex2 验收 VOCAB-004，或 PM 安排下一阶段
+**宸插畬鎴?*
+- 鏇存柊 `GrammarGroup` union 绫诲瀷锛屾柊澧?`"鍙ュ瀷缁撴瀯"` 鍒嗙粍銆?- 鏇存柊 `grammarGroups` 鏁扮粍锛屽姞鍏?`"鍙ュ瀷缁撴瀯"`銆?- 鍚?`grammarTopics` 鏁扮粍杩藉姞 8 涓柊涓婚锛?  - `regular-ar`锛氳鍒欏姩璇?-ar 鍙樹綅
+  - `regular-er-ir`锛氳鍒欏姩璇?-er / -ir 鍙樹綅
+  - `stem-changing`锛氳瘝骞插彉闊冲姩璇嶏紙e鈫抜e / o鈫抲e / e鈫抜锛?  - `reflexive-verbs`锛氬弽韬姩璇嶏紙me/te/se/nos/os/se锛?  - `gustar`锛歡ustar 鍨嬪姩璇嶏紙鍙ュ瀷缁撴瀯鍒嗙粍锛?  - `articles`锛氬啝璇嶇敤娉?  - `adjective-agreement`锛氬舰瀹硅瘝鎬ф暟涓€鑷?  - `ir-a-infinitive`锛歩r a + 鍔ㄨ瘝鍘熷舰锛堝彞鍨嬬粨鏋勫垎缁勶級
+- 淇瀛楃涓插唴閮?ASCII 鍙屽紩鍙峰啿绐侊紝鏀圭敤 `銆屻€峘 寮曞彿銆?
+**杩愯杩囩殑楠岃瘉**
+- `npx tsc --noEmit`锛氶€氳繃
+- `npm run build`锛氶€氳繃
+- `git push origin main`锛氬凡鎺ㄩ€?
+**缁撴灉**
+- 璇硶椤垫柊澧?8 鏉¤娉曞崱锛屼晶杈规爮澧炲姞銆屽彞鍨嬬粨鏋勩€嶅垎缁勩€?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛欳odex2 楠屾敹 VOCAB-004锛屾垨 PM 瀹夋帓涓嬩竴闃舵
 
 ### Session #53 - 2026-05-16
 
-**角色**：Claude1（PM）
-
-**本轮目标**：解决 transcript 体验问题——既不能 ±4 窗口（切不动），也不能全量渲染（卡顿）
-
-**已完成**
-- 直接试改了几版 TranscriptPanel（窗口/全量/歌词样式），均不满足真实需求
-- PM 收敛真实需求：虚拟化窗口 + 用户脱钩浏览 + 按需向下/向上加载更多 cue
-- 写新 ticket `docs/tickets/WEB-008.md`，明确：
-  - INITIAL_RENDER_COUNT = 30，LOAD_MORE_BATCH = 30
-  - IntersectionObserver 监听 top/bottom 哨兵
-  - followMode state：用户 wheel/touchmove → 浏览模式（视频继续播放、不跟随）
-  - 点「回到当前位置」 → 恢复跟随并 scrollIntoView center
-- `feature_list.json` 新增 `WEB-008`（status: backlog, priority: 21）
-
-**下一步最佳动作**：交 Codex1 按 ticket 实现 WEB-008
+**瑙掕壊**锛欳laude1锛圥M锛?
+**鏈疆鐩爣**锛氳В鍐?transcript 浣撻獙闂鈥斺€旀棦涓嶈兘 卤4 绐楀彛锛堝垏涓嶅姩锛夛紝涔熶笉鑳藉叏閲忔覆鏌擄紙鍗￠】锛?
+**宸插畬鎴?*
+- 鐩存帴璇曟敼浜嗗嚑鐗?TranscriptPanel锛堢獥鍙?鍏ㄩ噺/姝岃瘝鏍峰紡锛夛紝鍧囦笉婊¤冻鐪熷疄闇€姹?- PM 鏀舵暃鐪熷疄闇€姹傦細铏氭嫙鍖栫獥鍙?+ 鐢ㄦ埛鑴遍挬娴忚 + 鎸夐渶鍚戜笅/鍚戜笂鍔犺浇鏇村 cue
+- 鍐欐柊 ticket `docs/tickets/WEB-008.md`锛屾槑纭細
+  - INITIAL_RENDER_COUNT = 30锛孡OAD_MORE_BATCH = 30
+  - IntersectionObserver 鐩戝惉 top/bottom 鍝ㄥ叺
+  - followMode state锛氱敤鎴?wheel/touchmove 鈫?娴忚妯″紡锛堣棰戠户缁挱鏀俱€佷笉璺熼殢锛?  - 鐐广€屽洖鍒板綋鍓嶄綅缃€?鈫?鎭㈠璺熼殢骞?scrollIntoView center
+- `feature_list.json` 鏂板 `WEB-008`锛坰tatus: backlog, priority: 21锛?
+**涓嬩竴姝ユ渶浣冲姩浣?*锛氫氦 Codex1 鎸?ticket 瀹炵幇 WEB-008
 
 
 ---
 
-## Session #43 — 2026-05-15（PM）
-
-**角色**：Claude1（PM）
-
-### 发现的问题
-- lemma-dict.json 660个词形翻译全部为乱码，点词功能实际不可用
-- 百度MT词典版不支持西语中文dict字段
-- dictionaryapi.dev 不支持西班牙语
-
-### 本次完成
-1. 接入GLM-5（阿里云DashScope）AI生成词典条目（词性+义项+例句）
-   - 新增.env: BAIDU_MT_API_KEY / DASHSCOPE_API_KEY / DASHSCOPE_MODEL
-   - /api/lemmatize升级：Redis缓存 -> GLM-5生成
-2. LookupCard升级：显示编号义项+例句卡片
-3. 修复prompt bug（示例值污染所有词缓存）
-4. 修复morphInfo乱码显示
-5. 新增scripts/clear-dict-cache.mjs
-6. Codex1跟进完成VOCAB-004剩余（词典库抽象+source追踪+vocab/lookup接口）
-
-### 当前状态
-- VOCAB-004：Codex1已提交，待Codex2 QA验收
-- 其余功能维持passing
+## Session #43 鈥?2026-05-15锛圥M锛?
+**瑙掕壊**锛欳laude1锛圥M锛?
+### 鍙戠幇鐨勯棶棰?- lemma-dict.json 660涓瘝褰㈢炕璇戝叏閮ㄤ负涔辩爜锛岀偣璇嶅姛鑳藉疄闄呬笉鍙敤
+- 鐧惧害MT璇嶅吀鐗堜笉鏀寔瑗胯涓枃dict瀛楁
+- dictionaryapi.dev 涓嶆敮鎸佽タ鐝墮璇?
+### 鏈瀹屾垚
+1. 鎺ュ叆GLM-5锛堥樋閲屼簯DashScope锛堿I鐢熸垚璇嶅吀鏉＄洰锛堣瘝鎬?涔夐」+渚嬪彞锛?   - 鏂板.env: BAIDU_MT_API_KEY / DASHSCOPE_API_KEY / DASHSCOPE_MODEL
+   - /api/lemmatize鍗囩骇锛歊edis缂撳瓨 -> GLM-5鐢熸垚
+2. LookupCard鍗囩骇锛氭樉绀虹紪鍙蜂箟椤?渚嬪彞鍗＄墖
+3. 淇prompt bug锛堢ず渚嬪€兼薄鏌撴墍鏈夎瘝缂撳瓨锛?4. 淇morphInfo涔辩爜鏄剧ず
+5. 鏂板scripts/clear-dict-cache.mjs
+6. Codex1璺熻繘瀹屾垚VOCAB-004鍓╀綑锛堣瘝鍏稿簱鎶借薄+source杩借釜+vocab/lookup鎺ュ彛锛?
+### 褰撳墠鐘舵€?- VOCAB-004锛欳odex1宸叉彁浜わ紝寰匔odex2 QA楠屾敹
+- 鍏朵綑鍔熻兘缁存寔passing
 
 ### Session #54 - 2026-05-16
 
@@ -4741,7 +4394,7 @@ feature_list.json 更新：
 - `npm run build`: passed with existing `<img>` lint warnings and Node `url.parse()` deprecation warnings only.
 - Source contract script: passed, checking 10 EmptyState API markers and 6 migrated target files.
 - `rg` old-copy scan across the six target files: no matches.
-- Local HTTP smoke on port 3015: `/watch` 200 with "没有视频可以播放"; `/search` 200 with "没找到相关视频"; `/learn` 200; `/vocab` 307 unauth redirect.
+- Local HTTP smoke on port 3015: `/watch` 200 with "娌℃湁瑙嗛鍙互鎾斁"; `/search` 200 with "娌℃壘鍒扮浉鍏宠棰?; `/learn` 200; `/vocab` 307 unauth redirect.
 
 **Notes**
 - Chrome is installed, but headless screenshot automation was not reliable in this desktop session: the first attempt captured `ERR_CONNECTION_REFUSED`, and later detached dev-server launches did not stay available long enough for repeat screenshots.
@@ -4758,7 +4411,7 @@ feature_list.json 更新：
 
 **Completed**
 - Read `docs/tickets/WEB-011-FIX.md` and verified the feedback against the current source.
-- Updated `src/app/watch/TranscriptPanel.tsx`: the no-subtitle empty state now uses `kind="empty"` and title `这个视频没有字幕`.
+- Updated `src/app/watch/TranscriptPanel.tsx`: the no-subtitle empty state now uses `kind="empty"` and title `杩欎釜瑙嗛娌℃湁瀛楀箷`.
 - Updated `src/app/components/ui/EmptyState.tsx`: error/loading-failed SVG strokes are unified to `strokeWidth="3"`; the error dot is a filled circle with `r="3"`.
 - Added regression coverage to `tests/web011.test.mjs`.
 - Updated `feature_list.json`: `WEB-011` -> `ready_for_qa` after the P1 fix.
@@ -5090,17 +4743,17 @@ feature_list.json 更新：
 
 ---
 
-## PM Report — Session #63 (2026-05-20)
+## PM Report 鈥?Session #63 (2026-05-20)
 
 ### Current State
-- **38 features passing**, 1 blocked (CONTENT-001 — YouTube yt-dlp blocked by YouTube bot detection).
+- **38 features passing**, 1 blocked (CONTENT-001 鈥?YouTube yt-dlp blocked by YouTube bot detection).
 - All P2 hardening tickets (OPS-001, INFRA-003, INFRA-004) and feature tickets through VOCAB-005 are passing.
 - `npm test` 143/143 green; `npm run build` passes; `npm run lint:encoding` passes.
 
 ### This Session
 - Confirmed VOCAB-005 status was `ready_for_qa` in feature_list.json despite Codex2 QA having passed it.
 - Fixed: flipped VOCAB-005 to `passing` (commit `577b990`).
-- Wrote next ticket: **VOCAB-006** — SRS 词库复习（FSRS 变位卡）, priority 40, status `backlog`.
+- Wrote next ticket: **VOCAB-006** 鈥?SRS 璇嶅簱澶嶄範锛團SRS 鍙樹綅鍗★級, priority 40, status `backlog`.
   - Ticket: `docs/tickets/VOCAB-006.md`
   - Uses `ts-fsrs` library (MIT) for FSRS algorithm
   - Adds 8 SRS fields to Word model
@@ -5153,26 +4806,22 @@ feature_list.json 更新：
   - auth + rating validation on the two review routes
   - `/vocab/review` flashcard flow and `/vocab` due badge contract
   - full-suite and build regression
-### 浼氳瘽 #64 锟?2026-05-20
+### 娴兼俺鐦?#64 閿?2026-05-20
 
-**鏈疆鐩爣**锛欳odex1 瀹炵幇 `VOCAB-007` AI 璇嶅舰杩樺師锛岃鍙樹綅璇嶆煡璇嶈繑鍥炴纭?lemma
+**閺堫剝鐤嗛惄顔界垼**閿涙odex1 鐎圭偟骞?`VOCAB-007` AI 鐠囧秴鑸版潻妯哄斧閿涘矁顔€閸欐ü缍呯拠宥嗙叀鐠囧秷绻戦崶鐐搭劀绾?lemma
 
-**宸插畬鎴?*
-- 鏂板缓 `tests/vocab007.test.mjs`锛?5 鏉℃簮鍚堝悓娴嬭瘯锛岀孩娴?5/5 确璁ゅ悗鎻愪氦 `e68d2a4`
-- 鏇存柊 `src/lib/dictionary.ts`锛歊awAIEntry 鏂板 `lemma/morphInfo`锛岄噸鍐?`fetchAIEntry` prompt锛岃 AI 鍏堣瘑鍒?lemma锛屽啀杩斿洖璇嶅吀鏉＄洰
-- `lookupDictionary` 鍒囨崲鍒?`vocab:dict:v3:`锛屽姞鍏ョ浜屾 `safeCacheGet`锛屽熀浜?AI 杩斿洖鐨?`aiLemma` 閬垮厤閲嶅鍐欏叆
-- 鍚屾鏇存柊 `tests/vocab005.test.mjs` 锛屽皢鏃?cache namespace 鏂█浠?`v2` 鏀逛负 `v3`
-- 鏇存柊 `feature_list.json`锛歚VOCAB-007` 鏍囦负 `ready_for_qa`
-- 鏇存柊 `session-handoff.md`锛屼氦鎺?Codex2 QA
+**瀹告彃鐣幋?*
+- 閺傛澘缂?`tests/vocab007.test.mjs`閿?5 閺夆剝绨崥鍫濇倱濞村鐦敍宀€瀛╁ù?5/5 纭拋銈呮倵閹绘劒姘?`e68d2a4`
+- 閺囧瓨鏌?`src/lib/dictionary.ts`閿涙瓓awAIEntry 閺傛澘顤?`lemma/morphInfo`閿涘矂鍣搁崘?`fetchAIEntry` prompt閿涘矁顔€ AI 閸忓牐鐦戦崚?lemma閿涘苯鍟€鏉╂柨娲栫拠宥呭悁閺夛紕娲?- `lookupDictionary` 閸掑洦宕查崚?`vocab:dict:v3:`閿涘苯濮為崗銉ь儑娴滃本顐?`safeCacheGet`閿涘苯鐔€娴?AI 鏉╂柨娲栭惃?`aiLemma` 闁灝鍘ら柌宥咁槻閸愭瑥鍙?- 閸氬本顒為弴瀛樻煀 `tests/vocab005.test.mjs` 閿涘苯鐨㈤弮?cache namespace 閺傤叀鈻堟禒?`v2` 閺€閫涜礋 `v3`
+- 閺囧瓨鏌?`feature_list.json`閿涙瓪VOCAB-007` 閺嶅洣璐?`ready_for_qa`
+- 閺囧瓨鏌?`session-handoff.md`閿涘奔姘﹂幒?Codex2 QA
 
-**杩愯杩囩殑楠岃瘉**
-- `node --test tests/vocab007.test.mjs`锛氬厛 5/5 failing锛屽悗 5/5 passing
-- `npm test`锛?53/153 閫氳繃
-- `npm run build`锛氶€氳繃
-- `npx tsc --noEmit`锛氬け璐ワ紝鍘熷洜涓?tsconfig 鍖呭惈缂哄け鐨?`.next/types/**/*.ts`锛屼负宸叉湁閰嶇疆鍣煶锛岄潪鏈疆鍙樻洿寮曞叆
+**鏉╂劘顢戞潻鍥╂畱妤犲矁鐦?*
+- `node --test tests/vocab007.test.mjs`閿涙艾鍘?5/5 failing閿涘苯鎮?5/5 passing
+- `npm test`閿?53/153 闁俺绻?- `npm run build`閿涙岸鈧俺绻?- `npx tsc --noEmit`閿涙艾銇戠拹銉礉閸樼喎娲滄稉?tsconfig 閸栧懎鎯堢紓鍝勩亼閻?`.next/types/**/*.ts`閿涘奔璐熷鍙夋箒闁板秶鐤嗛崳顏堢叾閿涘矂娼張顒冪枂閸欐ɑ娲垮鏇炲弳
 
-**涓嬩竴姝ユ渶浣冲姩浣?*
-- 浜ょ粰 Codex2 楠屾敹 `VOCAB-007`锛屽閫氳繃鍒欐爣璁颁负 `passing`
+**娑撳绔村銉︽付娴ｅ啿濮╂担?*
+- 娴溿倗绮?Codex2 妤犲本鏁?`VOCAB-007`閿涘苯顩ч柅姘崇箖閸掓瑦鐖ｇ拋棰佽礋 `passing`
 ### QA Session - 2026-05-20 13:33 - VOCAB-007
 
 **Goal**: Codex2 QA for `VOCAB-007` AI lemmatizer.
@@ -5365,7 +5014,7 @@ feature_list.json 更新：
 
 **Production probes**:
 - OPTIONS preflight to `https://esponalsssssss.vercel.app/api/subtitle/ingest` from YouTube origin returned 204 with `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: POST, OPTIONS`, `Access-Control-Allow-Headers: Content-Type, X-Esponal-Ingest-Token`, and `Access-Control-Max-Age: 86400`.
-- GET `https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es` returned 200; first 300 chars include `¿Cómo cambió tu vida aprender español?`.
+- GET `https://esponalsssssss.vercel.app/api/subtitle?v=1A9kpjdYJUg&lang=es` returned 200; first 300 chars include `驴C贸mo cambi贸 tu vida aprender espa帽ol?`.
 
 **Notes**:
 - PM production E2E evidence from b0e5c28 was accepted: non-target en/ar timedtext did not ingest; matching Spanish timedtext ingested with `cueCount:808`; polluted cache was overwritten with Spanish cues.
@@ -5455,7 +5104,7 @@ feature_list.json 更新：
 - Added client-side search, filtering, custom sorting, and paginated loading in `src/app/components/vocab/VocabAccordion.tsx`.
 - Removed potential external package dependencies (`lucide-react`) to ensure robust builds by rendering the search icon as an inline SVG.
 - Reset `pageSize` (default 20) back to 20 whenever any search or filter state changes.
-- Added a "加载更多" (Load More) button that displays next batch when more matching words are available.
+- Added a "鍔犺浇鏇村" (Load More) button that displays next batch when more matching words are available.
 - Added a search empty state with a click-to-clear quick reset link.
 - Added test coverage in `tests/vocab-ui.test.mjs` verifying controls exist.
 
@@ -5482,9 +5131,9 @@ feature_list.json 更新：
 **Goal**: Perform UI/UX review of WATCH-009 (PDF subtitle download) implementation against the design spec.
 
 **Done**:
-- Inspected Codex1's canvas-to-JPEG-to-PDF generation logic in `src/app/watch/TranscriptPanel.tsx` and verified it implements the exact "Spanish on top, Chinese below" (西上中下) bilingual layout and `[MM:SS]` timestamp specifications.
+- Inspected Codex1's canvas-to-JPEG-to-PDF generation logic in `src/app/watch/TranscriptPanel.tsx` and verified it implements the exact "Spanish on top, Chinese below" (瑗夸笂涓笅) bilingual layout and `[MM:SS]` timestamp specifications.
 - Confirmed that the page-break logic accurately protects subtitles from breaking across pages.
-- Verified the download button copy (`下载 PDF`), loading spinner state, and accessibility properties.
+- Verified the download button copy (`涓嬭浇 PDF`), loading spinner state, and accessibility properties.
 - Prepended the UI review report in `session-handoff.md`, passing the ticket to Claude1 (PM) for final acceptance.
 
 **Verification**:
@@ -5547,7 +5196,7 @@ feature_list.json 更新：
 **Done**:
 - Updated `LookupCardStack` and `MobileLookupSheet` in `src/app/watch/LookupCard.tsx` to pass options containing an `autoPlay` flag to the close handlers.
 - Updated `onCloseLookup` prop signature and `closeStackCard` method in `src/app/watch/SubtitlePanel.tsx` and `src/app/watch/TranscriptPanel.tsx` to propagate the `autoPlay` option back to `WatchClient`.
-- Updated `handleCloseLookup` in `src/app/watch/WatchClient.tsx` to conditionally resume the YouTube player only when `autoPlay` is `true` (defaulting to `true` when explicit "关闭" is clicked, and `false` when the backdrop/drag handle is clicked or sheet is swiped down).
+- Updated `handleCloseLookup` in `src/app/watch/WatchClient.tsx` to conditionally resume the YouTube player only when `autoPlay` is `true` (defaulting to `true` when explicit "鍏抽棴" is clicked, and `false` when the backdrop/drag handle is clicked or sheet is swiped down).
 - Updated timestamps in `LookupCard.tsx`, `SubtitlePanel.tsx`, `TranscriptPanel.tsx`, and `WatchClient.tsx` to `2026-06-01 16:41`.
 
 **Verification**:
@@ -5692,7 +5341,7 @@ feature_list.json 更新：
 - Updated `src/app/vocab/page.tsx` to load `getVideoViewsByUser()` and `getSavedPhrasesByUser()` alongside the existing word/stats data.
 - Serialized those results into `serializedVideoViews` and `serializedPhrases`.
 - Passed both into `CorpusMobile` as `initialVideoViews` / `initialPhrases`.
-- Updated `src/app/vocab/CorpusMobile.tsx` so the mobile `视频` and `短语` tabs initialize directly in `ready` state from server props instead of relying on client-side fetch on first paint.
+- Updated `src/app/vocab/CorpusMobile.tsx` so the mobile `瑙嗛` and `鐭` tabs initialize directly in `ready` state from server props instead of relying on client-side fetch on first paint.
 - Kept the `?debugCorpus=1` overlay so deployed-device verification can still show live item counts and state.
 
 **Verification**:
@@ -5777,7 +5426,7 @@ feature_list.json 更新：
 
 ### Session #MOBILE-003 Homepage Revert - 2026-06-04 00:18
 
-**Goal**: Revert the MOBILE-003 homepage content redesign after user feedback: "首页还是还原吧".
+**Goal**: Revert the MOBILE-003 homepage content redesign after user feedback: "棣栭〉杩樻槸杩樺師鍚?.
 
 **Done**:
 - Restored `src/app/page.tsx` to the pre-MOBILE-003 homepage layout.
@@ -5893,5 +5542,8 @@ feature_list.json 更新：
 **Notes**:
 - Phase 2 intentionally leaves anonymous lookup and subtitle requests on their prior free path; only logged-in users are metered there in this phase.
 - Phase 3 frontend quota surfaces / balance display and payment integration remain separate follow-up work.
-| 2026-06-05 | Codex1 | CREDITS-FE-001 首个前端切片完成并待 QA：新增 `src/lib/credits/summary.ts`、`GET /api/credits`、`/membership` 定价页（月付/年付/共建者三 tab + 占位 CTA），并把 desktop header / mobile avatar drawer 接到统一余额与会员入口。同时补上 Phase 2 的 P0：`requireCredits()` / `requirePlan()` 现在会先执行 `ensureSignupGrant()`，新用户不再卡在 0 配额。验证：`node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs`、`node --test tests/phon001.test.mjs`、`npx tsc --noEmit --pretty false`、`npm test` 全绿（450/450）。 |
-| 2026-06-05 | Codex2 | CREDITS-FE-001 QA 首轮：功能相关 focused tests 与 `npx tsc --noEmit --pretty false` 通过，但 `npm test` 失败于 `tests/infra002.test.mjs`，原因为 `session-handoff.md` 存在 CRLF line endings。结论：票回 Codex1 先修仓库编码卫生，再返 QA；本轮未拿到本地浏览器冒烟证据，因为该 Windows 线程未能稳定拉起 detached `npm run dev`。 |
+| 2026-06-05 | Codex1 | CREDITS-FE-001 棣栦釜鍓嶇鍒囩墖瀹屾垚骞跺緟 QA锛氭柊澧?`src/lib/credits/summary.ts`銆乣GET /api/credits`銆乣/membership` 瀹氫环椤碉紙鏈堜粯/骞翠粯/鍏卞缓鑰呬笁 tab + 鍗犱綅 CTA锛夛紝骞舵妸 desktop header / mobile avatar drawer 鎺ュ埌缁熶竴浣欓涓庝細鍛樺叆鍙ｃ€傚悓鏃惰ˉ涓?Phase 2 鐨?P0锛歚requireCredits()` / `requirePlan()` 鐜板湪浼氬厛鎵ц `ensureSignupGrant()`锛屾柊鐢ㄦ埛涓嶅啀鍗″湪 0 閰嶉銆傞獙璇侊細`node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs`銆乣node --test tests/phon001.test.mjs`銆乣npx tsc --noEmit --pretty false`銆乣npm test` 鍏ㄧ豢锛?50/450锛夈€?|
+| 2026-06-05 | Codex2 | CREDITS-FE-001 QA 棣栬疆锛氬姛鑳界浉鍏?focused tests 涓?`npx tsc --noEmit --pretty false` 閫氳繃锛屼絾 `npm test` 澶辫触浜?`tests/infra002.test.mjs`锛屽師鍥犱负 `session-handoff.md` 瀛樺湪 CRLF line endings銆傜粨璁猴細绁ㄥ洖 Codex1 鍏堜慨浠撳簱缂栫爜鍗敓锛屽啀杩?QA锛涙湰杞湭鎷垮埌鏈湴娴忚鍣ㄥ啋鐑熻瘉鎹紝鍥犱负璇?Windows 绾跨▼鏈兘绋冲畾鎷夎捣 detached `npm run dev`銆?|
+| 2026-06-05 | Codex1 | CREDITS-FE-001 返工完成并重新收口：按 `docs/tickets/CREDITS-membership-mockup.html` v2 重写 `src/app/membership/MembershipTabs.tsx` 的方案显隐与 CTA 逻辑，统一改为 `立即购买` / `点击续费` / `点击升级`，并把 founder 档更名为 `共建者 · 进阶` / `共建者 · 高阶`。`src/lib/credits/summary.ts` 与 `src/app/api/credits/route.ts` 现返回 `currentPlan` / `currentCycle` 供前端判断已购态。新增 `src/lib/credits/access.ts`，在 `src/app/api/vocab/add/route.ts`、`src/app/api/vocab/phrase/add/route.ts` 落地免费方案 50 条收藏上限（单词 + 短语合并计数），`src/app/watch/LookupCard.tsx` 命中上限时展示升级提示。同步修复 `session-handoff.md` LF 与 `scripts/check-encoding.mjs` allowlist，保证仓库编码门禁不再误伤历史 handoff。验证：`node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs tests/ext003.test.mjs tests/vocab004.test.mjs tests/corpus001.test.mjs` 35/35 通过，`npx tsc --noEmit --pretty false` 通过，`npm run lint:encoding` 通过，`npm test` 451/451 通过，`npm run build` 通过（仅剩既有 Next/Sentry warnings）。|
+| 2026-06-05 | Codex2 | CREDITS-FE-001 QA 复验通过：focused 回归 `node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs tests/ext003.test.mjs tests/vocab004.test.mjs tests/corpus001.test.mjs` 35/35 通过，`npm run lint:encoding` 通过，`npm test` 451/451 通过，`npm run build` 通过。`npx tsc --noEmit --pretty false` 首次执行因 `.next/types/**` 尚未生成而失败，拉起本地 `npm run dev -- --hostname 127.0.0.1 --port 3000` 后复跑通过，判断为 QA 环境状态而非产品回归。本地 HTTP 冒烟确认 `/membership` 返回 200 且渲染 `选择适合你的方案`、`0 配额`、`月付/年付/共建者`、`当前方案`、`立即购买`、`配额只用于 AI 加工` 等关键信号；首页 `/` 返回 200 且共享 header/mobile shell 正常输出。结论：工程 QA pass，移交 Gemini1 / PM 做 v2 模型视觉验收。|
+| 2026-06-05 | Codex1 | CREDITS-FE-002 开发完成并进入待测：新增 `src/lib/credits/history.ts` 处理本人流水游标分页，新增 `src/lib/credits/labels.ts` 统一 reason/refType 中文标签和正负色调，新增 `src/app/api/credits/transactions/route.ts` 暴露鉴权后的流水接口，新增 `/account/credits` 页面(`src/app/account/credits/page.tsx` + `CreditHistoryClient.tsx`) 实现余额汇总卡、日期分组流水、空态与“加载更多”。共享入口已接到 `src/app/components/web/SiteHeader.tsx` 的 desktop 余额 pill / avatar menu 以及 `src/app/components/web/MobileNav.tsx` 的 mobile avatar drawer。为匹配当前实现分层，补充 `tests/credits-fe002.test.mjs`；同时把 `tests/phon001.test.mjs` 的历史乱码断言改为当前 UTF-8 内容，避免误报。验证：`node --test tests/credits-fe002.test.mjs` 4/4 通过，`npx tsc --noEmit --pretty false` 通过，`npm run lint:encoding` 通过，`npm test` 455/455 通过。|

@@ -13,8 +13,13 @@ test("CREDITS-FE-001 exposes an authenticated credits summary API", async () => 
   assert.match(source, /getServerSession/);
   assert.match(source, /getAuthOptions/);
   assert.match(source, /getCreditSummary/);
-  assert.match(source, /return NextResponse\.json\(\s*\{\s*error:\s*"Unauthorized"\s*\},\s*\{\s*status:\s*401\s*\}\s*\)/);
+  assert.match(
+    source,
+    /return NextResponse\.json\(\s*\{\s*error:\s*"Unauthorized"\s*\},\s*\{\s*status:\s*401\s*\}\s*\)/
+  );
   assert.match(source, /plan:\s*summary\.plan/);
+  assert.match(source, /currentPlan:\s*summary\.currentPlan/);
+  assert.match(source, /currentCycle:\s*summary\.currentCycle/);
   assert.match(source, /balanceDisplay:\s*summary\.balanceDisplay/);
   assert.match(source, /balanceMinor:\s*summary\.balanceMinor/);
 });
@@ -33,6 +38,7 @@ test("CREDITS-FE-001 adds a flagship membership route with balance-aware pricing
   assert.match(pageSource, /选择适合你的方案/);
   assert.match(pageSource, /配额只用于 AI 加工/);
   assert.match(pageSource, /currentPlan/);
+  assert.match(pageSource, /currentCycle/);
   assert.match(pageSource, /balanceDisplay/);
 
   assert.match(tabsSource, /"use client"/);
@@ -42,9 +48,15 @@ test("CREDITS-FE-001 adds a flagship membership route with balance-aware pricing
   assert.match(tabsSource, /年付/);
   assert.match(tabsSource, /共建者/);
   assert.match(tabsSource, /当前方案/);
-  assert.match(tabsSource, /即将开放/);
+  assert.match(tabsSource, /立即购买/);
+  assert.match(tabsSource, /点击续费/);
+  assert.match(tabsSource, /点击升级/);
+  assert.match(tabsSource, /共建者 · 进阶/);
+  assert.match(tabsSource, /共建者 · 高阶/);
   assert.match(tabsSource, /限量 500/);
   assert.match(tabsSource, /推荐/);
+  assert.match(tabsSource, /getVisiblePlansForCycle/);
+  assert.match(tabsSource, /shouldShowRecommendedBadge/);
 });
 
 test("CREDITS-FE-001 surfaces balance and membership entry in the shared header and mobile drawer", async () => {
@@ -60,4 +72,16 @@ test("CREDITS-FE-001 surfaces balance and membership entry in the shared header 
   assert.match(navSource, /href="\/membership"/);
   assert.match(navSource, /当前配额/);
   assert.match(navSource, /balanceDisplay/);
+});
+
+test("CREDITS-FE-001 gates free 收藏 to 50 and keeps paid plans unlimited", async () => {
+  const vocabAddSource = await readText("src/app/api/vocab/add/route.ts");
+  const phraseAddSource = await readText("src/app/api/vocab/phrase/add/route.ts");
+
+  assert.match(vocabAddSource, /assertUnlimitedSavesAccess|getCreditSummary|SAVE_LIMIT_REACHED/);
+  assert.match(vocabAddSource, /status:\s*403|status:\s*402/);
+  assert.match(vocabAddSource, /50/);
+
+  assert.match(phraseAddSource, /assertUnlimitedSavesAccess|getCreditSummary|SAVE_LIMIT_REACHED/);
+  assert.match(phraseAddSource, /status:\s*403|status:\s*402/);
 });

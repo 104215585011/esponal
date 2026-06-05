@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 10:38
+// Timestamp: 2026-06-05 11:05
 import { getServerSession } from "next-auth";
 import { MembershipTabs } from "@/app/membership/MembershipTabs";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -18,9 +18,11 @@ export default async function MembershipPage() {
     ? await getCreditSummary(userId)
     : {
         plan: "free" as const,
+        currentPlan: "free" as const,
+        currentCycle: "free" as const,
         planLabel: "免费",
         balanceMinor: 0,
-        balanceDisplay: 0
+        balanceDisplay: 0,
       };
 
   return (
@@ -42,8 +44,9 @@ export default async function MembershipPage() {
 
           <MembershipTabs
             balanceDisplay={summary.balanceDisplay}
-            currentPlan={summary.plan}
+            currentPlan={summary.currentPlan}
             currentPlanLabel={summary.planLabel}
+            currentCycle={summary.currentCycle}
           />
 
           <p className="mx-auto mt-8 max-w-[720px] text-center text-xs leading-6 text-zinc-500">

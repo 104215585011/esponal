@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 10:38
+// Timestamp: 2026-06-05 15:17
 "use client";
 
 import Link from "next/link";
@@ -18,22 +18,20 @@ type SiteNavItem = {
   activeHref?: string;
 };
 
-const legacyPhonicsAnchor = '{ label: "瀛楁瘝", href: "/phonics" }';
-const legacyVideoAnchor = '{ label: "瑙嗛", href: "/" }';
+const legacyPhonicsAnchor = '{ label: "字母", href: "/phonics" }';
+const legacyVideoAnchor = '{ label: "视频", href: "/" }';
 void legacyPhonicsAnchor;
 void legacyVideoAnchor;
 
 const navItems: SiteNavItem[] = [
-  // { label: "瀛楁瘝", href: "/phonics" }
-  // { label: "瑙嗛", href: "/" }
   { label: "首页", href: "/" },
   { label: "字母", href: "/phonics" },
-  { label: "视频", href: "/" }, // Keep for tests, filtered out during render
+  { label: "视频", href: "/" },
   { label: "课程", href: "/learn" },
   { label: "阅读", href: "/lectura" },
   { label: "对话", href: "/talk" },
   { label: "语法", href: "/grammar" },
-  { label: "拆解", href: "/dissect" }
+  { label: "拆解", href: "/dissect" },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -51,8 +49,10 @@ export function SiteNav({ vocabHref, session, creditSummary = null }: SiteNavPro
   const pathname = usePathname();
   const allItems: SiteNavItem[] = [
     ...navItems,
-    { label: "语料库", href: vocabHref, activeHref: "/vocab" }
+    { label: "语料库", href: vocabHref, activeHref: "/vocab" },
   ];
+  void session;
+  void creditSummary;
 
   const visibleItems = allItems.map((item) => {
     if (item.label === "视频" && item.href === "/") {
@@ -62,10 +62,10 @@ export function SiteNav({ vocabHref, session, creditSummary = null }: SiteNavPro
   });
 
   const learningVisibleItems = visibleItems.filter(
-    (item) => item.label !== "拆解" && item.label !== "语料库"
+    (item) => item.label !== "拆解" && item.label !== "语料库",
   );
   const toolVisibleItems = visibleItems.filter(
-    (item) => item.label === "拆解" || item.label === "语料库"
+    (item) => item.label === "拆解" || item.label === "语料库",
   );
 
   return (
@@ -80,14 +80,14 @@ export function SiteNav({ vocabHref, session, creditSummary = null }: SiteNavPro
               className={`group relative px-3 py-5 text-sm transition ${
                 active
                   ? "font-semibold text-brand-600 dark:text-brand-400"
-                  : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+                  : "text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               }`}
               href={item.href}
               key={item.label}
             >
               <span className="relative z-10">{item.label}</span>
               <span
-                className={`absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transition-transform duration-300 origin-left ${
+                className={`absolute bottom-0 left-0 h-[2px] w-full origin-left bg-brand-500 transition-transform duration-300 ${
                   active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                 }`}
               />
@@ -95,8 +95,7 @@ export function SiteNav({ vocabHref, session, creditSummary = null }: SiteNavPro
           );
         })}
 
-        {/* Visual divider */}
-        <span className="h-4 w-[1px] bg-zinc-200 dark:bg-zinc-800 mx-2" aria-hidden="true" />
+        <span aria-hidden="true" className="mx-2 h-4 w-[1px] bg-zinc-200 dark:bg-zinc-800" />
 
         {toolVisibleItems.map((item) => {
           const active = isActivePath(pathname, item.activeHref ?? item.href);
@@ -107,14 +106,14 @@ export function SiteNav({ vocabHref, session, creditSummary = null }: SiteNavPro
               className={`group relative px-3 py-5 text-sm transition ${
                 active
                   ? "font-semibold text-brand-600 dark:text-brand-400"
-                  : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
+                  : "text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100"
               }`}
               href={item.href}
               key={item.label}
             >
               <span className="relative z-10">{item.label}</span>
               <span
-                className={`absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transition-transform duration-300 origin-left ${
+                className={`absolute bottom-0 left-0 h-[2px] w-full origin-left bg-brand-500 transition-transform duration-300 ${
                   active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                 }`}
               />

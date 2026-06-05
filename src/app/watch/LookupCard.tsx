@@ -298,6 +298,7 @@ export function LookupCard({
   const [lookupState, setLookupState] = useState<LookupState>({ kind: "loading" });
   const [buttonState, setButtonState] = useState<ButtonState>("disabled");
   const [showLoginHint, setShowLoginHint] = useState(false);
+  const [showSaveLimitHint, setShowSaveLimitHint] = useState(false);
   const [speakingText, setSpeakingText] = useState<string | null>(null);
   const [totalEncounters, setTotalEncounters] = useState<number | null>(null);
   const normalizedForm = useMemo(() => form.trim().toLowerCase(), [form]);
@@ -312,6 +313,7 @@ export function LookupCard({
       setLookupState({ kind: "loading" });
       setButtonState("disabled");
       setShowLoginHint(false);
+      setShowSaveLimitHint(false);
       setTotalEncounters(null);
 
       try {
@@ -478,6 +480,7 @@ export function LookupCard({
 
     setButtonState("loading");
     setShowLoginHint(false);
+    setShowSaveLimitHint(false);
 
     try {
       const response = await fetch("/api/vocab/add", {
@@ -536,6 +539,12 @@ export function LookupCard({
         return;
       }
 
+      if (response.status === 403) {
+        setButtonState("default");
+        setShowSaveLimitHint(true);
+        return;
+      }
+
       if (!response.ok) throw new Error(`Save failed: ${response.status}`);
 
       setButtonState("success");
@@ -551,6 +560,7 @@ export function LookupCard({
 
     setButtonState("loading");
     setShowLoginHint(false);
+    setShowSaveLimitHint(false);
 
     try {
       const response = await fetch("/api/vocab/phrase/add", {
@@ -578,6 +588,12 @@ export function LookupCard({
 
       if (response.status === 429) {
         setButtonState("default");
+        return;
+      }
+
+      if (response.status === 403) {
+        setButtonState("default");
+        setShowSaveLimitHint(true);
         return;
       }
 
@@ -1012,6 +1028,32 @@ export function LookupCard({
                 href={buildSignInHref()}
               >
                 登录 / 注册
+              </a>
+            </>
+          )
+        ) : showSaveLimitHint ? (
+          useStaticLayout ? (
+            <>
+              <p className="mb-2.5 text-center text-xs text-zinc-500 dark:text-zinc-400 font-sans">
+                免费方案收藏上限为 50，升级后即可继续保存。
+              </p>
+              <a
+                className="block h-11 w-full rounded-full bg-brand-500 text-center text-sm font-semibold flex items-center justify-center text-white transition hover:bg-brand-600 shadow-md"
+                href="/membership"
+              >
+                查看会员方案
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="mb-2 text-xs text-gray-500">
+                免费方案收藏上限为 50，升级后即可继续保存。
+              </p>
+              <a
+                className="block h-8 w-full rounded-md bg-brand-500 text-center text-sm font-medium leading-8 text-white transition hover:bg-brand-600"
+                href="/membership"
+              >
+                查看会员方案
               </a>
             </>
           )

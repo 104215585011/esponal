@@ -21,6 +21,8 @@ export async function GET() {
   const summary = await getCreditSummary(userId);
   return NextResponse.json({
     plan: summary.plan,
+    currentPlan: summary.currentPlan,
+    currentCycle: summary.currentCycle,
     balanceDisplay: summary.balanceDisplay,
     balanceMinor: summary.balanceMinor
   });

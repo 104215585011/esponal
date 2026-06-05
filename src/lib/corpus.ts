@@ -103,6 +103,22 @@ export async function savePhraseForUser({
   });
 }
 
+export async function getSavedPhraseByUser(
+  userId: string,
+  lemma: string,
+  kind: SavePhraseKind,
+) {
+  return prisma.savedPhrase.findUnique({
+    where: {
+      userId_lemma_kind: {
+        userId,
+        lemma: lemma.trim().toLowerCase(),
+        kind,
+      },
+    },
+  });
+}
+
 export async function getSavedPhrasesByUser(userId: string, limit = 100) {
   return prisma.savedPhrase.findMany({
     where: { userId },

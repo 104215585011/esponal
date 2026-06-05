@@ -41,6 +41,7 @@ export async function ensureSignupGrant(userId: string): Promise<void> {
         userId,
         deltaMinor: SIGNUP_GRANT_MINOR,
         reason: "grant",
+        refType: "signup",
         balanceAfterMinor: next.balanceMinor,
       },
     });

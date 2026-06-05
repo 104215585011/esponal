@@ -2,8 +2,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
+import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import {
+  getSavedPhraseByUser,
   getSavedPhrasesByUser,
   savePhraseForUser,
   type SavePhraseKind
@@ -77,6 +79,23 @@ export async function POST(request: Request) {
 
     if (!isValidPhraseKind(body.kind)) {
       return NextResponse.json({ error: "invalid phrase kind" }, { status: 400 });
+    }
+
+    const existingPhrase = await getSavedPhraseByUser(userId, lemma, body.kind);
+    if (!existingPhrase) {
+      const saveAccess = await assertUnlimitedSavesAccess(userId);
+      if (!saveAccess.ok) {
+        return NextResponse.json(
+          {
+            error: "save limit reached",
+            code: "SAVE_LIMIT_REACHED",
+            limit: FREE_SAVE_LIMIT,
+            count: saveAccess.count,
+            upgradeHref: "/membership",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const phrase = await savePhraseForUser({

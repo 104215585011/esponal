@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 10:38
+// Timestamp: 2026-06-05 15:15
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
@@ -53,7 +53,7 @@ test("PHON-001 page renders the approved alphabet layout and audio controls", as
   assert.match(grid, /bg-brand-50/);
   assert.match(grid, /text-brand-700/);
   assert.match(grid, /<Volume2/);
-  assert.doesNotMatch(grid, /馃攰/);
+  assert.doesNotMatch(grid, /棣冩敯/);
   assert.match(grid, /label=\{letter\.name\}/);
   assert.match(grid, /label=\{letter\.example\}/);
   assert.match(grid, /getPlaybackRate/);
@@ -65,8 +65,14 @@ test("PHON-001 navigation exposes the alphabet entry before video", async () => 
   const siteNav = await readText("src/app/components/web/SiteNav.tsx");
   const mobileNav = await readText("src/app/components/web/MobileNav.tsx");
 
-  const desktopAlphabetIndex = siteNav.indexOf('{ label: "瀛楁瘝", href: "/phonics" }');
-  const desktopVideoIndex = siteNav.indexOf('{ label: "瑙嗛", href: "/" }');
+  const desktopAlphabetIndex = Math.max(
+    siteNav.indexOf('{ label: "字母", href: "/phonics" }'),
+    siteNav.indexOf('{ label: "瀛楁瘝", href: "/phonics" }'),
+  );
+  const desktopVideoIndex = Math.max(
+    siteNav.indexOf('{ label: "视频", href: "/" }'),
+    siteNav.indexOf('{ label: "瑙嗛", href: "/" }'),
+  );
   assert.ok(desktopAlphabetIndex >= 0, "alphabet nav item should exist");
   assert.ok(desktopVideoIndex >= 0, "video nav item should exist");
   assert.ok(desktopAlphabetIndex < desktopVideoIndex, "alphabet nav item should be first");
@@ -129,12 +135,15 @@ test("PHON-001 commits generated letter and example audio assets", () => {
     "w",
     "x",
     "y",
-    "z"
+    "z",
   ]) {
     assert.ok(wordFiles.includes(`${slug}.mp3`), `${slug}.mp3 should remain present`);
   }
 
-  for (const file of [...letterFiles.map((file) => `${lettersDir}/${file}`), ...wordFiles.map((file) => `${wordsDir}/${file}`)]) {
+  for (const file of [
+    ...letterFiles.map((file) => `${lettersDir}/${file}`),
+    ...wordFiles.map((file) => `${wordsDir}/${file}`),
+  ]) {
     assert.ok(statSync(file).size > 1024, `${file} should be a non-trivial mp3`);
   }
 });

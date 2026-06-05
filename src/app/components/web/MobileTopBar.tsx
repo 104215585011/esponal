@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 10:38
+// Timestamp: 2026-06-05 14:46
 "use client";
 
 import { GlobalSearchOverlay } from "@/app/components/web/GlobalSearchOverlay";
@@ -16,7 +16,7 @@ export function MobileTopBar({
   searchAction = "/search",
   initialQuery = "",
   session,
-  creditSummary = null
+  creditSummary = null,
 }: MobileTopBarProps) {
   return (
     <>
@@ -34,10 +34,14 @@ export function MobileTopBar({
             aria-disabled="true"
             aria-label="管理 YouTube 订阅"
             className="inline-flex h-11 min-w-[44px] items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-zinc-600 transition active:scale-95 dark:text-zinc-300"
-            title="YouTube 订阅管理稍后开放"
+            title="订阅管理稍后开放"
             type="button"
           >
-            <svg aria-hidden="true" className="h-[18px] w-[18px] fill-none stroke-current stroke-2" viewBox="0 0 24 24">
+            <svg
+              aria-hidden="true"
+              className="h-[18px] w-[18px] fill-none stroke-current stroke-2"
+              viewBox="0 0 24 24"
+            >
               <path d="M7 7h10" />
               <path d="M7 12h10" />
               <path d="M7 17h6" />

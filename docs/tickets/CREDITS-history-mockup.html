@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esponal · 积分使用记录 (CREDITS-FE-002)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;--bg-soft:#f7f8f7;--ink:#121413;--ink-2:#3f433f;--muted:#8a8f88;
+    --line:#eceeec;--brand:#10b981;--brand-deep:#059669;--brand-soft:#ecf8f2;
+    --red:#e5544b;--shadow:0 1px 2px rgba(16,24,20,.04),0 8px 24px -16px rgba(16,24,20,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9eae8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px;
+    font-family:"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-family:"Plus Jakarta Sans","Noto Sans SC",sans-serif}
+  .phone{width:390px;max-width:100%;height:820px;border-radius:44px;overflow:hidden;position:relative;background:var(--bg);
+    box-shadow:0 40px 90px -20px rgba(0,0,0,.4),0 0 0 10px #16181a,0 0 0 11px #2a2d30}
+  .scroll{height:100%;overflow-y:auto}.scroll::-webkit-scrollbar{display:none}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:13px 18px;
+    background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+  .back{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+  .back svg{width:20px;height:20px;stroke:currentColor}
+  .topbar .t{font-size:15px;font-weight:600;color:var(--ink)}
+
+  /* summary */
+  .sum{margin:18px;padding:20px;border-radius:22px;background:linear-gradient(135deg,#0f2e23,#13433291);
+    background:linear-gradient(140deg,#0e3b2c 0%,#10b981 130%);color:#fff;box-shadow:0 18px 38px -22px rgba(16,185,129,.6)}
+  .sum .lab{font-size:12px;opacity:.85;font-weight:300}
+  .sum .bal{margin-top:6px;display:flex;align-items:baseline;gap:6px}
+  .sum .bal .n{font-family:"Plus Jakarta Sans";font-size:38px;font-weight:800;line-height:1}
+  .sum .bal .u{font-size:13px;opacity:.9}
+  .sum .meta{margin-top:14px;display:flex;gap:10px}
+  .sum .chip{font-size:11.5px;font-weight:500;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:999px}
+  .sum .up{margin-left:auto;font-size:12px;font-weight:600;background:#fff;color:var(--brand-deep);padding:6px 13px;border-radius:999px;text-decoration:none}
+
+  .sech{padding:18px 22px 8px;font-size:12px;font-weight:600;color:var(--muted)}
+  .list{padding:0 16px}
+  .row{display:flex;align-items:center;gap:13px;padding:13px 8px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .ic{flex:0 0 38px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--bg-soft)}
+  .ic svg{width:19px;height:19px;stroke:var(--ink-2);fill:none;stroke-width:1.9}
+  .ic.in{background:var(--brand-soft)} .ic.in svg{stroke:var(--brand-deep)}
+  .rmain{flex:1;min-width:0}
+  .rmain .a{font-size:13.5px;font-weight:500;color:var(--ink)}
+  .rmain .tm{margin-top:2px;font-size:11px;color:var(--muted)}
+  .rright{text-align:right}
+  .rright .d{font-family:"Plus Jakarta Sans";font-size:14px;font-weight:700}
+  .rright .d.minus{color:var(--ink)} .rright .d.plus{color:var(--brand-deep)}
+  .rright .bal{margin-top:2px;font-size:10.5px;color:var(--muted)}
+
+  .more{margin:16px auto 8px;display:block;font-size:12.5px;font-weight:600;color:var(--brand-deep);background:var(--brand-soft);border:0;padding:9px 20px;border-radius:999px;cursor:pointer}
+  .foot{padding:10px 22px 30px;text-align:center;font-size:10.5px;color:var(--muted);font-weight:300;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone"><div class="scroll">
+  <div class="topbar">
+    <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></div>
+    <span class="t">积分账户</span>
+  </div>
+
+  <div class="sum">
+    <div class="lab">当前配额余额</div>
+    <div class="bal"><span class="n">320</span><span class="u">配额</span></div>
+    <div class="meta">
+      <span class="chip">进阶会员</span>
+      <span class="chip">每月 500 · 7 月 3 日刷新</span>
+      <a class="up" href="#">管理会员</a>
+    </div>
+  </div>
+
+  <div class="sech">今天</div>
+  <div class="list">
+    <div class="row">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z"/></svg></div>
+      <div class="rmain"><div class="a">AI 对话</div><div class="tm">14:22</div></div>
+      <div class="rright"><div class="d minus">−0.5</div><div class="bal">余 320</div></div>
+    </div>
+    <div class="row">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5zM16 9a3 3 0 010 6M19 6a7 7 0 010 12"/></svg></div>
+      <div class="rmain"><div class="a">发音朗读</div><div class="tm">14:05</div></div>
+      <div class="rright"><div class="d minus">−0.1</div><div class="bal">余 320.5</div></div>
+    </div>
+    <div class="row">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg></div>
+      <div class="rmain"><div class="a">查词(AI 回落)</div><div class="tm">13:48</div></div>
+      <div class="rright"><div class="d minus">−0.1</div><div class="bal">余 320.6</div></div>
+    </div>
+    <div class="row">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v12H4zM4 9h16M9 13h6"/></svg></div>
+      <div class="rmain"><div class="a">视频字幕解锁 · 短片</div><div class="tm">11:30</div></div>
+      <div class="rright"><div class="d minus">−2</div><div class="bal">余 320.7</div></div>
+    </div>
+  </div>
+
+  <div class="sech">7 月 1 日</div>
+  <div class="list">
+    <div class="row">
+      <div class="ic in"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16M4 12h16"/></svg></div>
+      <div class="rmain"><div class="a">月度配额补充</div><div class="tm">00:00 · 进阶会员</div></div>
+      <div class="rright"><div class="d plus">+500</div><div class="bal">余 500</div></div>
+    </div>
+    <div class="row">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z"/></svg></div>
+      <div class="rmain"><div class="a">短语提取</div><div class="tm">前一周期结余清零前</div></div>
+      <div class="rright"><div class="d minus">−0.05</div><div class="bal">余 0</div></div>
+    </div>
+  </div>
+
+  <div class="sech">更早</div>
+  <div class="list">
+    <div class="row">
+      <div class="ic in"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6M2 8h20v4H2zM12 8V5a2 2 0 10-4 0M12 8V5a2 2 0 114 0"/></svg></div>
+      <div class="rmain"><div class="a">注册赠送</div><div class="tm">6 月 5 日 · 新用户礼包</div></div>
+      <div class="rright"><div class="d plus">+50</div><div class="bal">余 50</div></div>
+    </div>
+  </div>
+
+  <button class="more">加载更多</button>
+  <div class="foot">配额仅用于 AI 加工（对话 / 字幕翻译 / 发音 / 短语提取）。看缓存视频、本地查词、复习、收藏不消耗。</div>
+</div></div>
+</body>
+</html>

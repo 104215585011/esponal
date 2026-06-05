@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
+import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { addEncounter, createWord, getWordWithEncounters } from "@/lib/vocab";
 
@@ -83,6 +84,23 @@ export async function POST(request: Request) {
     }
 
     const existingWord = await getWordWithEncounters(session.user.id, lemma);
+
+    if (!existingWord) {
+      const saveAccess = await assertUnlimitedSavesAccess(session.user.id);
+      if (!saveAccess.ok) {
+        return NextResponse.json(
+          {
+            error: "save limit reached",
+            code: "SAVE_LIMIT_REACHED",
+            limit: FREE_SAVE_LIMIT,
+            count: saveAccess.count,
+            upgradeHref: "/membership",
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     const word = await createWord({
       userId: session.user.id,
       lemma,

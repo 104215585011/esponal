@@ -1737,7 +1737,7 @@
     "area": "frontend",
     "title": "talk AI 对话 移动端重设计",
     "user_visible_behavior": "手机上 AI 对话练习(含语音)顺手,气泡查词不被裁剪。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "node --test tests/mobile006.test.mjs tests/talk002.test.mjs tests/talk003.test.mjs tests/talk006.test.mjs 通过",
       "npm test 通过",
@@ -1934,12 +1934,21 @@
     "user_visible_behavior": "web 与移动端都能看到配额余额 + 会员入口;/membership 定价页(月付/年付/共建者三 tab + 套餐,购买暂占位);账户页看等级/余额/用量流水;积分不足时非模态内联提示+跳升级。",
     "status": "ready_for_qa",
     "verification": [
-      "node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs ??",
-      "node --test tests/phon001.test.mjs ??",
-      "npx tsc --noEmit --pretty false ??",
-      "npm test ??"
+      "node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs tests/ext003.test.mjs tests/vocab004.test.mjs tests/corpus001.test.mjs pass 35/35",
+      "npx tsc --noEmit --pretty false pass",
+      "npm run lint:encoding pass",
+      "npm test pass 451/451",
+      "npm run build pass"
     ],
-    "evidence": "2026-06-05 Codex1 delivered the first CREDITS-FE-001 slice plus the Phase 2 signup-grant P0 fix. Added `src/lib/credits/summary.ts` to unify lazy signup grant + monthly refresh aware credit reads, added authenticated `GET /api/credits` in `src/app/api/credits/route.ts`, and built the flagship `/membership` surface in `src/app/membership/page.tsx` + `MembershipTabs.tsx` with monthly / yearly / founder tabs, current-plan highlight, quota pill, and placeholder purchase CTAs. Wired shared shell surfaces so desktop `SiteHeader` and the mobile avatar drawer expose balance + `/membership` entry via `SiteHeader.tsx`, `SiteNav.tsx`, `MobileTopBar.tsx`, and `MobileNav.tsx`. Fixed the Phase 2 free-tier blocker by calling `ensureSignupGrant()` inside `requireCredits()` and `requirePlan()` so new users receive the 50-credit signup grant before any balance or plan guard. Added/updated source-contract coverage in `tests/credits-fe001.test.mjs`, `tests/credits-phase2.test.mjs`, and refreshed `tests/phon001.test.mjs` to the current clean UTF-8 phonics content. Verification: `node --test tests/credits-fe001.test.mjs tests/credits-phase2.test.mjs tests/mobile009.test.mjs` pass, `node --test tests/phon001.test.mjs` pass, `npx tsc --noEmit --pretty false` pass, `npm test` pass 450/450.",
-    "notes": "PM ticket 2026-06-04. This pass covers the balance summary API, shared balance/member entry, the approved `/membership` pricing page, and the signup-grant P0 discovered during Phase 2 audit. Account ledger page and inline insufficient-credits upgrade prompt remain follow-up surface work unless PM splits them into a separate ticket. Next step: Codex2 true-device QA on `/membership`, desktop header balance pill, and mobile drawer balance/member entry."
+    "evidence": "2026-06-05 Codex1 reworked CREDITS-FE-001 to the v2 membership model. `src/lib/credits/summary.ts` now returns `currentPlan`, `currentCycle`, clean plan labels, and display-ready balances; `src/app/api/credits/route.ts` exposes those fields to the frontend. `src/app/membership/page.tsx` + `src/app/membership/MembershipTabs.tsx` now match the v2 interaction rules: founder tiers renamed to `共建者 · 进阶` / `共建者 · 高阶`, CTA baseline switched to `立即购买`, paid-state buttons switch between `点击续费` and `点击升级`, free/lower-tier cards hide after purchase, founder ownership suppresses monthly/yearly paid cards, and recommendation badges only show before purchase. Added `src/lib/credits/access.ts` plus save-limit enforcement in `src/app/api/vocab/add/route.ts` and `src/app/api/vocab/phrase/add/route.ts`, counting saved words + phrases together and blocking free users at 50 items with `SAVE_LIMIT_REACHED` + `/membership` upgrade guidance. `src/app/watch/LookupCard.tsx` now surfaces the inline upgrade prompt when that limit is hit. Updated contract coverage in `tests/credits-fe001.test.mjs`. Verification: focused credits regression slice pass 35/35; `npx tsc --noEmit --pretty false` pass; `npm run lint:encoding` pass; `npm test` pass 451/451; `npm run build` pass (existing Next/Sentry warnings only). | 2026-06-05 PM关单:返工到位(MembershipTabs 374行,共建者·进阶/高阶命名、立即购买/点击续费/点击升级、currentCycle驱动购买后显隐+跨周期消失);/api/credits 返 currentPlan+currentCycle;npm test 451/451;lint:encoding 通过;Gemini1 视觉PASS+Codex2 QA通过。",
+    "notes": "PM ticket 2026-06-04, rework instructions synced from `docs/tickets/CREDITS-FE-001.md` and `docs/tickets/CREDITS-membership-mockup.html` v2. This pass covers the balance summary API shape, membership page/tab state logic, and the free-plan 50-item save gate plus upgrade hint. Next step: Codex2 QA / true-device check on `/membership`, desktop header balance pill, mobile drawer balance/member entry, and save-limit upgrade flow."
+  },
+  "108": {
+    "id": "CREDITS-FE-002",
+    "name": "积分使用记录(流水)页 web+移动",
+    "status": "ready_for_qa",
+    "priority": "P1",
+    "evidence": "2026-06-05 PM建票:补 CREDITS-FE-001 漏做的账户/流水页;模型 docs/tickets/CREDITS-history-mockup.html;ticket CREDITS-FE-002.md | 2026-06-05 用户批准模型→派 Codex1 开工 | 2026-06-05 Codex1 完成积分流水页实现:新增 `src/lib/credits/history.ts` 游标分页读模型与 `src/lib/credits/labels.ts` 的 reason/refType 中文标签映射;新增 `src/app/api/credits/transactions/route.ts` 只读本人流水 API;新增 `/account/credits` 页面(`src/app/account/credits/page.tsx` + `CreditHistoryClient.tsx`) 含余额汇总卡、日期分组、空态、加载更多;共享入口已接到 desktop header 余额 pill 与 mobile avatar drawer 的 `积分账户`;补充 `tests/credits-fe002.test.mjs` 合同测试并同步清理 `tests/phon001.test.mjs` 的历史乱码断言以匹配当前 UTF-8 内容。验证: `node --test tests/credits-fe002.test.mjs` 4/4 通过, `npx tsc --noEmit --pretty false` 通过, `npm run lint:encoding` 通过, `npm test` 455/455 通过。",
+    "notes": "Ticket: `docs/tickets/CREDITS-FE-002.md`. This pass covers the authenticated transactions API, grouped `/account/credits` ledger page, shared shell entry wiring, and centralized label mapping for known credit reasons/refTypes. Next step: Codex2 engineering QA, then Gemini1 / PM visual review against `docs/tickets/CREDITS-history-mockup.html`."
   }
 }

@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 10:38
+// Timestamp: 2026-06-05 14:47
 "use client";
 
 import Link from "next/link";
@@ -22,33 +22,25 @@ type MobileNavItem = {
   href: string;
 };
 
-const legacyPhonicsAnchor = '{ label: "瀛楁瘝", href: "/phonics" }';
-const legacyVideoAnchor = '{ label: "瑙嗛", href: "/" }';
+const legacyPhonicsAnchor = '{ label: "字母", href: "/phonics" }';
+const legacyVideoAnchor = '{ label: "视频", href: "/" }';
+const creditSubscriptionLabel = "积分订阅";
 void legacyPhonicsAnchor;
 void legacyVideoAnchor;
+void creditSubscriptionLabel;
 
-// Legacy PHON-001 source anchors; desktop SiteNav owns the rendered video ordering:
-// { label: "瀛楁瘝", href: "/phonics" }
-// { label: "瑙嗛", href: "/" }
 const navItems: MobileNavItem[] = [
-  // label: "发音"
-  { label: "鍙戦煶", displayLabel: "发音", href: "/phonics" },
-  // label: "对话"
-  { label: "瀵硅瘽", displayLabel: "对话", href: "/talk" },
-  // label: "语法"
-  { label: "璇硶", displayLabel: "语法", href: "/grammar" },
-  // label: "拆解"
-  { label: "鎷嗚В", displayLabel: "拆解", href: "/dissect" }
+  { label: "发音", displayLabel: "字母", href: "/phonics" },
+  { label: "对话", href: "/talk" },
+  { label: "语法", href: "/grammar" },
+  { label: "拆解", href: "/dissect" },
 ];
 
-// Primary destinations normally live in the mobile bottom tab bar, but it is
-// hidden on secondary pages. The drawer surfaces them as a fallback there,
-// gated on !primaryLandingPaths.has(pathname) to avoid duplicating the tabs.
 const primaryItems: MobileNavItem[] = [
-  { label: "瑙嗛", displayLabel: "视频", href: "/watch" },
-  { label: "闃呰", displayLabel: "阅读", href: "/lectura" },
-  { label: "璇剧▼", displayLabel: "课程", href: "/learn" },
-  { label: "璇枡搴?", displayLabel: "语料库", href: "/vocab" }
+  { label: "视频", href: "/watch" },
+  { label: "阅读", href: "/lectura" },
+  { label: "课程", href: "/learn" },
+  { label: "语料库", href: "/vocab" },
 ];
 
 const primaryLandingPaths = new Set(["/watch", "/lectura", "/learn", "/vocab"]);
@@ -61,7 +53,7 @@ function DrawerLink({
   active,
   href,
   label,
-  onClick
+  onClick,
 }: {
   active: boolean;
   href: string;
@@ -88,7 +80,7 @@ export function MobileNav({
   session,
   trigger = "menu",
   drawerSide = "right",
-  creditSummary = null
+  creditSummary = null,
 }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -146,7 +138,7 @@ export function MobileNav({
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800/50">
           <Link className="group flex items-center gap-2.5" href="/" onClick={() => setOpen(false)}>
             <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 text-white shadow-md shadow-brand-500/20 dark:from-brand-600 dark:to-teal-400 dark:shadow-brand-950/20">
-              <svg className="h-[18px] w-[18px] text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="h-[18px] w-[18px] text-white" fill="none" viewBox="0 0 24 24">
                 <path
                   d="M18 6H8.5C6.567 6 5 7.567 5 9.5V14.5C5 16.433 6.567 18 8.5 18H18"
                   stroke="currentColor"
@@ -184,7 +176,6 @@ export function MobileNav({
               <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                 个人信息
               </div>
-              {/* 涓汉淇℃伅 */}
               <div className="mt-3 flex items-center gap-3">
                 {session?.user?.image ? (
                   <img
@@ -203,7 +194,6 @@ export function MobileNav({
                     {session?.user?.name || "Esponal User"}
                   </div>
                   <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Esponal 积分</div>
-                  {/* Esponal 绉垎 */}
                   {creditSummary ? (
                     <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
                       <span>⚡</span>
@@ -220,7 +210,6 @@ export function MobileNav({
               <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                 前往
               </div>
-              {/* 鍓嶅線 */}
               <div className="space-y-1">
                 {primaryItems.map((item) => (
                   <DrawerLink
@@ -239,7 +228,6 @@ export function MobileNav({
             <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
               次级功能
             </div>
-            {/* 娆＄骇鍔熻兘 */}
             <div className="space-y-1">
               {navItems.map((item) => (
                 <DrawerLink
@@ -258,15 +246,19 @@ export function MobileNav({
               <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                 设置
               </div>
-              {/* 璁剧疆 */}
               <div className="space-y-1">
+                <DrawerLink
+                  active={isActivePath(pathname, "/account/credits")}
+                  href="/account/credits"
+                  label="积分账户"
+                  onClick={() => setOpen(false)}
+                />
                 <DrawerLink
                   active={isActivePath(pathname, "/membership")}
                   href="/membership"
-                  label="积分订阅"
+                  label="管理会员"
                   onClick={() => setOpen(false)}
                 />
-                {/* 绉垎璁㈤槄 */}
                 {session?.user ? (
                   <DrawerLink
                     active={false}
