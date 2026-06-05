@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+import { getAuthOptions } from "@/lib/auth";
+import { ACTION_COST_MINOR } from "@/lib/credits/config";
+import { requireCredits } from "@/lib/credits/runtime";
+import { spendCredits } from "@/lib/credits/service";
 import { redis } from "@/lib/redis";
 import { checkRateLimit, getRetryAfterSec, ttsLimiter } from "@/lib/ratelimit";
 
@@ -14,6 +19,18 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type"
 };
+
+function getSessionUserId(session: unknown): string | null {
+  if (!session || typeof session !== "object" || !("user" in session)) return null;
+  const user = (session as { user?: { id?: unknown } }).user;
+  return typeof user?.id === "string" ? user.id : null;
+}
+
+function creditsErrorMessage(code: string) {
+  if (code === "INSUFFICIENT_CREDITS") return "积分不足，请升级后再试";
+  if (code === "PLAN_UPGRADE_REQUIRED") return "当前方案暂不支持该功能";
+  return "请先登录";
+}
 
 function audioResponse(buffer: Buffer) {
   return new NextResponse(new Uint8Array(buffer), {
@@ -32,6 +49,8 @@ export async function OPTIONS() {
 }
 
 export async function GET(request: Request) {
+  const session = await getServerSession(getAuthOptions()).catch(() => null);
+  const userId = getSessionUserId(session);
   const rateLimit = await checkRateLimit(ttsLimiter, request, null);
 
   if (!rateLimit.allowed) {
@@ -67,6 +86,17 @@ export async function GET(request: Request) {
   const tts = new MsEdgeTTS();
 
   try {
+    if (userId) {
+      const creditGuard = await requireCredits(userId, ACTION_COST_MINOR.tts);
+      if (!creditGuard.ok) {
+        const status = creditGuard.code === "UNAUTHORIZED" ? 401 : 402;
+        return NextResponse.json(
+          { error: { code: creditGuard.code, message: creditsErrorMessage(creditGuard.code) } },
+          { status, headers: CORS_HEADERS }
+        );
+      }
+    }
+
     await tts.setMetadata(VOICE, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(text);
     const chunks: Buffer[] = [];
@@ -89,6 +119,16 @@ export async function GET(request: Request) {
 
     if (buffer.length <= 1024) {
       throw new Error("Generated audio is too small");
+    }
+
+    if (userId) {
+      const spendResult = await spendCredits(userId, ACTION_COST_MINOR.tts, "tts", hash);
+      if (!spendResult.ok) {
+        console.warn("TTS credits spend skipped after successful synthesis", {
+          userId,
+          hash
+        });
+      }
     }
 
     void redis.set(cacheKey, buffer.toString("base64"), "EX", CACHE_TTL).catch(() => undefined);

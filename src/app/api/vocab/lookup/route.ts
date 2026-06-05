@@ -1,6 +1,9 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { getAuthOptions } from "@/lib/auth";
+import { ACTION_COST_MINOR } from "@/lib/credits/config";
+import { requireCredits } from "@/lib/credits/runtime";
+import { spendCredits } from "@/lib/credits/service";
 import { type DictionaryEntry, lookupDictionary } from "@/lib/dictionary";
 import {
   deriveScoreSignals,
@@ -26,6 +29,12 @@ type RelatedPhrase = {
   translationZh: string | null;
   kind: string;
 };
+
+function creditsErrorMessage(code: "UNAUTHORIZED" | "INSUFFICIENT_CREDITS" | "PLAN_UPGRADE_REQUIRED") {
+  if (code === "UNAUTHORIZED") return "请先登录后再使用该功能";
+  if (code === "PLAN_UPGRADE_REQUIRED") return "当前方案暂不支持该功能";
+  return "积分不足，请先充值或等待下月刷新";
+}
 
 function elapsedMs(startedAt: number) {
   return String(Math.max(0, Math.round(performance.now() - startedAt)));
@@ -202,6 +211,18 @@ export async function GET(request: Request) {
       );
     }
 
+    if (userId) {
+      const creditGuard = await requireCredits(userId, ACTION_COST_MINOR.lookup_fallback);
+      if (!creditGuard.ok) {
+        const code = creditGuard.code;
+        const status = code === "UNAUTHORIZED" ? 401 : 402;
+        return NextResponse.json(
+          { error: { code, message: creditsErrorMessage(code) } },
+          { status, headers: lexiconHeaders(false, "external", startedAt) }
+        );
+      }
+    }
+
     const entry = await lookupDictionary(word);
 
     if (!entry) {
@@ -210,6 +231,23 @@ export async function GET(request: Request) {
     }
 
     scheduleLexiconBackfill(entry);
+
+    if (userId) {
+      const spendResult = await spendCredits(
+        userId,
+        ACTION_COST_MINOR.lookup_fallback,
+        "lookup",
+        word
+      );
+
+      if (!spendResult.ok) {
+        console.warn("Lookup credit spend skipped after successful fallback", {
+          userId,
+          word,
+          balanceMinor: spendResult.balanceMinor
+        });
+      }
+    }
 
     return NextResponse.json(
       await withSavedState({ ...entry, relatedPhrases }, userId),

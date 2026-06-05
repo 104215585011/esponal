@@ -13091,3 +13091,194 @@ spec(2026-06-01-credits-billing-design.md)已转实现计划:`docs/superpowers/p
 - **不含**:消费点接入+门槛+刷新触发(Phase 2)、前端(Phase 3)、支付(独立 spec)。
 - **派 Codex1 按计划逐任务实现**(TDD:红→绿→提交);完成保持 npm test 全绿 + tsc + lint:encoding。
 - 下一步:Codex1 实现 Phase 1 → Codex2/PM 核 → 再写 Phase 2 计划。
+## Codex1 Handoff: CREDITS-001 credits engine Phase 1 ready for QA
+**Time**: 2026-06-04 17:30
+**Developer**: Codex1
+**Status**: READY_FOR_QA
+
+**Scope**
+- Implemented `docs/superpowers/plans/2026-06-04-credits-engine.md` Phase 1 only.
+- Includes schema/migration, centralized credits config, pure account logic, and DB orchestration service.
+- Does not include spend-point hook-up, gating/refresh triggers in routes, frontend quota UI, or payment integration.
+
+**What changed**
+- `prisma/schema.prisma`
+  - Added `User.plan`, `creditSource`, `creditBalanceMinor`, `planExpiresAt`, `lastRefillAt`, `signupGranted`, `creditTransactions`
+  - Added enums `Plan`, `CreditSource`, `CreditReason`
+  - Added ledger model `CreditTransaction`
+- `prisma/migrations/20260604170500_add_credits_engine/migration.sql`
+  - Manual migration SQL for the above schema changes
+- `src/lib/credits/config.ts`
+  - Centralized monthly quota config, minor-unit helpers, action cost table, signup grant amount
+- `src/lib/credits/account.ts`
+  - Pure logic for `deduct`, `applyMonthlyRefill`, `grantSignup`
+- `src/lib/credits/service.ts`
+  - Transactional `ensureSignupGrant`, transactional `spendCredits`, `getBalanceMinor`
+- `tests/credits-engine.test.mjs`
+  - Locks schema/config/account/service contracts
+
+**Verification**
+- `node --test tests/credits-engine.test.mjs` -> PASS (10/10).
+- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/esponal npx prisma validate` -> PASS.
+- `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/esponal npx prisma generate` -> PASS.
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (437/437).
+
+**Known limitations / QA notes**
+- `npx prisma migrate dev --name credits_engine` could not run here because the repo root lacks a working `DATABASE_URL`; migration SQL was authored manually and then validated with Prisma.
+- QA should review the Phase 1 behavior boundaries, not spend-point behavior:
+  - `deduct()` never goes negative
+  - free plan does not refill monthly
+  - subscription monthly refill overwrites to plan quota
+  - lifetime monthly refill accumulates
+  - signup grant is idempotent and emits a ledger row
+- Vercel note: this ticket has no shipped quota UI or spend-point routes yet, so deployed QA is deployment-readiness QA rather than end-user flow QA. Focus on whether the codebase is ready to merge/deploy safely:
+  - migration SQL matches `prisma/schema.prisma`
+  - Prisma client can generate cleanly
+  - service-layer transaction boundaries and ledger writes are covered by source-contract tests
+  - no existing app regressions in full `npm test`
+- Worktree branch: `codex-credits-phase1`
+- Task commits in order: `1472435`, `b361222`, `859d912`, `9c50ff4`
+
+---
+
+## QA Report: CREDITS-001 credits engine Phase 1
+**Time**: 2026-06-04 22:14
+**Tester**: Codex2
+
+**Conclusion**: pass
+
+**Verification steps executed**:
+1. Schema/migration closure review
+   Command: inspected `prisma/schema.prisma` and `prisma/migrations/20260604170500_add_credits_engine/migration.sql`
+   Output:
+   ```
+   User fields present: plan, creditSource, creditBalanceMinor, planExpiresAt, lastRefillAt, signupGranted, creditTransactions
+   Enums present: Plan, CreditSource, CreditReason
+   Ledger model/table present: CreditTransaction with userId, deltaMinor, reason, refType, refId, balanceAfterMinor, createdAt
+   ```
+   Result: ✅
+2. Phase 1 logic boundary review
+   Command: inspected `src/lib/credits/config.ts`, `src/lib/credits/account.ts`, `src/lib/credits/service.ts`, and `docs/superpowers/plans/2026-06-04-credits-engine.md`
+   Output:
+   ```
+   deduct() guards against negative balance
+   applyMonthlyRefill() implements free=no-op / subscription=overwrite / lifetime=accumulate
+   grantSignup() is idempotent
+   ensureSignupGrant() and spendCredits() both use prisma.$transaction(...)
+   ```
+   Result: ✅
+3. Focused credits tests
+   Command: `node --test tests/credits-engine.test.mjs`
+   Output:
+   ```
+   ℹ tests 10
+   ℹ pass 10
+   ℹ fail 0
+   ```
+   Result: ✅
+4. Prisma schema validation
+   Command: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/esponal npx prisma validate`
+   Output:
+   ```
+   The schema at prisma\schema.prisma is valid 🚀
+   ```
+   Result: ✅
+5. Prisma client generation
+   Command: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/esponal npx prisma generate`
+   Output:
+   ```
+   Generated Prisma Client (v5.22.0)
+   ```
+   Result: ✅
+6. Type check
+   Command: `npx tsc --noEmit --pretty false`
+   Output:
+   ```
+   (no output)
+   ```
+   Result: ✅
+7. Encoding lint
+   Command: `npm run lint:encoding`
+   Output:
+   ```
+   Encoding check passed
+   ```
+   Result: ✅
+8. Full regression suite
+   Command: `npm test`
+   Output:
+   ```
+   ℹ tests 437
+   ℹ pass 437
+   ℹ fail 0
+   ```
+   Result: ✅
+
+**Concerns**:
+- `src/lib/credits/service.ts` currently lets `costMinor <= 0` flow through `spendCredits()` and still write a `reason: "spend"` ledger entry with zero/negative semantics. This does not block Phase 1 deploy because no spend-point routes call the service yet, but it should be fixed before Phase 2 route integration.
+- The checked-in migration is hand-authored because local `migrate dev` could not run without a working `DATABASE_URL`. Given the matching schema/migration review plus `prisma validate`/`generate`, this is acceptable for merge/deploy readiness, but a real preview/production environment should still apply and verify the migration against an actual database before broad rollout.
+
+**Deploy / Vercel readiness conclusion**:
+- No must-fix deploy blocker found for `CREDITS-001` Phase 1.
+- The ticket is safe to move to `passing` as an engine-only backend foundation change.
+- Before or during the first Vercel rollout, run the migration in an environment with the real `DATABASE_URL` and confirm Prisma can apply it cleanly.
+
+**Suggested next state**:
+- `CREDITS-001` -> `passing`
+- Follow-up note for Codex1 before Phase 2: add an explicit service-layer guard rejecting `costMinor <= 0`.
+
+---
+
+## Codex1 Handoff: CREDITS-002 credits spend hooks Phase 2 ready for QA
+**Time**: 2026-06-05 00:52
+**Developer**: Codex1
+**Status**: READY_FOR_QA
+
+**Scope**
+- Implemented `docs/superpowers/plans/2026-06-05-credits-phase-2.md`.
+- Includes backend runtime refresh, plan/credit guard helpers, and real spend-point hook-up.
+- Does not include Phase 3 frontend quota UI or payment integration.
+
+**What changed**
+- `src/lib/credits/runtime.ts`
+  - Added `getCreditSnapshot`, `isMonthlyRefillDue`, transactional `refreshCreditsIfDue`, `requireCredits`, and `requirePlan`.
+- `src/lib/credits/service.ts`
+  - Added the service-layer guard that rejects `costMinor <= 0`.
+- `src/app/api/talk/message/route.ts`
+  - Gate before opening the talk SSE stream.
+  - Spend once a successful assistant turn completes.
+- `src/app/api/tts/route.ts`
+  - Cache hits remain free.
+  - Uncached synthesis path checks/spends credits for logged-in users only.
+- `src/app/api/vocab/lookup/route.ts`
+  - Local lexicon hits remain free.
+  - External dictionary fallback checks/spends credits for logged-in users only.
+- `src/app/api/lexicon/detect-phrases/route.ts`
+  - Premium+ gate via `requirePlan`.
+  - Charges by deterministic sentence count via `ACTION_COST_MINOR.phrase_extract_per_sentence`.
+- `src/app/api/subtitle/route.ts`
+  - Cache hits remain free.
+  - Logged-in uncached website subtitle fetches check/spend credits using short/mid/long duration buckets.
+- `tests/credits-phase2.test.mjs`
+  - Added runtime, guard, spend-hook, and error-contract coverage for all touched routes.
+
+**Verification**
+- `node --test tests/credits-engine.test.mjs tests/credits-phase2.test.mjs tests/vocab004.test.mjs tests/vocab010.test.mjs tests/lex001-phase4.test.mjs tests/phrase001.test.mjs tests/subs002.test.mjs tests/subs004.test.mjs tests/ext008.test.mjs` -> PASS (54/54).
+- `npx tsc --noEmit --pretty false` -> PASS.
+- `npm run lint:encoding` -> PASS.
+- `npm test` -> PASS (446/446).
+
+**QA focus**
+- Talk: insufficient credits should block before stream open; successful completed turn should be the only spend point.
+- TTS: cached audio must remain free; only uncached synth should meter.
+- Lookup: local lexicon hit free, external fallback metered.
+- Phrase detect: free plan blocked with machine-readable `PLAN_UPGRADE_REQUIRED`; premium+ billed by sentence count.
+- Subtitle: cache hit free; uncached logged-in website path metered by duration bucket; preserve `X-Subtitle-Source` behavior.
+
+**Important product boundary**
+- Anonymous lookup and subtitle requests intentionally keep their previous free behavior in Phase 2.
+- Frontend balance display / quota UI / upgrade surfaces are still Phase 3 follow-up work.
+
+---

@@ -1,5 +1,8 @@
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
+import { ACTION_COST_MINOR } from "@/lib/credits/config";
+import { requireCredits } from "@/lib/credits/runtime";
+import { spendCredits } from "@/lib/credits/service";
 import { prisma } from "@/lib/prisma";
 import { getTalkCharacterById } from "@/lib/talk/characters";
 import { streamChatMessage } from "@/lib/talk/chat-service";
@@ -16,6 +19,12 @@ function jsonError(status: number, code: string, message: string) {
     status,
     headers: { "content-type": "application/json" }
   });
+}
+
+function creditsErrorMessage(code: string) {
+  if (code === "INSUFFICIENT_CREDITS") return "积分不足，请升级后再试";
+  if (code === "PLAN_UPGRADE_REQUIRED") return "当前方案暂不支持该功能";
+  return "登录后再来聊";
 }
 
 function getSessionUserId(session: unknown): string | null {
@@ -65,6 +74,12 @@ export async function POST(request: Request) {
     }
   }
 
+  const creditGuard = await requireCredits(userId, ACTION_COST_MINOR.talk_turn);
+  if (!creditGuard.ok) {
+    const status = creditGuard.code === "UNAUTHORIZED" ? 401 : 402;
+    return jsonError(status, creditGuard.code, creditsErrorMessage(creditGuard.code));
+  }
+
   const encryptionSecret = getMessageEncryptionSecret();
 
   const stream = new ReadableStream({
@@ -79,7 +94,19 @@ export async function POST(request: Request) {
         })) {
           if (event.type === "delta") {
             controller.enqueue(encodeSse("delta", { text: event.text }));
-          } else {
+          } else if (event.type === "done") {
+            const spendResult = await spendCredits(
+              userId,
+              ACTION_COST_MINOR.talk_turn,
+              "talk",
+              event.sessionId
+            );
+            if (!spendResult.ok) {
+              console.warn("Talk credits spend skipped after successful turn", {
+                userId,
+                sessionId: event.sessionId
+              });
+            }
             controller.enqueue(
               encodeSse("done", {
                 sessionId: event.sessionId,

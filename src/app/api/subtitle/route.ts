@@ -1,7 +1,13 @@
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { getAuthOptions } from "@/lib/auth";
+import { ACTION_COST_MINOR } from "@/lib/credits/config";
+import { requireCredits } from "@/lib/credits/runtime";
+import { spendCredits } from "@/lib/credits/service";
 import { getLocalWhisperSubtitles } from "@/lib/localWhisper";
 import { reportSubtitleFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
+import { fetchYouTubeJson, getCachedJson } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -74,6 +80,14 @@ type SupadataResponse = {
   content?: SupadataCueItem[] | null;
 };
 
+type YouTubeVideoDetailsResponse = {
+  items?: Array<{
+    contentDetails?: {
+      duration?: string;
+    };
+  }>;
+};
+
 /**
  * YouTube auto-caption (ASR) tracks use a rolling format where each cue's
  * duration overlaps the next cue (so lines "scroll" on screen). With
@@ -96,6 +110,47 @@ function clampOverlappingCues(cues: SubtitleCue[]): SubtitleCue[] {
   }
 
   return sorted;
+}
+
+function creditsErrorMessage(code: "UNAUTHORIZED" | "INSUFFICIENT_CREDITS" | "PLAN_UPGRADE_REQUIRED") {
+  if (code === "UNAUTHORIZED") return "请先登录后再使用该功能";
+  if (code === "PLAN_UPGRADE_REQUIRED") return "当前方案暂不支持该功能";
+  return "积分不足，请先充值或等待下月刷新";
+}
+
+function parseIsoDurationToSeconds(duration: string) {
+  const hours = Number.parseInt(duration.match(/(\d+)H/)?.[1] ?? "0", 10);
+  const minutes = Number.parseInt(duration.match(/(\d+)M/)?.[1] ?? "0", 10);
+  const seconds = Number.parseInt(duration.match(/(\d+)S/)?.[1] ?? "0", 10);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+async function fetchSubtitleDurationSec(videoId: string) {
+  const payload = await getCachedJson(
+    "youtube:subtitle-duration:v1",
+    videoId,
+    60 * 60 * 24,
+    () =>
+      fetchYouTubeJson<YouTubeVideoDetailsResponse>("videos", {
+        id: videoId,
+        part: "contentDetails"
+      })
+  );
+
+  const duration = payload.items?.[0]?.contentDetails?.duration ?? "";
+  return parseIsoDurationToSeconds(duration);
+}
+
+function resolveSubtitleUnlockCost(durationSec: number) {
+  if (durationSec > 20 * 60) {
+    return ACTION_COST_MINOR.video_unlock_long;
+  }
+
+  if (durationSec > 8 * 60) {
+    return ACTION_COST_MINOR.video_unlock_mid;
+  }
+
+  return ACTION_COST_MINOR.video_unlock_short;
 }
 
 function parseSrtTime(timeStr: string): number {
@@ -432,6 +487,11 @@ async function fetchSubtitlesWithFallback(
 }
 
 export async function GET(request: Request) {
+  const session = await getServerSession(getAuthOptions()).catch(() => null);
+  const userId =
+    session?.user && "id" in session.user && typeof session.user.id === "string"
+      ? session.user.id
+      : null;
   const { searchParams } = new URL(request.url);
   const videoId = searchParams.get("v")?.trim() ?? "";
   const lang = searchParams.get("lang")?.trim() || "es";
@@ -468,6 +528,26 @@ export async function GET(request: Request) {
   }
 
   try {
+    let unlockCostMinor = 0;
+
+    if (userId) {
+      const durationSec = await fetchSubtitleDurationSec(videoId);
+      unlockCostMinor = resolveSubtitleUnlockCost(durationSec);
+      const creditGuard = await requireCredits(userId, unlockCostMinor);
+
+      if (!creditGuard.ok) {
+        const code = creditGuard.code;
+        const status = code === "UNAUTHORIZED" ? 401 : 402;
+        return NextResponse.json(
+          { error: { code, message: creditsErrorMessage(code) } },
+          {
+            status,
+            headers: { "Cache-Control": "no-store", "X-Subtitle-Source": "none" }
+          }
+        );
+      }
+    }
+
     const { cues, source } = await fetchSubtitlesWithFallback(videoId, lang, forceWhisper);
 
     if (cues.length > 0) {
@@ -476,6 +556,25 @@ export async function GET(request: Request) {
         await redis.set(cacheKey, JSON.stringify(envelope), "EX", SUBTITLE_CACHE_TTL);
       } catch {
         // Redis write failed, still return cues
+      }
+
+      if (userId) {
+        const spendResult = await spendCredits(
+          userId,
+          unlockCostMinor,
+          "subtitle",
+          `${videoId}:${lang}:${source}`
+        );
+
+        if (!spendResult.ok) {
+          console.warn("Subtitle credit spend skipped after successful subtitle fetch", {
+            userId,
+            videoId,
+            lang,
+            source,
+            balanceMinor: spendResult.balanceMinor
+          });
+        }
       }
     }
 

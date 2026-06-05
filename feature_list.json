@@ -1359,7 +1359,7 @@
     "area": "backend",
     "title": "回补 seed 阶段 skipped 的 23 条短语（backlog）",
     "user_visible_behavior": "seed 阶段因 Tatoeba 无例句被跳过的 23 条多 token 短语（7 实用搭配 + 3 课堂问句 + 11 习语）目前不在库。补全后这些短语可被查询/高亮。",
-    "status": "ready_for_qa",
+    "status": "passing",
     "verification": [
       "PM 选定补全范围（A+B / 全部）",
       "脚本 backfill-skipped-phrases.mjs 支持 --dry-run + --write",
@@ -1891,5 +1891,39 @@
     ],
     "evidence": "2026-06-03 Codex1接手并收口 LEX-007。实现包括: prisma/schema.prisma 新增 LexiconStatus(vault/candidate/review/rejected)、LexiconEntry.status @default(vault) 与 @@index([status])；migration 20260603130000_add_lexicon_status 回填旧 external-lookup 行到 candidate；新增 src/lib/lexicon-quality.ts 纯函数评分模块，scoreLexiconEntry 以 60 为 candidate 阈值且 degraded 强制 review，deriveScoreSignals 只使用本地零成本信号；src/lib/dictionary.ts 新增 isLemmaInDict；src/lib/lexicon.ts 的 findLexiconLookupEntry、findConstructionEntry、findRelatedPhraseEntries 统一只服务 vault/candidate，新增 listReviewQueue，upsertLexiconEntry 支持 status/qualityScore 且守卫 vault/rejected、禁止 candidate 自动降级为 review；src/app/api/vocab/lookup/route.ts 回填改为 confidence-aware，写入 qualityScore + status。Codex2 首轮 QA 发现 construction/related-phrase 读取漏 status 过滤；Codex1 以 TDD 补上该闸并扩展 tests/lex007.test.mjs。验证: node --test tests/lex007.test.mjs -> 11/11 pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass; npm test -> 398/398 pass; npm run build -> compiled successfully with existing <img>/Sentry warnings only. | 2026-06-03 PM(Claude1)工程验收 PASS,关票:LexiconStatus 四态(vault/candidate/review/rejected)+ status 列默认vault + 迁移把external-lookup回填行设candidate;scoreLexiconEntry(≥60→candidate,弱/降级→review);读取只服务vault+candidate(review/rejected不泄漏)+review队列;写护栏(自动回填不覆写vault/人工rejected);findConstruction/findRelatedPhrase 加 status in[vault,candidate] 修了泄漏blocker。PM复核 lex007 11/11、npm test 398/398、tsc/lint/build过。【PM 待调旋钮,非blocker】① candidate阈值60 + 自动服务给用户 是否够严;② 查词卡给candidate打\"AI生成/待校验\"小标(透明)——建议并入LEX-008调。【流程注记】本票提前于规划(原排移动端后+先brainstorm)被agent直接建,结果sound但阈值/服务规则未经PM预先brainstorm。",
     "notes": "Spec: docs/superpowers/specs/2026-06-03-lex-007-design.md。当前状态 ready_for_qa，等待 Codex2 复测 construction/related-phrase 的 status 闸合同。后续人工审核队列/UI、升级金库、用户纠错属于 LEX-008。"
+  },
+  "105": {
+    "id": "CREDITS-001",
+    "priority": 107,
+    "area": "fullstack",
+    "title": "积分引擎 Phase 1（账户与流水核心）",
+    "user_visible_behavior": "用户积分账户具备统一的数据模型、计划等级、余额扣费、注册赠送、月度刷新和流水审计基础，供后续消费点和前端额度展示复用。",
+    "status": "passing",
+    "verification": [
+      "node --test tests/credits-engine.test.mjs 通过",
+      "npx prisma validate 通过",
+      "npx prisma generate 通过",
+      "npx tsc --noEmit --pretty false 通过",
+      "npm run lint:encoding 通过",
+      "npm test 通过"
+    ],
+    "evidence": "2026-06-04 Codex1 implemented credits Phase 1 in isolated worktree `.worktrees/codex-credits-phase1` from `docs/superpowers/plans/2026-06-04-credits-engine.md`. Landed Prisma credit core in `prisma/schema.prisma` plus manual migration `prisma/migrations/20260604170500_add_credits_engine/migration.sql`: User now has `plan`, `creditSource`, `creditBalanceMinor`, `planExpiresAt`, `lastRefillAt`, `signupGranted`, and `creditTransactions`; new enums `Plan`, `CreditSource`, `CreditReason`; new `CreditTransaction` ledger model. Added `src/lib/credits/config.ts` for centralized monthly quotas, action costs, integer minor-unit helpers, and signup grant amount; added `src/lib/credits/account.ts` for pure account logic (`deduct`, `applyMonthlyRefill`, `grantSignup`); added `src/lib/credits/service.ts` for DB orchestration (`getBalanceMinor`, transactional `spendCredits`, transactional `ensureSignupGrant`). Added `tests/credits-engine.test.mjs` locking schema, config, account logic, and service contracts. Verification: node --test tests/credits-engine.test.mjs -> 10/10 pass; `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/esponal` npx prisma validate -> pass; same env npx prisma generate -> pass; npx tsc --noEmit --pretty false -> pass; npm run lint:encoding -> pass; npm test -> 437/437 pass. `npx prisma migrate dev --name credits_engine` could not run in this environment because root `.env`/DATABASE_URL is absent, so the migration SQL was authored manually and validated with Prisma afterwards. Commits in the worktree: 1472435, b361222, 859d912, 9c50ff4. | 2026-06-04 Codex2 engineering QA re-ran node --test tests/credits-engine.test.mjs (10/10), `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/esponal` prisma validate/generate, npx tsc --noEmit --pretty false, npm run lint:encoding, and npm test (437/437). QA confirmed prisma/schema.prisma and migration.sql are closed over the same fields/enums/model, Phase 1 boundaries match the plan, and the ticket is deploy-safe for Vercel as an engine-only backend change. QA concern only: `spendCredits()` currently lacks a service-layer guard for `costMinor <= 0`, so zero/negative costs could write meaningless spend ledger rows; this is non-blocking for Phase 1 because no spend points call it yet, but should be tightened before Phase 2 route hook-up.",
+    "notes": "Spec: docs/superpowers/specs/2026-06-01-credits-billing-design.md. Plan: docs/superpowers/plans/2026-06-04-credits-engine.md. This ticket covers Phase 1 only: schema/migration, centralized quota config, pure account logic, and service orchestration. It explicitly does not include spend-point hook-up, gating/refresh triggers, frontend quota UI, or payment integration. Codex2 engineering QA passed on 2026-06-04; the recommended `spendCredits(costMinor <= 0)` guard has since been landed at the start of Phase 2. Real DATABASE_URL-backed migration apply/verification is still required in preview or production."
+  },
+  "106": {
+    "id": "CREDITS-002",
+    "priority": 108,
+    "area": "fullstack",
+    "title": "积分引擎 Phase 2：消费点接入、门槛与运行时刷新",
+    "user_visible_behavior": "已登录用户在 talk、TTS、外部词典回落、短语拆解、网站字幕解锁这些高成本路径上会触发积分校验与扣费；短语拆解对免费层返回套餐门槛错误；命中缓存或本地低成本路径保持免费；额度不足时 API 返回机器可读的错误 code。",
+    "status": "ready_for_qa",
+    "verification": [
+      "node --test tests/credits-engine.test.mjs tests/credits-phase2.test.mjs tests/vocab004.test.mjs tests/vocab010.test.mjs tests/lex001-phase4.test.mjs tests/phrase001.test.mjs tests/subs002.test.mjs tests/subs004.test.mjs tests/ext008.test.mjs 通过",
+      "npx tsc --noEmit --pretty false 通过",
+      "npm run lint:encoding 通过",
+      "npm test 通过"
+    ],
+    "evidence": "2026-06-05 Codex1 implemented Phase 2 in isolated worktree `.worktrees/codex-credits-phase1` from `docs/superpowers/plans/2026-06-05-credits-phase-2.md`. Added `src/lib/credits/runtime.ts` for lazy monthly refresh, credit snapshot reads, `requireCredits`, and `requirePlan`; hardened `src/lib/credits/service.ts` so `spendCredits()` rejects `costMinor <= 0`. Wired spend/gate hooks into `src/app/api/talk/message/route.ts` (pre-stream credit gate, post-success talk spend), `src/app/api/tts/route.ts` (cache-hit free, uncached synth gated/spent), `src/app/api/vocab/lookup/route.ts` (local lexicon free, external fallback gated/spent), `src/app/api/lexicon/detect-phrases/route.ts` (premium+ gate plus per-sentence billing), and `src/app/api/subtitle/route.ts` (cache-hit free, logged-in uncached website subtitle path gated/spent by duration bucket). Added `tests/credits-phase2.test.mjs` to lock runtime refresh, service guard, all five spend hooks, and machine-readable credits error codes. Verification: focused credits/route regression slice passed 54/54; `npx tsc --noEmit --pretty false` passed; `npm run lint:encoding` passed; `npm test` passed 446/446.",
+    "notes": "Spec: docs/superpowers/specs/2026-06-01-credits-billing-design.md. Plan: docs/superpowers/plans/2026-06-05-credits-phase-2.md. Scope is backend spend-point integration only: talk turn, TTS, lookup fallback, phrase detection, and subtitle unlock. Anonymous subtitle / lookup behavior remains intentionally unchanged in Phase 2; only logged-in users hit the new meter there. Phase 3 frontend quota surfaces and payment integration are still separate follow-ups."
   }
 }
