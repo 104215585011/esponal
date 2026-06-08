@@ -1,3 +1,24 @@
+### Session #IMPORT v2 Production 500 Fix - 2026-06-08 22:55
+
+**Goal**: Fix production `/api/import/document` 500 after COS upload succeeded.
+
+**Root cause**:
+- The production database had already applied the old import migration. Editing `20260608130000_add_import_documents/migration.sql` to the v2 schema did not alter the already-applied production table, so `/api/import/document` tried to insert `ossKey`, `sizeBytes`, `unitCount`, `lastPosition`, and `kind='pdf'` into an old table/enum.
+
+**Fix**:
+- Restored the original `20260608130000_add_import_documents` migration shape so migration history stays meaningful.
+- Added incremental migrations:
+  - `20260608223000_import_cos_v2`: adds `pdf` to the existing `ImportKind` enum.
+  - `20260608223100_import_cos_v2_metadata`: adds COS metadata columns, normalizes old `pdf_text/pdf_ocr` rows to `pdf`, marks legacy `processing` imports failed, backfills required metadata, and sets new default status to `ready`.
+- Updated the migration contract test to require v2 as an incremental deploy migration.
+
+**Verification**:
+- `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import004.test.mjs tests/import005.test.mjs tests/import018.test.mjs tests/import022.test.mjs` -> 15/15 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 475/475 pass.
+- `npx prisma validate` -> pass.
+
 ### Session #IMPORT v2 COS Rewrite - 2026-06-08 22:30
 
 **Goal**: Switch unified import from the old service-side text extraction pipeline to spec v2: Tencent COS original-file storage, browser direct upload, metadata-only DB records, and signed read URLs.
