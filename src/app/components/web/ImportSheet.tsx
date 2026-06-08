@@ -1,10 +1,11 @@
-// Timestamp: 2026-06-08 20:58
+// Timestamp: 2026-06-08 22:12
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Loader2, UploadCloud, X } from "lucide-react";
+import { uploadImportedDocument } from "@/lib/import/upload-client";
 
 type ImportSheetMode = "url" | "file";
 
@@ -24,6 +25,7 @@ export function ImportSheet({ mode, onClose }: ImportSheetProps) {
   const [dragStartY, setDragStartY] = useState<number | null>(null);
   const [url, setUrl] = useState("");
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +46,7 @@ export function ImportSheet({ mode, onClose }: ImportSheetProps) {
     setError("");
     setSubmitting(false);
     setSelectedFileName("");
+    setUploadProgress(0);
   }, [mode]);
 
   if (!mounted || !mode) {
@@ -106,22 +109,17 @@ export function ImportSheet({ mode, onClose }: ImportSheetProps) {
   async function submitFile(file: File) {
     setSubmitting(true);
     setError("");
+    setUploadProgress(0);
     setSelectedFileName(file.name);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await fetch("/api/import/file", {
-        method: "POST",
-        body: formData,
+      await uploadImportedDocument({
+        file,
+        onProgress: setUploadProgress,
       });
-      if (!response.ok) {
-        setError("上传失败，请确认文件格式与大小。");
-        return;
-      }
       router.push("/import/library");
       onClose();
     } catch {
-      setError("上传失败，请稍后再试。");
+      setError("上传失败，请确认文件格式与大小。");
     } finally {
       setSubmitting(false);
     }
@@ -186,6 +184,11 @@ export function ImportSheet({ mode, onClose }: ImportSheetProps) {
                 </span>
                 <span className="text-[15px] font-semibold text-zinc-800">{selectedFileName || "点击选择文件"}</span>
                 <span className="text-[12px] text-zinc-500 mt-1">支持 EPUB、PDF (≤100MB)</span>
+                {submitting ? (
+                  <span className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                    <span className="block h-full rounded-full bg-brand-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+                  </span>
+                ) : null}
               </button>
               <input
                 ref={fileInputRef}

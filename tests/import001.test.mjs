@@ -7,70 +7,57 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-1 schema: imported documents and sections are modeled on User", async () => {
+test("IMPORT-1 v2 schema stores COS-backed document metadata without extracted sections", async () => {
   const schema = await read("prisma/schema.prisma");
 
   assert.match(schema, /importedDocuments\s+ImportedDocument\[\]/);
   assert.match(
     schema,
-    /model ImportedDocument \{[\s\S]*userId\s+String[\s\S]*title\s+String[\s\S]*kind\s+ImportKind[\s\S]*status\s+ImportStatus\s+@default\(processing\)[\s\S]*failReason\s+String\?[\s\S]*pageCount\s+Int\s+@default\(0\)[\s\S]*lastPageIndex\s+Int\s+@default\(0\)[\s\S]*sections\s+DocumentSection\[\][\s\S]*\}/,
+    /model ImportedDocument \{[\s\S]*userId\s+String[\s\S]*title\s+String[\s\S]*kind\s+ImportKind[\s\S]*ossKey\s+String[\s\S]*sizeBytes\s+Int[\s\S]*unitCount\s+Int\s+@default\(0\)[\s\S]*lastPosition\s+String\s+@default\(""\)[\s\S]*status\s+ImportStatus\s+@default\(ready\)[\s\S]*failReason\s+String\?[\s\S]*@@index\(\[userId, createdAt\]\)[\s\S]*\}/,
   );
-  assert.match(
-    schema,
-    /model DocumentSection \{[\s\S]*documentId\s+String[\s\S]*pageIndex\s+Int[\s\S]*content\s+String[\s\S]*@@unique\(\[documentId, pageIndex\]\)[\s\S]*\}/,
-  );
-  assert.match(
-    schema,
-    /enum ImportKind \{[\s\S]*epub[\s\S]*pdf_text[\s\S]*pdf_ocr[\s\S]*\}/,
-  );
-  assert.match(
-    schema,
-    /enum ImportStatus \{[\s\S]*processing[\s\S]*ready[\s\S]*failed[\s\S]*\}/,
-  );
+  assert.match(schema, /enum ImportKind \{[\s\S]*epub[\s\S]*pdf[\s\S]*\}/);
+  assert.match(schema, /enum ImportStatus \{[\s\S]*ready[\s\S]*failed[\s\S]*\}/);
+  assert.doesNotMatch(schema, /model DocumentSection/);
+  assert.doesNotMatch(schema, /pageCount\s+Int/);
+  assert.doesNotMatch(schema, /lastPageIndex\s+Int/);
+  assert.doesNotMatch(schema, /sections\s+DocumentSection\[\]/);
 });
 
-test("IMPORT-1 exposes paginate and parse helpers for document ingestion", async () => {
-  const paginatePath = "src/lib/import/paginate.ts";
-  const parsePath = "src/lib/import/parse.ts";
-
-  assert.equal(existsSync(paginatePath), true, `${paginatePath} missing`);
-  assert.equal(existsSync(parsePath), true, `${parsePath} missing`);
-
-  const paginateSource = await read(paginatePath);
-  assert.match(paginateSource, /export function paginateImportedText/);
-  assert.match(paginateSource, /targetCharsPerPage/);
-  assert.match(paginateSource, /2500/);
-
-  const parseSource = await read(parsePath);
-  assert.match(parseSource, /NeedsOcrError/);
-  assert.match(parseSource, /export async function parseImportedDocument/);
-  assert.match(parseSource, /epub|pdf/i);
-});
-
-test("IMPORT-1 import routes exist for upload, status, pages, list, and progress", async () => {
-  const requiredPaths = [
-    "src/app/api/import/file/route.ts",
+test("IMPORT-1 v2 exposes COS storage helpers and presign/document/read/progress routes", async () => {
+  const paths = [
+    "src/lib/storage/cos.ts",
+    "src/lib/import/service.ts",
+    "src/app/api/import/presign/route.ts",
+    "src/app/api/import/document/route.ts",
     "src/app/api/import/documents/route.ts",
     "src/app/api/import/[id]/route.ts",
-    "src/app/api/import/[id]/pages/route.ts",
+    "src/app/api/import/[id]/url/route.ts",
     "src/app/api/import/[id]/progress/route.ts",
   ];
 
-  for (const routePath of requiredPaths) {
-    assert.equal(existsSync(routePath), true, `${routePath} missing`);
+  for (const path of paths) {
+    assert.equal(existsSync(path), true, `${path} should exist`);
   }
 
-  const fileRoute = await read("src/app/api/import/file/route.ts");
-  assert.match(fileRoute, /getServerSession/);
-  assert.match(fileRoute, /getAuthOptions/);
-  assert.match(fileRoute, /formData/);
-  assert.match(fileRoute, /ImportedDocument|createImportedDocument|parseImportedDocument/);
+  const cos = await read("src/lib/storage/cos.ts");
+  assert.match(cos, /export async function presignPut/);
+  assert.match(cos, /export async function presignGet/);
+  assert.match(cos, /COS_SECRET_ID/);
+  assert.match(cos, /COS_SECRET_KEY/);
+  assert.match(cos, /COS_BUCKET/);
+  assert.match(cos, /COS_REGION/);
 
-  const pagesRoute = await read("src/app/api/import/[id]/pages/route.ts");
-  assert.match(pagesRoute, /searchParams/);
-  assert.match(pagesRoute, /from/);
-  assert.match(pagesRoute, /to/);
+  const presignRoute = await read("src/app/api/import/presign/route.ts");
+  assert.match(presignRoute, /MAX_FILE_BYTES\s*=\s*100 \* 1024 \* 1024/);
+  assert.match(presignRoute, /presignPut/);
+  assert.match(presignRoute, /imports\/\$\{userId\}\//);
 
-  const progressRoute = await read("src/app/api/import/[id]/progress/route.ts");
-  assert.match(progressRoute, /lastPageIndex/);
+  const documentRoute = await read("src/app/api/import/document/route.ts");
+  assert.match(documentRoute, /createImportedDocument/);
+  assert.match(documentRoute, /ossKey/);
+  assert.match(documentRoute, /sizeBytes/);
+
+  const urlRoute = await read("src/app/api/import/[id]/url/route.ts");
+  assert.match(urlRoute, /getImportedDocumentByIdForUser/);
+  assert.match(urlRoute, /presignGet/);
 });

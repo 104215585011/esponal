@@ -7,7 +7,7 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-4 adds the desktop /import page with URL and document import surfaces", async () => {
+test("IMPORT-4 v2 adds the desktop /import page with URL and COS document import surfaces", async () => {
   const pagePath = "src/app/import/page.tsx";
   assert.equal(existsSync(pagePath), true, `${pagePath} missing`);
 
@@ -19,7 +19,8 @@ test("IMPORT-4 adds the desktop /import page with URL and document import surfac
   assert.match(client, /"use client"/);
   assert.match(client, /\/api\/import\/url/);
   assert.match(client, /router\.push\(payload\.redirect\)/);
-  assert.match(client, /\/api\/import\/file/);
+  assert.match(client, /uploadImportedDocument/);
+  assert.match(client, /onProgress:\s*setUploadProgress/);
   assert.match(client, /router\.push\("\/import\/library"\)/);
   assert.match(client, /统一导入引擎/);
   assert.match(client, /视频链接/);
@@ -29,9 +30,25 @@ test("IMPORT-4 adds the desktop /import page with URL and document import surfac
   assert.match(client, /即将支持/);
   assert.match(client, /opacity-40 grayscale/);
   assert.match(client, /max-w-2xl mx-auto mt-10 bg-white border border-zinc-200 rounded-\[32px\] p-10 shadow-elevated/);
+  assert.doesNotMatch(client, /\/api\/import\/file/);
 });
 
-test("IMPORT-4 adds a reusable mobile ImportSheet with portal, drag close, URL, and file modes", async () => {
+test("IMPORT-4 v2 shared upload helper performs presign, COS PUT, then metadata create", async () => {
+  const helperPath = "src/lib/import/upload-client.ts";
+  assert.equal(existsSync(helperPath), true, `${helperPath} missing`);
+
+  const source = await read(helperPath);
+  assert.match(source, /inferImportKind/);
+  assert.match(source, /\/api\/import\/presign/);
+  assert.match(source, /XMLHttpRequest/);
+  assert.match(source, /request\.open\("PUT", uploadUrl\)/);
+  assert.match(source, /request\.upload\.onprogress/);
+  assert.match(source, /\/api\/import\/document/);
+  assert.match(source, /ossKey/);
+  assert.match(source, /sizeBytes/);
+});
+
+test("IMPORT-4 v2 adds a reusable mobile ImportSheet with portal, drag close, URL, and COS file modes", async () => {
   const sheetPath = "src/app/components/web/ImportSheet.tsx";
   assert.equal(existsSync(sheetPath), true, `${sheetPath} missing`);
 
@@ -49,6 +66,9 @@ test("IMPORT-4 adds a reusable mobile ImportSheet with portal, drag close, URL, 
   assert.match(source, /支持 EPUB、PDF \(≤100MB\)/);
   assert.match(source, /navigator\.clipboard\.readText/);
   assert.match(source, /accept="\.epub,\.pdf,application\/epub\+zip,application\/pdf"/);
+  assert.match(source, /uploadImportedDocument/);
+  assert.match(source, /onProgress:\s*setUploadProgress/);
+  assert.doesNotMatch(source, /\/api\/import\/file/);
 });
 
 test("IMPORT-4 upgrades the mobile bottom tab bar with a centered import fan-out trigger", async () => {
@@ -62,7 +82,7 @@ test("IMPORT-4 upgrades the mobile bottom tab bar with a centered import fan-out
   assert.match(source, /w-12 h-12 rounded-full bg-brand-500 text-white shadow-\[0_8px_16px_-6px_rgba\(16,185,129,0\.5\)\]/);
   assert.match(source, /absolute bottom-20 left-1\/2 -translate-x-1\/2 w-\[calc\(100vw-32px\)\] max-w-sm bg-white rounded-\[24px\]/);
   assert.match(source, /grid grid-cols-2 gap-2/);
-  assert.match(source, /视频链接/);
+  assert.match(source, /瑙嗛閾炬帴|视频链接/);
   assert.match(source, /EPUB\/PDF/);
   assert.match(source, /setSheetMode\("url"\)/);
   assert.match(source, /setSheetMode\("file"\)/);

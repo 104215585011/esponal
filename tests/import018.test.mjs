@@ -7,28 +7,27 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-3 adds an authenticated import library page with designed document states", async () => {
+test("IMPORT-3 v2 adds an authenticated metadata-backed import library page", async () => {
   const pagePath = "src/app/import/library/page.tsx";
   assert.equal(existsSync(pagePath), true, `${pagePath} missing`);
 
   const source = await read(pagePath);
   assert.match(source, /dynamic\s*=\s*"force-dynamic"/);
   assert.match(source, /getServerSession/);
-  assert.match(source, /prisma\.importedDocument\.findMany/);
-  assert.match(source, /buildImportedDocumentProgress/);
+  assert.match(source, /listImportedDocumentsForUser/);
   assert.match(source, /href=\{`\/import\/\$\{document\.id\}`\}/);
-  assert.match(source, /status\s*===\s*"processing"/);
-  assert.match(source, /animate-pulse/);
-  assert.match(source, /Loader2/);
   assert.match(source, /status\s*===\s*"failed"/);
   assert.match(source, /Trash2/);
   assert.match(source, /border-red-200/);
-  assert.match(source, /status\s*===\s*"ready"/);
   assert.match(source, /hover:border-brand-300/);
-  assert.match(source, /shadow-card/);
+  assert.match(source, /formatSize/);
+  assert.match(source, /unitCount/);
+  assert.match(source, /lastPosition/);
+  assert.doesNotMatch(source, /buildImportedDocumentProgress/);
+  assert.doesNotMatch(source, /status\s*===\s*"processing"/);
 });
 
-test("IMPORT-3 adds an import reader route that restores progress and fetches the initial page window", async () => {
+test("IMPORT-3 v2 reader fetches a presigned COS read URL instead of extracted pages", async () => {
   const pagePath = "src/app/import/[id]/page.tsx";
   const clientPath = "src/app/import/[id]/ImportReaderClient.tsx";
   assert.equal(existsSync(pagePath), true, `${pagePath} missing`);
@@ -41,31 +40,33 @@ test("IMPORT-3 adds an import reader route that restores progress and fetches th
   assert.match(page, /notFound/);
   assert.match(page, /status\s*!==\s*"ready"/);
   assert.match(page, /ImportReaderClient/);
-  assert.match(page, /initialPageIndex=\{document\.lastPageIndex\}/);
-  assert.match(page, /pageCount=\{document\.pageCount\}/);
+  assert.match(page, /kind=\{document\.kind\}/);
+  assert.match(page, /lastPosition=\{document\.lastPosition\}/);
+  assert.match(page, /unitCount=\{document\.unitCount\}/);
+  assert.doesNotMatch(page, /lastPageIndex/);
+  assert.doesNotMatch(page, /pageCount/);
 
   const client = await read(clientPath);
   assert.match(client, /"use client"/);
   assert.match(client, /data-testid="import-reader"/);
-  assert.match(client, /const WINDOW_RADIUS\s*=\s*5/);
-  assert.match(client, /from=\$\{Math\.max\(0,\s*targetPageIndex - WINDOW_RADIUS\)\}/);
-  assert.match(client, /to=\$\{Math\.min\(pageCount - 1,\s*targetPageIndex \+ WINDOW_RADIUS\)\}/);
-  assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/pages\?from=/);
+  assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
+  assert.match(client, /<iframe/);
+  assert.match(client, /readerUrl/);
   assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/progress`/);
-  assert.match(client, /lastPageIndex:\s*targetPageIndex/);
-  assert.match(client, /LookupCardStack/);
-  assert.match(client, /source:\s*\{[\s\S]*type:\s*"lectura"/);
+  assert.match(client, /lastPosition/);
+  assert.match(client, /unitCount/);
+  assert.doesNotMatch(client, /\/pages\?from=/);
+  assert.doesNotMatch(client, /lastPageIndex/);
 });
 
-test("IMPORT-3 reader exposes the mobile paging dock from the approved design", async () => {
+test("IMPORT-3 v2 exposes a compact mobile reader dock for original-file rendering", async () => {
   const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
 
   assert.match(client, /fixed inset-x-4 bottom-\[calc\(env\(safe-area-inset-bottom\)\+12px\)\]/);
-  assert.match(client, /rounded-full border border-zinc-200\/60 bg-white\/80/);
-  assert.match(client, /ChevronLeft/);
-  assert.match(client, /ChevronRight/);
-  assert.match(client, /Aa/);
-  assert.match(client, /type="range"/);
-  assert.match(client, /accent-brand-500/);
-  assert.match(client, /\{currentPageIndex \+ 1\}\s*\/\s*\{pageCount\}/);
+  assert.match(client, /rounded-full border border-zinc-200\/60 bg-white\/90/);
+  assert.match(client, /ExternalLink/);
+  assert.match(client, /RefreshCw/);
+  assert.match(client, /kind === "epub"/);
+  assert.match(client, /epub\.js/);
+  assert.match(client, /pdf\.js/);
 });

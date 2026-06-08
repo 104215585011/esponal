@@ -1,3 +1,29 @@
+### Session #IMPORT v2 COS Rewrite - 2026-06-08 22:30
+
+**Goal**: Switch unified import from the old service-side text extraction pipeline to spec v2: Tencent COS original-file storage, browser direct upload, metadata-only DB records, and signed read URLs.
+
+**Done (Codex1)**:
+- Reworked Prisma import storage to metadata-only `ImportedDocument`: `ossKey`, `sizeBytes`, `unitCount`, `lastPosition`, `ready/failed` status, and no `DocumentSection`/page window model.
+- Added Tencent COS signing helpers in `src/lib/storage/cos.ts` plus `/api/import/presign`, `/api/import/document`, and `/api/import/[id]/url`.
+- Removed old `/api/import/file`, `/api/import/[id]/pages`, parser, queue, processor, OCR, pagination, and page-window helpers from the active code path.
+- Updated `/import`, mobile `ImportSheet`, and shared `uploadImportedDocument()` to run `/api/import/presign -> browser PUT to COS -> /api/import/document`.
+- Updated `/import/library` and `/import/[id]` to read metadata and signed original-file URLs instead of extracted text sections. Reader currently renders the signed original URL and exposes mobile re-sign/open controls; epub.js/pdf.js text-layer point-word remains the next layer.
+- Rewrote import contracts to v2 and removed obsolete IMPORT-2 OCR tests because OCR point-word is now backlog.
+
+**Verification**:
+- `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import004.test.mjs tests/import005.test.mjs tests/import018.test.mjs tests/import019.test.mjs tests/import020.test.mjs tests/import021.test.mjs tests/import022.test.mjs` -> 19/19 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 475/475 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**:
+- `IMPORT-1`: ready_for_qa again under v2.
+- `IMPORT-2`: backlog/future OCR point-word.
+- `IMPORT-3`: ready_for_qa again under v2.
+- `IMPORT-4`: ready_for_qa under v2.
+- Codex2 should verify real COS env/CORS direct upload on desktop `/import` and mobile bottom-sheet, signed read URL loading, auth/owner scoping, and Vercel deploy after `prisma migrate deploy`.
+
 ### Session #Codex2 Re-check - 2026-06-04 16:20
 
 **Goal**: Reconcile ticket state with the latest Codex2 QA re-check before cutting a clean mobile checkpoint commit.

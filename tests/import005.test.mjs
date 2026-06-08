@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -7,29 +6,16 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-1 has a dedicated document processor that can later move behind an async adapter", async () => {
-  const processPath = "src/lib/import/process.ts";
-  assert.equal(existsSync(processPath), true, `${processPath} missing`);
+test("IMPORT-1 v2 migration creates metadata-only ImportedDocument and no DocumentSection table", async () => {
+  const migration = await read("prisma/migrations/20260608130000_add_import_documents/migration.sql");
 
-  const processSource = await read(processPath);
-  assert.match(processSource, /export async function processImportedDocumentUpload/);
-  assert.match(processSource, /parseImportedDocument/);
-  assert.match(processSource, /markImportedDocumentReady/);
-  assert.match(processSource, /markImportedDocumentFailed/);
-  assert.match(processSource, /NeedsOcrError/);
-  assert.match(processSource, /parseImportedDocumentWithOcr/);
-  assert.match(processSource, /failReason:\s*"ocr_failed"/);
-  assert.match(processSource, /failReason:\s*"import_failed"/);
-});
-
-test("IMPORT-1 upload route delegates settled processing to the shared processor after creating processing state", async () => {
-  const queueSource = await read("src/lib/import/queue.ts");
-  const fileRouteSource = await read("src/app/api/import/file/route.ts");
-
-  assert.match(fileRouteSource, /createImportedDocument\(\{\s*[\s\S]*status:\s*"processing"/);
-  assert.match(fileRouteSource, /scheduleImportedDocumentProcessing/);
-  assert.match(fileRouteSource, /documentId:\s*document\.id/);
-  assert.match(queueSource, /processImportedDocumentUpload/);
-  assert.doesNotMatch(fileRouteSource, /markImportedDocumentReady/);
-  assert.doesNotMatch(fileRouteSource, /markImportedDocumentFailed/);
+  assert.match(migration, /CREATE TYPE "ImportKind" AS ENUM \('epub', 'pdf'\)/);
+  assert.match(migration, /CREATE TYPE "ImportStatus" AS ENUM \('ready', 'failed'\)/);
+  assert.match(migration, /"ossKey" TEXT NOT NULL/);
+  assert.match(migration, /"sizeBytes" INTEGER NOT NULL/);
+  assert.match(migration, /"unitCount" INTEGER NOT NULL DEFAULT 0/);
+  assert.match(migration, /"lastPosition" TEXT NOT NULL DEFAULT ''/);
+  assert.doesNotMatch(migration, /DocumentSection/);
+  assert.doesNotMatch(migration, /pageCount/);
+  assert.doesNotMatch(migration, /lastPageIndex/);
 });

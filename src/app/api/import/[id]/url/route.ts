@@ -1,8 +1,9 @@
-// Timestamp: 2026-06-08 21:48
+// Timestamp: 2026-06-08 21:42
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
-import { listImportedDocumentsForUser } from "@/lib/import/service";
+import { getImportedDocumentByIdForUser } from "@/lib/import/service";
+import { presignGet } from "@/lib/storage/cos";
 
 function getUserId(session: unknown) {
   const maybeSession = session as { user?: { id?: unknown } } | null;
@@ -11,7 +12,10 @@ function getUserId(session: unknown) {
     : null;
 }
 
-export async function GET() {
+export async function GET(
+  _request: Request,
+  context: { params: { id: string } },
+) {
   const session = await getServerSession(getAuthOptions());
   const userId = getUserId(session);
 
@@ -19,7 +23,12 @@ export async function GET() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const documents = await listImportedDocumentsForUser(userId);
+  const document = await getImportedDocumentByIdForUser(userId, context.params.id);
 
-  return NextResponse.json({ documents });
+  if (!document) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  const url = await presignGet({ key: document.ossKey });
+  return NextResponse.json({ url, expiresIn: 900 });
 }

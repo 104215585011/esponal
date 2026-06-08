@@ -6,43 +6,35 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-1 page window helpers clamp out-of-range values and keep a valid window", async () => {
-  const { clampLastPageIndex, resolvePageWindow } = await import("../src/lib/import/window.ts");
+test("IMPORT-1 v2 presign route validates auth, type, size, and user-scoped COS keys", async () => {
+  const source = await read("src/app/api/import/presign/route.ts");
 
-  assert.deepEqual(resolvePageWindow(6, "-3", "99"), {
-    from: 0,
-    to: 5,
-    pageCount: 6,
-  });
-  assert.deepEqual(resolvePageWindow(6, "4", "1"), {
-    from: 4,
-    to: 4,
-    pageCount: 6,
-  });
-  assert.deepEqual(resolvePageWindow(0, null, null), {
-    from: 0,
-    to: 0,
-    pageCount: 0,
-  });
-
-  assert.equal(clampLastPageIndex(9, 6), 5);
-  assert.equal(clampLastPageIndex(2, 6), 2);
-  assert.equal(clampLastPageIndex(3, 0), 0);
+  assert.match(source, /getServerSession\(getAuthOptions\(\)\)/);
+  assert.match(source, /unauthorized/);
+  assert.match(source, /unsupported_file_type/);
+  assert.match(source, /file_too_large/);
+  assert.match(source, /kind !== "epub" && kind !== "pdf"/);
+  assert.match(source, /MAX_FILE_BYTES\s*=\s*100 \* 1024 \* 1024/);
+  assert.match(source, /imports\/\$\{userId\}\/\$\{randomId\}\$\{extension\}/);
+  assert.match(source, /presignPut\(\{\s*[\s\S]*key:\s*ossKey[\s\S]*contentType[\s\S]*\}\)/);
 });
 
-test("IMPORT-1 route contract uses shared window helpers and returns progress-shaped list data", async () => {
-  const documentsRoute = await read("src/app/api/import/documents/route.ts");
-  const pagesRoute = await read("src/app/api/import/[id]/pages/route.ts");
+test("IMPORT-1 v2 document and progress routes persist only owner-scoped metadata", async () => {
+  const service = await read("src/lib/import/service.ts");
+  const documentRoute = await read("src/app/api/import/document/route.ts");
   const progressRoute = await read("src/app/api/import/[id]/progress/route.ts");
-  const progressHelper = await read("src/lib/import/progress.ts");
+  const documentsRoute = await read("src/app/api/import/documents/route.ts");
 
-  assert.match(documentsRoute, /buildImportedDocumentProgress/);
-  assert.match(documentsRoute, /progress:\s*buildImportedDocumentProgress\(document\)/);
-  assert.match(documentsRoute, /lastPageIndex/);
-  assert.match(documentsRoute, /pageCount/);
-  assert.match(progressHelper, /currentPage/);
-  assert.match(progressHelper, /progressPercent/);
+  assert.match(service, /export async function createImportedDocument/);
+  assert.match(service, /ossKey/);
+  assert.match(service, /sizeBytes/);
+  assert.match(service, /lastPosition/);
+  assert.doesNotMatch(service, /sections/);
 
-  assert.match(pagesRoute, /resolvePageWindow/);
-  assert.match(progressRoute, /clampLastPageIndex/);
+  assert.match(documentRoute, /createImportedDocument\(\{\s*[\s\S]*userId[\s\S]*ossKey[\s\S]*sizeBytes[\s\S]*unitCount[\s\S]*\}\)/);
+  assert.match(progressRoute, /updateImportedDocumentProgress/);
+  assert.match(progressRoute, /lastPosition/);
+  assert.match(progressRoute, /unitCount/);
+  assert.match(documentsRoute, /listImportedDocumentsForUser\(userId\)/);
+  assert.match(service, /where:\s*\{\s*userId\s*\}/);
 });

@@ -1,3 +1,36 @@
+## Codex1 Dev Report: IMPORT v2 COS rewrite ready for Codex2 QA
+**Time**: 2026-06-08 22:30
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1 (PM)
+**Status**: ready_for_qa
+
+**Scope**:
+- Applied the approved v2 plan for unified import: Tencent COS original-file storage, browser direct upload, metadata-only import records, and signed read URLs.
+- This replaces the earlier IMPORT-1/2/3 pure-text extraction/OCR pipeline. OCR point-word is now backlog/future Phase 2.
+
+**Implementation**:
+- `prisma/schema.prisma` and migration now define metadata-only `ImportedDocument` with `ossKey`, `sizeBytes`, `unitCount`, `lastPosition`, `ready/failed`; `DocumentSection` and extracted page fields are gone.
+- Added `src/lib/storage/cos.ts` for Tencent COS-compatible presigned PUT/GET URLs.
+- Added `/api/import/presign`, `/api/import/document`, and `/api/import/[id]/url`; retained owner-scoped documents/detail/progress APIs.
+- Removed old `/api/import/file`, `/api/import/[id]/pages`, parser, queue, processor, OCR, pagination, and page-window helpers.
+- Added `src/lib/import/upload-client.ts`; desktop `/import` and mobile `ImportSheet` now do `/api/import/presign -> browser PUT to COS -> /api/import/document`.
+- Updated `/import/library` and `/import/[id]` for metadata/signed original-file reading. Reader has a mobile bottom dock for re-sign/open; epub.js/pdf.js text-layer point-word remains the next implementation layer.
+- Rewrote import tests to v2 and removed obsolete OCR tests.
+
+**Verification**:
+- `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import004.test.mjs tests/import005.test.mjs tests/import018.test.mjs tests/import019.test.mjs tests/import020.test.mjs tests/import021.test.mjs tests/import022.test.mjs` -> 19/19 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 475/475 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Real COS direct upload with Vercel/local env and CORS: desktop `/import` and mobile bottom `+` -> file sheet.
+- Signed read URL route `/api/import/[id]/url` and `/import/[id]` iframe/original-file rendering.
+- Auth and owner scoping for presign/document/list/detail/progress/read-url routes.
+- Confirm old `/api/import/file` and `/api/import/[id]/pages` are gone and no UI calls them.
+- Vercel deploy should pass once `npx prisma migrate deploy` can reach the configured Neon database; earlier P1001 was redeployed successfully by user.
+
 ## Codex2 QA Re-check Summary: MOBILE-008 pass / MOBILE-006 concerns
 **Time**: 2026-06-04 16:20
 **From**: Codex2 (QA)
@@ -13788,3 +13821,14 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 - `IMPORT-2`: passing.
 - `IMPORT-3`: passing.
 - `IMPORT-4`: ready_for_qa.
+
+---
+
+## 🔁 统一导入 spec/计划 v2(方案C + 腾讯云COS)  [Claude1 PM, 2026-06-08]
+方向重大调整(面向100MB+图文书,要忠实阅读体验):
+- **不抽纯文本**,改**存原件到腾讯云COS + 客户端按格式渲染**:EPUB→epub.js原生;PDF→pdf.js+Range按页渲染;点词复用现有查词。
+- **客户端直传COS**(预签名PUT,绕开Vercel ~4.5MB请求体限制);阅读拿预签名GET URL;DB只存ImportedDocument元信息+进度(**作废DocumentSection/纯文本切页**)。
+- COS:桶 esponall-1311817841 / ap-guangzhou;env COS_SECRET_ID/KEY/BUCKET/REGION(用户已配Vercel+本地.env;⚠️用户曾在聊天明文贴过一次密钥→已提示其轮换)。CORS已配(线上+localhost,PUT/GET/HEAD,Expose Content-Range/ETag)。
+- 票重排:IMPORT-1后端(COS+预签名+模型,**改造中,Codex1需从纯文本切到COS**)→ IMPORT-4导入入口+客户端直传+YouTube URL(设计IMPORT-4-design✅)∥ IMPORT-3库+阅读器渲染+点词(设计IMPORT-3-design✅)。IMPORT-2(OCR点词)**降级Phase2**:本期扫描件能读不能点。
+- spec: specs/2026-06-08-unified-import-design.md (v2);计划: plans/2026-06-08-unified-import.md (v2)。
+- 待用户过一遍 spec/计划 → 通知 Codex1 按v2切 IMPORT-1。

@@ -1,9 +1,10 @@
-// Timestamp: 2026-06-08 20:58
+// Timestamp: 2026-06-08 22:08
 "use client";
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CirclePlay as Youtube, FileText, Loader2, UploadCloud } from "lucide-react";
+import { uploadImportedDocument } from "@/lib/import/upload-client";
 
 type UrlImportResponse = {
   redirect?: string;
@@ -22,6 +23,7 @@ export function UnifiedImportClient() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [urlSubmitting, setUrlSubmitting] = useState(false);
   const [fileSubmitting, setFileSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [status, setStatus] = useState<Status>(null);
 
   async function submitUrl() {
@@ -60,23 +62,16 @@ export function UnifiedImportClient() {
     }
 
     setFileSubmitting(true);
+    setUploadProgress(0);
     setStatus(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await fetch("/api/import/file", {
-        method: "POST",
-        body: formData,
+      await uploadImportedDocument({
+        file,
+        onProgress: setUploadProgress,
       });
-
-      if (!response.ok) {
-        setStatus({ tone: "error", message: "上传失败，请确认文件格式与大小。" });
-        return;
-      }
-
       router.push("/import/library");
     } catch {
-      setStatus({ tone: "error", message: "上传失败，请稍后再试。" });
+      setStatus({ tone: "error", message: "上传失败，请确认文件格式与大小。" });
     } finally {
       setFileSubmitting(false);
     }
@@ -137,6 +132,11 @@ export function UnifiedImportClient() {
               {selectedFile ? selectedFile.name : "点击选择文件"}
             </span>
             <span className="mt-1 text-xs text-zinc-500">支持 EPUB、PDF (≤100MB)</span>
+            {fileSubmitting ? (
+              <span className="mt-3 h-1.5 w-full max-w-[180px] overflow-hidden rounded-full bg-zinc-100">
+                <span className="block h-full rounded-full bg-brand-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+              </span>
+            ) : null}
           </button>
           <input
             ref={fileInputRef}
@@ -169,7 +169,7 @@ export function UnifiedImportClient() {
         ))}
       </div>
       <p className="mt-5 text-center text-xs text-zinc-400">
-        上传后可在导入库查看处理进度，缓存视频与本地阅读不重复消耗积分。
+        上传后可在导入库继续阅读，缓存视频与本地阅读不重复消耗积分。
       </p>
     </section>
   );

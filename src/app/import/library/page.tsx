@@ -1,12 +1,11 @@
-// Timestamp: 2026-06-08 18:22
+// Timestamp: 2026-06-08 21:48
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FileText, Loader2, Trash2 } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAuthOptions } from "@/lib/auth";
-import { buildImportedDocumentProgress } from "@/lib/import/progress";
-import { prisma } from "@/lib/prisma";
+import { listImportedDocumentsForUser } from "@/lib/import/service";
 
 export const dynamic = "force-dynamic";
 
@@ -18,17 +17,14 @@ function getUserId(session: unknown) {
 }
 
 function formatKind(kind: string) {
-  if (kind === "epub") return "EPUB";
-  if (kind === "pdf_ocr") return "OCR PDF";
-  return "PDF";
+  return kind === "epub" ? "EPUB" : "PDF";
 }
 
-function formatFailReason(reason: string | null) {
-  if (reason === "ocr_page_limit") return "页数超过 OCR 上限";
-  if (reason === "insufficient_credits") return "配额不足，无法 OCR";
-  if (reason === "ocr_failed") return "OCR 识别失败";
-  if (reason === "unsupported_file_type") return "文件类型不支持";
-  return "解析失败";
+function formatSize(sizeBytes: number) {
+  if (sizeBytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(sizeBytes / 1024))} KB`;
+  }
+  return `${(sizeBytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 export default async function ImportLibraryPage() {
@@ -39,21 +35,7 @@ export default async function ImportLibraryPage() {
     redirect("/auth/sign-in?callbackUrl=/import/library");
   }
 
-  const documents = await prisma.importedDocument.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      kind: true,
-      status: true,
-      failReason: true,
-      pageCount: true,
-      lastPageIndex: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const documents = await listImportedDocumentsForUser(userId);
 
   return (
     <main className="min-h-screen bg-app pb-24">
@@ -67,7 +49,7 @@ export default async function ImportLibraryPage() {
             我的导入库
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-zinc-500">
-            EPUB 和 PDF 会被整理成可点词的阅读材料，处理完成后可以从上次页继续读。
+            EPUB 和 PDF 会保留原始图文版式，阅读时从 COS 短签链接加载。
           </p>
         </header>
 
@@ -82,41 +64,10 @@ export default async function ImportLibraryPage() {
         ) : (
           <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
             {documents.map((document) => {
-              const progress = buildImportedDocumentProgress(document);
-              const progressWidth = `${progress.progressPercent}%`;
-
-              if (document.status === "processing") {
-                return (
-                  <article
-                    className="relative group flex flex-col gap-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-card transition-all active:scale-[0.98] md:p-5"
-                    key={document.id}
-                  >
-                    <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-md bg-brand-50/50 px-2 py-1 text-[10px] font-semibold text-brand-600">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      处理中
-                    </span>
-                    <div className="animate-pulse pr-20">
-                      <h2 className="font-display text-lg font-bold text-zinc-900 line-clamp-2">
-                        {document.title}
-                      </h2>
-                      <div className="mt-3 h-3 w-3/4 rounded-full bg-zinc-200" />
-                      <div className="mt-2 h-3 w-1/2 rounded-full bg-zinc-100" />
-                    </div>
-                    <div className="mt-auto flex items-center gap-2 text-[11px] font-medium text-zinc-500">
-                      <span>{formatKind(document.kind)}</span>
-                      <span>正在抽取文字</span>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden bg-zinc-100">
-                      <div className="h-full w-1/2 animate-pulse rounded-full bg-brand-400" />
-                    </div>
-                  </article>
-                );
-              }
-
               if (document.status === "failed") {
                 return (
                   <article
-                    className="relative group flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50/30 p-4 shadow-card transition-all active:scale-[0.98] md:p-5"
+                    className="relative flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50/30 p-4 shadow-card transition-all active:scale-[0.98] md:p-5"
                     key={document.id}
                   >
                     <button
@@ -131,65 +82,35 @@ export default async function ImportLibraryPage() {
                         {document.title}
                       </h2>
                       <p className="mt-2 text-sm font-medium text-red-500">
-                        {formatFailReason(document.failReason)}
+                        {document.failReason ?? "导入失败"}
                       </p>
-                    </div>
-                    <div className="mt-auto flex items-center gap-2 text-[11px] font-medium text-zinc-500">
-                      <span>{formatKind(document.kind)}</span>
-                      <span>{document.pageCount} 页</span>
                     </div>
                   </article>
                 );
               }
 
-              if (document.status === "ready") {
-                return (
-                  <Link
-                    className="relative group flex flex-col gap-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-card transition-all hover:border-brand-300 active:scale-[0.98] md:p-5 md:hover:-translate-y-[2px] md:hover:shadow-elevated"
-                    href={`/import/${document.id}`}
-                    key={document.id}
-                  >
-                    <h2 className="font-display text-lg font-bold text-zinc-900 line-clamp-2">
-                      {document.title}
-                    </h2>
-                    <div className="flex items-center gap-2 text-[11px] font-medium text-zinc-500">
-                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
-                        {formatKind(document.kind)}
-                      </span>
-                      <span>{document.pageCount} 页</span>
-                      <span>{progress.currentPage} / {progress.pageCount}</span>
-                    </div>
-                    <p className="line-clamp-2 text-sm leading-6 text-zinc-500">
-                      点击继续阅读，查词、收藏和 AI 回落沿用阅读器体验。
-                    </p>
-                    <div className="mt-auto h-1 overflow-hidden rounded-full bg-zinc-100">
-                      <div className="h-full rounded-full bg-brand-500" style={{ width: progressWidth }} />
-                    </div>
-                  </Link>
-                );
-              }
-
               return (
                 <Link
-                  className="relative group flex flex-col gap-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-card transition-all hover:border-brand-300 active:scale-[0.98] md:p-5 md:hover:-translate-y-[2px] md:hover:shadow-elevated"
+                  className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-card transition-all hover:border-brand-300 active:scale-[0.98] md:p-5 md:hover:-translate-y-[2px] md:hover:shadow-elevated"
                   href={`/import/${document.id}`}
                   key={document.id}
                 >
                   <h2 className="font-display text-lg font-bold text-zinc-900 line-clamp-2">
                     {document.title}
                   </h2>
-                  <div className="flex items-center gap-2 text-[11px] font-medium text-zinc-500">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-zinc-500">
                     <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600">
                       {formatKind(document.kind)}
                     </span>
-                    <span>{document.pageCount} 页</span>
-                    <span>{progress.currentPage} / {progress.pageCount}</span>
+                    <span>{formatSize(document.sizeBytes)}</span>
+                    {document.unitCount > 0 ? <span>{document.unitCount} 单元</span> : null}
+                    {document.lastPosition ? <span>已保存进度</span> : null}
                   </div>
                   <p className="line-clamp-2 text-sm leading-6 text-zinc-500">
-                    点击继续阅读，查词、收藏和 AI 回落沿用阅读器体验。
+                    点击继续阅读。EPUB/PDF 原件从 COS 短签链接加载，缓存过期会自动重签。
                   </p>
                   <div className="mt-auto h-1 overflow-hidden rounded-full bg-zinc-100">
-                    <div className="h-full rounded-full bg-brand-500" style={{ width: progressWidth }} />
+                    <div className="h-full rounded-full bg-brand-500" style={{ width: document.lastPosition ? "35%" : "6%" }} />
                   </div>
                 </Link>
               );

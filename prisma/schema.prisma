@@ -183,41 +183,29 @@ model VideoView {
 }
 
 model ImportedDocument {
-  id            String            @id @default(cuid())
-  userId        String
-  title         String
-  kind          ImportKind
-  status        ImportStatus      @default(processing)
-  failReason    String?
-  pageCount     Int               @default(0)
-  lastPageIndex Int               @default(0)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sections      DocumentSection[]
+  id           String       @id @default(cuid())
+  userId       String
+  title        String
+  kind         ImportKind
+  ossKey       String
+  sizeBytes    Int
+  unitCount    Int          @default(0)
+  lastPosition String       @default("")
+  status       ImportStatus @default(ready)
+  failReason   String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }
 
-model DocumentSection {
-  id         String           @id @default(cuid())
-  documentId String
-  pageIndex  Int
-  content    String           @db.Text
-  document   ImportedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-
-  @@unique([documentId, pageIndex])
-  @@index([documentId, pageIndex])
-}
-
 enum ImportKind {
   epub
-  pdf_text
-  pdf_ocr
+  pdf
 }
 
 enum ImportStatus {
-  processing
   ready
   failed
 }

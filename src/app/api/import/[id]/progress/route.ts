@@ -1,10 +1,8 @@
-// Timestamp: 2026-06-08 15:37
+// Timestamp: 2026-06-08 21:42
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { buildImportedDocumentProgress } from "@/lib/import/progress";
-import { clampLastPageIndex } from "@/lib/import/window";
+import { updateImportedDocumentProgress } from "@/lib/import/service";
 
 function getUserId(session: unknown) {
   const maybeSession = session as { user?: { id?: unknown } } | null;
@@ -24,37 +22,28 @@ export async function POST(
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as { lastPageIndex?: unknown };
-  const lastPageIndex =
-    typeof body.lastPageIndex === "number" && Number.isInteger(body.lastPageIndex)
-      ? body.lastPageIndex
-      : null;
-
-  if (lastPageIndex === null || lastPageIndex < 0) {
-    return NextResponse.json({ error: "invalid lastPageIndex" }, { status: 400 });
+  let body: { lastPosition?: unknown; unitCount?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  const document = await prisma.importedDocument.findFirst({
-    where: { id: context.params.id, userId },
-    select: { id: true, pageCount: true },
+  const lastPosition = typeof body.lastPosition === "string" ? body.lastPosition : "";
+  const unitCount = typeof body.unitCount === "number" && Number.isFinite(body.unitCount)
+    ? Math.max(0, Math.floor(body.unitCount))
+    : undefined;
+
+  const document = await updateImportedDocumentProgress({
+    userId,
+    documentId: context.params.id,
+    lastPosition,
+    unitCount,
   });
 
   if (!document) {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const clampedPageIndex = clampLastPageIndex(lastPageIndex, document.pageCount);
-
-  const updated = await prisma.importedDocument.update({
-    where: { id: document.id },
-    data: { lastPageIndex: clampedPageIndex },
-    select: { id: true, lastPageIndex: true, pageCount: true },
-  });
-
-  return NextResponse.json({
-    document: {
-      ...updated,
-      progress: buildImportedDocumentProgress(updated),
-    },
-  });
+  return NextResponse.json({ document });
 }

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -6,11 +7,14 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT build compatibility resolves pdfjs standard fonts without a bundled node_modules URL", async () => {
-  const source = await read("src/lib/import/parse.ts");
+test("IMPORT v2 removes server-side parsing and keeps original rendering client-side", async () => {
+  assert.equal(existsSync("src/lib/import/parse.ts"), false);
+  assert.equal(existsSync("src/lib/import/window.ts"), false);
+  assert.equal(existsSync("src/app/api/import/[id]/pages/route.ts"), false);
 
-  assert.match(source, /createRequire/);
-  assert.match(source, /require\.resolve\("pdfjs-dist\/package\.json"\)/);
-  assert.match(source, /join\(dirname\(.*pdfjsPackagePath.*\),\s*"standard_fonts"\)/s);
-  assert.doesNotMatch(source, /new URL\(".*node_modules\/pdfjs-dist\/standard_fonts/);
+  const reader = await read("src/app/import/[id]/ImportReaderClient.tsx");
+  assert.match(reader, /\/api\/import\/\$\{documentId\}\/url/);
+  assert.match(reader, /iframe/);
+  assert.doesNotMatch(reader, /LookupCardStack/);
+  assert.doesNotMatch(reader, /WINDOW_RADIUS/);
 });

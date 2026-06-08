@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 18:22
+// Timestamp: 2026-06-08 21:48
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -45,15 +45,16 @@ export default async function ImportReaderPage({
             {document.title}
           </h1>
           <p className="mt-1.5 text-sm text-zinc-500">
-            共 {document.pageCount} 页，当前第 {document.lastPageIndex + 1} 页
+            {document.kind === "epub" ? "EPUB" : "PDF"} · {document.unitCount > 0 ? `${document.unitCount} 单元` : "原件渲染"}
           </p>
         </header>
 
         <ImportReaderClient
           documentId={document.id}
-          initialPageIndex={document.lastPageIndex}
-          pageCount={document.pageCount}
+          kind={document.kind}
+          lastPosition={document.lastPosition}
           title={document.title}
+          unitCount={document.unitCount}
         />
       </section>
     </main>

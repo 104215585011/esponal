@@ -1,9 +1,8 @@
-// Timestamp: 2026-06-08 15:29
+// Timestamp: 2026-06-08 21:48
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { getImportedDocumentByIdForUser } from "@/lib/import/service";
-import { buildImportedDocumentProgress } from "@/lib/import/progress";
 
 function getUserId(session: unknown) {
   const maybeSession = session as { user?: { id?: unknown } } | null;
@@ -30,9 +29,6 @@ export async function GET(
   }
 
   return NextResponse.json({
-    document: {
-      ...document,
-      progress: buildImportedDocumentProgress(document),
-    },
+    document,
   });
 }
