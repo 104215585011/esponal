@@ -5,12 +5,15 @@ declare module "pdfjs-dist/build/pdf.mjs" {
     workerSrc: string;
   };
 
-  export function getDocument(input: {
+  export function getDocument(input: ({
     url: string;
     withCredentials?: boolean;
-    disableWorker?: boolean;
     disableRange?: boolean;
     disableStream?: boolean;
+  } | {
+    data: Uint8Array;
+  }) & {
+    disableWorker?: boolean;
   }): {
     promise: Promise<{
       numPages: number;

@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 23:55
+// Timestamp: 2026-06-08 22:20
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -76,13 +76,21 @@ export function ImportReaderClient({
       setPdfLoading(true);
       setError("");
       try {
+        const response = await fetch(readerUrl, { cache: "no-store", credentials: "same-origin" });
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!response.ok) {
+          throw new Error(`PDF fetch failed: ${response.status} ${contentType}`);
+        }
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        if (bytes.byteLength === 0) {
+          throw new Error("PDF fetch returned an empty body");
+        }
+
         const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
         const task = pdfjs.getDocument({
-          url: readerUrl,
-          withCredentials: false,
+          data: bytes,
           disableWorker: true,
-          disableRange: true,
-          disableStream: true,
         });
         const loaded = (await task.promise) as PdfDocumentProxy;
         if (cancelled) return;

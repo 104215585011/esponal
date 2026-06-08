@@ -13908,3 +13908,18 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
   2. Open the imported document page and confirm the first PDF page renders on canvas instead of the red fallback.
   3. Use previous/next controls and confirm progress persists after reload.
   4. Confirm the mobile bottom sheet still supports close, drag-down close, URL mode, and file mode.
+
+## Dev Update: IMPORT-3 PDF byte-loading hotfix ready for QA [Codex1, 2026-06-08 22:20]
+- Production still showed the pdf.js load fallback after the same-origin proxy deployed.
+- Refined the client path again: `src/app/import/[id]/ImportReaderClient.tsx` now explicitly fetches `/api/import/${documentId}/file` with same-origin credentials, checks the status, reads `arrayBuffer()`, converts it to `Uint8Array`, and passes `data: bytes` to pdf.js.
+- This removes pdf.js' internal URL/network loader from the deployed path. The app owns authentication and response validation; pdf.js only parses already-fetched bytes.
+- Updated `src/types/pdfjs-dist.d.ts` and strengthened `tests/import018.test.mjs` with a red-green contract for byte loading.
+
+### Verification
+- Red check: `node --test tests/import018.test.mjs` failed on the old URL-loader implementation.
+- `node --test tests/import018.test.mjs tests/import023.test.mjs` -> 4/4 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+
+### QA request
+- After deploy, re-open the same imported PDF page. If it still fails, open DevTools console and capture the `Imported PDF load failed` error line; it should now include whether `/api/import/[id]/file` returned a non-200 status or whether pdf.js rejected the actual bytes.

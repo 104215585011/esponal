@@ -27,7 +27,7 @@ test("IMPORT-3 v2 adds an authenticated metadata-backed import library page", as
   assert.doesNotMatch(source, /status\s*===\s*"processing"/);
 });
 
-test("IMPORT-3 v2 reader fetches a presigned COS read URL and renders PDFs with pdf.js", async () => {
+test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js", async () => {
   const pagePath = "src/app/import/[id]/page.tsx";
   const clientPath = "src/app/import/[id]/ImportReaderClient.tsx";
   assert.equal(existsSync(pagePath), true, `${pagePath} missing`);
@@ -51,11 +51,14 @@ test("IMPORT-3 v2 reader fetches a presigned COS read URL and renders PDFs with 
   assert.match(client, /data-testid="import-reader"/);
   assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
   assert.match(client, /setReaderUrl\(`\/api\/import\/\$\{documentId\}\/file`\)/);
+  assert.match(client, /await fetch\(readerUrl,\s*\{\s*cache:\s*"no-store",\s*credentials:\s*"same-origin"\s*\}\)/);
+  assert.match(client, /await response\.arrayBuffer\(\)/);
+  assert.match(client, /new Uint8Array\(buffer\)/);
   assert.match(client, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
   assert.match(client, /pdfjs\.getDocument/);
+  assert.match(client, /data:\s*bytes/);
+  assert.doesNotMatch(client, /url:\s*readerUrl/);
   assert.match(client, /disableWorker:\s*true/);
-  assert.match(client, /disableRange:\s*true/);
-  assert.match(client, /disableStream:\s*true/);
   assert.match(client, /console\.error\("Imported PDF load failed"/);
   assert.match(client, /<canvas/);
   assert.match(client, /page\.render/);
