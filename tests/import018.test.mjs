@@ -27,7 +27,7 @@ test("IMPORT-3 v2 adds an authenticated metadata-backed import library page", as
   assert.doesNotMatch(source, /status\s*===\s*"processing"/);
 });
 
-test("IMPORT-3 v2 reader fetches a presigned COS read URL instead of extracted pages", async () => {
+test("IMPORT-3 v2 reader fetches a presigned COS read URL and renders PDFs with pdf.js", async () => {
   const pagePath = "src/app/import/[id]/page.tsx";
   const clientPath = "src/app/import/[id]/ImportReaderClient.tsx";
   assert.equal(existsSync(pagePath), true, `${pagePath} missing`);
@@ -50,10 +50,14 @@ test("IMPORT-3 v2 reader fetches a presigned COS read URL instead of extracted p
   assert.match(client, /"use client"/);
   assert.match(client, /data-testid="import-reader"/);
   assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
-  assert.match(client, /<iframe/);
+  assert.match(client, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
+  assert.match(client, /pdfjs\.getDocument/);
+  assert.match(client, /disableWorker:\s*true/);
+  assert.match(client, /<canvas/);
+  assert.match(client, /page\.render/);
   assert.match(client, /readerUrl/);
   assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/progress`/);
-  assert.match(client, /lastPosition/);
+  assert.match(client, /lastPosition:\s*`pdf:\$\{pageNumber\}`/);
   assert.match(client, /unitCount/);
   assert.doesNotMatch(client, /\/pages\?from=/);
   assert.doesNotMatch(client, /lastPageIndex/);
@@ -66,6 +70,10 @@ test("IMPORT-3 v2 exposes a compact mobile reader dock for original-file renderi
   assert.match(client, /rounded-full border border-zinc-200\/60 bg-white\/90/);
   assert.match(client, /ExternalLink/);
   assert.match(client, /RefreshCw/);
+  assert.match(client, /ChevronLeft/);
+  assert.match(client, /ChevronRight/);
+  assert.match(client, /canGoPrevious/);
+  assert.match(client, /canGoNext/);
   assert.match(client, /kind === "epub"/);
   assert.match(client, /epub\.js/);
   assert.match(client, /pdf\.js/);

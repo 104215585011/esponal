@@ -29,6 +29,10 @@ export async function GET(
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const url = await presignGet({ key: document.ossKey });
+  const url = await presignGet({
+    key: document.ossKey,
+    responseContentDisposition: "inline",
+    responseContentType: document.kind === "pdf" ? "application/pdf" : "application/epub+zip",
+  });
   return NextResponse.json({ url, expiresIn: 900 });
 }

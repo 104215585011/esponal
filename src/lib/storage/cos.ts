@@ -4,6 +4,8 @@ import { createHash, createHmac } from "node:crypto";
 type PresignInput = {
   key: string;
   contentType?: string;
+  responseContentDisposition?: string;
+  responseContentType?: string;
   expiresSeconds?: number;
 };
 
@@ -65,13 +67,20 @@ async function presign(method: "GET" | "PUT", input: PresignInput) {
   const expiresSeconds = input.expiresSeconds ?? (method === "GET" ? DEFAULT_GET_EXPIRES_SECONDS : DEFAULT_PUT_EXPIRES_SECONDS);
   const canonicalUri = `/${encodeKeyPath(input.key)}`;
   const signedHeaders = "host";
-  const query = buildCanonicalQuery({
+  const queryParams: Record<string, string> = {
     "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
     "X-Amz-Credential": `${secretId}/${credentialScope}`,
     "X-Amz-Date": amzDate,
     "X-Amz-Expires": String(expiresSeconds),
     "X-Amz-SignedHeaders": signedHeaders,
-  });
+  };
+  if (input.responseContentDisposition) {
+    queryParams["response-content-disposition"] = input.responseContentDisposition;
+  }
+  if (input.responseContentType) {
+    queryParams["response-content-type"] = input.responseContentType;
+  }
+  const query = buildCanonicalQuery(queryParams);
   const canonicalRequest = [
     method,
     canonicalUri,

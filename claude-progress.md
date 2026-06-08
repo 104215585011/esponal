@@ -1,3 +1,22 @@
+### Session #IMPORT PDF Reader Render Fix - 2026-06-08 23:30
+
+**Goal**: Fix imported PDF reader showing a blank mobile iframe after successful COS import.
+
+**Root cause**:
+- The v2 reader was using a signed COS URL inside an iframe as a temporary fallback. Mobile Chrome/device emulation does not reliably render embedded PDF iframes, producing a blank white reader even though import metadata and signed URLs were working.
+
+**Fix**:
+- Updated `src/app/import/[id]/ImportReaderClient.tsx` so PDF documents render through `pdfjs-dist` into a canvas.
+- Added mobile previous/next page controls, page count display, and progress persistence as `lastPosition: pdf:<pageNumber>`.
+- Added `src/types/pdfjs-dist.d.ts` for the ESM pdf.js entry used by the client.
+- Kept EPUB on the signed original-file fallback until epub.js text-layer work lands.
+
+**Verification**:
+- `node --test tests/import018.test.mjs` -> 3/3 pass.
+- `npm test` -> 475/475 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+- `npx tsc --noEmit --pretty false` -> pass.
+
 ### Session #IMPORT v2 Production 500 Fix - 2026-06-08 22:55
 
 **Goal**: Fix production `/api/import/document` 500 after COS upload succeeded.

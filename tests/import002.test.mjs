@@ -21,7 +21,11 @@ test("IMPORT-1 v2 COS presign helpers generate Tencent COS S3-compatible signed 
       key: "imports/user-1/book.epub",
       contentType: "application/epub+zip",
     });
-    const getUrl = await presignGet({ key: "imports/user-1/book.epub" });
+    const getUrl = await presignGet({
+      key: "imports/user-1/book.epub",
+      responseContentDisposition: "inline",
+      responseContentType: "application/epub+zip",
+    });
 
     assert.match(putUrl, /^https:\/\/esponall-1311817841\.cos\.ap-guangzhou\.myqcloud\.com\/imports\/user-1\/book\.epub\?/);
     assert.match(putUrl, /X-Amz-Algorithm=AWS4-HMAC-SHA256/);
@@ -29,6 +33,8 @@ test("IMPORT-1 v2 COS presign helpers generate Tencent COS S3-compatible signed 
     assert.match(putUrl, /X-Amz-Signature=/);
     assert.match(putUrl, /X-Amz-SignedHeaders=host/);
     assert.match(getUrl, /X-Amz-Expires=900/);
+    assert.match(getUrl, /response-content-disposition=inline/);
+    assert.match(getUrl, /response-content-type=application%2Fepub%2Bzip/);
   } finally {
     for (const [key, value] of Object.entries(env)) {
       if (value === undefined) {
