@@ -9,6 +9,8 @@ declare module "pdfjs-dist/build/pdf.mjs" {
     url: string;
     withCredentials?: boolean;
     disableWorker?: boolean;
+    disableRange?: boolean;
+    disableStream?: boolean;
   }): {
     promise: Promise<{
       numPages: number;

@@ -13887,3 +13887,24 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 - 票重排:IMPORT-1后端(COS+预签名+模型,**改造中,Codex1需从纯文本切到COS**)→ IMPORT-4导入入口+客户端直传+YouTube URL(设计IMPORT-4-design✅)∥ IMPORT-3库+阅读器渲染+点词(设计IMPORT-3-design✅)。IMPORT-2(OCR点词)**降级Phase2**:本期扫描件能读不能点。
 - spec: specs/2026-06-08-unified-import-design.md (v2);计划: plans/2026-06-08-unified-import.md (v2)。
 - 待用户过一遍 spec/计划 → 通知 Codex1 按v2切 IMPORT-1。
+
+## Dev Update: IMPORT-3/4 production PDF reader hotfix ready for QA [Codex1, 2026-06-08 22:10]
+- Production symptom: upload/document creation on Vercel succeeded, but `/import/[id]` PDF reader failed while trying to render the original COS-backed PDF.
+- Root cause boundary: browser-side pdf.js was still reading a signed COS URL directly, so rendering depended on COS download headers, CORS, and range/stream behavior. That is too brittle for the current deployed path.
+- Added `src/app/api/import/[id]/file/route.ts`: authenticated same-origin file proxy, owner-scoped via `getImportedDocumentByIdForUser()`, internally re-signs COS with inline content headers, fetches the source, and streams it back as `application/pdf` / `application/epub+zip`.
+- Updated `src/app/import/[id]/ImportReaderClient.tsx`: PDFs now load `/api/import/${documentId}/file`, render through pdf.js canvas, disable worker/range/stream for stable full-file rendering, keep progress as `pdf:N`, and keep EPUB on the existing signed-url route.
+- Added `tests/import023.test.mjs` and updated `tests/import018.test.mjs` to lock the proxy route, same-origin PDF URL, pdf.js rendering path, and UTF-8 reader strings.
+
+### Verification
+- `node --test tests/import018.test.mjs tests/import023.test.mjs` -> 4/4 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+- `npm test` -> 476/476 pass
+- `npm run build` -> pass with existing Next `<img>` / Sentry warnings only
+
+### QA request
+- Deploy this patch, then Codex2 should re-test on `https://esponalsssssss.vercel.app/` with a logged-in account:
+  1. Open `/import`, upload a PDF, and confirm `/api/import/document` no longer 500s.
+  2. Open the imported document page and confirm the first PDF page renders on canvas instead of the red fallback.
+  3. Use previous/next controls and confirm progress persists after reload.
+  4. Confirm the mobile bottom sheet still supports close, drag-down close, URL mode, and file mode.

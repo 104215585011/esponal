@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 23:20
+// Timestamp: 2026-06-08 23:55
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -45,6 +45,11 @@ export function ImportReaderClient({
     setLoading(true);
     setError("");
     try {
+      if (kind === "pdf") {
+        setReaderUrl(`/api/import/${documentId}/file`);
+        return;
+      }
+
       const response = await fetch(`/api/import/${documentId}/url`);
       const payload = (await response.json()) as { url?: string };
       if (!response.ok || !payload.url) {
@@ -57,7 +62,7 @@ export function ImportReaderClient({
     } finally {
       setLoading(false);
     }
-  }, [documentId]);
+  }, [documentId, kind]);
 
   useEffect(() => {
     void loadReaderUrl();
@@ -76,13 +81,16 @@ export function ImportReaderClient({
           url: readerUrl,
           withCredentials: false,
           disableWorker: true,
+          disableRange: true,
+          disableStream: true,
         });
         const loaded = (await task.promise) as PdfDocumentProxy;
         if (cancelled) return;
         setPdfDocument(loaded);
         setPageCount(loaded.numPages);
         setPageNumber((current) => Math.min(Math.max(1, current), loaded.numPages));
-      } catch {
+      } catch (renderError) {
+        console.error("Imported PDF load failed", renderError);
         if (!cancelled) {
           setError("PDF 渲染失败，请刷新阅读链接或在新窗口打开。");
         }
@@ -125,7 +133,8 @@ export function ImportReaderClient({
         canvas.style.height = `${Math.floor(viewport.height / pixelRatio)}px`;
 
         await page.render({ canvasContext: context, viewport }).promise;
-      } catch {
+      } catch (renderError) {
+        console.error("Imported PDF page render failed", renderError);
         if (!cancelled) {
           setError("PDF 页面渲染失败，请刷新阅读链接或在新窗口打开。");
         }
@@ -184,7 +193,7 @@ export function ImportReaderClient({
       {loading ? (
         <div className="flex min-h-[360px] items-center justify-center rounded-3xl bg-zinc-50 text-sm font-medium text-zinc-500">
           <Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-500" aria-hidden />
-          正在签发阅读链接
+          正在准备阅读器
         </div>
       ) : error ? (
         <div className="rounded-3xl bg-red-50 p-6 text-sm font-medium text-red-600">{error}</div>
@@ -207,7 +216,7 @@ export function ImportReaderClient({
       )}
 
       <p className="mt-4 text-xs leading-5 text-zinc-400">
-        PDF 使用 pdf.js 渲染；EPUB 原件阅读会继续接入 epub.js 文本层点词。
+        PDF 使用 pdf.js 同源渲染；EPUB 原件阅读会继续接入 epub.js 文本层点词。
       </p>
 
       <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-40 flex items-center justify-between rounded-full border border-zinc-200/60 bg-white/90 px-2 py-2 shadow-[0_14px_40px_-22px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
