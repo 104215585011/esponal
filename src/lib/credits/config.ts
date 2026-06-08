@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 17:16
+// Timestamp: 2026-06-08 16:16
 export type Plan =
   | "free"
   | "premium_m"
@@ -43,7 +43,9 @@ export const ACTION_COST_MINOR = {
   tts: toMinor(0.1),
   lookup_fallback: toMinor(0.1),
   phrase_extract_per_sentence: toMinor(0.05),
-  video_unlock_short: toMinor(2),
-  video_unlock_mid: toMinor(5),
-  video_unlock_long: toMinor(10),
+  ocr_per_page: toMinor(0.1),
+  // 视频字幕解锁:统一 0.5/次(不再按时长分档;三键暂保留以兼容路由分档逻辑)
+  video_unlock_short: toMinor(0.5),
+  video_unlock_mid: toMinor(0.5),
+  video_unlock_long: toMinor(0.5),
 };

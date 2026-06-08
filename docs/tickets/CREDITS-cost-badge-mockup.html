@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esponal · 积分账户页·消耗说明区 (CREDITS-FE-003)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff;--bg-soft:#f7f8f7;--ink:#121413;--ink-2:#3f433f;--muted:#8a8f88;--line:#eceeec;
+    --brand:#10b981;--brand-deep:#059669;--brand-soft:#ecf8f2;--shadow:0 1px 2px rgba(16,24,20,.04),0 8px 24px -16px rgba(16,24,20,.18);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9eae8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px;font-family:"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-family:"Plus Jakarta Sans","Noto Sans SC"}
+  .phone{width:390px;max-width:100%;height:820px;border-radius:44px;overflow:hidden;position:relative;background:var(--bg);box-shadow:0 40px 90px -20px rgba(0,0,0,.4),0 0 0 10px #16181a,0 0 0 11px #2a2d30}
+  .scroll{height:100%;overflow-y:auto}.scroll::-webkit-scrollbar{display:none}
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:13px 18px;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+  .back{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}.back svg{width:20px;height:20px;stroke:currentColor}
+  .topbar .t{font-size:15px;font-weight:600}
+
+  .sum{margin:18px;padding:20px;border-radius:22px;background:linear-gradient(140deg,#0e3b2c 0%,#10b981 130%);color:#fff;box-shadow:0 18px 38px -22px rgba(16,185,129,.6)}
+  .sum .lab{font-size:12px;opacity:.85;font-weight:300}
+  .sum .bal{margin-top:6px;display:flex;align-items:baseline;gap:6px}
+  .sum .bal .n{font-family:"Plus Jakarta Sans";font-size:38px;font-weight:800;line-height:1}
+  .sum .bal .u{font-size:13px;opacity:.9}
+  .sum .meta{margin-top:14px;display:flex;gap:10px;align-items:center}
+  .sum .chip{font-size:11.5px;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:999px}
+
+  .sech{padding:18px 22px 4px;font-size:12px;font-weight:600;color:var(--muted)}
+
+  /* ★ 消耗说明区 */
+  .ratecard{margin:6px 16px 0;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+  .rrow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .rrow:last-child{border-bottom:0}
+  .ic{flex:0 0 34px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--bg-soft)}
+  .ic svg{width:17px;height:17px;stroke:var(--ink-2);fill:none;stroke-width:1.9}
+  .rmain{flex:1;min-width:0}
+  .rmain .a{font-size:13.5px;font-weight:500;color:var(--ink)}
+  .rmain .d{margin-top:2px;font-size:11px;color:var(--muted)}
+  .cost{display:inline-flex;align-items:center;gap:3px;font-family:"Plus Jakarta Sans","Noto Sans SC";font-size:12.5px;font-weight:700;color:var(--brand-deep)}
+  .cost svg{width:13px;height:13px;fill:#059669}
+  .free{font-size:12px;font-weight:600;color:var(--muted)}
+
+  .freecard{margin:12px 16px 0;padding:13px 16px;border:1px dashed var(--line);border-radius:16px;background:var(--bg-soft)}
+  .freecard .h{font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:7px}
+  .freecard .tags{display:flex;flex-wrap:wrap;gap:7px}
+  .tag{font-size:11px;font-weight:500;color:var(--muted);background:#fff;border:1px solid var(--line);padding:4px 10px;border-radius:999px}
+  .foot{padding:14px 22px 30px;text-align:center;font-size:10.5px;color:var(--muted);font-weight:300;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone"><div class="scroll">
+  <div class="topbar">
+    <div class="back"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></div>
+    <span class="t">积分账户</span>
+  </div>
+
+  <div class="sum">
+    <div class="lab">当前配额余额</div>
+    <div class="bal"><span class="n">320</span><span class="u">配额</span></div>
+    <div class="meta"><span class="chip">进阶会员</span><span class="chip">每月 500 · 7月3日刷新</span></div>
+  </div>
+
+  <!-- ★ 新增:配额消耗说明 -->
+  <div class="sech">配额消耗说明</div>
+  <div class="ratecard">
+    <div class="rrow">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z"/></svg></div>
+      <div class="rmain"><div class="a">AI 对话</div><div class="d">每轮对话</div></div>
+      <span class="cost"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>0.5</span>
+    </div>
+    <div class="rrow">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H3v6h3l5 4V5zM16 9a3 3 0 010 6M19 6a7 7 0 010 12"/></svg></div>
+      <div class="rmain"><div class="a">发音朗读 (TTS)</div><div class="d">每次朗读</div></div>
+      <span class="cost"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>0.1</span>
+    </div>
+    <div class="rrow">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg></div>
+      <div class="rmain"><div class="a">查词(AI 回落)</div><div class="d">仅词典查不到、AI 补充释义时</div></div>
+      <span class="cost"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>0.1</span>
+    </div>
+    <div class="rrow">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v18M5 7h11l-2-2M5 13h14l-2-2"/></svg></div>
+      <div class="rmain"><div class="a">短语提取</div><div class="d">每句</div></div>
+      <span class="cost"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>0.05</span>
+    </div>
+    <div class="rrow">
+      <div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v12H4zM4 9h16M9 13h6"/></svg></div>
+      <div class="rmain"><div class="a">视频字幕解锁</div><div class="d">仅全新(未缓存)视频,不分时长</div></div>
+      <span class="cost"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>0.5</span>
+    </div>
+  </div>
+
+  <div class="freecard">
+    <div class="h">以下不消耗配额</div>
+    <div class="tags">
+      <span class="tag">看缓存视频</span><span class="tag">本地词典查词</span>
+      <span class="tag">复习 / SRS</span><span class="tag">收藏(限 50 词)</span>
+      <span class="tag">重看已解锁字幕</span>
+    </div>
+  </div>
+
+  <div class="foot">配额仅用于 AI 加工。费率以实际扣费为准,数值随版本可能调整。</div>
+</div></div>
+</body>
+</html>

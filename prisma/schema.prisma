@@ -28,6 +28,7 @@ model User {
   savedPhrases       SavedPhrase[]
   chatSessions       ChatSession[]
   creditTransactions CreditTransaction[]
+  importedDocuments  ImportedDocument[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -179,6 +180,46 @@ model VideoView {
   @@unique([userId, videoId])
   @@index([userId, viewedAt])
   @@map("video_views")
+}
+
+model ImportedDocument {
+  id            String            @id @default(cuid())
+  userId        String
+  title         String
+  kind          ImportKind
+  status        ImportStatus      @default(processing)
+  failReason    String?
+  pageCount     Int               @default(0)
+  lastPageIndex Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections      DocumentSection[]
+
+  @@index([userId, createdAt])
+}
+
+model DocumentSection {
+  id         String           @id @default(cuid())
+  documentId String
+  pageIndex  Int
+  content    String           @db.Text
+  document   ImportedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, pageIndex])
+  @@index([documentId, pageIndex])
+}
+
+enum ImportKind {
+  epub
+  pdf_text
+  pdf_ocr
+}
+
+enum ImportStatus {
+  processing
+  ready
+  failed
 }
 
 enum LexiconKind {

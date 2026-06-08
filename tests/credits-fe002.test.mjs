@@ -36,13 +36,13 @@ test("CREDITS-FE-002 centralizes reason and refType label mapping for ledger row
   assert.match(source, /注册赠送|娉ㄥ唽璧犻€?/);
   assert.match(source, /refill/);
   assert.match(source, /月度配额补充|鏈堝害閰嶉琛ュ厖/);
-  assert.match(source, /talk_turn/);
+  assert.match(source, /talk:\s*"AI 对话"/);
   assert.match(source, /AI 对话|AI 瀵硅瘽/);
   assert.match(source, /tts/);
   assert.match(source, /发音朗读|鍙戦煶鏈楄/);
-  assert.match(source, /lookup_fallback/);
-  assert.match(source, /phrase_extract/);
-  assert.match(source, /video_unlock/);
+  assert.match(source, /lookup:\s*"查词\(AI 回落\)"/);
+  assert.match(source, /phrase:\s*"短语提取"/);
+  assert.match(source, /subtitle:\s*"视频字幕解锁"/);
   assert.match(source, /配额消费|閰嶉娑堣垂/);
 });
 

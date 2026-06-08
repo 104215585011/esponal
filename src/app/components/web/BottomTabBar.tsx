@@ -1,8 +1,11 @@
-// Timestamp: 2026-06-04 12:08
+// Timestamp: 2026-06-08 20:58
 "use client";
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { CirclePlay as Youtube, FileText, Plus } from "lucide-react";
+import { ImportSheet } from "./ImportSheet";
 
 type IconProps = {
   className?: string;
@@ -85,6 +88,8 @@ export function BottomTabBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const videoId = searchParams.get("v")?.trim() ?? "";
+  const [fanOpen, setFanOpen] = useState(false);
+  const [sheetMode, setSheetMode] = useState<"url" | "file" | null>(null);
 
   if (shouldHideTabBar(pathname, Boolean(videoId))) {
     return null;
@@ -95,6 +100,44 @@ export function BottomTabBar() {
       aria-label="主导航"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200/60 bg-white/90 backdrop-blur-[18px] dark:border-zinc-800/60 dark:bg-zinc-950/90 md:hidden"
     >
+      {fanOpen ? (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-32px)] max-w-sm bg-white rounded-[24px] shadow-[0_20px_60px_-16px_rgba(0,0,0,0.15)] p-2 z-50">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              className="flex flex-col items-center gap-2 rounded-[18px] bg-red-50/50 p-4 transition active:bg-red-50"
+              onClick={() => {
+                setFanOpen(false);
+                setSheetMode("url");
+              }}
+              type="button"
+            >
+              <Youtube className="h-7 w-7 text-red-500" aria-hidden />
+              <span className="text-[13px] font-semibold text-zinc-900">视频链接</span>
+            </button>
+            <button
+              className="flex flex-col items-center gap-2 rounded-[18px] bg-brand-50/50 p-4 transition active:bg-brand-50"
+              onClick={() => {
+                setFanOpen(false);
+                setSheetMode("file");
+              }}
+              type="button"
+            >
+              <FileText className="h-7 w-7 text-brand-500" aria-hidden />
+              <span className="text-[13px] font-semibold text-zinc-900">EPUB/PDF</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <button
+        aria-expanded={fanOpen}
+        aria-label="打开导入入口"
+        className="absolute left-1/2 top-0 w-12 h-12 rounded-full bg-brand-500 text-white shadow-[0_8px_16px_-6px_rgba(16,185,129,0.5)] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-transform active:scale-95"
+        data-testid="mobile-import-trigger"
+        onClick={() => setFanOpen((open) => !open)}
+        type="button"
+      >
+        <Plus className={`h-6 w-6 transition-transform ${fanOpen ? "rotate-45" : ""}`} strokeWidth={2.5} aria-hidden />
+      </button>
       <ul className="grid grid-cols-4 items-stretch px-2 pt-[9px] pb-[calc(9px+env(safe-area-inset-bottom))]">
         {tabs.map(({ label, href, matchBase, Icon }) => {
           const active = startsWith(pathname, matchBase);
@@ -119,6 +162,7 @@ export function BottomTabBar() {
           );
         })}
       </ul>
+      <ImportSheet mode={sheetMode} onClose={() => setSheetMode(null)} />
     </nav>
   );
 }

@@ -1,6 +1,7 @@
-// Timestamp: 2026-06-03 16:04
+// Timestamp: 2026-06-08 18:29
 // Keep for tests: border-emerald-100 ml-1.5 text-emerald-500
 import Link from "next/link";
+import { FileText } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAuthOptions } from "@/lib/auth";
@@ -40,12 +41,23 @@ export default async function LecturaIndexPage() {
       <SiteHeader />
       <section className="mx-auto max-w-app-shell px-4 py-5 md:py-8">
         <header className="mb-6 md:mb-7">
-          <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-gray-900 dark:text-zinc-100 md:text-[32px]">
-            Lectura · 西语短文阅读
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500 dark:text-zinc-400">
-            适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
-          </p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-gray-900 dark:text-zinc-100 md:text-[32px]">
+                Lectura · 西语短文阅读
+              </h1>
+              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500 dark:text-zinc-400">
+                适合通勤、午休、工位 5 分钟。每段配 TTS 朗读，点任意单词查义。
+              </p>
+            </div>
+            <Link
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-brand-200 bg-white px-4 text-sm font-semibold text-brand-700 shadow-card transition active:scale-[0.98] md:mt-1"
+              href="/import/library"
+            >
+              <FileText className="h-4 w-4" />
+              我的导入库
+            </Link>
+          </div>
           {userId ? (
             <div className="mt-3 flex items-center gap-2 text-sm text-gray-500 dark:text-zinc-400">
               <svg className="w-5 h-5 -rotate-90" viewBox="0 0 36 36">
