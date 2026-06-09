@@ -16,7 +16,7 @@ type AddEncounterInput = {
   wordId: string;
   sourceUrl: string;
   timestampSec: number;
-  sourceType?: "video" | "course" | "lectura" | "dissect" | "grammar" | "talk";
+  sourceType?: "video" | "course" | "lectura" | "dissect" | "grammar" | "import" | "talk";
   courseRef?: string | null;
   originalSentence: string;
   translatedSentence: string;

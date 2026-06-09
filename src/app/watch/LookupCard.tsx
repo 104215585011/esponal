@@ -43,6 +43,12 @@ export type LookupSource =
       sessionId: string;
       messageIndex: number;
       sentence: string;
+    }
+  | {
+      type: "import";
+      documentId: string;
+      pageNumber: number;
+      sentence: string;
     };
 
 type RelatedPhrase = {
@@ -423,7 +429,9 @@ export function LookupCard({
                 ? `/lectura/${resolvedSource.storySlug}#p${resolvedSource.paragraphIndex}`
                 : resolvedSource.type === "video"
                   ? resolvedSource.url ?? getCurrentUrl()
-                  : resolvedSource.url,
+                  : resolvedSource.type === "import"
+                    ? `/import/${resolvedSource.documentId}#p${resolvedSource.pageNumber}`
+                    : resolvedSource.url,
             originalSentence: sourceSentence,
             translatedSentence: translatedSentence || translation,
             timestampSec:
@@ -441,7 +449,9 @@ export function LookupCard({
                       ? "dissect"
                       : resolvedSource.type === "talk"
                         ? `talk:${resolvedSource.characterId}:${resolvedSource.sessionId}:m${resolvedSource.messageIndex}`
-                        : null
+                        : resolvedSource.type === "import"
+                          ? `import:${resolvedSource.documentId}:p${resolvedSource.pageNumber}`
+                          : null
           })
         });
 
@@ -505,7 +515,9 @@ export function LookupCard({
               ? `/lectura/${resolvedSource.storySlug}#p${resolvedSource.paragraphIndex}`
               : resolvedSource.type === "video"
                 ? resolvedSource.url ?? getCurrentUrl()
-                : resolvedSource.url,
+                : resolvedSource.type === "import"
+                  ? `/import/${resolvedSource.documentId}#p${resolvedSource.pageNumber}`
+                  : resolvedSource.url,
           timestampSec:
             resolvedSource.type === "video"
               ? Math.max(0, Math.floor(resolvedSource.timestampSec ?? currentTimeSec ?? 0))
@@ -518,10 +530,12 @@ export function LookupCard({
                 : resolvedSource.type === "grammar"
                   ? `grammar:${resolvedSource.topicSlug}`
                   : resolvedSource.type === "dissect"
-                    ? "dissect"
-                    : resolvedSource.type === "talk"
-                      ? `talk:${resolvedSource.characterId}:${resolvedSource.sessionId}:m${resolvedSource.messageIndex}`
-                      : null,
+                ? "dissect"
+                : resolvedSource.type === "talk"
+                  ? `talk:${resolvedSource.characterId}:${resolvedSource.sessionId}:m${resolvedSource.messageIndex}`
+                  : resolvedSource.type === "import"
+                    ? `import:${resolvedSource.documentId}:p${resolvedSource.pageNumber}`
+                    : null,
           originalSentence: sourceSentence,
           translatedSentence: translatedSentence || lookupState.translation
         })
@@ -905,7 +919,7 @@ export function LookupCard({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75L12 10.5l-3.75-3.75M12 10.5v8.25" />
                 </svg>
                 <span className="truncate font-sans">
-                  {source?.type === "video" ? "遭遇视频" : source?.type === "lectura" ? "阅读" : "对话"}
+                  {source?.type === "video" ? "遭遇视频" : source?.type === "lectura" || source?.type === "import" ? "阅读" : "对话"}
                 </span>
               </div>
             </div>

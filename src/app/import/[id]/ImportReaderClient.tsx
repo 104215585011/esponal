@@ -1,8 +1,9 @@
-// Timestamp: 2026-06-09 09:03
+// Timestamp: 2026-06-09 09:48
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw, ZoomIn, ZoomOut } from "lucide-react";
+import { LookupCardStack } from "@/app/watch/LookupCard";
 
 type ImportReaderClientProps = {
   documentId: string;
@@ -18,9 +19,107 @@ type PdfDocumentProxy = {
 };
 
 type PdfPageProxy = {
-  getViewport(input: { scale: number }): { width: number; height: number };
+  getTextContent(): Promise<PdfTextContent>;
+  getViewport(input: { scale: number }): PdfViewport;
   render(input: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }): { promise: Promise<void> };
 };
+
+type PdfJsModule = typeof import("pdfjs-dist/build/pdf.mjs");
+type PdfViewport = {
+  width: number;
+  height: number;
+  convertToViewportPoint?: (x: number, y: number) => [number, number];
+};
+type PdfTextContent = {
+  items: Array<{
+    str?: string;
+    transform?: number[];
+    width?: number;
+    height?: number;
+  }>;
+};
+type PdfTextLayerItem = {
+  id: string;
+  text: string;
+  lineText: string;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+type PdfLookupCard = {
+  id: string;
+  form: string;
+  lookupKind: "word" | "phrase";
+  phraseKind?: "collocation" | "phrase" | "idiom";
+};
+type PdfLookupStack = {
+  anchorX: number;
+  anchorY: number;
+  lineText: string;
+  cards: PdfLookupCard[];
+};
+
+const PDF_WORKER_SRC = "/api/import/pdf-worker";
+const PDF_DEFAULT_ZOOM = 1.45;
+const PDF_MIN_ZOOM = 1;
+const PDF_MAX_ZOOM = 2.2;
+const PDF_WORD_PATTERN = /[\p{L}ÁÉÍÓÚÜÑáéíóúüñ]+/gu;
+let sharedPdfWorker: Worker | null = null;
+
+function configurePdfJsWorker(pdfjs: PdfJsModule) {
+  pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
+
+  if (typeof window === "undefined") return;
+
+  try {
+    sharedPdfWorker ??= new Worker(PDF_WORKER_SRC, { type: "module" });
+    pdfjs.GlobalWorkerOptions.workerPort = sharedPdfWorker;
+  } catch (workerError) {
+    console.warn("Imported PDF workerPort setup failed; falling back to workerSrc", workerError);
+  }
+
+  if (!pdfjs.GlobalWorkerOptions.workerPort && pdfjs.GlobalWorkerOptions.workerSrc !== PDF_WORKER_SRC) {
+    throw new Error("PDF worker configuration failed before loading document");
+  }
+}
+
+function clampPdfZoom(value: number) {
+  return Math.max(PDF_MIN_ZOOM, Math.min(PDF_MAX_ZOOM, Number(value.toFixed(2))));
+}
+
+function buildPdfTextLayerItems(textContent: PdfTextContent, viewport: PdfViewport, scale: number) {
+  const items: PdfTextLayerItem[] = [];
+
+  textContent.items.forEach((item, itemIndex) => {
+    const lineText = typeof item.str === "string" ? item.str.trim() : "";
+    const transform = Array.isArray(item.transform) ? item.transform : null;
+    if (!lineText || !transform || transform.length < 6) return;
+
+    const [x, y] = viewport.convertToViewportPoint
+      ? viewport.convertToViewportPoint(transform[4], transform[5])
+      : [transform[4] * scale, viewport.height - transform[5] * scale];
+    const lineWidth = Math.max(18, (item.width ?? lineText.length * 5) * scale);
+    const lineHeight = Math.max(18, Math.abs(item.height ?? transform[3] ?? 10) * scale);
+
+    for (const match of lineText.matchAll(PDF_WORD_PATTERN)) {
+      const text = match[0];
+      const startRatio = (match.index ?? 0) / Math.max(1, lineText.length);
+      const widthRatio = text.length / Math.max(1, lineText.length);
+      items.push({
+        id: `${itemIndex}-${match.index ?? 0}-${text}`,
+        text,
+        lineText,
+        left: x + lineWidth * startRatio,
+        top: y - lineHeight,
+        width: Math.max(24, lineWidth * widthRatio),
+        height: Math.max(24, lineHeight * 1.2),
+      });
+    }
+  });
+
+  return items;
+}
 
 export function ImportReaderClient({
   documentId,
@@ -35,6 +134,10 @@ export function ImportReaderClient({
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState("");
   const [pdfDocument, setPdfDocument] = useState<PdfDocumentProxy | null>(null);
+  const [pdfZoom, setPdfZoom] = useState(PDF_DEFAULT_ZOOM);
+  const [canvasCssSize, setCanvasCssSize] = useState({ width: 0, height: 0 });
+  const [pdfTextLayerItems, setPdfTextLayerItems] = useState<PdfTextLayerItem[]>([]);
+  const [activePdfLookup, setActivePdfLookup] = useState<PdfLookupStack | null>(null);
   const [pageNumber, setPageNumber] = useState(() => {
     const match = /^pdf:(\d+)$/.exec(lastPosition);
     return match ? Math.max(1, Number(match[1])) : 1;
@@ -88,13 +191,15 @@ export function ImportReaderClient({
         }
 
         const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
-        pdfjs.GlobalWorkerOptions.workerSrc = "/api/import/pdf-worker";
+        configurePdfJsWorker(pdfjs);
         const task = pdfjs.getDocument({
           data: bytes,
         });
         const loaded = (await task.promise) as PdfDocumentProxy;
         if (cancelled) return;
         setPdfDocument(loaded);
+        setActivePdfLookup(null);
+        setPdfTextLayerItems([]);
         setPageCount(loaded.numPages);
         setPageNumber((current) => Math.min(Math.max(1, current), loaded.numPages));
       } catch (renderError) {
@@ -131,14 +236,19 @@ export function ImportReaderClient({
         if (cancelled) return;
         const containerWidth = Math.min(760, canvas.parentElement?.clientWidth ?? 360);
         const baseViewport = page.getViewport({ scale: 1 });
-        const cssScale = containerWidth / baseViewport.width;
+        const cssScale = (containerWidth / baseViewport.width) * pdfZoom;
         const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        const cssViewport = page.getViewport({ scale: cssScale });
         const viewport = page.getViewport({ scale: cssScale * pixelRatio });
+        const textContent = await page.getTextContent();
+        if (cancelled) return;
 
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
-        canvas.style.width = `${Math.floor(viewport.width / pixelRatio)}px`;
-        canvas.style.height = `${Math.floor(viewport.height / pixelRatio)}px`;
+        canvas.style.width = `${Math.floor(cssViewport.width)}px`;
+        canvas.style.height = `${Math.floor(cssViewport.height)}px`;
+        setCanvasCssSize({ width: Math.floor(cssViewport.width), height: Math.floor(cssViewport.height) });
+        setPdfTextLayerItems(buildPdfTextLayerItems(textContent, cssViewport, cssScale));
 
         await page.render({ canvasContext: context, viewport }).promise;
       } catch (renderError) {
@@ -157,7 +267,7 @@ export function ImportReaderClient({
     return () => {
       cancelled = true;
     };
-  }, [kind, pageNumber, pdfDocument]);
+  }, [kind, pageNumber, pdfDocument, pdfZoom]);
 
   useEffect(() => {
     if (kind !== "pdf" || pageCount <= 0) return;
@@ -167,6 +277,55 @@ export function ImportReaderClient({
       body: JSON.stringify({ lastPosition: `pdf:${pageNumber}`, unitCount: pageCount }),
     });
   }, [documentId, kind, pageCount, pageNumber]);
+
+  const openPdfLookup = (event: MouseEvent<HTMLButtonElement>, item: PdfTextLayerItem) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setActivePdfLookup({
+      anchorX: rect.left,
+      anchorY: rect.bottom + 6,
+      lineText: item.lineText,
+      cards: [
+        {
+          id: `word-${item.text}`,
+          form: item.text,
+          lookupKind: "word",
+        },
+      ],
+    });
+  };
+
+  const closePdfLookupCard = (id: string) => {
+    setActivePdfLookup((previous) => {
+      if (!previous) return null;
+      const cards = previous.cards.filter((card) => card.id !== id);
+      return cards.length > 0 ? { ...previous, cards } : null;
+    });
+  };
+
+  const openNestedPdfWord = (form: string) => {
+    setActivePdfLookup((previous) => {
+      if (!previous || previous.cards.length >= 2) return previous;
+      return {
+        ...previous,
+        cards: [...previous.cards, { id: `word-${form}`, form, lookupKind: "word" }],
+      };
+    });
+  };
+
+  const openNestedPdfPhrase = (form: string, phraseKind: "collocation" | "phrase" | "idiom") => {
+    setActivePdfLookup((previous) => {
+      if (!previous || previous.cards.length >= 2) return previous;
+      return {
+        ...previous,
+        cards: [...previous.cards, { id: `phrase-${form}`, form, lookupKind: "phrase", phraseKind }],
+      };
+    });
+  };
+
+  const changePdfZoom = (delta: number) => {
+    setActivePdfLookup(null);
+    setPdfZoom((current) => clampPdfZoom(current + delta));
+  };
 
   const canGoPrevious = kind === "pdf" && pageNumber > 1;
   const canGoNext = kind === "pdf" && pageCount > 0 && pageNumber < pageCount;
@@ -185,7 +344,31 @@ export function ImportReaderClient({
             </p>
           ) : null}
         </div>
-        {readerUrl ? (
+        <div className="flex items-center gap-2">
+          {kind === "pdf" ? (
+            <div className="hidden items-center gap-1 rounded-full bg-zinc-100 p-1 md:flex">
+              <button
+                aria-label="缩小 PDF"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 disabled:opacity-40"
+                disabled={pdfZoom <= PDF_MIN_ZOOM}
+                onClick={() => changePdfZoom(-0.15)}
+                type="button"
+              >
+                <ZoomOut className="h-4 w-4" aria-hidden />
+              </button>
+              <span className="min-w-12 text-center text-xs font-semibold text-zinc-600">{Math.round(pdfZoom * 100)}%</span>
+              <button
+                aria-label="放大 PDF"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 disabled:opacity-40"
+                disabled={pdfZoom >= PDF_MAX_ZOOM}
+                onClick={() => changePdfZoom(0.15)}
+                type="button"
+              >
+                <ZoomIn className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          ) : null}
+          {readerUrl ? (
           <a
             className="hidden min-h-[44px] items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-white md:inline-flex"
             href={readerUrl}
@@ -195,7 +378,8 @@ export function ImportReaderClient({
             新窗口打开
             <ExternalLink className="h-4 w-4" aria-hidden />
           </a>
-        ) : null}
+          ) : null}
+        </div>
       </div>
 
       {loading ? (
@@ -206,14 +390,47 @@ export function ImportReaderClient({
       ) : error ? (
         <div className="rounded-3xl bg-red-50 p-6 text-sm font-medium text-red-600">{error}</div>
       ) : kind === "pdf" ? (
-        <div className="relative flex min-h-[520px] justify-center rounded-3xl border border-zinc-200 bg-zinc-50 p-2">
+        <div className="relative min-h-[520px] overflow-x-auto rounded-3xl border border-zinc-200 bg-zinc-50 p-2">
           {pdfLoading ? (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 text-sm font-medium text-zinc-500 backdrop-blur-sm">
               <Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-500" aria-hidden />
               正在渲染 PDF
             </div>
           ) : null}
-          <canvas ref={canvasRef} className="max-w-full rounded-2xl bg-white shadow-sm" />
+          <div
+            className="relative mx-auto"
+            style={{
+              minWidth: canvasCssSize.width || undefined,
+              width: canvasCssSize.width || undefined,
+              height: canvasCssSize.height || undefined,
+            }}
+          >
+            <canvas ref={canvasRef} className="rounded-2xl bg-white shadow-sm" />
+            <div
+              className="absolute left-0 top-0 z-[2]"
+              data-testid="import-pdf-text-layer"
+              style={{ width: canvasCssSize.width, height: canvasCssSize.height }}
+            >
+              {pdfTextLayerItems.map((item) => (
+                <button
+                  aria-label={`查询 ${item.text}`}
+                  className="absolute rounded-sm bg-brand-500/0 text-transparent outline-none transition hover:bg-brand-500/15 focus:bg-brand-500/20"
+                  data-testid="import-pdf-word"
+                  key={item.id}
+                  onClick={(event) => openPdfLookup(event, item)}
+                  style={{
+                    left: item.left,
+                    top: item.top,
+                    width: item.width,
+                    height: item.height,
+                  }}
+                  type="button"
+                >
+                  {item.text}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <iframe
@@ -224,8 +441,36 @@ export function ImportReaderClient({
       )}
 
       <p className="mt-4 text-xs leading-5 text-zinc-400">
-        PDF 使用 pdf.js 同源渲染；EPUB 原件阅读会继续接入 epub.js 文本层点词。
+        PDF 可横向滑动放大阅读；有文本层的页面可直接点词，扫描图片页暂时只能原图阅读。
       </p>
+
+      {activePdfLookup ? (
+        <span
+          className="fixed z-[70] w-[300px] max-w-[min(20rem,calc(100vw-2rem))]"
+          style={{
+            left: Math.max(8, Math.min(activePdfLookup.anchorX - 150, typeof window === "undefined" ? 8 : window.innerWidth - 328)),
+            top: activePdfLookup.anchorY,
+          }}
+        >
+          <LookupCardStack
+            cards={activePdfLookup.cards.map((card) => ({
+              ...card,
+              onClose: () => closePdfLookupCard(card.id),
+              onExampleWordClick: openNestedPdfWord,
+              onRelatedPhraseClick: openNestedPdfPhrase,
+              originalSentence: activePdfLookup.lineText,
+              translatedSentence: "",
+              source: {
+                type: "import",
+                documentId,
+                pageNumber,
+                sentence: activePdfLookup.lineText,
+              },
+            }))}
+            onCloseCard={closePdfLookupCard}
+          />
+        </span>
+      ) : null}
 
       <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-40 flex items-center justify-between rounded-full border border-zinc-200/60 bg-white/90 px-2 py-2 shadow-[0_14px_40px_-22px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
         {kind === "pdf" ? (
@@ -247,7 +492,7 @@ export function ImportReaderClient({
           </button>
         )}
         <span className="px-3 text-xs font-semibold text-zinc-600">
-          {kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount}` : kind === "epub" ? "epub.js 待接入" : "pdf.js"}
+          {kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount} · ${Math.round(pdfZoom * 100)}%` : kind === "epub" ? "epub.js 待接入" : "pdf.js"}
         </span>
         {kind === "pdf" ? (
           <button

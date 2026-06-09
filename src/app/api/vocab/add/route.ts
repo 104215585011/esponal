@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       body.sourceType === "lectura" ||
       body.sourceType === "dissect" ||
       body.sourceType === "grammar" ||
+      body.sourceType === "import" ||
       body.sourceType === "talk"
         ? body.sourceType
         : "video";

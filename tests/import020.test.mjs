@@ -15,6 +15,9 @@ test("IMPORT v2 removes server-side parsing and keeps original rendering client-
   const reader = await read("src/app/import/[id]/ImportReaderClient.tsx");
   assert.match(reader, /\/api\/import\/\$\{documentId\}\/url/);
   assert.match(reader, /iframe/);
-  assert.doesNotMatch(reader, /LookupCardStack/);
+  assert.match(reader, /getTextContent\(\)/);
+  assert.match(reader, /data-testid="import-pdf-text-layer"/);
+  assert.match(reader, /LookupCardStack/);
+  assert.match(reader, /type: "import"/);
   assert.doesNotMatch(reader, /WINDOW_RADIUS/);
 });

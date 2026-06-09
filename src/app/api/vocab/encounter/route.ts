@@ -1,4 +1,4 @@
-// Timestamp: 2026-05-27 15:02
+// Timestamp: 2026-06-09 09:48
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -21,6 +21,7 @@ const VALID_SOURCE_TYPES = [
   "lectura",
   "dissect",
   "grammar",
+  "import",
   "talk"
 ] as const;
 

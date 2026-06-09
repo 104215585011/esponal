@@ -55,7 +55,11 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(client, /await response\.arrayBuffer\(\)/);
   assert.match(client, /new Uint8Array\(buffer\)/);
   assert.match(client, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
-  assert.match(client, /pdfjs\.GlobalWorkerOptions\.workerSrc\s*=\s*"\/api\/import\/pdf-worker"/);
+  assert.match(client, /configurePdfJsWorker\(pdfjs\)/);
+  assert.match(client, /const PDF_WORKER_SRC\s*=\s*"\/api\/import\/pdf-worker"/);
+  assert.match(client, /pdfjs\.GlobalWorkerOptions\.workerSrc\s*=\s*PDF_WORKER_SRC/);
+  assert.match(client, /pdfjs\.GlobalWorkerOptions\.workerPort\s*=\s*sharedPdfWorker/);
+  assert.match(client, /new Worker\(PDF_WORKER_SRC,\s*\{\s*type:\s*"module"\s*\}\)/);
   assert.doesNotMatch(client, /pdfjs-dist\/build\/pdf\.worker\.mjs/);
   assert.match(client, /pdfjs\.getDocument/);
   assert.match(client, /data:\s*bytes/);
@@ -64,6 +68,15 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(client, /console\.error\("Imported PDF load failed"/);
   assert.match(client, /<canvas/);
   assert.match(client, /page\.render/);
+  assert.match(client, /pdfZoom/);
+  assert.match(client, /PDF_DEFAULT_ZOOM/);
+  assert.match(client, /overflow-x-auto/);
+  assert.match(client, /getTextContent\(\)/);
+  assert.match(client, /buildPdfTextLayerItems/);
+  assert.match(client, /pdfTextLayerItems/);
+  assert.match(client, /openPdfLookup/);
+  assert.match(client, /LookupCardStack/);
+  assert.match(client, /source:\s*\{\s*type:\s*"import"/);
   assert.match(client, /readerUrl/);
   assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/progress`/);
   assert.match(client, /lastPosition:\s*`pdf:\$\{pageNumber\}`/);

@@ -13958,3 +13958,50 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 ### QA request
 - After deploy, retry the same PDF reader page. Expected: no `Unexpected identifier 'PDF'`, first page renders into the canvas, and previous/next works.
 - If it still fails, capture the new `Imported PDF load failed` console object and the Network response for `/api/import/[id]/file`.
+
+## Dev Update: IMPORT-3 pdf.js workerPort hardening ready for QA [Codex1, 2026-06-09 09:35]
+- User confirmed `/api/import/[id]/file` now returns 200, `Content-Type: application/pdf`, and a valid `Content-Length`; file delivery is no longer the failing boundary.
+- Production still logged `No "GlobalWorkerOptions.workerSrc" specified`, so the remaining failure is inside pdf.js worker initialization.
+- Hardened `src/app/import/[id]/ImportReaderClient.tsx` with `configurePdfJsWorker()`:
+  - sets `pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC`
+  - creates `sharedPdfWorker = new Worker(PDF_WORKER_SRC, { type: "module" })`
+  - assigns `pdfjs.GlobalWorkerOptions.workerPort = sharedPdfWorker`, which overrides pdf.js path resolution
+  - keeps workerSrc as fallback if workerPort setup fails
+- Updated `src/types/pdfjs-dist.d.ts` so `workerPort` is part of the local module contract.
+- Strengthened `tests/import018.test.mjs` / `tests/import024.test.mjs` with workerPort assertions.
+
+### Verification
+- Red check: `node --test tests/import018.test.mjs tests/import024.test.mjs` failed before implementation because there was no workerPort setup.
+- `node --test tests/import018.test.mjs tests/import023.test.mjs tests/import024.test.mjs` -> 5/5 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only
+
+### QA request
+- After deploy, hard refresh the imported PDF page. Expected: `/api/import/[id]/file` remains 200, `/api/import/pdf-worker` is fetched as JS, and the first PDF page renders.
+- If it still fails, capture whether `/api/import/pdf-worker` is requested and its response status/content-type.
+
+## Dev Update: IMPORT-3 PDF readability + lookup ready for QA [Codex1, 2026-06-09 10:05]
+- User confirmed the imported PDF now renders, but the rendered page was too small on mobile and there was no click-to-lookup interaction.
+- Updated `src/app/import/[id]/ImportReaderClient.tsx`:
+  - default PDF zoom is now 145%, with clamp helpers and horizontal overflow so textbook pages are readable on mobile instead of being squeezed into a tiny full-page preview.
+  - desktop has explicit zoom in/out controls; mobile bottom dock shows the current zoom percent with the page number.
+  - each rendered PDF page now calls `page.getTextContent()` and builds a transparent text layer over the canvas.
+  - Spanish-looking words in the text layer are tappable and open the existing `LookupCardStack`.
+  - lookup source metadata is recorded as `type: "import"`, `documentId`, page number, and line text, so saved/encountered words can link back to `/import/:id#pN`.
+- Extended the shared vocab source contract in `LookupCard`, `/api/vocab/add`, `/api/vocab/encounter`, and `src/lib/vocab.ts` to accept the new `import` source type.
+- Updated the v2 reader contract tests so client-side PDF text-layer lookup is now expected while server-side parsing/window routes remain removed.
+
+### Verification
+- Red check: `node --test tests/import018.test.mjs tests/import025.test.mjs` failed before implementation on missing zoom/text-layer lookup.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs` -> 7/7 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+- `npm test` -> 478/478 pass
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only
+
+### QA request
+- On Vercel, hard refresh the same imported PDF document.
+- Confirm the page renders larger by default and can be horizontally panned if needed.
+- Tap a visible Spanish word in the PDF. Expected: the normal lookup card opens; nested phrase/word navigation still works.
+- Save a looked-up word and confirm the encounter source does not 400; the source should be treated as reading/import context.
+- If the PDF is image-only/scanned, the text layer may have no tappable words; this ticket is for text PDFs where pdf.js exposes text content.
