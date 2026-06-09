@@ -1,3 +1,29 @@
+## Codex1 Fix Report: IMPORT-3 EPUB COS error guard
+**Time**: 2026-06-09 14:35
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User reported imported EPUB renders as a raw Tencent COS `SignatureDoesNotMatch` error page.
+
+**Fix**:
+- Root cause: EPUB reader path used `/api/import/[id]/url` and put a direct COS presigned URL into an iframe.
+- `ImportReaderClient` now uses the authenticated same-origin `/api/import/[id]/file` proxy for both PDF and EPUB.
+- Removed the EPUB iframe path so raw COS/XML error pages cannot appear inside the app reader.
+- EPUB currently shows a controlled fallback card: `EPUB 阅读器正在接入` plus `打开 EPUB 原件` through the same-origin proxy.
+
+**Verification**:
+- Red check: `node --test tests/import018.test.mjs` failed first against the old `/url` fetch.
+- Focused regression: `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 9/9 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**QA focus**:
+- Imported EPUB should no longer show `SignatureDoesNotMatch` or COS XML/text inside the reader.
+- EPUB reader should show the controlled fallback card and same-origin `打开 EPUB 原件` action.
+- PDF reading, page navigation, and PDF word lookup should still work.
+- Product note: full EPUB pagination/point-word reader still requires a dedicated epub.js or server-spine implementation.
+
 ## Codex1 Fix Report: IMPORT-4 import page exit path
 **Time**: 2026-06-09 14:15
 **From**: Codex1 (DEV)

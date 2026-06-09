@@ -1,3 +1,21 @@
+### Session #IMPORT-3 EPUB COS Error Guard - 2026-06-09 14:35
+
+**Goal**: Fix user feedback that imported EPUB opens as a raw COS `SignatureDoesNotMatch` error page inside the reader.
+
+**Done (Codex1)**:
+- Root cause: EPUB reader path still fetched `/api/import/[id]/url` and put a COS presigned URL directly into an iframe; when COS rejected the signed URL, the XML/text error body rendered as the reading page.
+- Changed `ImportReaderClient` so imported documents use the authenticated same-origin `/api/import/[id]/file` proxy instead of direct COS `/url`.
+- Removed the EPUB iframe path to prevent raw COS errors from being rendered in-app.
+- Added an EPUB-controlled fallback screen with a clear `EPUB 阅读器正在接入` message and an `打开 EPUB 原件` same-origin proxy link.
+- Updated import reader tests so `/url` and iframe cannot regress for the reader path.
+
+**Verification**:
+- Red check: `node --test tests/import018.test.mjs` failed first against the old `/url` fetch.
+- Focused regression: `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 9/9 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**Status**: Ready for full verification. Note: this is a guard/hotfix, not full epub.js reading; complete EPUB pagination and word lookup still need a dedicated EPUB reader implementation.
+
 ### Session #IMPORT-4 Import Page Exit Path - 2026-06-09 14:15
 
 **Goal**: Fix user feedback that the standalone `/import` page traps users because there is no visible way to leave the import screen.

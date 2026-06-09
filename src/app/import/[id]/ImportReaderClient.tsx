@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 13:55
+// Timestamp: 2026-06-09 14:35
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
@@ -172,24 +172,13 @@ export function ImportReaderClient({
     setLoading(true);
     setError("");
     try {
-      if (kind === "pdf") {
-        setReaderUrl(`/api/import/${documentId}/file`);
-        return;
-      }
-
-      const response = await fetch(`/api/import/${documentId}/url`);
-      const payload = (await response.json()) as { url?: string };
-      if (!response.ok || !payload.url) {
-        setError("无法读取导入文件，请稍后重试。");
-        return;
-      }
-      setReaderUrl(payload.url);
+      setReaderUrl(`/api/import/${documentId}/file`);
     } catch {
       setError("无法读取导入文件，请稍后重试。");
     } finally {
       setLoading(false);
     }
-  }, [documentId, kind]);
+  }, [documentId]);
 
   useEffect(() => {
     void loadReaderUrl();
@@ -520,12 +509,25 @@ export function ImportReaderClient({
             </div>
           </>
         ) : (
-          <iframe
-            className="h-[100dvh] w-full bg-white"
-            onClick={(event) => event.stopPropagation()}
-            src={readerUrl}
-            title={title}
-          />
+          <div className="flex h-[100dvh] w-full items-center justify-center px-6 text-center">
+            <div className="max-w-sm rounded-3xl bg-white/90 px-6 py-8 shadow-sm ring-1 ring-zinc-200">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand-600">EPUB</p>
+              <h1 className="mt-3 text-xl font-bold text-zinc-950">EPUB 阅读器正在接入</h1>
+              <p className="mt-3 text-sm leading-6 text-zinc-500">
+                已避免直接打开 COS 预签名链接，原件可通过同源代理打开。完整的 EPUB 翻页和点词阅读器会继续接入。
+              </p>
+              {readerUrl ? (
+                <a
+                  className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white active:bg-brand-600"
+                  href={readerUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  打开 EPUB 原件
+                </a>
+              ) : null}
+            </div>
+          </div>
         )}
       </div>
 
