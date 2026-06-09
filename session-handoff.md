@@ -1,3 +1,28 @@
+## Codex1 Fix Report: IMPORT-4 import page exit path
+**Time**: 2026-06-09 14:15
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA)
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User reported that entering the standalone `/import` page leaves no visible way out.
+
+**Fix**:
+- Added a page-level top nav on `/import`.
+- `返回语料库` links to `/vocab`.
+- `我的导入库` links to `/import/library`.
+- Existing URL parsing and EPUB/PDF upload behavior are unchanged.
+
+**Verification**:
+- Red check: `node --test tests/import022.test.mjs` failed first because `/import` had no exit links.
+- Focused regression: `node --test tests/import022.test.mjs tests/import018.test.mjs` -> 8/8 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**QA focus**:
+- Mobile `/import`: the user can leave via `返回语料库`.
+- Mobile `/import`: the user can open `我的导入库`.
+- Existing YouTube URL parse and EPUB/PDF upload surfaces still work.
+
 ## Codex1 Fix Report: IMPORT-3 PDF zoom and short-page layout
 **Time**: 2026-06-09 13:55
 **From**: Codex1 (DEV)

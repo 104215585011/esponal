@@ -13,6 +13,10 @@ test("IMPORT-4 v2 adds the desktop /import page with URL and COS document import
 
   const source = await read(pagePath);
   assert.match(source, /dynamic\s*=\s*"force-dynamic"/);
+  assert.match(source, /href="\/vocab"/);
+  assert.match(source, /返回语料库/);
+  assert.match(source, /href="\/import\/library"/);
+  assert.match(source, /我的导入库/);
   assert.match(source, /UnifiedImportClient/);
 
   const client = await read("src/app/import/UnifiedImportClient.tsx");

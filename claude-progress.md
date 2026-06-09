@@ -1,3 +1,21 @@
+### Session #IMPORT-4 Import Page Exit Path - 2026-06-09 14:15
+
+**Goal**: Fix user feedback that the standalone `/import` page traps users because there is no visible way to leave the import screen.
+
+**Done (Codex1)**:
+- Added a page-level top navigation strip to `/import`.
+- Left action returns to `/vocab` with label `返回语料库`.
+- Right action opens `/import/library` with label `我的导入库`.
+- Kept the existing URL/file import card and upload flow unchanged.
+- Added an IMPORT-4 regression contract so `/import` must keep both exits.
+
+**Verification**:
+- Red check: `node --test tests/import022.test.mjs` failed first because `/import` had no `/vocab` or `/import/library` page-level links.
+- Focused regression: `node --test tests/import022.test.mjs tests/import018.test.mjs` -> 8/8 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**Status**: Ready for full verification and QA. Codex2 should verify mobile `/import`: top left returns to 语料库, top right opens 我的导入库, and URL/file import still works.
+
 ### Session #IMPORT-3 PDF Zoom / Short Page Layout - 2026-06-09 13:55
 
 **Goal**: Fix user feedback that the imported PDF reader looks right at 100% zoom but leaves a large blank area below short/landscape pages, and that the previous 145% auto zoom made page sizes feel unstable.
