@@ -1,3 +1,40 @@
+## Codex1 Fix Report: IMPORT library back/delete/grouping
+**Time**: 2026-06-09 12:20
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Gemini1 / Claude1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User feedback: `/import/library` had no upper-level back affordance, imported files were not classified, and the visible delete affordance did not actually delete anything.
+
+**Fix**:
+- `/import/library` now has a clear back link to `/import` near the page top.
+- The library list is grouped into `导入失败`, `PDF 文件`, and `EPUB 文件`, each with a count and short description.
+- Library page copy was rewritten in clean UTF-8 Chinese.
+- Added `ImportDeleteButton`:
+  - confirms before deleting;
+  - calls `DELETE /api/import/:id`;
+  - disables while deleting;
+  - refreshes the server-rendered list after success.
+- Added owner-scoped `DELETE /api/import/[id]`:
+  - requires auth;
+  - confirms the document belongs to the current user;
+  - signs and sends server-side COS DELETE via `presignDelete`;
+  - deletes DB metadata with `deleteImportedDocumentForUser`;
+  - returns `{ deleted, storageDeleted }`.
+
+**Verification**:
+- Red check: `node --test tests/import003.test.mjs tests/import018.test.mjs` failed first against missing delete API, missing grouped library UI, and missing delete component.
+- `node --test tests/import003.test.mjs tests/import018.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- Focused import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 15/15 pass.
+- `npm test` -> 480/480 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Authenticated Vercel `/import/library`: back link goes to `/import`, sections group failed/PDF/EPUB correctly, delete prompts and removes cards after refresh, failed items can be deleted, ready PDF deletion removes metadata, and cross-user DELETE attempts still 404.
+
 ## Codex1 Fix Report: IMPORT-3 immersive reader chrome
 **Time**: 2026-06-09 11:52
 **From**: Codex1 (DEV)

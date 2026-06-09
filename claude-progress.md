@@ -1,3 +1,26 @@
+### Session #IMPORT Library Back + Delete + Groups - 2026-06-09 12:20
+
+**Goal**: Fix user-reported IMPORT library UX gaps: no way to go back up one level, no real delete action, and no classification/grouping for imported files.
+
+**Done (Codex1)**:
+- Added a clear `/import/library` back link to `/import` with a 44px touch target.
+- Reworked the library page into grouped sections: failed imports, PDF files, and EPUB files, each with counts and short descriptions.
+- Replaced remaining library-page mojibake with readable UTF-8 Chinese copy.
+- Added `ImportDeleteButton` client component with confirmation, owner-scoped DELETE request, disabled deleting state, failure alert, and `router.refresh()`.
+- Added `DELETE /api/import/[id]`: requires auth, checks current-user ownership, signs a server-side COS DELETE, treats upstream 404 as already gone, removes DB metadata, and returns `{ deleted, storageDeleted }`.
+- Added `deleteImportedDocumentForUser()` and `presignDelete()` helpers.
+
+**Verification**:
+- Red check: `node --test tests/import003.test.mjs tests/import018.test.mjs` failed first against missing delete API, missing grouped library UI, and missing delete button component.
+- `node --test tests/import003.test.mjs tests/import018.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- Focused import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 15/15 pass.
+- `npm test` -> 480/480 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `IMPORT-3` remains `ready_for_qa`; Codex2 should verify authenticated `/import/library` on Vercel: back link, grouped sections, delete confirmation, successful removal from list, failed-record deletion, and owner scoping for DELETE.
+
 ### Session #IMPORT Immersive Reader Chrome - 2026-06-09 11:52
 
 **Goal**: Address user feedback that the imported PDF reader still felt like a web page, lacked an obvious exit, and should behave more like a book reader with controls hidden until needed.

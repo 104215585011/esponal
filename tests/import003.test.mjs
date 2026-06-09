@@ -21,6 +21,7 @@ test("IMPORT-1 v2 presign route validates auth, type, size, and user-scoped COS 
 
 test("IMPORT-1 v2 document and progress routes persist only owner-scoped metadata", async () => {
   const service = await read("src/lib/import/service.ts");
+  const detailRoute = await read("src/app/api/import/[id]/route.ts");
   const documentRoute = await read("src/app/api/import/document/route.ts");
   const progressRoute = await read("src/app/api/import/[id]/progress/route.ts");
   const documentsRoute = await read("src/app/api/import/documents/route.ts");
@@ -36,5 +37,11 @@ test("IMPORT-1 v2 document and progress routes persist only owner-scoped metadat
   assert.match(progressRoute, /lastPosition/);
   assert.match(progressRoute, /unitCount/);
   assert.match(documentsRoute, /listImportedDocumentsForUser\(userId\)/);
+  assert.match(service, /export async function deleteImportedDocumentForUser/);
+  assert.match(service, /where:\s*\{\s*id:\s*document\.id\s*\}/);
+  assert.match(detailRoute, /export async function DELETE/);
+  assert.match(detailRoute, /deleteImportedDocumentForUser\(userId,\s*context\.params\.id\)/);
+  assert.match(detailRoute, /presignDelete\(\{\s*key:\s*document\.ossKey\s*\}\)/);
+  assert.match(detailRoute, /storageDeleted/);
   assert.match(service, /where:\s*\{\s*userId\s*\}/);
 });

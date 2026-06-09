@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 21:42
+// Timestamp: 2026-06-09 12:20
 import type { ImportKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -51,6 +51,23 @@ export async function getImportedDocumentByIdForUser(userId: string, documentId:
     where: { id: documentId, userId },
     select: importedDocumentSelect,
   });
+}
+
+export async function deleteImportedDocumentForUser(userId: string, documentId: string) {
+  const document = await prisma.importedDocument.findFirst({
+    where: { id: documentId, userId },
+    select: importedDocumentSelect,
+  });
+
+  if (!document) {
+    return null;
+  }
+
+  await prisma.importedDocument.delete({
+    where: { id: document.id },
+  });
+
+  return document;
 }
 
 export async function updateImportedDocumentProgress(input: {

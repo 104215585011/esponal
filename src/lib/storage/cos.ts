@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 21:42
+// Timestamp: 2026-06-09 12:20
 import { createHash, createHmac } from "node:crypto";
 
 type PresignInput = {
@@ -53,7 +53,7 @@ function signingKey(secretKey: string, dateStamp: string, region: string) {
   return hmac(serviceKey, "aws4_request");
 }
 
-async function presign(method: "GET" | "PUT", input: PresignInput) {
+async function presign(method: "DELETE" | "GET" | "PUT", input: PresignInput) {
   const secretId = readRequiredEnv("COS_SECRET_ID");
   const secretKey = readRequiredEnv("COS_SECRET_KEY");
   const bucket = readRequiredEnv("COS_BUCKET");
@@ -111,6 +111,13 @@ export async function presignPut(input: PresignInput) {
 
 export async function presignGet(input: Omit<PresignInput, "contentType">) {
   return presign("GET", {
+    ...input,
+    expiresSeconds: input.expiresSeconds ?? DEFAULT_GET_EXPIRES_SECONDS,
+  });
+}
+
+export async function presignDelete(input: Omit<PresignInput, "contentType">) {
+  return presign("DELETE", {
     ...input,
     expiresSeconds: input.expiresSeconds ?? DEFAULT_GET_EXPIRES_SECONDS,
   });

@@ -15,16 +15,36 @@ test("IMPORT-3 v2 adds an authenticated metadata-backed import library page", as
   assert.match(source, /dynamic\s*=\s*"force-dynamic"/);
   assert.match(source, /getServerSession/);
   assert.match(source, /listImportedDocumentsForUser/);
+  assert.match(source, /href="\/import"/);
+  assert.match(source, /groupImportedDocuments/);
+  assert.match(source, /group\.documents\.map/);
+  assert.match(source, /导入失败/);
+  assert.match(source, /PDF 文件/);
+  assert.match(source, /EPUB 文件/);
   assert.match(source, /href=\{`\/import\/\$\{document\.id\}`\}/);
   assert.match(source, /status\s*===\s*"failed"/);
-  assert.match(source, /Trash2/);
+  assert.match(source, /ImportDeleteButton/);
   assert.match(source, /border-red-200/);
   assert.match(source, /hover:border-brand-300/);
   assert.match(source, /formatSize/);
   assert.match(source, /unitCount/);
   assert.match(source, /lastPosition/);
+  assert.doesNotMatch(source, /鎴戠殑|瀵煎叆|闃呰|澶辫触/);
   assert.doesNotMatch(source, /buildImportedDocumentProgress/);
   assert.doesNotMatch(source, /status\s*===\s*"processing"/);
+});
+
+test("IMPORT-3 library delete button calls the owner-scoped document delete API", async () => {
+  const buttonPath = "src/app/import/library/ImportDeleteButton.tsx";
+  assert.equal(existsSync(buttonPath), true, `${buttonPath} missing`);
+
+  const source = await read(buttonPath);
+  assert.match(source, /"use client"/);
+  assert.match(source, /fetch\(`\/api\/import\/\$\{documentId\}`,\s*\{\s*method:\s*"DELETE"/);
+  assert.match(source, /router\.refresh\(\)/);
+  assert.match(source, /confirm\(/);
+  assert.match(source, /aria-label=\{`删除 \${title}`\}/);
+  assert.match(source, /Trash2/);
 });
 
 test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js", async () => {
