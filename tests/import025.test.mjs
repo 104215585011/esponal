@@ -13,7 +13,9 @@ test("IMPORT-3 PDF reader supports adaptive stable zoom and clickable text looku
   assert.doesNotMatch(client, /const PDF_DEFAULT_ZOOM/);
   assert.match(client, /function calculateAdaptivePdfZoom/);
   assert.match(client, /PDF_AUTO_MIN_ZOOM/);
-  assert.match(client, /PDF_AUTO_MAX_ZOOM/);
+  assert.match(client, /const PDF_AUTO_MAX_ZOOM\s*=\s*1\.18/);
+  assert.match(client, /frameWidth >= 430 \? 0\.16/);
+  assert.doesNotMatch(client, /frameWidth >= 430 \? 0\.03/);
   assert.match(client, /ResizeObserver/);
   assert.match(client, /pdfFrameRef/);
   assert.match(client, /pdfZoomMode,\s*setPdfZoomMode/);

@@ -14083,3 +14083,22 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 - Expected: page scale should stay visually stable; it should not suddenly grow while paging.
 - Expected: screen width changes/rotation may adapt the default size, but page number changes should not.
 - Expected: PDF word lookup and previous/next bottom dock still work.
+
+## Dev Update: IMPORT-3 PDF adaptive zoom size bump ready for QA [Codex1, 2026-06-09 11:10]
+- User confirmed the stable adaptive zoom no longer felt right visually because the page was too small on mobile.
+- Tuned `calculateAdaptivePdfZoom()` upward while preserving the same stability rule:
+  - narrow mobile frames: about 112%.
+  - 430px-class phones: about 116%.
+  - wider frames: cap at 118%.
+  - still avoids the old 145% heavy crop.
+- Updated `tests/import025.test.mjs` so the 430px mobile curve cannot regress back to the tiny 103% rendering.
+
+### Verification
+- Red check: `node --test tests/import025.test.mjs` failed against the old 1.08 max / 0.03 mobile boost curve.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+
+### QA request
+- After deploy, reopen the same mobile PDF page.
+- Expected: page should be noticeably larger than the previous tiny screenshot, while still not jumping scale between pages.
