@@ -10,7 +10,8 @@ test("IMPORT-3 PDF reader supports readable zoom and clickable text lookup", asy
   const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
   const lookupCard = await read("src/app/watch/LookupCard.tsx");
 
-  assert.match(client, /const PDF_DEFAULT_ZOOM\s*=\s*1\.[3-9]/);
+  assert.match(client, /const PDF_DEFAULT_ZOOM\s*=\s*1\.18/);
+  assert.doesNotMatch(client, /\$\{pageNumber\} \/ \$\{pageCount\} · \$\{Math\.round\(pdfZoom \* 100\)\}%/);
   assert.match(client, /setPdfZoom/);
   assert.match(client, /ZoomIn/);
   assert.match(client, /ZoomOut/);

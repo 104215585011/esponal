@@ -14041,3 +14041,21 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 - Confirm the title inside the reader is one line with ellipsis and a tiny `PDF` badge.
 - Confirm the PDF canvas has more vertical room and is not inside a shadow-card shell.
 - Confirm the bottom dock remains usable for previous/next and text-layer word lookup still opens the normal lookup card.
+
+## Dev Update: IMPORT-3 PDF zoom ratio correction ready for QA [Codex1, 2026-06-09 10:38]
+- User screenshot showed the previous 145% default zoom was too aggressive: the page became a huge partial crop and the textbook layout stopped feeling like a reading surface.
+- Updated `src/app/import/[id]/ImportReaderClient.tsx`:
+  - `PDF_DEFAULT_ZOOM` changed from `1.45` to `1.18`.
+  - mobile dock no longer displays the zoom percent, since mobile currently has no visible zoom control and the percent reads like debug/status noise.
+- Updated `tests/import025.test.mjs` so this ratio cannot silently drift back to the oversized 145% behavior.
+
+### Verification
+- Red check: `node --test tests/import025.test.mjs` failed against the old `PDF_DEFAULT_ZOOM = 1.45`.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+
+### QA request
+- After deploy, reopen the same PDF page on mobile.
+- Confirm the page is still larger than the original tiny rendering, but no longer cropped as dramatically as the 145% screenshot.
+- Confirm the bottom dock reads only page count, not `3 / 194 · 145%`.

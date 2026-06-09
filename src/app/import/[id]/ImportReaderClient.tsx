@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 10:12
+// Timestamp: 2026-06-09 10:36
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
@@ -61,7 +61,7 @@ type PdfLookupStack = {
 };
 
 const PDF_WORKER_SRC = "/api/import/pdf-worker";
-const PDF_DEFAULT_ZOOM = 1.45;
+const PDF_DEFAULT_ZOOM = 1.18;
 const PDF_MIN_ZOOM = 1;
 const PDF_MAX_ZOOM = 2.2;
 const PDF_WORD_PATTERN = /[\p{L}ÁÉÍÓÚÜÑáéíóúüñ]+/gu;
@@ -487,7 +487,7 @@ export function ImportReaderClient({
           </button>
         )}
         <span className="text-xs font-bold text-zinc-800 font-display">
-          {kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount} · ${Math.round(pdfZoom * 100)}%` : kind === "epub" ? "epub.js 待接入" : "pdf.js"}
+          {kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount}` : kind === "epub" ? "epub.js 待接入" : "pdf.js"}
         </span>
         {kind === "pdf" ? (
           <button
