@@ -12,10 +12,11 @@ import {
   getVideoViewsByUser,
   type SavePhraseKind
 } from "@/lib/corpus";
+import { listImportedArticlesForUser } from "@/lib/import/service";
 import { getDueReviewCount, getVocabStats, getWordsByUser } from "@/lib/vocab";
 import type { VerbConjugations } from "@/lib/conjugate";
 
-// VOCAB-002 change timestamp: 2026-05-13 13:54
+// VOCAB-002 change timestamp: 2026-06-09 13:20
 const getVideoTitle = (sourceUrl: string) => {
   try {
     const url = new URL(sourceUrl);
@@ -115,11 +116,12 @@ export default async function VocabPage() {
     redirect("/api/auth/signin");
   }
 
-  const [words, dueCount, stats, videoViews, savedPhrases] = await Promise.all([
+  const [words, dueCount, stats, videoViews, importedArticles, savedPhrases] = await Promise.all([
     getWordsByUser(session.user.id),
     getDueReviewCount(session.user.id),
     getVocabStats(session.user.id),
     getVideoViewsByUser(session.user.id),
+    listImportedArticlesForUser(session.user.id),
     getSavedPhrasesByUser(session.user.id)
   ]);
 
@@ -167,6 +169,15 @@ export default async function VocabPage() {
     thumbnail: view.thumbnail,
     viewedAt: view.viewedAt.toISOString()
   }));
+  const serializedImportedArticles = importedArticles
+    .map((document) => ({
+      id: document.id,
+      title: document.title,
+      kind: document.kind,
+      unitCount: document.unitCount,
+      lastPosition: document.lastPosition,
+      createdAt: document.createdAt.toISOString()
+    }));
   const serializedPhrases = savedPhrases.map((phrase) => ({
     id: phrase.id,
     lemma: phrase.lemma,
@@ -210,6 +221,7 @@ export default async function VocabPage() {
         <CorpusMobile
           words={serializedWords}
           initialVideoViews={serializedVideoViews}
+          initialImportedArticles={serializedImportedArticles}
           initialPhrases={serializedPhrases}
         />
       </div>

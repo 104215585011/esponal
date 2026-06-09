@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 12:20
+// Timestamp: 2026-06-09 13:20
 import type { ImportKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -41,6 +41,18 @@ export async function createImportedDocument(input: {
 export async function listImportedDocumentsForUser(userId: string) {
   return prisma.importedDocument.findMany({
     where: { userId },
+    orderBy: { createdAt: "desc" },
+    select: importedDocumentSelect,
+  });
+}
+
+export async function listImportedArticlesForUser(userId: string) {
+  return prisma.importedDocument.findMany({
+    where: {
+      userId,
+      status: "ready",
+      kind: { in: ["pdf", "epub"] },
+    },
     orderBy: { createdAt: "desc" },
     select: importedDocumentSelect,
   });

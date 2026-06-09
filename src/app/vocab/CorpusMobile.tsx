@@ -1,9 +1,9 @@
-// Timestamp: 2026-06-03 15:03
+// Timestamp: 2026-06-09 13:20
 "use client";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { BookText, Play, Quote } from "lucide-react";
+import { BookOpen, BookText, FileText, Play, Quote } from "lucide-react";
 import { useState } from "react";
 import EmptyState from "@/app/components/ui/EmptyState";
 import VocabAccordion, {
@@ -14,6 +14,7 @@ import { LookupCardStack } from "@/app/watch/LookupCard";
 type CorpusMobileProps = {
   words: VocabWord[];
   initialVideoViews: VideoView[];
+  initialImportedArticles: ImportedArticle[];
   initialPhrases: SavedPhrase[];
 };
 
@@ -26,6 +27,15 @@ type VideoView = {
   channelTitle: string;
   thumbnail: string | null;
   viewedAt: string;
+};
+
+type ImportedArticle = {
+  id: string;
+  title: string;
+  kind: "epub" | "pdf";
+  unitCount: number;
+  lastPosition: string;
+  createdAt: string;
 };
 
 type SavedPhrase = {
@@ -90,8 +100,8 @@ function formatGroupHeader(dateValue: string) {
   }).format(day);
 }
 
-function groupByDate(views: VideoView[]) {
-  const groups: Array<{ header: string; items: VideoView[] }> = [];
+function groupByDate<T extends { viewedAt: string }>(views: T[]) {
+  const groups: Array<{ header: string; items: T[] }> = [];
 
   for (const view of views) {
     const header = formatGroupHeader(view.viewedAt);
@@ -117,14 +127,21 @@ function getPhraseKindLabel(kind: PhraseKind) {
 export default function CorpusMobile({
   words,
   initialVideoViews,
+  initialImportedArticles,
   initialPhrases
 }: CorpusMobileProps) {
   const searchParams = useSearchParams();
   const debugCorpus = searchParams.get("debugCorpus") === "1";
-  const [activeTab, setActiveTab] = useState<"video" | "word" | "phrase">("video");
+  const [activeTab, setActiveTab] = useState<"video" | "article" | "word" | "phrase">("video");
   const [videoState, setVideoState] = useState<LoadableState<VideoView>>({
     status: "ready",
     items: initialVideoViews,
+    requestedAt: null,
+    errorDetail: null
+  });
+  const [articleState, setArticleState] = useState<LoadableState<ImportedArticle>>({
+    status: "ready",
+    items: initialImportedArticles,
     requestedAt: null,
     errorDetail: null
   });
@@ -188,6 +205,15 @@ export default function CorpusMobile({
     });
   }
 
+  function retryArticle() {
+    setArticleState({
+      status: "ready",
+      items: initialImportedArticles,
+      requestedAt: null,
+      errorDetail: null
+    });
+  }
+
   function retryPhrase() {
     setPhraseState({
       status: "ready",
@@ -198,17 +224,22 @@ export default function CorpusMobile({
   }
 
   const videoGroups = groupByDate(videoState.items);
+  const articleGroups = groupByDate(articleState.items.map((article) => ({
+    ...article,
+    viewedAt: article.createdAt
+  })));
 
   return (
     <div className="min-h-screen bg-app pb-[calc(3.5rem+env(safe-area-inset-bottom))] text-zinc-900 dark:bg-[#09090B] dark:text-zinc-50 md:hidden">
       <div className="sticky top-[52px] z-30 border-b border-zinc-200/50 bg-white/80 px-4 py-2.5 backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-950/80">
         <div
           aria-label="语料库分类"
-          className="grid grid-cols-3 gap-1 rounded-full bg-zinc-100/80 p-1 dark:bg-zinc-900/80"
+          className="grid grid-cols-4 gap-1 rounded-full bg-zinc-100/80 p-1 dark:bg-zinc-900/80"
           role="tablist"
         >
           {[
             { id: "video", label: "视频", Icon: Play },
+            { id: "article", label: "文章", Icon: FileText },
             { id: "word", label: "单词", Icon: BookText },
             { id: "phrase", label: "短语", Icon: Quote }
           ].map(({ id, label, Icon }) => {
@@ -223,7 +254,7 @@ export default function CorpusMobile({
                     : "bg-transparent font-medium text-zinc-500 active:scale-[0.97] dark:text-zinc-400"
                 }`}
                 key={id}
-                onClick={() => setActiveTab(id as "video" | "word" | "phrase")}
+                onClick={() => setActiveTab(id as "video" | "article" | "word" | "phrase")}
                 role="tab"
                 type="button"
               >
@@ -237,6 +268,8 @@ export default function CorpusMobile({
           <div className="mt-2 rounded-2xl border border-amber-200/60 bg-amber-50/90 px-3 py-2 text-[11px] leading-5 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/70 dark:text-amber-100">
             <div>history: {videoState.status} ({videoState.items.length})</div>
             <div>history detail: {videoState.errorDetail ?? "ok"}</div>
+            <div>articles: {articleState.status} ({articleState.items.length})</div>
+            <div>articles detail: {articleState.errorDetail ?? "ok"}</div>
             <div>phrases: {phraseState.status} ({phraseState.items.length})</div>
             <div>phrases detail: {phraseState.errorDetail ?? "ok"}</div>
             <div>active: {activeTab}</div>
@@ -313,6 +346,77 @@ export default function CorpusMobile({
                         </p>
                         <p className="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500">
                           {formatViewedTime(view.viewedAt)}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )
+      ) : null}
+
+      {activeTab === "article" ? (
+        articleState.status === "loading" || articleState.status === "idle" ? (
+          <div className="flex flex-col gap-2.5 px-4 pt-3">
+            {[0, 1, 2].map((item) => (
+              <div
+                className="rounded-2xl border border-zinc-200/50 bg-white/70 p-4 dark:border-zinc-800/50 dark:bg-zinc-900/70"
+                key={item}
+              >
+                <div className="h-4 w-3/4 animate-shimmer rounded" />
+                <div className="mt-3 h-3 w-1/2 animate-shimmer rounded" />
+              </div>
+            ))}
+          </div>
+        ) : articleState.status === "error" ? (
+          <EmptyState
+            action={{ label: "重试", onClick: retryArticle }}
+            description="检查网络后重试。"
+            kind="loading-failed"
+            size="md"
+            title="文章加载失败"
+          />
+        ) : articleState.items.length === 0 ? (
+          <EmptyState
+            action={{ href: "/import", label: "导入文章" }}
+            description="导入的 EPUB 和 PDF 会自动出现在这里，像书架一样继续阅读。"
+            kind="empty"
+            size="lg"
+            title="还没有导入文章"
+          />
+        ) : (
+          <div className="flex flex-col gap-4 px-4 pt-3">
+            {articleGroups.map((group) => (
+              <section className="flex flex-col gap-2" key={group.header}>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  {group.header}
+                </h2>
+                <div className="flex flex-col gap-2.5">
+                  {group.items.map((article) => (
+                    <Link
+                      className="group flex items-center gap-3 rounded-2xl border border-zinc-200/50 bg-white/70 p-3.5 shadow-sm transition active:scale-[0.99] dark:border-zinc-800/50 dark:bg-zinc-900/70"
+                      href={`/import/${article.id}`}
+                      key={article.id}
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-400">
+                        <BookOpen className="h-5 w-5" aria-hidden />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                            {article.kind === "epub" ? "EPUB" : "PDF"}
+                          </span>
+                          <span className="truncate text-[11px] text-zinc-400 dark:text-zinc-500">
+                            {article.unitCount > 0 ? `${article.unitCount} 页` : "原件阅读"}
+                          </span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
+                          {article.title}
+                        </p>
+                        <p className="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500">
+                          {formatViewedTime(article.createdAt)}
                         </p>
                       </div>
                     </Link>

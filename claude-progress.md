@@ -1,3 +1,22 @@
+### Session #CORPUS Import Articles Tab - 2026-06-09 13:20
+
+**Goal**: Fix user feedback that imported files are not visible from the corpus UI after import.
+
+**Done (Codex1)**:
+- `/vocab` now loads `listImportedArticlesForUser()` server-side with the authenticated session.
+- Ready `pdf` / `epub` imported documents are serialized as `serializedImportedArticles` and passed into `CorpusMobile`.
+- Mobile `/vocab` now has four top tabs: 视频 / 文章 / 单词 / 短语.
+- The new 文章 tab lists imported PDF/EPUB files grouped by date, with kind badges and links to `/import/[id]`.
+- Existing video, word, and phrase tabs remain unchanged. Local imported videos are not yet a DB kind, so the video tab is the reserved destination once that import type exists.
+- Rewrote `tests/corpus001-ui.test.mjs` into clean UTF-8 while preserving the original corpus UI contracts and adding the article-tab contract.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed first against missing `listImportedDocumentsForUser`, missing `initialImportedArticles`, and missing article tab.
+- Focused corpus/import regression: `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/import018.test.mjs tests/mobile009.test.mjs tests/vocab-ui.test.mjs` -> 24/24 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**Status**: CORPUS-001 follow-up is ready for QA. Codex2 should verify authenticated mobile `/vocab`: top tab now includes 文章, imported PDF/EPUB cards appear there after import, cards open `/import/[id]`, and existing 视频/单词/短语 tabs still work.
+
 ### Session #IMPORT-3 Fullscreen Reader V2 - 2026-06-09 12:50
 
 **Goal**: Implement Gemini1's updated `docs/tickets/IMPORT-3-fix-design.md` V2: a true app-style fullscreen imported-document reader instead of a web-page/chrome hybrid.

@@ -1,3 +1,30 @@
+## Codex1 Fix Report: CORPUS import articles tab
+**Time**: 2026-06-09 13:20
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User feedback: imported files can be uploaded/read, but the corpus UI has no obvious place where imported PDFs/EPUBs show up.
+
+**Fix**:
+- `/vocab` now fetches `listImportedArticlesForUser(session.user.id)` server-side alongside words, video history, and saved phrases.
+- Ready `pdf` and `epub` imports are serialized as `initialImportedArticles`.
+- Mobile `CorpusMobile` now has four tabs: 视频 / 文章 / 单词 / 短语.
+- The new 文章 tab lists imported PDF/EPUB files, grouped by date, with PDF/EPUB badges and links to `/import/[id]`.
+- Existing video history, words, phrase lookup, and debug corpus overlay remain in place.
+- Local imported videos are not yet represented in `ImportKind`; once that kind exists, they should be surfaced under the existing 视频 tab rather than the 文章 tab.
+
+**Verification**:
+- Red check: `node --test tests/corpus001-ui.test.mjs` failed first against missing imported-document data and missing article tab.
+- Focused corpus/import regression: `node --test tests/corpus001-ui.test.mjs tests/corpus001.test.mjs tests/import018.test.mjs tests/mobile009.test.mjs tests/vocab-ui.test.mjs` -> 24/24 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**QA focus**:
+- Authenticated mobile `/vocab`: top segmented control has 视频 / 文章 / 单词 / 短语.
+- After importing a PDF/EPUB, the file appears under 文章 and opens `/import/[id]`.
+- Existing 视频, 单词, 短语 tabs still render their prior content.
+
 ## Codex1 Fix Report: IMPORT-3 fullscreen reader V2
 **Time**: 2026-06-09 12:50
 **From**: Codex1 (DEV)
