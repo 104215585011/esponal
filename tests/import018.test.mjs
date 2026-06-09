@@ -113,12 +113,18 @@ test("IMPORT-3 v2 exposes immersive reader controls for original-file rendering"
 
   assert.match(client, /readerChromeVisible,\s*setReaderChromeVisible/);
   assert.match(client, /data-testid="import-reader-chrome"/);
+  assert.match(client, /data-testid="import-reader-bottom-chrome"/);
+  assert.match(client, /data-testid="import-reader-title-watermark"/);
+  assert.match(client, /data-testid="import-reader-page-watermark"/);
   assert.match(client, /href="\/import\/library"/);
-  assert.match(client, /fixed inset-x-4 bottom-\[calc\(env\(safe-area-inset-bottom\)\+14px\)\]/);
-  assert.match(client, /readerChromeVisible \? "pointer-events-auto opacity-100"/);
+  assert.match(client, /handleReaderSurfaceClick/);
+  assert.match(client, /zoneRatio <= 0\.3/);
+  assert.match(client, /zoneRatio >= 0\.7/);
+  assert.match(client, /fixed bottom-0 inset-x-0 bg-white\/95/);
+  assert.match(client, /readerChromeVisible \? "translate-y-0" : "translate-y-full"/);
   assert.match(client, /handleReaderTouchStart/);
   assert.match(client, /handleReaderTouchEnd/);
-  assert.match(client, /rounded-full border border-zinc-200\/60 bg-white\/90/);
+  assert.match(client, /<input[\s\S]*type="range"/);
   assert.match(client, /ExternalLink/);
   assert.match(client, /RefreshCw/);
   assert.match(client, /ChevronLeft/);

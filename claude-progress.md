@@ -1,3 +1,29 @@
+### Session #IMPORT-3 Fullscreen Reader V2 - 2026-06-09 12:50
+
+**Goal**: Implement Gemini1's updated `docs/tickets/IMPORT-3-fix-design.md` V2: a true app-style fullscreen imported-document reader instead of a web-page/chrome hybrid.
+
+**Done (Codex1)**:
+- Changed `/import/[id]` to a strict `100dvh`/`w-screen` fullscreen shell with no `SiteHeader`, max width, page padding, or bottom whitespace.
+- Rebuilt `ImportReaderClient` chrome around the approved reader model:
+  - hidden by default;
+  - left 30% tap = previous page;
+  - right 30% tap = next page;
+  - center 40% tap = show/hide menus;
+  - hidden state shows only tiny title and page watermarks;
+  - top menu slides down with an explicit back-to-library exit;
+  - bottom menu slides up with page range slider, page actions, zoom controls, and reserved reading controls.
+- Preserved existing PDF behavior: same-origin file fetch, pdf.js worker route, stable 145% measured zoom, text-layer word lookup, lookup-card propagation guards, swipe paging, and progress persistence.
+- Updated reader contracts in `tests/import018.test.mjs` and `tests/import026.test.mjs` to fail on the old capsule/menu behavior.
+
+**Verification**:
+- Red check: `node --test tests/import018.test.mjs tests/import026.test.mjs` failed first against the previous non-V2 shell.
+- `node --test tests/import018.test.mjs tests/import026.test.mjs` -> 5/5 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- Focused import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 15/15 pass.
+
+**Status**: `IMPORT-3` remains `ready_for_qa`; Codex2 should verify authenticated production mobile `/import/[id]`: default hidden chrome, left/right tap page turning, center tap show/hide, top exit to `/import/library`, bottom slider paging, and text-layer lookup still opening without toggling the chrome.
+
 ### Session #IMPORT Library Back + Delete + Groups - 2026-06-09 12:20
 
 **Goal**: Fix user-reported IMPORT library UX gaps: no way to go back up one level, no real delete action, and no classification/grouping for imported files.

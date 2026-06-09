@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 11:52
+// Timestamp: 2026-06-09 12:50
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -33,7 +33,7 @@ export default async function ImportReaderPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f4ef]">
+    <main className="h-[100dvh] w-screen overflow-hidden bg-[#f9f9f9] dark:bg-[#121212]">
       <ImportReaderClient
         documentId={document.id}
         kind={document.kind}

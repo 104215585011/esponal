@@ -1,8 +1,9 @@
-// Timestamp: 2026-06-09 11:52
+// Timestamp: 2026-06-09 12:50
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent, type TouchEvent } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, Loader2, RefreshCw, ZoomIn, ZoomOut } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, ExternalLink, List, Loader2, RefreshCw, Sun, Type, ZoomIn, ZoomOut } from "lucide-react";
 import { LookupCardStack } from "@/app/watch/LookupCard";
 
 type ImportReaderClientProps = {
@@ -161,6 +162,7 @@ export function ImportReaderClient({
   }, []);
 
   const toggleReaderChrome = useCallback(() => {
+    setActivePdfLookup(null);
     setReaderChromeVisible((current) => !current);
   }, []);
 
@@ -227,9 +229,7 @@ export function ImportReaderClient({
 
         const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
         configurePdfJsWorker(pdfjs);
-        const task = pdfjs.getDocument({
-          data: bytes,
-        });
+        const task = pdfjs.getDocument({ data: bytes });
         const loaded = (await task.promise) as PdfDocumentProxy;
         if (cancelled) return;
         setPdfDocument(loaded);
@@ -327,13 +327,7 @@ export function ImportReaderClient({
       anchorX: rect.left,
       anchorY: rect.bottom + 6,
       lineText: item.lineText,
-      cards: [
-        {
-          id: `word-${item.text}`,
-          form: item.text,
-          lookupKind: "word",
-        },
-      ],
+      cards: [{ id: `word-${item.text}`, form: item.text, lookupKind: "word" }],
     });
   };
 
@@ -348,20 +342,14 @@ export function ImportReaderClient({
   const openNestedPdfWord = (form: string) => {
     setActivePdfLookup((previous) => {
       if (!previous || previous.cards.length >= 2) return previous;
-      return {
-        ...previous,
-        cards: [...previous.cards, { id: `word-${form}`, form, lookupKind: "word" }],
-      };
+      return { ...previous, cards: [...previous.cards, { id: `word-${form}`, form, lookupKind: "word" }] };
     });
   };
 
   const openNestedPdfPhrase = (form: string, phraseKind: "collocation" | "phrase" | "idiom") => {
     setActivePdfLookup((previous) => {
       if (!previous || previous.cards.length >= 2) return previous;
-      return {
-        ...previous,
-        cards: [...previous.cards, { id: `phrase-${form}`, form, lookupKind: "phrase", phraseKind }],
-      };
+      return { ...previous, cards: [...previous.cards, { id: `phrase-${form}`, form, lookupKind: "phrase", phraseKind }] };
     });
   };
 
@@ -375,19 +363,67 @@ export function ImportReaderClient({
   const canGoPrevious = kind === "pdf" && pageNumber > 1;
   const canGoNext = kind === "pdf" && pageCount > 0 && pageNumber < pageCount;
 
-  const goPreviousPage = useCallback(() => {
+  const goPreviousPage = useCallback((options: { revealChrome?: boolean } = {}) => {
     if (!canGoPrevious) return;
     setActivePdfLookup(null);
-    showReaderChrome();
+    if (options.revealChrome) {
+      showReaderChrome();
+    }
     setPageNumber((current) => Math.max(1, current - 1));
   }, [canGoPrevious, showReaderChrome]);
 
-  const goNextPage = useCallback(() => {
+  const goNextPage = useCallback((options: { revealChrome?: boolean } = {}) => {
     if (!canGoNext) return;
     setActivePdfLookup(null);
-    showReaderChrome();
+    if (options.revealChrome) {
+      showReaderChrome();
+    }
     setPageNumber((current) => Math.min(pageCount, current + 1));
   }, [canGoNext, pageCount, showReaderChrome]);
+
+  const jumpToPdfPage = (value: number) => {
+    if (kind !== "pdf" || pageCount <= 0) return;
+    setActivePdfLookup(null);
+    showReaderChrome();
+    setPageNumber(Math.max(1, Math.min(pageCount, value)));
+  };
+
+  const handleReaderSurfaceClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.defaultPrevented) return;
+
+    if (kind !== "pdf") {
+      toggleReaderChrome();
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const zoneRatio = (event.clientX - rect.left) / Math.max(1, rect.width);
+
+    if (zoneRatio <= 0.3) {
+      goPreviousPage();
+      return;
+    }
+
+    if (zoneRatio >= 0.7) {
+      goNextPage();
+      return;
+    }
+
+    toggleReaderChrome();
+  };
+
+  const handleReaderKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleReaderChrome();
+    }
+    if (event.key === "ArrowLeft") {
+      goPreviousPage();
+    }
+    if (event.key === "ArrowRight") {
+      goNextPage();
+    }
+  };
 
   const handleReaderTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     const touch = event.changedTouches[0];
@@ -411,12 +447,15 @@ export function ImportReaderClient({
     }
   };
 
+  const pageLabel = kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount}` : kind === "epub" ? "EPUB" : "PDF";
+
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-hidden bg-[#f6f4ef]" data-testid="import-reader">
+    <div className="relative h-[100dvh] w-screen overflow-hidden bg-[#f9f9f9] dark:bg-[#121212]" data-testid="import-reader">
       <div
         aria-label="显示或隐藏阅读控件"
-        className="relative flex h-[100dvh] w-full touch-pan-y items-start justify-center overflow-auto"
-        onClick={toggleReaderChrome}
+        className="relative flex h-[100dvh] w-screen touch-pan-y items-start justify-center overflow-auto"
+        onClick={handleReaderSurfaceClick}
+        onKeyDown={handleReaderKeyDown}
         onTouchEnd={handleReaderTouchEnd}
         onTouchStart={handleReaderTouchStart}
         role="button"
@@ -437,7 +476,7 @@ export function ImportReaderClient({
                 正在渲染 PDF
               </div>
             ) : null}
-            <div ref={pdfFrameRef} className="flex min-h-[100dvh] w-full justify-center overflow-x-auto pb-[calc(env(safe-area-inset-bottom)+18px)] pt-[calc(env(safe-area-inset-top)+18px)]">
+            <div ref={pdfFrameRef} className="flex min-h-[100dvh] w-full justify-center overflow-x-auto">
               <div
                 className="relative mx-auto"
                 style={{
@@ -446,7 +485,7 @@ export function ImportReaderClient({
                   height: canvasCssSize.height || undefined,
                 }}
               >
-                <canvas ref={canvasRef} className="bg-white shadow-sm" />
+                <canvas ref={canvasRef} className="bg-white" />
                 <div
                   className="absolute left-0 top-0 z-[2]"
                   data-testid="import-pdf-text-layer"
@@ -484,61 +523,53 @@ export function ImportReaderClient({
         )}
       </div>
 
+      {!readerChromeVisible ? (
+        <>
+          <div
+            className="pointer-events-none fixed left-4 top-3 z-40 max-w-[50%] truncate text-[10px] text-zinc-400"
+            data-testid="import-reader-title-watermark"
+          >
+            {title}
+          </div>
+          <div
+            className="pointer-events-none fixed bottom-3 right-4 z-40 text-[10px] text-zinc-400"
+            data-testid="import-reader-page-watermark"
+          >
+            {pageLabel}
+          </div>
+        </>
+      ) : null}
+
       <div
-        className={`fixed inset-x-3 top-[calc(env(safe-area-inset-top)+10px)] z-50 flex min-h-[48px] items-center gap-2 rounded-full border border-zinc-200/70 bg-white/90 px-2 shadow-elevated backdrop-blur transition duration-200 ${readerChromeVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed top-0 inset-x-0 h-14 bg-white/95 backdrop-blur-md border-b border-zinc-200/50 z-50 flex items-center px-2 shadow-sm transition-transform duration-300 ${readerChromeVisible ? "translate-y-0" : "-translate-y-full"}`}
         data-testid="import-reader-chrome"
         onClick={(event) => event.stopPropagation()}
       >
-        <a
+        <Link
           aria-label="退出阅读器"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-zinc-700 active:bg-zinc-100"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 active:bg-zinc-100"
           href="/import/library"
         >
-          <ArrowLeft className="h-5 w-5" aria-hidden />
-        </a>
+          <ChevronLeft className="h-6 w-6" aria-hidden />
+        </Link>
         <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-zinc-500">
           {kind === "epub" ? "EPUB" : "PDF"}
         </span>
-        <h2 className="truncate text-sm font-semibold text-zinc-900">{title}</h2>
+        <h2 className="flex-1 truncate text-center text-sm font-bold text-zinc-900 px-4">{title}</h2>
         {readerUrl ? (
           <a
             aria-label="新窗口打开原文"
-            className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-zinc-700 active:bg-zinc-100"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 active:bg-zinc-100"
             href={readerUrl}
             rel="noreferrer"
             target="_blank"
           >
             <ExternalLink className="h-4 w-4" aria-hidden />
           </a>
-        ) : null}
+        ) : (
+          <span className="h-10 w-10" />
+        )}
       </div>
-
-      {kind === "pdf" ? (
-        <div
-          className={`fixed left-4 right-4 top-[calc(env(safe-area-inset-top)+70px)] z-50 hidden items-center justify-center gap-1 rounded-full bg-white/90 p-1 shadow-elevated backdrop-blur transition duration-200 md:flex ${readerChromeVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <button
-            aria-label="缩小 PDF"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 disabled:opacity-40"
-            disabled={effectivePdfZoom <= PDF_MIN_ZOOM}
-            onClick={() => changePdfZoom(-0.15)}
-            type="button"
-          >
-            <ZoomOut className="h-4 w-4" aria-hidden />
-          </button>
-          <span className="min-w-12 text-center text-xs font-semibold text-zinc-600">{Math.round(effectivePdfZoom * 100)}%</span>
-          <button
-            aria-label="放大 PDF"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 disabled:opacity-40"
-            disabled={effectivePdfZoom >= PDF_MAX_ZOOM}
-            onClick={() => changePdfZoom(0.15)}
-            type="button"
-          >
-            <ZoomIn className="h-4 w-4" aria-hidden />
-          </button>
-        </div>
-      ) : null}
 
       {activePdfLookup ? (
         <span
@@ -570,51 +601,85 @@ export function ImportReaderClient({
       ) : null}
 
       <div
-        className={`fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+14px)] z-50 flex h-[52px] items-center justify-between rounded-full border border-zinc-200/60 bg-white/90 px-2 shadow-elevated backdrop-blur transition duration-200 ${readerChromeVisible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-zinc-200/50 z-50 pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ${readerChromeVisible ? "translate-y-0" : "translate-y-full"}`}
+        data-testid="import-reader-bottom-chrome"
         onClick={(event) => event.stopPropagation()}
       >
-        {kind === "pdf" ? (
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
-            disabled={!canGoPrevious}
-            onClick={goPreviousPage}
-            type="button"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden />
+        <div className="flex items-center gap-4 px-6 py-4">
+          <span className="w-8 text-right text-xs font-medium text-zinc-500">{pageNumber}</span>
+          <input
+            aria-label="跳转页码"
+            className="flex-1 accent-brand-500"
+            disabled={kind !== "pdf" || pageCount <= 1}
+            max={Math.max(1, pageCount)}
+            min={1}
+            onChange={(event) => jumpToPdfPage(Number(event.currentTarget.value))}
+            type="range"
+            value={Math.max(1, Math.min(pageNumber, Math.max(1, pageCount)))}
+          />
+          <span className="w-8 text-xs font-medium text-zinc-500">{Math.max(1, pageCount)}</span>
+        </div>
+        <div className="flex items-center justify-between px-8 pb-4 pt-2">
+          {kind === "pdf" ? (
+            <button
+              aria-label="上一页"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
+              disabled={!canGoPrevious}
+              onClick={() => goPreviousPage({ revealChrome: true })}
+              type="button"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden />
+            </button>
+          ) : (
+            <button
+              aria-label="刷新阅读链接"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
+              onClick={loadReaderUrl}
+              type="button"
+            >
+              <RefreshCw className="h-5 w-5" aria-hidden />
+            </button>
+          )}
+          <button aria-label="目录" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100" type="button">
+            <List className="h-5 w-5" aria-hidden />
           </button>
-        ) : (
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
-            onClick={loadReaderUrl}
-            type="button"
-          >
-            <RefreshCw className="h-4 w-4" aria-hidden />
+          <button aria-label="缩小 PDF" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30" disabled={kind !== "pdf" || effectivePdfZoom <= PDF_MIN_ZOOM} onClick={() => changePdfZoom(-0.15)} type="button">
+            <ZoomOut className="h-5 w-5" aria-hidden />
           </button>
-        )}
-        <span className="text-xs font-bold text-zinc-800 font-display">
-          {kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount}` : kind === "epub" ? "EPUB" : "PDF"}
-        </span>
-        {kind === "pdf" ? (
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30"
-            disabled={!canGoNext}
-            onClick={goNextPage}
-            type="button"
-          >
-            <ChevronRight className="h-4 w-4" aria-hidden />
+          <span className="min-w-12 text-center text-xs font-semibold text-zinc-600">{Math.round(effectivePdfZoom * 100)}%</span>
+          <button aria-label="放大 PDF" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30" disabled={kind !== "pdf" || effectivePdfZoom >= PDF_MAX_ZOOM} onClick={() => changePdfZoom(0.15)} type="button">
+            <ZoomIn className="h-5 w-5" aria-hidden />
           </button>
-        ) : readerUrl ? (
-          <a
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600"
-            href={readerUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <ExternalLink className="h-4 w-4" aria-hidden />
-          </a>
-        ) : (
-          <span className="h-10 w-10" />
-        )}
+          <button aria-label="护眼模式" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100" type="button">
+            <Sun className="h-5 w-5" aria-hidden />
+          </button>
+          <button aria-label="排版设置" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100" type="button">
+            <Type className="h-5 w-5" aria-hidden />
+          </button>
+          {kind === "pdf" ? (
+            <button
+              aria-label="下一页"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30"
+              disabled={!canGoNext}
+              onClick={() => goNextPage({ revealChrome: true })}
+              type="button"
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden />
+            </button>
+          ) : readerUrl ? (
+            <a
+              aria-label="新窗口打开"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600"
+              href={readerUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <ExternalLink className="h-5 w-5" aria-hidden />
+            </a>
+          ) : (
+            <span className="h-10 w-10" />
+          )}
+        </div>
       </div>
     </div>
   );
