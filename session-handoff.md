@@ -13923,3 +13923,19 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 
 ### QA request
 - After deploy, re-open the same imported PDF page. If it still fails, open DevTools console and capture the `Imported PDF load failed` error line; it should now include whether `/api/import/[id]/file` returned a non-200 status or whether pdf.js rejected the actual bytes.
+
+## Dev Update: IMPORT-3 file proxy 502 hotfix ready for QA [Codex1, 2026-06-09 08:48]
+- User-provided console proved the current failure is `PDF fetch failed: 502 application/json` from `/api/import/[id]/file`.
+- That means the page/auth/document lookup path works; the remaining broken boundary is the server proxy fetching COS.
+- Updated `src/app/api/import/[id]/file/route.ts`: the upstream COS URL is now signed with only `key: document.ossKey`; `response-content-disposition` / `response-content-type` are no longer included in the COS signed URL.
+- The proxy still returns inline output to the browser, but those headers are now owned by our `Response`. It also forwards `Content-Length` when COS provides it and includes `sourceStatus/sourceContentType` in 502 diagnostics.
+- Strengthened `tests/import023.test.mjs` with a red-green contract for the simpler source GET and diagnostic shape.
+
+### Verification
+- Red check: `node --test tests/import023.test.mjs` failed against the old proxy that signed COS with response-content overrides.
+- `node --test tests/import018.test.mjs tests/import023.test.mjs` -> 4/4 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+
+### QA request
+- After deploy, retry the same imported PDF. If it still returns 502, copy the Network response JSON for `/api/import/[id]/file`; it should include `sourceStatus` (likely 403/404) and `sourceContentType`, which tells us whether this is a COS signature problem or a missing object.

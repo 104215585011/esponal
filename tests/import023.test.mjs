@@ -14,8 +14,13 @@ test("IMPORT v2 serves imported files through an authenticated same-origin proxy
   const source = await read(routePath);
   assert.match(source, /getServerSession\(getAuthOptions\(\)\)/);
   assert.match(source, /getImportedDocumentByIdForUser\(userId,\s*context\.params\.id\)/);
-  assert.match(source, /presignGet\(\{\s*[\s\S]*key:\s*document\.ossKey[\s\S]*responseContentDisposition:\s*"inline"[\s\S]*responseContentType:\s*contentType[\s\S]*\}\)/);
+  assert.match(source, /presignGet\(\{\s*key:\s*document\.ossKey\s*\}\)/);
+  assert.doesNotMatch(source, /responseContentDisposition/);
+  assert.doesNotMatch(source, /responseContentType/);
   assert.match(source, /await fetch\(url,\s*\{\s*cache:\s*"no-store"\s*\}\)/);
+  assert.match(source, /upstream\.headers\.get\("content-type"\)/);
+  assert.match(source, /upstream\.headers\.get\("content-length"\)/);
+  assert.match(source, /sourceStatus:\s*upstream\.status/);
   assert.match(source, /new Response\(upstream\.body/);
   assert.match(source, /"Content-Disposition":\s*"inline"/);
   assert.match(source, /"Content-Type":\s*contentType/);

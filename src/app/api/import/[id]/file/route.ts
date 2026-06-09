@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 23:55
+// Timestamp: 2026-06-09 08:48
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -34,23 +34,33 @@ export async function GET(
   }
 
   const contentType = contentTypeForKind(document.kind);
-  const url = await presignGet({
-    key: document.ossKey,
-    responseContentDisposition: "inline",
-    responseContentType: contentType,
-  });
+  const url = await presignGet({ key: document.ossKey });
   const upstream = await fetch(url, { cache: "no-store" });
+  const sourceContentType = upstream.headers.get("content-type") ?? "";
+  const sourceContentLength = upstream.headers.get("content-length");
 
   if (!upstream.ok || !upstream.body) {
-    return NextResponse.json({ error: "source_unavailable" }, { status: 502 });
+    return NextResponse.json(
+      {
+        error: "source_unavailable",
+        sourceStatus: upstream.status,
+        sourceContentType,
+      },
+      { status: 502 },
+    );
+  }
+
+  const headers = new Headers({
+    "Cache-Control": "private, no-store",
+    "Content-Disposition": "inline",
+    "Content-Type": contentType,
+  });
+  if (sourceContentLength) {
+    headers.set("Content-Length", sourceContentLength);
   }
 
   return new Response(upstream.body, {
     status: 200,
-    headers: {
-      "Cache-Control": "private, no-store",
-      "Content-Disposition": "inline",
-      "Content-Type": contentType,
-    },
+    headers,
   });
 }
