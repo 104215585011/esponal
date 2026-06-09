@@ -72,7 +72,7 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(client, /setReaderUrl\(`\/api\/import\/\$\{documentId\}\/file`\)/);
   assert.doesNotMatch(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
   assert.doesNotMatch(client, /src=\{readerUrl\}/);
-  assert.match(client, /EPUB 阅读器正在接入/);
+  assert.match(client, /data-testid="import-epub-reader"/);
   assert.doesNotMatch(client, /打开 EPUB 原件/);
   assert.match(client, /kind === "pdf" && readerUrl/);
   assert.match(client, /await fetch\(readerUrl,\s*\{\s*cache:\s*"no-store",\s*credentials:\s*"same-origin"\s*\}\)/);
@@ -130,7 +130,7 @@ test("IMPORT-3 v2 exposes immersive reader controls for original-file rendering"
   assert.match(client, /handleReaderTouchEnd/);
   assert.match(client, /<input[\s\S]*type="range"/);
   assert.match(client, /ExternalLink/);
-  assert.match(client, /RefreshCw/);
+  assert.doesNotMatch(client, /RefreshCw/);
   assert.match(client, /ChevronLeft/);
   assert.match(client, /ChevronRight/);
   assert.match(client, /canGoPrevious/);

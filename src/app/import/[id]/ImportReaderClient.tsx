@@ -1,9 +1,9 @@
-// Timestamp: 2026-06-09 15:20
+// Timestamp: 2026-06-09 15:50
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ExternalLink, List, Loader2, RefreshCw, Sun, Type, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, List, Loader2, Sun, Type, ZoomIn, ZoomOut } from "lucide-react";
 import { LookupCardStack } from "@/app/watch/LookupCard";
 
 type ImportReaderClientProps = {
@@ -12,6 +12,13 @@ type ImportReaderClientProps = {
   kind: "epub" | "pdf";
   unitCount: number;
   lastPosition: string;
+};
+
+type EpubChapter = {
+  index: number;
+  title: string;
+  href: string;
+  text: string;
 };
 
 type PdfDocumentProxy = {
@@ -141,7 +148,9 @@ export function ImportReaderClient({
   const [readerUrl, setReaderUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [epubLoading, setEpubLoading] = useState(false);
   const [error, setError] = useState("");
+  const [epubChapters, setEpubChapters] = useState<EpubChapter[]>([]);
   const [pdfDocument, setPdfDocument] = useState<PdfDocumentProxy | null>(null);
   const [pdfZoom, setPdfZoom] = useState(1);
   const [pdfZoomMode, setPdfZoomMode] = useState<"auto" | "manual">("auto");
@@ -155,9 +164,16 @@ export function ImportReaderClient({
     const match = /^pdf:(\d+)$/.exec(lastPosition);
     return match ? Math.max(1, Number(match[1])) : 1;
   });
+  const [epubChapterIndex, setEpubChapterIndex] = useState(() => {
+    const match = /^epub:(\d+)$/.exec(lastPosition);
+    return match ? Math.max(0, Number(match[1])) : 0;
+  });
   const [pageCount, setPageCount] = useState(unitCount);
   const effectivePdfZoom = pdfZoomMode === "auto" ? calculateAdaptivePdfZoom(pdfFrameWidth) : pdfZoom;
   const pdfPageFitsViewport = canvasCssSize.height > 0 && pdfFrameHeight > 0 && canvasCssSize.height < pdfFrameHeight - 24;
+  const activeEpubChapter = epubChapters[epubChapterIndex] ?? null;
+  const readerUnitCount = kind === "pdf" ? pageCount : epubChapters.length;
+  const readerPosition = kind === "pdf" ? pageNumber : epubChapterIndex + 1;
 
   const showReaderChrome = useCallback(() => {
     setReaderChromeVisible(true);
@@ -248,6 +264,48 @@ export function ImportReaderClient({
   }, [kind, readerUrl]);
 
   useEffect(() => {
+    if (kind !== "epub") return;
+    let cancelled = false;
+
+    async function loadEpub() {
+      setEpubLoading(true);
+      setError("");
+      try {
+        const response = await fetch(`/api/import/${documentId}/epub`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (!response.ok) {
+          throw new Error(`EPUB fetch failed: ${response.status}`);
+        }
+        const payload = (await response.json()) as { chapters?: EpubChapter[] };
+        const chapters = payload.chapters;
+        if (!Array.isArray(chapters) || chapters.length === 0) {
+          throw new Error("EPUB reader returned no chapters");
+        }
+        if (cancelled) return;
+        setEpubChapters(chapters);
+        setPageCount(chapters.length);
+        setEpubChapterIndex((current) => Math.max(0, Math.min(current, chapters.length - 1)));
+      } catch (loadError) {
+        console.error("Imported EPUB load failed", loadError);
+        if (!cancelled) {
+          setError("EPUB 读取失败，请返回导入库后重试。");
+        }
+      } finally {
+        if (!cancelled) {
+          setEpubLoading(false);
+        }
+      }
+    }
+
+    void loadEpub();
+    return () => {
+      cancelled = true;
+    };
+  }, [documentId, kind]);
+
+  useEffect(() => {
     if (!pdfDocument || kind !== "pdf") return;
     let cancelled = false;
     const activeDocument = pdfDocument;
@@ -306,10 +364,19 @@ export function ImportReaderClient({
   }, [documentId, kind, pageCount, pageNumber]);
 
   useEffect(() => {
+    if (kind !== "epub" || epubChapters.length <= 0) return;
+    void fetch(`/api/import/${documentId}/progress`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ lastPosition: `epub:${epubChapterIndex}`, unitCount: epubChapters.length }),
+    });
+  }, [documentId, epubChapterIndex, epubChapters.length, kind]);
+
+  useEffect(() => {
     if (!readerChromeVisible) return;
     const timer = window.setTimeout(() => setReaderChromeVisible(false), 3200);
     return () => window.clearTimeout(timer);
-  }, [pageNumber, readerChromeVisible]);
+  }, [epubChapterIndex, pageNumber, readerChromeVisible]);
 
   const openPdfLookup = (event: MouseEvent<HTMLButtonElement>, item: PdfTextLayerItem) => {
     event.stopPropagation();
@@ -352,8 +419,8 @@ export function ImportReaderClient({
     setPdfZoom((current) => clampPdfZoom((pdfZoomMode === "auto" ? effectivePdfZoom : current) + delta));
   };
 
-  const canGoPrevious = kind === "pdf" && pageNumber > 1;
-  const canGoNext = kind === "pdf" && pageCount > 0 && pageNumber < pageCount;
+  const canGoPrevious = kind === "pdf" ? pageNumber > 1 : epubChapterIndex > 0;
+  const canGoNext = kind === "pdf" ? pageCount > 0 && pageNumber < pageCount : epubChapters.length > 0 && epubChapterIndex < epubChapters.length - 1;
 
   const goPreviousPage = useCallback((options: { revealChrome?: boolean } = {}) => {
     if (!canGoPrevious) return;
@@ -361,8 +428,12 @@ export function ImportReaderClient({
     if (options.revealChrome) {
       showReaderChrome();
     }
-    setPageNumber((current) => Math.max(1, current - 1));
-  }, [canGoPrevious, showReaderChrome]);
+    if (kind === "pdf") {
+      setPageNumber((current) => Math.max(1, current - 1));
+    } else {
+      setEpubChapterIndex((current) => Math.max(0, current - 1));
+    }
+  }, [canGoPrevious, kind, showReaderChrome]);
 
   const goNextPage = useCallback((options: { revealChrome?: boolean } = {}) => {
     if (!canGoNext) return;
@@ -370,23 +441,27 @@ export function ImportReaderClient({
     if (options.revealChrome) {
       showReaderChrome();
     }
-    setPageNumber((current) => Math.min(pageCount, current + 1));
-  }, [canGoNext, pageCount, showReaderChrome]);
+    if (kind === "pdf") {
+      setPageNumber((current) => Math.min(pageCount, current + 1));
+    } else {
+      setEpubChapterIndex((current) => Math.min(epubChapters.length - 1, current + 1));
+    }
+  }, [canGoNext, epubChapters.length, kind, pageCount, showReaderChrome]);
 
-  const jumpToPdfPage = (value: number) => {
-    if (kind !== "pdf" || pageCount <= 0) return;
+  const jumpToReaderPosition = (value: number) => {
     setActivePdfLookup(null);
     showReaderChrome();
-    setPageNumber(Math.max(1, Math.min(pageCount, value)));
+    if (kind === "pdf") {
+      if (pageCount <= 0) return;
+      setPageNumber(Math.max(1, Math.min(pageCount, value)));
+      return;
+    }
+    if (epubChapters.length <= 0) return;
+    setEpubChapterIndex(Math.max(0, Math.min(epubChapters.length - 1, value - 1)));
   };
 
   const handleReaderSurfaceClick = (event: MouseEvent<HTMLDivElement>) => {
     if (event.defaultPrevented) return;
-
-    if (kind !== "pdf") {
-      toggleReaderChrome();
-      return;
-    }
 
     const rect = event.currentTarget.getBoundingClientRect();
     const zoneRatio = (event.clientX - rect.left) / Math.max(1, rect.width);
@@ -426,7 +501,7 @@ export function ImportReaderClient({
     const start = touchStartRef.current;
     const touch = event.changedTouches[0];
     touchStartRef.current = null;
-    if (!start || !touch || kind !== "pdf") return;
+    if (!start || !touch) return;
 
     const deltaX = touch.clientX - start.x;
     const deltaY = touch.clientY - start.y;
@@ -439,7 +514,11 @@ export function ImportReaderClient({
     }
   };
 
-  const pageLabel = kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount}` : kind === "epub" ? "EPUB" : "PDF";
+  const pageLabel = kind === "pdf" && pageCount > 0
+    ? `${pageNumber} / ${pageCount}`
+    : kind === "epub" && epubChapters.length > 0
+      ? `${epubChapterIndex + 1} / ${epubChapters.length}`
+      : kind === "epub" ? "EPUB" : "PDF";
 
   return (
     <div className="relative h-[100dvh] w-screen overflow-hidden bg-[#f9f9f9] dark:bg-[#121212]" data-testid="import-reader">
@@ -453,10 +532,10 @@ export function ImportReaderClient({
         role="button"
         tabIndex={0}
       >
-        {loading ? (
+        {loading || (kind === "epub" && epubLoading) ? (
           <div className="flex h-[100dvh] w-full items-center justify-center text-sm font-medium text-zinc-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-500" aria-hidden />
-            正在准备阅读器
+            {kind === "epub" ? "正在加载 EPUB" : "正在准备阅读器"}
           </div>
         ) : error ? (
           <div className="mx-4 mt-[18vh] rounded-3xl bg-red-50 px-6 py-8 text-center text-sm font-medium text-red-600">{error}</div>
@@ -509,21 +588,22 @@ export function ImportReaderClient({
             </div>
           </>
         ) : (
-          <div className="flex h-[100dvh] w-full items-center justify-center px-6 text-center">
-            <div className="max-w-sm rounded-3xl bg-white/90 px-6 py-8 shadow-sm ring-1 ring-zinc-200">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand-600">EPUB</p>
-              <h1 className="mt-3 text-xl font-bold text-zinc-950">EPUB 阅读器正在接入</h1>
-              <p className="mt-3 text-sm leading-6 text-zinc-500">
-                已阻止直接打开 COS 预签名链接，避免把存储错误页显示成正文。完整的 EPUB 翻页和点词阅读器会继续接入。
-              </p>
-              <Link
-                className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white active:bg-brand-600"
-                href="/import/library"
-              >
-                返回导入库
-              </Link>
+          <article
+            className="mx-auto min-h-[100dvh] w-full max-w-[760px] px-7 pb-24 pt-16 text-zinc-950"
+            data-testid="import-epub-reader"
+          >
+            <div className="mb-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-brand-600">
+              <span>EPUB</span>
+              <span className="h-1 w-1 rounded-full bg-brand-500" aria-hidden />
+              <span>{pageLabel}</span>
             </div>
-          </div>
+            <h1 className="mb-8 text-2xl font-bold leading-tight text-zinc-950">
+              {activeEpubChapter?.title ?? title}
+            </h1>
+            <div className="whitespace-pre-wrap text-xl leading-[2.05] tracking-normal text-zinc-900">
+              {activeEpubChapter?.text ?? "这个 EPUB 没有可显示的正文。"}
+            </div>
+          </article>
         )}
       </div>
 
@@ -610,40 +690,29 @@ export function ImportReaderClient({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center gap-4 px-6 py-4">
-          <span className="w-8 text-right text-xs font-medium text-zinc-500">{pageNumber}</span>
+          <span className="w-8 text-right text-xs font-medium text-zinc-500">{readerPosition}</span>
           <input
             aria-label="跳转页码"
             className="flex-1 accent-brand-500"
-            disabled={kind !== "pdf" || pageCount <= 1}
-            max={Math.max(1, pageCount)}
+            disabled={readerUnitCount <= 1}
+            max={Math.max(1, readerUnitCount)}
             min={1}
-            onChange={(event) => jumpToPdfPage(Number(event.currentTarget.value))}
+            onChange={(event) => jumpToReaderPosition(Number(event.currentTarget.value))}
             type="range"
-            value={Math.max(1, Math.min(pageNumber, Math.max(1, pageCount)))}
+            value={Math.max(1, Math.min(readerPosition, Math.max(1, readerUnitCount)))}
           />
-          <span className="w-8 text-xs font-medium text-zinc-500">{Math.max(1, pageCount)}</span>
+          <span className="w-8 text-xs font-medium text-zinc-500">{Math.max(1, readerUnitCount)}</span>
         </div>
         <div className="flex items-center justify-between px-8 pb-4 pt-2">
-          {kind === "pdf" ? (
-            <button
-              aria-label="上一页"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
-              disabled={!canGoPrevious}
-              onClick={() => goPreviousPage({ revealChrome: true })}
-              type="button"
-            >
-              <ChevronLeft className="h-5 w-5" aria-hidden />
-            </button>
-          ) : (
-            <button
-              aria-label="刷新阅读链接"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
-              onClick={loadReaderUrl}
-              type="button"
-            >
-              <RefreshCw className="h-5 w-5" aria-hidden />
-            </button>
-          )}
+          <button
+            aria-label={kind === "pdf" ? "上一页" : "上一章"}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
+            disabled={!canGoPrevious}
+            onClick={() => goPreviousPage({ revealChrome: true })}
+            type="button"
+          >
+            <ChevronLeft className="h-5 w-5" aria-hidden />
+          </button>
           <button aria-label="目录" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100" type="button">
             <List className="h-5 w-5" aria-hidden />
           </button>
@@ -660,27 +729,15 @@ export function ImportReaderClient({
           <button aria-label="排版设置" className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100" type="button">
             <Type className="h-5 w-5" aria-hidden />
           </button>
-          {kind === "pdf" ? (
-            <button
-              aria-label="下一页"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30"
-              disabled={!canGoNext}
-              onClick={() => goNextPage({ revealChrome: true })}
-              type="button"
-            >
-              <ChevronRight className="h-5 w-5" aria-hidden />
-            </button>
-          ) : kind === "epub" ? (
-            <Link
-              aria-label="返回导入库"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600"
-              href="/import/library"
-            >
-              <ChevronLeft className="h-5 w-5" aria-hidden />
-            </Link>
-          ) : (
-            <span className="h-10 w-10" />
-          )}
+          <button
+            aria-label={kind === "pdf" ? "下一页" : "下一章"}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30"
+            disabled={!canGoNext}
+            onClick={() => goNextPage({ revealChrome: true })}
+            type="button"
+          >
+            <ChevronRight className="h-5 w-5" aria-hidden />
+          </button>
         </div>
       </div>
     </div>

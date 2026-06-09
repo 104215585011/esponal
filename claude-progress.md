@@ -1,3 +1,24 @@
+### Session #IMPORT-3 EPUB Reader - 2026-06-09 15:50
+
+**Goal**: Replace the EPUB `正在接入` fallback with a real first-pass EPUB reader.
+
+**Done (Codex1)**:
+- Added `src/lib/import/epub.ts` to parse EPUB ZIPs with `adm-zip`: reads `META-INF/container.xml`, resolves the OPF package, follows the spine, extracts XHTML chapters, strips scripts/styles/SVG, decodes entities, and returns readable chapter text.
+- Added authenticated same-origin `GET /api/import/[id]/epub`; it owner-scopes the document, requires `kind === "epub"`, fetches the COS object server-side, parses chapters, and returns `{ chapters, unitCount }`.
+- Replaced the EPUB fallback in `ImportReaderClient` with an actual fullscreen chapter reader.
+- EPUB now supports left/right tap zones, swipe chapter navigation, bottom slider, hidden/visible chrome, exit to `/import/library`, and progress persistence as `epub:<chapterIndex>`.
+- PDF rendering, PDF external-open action, PDF zoom, and PDF word lookup remain on the existing path.
+
+**Verification**:
+- Red check: `node --test tests/import027.test.mjs` failed first because the EPUB parser/API/client reader did not exist and the fallback still said `EPUB 阅读器正在接入`.
+- Focused regression: `node --test tests/import027.test.mjs tests/import018.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 11/11 pass.
+- Import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs` -> 23/23 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: Ready for final `npm test` and QA. Note: first EPUB version is text/spine reading; EPUB word lookup and richer original-layout rendering are still follow-up work.
+
 ### Session #IMPORT-3 EPUB Direct-Link Guard - 2026-06-09 15:20
 
 **Goal**: Fix user feedback that imported EPUB can still display a raw Tencent COS `SignatureDoesNotMatch` error page.
@@ -5812,3 +5833,4 @@ feature_list.json 鏇存柊锛?- 鏂板 COURSE-003锛坰tatus: backlog锛?- �
 | 2026-06-09 | Codex1 | IMPORT-3 PDF reader adaptive stable zoom ready_for_qa: user reported the PDF page visually auto-enlarged while flipping pages. Replaced the fixed `PDF_DEFAULT_ZOOM` path with container-based `calculateAdaptivePdfZoom()`, `ResizeObserver` measurement via `pdfFrameRef`, and `pdfZoomMode` so automatic zoom depends on the reader frame width rather than the current page. Manual desktop zoom now switches to manual mode and will not be overwritten by auto sizing. Updated `tests/import018.test.mjs` and `tests/import025.test.mjs` to lock the adaptive/stable zoom contract. Verification: red check failed against the old fixed zoom; `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` 8/8 pass; `npx tsc --noEmit --pretty false` pass; `npm run lint:encoding` pass; `npm test` 479/479 pass; `npm run build` pass with existing img/Sentry warnings only. |
 | 2026-06-09 | Codex1 | IMPORT-3 PDF reader adaptive zoom size bump ready_for_qa: user reported the stable adaptive zoom was now too small on mobile. Tuned `calculateAdaptivePdfZoom()` upward while keeping it page-stable: 430px mobile frames now land around 116%, narrower frames around 112%, and wider frames cap at 118%, still far below the old 145% crop. Updated `tests/import025.test.mjs` to prevent the mobile curve from regressing to the previous 103% tiny rendering. Verification so far: red check failed against the 1.08/0.03 curve; `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` 8/8 pass; `npx tsc --noEmit --pretty false` pass; `npm run lint:encoding` pass. Full test/build rerun pending before push. |
 | 2026-06-09 | Codex1 | IMPORT-3 PDF reader stable 145% experiment ready_for_qa: user suspected the original 145% issue was caused by page-size mutation rather than the multiplier itself. Kept the new stable sizing pipeline but changed auto zoom to a fixed `PDF_AUTO_MAX_ZOOM = 1.45`, so the reader still fits against the measured frame width and no longer recalculates zoom from per-page content. Updated `tests/import025.test.mjs` to lock this stable-145 contract. Verification so far: red check failed against the 1.18 curve; `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` 8/8 pass; `npx tsc --noEmit --pretty false` pass; `npm run lint:encoding` pass. Full test/build rerun pending before push. |
+| 2026-06-09 | Codex1 | IMPORT-3 EPUB reader ready_for_qa: replaced the EPUB placeholder with a same-origin EPUB reader. Added `src/lib/import/epub.ts` for ZIP/container/OPF/spine parsing, `GET /api/import/[id]/epub` for owner-scoped chapter data, and updated `ImportReaderClient` so EPUB documents render as full-screen chapter text with hidden chrome, center tap show/hide, left/right tap or swipe chapter navigation, bottom slider, top exit to `/import/library`, and progress as `epub:<chapterIndex>`. PDF rendering/zoom/lookup paths remain unchanged. Verification: red `tests/import027.test.mjs` failed before implementation; focused EPUB/import set 11/11 pass; import regression 23/23 pass; `npx tsc --noEmit --pretty false` pass; `npm run lint:encoding` pass; `npm run build` pass with existing img/Sentry warnings only; `npm test` 485/485 pass. |

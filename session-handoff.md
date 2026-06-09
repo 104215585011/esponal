@@ -1,3 +1,36 @@
+## Codex1 Fix Report: IMPORT-3 EPUB reader
+**Time**: 2026-06-09 15:50
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User asked why EPUB was still showing `EPUB 阅读器正在接入` and explicitly requested a reader.
+
+**Fix**:
+- Added `src/lib/import/epub.ts` to parse EPUB ZIP bytes: container -> OPF -> manifest/spine -> XHTML chapters -> safe readable text.
+- Added owner-scoped `GET /api/import/[id]/epub` for EPUB reader data.
+- `ImportReaderClient` now fetches `/api/import/[id]/epub` for EPUB documents and renders a full-screen chapter reader instead of the fallback card.
+- EPUB supports the same immersive model: hidden chrome, center tap show/hide, left/right tap or swipe chapter navigation, bottom slider, page watermark, top exit to `/import/library`, and progress as `epub:<chapterIndex>`.
+- PDF path remains unchanged.
+
+**Verification**:
+- Red check: `node --test tests/import027.test.mjs` failed first against missing parser/API/client reader and the old fallback copy.
+- Focused regression: `node --test tests/import027.test.mjs tests/import018.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 11/11 pass.
+- Import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs` -> 23/23 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+- `npm test` -> 485/485 pass.
+
+**QA focus**:
+- Imported EPUB should render readable chapter text, not the `正在接入` card.
+- Left/right taps and swipe should move between EPUB chapters.
+- Center tap should show/hide top and bottom chrome.
+- Bottom slider should jump chapters and save progress.
+- Top exit should return to `/import/library`.
+- PDF reader still renders, zooms, and opens word lookup as before.
+
 ## Codex1 Fix Report: IMPORT-3 EPUB direct-link guard
 **Time**: 2026-06-09 15:20
 **From**: Codex1 (DEV)
