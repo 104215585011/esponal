@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 21:48
+// Timestamp: 2026-06-09 10:12
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -36,19 +36,7 @@ export default async function ImportReaderPage({
   return (
     <main className="min-h-screen bg-app pb-24">
       <SiteHeader />
-      <section className="mx-auto max-w-app-shell px-4 py-5 md:py-8">
-        <header className="mb-5 md:mb-7">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-            Imported Reading
-          </p>
-          <h1 className="mt-2 text-[28px] font-semibold leading-tight tracking-tight text-zinc-900 md:text-[32px]">
-            {document.title}
-          </h1>
-          <p className="mt-1.5 text-sm text-zinc-500">
-            {document.kind === "epub" ? "EPUB" : "PDF"} · {document.unitCount > 0 ? `${document.unitCount} 单元` : "原件渲染"}
-          </p>
-        </header>
-
+      <section className="mx-auto max-w-app-shell px-4">
         <ImportReaderClient
           documentId={document.id}
           kind={document.kind}

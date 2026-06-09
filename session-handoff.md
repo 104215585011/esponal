@@ -14005,3 +14005,39 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 - Tap a visible Spanish word in the PDF. Expected: the normal lookup card opens; nested phrase/word navigation still works.
 - Save a looked-up word and confirm the encounter source does not 400; the source should be treated as reading/import context.
 - If the PDF is image-only/scanned, the text layer may have no tappable words; this ticket is for text PDFs where pdf.js exposes text content.
+
+## Dev Update: IMPORT-3 PDF chrome-stripping pass ready for QA [Codex1, 2026-06-09 10:22]
+- Implemented the Gemini1/PM repair drawing at `docs/tickets/IMPORT-3-fix-design.md`.
+- The design doc itself was previously untracked and displayed as mojibake in this environment, so Codex1 rewrote it as clean UTF-8 before committing it.
+- `src/app/import/[id]/page.tsx` now removes the redundant route-level header:
+  - no `Imported Reading` kicker
+  - no multi-line outer title
+  - no route-level `PDF · 原件渲染` subtitle
+  - no `py-5 md:py-8` section padding
+- `src/app/import/[id]/ImportReaderClient.tsx` now owns the only reader header:
+  - pure reading container instead of `rounded-[28px] border ... shadow-card`
+  - tiny `PDF` / `EPUB` badge
+  - long title forced into one `truncate` line
+  - no top page-count duplicate
+  - PDF canvas area no longer has the old card border/padding shell
+  - no debug/help paragraph under the reader
+  - mobile dock is a 52px floating capsule using the shared `shadow-elevated`
+- Existing production fixes remain in place: same-origin file proxy, same-origin pdf.js worker route, workerPort setup, 145% default zoom, progress persistence, and pdf.js text-layer lookup.
+- Added `tests/import026.test.mjs` to lock the chrome-stripping UI contract.
+
+### Verification
+- Red check: `node --test tests/import026.test.mjs` failed against the old page/header/card shell.
+- `node --test tests/import026.test.mjs` -> 1/1 pass
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+- `npm test` -> 479/479 pass
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only
+- Local dev visual smoke not completed: `Start-Process` failed before server launch with the known duplicate `Path` / `PATH` Windows environment issue.
+
+### QA request
+- After deploy, reopen the same Vercel imported PDF page on mobile.
+- Confirm the first viewport no longer shows the old giant title block and no longer says `Imported Reading` / `原件渲染`.
+- Confirm the title inside the reader is one line with ellipsis and a tiny `PDF` badge.
+- Confirm the PDF canvas has more vertical room and is not inside a shadow-card shell.
+- Confirm the bottom dock remains usable for previous/next and text-layer word lookup still opens the normal lookup card.

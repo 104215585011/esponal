@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 09:48
+// Timestamp: 2026-06-09 10:12
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
@@ -331,18 +331,15 @@ export function ImportReaderClient({
   const canGoNext = kind === "pdf" && pageCount > 0 && pageNumber < pageCount;
 
   return (
-    <div className="relative rounded-[28px] border border-zinc-200/70 bg-white p-4 shadow-card md:p-6" data-testid="import-reader">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-4">
-        <div>
-          <p className="text-xs font-semibold text-brand-600">
-            {kind === "epub" ? "EPUB Reader" : "PDF Reader"}
-          </p>
-          <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
-          {kind === "pdf" && pageCount > 0 ? (
-            <p className="mt-1 text-xs font-medium text-zinc-500">
-              第 {pageNumber} / {pageCount} 页
-            </p>
-          ) : null}
+    <div className="relative flex min-h-[calc(100vh-80px)] w-full flex-col" data-testid="import-reader">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-zinc-500">
+              {kind === "epub" ? "EPUB" : "PDF"}
+            </span>
+            <h2 className="truncate text-sm font-semibold text-zinc-900">{title}</h2>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {kind === "pdf" ? (
@@ -383,66 +380,64 @@ export function ImportReaderClient({
       </div>
 
       {loading ? (
-        <div className="flex min-h-[360px] items-center justify-center rounded-3xl bg-zinc-50 text-sm font-medium text-zinc-500">
+        <div className="flex min-h-[calc(100dvh-156px)] flex-1 items-center justify-center rounded-2xl bg-zinc-100/50 text-sm font-medium text-zinc-500">
           <Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-500" aria-hidden />
           正在准备阅读器
         </div>
       ) : error ? (
-        <div className="rounded-3xl bg-red-50 p-6 text-sm font-medium text-red-600">{error}</div>
+        <div className="flex min-h-[calc(100dvh-156px)] flex-1 items-center justify-center rounded-2xl bg-red-50 p-6 text-sm font-medium text-red-600">{error}</div>
       ) : kind === "pdf" ? (
-        <div className="relative min-h-[520px] overflow-x-auto rounded-3xl border border-zinc-200 bg-zinc-50 p-2">
+        <div className="relative flex min-h-[calc(100dvh-156px)] flex-1 justify-center overflow-hidden rounded-2xl bg-zinc-100/50">
           {pdfLoading ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 text-sm font-medium text-zinc-500 backdrop-blur-sm">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/70 text-sm font-medium text-zinc-500 backdrop-blur-sm">
               <Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-500" aria-hidden />
               正在渲染 PDF
             </div>
           ) : null}
-          <div
-            className="relative mx-auto"
-            style={{
-              minWidth: canvasCssSize.width || undefined,
-              width: canvasCssSize.width || undefined,
-              height: canvasCssSize.height || undefined,
-            }}
-          >
-            <canvas ref={canvasRef} className="rounded-2xl bg-white shadow-sm" />
+          <div className="flex h-full w-full justify-center overflow-x-auto">
             <div
-              className="absolute left-0 top-0 z-[2]"
-              data-testid="import-pdf-text-layer"
-              style={{ width: canvasCssSize.width, height: canvasCssSize.height }}
+              className="relative mx-auto my-auto"
+              style={{
+                minWidth: canvasCssSize.width || undefined,
+                width: canvasCssSize.width || undefined,
+                height: canvasCssSize.height || undefined,
+              }}
             >
-              {pdfTextLayerItems.map((item) => (
-                <button
-                  aria-label={`查询 ${item.text}`}
-                  className="absolute rounded-sm bg-brand-500/0 text-transparent outline-none transition hover:bg-brand-500/15 focus:bg-brand-500/20"
-                  data-testid="import-pdf-word"
-                  key={item.id}
-                  onClick={(event) => openPdfLookup(event, item)}
-                  style={{
-                    left: item.left,
-                    top: item.top,
-                    width: item.width,
-                    height: item.height,
-                  }}
-                  type="button"
-                >
-                  {item.text}
-                </button>
-              ))}
+              <canvas ref={canvasRef} className="bg-white shadow-sm" />
+              <div
+                className="absolute left-0 top-0 z-[2]"
+                data-testid="import-pdf-text-layer"
+                style={{ width: canvasCssSize.width, height: canvasCssSize.height }}
+              >
+                {pdfTextLayerItems.map((item) => (
+                  <button
+                    aria-label={`查询 ${item.text}`}
+                    className="absolute rounded-sm bg-brand-500/0 text-transparent outline-none transition hover:bg-brand-500/15 focus:bg-brand-500/20"
+                    data-testid="import-pdf-word"
+                    key={item.id}
+                    onClick={(event) => openPdfLookup(event, item)}
+                    style={{
+                      left: item.left,
+                      top: item.top,
+                      width: item.width,
+                      height: item.height,
+                    }}
+                    type="button"
+                  >
+                    {item.text}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       ) : (
         <iframe
-          className="h-[72vh] min-h-[520px] w-full rounded-3xl border border-zinc-200 bg-zinc-50"
+          className="min-h-[calc(100dvh-156px)] flex-1 rounded-2xl bg-zinc-100/50"
           src={readerUrl}
           title={title}
         />
       )}
-
-      <p className="mt-4 text-xs leading-5 text-zinc-400">
-        PDF 可横向滑动放大阅读；有文本层的页面可直接点词，扫描图片页暂时只能原图阅读。
-      </p>
 
       {activePdfLookup ? (
         <span
@@ -472,10 +467,10 @@ export function ImportReaderClient({
         </span>
       ) : null}
 
-      <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-40 flex items-center justify-between rounded-full border border-zinc-200/60 bg-white/90 px-2 py-2 shadow-[0_14px_40px_-22px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
+      <div className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+12px)] z-40 flex h-[52px] items-center justify-between rounded-full border border-zinc-200/60 bg-white/90 px-2 shadow-elevated backdrop-blur md:hidden">
         {kind === "pdf" ? (
           <button
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 disabled:opacity-35"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
             disabled={!canGoPrevious}
             onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
             type="button"
@@ -484,19 +479,19 @@ export function ImportReaderClient({
           </button>
         ) : (
           <button
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-700"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-600 active:bg-zinc-100 disabled:opacity-30"
             onClick={loadReaderUrl}
             type="button"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
           </button>
         )}
-        <span className="px-3 text-xs font-semibold text-zinc-600">
+        <span className="text-xs font-bold text-zinc-800 font-display">
           {kind === "pdf" && pageCount > 0 ? `${pageNumber} / ${pageCount} · ${Math.round(pdfZoom * 100)}%` : kind === "epub" ? "epub.js 待接入" : "pdf.js"}
         </span>
         {kind === "pdf" ? (
           <button
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-500 text-white disabled:opacity-35"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30"
             disabled={!canGoNext}
             onClick={() => setPageNumber((current) => Math.min(pageCount, current + 1))}
             type="button"
@@ -505,7 +500,7 @@ export function ImportReaderClient({
           </button>
         ) : readerUrl ? (
           <a
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-500 text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600"
             href={readerUrl}
             rel="noreferrer"
             target="_blank"
@@ -513,7 +508,7 @@ export function ImportReaderClient({
             <ExternalLink className="h-4 w-4" aria-hidden />
           </a>
         ) : (
-          <span className="h-11 w-11" />
+          <span className="h-10 w-10" />
         )}
       </div>
     </div>
