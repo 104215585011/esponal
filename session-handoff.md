@@ -14102,3 +14102,21 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 ### QA request
 - After deploy, reopen the same mobile PDF page.
 - Expected: page should be noticeably larger than the previous tiny screenshot, while still not jumping scale between pages.
+
+## Dev Update: IMPORT-3 stable 145% PDF zoom experiment ready for QA [Codex1, 2026-06-09 11:18]
+- User suspects the earlier 145% problem may have been caused by page-size mutation rather than the multiplier.
+- Kept the current stable sizing architecture and changed auto zoom to fixed stable 145%:
+  - `PDF_AUTO_MAX_ZOOM = 1.45`
+  - `calculateAdaptivePdfZoom()` now returns that stable value after the frame exists.
+  - rendering still computes fit width from the measured reader frame and current page width, so the zoom multiplier itself does not drift with page number.
+- Updated `tests/import025.test.mjs` to lock the stable-145 experiment.
+
+### Verification
+- Red check: `node --test tests/import025.test.mjs` failed against the old 1.18 adaptive curve.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+
+### QA request
+- After deploy, check whether 145% is now usable with the stable sizing pipeline.
+- Important: flip multiple pages and confirm whether the page scale stays consistent rather than growing unexpectedly.

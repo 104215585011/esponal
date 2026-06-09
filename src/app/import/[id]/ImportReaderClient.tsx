@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 11:10
+// Timestamp: 2026-06-09 11:18
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
@@ -62,7 +62,7 @@ type PdfLookupStack = {
 
 const PDF_WORKER_SRC = "/api/import/pdf-worker";
 const PDF_AUTO_MIN_ZOOM = 1;
-const PDF_AUTO_MAX_ZOOM = 1.18;
+const PDF_AUTO_MAX_ZOOM = 1.45;
 const PDF_MIN_ZOOM = 1;
 const PDF_MAX_ZOOM = 2.2;
 const PDF_WORD_PATTERN = /[\p{L}ÁÉÍÓÚÜÑáéíóúüñ]+/gu;
@@ -91,8 +91,7 @@ function clampPdfZoom(value: number) {
 
 function calculateAdaptivePdfZoom(frameWidth: number) {
   if (frameWidth <= 0) return PDF_AUTO_MIN_ZOOM;
-  const widthBoost = frameWidth >= 720 ? 0.18 : frameWidth >= 520 ? 0.18 : frameWidth >= 430 ? 0.16 : 0.12;
-  return Math.max(PDF_AUTO_MIN_ZOOM, Math.min(PDF_AUTO_MAX_ZOOM, Number((PDF_AUTO_MIN_ZOOM + widthBoost).toFixed(2))));
+  return PDF_AUTO_MAX_ZOOM;
 }
 
 function buildPdfTextLayerItems(textContent: PdfTextContent, viewport: PdfViewport, scale: number) {
