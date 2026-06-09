@@ -26,3 +26,16 @@ test("IMPORT v2 serves imported files through an authenticated same-origin proxy
   assert.match(source, /"Content-Type":\s*contentType/);
   assert.match(source, /"Cache-Control":\s*"private, no-store"/);
 });
+
+test("IMPORT v2 legacy URL route never exposes direct COS links to readers", async () => {
+  const routePath = "src/app/api/import/[id]/url/route.ts";
+  assert.equal(existsSync(routePath), true, `${routePath} missing`);
+
+  const source = await read(routePath);
+  assert.match(source, /getServerSession\(getAuthOptions\(\)\)/);
+  assert.match(source, /getImportedDocumentByIdForUser\(userId,\s*context\.params\.id\)/);
+  assert.doesNotMatch(source, /presignGet/);
+  assert.match(source, /NextResponse\.json\(\{\s*url:\s*`\/api\/import\/\$\{context\.params\.id\}\/file`/);
+  assert.doesNotMatch(source, /responseContentDisposition/);
+  assert.doesNotMatch(source, /responseContentType/);
+});

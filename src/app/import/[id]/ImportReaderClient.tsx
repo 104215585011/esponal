@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 14:35
+// Timestamp: 2026-06-09 15:20
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
@@ -514,18 +514,14 @@ export function ImportReaderClient({
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-brand-600">EPUB</p>
               <h1 className="mt-3 text-xl font-bold text-zinc-950">EPUB 阅读器正在接入</h1>
               <p className="mt-3 text-sm leading-6 text-zinc-500">
-                已避免直接打开 COS 预签名链接，原件可通过同源代理打开。完整的 EPUB 翻页和点词阅读器会继续接入。
+                已阻止直接打开 COS 预签名链接，避免把存储错误页显示成正文。完整的 EPUB 翻页和点词阅读器会继续接入。
               </p>
-              {readerUrl ? (
-                <a
-                  className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white active:bg-brand-600"
-                  href={readerUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  打开 EPUB 原件
-                </a>
-              ) : null}
+              <Link
+                className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full bg-brand-500 px-5 text-sm font-semibold text-white active:bg-brand-600"
+                href="/import/library"
+              >
+                返回导入库
+              </Link>
             </div>
           </div>
         )}
@@ -564,7 +560,7 @@ export function ImportReaderClient({
           {kind === "epub" ? "EPUB" : "PDF"}
         </span>
         <h2 className="flex-1 truncate text-center text-sm font-bold text-zinc-900 px-4">{title}</h2>
-        {readerUrl ? (
+        {kind === "pdf" && readerUrl ? (
           <a
             aria-label="新窗口打开原文"
             className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 active:bg-zinc-100"
@@ -674,16 +670,14 @@ export function ImportReaderClient({
             >
               <ChevronRight className="h-5 w-5" aria-hidden />
             </button>
-          ) : readerUrl ? (
-            <a
-              aria-label="新窗口打开"
+          ) : kind === "epub" ? (
+            <Link
+              aria-label="返回导入库"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600"
-              href={readerUrl}
-              rel="noreferrer"
-              target="_blank"
+              href="/import/library"
             >
-              <ExternalLink className="h-5 w-5" aria-hidden />
-            </a>
+              <ChevronLeft className="h-5 w-5" aria-hidden />
+            </Link>
           ) : (
             <span className="h-10 w-10" />
           )}

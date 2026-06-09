@@ -73,7 +73,8 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.doesNotMatch(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
   assert.doesNotMatch(client, /src=\{readerUrl\}/);
   assert.match(client, /EPUB 阅读器正在接入/);
-  assert.match(client, /href=\{readerUrl\}/);
+  assert.doesNotMatch(client, /打开 EPUB 原件/);
+  assert.match(client, /kind === "pdf" && readerUrl/);
   assert.match(client, /await fetch\(readerUrl,\s*\{\s*cache:\s*"no-store",\s*credentials:\s*"same-origin"\s*\}\)/);
   assert.match(client, /await response\.arrayBuffer\(\)/);
   assert.match(client, /new Uint8Array\(buffer\)/);

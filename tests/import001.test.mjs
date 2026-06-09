@@ -59,5 +59,6 @@ test("IMPORT-1 v2 exposes COS storage helpers and presign/document/read/progress
 
   const urlRoute = await read("src/app/api/import/[id]/url/route.ts");
   assert.match(urlRoute, /getImportedDocumentByIdForUser/);
-  assert.match(urlRoute, /presignGet/);
+  assert.doesNotMatch(urlRoute, /presignGet/);
+  assert.match(urlRoute, /\/api\/import\/\$\{context\.params\.id\}\/file/);
 });

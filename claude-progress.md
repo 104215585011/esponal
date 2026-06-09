@@ -1,3 +1,23 @@
+### Session #IMPORT-3 EPUB Direct-Link Guard - 2026-06-09 15:20
+
+**Goal**: Fix user feedback that imported EPUB can still display a raw Tencent COS `SignatureDoesNotMatch` error page.
+
+**Done (Codex1)**:
+- Root cause: the previous hotfix removed the reader iframe path, but the EPUB UI still exposed open-original/external actions, and the legacy `/api/import/[id]/url` route still returned a direct COS presigned URL.
+- Changed `/api/import/[id]/url` to return the authenticated same-origin `/api/import/[id]/file` proxy instead of a COS URL.
+- Removed EPUB external/open-original actions from `ImportReaderClient`; PDF keeps its external original action, EPUB now returns users to `/import/library` until the full EPUB reader is implemented.
+- Strengthened IMPORT tests so direct COS URL exposure and EPUB open-original buttons cannot regress.
+
+**Verification**:
+- Red check: `node --test tests/import018.test.mjs tests/import023.test.mjs` failed first against the EPUB open-original action and `/url` route `presignGet`.
+- Focused regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 20/20 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 482/482 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: Ready for QA. Note: this prevents raw COS error pages in the EPUB path; full EPUB pagination and word lookup still require a dedicated reader implementation.
+
 ### Session #IMPORT-3 EPUB COS Error Guard - 2026-06-09 14:35
 
 **Goal**: Fix user feedback that imported EPUB opens as a raw COS `SignatureDoesNotMatch` error page inside the reader.

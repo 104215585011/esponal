@@ -1,3 +1,33 @@
+## Codex1 Fix Report: IMPORT-3 EPUB direct-link guard
+**Time**: 2026-06-09 15:20
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User reported imported EPUB still displays a raw Tencent COS `SignatureDoesNotMatch` page.
+
+**Fix**:
+- The previous guard removed the EPUB iframe, but the UI still exposed external/open-original actions, and legacy `/api/import/[id]/url` still returned a direct COS presigned URL.
+- `/api/import/[id]/url` now returns `{ url: "/api/import/[id]/file", proxied: true }` instead of a COS URL.
+- EPUB reader fallback no longer renders `打开 EPUB 原件` or any `readerUrl` external action.
+- PDF reader external original actions remain available.
+- EPUB fallback action now returns to `/import/library` until full EPUB pagination/point-word support is implemented.
+
+**Verification**:
+- Red check: `node --test tests/import018.test.mjs tests/import023.test.mjs` failed first against the old external EPUB action and `/url` `presignGet`.
+- Focused import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 20/20 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 482/482 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Imported EPUB should not show `SignatureDoesNotMatch`, COS XML, or direct COS URLs inside the app.
+- EPUB fallback should show controlled copy and a return-to-library path.
+- Top/bottom external-open buttons should still exist for PDF but not EPUB.
+- PDF rendering, PDF word lookup, and import library links should still work.
+
 ## Codex1 Fix Report: IMPORT-3 EPUB COS error guard
 **Time**: 2026-06-09 14:35
 **From**: Codex1 (DEV)
