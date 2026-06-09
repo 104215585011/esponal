@@ -55,10 +55,12 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(client, /await response\.arrayBuffer\(\)/);
   assert.match(client, /new Uint8Array\(buffer\)/);
   assert.match(client, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
+  assert.match(client, /pdfjs\.GlobalWorkerOptions\.workerSrc\s*=\s*"\/api\/import\/pdf-worker"/);
+  assert.doesNotMatch(client, /pdfjs-dist\/build\/pdf\.worker\.mjs/);
   assert.match(client, /pdfjs\.getDocument/);
   assert.match(client, /data:\s*bytes/);
   assert.doesNotMatch(client, /url:\s*readerUrl/);
-  assert.match(client, /disableWorker:\s*true/);
+  assert.doesNotMatch(client, /disableWorker/);
   assert.match(client, /console\.error\("Imported PDF load failed"/);
   assert.match(client, /<canvas/);
   assert.match(client, /page\.render/);

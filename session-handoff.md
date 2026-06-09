@@ -13939,3 +13939,22 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 
 ### QA request
 - After deploy, retry the same imported PDF. If it still returns 502, copy the Network response JSON for `/api/import/[id]/file`; it should include `sourceStatus` (likely 403/404) and `sourceContentType`, which tells us whether this is a COS signature problem or a missing object.
+
+## Dev Update: IMPORT-3 pdf.js worker hotfix ready for QA [Codex1, 2026-06-09 09:12]
+- User-provided console changed from `/api/import/[id]/file` 502 to `Uncaught SyntaxError: Unexpected identifier 'PDF'`.
+- That means the same-origin file proxy is likely returning PDF bytes now, but pdf.js was still trying to load/parse a wrong worker script.
+- Root cause: the local `src/types/pdfjs-dist.d.ts` declared a `disableWorker` option that `pdfjs-dist@6` does not expose, while runtime pdf.js expects `GlobalWorkerOptions.workerSrc` to be set explicitly.
+- Updated `src/app/import/[id]/ImportReaderClient.tsx`: after `await import("pdfjs-dist/build/pdf.mjs")`, it sets `pdfjs.GlobalWorkerOptions.workerSrc = "/api/import/pdf-worker"` and then calls `pdfjs.getDocument({ data: bytes })`.
+- Added `src/app/api/import/pdf-worker/route.ts`, a same-origin static route that serves `pdfjs-dist/build/pdf.worker.min.mjs` as `text/javascript; charset=utf-8`. This avoids Next/Terser trying to bundle/minify `pdf.worker.mjs` from the client graph.
+- Removed the invalid `disableWorker` option from both implementation and the local type shim, and strengthened `tests/import018.test.mjs` / `tests/import024.test.mjs` so this cannot regress.
+
+### Verification
+- Red check: `node --test tests/import018.test.mjs tests/import024.test.mjs` failed before implementation because the reader did not configure same-origin `GlobalWorkerOptions.workerSrc` and the worker route did not exist.
+- `node --test tests/import018.test.mjs tests/import023.test.mjs tests/import024.test.mjs` -> 5/5 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only
+
+### QA request
+- After deploy, retry the same PDF reader page. Expected: no `Unexpected identifier 'PDF'`, first page renders into the canvas, and previous/next works.
+- If it still fails, capture the new `Imported PDF load failed` console object and the Network response for `/api/import/[id]/file`.

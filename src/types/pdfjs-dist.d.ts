@@ -1,19 +1,17 @@
-// Timestamp: 2026-06-08 23:25
+// Timestamp: 2026-06-09 09:03
 
 declare module "pdfjs-dist/build/pdf.mjs" {
   export const GlobalWorkerOptions: {
     workerSrc: string;
   };
 
-  export function getDocument(input: ({
+  export function getDocument(input: {
     url: string;
     withCredentials?: boolean;
     disableRange?: boolean;
     disableStream?: boolean;
   } | {
     data: Uint8Array;
-  }) & {
-    disableWorker?: boolean;
   }): {
     promise: Promise<{
       numPages: number;

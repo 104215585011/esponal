@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 22:20
+// Timestamp: 2026-06-09 09:03
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -88,9 +88,9 @@ export function ImportReaderClient({
         }
 
         const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
+        pdfjs.GlobalWorkerOptions.workerSrc = "/api/import/pdf-worker";
         const task = pdfjs.getDocument({
           data: bytes,
-          disableWorker: true,
         });
         const loaded = (await task.promise) as PdfDocumentProxy;
         if (cancelled) return;
