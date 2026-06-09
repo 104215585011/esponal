@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 12:50
+// Timestamp: 2026-06-09 13:55
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
@@ -63,7 +63,7 @@ type PdfLookupStack = {
 
 const PDF_WORKER_SRC = "/api/import/pdf-worker";
 const PDF_AUTO_MIN_ZOOM = 1;
-const PDF_AUTO_MAX_ZOOM = 1.45;
+const PDF_AUTO_MAX_ZOOM = 1;
 const PDF_MIN_ZOOM = 1;
 const PDF_MAX_ZOOM = 2.2;
 const PDF_WORD_PATTERN = /[\p{L}ÁÉÍÓÚÜÑáéíóúüñ]+/gu;
@@ -92,7 +92,7 @@ function clampPdfZoom(value: number) {
 
 function calculateAdaptivePdfZoom(frameWidth: number) {
   if (frameWidth <= 0) return PDF_AUTO_MIN_ZOOM;
-  return PDF_AUTO_MAX_ZOOM;
+  return Math.max(PDF_AUTO_MIN_ZOOM, Math.min(PDF_AUTO_MAX_ZOOM, 1));
 }
 
 function buildPdfTextLayerItems(textContent: PdfTextContent, viewport: PdfViewport, scale: number) {
@@ -146,6 +146,7 @@ export function ImportReaderClient({
   const [pdfZoom, setPdfZoom] = useState(1);
   const [pdfZoomMode, setPdfZoomMode] = useState<"auto" | "manual">("auto");
   const [pdfFrameWidth, setPdfFrameWidth] = useState(0);
+  const [pdfFrameHeight, setPdfFrameHeight] = useState(0);
   const [canvasCssSize, setCanvasCssSize] = useState({ width: 0, height: 0 });
   const [pdfTextLayerItems, setPdfTextLayerItems] = useState<PdfTextLayerItem[]>([]);
   const [activePdfLookup, setActivePdfLookup] = useState<PdfLookupStack | null>(null);
@@ -156,6 +157,7 @@ export function ImportReaderClient({
   });
   const [pageCount, setPageCount] = useState(unitCount);
   const effectivePdfZoom = pdfZoomMode === "auto" ? calculateAdaptivePdfZoom(pdfFrameWidth) : pdfZoom;
+  const pdfPageFitsViewport = canvasCssSize.height > 0 && pdfFrameHeight > 0 && canvasCssSize.height < pdfFrameHeight - 24;
 
   const showReaderChrome = useCallback(() => {
     setReaderChromeVisible(true);
@@ -198,12 +200,13 @@ export function ImportReaderClient({
     const frame = pdfFrameRef.current;
     if (!frame) return;
 
-    const updateFrameWidth = () => {
+    const updateFrameSize = () => {
       setPdfFrameWidth(Math.min(760, frame.clientWidth || 0));
+      setPdfFrameHeight(frame.clientHeight || 0);
     };
-    updateFrameWidth();
+    updateFrameSize();
 
-    const observer = new ResizeObserver(updateFrameWidth);
+    const observer = new ResizeObserver(updateFrameSize);
     observer.observe(frame);
     return () => observer.disconnect();
   }, [error, kind, loading, pdfDocument]);
@@ -476,7 +479,10 @@ export function ImportReaderClient({
                 正在渲染 PDF
               </div>
             ) : null}
-            <div ref={pdfFrameRef} className="flex min-h-[100dvh] w-full justify-center overflow-x-auto">
+            <div
+              ref={pdfFrameRef}
+              className={`flex h-[100dvh] w-full justify-center overflow-x-auto ${pdfPageFitsViewport ? "items-center" : "items-start"}`}
+            >
               <div
                 className="relative mx-auto"
                 style={{

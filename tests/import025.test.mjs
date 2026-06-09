@@ -13,12 +13,14 @@ test("IMPORT-3 PDF reader supports adaptive stable zoom and clickable text looku
   assert.doesNotMatch(client, /const PDF_DEFAULT_ZOOM/);
   assert.match(client, /function calculateAdaptivePdfZoom/);
   assert.match(client, /PDF_AUTO_MIN_ZOOM/);
-  assert.match(client, /const PDF_AUTO_MAX_ZOOM\s*=\s*1\.45/);
-  assert.match(client, /return PDF_AUTO_MAX_ZOOM/);
+  assert.match(client, /const PDF_AUTO_MAX_ZOOM\s*=\s*1/);
+  assert.doesNotMatch(client, /return PDF_AUTO_MAX_ZOOM/);
   assert.doesNotMatch(client, /frameWidth >= 430 \? 0\.16/);
   assert.doesNotMatch(client, /frameWidth >= 430 \? 0\.03/);
   assert.match(client, /ResizeObserver/);
   assert.match(client, /pdfFrameRef/);
+  assert.match(client, /pdfFrameHeight,\s*setPdfFrameHeight/);
+  assert.match(client, /pdfPageFitsViewport/);
   assert.match(client, /pdfZoomMode,\s*setPdfZoomMode/);
   assert.match(client, /setPdfZoomMode\("manual"\)/);
   assert.match(client, /const effectivePdfZoom\s*=\s*pdfZoomMode === "auto"/);
@@ -28,6 +30,7 @@ test("IMPORT-3 PDF reader supports adaptive stable zoom and clickable text looku
   assert.match(client, /ZoomIn/);
   assert.match(client, /ZoomOut/);
   assert.match(client, /overflow-x-auto/);
+  assert.doesNotMatch(client, /className="flex min-h-\[100dvh\] w-full justify-center overflow-x-auto"/);
   assert.match(client, /minWidth:\s*canvasCssSize\.width/);
 
   assert.match(client, /page\.getTextContent\(\)/);

@@ -1,3 +1,29 @@
+## Codex1 Fix Report: IMPORT-3 PDF zoom and short-page layout
+**Time**: 2026-06-09 13:55
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Gemini1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User reported that the PDF reader looks correct at 100% zoom, but the previous reader state was forcing 145% auto zoom and short/landscape pages left a large blank area below the rendered page.
+
+**Fix**:
+- `src/app/import/[id]/ImportReaderClient.tsx` now keeps auto zoom stable at 100% instead of forcing `1.45`.
+- The PDF frame tracks both width and height through the existing `ResizeObserver`.
+- Added `pdfPageFitsViewport` so short PDF pages are centered inside the viewport rather than pinned to the top of a `min-h-[100dvh]` frame.
+- Manual zoom controls, left/right tap navigation, text-layer lookup, reader chrome, and progress updates are unchanged.
+
+**Verification**:
+- Red check: `node --test tests/import025.test.mjs` failed first against the old 145% zoom contract.
+- Focused regression: `node --test tests/import025.test.mjs tests/import018.test.mjs tests/import020.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**QA focus**:
+- On mobile imported PDF reader, default auto zoom should show `100%`, not `145%`.
+- Flip across pages with different aspect ratios; the scale should stay stable.
+- Short/landscape pages should not be pinned high with all empty space below.
+- Clickable PDF word lookup and left/right tap page navigation should still work.
+
 ## Codex1 Fix Report: CORPUS import articles tab
 **Time**: 2026-06-09 13:20
 **From**: Codex1 (DEV)

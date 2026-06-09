@@ -1,3 +1,21 @@
+### Session #IMPORT-3 PDF Zoom / Short Page Layout - 2026-06-09 13:55
+
+**Goal**: Fix user feedback that the imported PDF reader looks right at 100% zoom but leaves a large blank area below short/landscape pages, and that the previous 145% auto zoom made page sizes feel unstable.
+
+**Done (Codex1)**:
+- Changed the imported PDF reader's auto zoom contract back to stable 100% (`PDF_AUTO_MAX_ZOOM = 1`) instead of forcing every mobile page to 145%.
+- Added frame-height tracking with `ResizeObserver`.
+- Short PDF pages now use a conditional `pdfPageFitsViewport` layout and are centered within the viewport instead of being rendered at the top of a `min-h-[100dvh]` frame that creates a one-sided bottom void.
+- Kept manual zoom controls, page navigation, PDF text layer lookup, and fullscreen reader chrome unchanged.
+- Updated the IMPORT-3 regression test so 145% auto zoom and the old min-height frame cannot regress.
+
+**Verification**:
+- Red check: `node --test tests/import025.test.mjs` failed first against the old `PDF_AUTO_MAX_ZOOM = 1.45` / `return PDF_AUTO_MAX_ZOOM` implementation.
+- Focused regression: `node --test tests/import025.test.mjs tests/import018.test.mjs tests/import020.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+
+**Status**: Ready for full verification and QA. User should recheck the same 100% PDF page: the page should no longer jump to 145%, and short pages should no longer sit at the top with all remaining blank space below.
+
 ### Session #CORPUS Import Articles Tab - 2026-06-09 13:20
 
 **Goal**: Fix user feedback that imported files are not visible from the corpus UI after import.
