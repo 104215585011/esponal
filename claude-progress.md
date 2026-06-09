@@ -1,3 +1,24 @@
+### Session #IMPORT Immersive Reader Chrome - 2026-06-09 11:52
+
+**Goal**: Address user feedback that the imported PDF reader still felt like a web page, lacked an obvious exit, and should behave more like a book reader with controls hidden until needed.
+
+**Done (Codex1)**:
+- Removed the route-level `SiteHeader`, app-shell max width, and bottom padding from `/import/[id]`, so the document opens directly into a full-viewport reading surface.
+- Reworked `ImportReaderClient` into an immersive reader shell: default-hidden floating top/bottom chrome, an explicit back-to-library exit button, single-line truncated title with PDF/EPUB badge, and no permanent debug/status copy.
+- Added blank-surface tap to show/hide controls, 3.2s auto-hide, left/right swipe page turning, and retained floating previous/next controls when chrome is visible.
+- Preserved the existing pdf.js byte-fetch/worker path, stable 145% measured zoom experiment, progress persistence, horizontal overflow, and tappable PDF text-layer lookup; text hotspots and floating lookup cards stop propagation so point-word does not toggle chrome.
+- Updated `tests/import018.test.mjs` and `tests/import026.test.mjs` to lock the new immersive reader contract.
+
+**Verification**:
+- Red check: `node --test tests/import026.test.mjs` failed first against the old SiteHeader/permanent dock implementation.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 479/479 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**Status**: `IMPORT-3` remains `ready_for_qa`; Codex2 should verify production/mobile `/import/[id]` with an authenticated imported PDF, especially tap-to-show controls, exit button, swipe page turn, page progress persistence, and text-layer lookup not triggering chrome toggles.
+
 ### Session #IMPORT PDF Reader Render Fix - 2026-06-08 23:30
 
 **Goal**: Fix imported PDF reader showing a blank mobile iframe after successful COS import.

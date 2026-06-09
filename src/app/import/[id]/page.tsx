@@ -1,7 +1,6 @@
-// Timestamp: 2026-06-09 10:12
+// Timestamp: 2026-06-09 11:52
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAuthOptions } from "@/lib/auth";
 import { getImportedDocumentByIdForUser } from "@/lib/import/service";
 import { ImportReaderClient } from "./ImportReaderClient";
@@ -34,17 +33,14 @@ export default async function ImportReaderPage({
   }
 
   return (
-    <main className="min-h-screen bg-app pb-24">
-      <SiteHeader />
-      <section className="mx-auto max-w-app-shell px-4">
-        <ImportReaderClient
-          documentId={document.id}
-          kind={document.kind}
-          lastPosition={document.lastPosition}
-          title={document.title}
-          unitCount={document.unitCount}
-        />
-      </section>
+    <main className="min-h-screen bg-[#f6f4ef]">
+      <ImportReaderClient
+        documentId={document.id}
+        kind={document.kind}
+        lastPosition={document.lastPosition}
+        title={document.title}
+        unitCount={document.unitCount}
+      />
     </main>
   );
 }

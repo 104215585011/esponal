@@ -88,10 +88,16 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.doesNotMatch(client, /鏃犳硶|娓叉煋|鏂扮獥/);
 });
 
-test("IMPORT-3 v2 exposes a compact mobile reader dock for original-file rendering", async () => {
+test("IMPORT-3 v2 exposes immersive reader controls for original-file rendering", async () => {
   const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
 
-  assert.match(client, /fixed inset-x-4 bottom-\[calc\(env\(safe-area-inset-bottom\)\+12px\)\]/);
+  assert.match(client, /readerChromeVisible,\s*setReaderChromeVisible/);
+  assert.match(client, /data-testid="import-reader-chrome"/);
+  assert.match(client, /href="\/import\/library"/);
+  assert.match(client, /fixed inset-x-4 bottom-\[calc\(env\(safe-area-inset-bottom\)\+14px\)\]/);
+  assert.match(client, /readerChromeVisible \? "pointer-events-auto opacity-100"/);
+  assert.match(client, /handleReaderTouchStart/);
+  assert.match(client, /handleReaderTouchEnd/);
   assert.match(client, /rounded-full border border-zinc-200\/60 bg-white\/90/);
   assert.match(client, /ExternalLink/);
   assert.match(client, /RefreshCw/);
@@ -100,6 +106,5 @@ test("IMPORT-3 v2 exposes a compact mobile reader dock for original-file renderi
   assert.match(client, /canGoPrevious/);
   assert.match(client, /canGoNext/);
   assert.match(client, /kind === "epub"/);
-  assert.match(client, /epub\.js/);
-  assert.match(client, /pdf\.js/);
+  assert.doesNotMatch(client, /epub\.js 待接入|pdf\.js/);
 });

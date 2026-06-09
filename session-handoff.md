@@ -1,3 +1,40 @@
+## Codex1 Fix Report: IMPORT-3 immersive reader chrome
+**Time**: 2026-06-09 11:52
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Gemini1 / Claude1
+**Status**: ready_for_qa follow-up
+
+**Why this exists**:
+- User feedback: the imported PDF reader still looked like a web page, had no obvious exit, and should behave closer to a real book/novel reader: no permanent top bar, no permanent bottom controls, swipe page turning, and controls shown only after tapping the reading surface.
+
+**Fix**:
+- `/import/[id]` no longer renders the shared `SiteHeader`, app-shell max width, or bottom padding; it hands the full viewport to `ImportReaderClient`.
+- `ImportReaderClient` now renders a full-screen reading surface with default-hidden floating chrome:
+  - tap blank reading surface toggles controls;
+  - controls auto-hide after 3.2s;
+  - top chrome includes explicit back/exit to `/import/library`, PDF/EPUB badge, truncated title, and open-original action;
+  - bottom chrome includes previous/next and page count;
+  - horizontal swipe turns PDF pages.
+- Existing PDF behavior preserved: `/api/import/[id]/file` byte fetch, pdf.js worker route, stable 145% measured zoom experiment, progress save, horizontal overflow, canvas rendering, and PDF text-layer lookup.
+- Text-layer word buttons and lookup cards call `event.stopPropagation()` so point-word lookup does not toggle the reader chrome.
+
+**Verification**:
+- Red check: `node --test tests/import026.test.mjs` failed first against the old SiteHeader/permanent dock implementation.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 479/479 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- On mobile production with an authenticated imported PDF:
+  - initial reader should feel full-screen/book-like, without the global top nav or permanent bottom dock;
+  - tap blank area should show/hide top and bottom chrome;
+  - back button should exit to `/import/library`;
+  - swipe left/right should page forward/back;
+  - point-word lookup should still open the lookup stack and should not accidentally hide/show chrome;
+  - page progress should persist after refresh.
+
 ## Codex1 Fix Report: IMPORT PDF reader blank iframe
 **Time**: 2026-06-08 23:30
 **From**: Codex1 (DEV)
