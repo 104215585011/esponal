@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 10:36
+// Timestamp: 2026-06-09 10:58
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
@@ -61,7 +61,8 @@ type PdfLookupStack = {
 };
 
 const PDF_WORKER_SRC = "/api/import/pdf-worker";
-const PDF_DEFAULT_ZOOM = 1.18;
+const PDF_AUTO_MIN_ZOOM = 1;
+const PDF_AUTO_MAX_ZOOM = 1.08;
 const PDF_MIN_ZOOM = 1;
 const PDF_MAX_ZOOM = 2.2;
 const PDF_WORD_PATTERN = /[\p{L}ÁÉÍÓÚÜÑáéíóúüñ]+/gu;
@@ -86,6 +87,12 @@ function configurePdfJsWorker(pdfjs: PdfJsModule) {
 
 function clampPdfZoom(value: number) {
   return Math.max(PDF_MIN_ZOOM, Math.min(PDF_MAX_ZOOM, Number(value.toFixed(2))));
+}
+
+function calculateAdaptivePdfZoom(frameWidth: number) {
+  if (frameWidth <= 0) return PDF_AUTO_MIN_ZOOM;
+  const widthBoost = frameWidth >= 720 ? 0.08 : frameWidth >= 520 ? 0.05 : frameWidth >= 430 ? 0.03 : 0;
+  return Math.max(PDF_AUTO_MIN_ZOOM, Math.min(PDF_AUTO_MAX_ZOOM, Number((PDF_AUTO_MIN_ZOOM + widthBoost).toFixed(2))));
 }
 
 function buildPdfTextLayerItems(textContent: PdfTextContent, viewport: PdfViewport, scale: number) {
@@ -129,12 +136,15 @@ export function ImportReaderClient({
   lastPosition,
 }: ImportReaderClientProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pdfFrameRef = useRef<HTMLDivElement>(null);
   const [readerUrl, setReaderUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState("");
   const [pdfDocument, setPdfDocument] = useState<PdfDocumentProxy | null>(null);
-  const [pdfZoom, setPdfZoom] = useState(PDF_DEFAULT_ZOOM);
+  const [pdfZoom, setPdfZoom] = useState(1);
+  const [pdfZoomMode, setPdfZoomMode] = useState<"auto" | "manual">("auto");
+  const [pdfFrameWidth, setPdfFrameWidth] = useState(0);
   const [canvasCssSize, setCanvasCssSize] = useState({ width: 0, height: 0 });
   const [pdfTextLayerItems, setPdfTextLayerItems] = useState<PdfTextLayerItem[]>([]);
   const [activePdfLookup, setActivePdfLookup] = useState<PdfLookupStack | null>(null);
@@ -143,6 +153,7 @@ export function ImportReaderClient({
     return match ? Math.max(1, Number(match[1])) : 1;
   });
   const [pageCount, setPageCount] = useState(unitCount);
+  const effectivePdfZoom = pdfZoomMode === "auto" ? calculateAdaptivePdfZoom(pdfFrameWidth) : pdfZoom;
 
   const loadReaderUrl = useCallback(async () => {
     setLoading(true);
@@ -170,6 +181,21 @@ export function ImportReaderClient({
   useEffect(() => {
     void loadReaderUrl();
   }, [loadReaderUrl]);
+
+  useEffect(() => {
+    if (kind !== "pdf") return;
+    const frame = pdfFrameRef.current;
+    if (!frame) return;
+
+    const updateFrameWidth = () => {
+      setPdfFrameWidth(Math.min(760, frame.clientWidth || 0));
+    };
+    updateFrameWidth();
+
+    const observer = new ResizeObserver(updateFrameWidth);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [error, kind, loading, pdfDocument]);
 
   useEffect(() => {
     if (!readerUrl || kind !== "pdf") return;
@@ -234,9 +260,9 @@ export function ImportReaderClient({
       try {
         const page = await activeDocument.getPage(pageNumber);
         if (cancelled) return;
-        const containerWidth = Math.min(760, canvas.parentElement?.clientWidth ?? 360);
+        const containerWidth = Math.min(760, pdfFrameWidth || canvas.parentElement?.clientWidth || 360);
         const baseViewport = page.getViewport({ scale: 1 });
-        const cssScale = (containerWidth / baseViewport.width) * pdfZoom;
+        const cssScale = (containerWidth / baseViewport.width) * effectivePdfZoom;
         const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
         const cssViewport = page.getViewport({ scale: cssScale });
         const viewport = page.getViewport({ scale: cssScale * pixelRatio });
@@ -267,7 +293,7 @@ export function ImportReaderClient({
     return () => {
       cancelled = true;
     };
-  }, [kind, pageNumber, pdfDocument, pdfZoom]);
+  }, [effectivePdfZoom, kind, pageNumber, pdfDocument, pdfFrameWidth]);
 
   useEffect(() => {
     if (kind !== "pdf" || pageCount <= 0) return;
@@ -324,7 +350,8 @@ export function ImportReaderClient({
 
   const changePdfZoom = (delta: number) => {
     setActivePdfLookup(null);
-    setPdfZoom((current) => clampPdfZoom(current + delta));
+    setPdfZoomMode("manual");
+    setPdfZoom((current) => clampPdfZoom((pdfZoomMode === "auto" ? effectivePdfZoom : current) + delta));
   };
 
   const canGoPrevious = kind === "pdf" && pageNumber > 1;
@@ -347,17 +374,17 @@ export function ImportReaderClient({
               <button
                 aria-label="缩小 PDF"
                 className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 disabled:opacity-40"
-                disabled={pdfZoom <= PDF_MIN_ZOOM}
+                disabled={effectivePdfZoom <= PDF_MIN_ZOOM}
                 onClick={() => changePdfZoom(-0.15)}
                 type="button"
               >
                 <ZoomOut className="h-4 w-4" aria-hidden />
               </button>
-              <span className="min-w-12 text-center text-xs font-semibold text-zinc-600">{Math.round(pdfZoom * 100)}%</span>
+              <span className="min-w-12 text-center text-xs font-semibold text-zinc-600">{Math.round(effectivePdfZoom * 100)}%</span>
               <button
                 aria-label="放大 PDF"
                 className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 disabled:opacity-40"
-                disabled={pdfZoom >= PDF_MAX_ZOOM}
+                disabled={effectivePdfZoom >= PDF_MAX_ZOOM}
                 onClick={() => changePdfZoom(0.15)}
                 type="button"
               >
@@ -394,7 +421,7 @@ export function ImportReaderClient({
               正在渲染 PDF
             </div>
           ) : null}
-          <div className="flex h-full w-full justify-center overflow-x-auto">
+          <div ref={pdfFrameRef} className="flex h-full w-full justify-center overflow-x-auto">
             <div
               className="relative mx-auto my-auto"
               style={{

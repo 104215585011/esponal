@@ -14059,3 +14059,27 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 - After deploy, reopen the same PDF page on mobile.
 - Confirm the page is still larger than the original tiny rendering, but no longer cropped as dramatically as the 145% screenshot.
 - Confirm the bottom dock reads only page count, not `3 / 194 · 145%`.
+
+## Dev Update: IMPORT-3 PDF adaptive stable zoom ready for QA [Codex1, 2026-06-09 10:58]
+- User found the remaining PDF reader issue: while flipping pages, the page can appear to auto-enlarge because the reader still relied on a fixed zoom multiplier and the rendered textbook pages vary in crop/content geometry.
+- Updated `src/app/import/[id]/ImportReaderClient.tsx`:
+  - removed `PDF_DEFAULT_ZOOM`.
+  - added `calculateAdaptivePdfZoom(frameWidth)` with capped auto zoom (`PDF_AUTO_MIN_ZOOM` / `PDF_AUTO_MAX_ZOOM`).
+  - added `pdfFrameRef` + `ResizeObserver` so auto sizing follows the reader frame/screen width.
+  - added `pdfZoomMode` so auto zoom is stable across page flips, while desktop zoom buttons switch into manual mode.
+  - kept the bottom mobile dock page-count-only and preserved pdf.js text-layer lookup.
+- Updated `tests/import018.test.mjs` and `tests/import025.test.mjs` so regressions back to a fixed default multiplier are caught.
+
+### Verification
+- Red check: `node --test tests/import025.test.mjs` failed against the old `PDF_DEFAULT_ZOOM = 1.18` implementation.
+- `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs` -> 8/8 pass
+- `npx tsc --noEmit --pretty false` -> pass
+- `npm run lint:encoding` -> pass
+- `npm test` -> 479/479 pass
+- `npm run build` -> pass with existing Next `<img>` and Sentry warnings only
+
+### QA request
+- After deploy, open the same PDF on mobile and flip several pages.
+- Expected: page scale should stay visually stable; it should not suddenly grow while paging.
+- Expected: screen width changes/rotation may adapt the default size, but page number changes should not.
+- Expected: PDF word lookup and previous/next bottom dock still work.

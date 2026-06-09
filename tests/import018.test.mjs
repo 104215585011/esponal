@@ -69,7 +69,9 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(client, /<canvas/);
   assert.match(client, /page\.render/);
   assert.match(client, /pdfZoom/);
-  assert.match(client, /PDF_DEFAULT_ZOOM/);
+  assert.match(client, /calculateAdaptivePdfZoom/);
+  assert.match(client, /effectivePdfZoom/);
+  assert.doesNotMatch(client, /PDF_DEFAULT_ZOOM/);
   assert.match(client, /overflow-x-auto/);
   assert.match(client, /getTextContent\(\)/);
   assert.match(client, /buildPdfTextLayerItems/);

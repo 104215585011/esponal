@@ -6,12 +6,21 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-3 PDF reader supports readable zoom and clickable text lookup", async () => {
+test("IMPORT-3 PDF reader supports adaptive stable zoom and clickable text lookup", async () => {
   const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
   const lookupCard = await read("src/app/watch/LookupCard.tsx");
 
-  assert.match(client, /const PDF_DEFAULT_ZOOM\s*=\s*1\.18/);
-  assert.doesNotMatch(client, /\$\{pageNumber\} \/ \$\{pageCount\} · \$\{Math\.round\(pdfZoom \* 100\)\}%/);
+  assert.doesNotMatch(client, /const PDF_DEFAULT_ZOOM/);
+  assert.match(client, /function calculateAdaptivePdfZoom/);
+  assert.match(client, /PDF_AUTO_MIN_ZOOM/);
+  assert.match(client, /PDF_AUTO_MAX_ZOOM/);
+  assert.match(client, /ResizeObserver/);
+  assert.match(client, /pdfFrameRef/);
+  assert.match(client, /pdfZoomMode,\s*setPdfZoomMode/);
+  assert.match(client, /setPdfZoomMode\("manual"\)/);
+  assert.match(client, /const effectivePdfZoom\s*=\s*pdfZoomMode === "auto"/);
+  assert.doesNotMatch(client, /calculateAdaptivePdfZoom\([^)]*pageNumber/);
+  assert.doesNotMatch(client, /\$\{pageNumber\} \/ \$\{pageCount\} 路 \$\{Math\.round\(pdfZoom \* 100\)\}%/);
   assert.match(client, /setPdfZoom/);
   assert.match(client, /ZoomIn/);
   assert.match(client, /ZoomOut/);
