@@ -13,7 +13,7 @@ test("IMPORT v2 serves imported files through an authenticated same-origin proxy
 
   const source = await read(routePath);
   assert.match(source, /getServerSession\(getAuthOptions\(\)\)/);
-  assert.match(source, /getImportedDocumentByIdForUser\(userId,\s*context\.params\.id\)/);
+  assert.match(source, /getImportedDocumentFileByIdForUser\(userId,\s*context\.params\.id\)/);
   assert.match(source, /presignGet\(\{\s*key:\s*document\.ossKey\s*\}\)/);
   assert.doesNotMatch(source, /responseContentDisposition/);
   assert.doesNotMatch(source, /responseContentType/);

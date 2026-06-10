@@ -1,10 +1,9 @@
-// Timestamp: 2026-06-10 09:35
+// Timestamp: 2026-06-10 10:05
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { createImportedDocument } from "@/lib/import/service";
-import { presignPut } from "@/lib/storage/cos";
 
 const MAX_PROXY_UPLOAD_BYTES = 4 * 1024 * 1024;
 
@@ -72,26 +71,8 @@ export async function POST(request: Request) {
 
   const contentType = file.type || CONTENT_TYPES[kind];
   const randomId = randomUUID().replace(/-/g, "");
-  const ossKey = `imports/${userId}/${randomId}${extensionForKind(kind)}`;
-  const uploadUrl = await presignPut({ key: ossKey, contentType });
-  const body = await file.arrayBuffer();
-  const upstream = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
-    body,
-  });
-  const sourceContentType = upstream.headers.get("content-type") ?? "";
-
-  if (!upstream.ok) {
-    return NextResponse.json(
-      {
-        error: "source_upload_failed",
-        sourceStatus: upstream.status,
-        sourceContentType,
-      },
-      { status: 502 },
-    );
-  }
+  const ossKey = `inline/${userId}/${randomId}${extensionForKind(kind)}`;
+  const inlineContent = Buffer.from(await file.arrayBuffer());
 
   const document = await createImportedDocument({
     userId,
@@ -99,6 +80,7 @@ export async function POST(request: Request) {
     kind,
     ossKey,
     sizeBytes: file.size,
+    inlineContent,
   });
 
   return NextResponse.json({ document });

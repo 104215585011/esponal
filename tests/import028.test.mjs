@@ -7,7 +7,7 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-4 upload client falls back to same-origin upload when COS direct PUT returns 451", async () => {
+test("IMPORT-4 upload client falls back to same-origin inline upload when COS direct PUT returns 451", async () => {
   const helperPath = "src/lib/import/upload-client.ts";
   const routePath = "src/app/api/import/upload/route.ts";
   assert.equal(existsSync(helperPath), true, `${helperPath} missing`);
@@ -25,8 +25,31 @@ test("IMPORT-4 upload client falls back to same-origin upload when COS direct PU
   assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
   assert.match(route, /request\.formData\(\)/);
   assert.match(route, /MAX_PROXY_UPLOAD_BYTES/);
-  assert.match(route, /presignPut/);
-  assert.match(route, /fetch\(uploadUrl,\s*\{/);
+  assert.match(route, /inlineContent/);
+  assert.doesNotMatch(route, /presignPut/);
+  assert.doesNotMatch(route, /fetch\(uploadUrl,\s*\{/);
   assert.match(route, /createImportedDocument/);
-  assert.match(route, /sourceStatus/);
+  assert.doesNotMatch(route, /source_upload_failed/);
+});
+
+test("IMPORT-4 inline upload storage is readable by the import file and EPUB APIs", async () => {
+  const schema = await read("prisma/schema.prisma");
+  assert.match(schema, /inlineContent\s+Bytes\?/);
+
+  const migration = await read("prisma/migrations/20260610093500_add_import_inline_content/migration.sql");
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS "inlineContent" BYTEA/);
+
+  const service = await read("src/lib/import/service.ts");
+  assert.match(service, /inlineContent\?: Buffer/);
+  assert.match(service, /getImportedDocumentFileByIdForUser/);
+  assert.match(service, /inlineContent:\s*true/);
+
+  const fileRoute = await read("src/app/api/import/[id]/file/route.ts");
+  assert.match(fileRoute, /document\.inlineContent/);
+  assert.match(fileRoute, /new Response\(toArrayBuffer\(document\.inlineContent\)/);
+  assert.match(fileRoute, /presignGet/);
+
+  const epubRoute = await read("src/app/api/import/[id]/epub/route.ts");
+  assert.match(epubRoute, /document\.inlineContent/);
+  assert.match(epubRoute, /parseEpubForReader\(document\.inlineContent/);
 });

@@ -1,3 +1,38 @@
+## Codex1 Fix Report: IMPORT-4 COS 451 true inline fallback
+**Time**: 2026-06-10 10:05
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa production hotfix
+
+**Why this exists**:
+- User screenshot showed the first fallback still failed: browser direct COS `PUT` returned 451, then `/api/import/upload` returned 502.
+- Root cause: the previous fallback still tried to server-side PUT to the same COS default domain, so it did not actually bypass COS 451.
+
+**Fix**:
+- Added `ImportedDocument.inlineContent Bytes?` and migration `20260610093500_add_import_inline_content`.
+- `POST /api/import/upload` now stores small fallback files directly in Postgres as inline bytes instead of touching COS.
+- Fallback docs use an `inline/...` `ossKey` marker and keep normal metadata/status.
+- `/api/import/[id]/file` now serves `inlineContent` directly when present, otherwise keeps the COS proxy path.
+- `/api/import/[id]/epub` now parses `inlineContent` directly when present, otherwise keeps the COS fetch path.
+- Browser direct COS upload remains the primary path; this only handles 451 for small files (4MB cap).
+
+**Verification**:
+- Red check: `node --test tests/import028.test.mjs` failed first because upload route still used `presignPut`/COS and schema/service/read APIs had no inlineContent support.
+- Green: `node --test tests/import028.test.mjs` -> 2/2 pass.
+- Focused import regression: `node --test tests/import023.test.mjs tests/import027.test.mjs tests/import028.test.mjs` -> 7/7 pass.
+- Wider import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs tests/import028.test.mjs` -> 25/25 pass.
+- `npx prisma generate` -> pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 487/487 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only; route table includes `/api/import/upload`, `/api/import/[id]/file`, and `/api/import/[id]/epub`.
+
+**QA focus**:
+- Upload the same EPUB that hit COS 451; it should fall back to `/api/import/upload` and create a library record.
+- Open that imported EPUB; `/api/import/[id]/epub` should parse DB inline bytes, not COS.
+- Confirm existing COS-backed PDF/EPUB documents still use normal proxy paths.
+- Confirm file size >4MB still fails with `proxy_file_too_large` if direct COS upload returns 451.
+
 ## Codex1 Fix Report: IMPORT-3/4 EPUB production load + COS 451 upload fallback
 **Time**: 2026-06-10 09:35
 **From**: Codex1 (DEV)

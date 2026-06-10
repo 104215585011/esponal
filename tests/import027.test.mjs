@@ -25,7 +25,7 @@ test("IMPORT-3 EPUB reader exposes a same-origin parsed spine API", async () => 
 
   const route = await read(routePath);
   assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
-  assert.match(route, /getImportedDocumentByIdForUser\(userId,\s*context\.params\.id\)/);
+  assert.match(route, /getImportedDocumentFileByIdForUser\(userId,\s*context\.params\.id\)/);
   assert.match(route, /document\.kind !== "epub"/);
   assert.match(route, /presignGet\(\{\s*key:\s*document\.ossKey\s*\}\)/);
   assert.match(route, /source_fetch_failed/);

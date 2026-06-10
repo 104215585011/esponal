@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 13:20
+// Timestamp: 2026-06-10 10:05
 import type { ImportKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -16,12 +16,18 @@ const importedDocumentSelect = {
   updatedAt: true,
 } as const;
 
+const importedDocumentFileSelect = {
+  ...importedDocumentSelect,
+  inlineContent: true,
+} as const;
+
 export async function createImportedDocument(input: {
   userId: string;
   title: string;
   kind: ImportKind;
   ossKey: string;
   sizeBytes: number;
+  inlineContent?: Buffer;
   unitCount?: number;
 }) {
   return prisma.importedDocument.create({
@@ -31,10 +37,18 @@ export async function createImportedDocument(input: {
       kind: input.kind,
       ossKey: input.ossKey,
       sizeBytes: input.sizeBytes,
+      inlineContent: input.inlineContent,
       unitCount: input.unitCount ?? 0,
       status: "ready",
     },
     select: importedDocumentSelect,
+  });
+}
+
+export async function getImportedDocumentFileByIdForUser(userId: string, documentId: string) {
+  return prisma.importedDocument.findFirst({
+    where: { id: documentId, userId },
+    select: importedDocumentFileSelect,
   });
 }
 

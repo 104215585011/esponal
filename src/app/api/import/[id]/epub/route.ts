@@ -1,9 +1,9 @@
-// Timestamp: 2026-06-10 09:35
+// Timestamp: 2026-06-10 10:05
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { parseEpubForReader } from "@/lib/import/epub";
-import { getImportedDocumentByIdForUser } from "@/lib/import/service";
+import { getImportedDocumentFileByIdForUser } from "@/lib/import/service";
 import { presignGet } from "@/lib/storage/cos";
 
 function getUserId(session: unknown) {
@@ -24,7 +24,7 @@ export async function GET(
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const document = await getImportedDocumentByIdForUser(userId, context.params.id);
+  const document = await getImportedDocumentFileByIdForUser(userId, context.params.id);
 
   if (!document) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
@@ -32,6 +32,16 @@ export async function GET(
 
   if (document.kind !== "epub") {
     return NextResponse.json({ error: "unsupported_kind" }, { status: 400 });
+  }
+
+  if (document.inlineContent) {
+    try {
+      const { chapters } = parseEpubForReader(document.inlineContent);
+      return NextResponse.json({ chapters, unitCount: chapters.length });
+    } catch (error) {
+      console.error("Imported EPUB parse failed", error);
+      return NextResponse.json({ error: "epub_parse_failed" }, { status: 422 });
+    }
   }
 
   let upstream: Response;

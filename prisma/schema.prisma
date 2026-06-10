@@ -189,6 +189,7 @@ model ImportedDocument {
   kind         ImportKind
   ossKey       String
   sizeBytes    Int
+  inlineContent Bytes?
   unitCount    Int          @default(0)
   lastPosition String       @default("")
   status       ImportStatus @default(ready)
