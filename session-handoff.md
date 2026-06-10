@@ -1,3 +1,37 @@
+## Codex1 Fix Report: IMPORT-3/4 EPUB production load + COS 451 upload fallback
+**Time**: 2026-06-10 09:35
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa production hotfix
+
+**Why this exists**:
+- User screenshot showed imported EPUB still unusable in production:
+  - `GET /api/import/[id]/epub` returned 500.
+  - Browser direct COS `PUT` returned 451 `Unavailable For Legal Reasons`.
+
+**Fix**:
+- `GET /api/import/[id]/epub` now catches COS signing/fetch exceptions and returns diagnostic 502 `{ error: "source_fetch_failed" }` instead of a naked 500.
+- EPUB parser now normalizes manifest hrefs by stripping `#fragment`/query parts and safely decoding XML/URI entities before ZIP lookup.
+- Added same-origin fallback `POST /api/import/upload` for small files (4MB cap): authenticated multipart upload -> server-side COS PUT -> `ImportedDocument` create.
+- `uploadImportedDocument()` still tries browser direct COS PUT first; if COS returns 451 and the file is small enough, it falls back to `/api/import/upload`.
+- Large PDF/direct-upload architecture remains unchanged.
+
+**Verification**:
+- Red check: `node --test tests/import027.test.mjs tests/import028.test.mjs` failed first against missing source fetch diagnostics, fragment href support, and upload fallback.
+- Green: `node --test tests/import027.test.mjs tests/import028.test.mjs` -> 4/4 pass.
+- Focused import upload/reader regression: `node --test tests/import002.test.mjs tests/import022.test.mjs tests/import023.test.mjs` -> 8/8 pass.
+- Wider import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs tests/import028.test.mjs` -> 24/24 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 486/486 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only; route table includes `/api/import/[id]/epub` and `/api/import/upload`.
+
+**QA focus**:
+- Re-test the same EPUB that previously hit `/api/import/[id]/epub` 500.
+- Upload a small EPUB that previously hit COS 451; confirm it appears in `/import/library`.
+- Confirm a large PDF still uses the original direct COS path and reports a clear failure if direct upload is blocked.
+- Confirm existing PDF reader still renders and point-word lookup still works.
+
 ## Codex1 Fix Report: IMPORT-3 EPUB reader
 **Time**: 2026-06-09 15:50
 **From**: Codex1 (DEV)

@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-08 22:08
+// Timestamp: 2026-06-10 09:35
 
 export type UploadImportKind = "epub" | "pdf";
 
@@ -20,6 +20,17 @@ type DocumentResponse = {
   document?: unknown;
   error?: string;
 };
+
+const PROXY_UPLOAD_MAX_FILE_BYTES = 4 * 1024 * 1024;
+
+class CosUploadError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly responseText: string,
+  ) {
+    super(`cos_upload_failed:${status}`);
+  }
+}
 
 export function inferImportKind(file: File): UploadImportKind | null {
   const name = file.name.toLowerCase();
@@ -47,11 +58,30 @@ function putFileWithProgress(uploadUrl: string, file: File, contentType: string,
         resolve();
         return;
       }
-      reject(new Error("cos_upload_failed"));
+      reject(new CosUploadError(request.status, request.responseText));
     };
-    request.onerror = () => reject(new Error("cos_upload_failed"));
+    request.onerror = () => reject(new CosUploadError(0, ""));
     request.send(file);
   });
+}
+
+async function uploadViaProxy(file: File, title: string | undefined, onProgress?: (progress: number) => void) {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (title?.trim()) {
+    formData.append("title", title.trim());
+  }
+
+  const response = await fetch("/api/import/upload", {
+    method: "POST",
+    body: formData,
+  });
+  const payload = (await response.json()) as DocumentResponse;
+  if (!response.ok || !payload.document) {
+    throw new Error(payload.error ?? "proxy_upload_failed");
+  }
+  onProgress?.(100);
+  return payload.document;
 }
 
 export async function uploadImportedDocument({ file, title, onProgress }: UploadImportedDocumentOptions) {
@@ -76,7 +106,14 @@ export async function uploadImportedDocument({ file, title, onProgress }: Upload
     throw new Error(presignPayload.error ?? "presign_failed");
   }
 
-  await putFileWithProgress(presignPayload.uploadUrl, file, presignPayload.contentType || contentType, onProgress);
+  try {
+    await putFileWithProgress(presignPayload.uploadUrl, file, presignPayload.contentType || contentType, onProgress);
+  } catch (error) {
+    if (error instanceof CosUploadError && error.status === 451 && file.size <= PROXY_UPLOAD_MAX_FILE_BYTES) {
+      return uploadViaProxy(file, title, onProgress);
+    }
+    throw error;
+  }
 
   const documentResponse = await fetch("/api/import/document", {
     method: "POST",

@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 15:50
+// Timestamp: 2026-06-10 09:35
 import path from "node:path/posix";
 import AdmZip from "adm-zip";
 
@@ -34,6 +34,19 @@ function decodeXmlEntities(value: string) {
     .replace(/&#39;/gi, "'")
     .replace(/&#x([0-9a-f]+);/gi, (_match, hex: string) => String.fromCodePoint(Number.parseInt(hex, 16)))
     .replace(/&#(\d+);/g, (_match, code: string) => String.fromCodePoint(Number.parseInt(code, 10)));
+}
+
+function safeDecodeUriComponent(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function normalizeManifestHref(href: string) {
+  const withoutFragment = href.split("#")[0]?.split("?")[0] ?? href;
+  return safeDecodeUriComponent(decodeXmlEntities(withoutFragment));
 }
 
 export function stripEpubHtmlToText(html: string) {
@@ -98,7 +111,7 @@ export function parseEpubForReader(bytes: Uint8Array) {
       const manifestItem = manifest.get(idref);
       if (!manifestItem || (manifestItem.mediaType && !htmlLike.has(manifestItem.mediaType))) return null;
 
-      const href = path.normalize(path.join(opfDir, decodeURIComponent(manifestItem.href)));
+      const href = path.normalize(path.join(opfDir, normalizeManifestHref(manifestItem.href)));
       const html = getEntryText(zip, href);
       const text = stripEpubHtmlToText(html);
       if (!text) return null;

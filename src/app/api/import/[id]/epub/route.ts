@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-09 15:50
+// Timestamp: 2026-06-10 09:35
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -34,8 +34,15 @@ export async function GET(
     return NextResponse.json({ error: "unsupported_kind" }, { status: 400 });
   }
 
-  const url = await presignGet({ key: document.ossKey });
-  const upstream = await fetch(url, { cache: "no-store" });
+  let upstream: Response;
+  try {
+    const url = await presignGet({ key: document.ossKey });
+    upstream = await fetch(url, { cache: "no-store" });
+  } catch (error) {
+    console.error("Imported EPUB source fetch failed", error);
+    return NextResponse.json({ error: "source_fetch_failed" }, { status: 502 });
+  }
+
   const sourceContentType = upstream.headers.get("content-type") ?? "";
 
   if (!upstream.ok) {

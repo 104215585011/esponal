@@ -28,6 +28,8 @@ test("IMPORT-3 EPUB reader exposes a same-origin parsed spine API", async () => 
   assert.match(route, /getImportedDocumentByIdForUser\(userId,\s*context\.params\.id\)/);
   assert.match(route, /document\.kind !== "epub"/);
   assert.match(route, /presignGet\(\{\s*key:\s*document\.ossKey\s*\}\)/);
+  assert.match(route, /source_fetch_failed/);
+  assert.match(route, /Imported EPUB source fetch failed/);
   assert.match(route, /parseEpubForReader/);
   assert.match(route, /NextResponse\.json\(\{\s*chapters/);
 });
@@ -61,7 +63,7 @@ test("IMPORT-3 EPUB parser extracts OPF spine chapters as readable text", async 
     Buffer.from(`
       <package>
         <manifest>
-          <item id="chap1" href="chapters/one.xhtml" media-type="application/xhtml+xml"/>
+          <item id="chap1" href="chapters/one.xhtml#intro" media-type="application/xhtml+xml"/>
           <item id="chap2" href="chapters/two.xhtml" media-type="application/xhtml+xml"/>
         </manifest>
         <spine><itemref idref="chap1"/><itemref idref="chap2"/></spine>
