@@ -2030,8 +2030,8 @@
   "119": {
     "id": "IMPORT-6",
     "name": "阅读器体验升级(EPUB自分页/翻页特效/字号字体/纸张底色/PDF fit-width)",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "priority": "P1",
-    "evidence": "2026-06-11 PM设计交付:IMPORT-6.md + IMPORT-6-mockup.html;依赖IMPORT-5;待用户批准模型"
+    "evidence": "2026-06-11 PM设计交付:IMPORT-6.md + IMPORT-6-mockup.html;依赖IMPORT-5;待用户批准模型 | 2026-06-11 用户批准模型+方案C朗读定案 → 放行,排队 IMPORT-5 之后 | 2026-06-11 10:15 Codex1 ready_for_qa: implemented real reader upgrade. Added reader settings helper with clamped Aa settings, localStorage persistence, EPUB sentence wrapping, EPUB CSS multi-column pagination with epub:chapter:page progress, TOC sheet, paper/font/line-height/page-turn controls, PDF fit-width page strip with DPR path preserved, and import LookupCard sentence TTS through /api/tts. Verification: baseline npm test 489/489 pass; red tests/import030 failed first; import030 3/3 pass; import001/002/003/018/020/021/022/023/024/025/026/027/028/029/030 32/32 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 492/492 pass; npm run build pass with existing img/Sentry warnings only."
   }
 }

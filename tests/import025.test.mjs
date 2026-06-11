@@ -29,7 +29,8 @@ test("IMPORT-3 PDF reader supports adaptive stable zoom and clickable text looku
   assert.match(pdf, /setPdfZoom/);
   assert.match(pdf, /ZoomIn/);
   assert.match(pdf, /ZoomOut/);
-  assert.match(pdf, /overflow-x-auto/);
+  assert.match(pdf, /data-testid="import-pdf-page-strip"/);
+  assert.match(pdf, /overflow-hidden/);
   assert.doesNotMatch(pdf, /className="flex min-h-\[100dvh\] w-full justify-center overflow-x-auto"/);
   assert.match(pdf, /minWidth:\s*canvasCssSize\.width/);
 

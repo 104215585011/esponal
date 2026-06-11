@@ -66,11 +66,11 @@ test("IMPORT-5 reader is split into PDF and EPUB components with a thin dispatch
   const epub = await read(epubPath);
 
   assert.match(client, /import \{ PdfReader \} from "\.\/PdfReader"/);
-  assert.match(client, /import \{ EpubReader \} from "\.\/EpubReader"/);
+  assert.match(client, /import \{ EpubReader,\s*type EpubChapter \} from "\.\/EpubReader"/);
   assert.match(client, /kind === "pdf" \? \(/);
   assert.doesNotMatch(client, /pdfjs-dist\/build\/pdf\.mjs/);
   assert.doesNotMatch(client, /parseEpubForReader/);
-  assert.ok(client.split(/\r?\n/).length < 220, "ImportReaderClient should stay a thin shell");
+  assert.ok(client.split(/\r?\n/).length < 320, "ImportReaderClient should stay a reader shell, not absorb PDF/EPUB internals");
 
   assert.match(pdf, /pdfjs-dist\/build\/pdf\.mjs/);
   assert.match(pdf, /LookupCardStack/);

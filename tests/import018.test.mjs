@@ -72,7 +72,7 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(client, /data-testid="import-reader"/);
   assert.match(client, /setReaderUrl\(`\/api\/import\/\$\{documentId\}\/file`\)/);
   assert.match(client, /import \{ PdfReader \} from "\.\/PdfReader"/);
-  assert.match(client, /import \{ EpubReader \} from "\.\/EpubReader"/);
+  assert.match(client, /import \{ EpubReader,\s*type EpubChapter \} from "\.\/EpubReader"/);
   assert.doesNotMatch(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
   assert.doesNotMatch(client, /src=\{readerUrl\}/);
   assert.match(epub, /data-testid="import-epub-reader"/);
@@ -100,7 +100,8 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(pdf, /calculateAdaptivePdfZoom/);
   assert.match(pdf, /effectivePdfZoom/);
   assert.doesNotMatch(pdf, /PDF_DEFAULT_ZOOM/);
-  assert.match(pdf, /overflow-x-auto/);
+  assert.match(pdf, /data-testid="import-pdf-page-strip"/);
+  assert.match(pdf, /overflow-hidden/);
   assert.match(pdf, /getTextContent\(\)/);
   assert.match(pdf, /buildPdfTextLayerItems/);
   assert.match(pdf, /pdfTextLayerItems/);
@@ -125,10 +126,10 @@ test("IMPORT-3 v2 exposes immersive reader controls for original-file rendering"
   assert.match(client, /data-testid="import-reader-page-watermark"/);
   assert.match(client, /href="\/import\/library"/);
   assert.match(client, /handleReaderSurfaceClick/);
-  assert.match(client, /zoneRatio <= 0\.3/);
-  assert.match(client, /zoneRatio >= 0\.7/);
-  assert.match(client, /fixed bottom-0 inset-x-0 bg-white\/95/);
-  assert.match(client, /readerChromeVisible \? "translate-y-0" : "translate-y-full"/);
+  assert.match(client, /zoneRatio <= 0\.25/);
+  assert.match(client, /zoneRatio >= 0\.75/);
+  assert.match(client, /fixed inset-x-4 bottom-4/);
+  assert.match(client, /readerChromeVisible \? "translate-y-0" : "translate-y-\[140%\]"/);
   assert.match(client, /handleReaderTouchStart/);
   assert.match(client, /handleReaderTouchEnd/);
   assert.match(client, /<input[\s\S]*type="range"/);

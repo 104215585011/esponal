@@ -1,3 +1,37 @@
+## Codex1 Implementation Report: IMPORT-6 real reader upgrade
+**Time**: 2026-06-11 10:15
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa
+
+**Why this exists**:
+- User approved the IMPORT-6 model and asked for a real reader experience after IMPORT-5 restored image-preserving EPUB rendering.
+- The reader needed EPUB self-pagination, Aa settings, persistent paper/font controls, a TOC path, stable PDF fit-width behavior, and sentence-level listen support for imported text.
+
+**Fix**:
+- Added `src/lib/import/reader-settings.ts` for shared reader settings, clamp rules, Spanish sentence splitting, and EPUB sentence wrapping.
+- `ImportReaderClient.tsx` now owns persistent reader settings, a bottom Aa sheet, a TOC sheet, paper themes, upgraded EPUB progress as `epub:<chapter>:<page>`, tap zones, swipe navigation, and the `/import/library` exit path.
+- `EpubReader.tsx` now renders sanitized EPUB HTML in a CSS multi-column paginator, keeps images, wraps sentences for lookup context, and exposes page-by-page navigation instead of chapter-only jumps.
+- `PdfReader.tsx` keeps the existing pdf.js byte/worker path while using a fit-width page strip, preserved DPR rendering, and sentence-aware lookup context.
+- `LookupCard.tsx` now shows an import-only `朗读整句` action that calls the existing `/api/tts` route; cached TTS hits stay on the free path through the existing credits hook.
+
+**Verification**:
+- Baseline: `npm test` -> 489/489 pass before implementation.
+- Red check: `node --test tests/import030.test.mjs` failed first because settings helpers and IMPORT-6 reader contracts did not exist.
+- Focused: `node --test tests/import030.test.mjs` -> 3/3 pass.
+- Import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import021.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs tests/import028.test.mjs tests/import029.test.mjs tests/import030.test.mjs` -> 32/32 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 492/492 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Open an imported EPUB on mobile: left/right tap and swipe should page within a chapter; progress should persist at chapter+page granularity.
+- Open Aa settings: font size, font family, line height, paper color, and page-turn mode should apply immediately and survive reload.
+- Open TOC: EPUB chapters should list and jump correctly; PDF should show the PDF slider fallback copy.
+- Tap an EPUB/PDF Spanish word: lookup should open with import source metadata and show `朗读整句`; the button should synthesize/play the surrounding sentence.
+- Open a PDF: it should render fit-width without the old page-to-page auto-enlarge behavior, and word hotspots should still work.
+
 ## Codex1 Implementation Report: IMPORT-5 EPUB image reader + reader split
 **Time**: 2026-06-11 09:04
 **From**: Codex1 (DEV)
@@ -14546,3 +14580,6 @@ PM 设计交付(docs/tickets/IMPORT-6.md + IMPORT-6-mockup.html):
 - EPUB 渲染前逐句包 <span data-sent>(西语句界正则+缩写黑名单,不影响多栏分页);PDF 文字层 item 拼页文本切句+区间映射。
 - 走现有 /api/tts(按次0.1+流水);**缓存命中应免扣**(Codex 确认 tts 路由 hash 缓存行为,命中仍扣则改);阅读器单 Audio;播放句高亮。
 - 底部控制条去掉 ▶ 朗读键(Aa/目录/◀页码▶)。
+
+## ✅ IMPORT-6 放行  [Claude1 PM, 2026-06-11]
+用户批准 IMPORT-6(模型+方案C朗读)。**Codex1 队列:IMPORT-5 → IMPORT-6 → MOBILE-R-PERF → INFRA-PW → MOBILE-R-001**。各票完成回报 PM 验收(IMPORT-6 重点真机验:EPUB 分页/锚定、PDF 清晰度、三色纸张、整句朗读扣费与缓存免扣)。

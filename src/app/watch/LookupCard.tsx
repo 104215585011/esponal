@@ -1,7 +1,7 @@
 // Timestamp: 2026-06-03 10:05
 "use client";
 
-import { useEffect, useMemo, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import EmptyState from "@/app/components/ui/EmptyState";
 import { speak, useSpeechAvailable } from "@/lib/speak";
@@ -306,7 +306,9 @@ export function LookupCard({
   const [showLoginHint, setShowLoginHint] = useState(false);
   const [showSaveLimitHint, setShowSaveLimitHint] = useState(false);
   const [speakingText, setSpeakingText] = useState<string | null>(null);
+  const [sentenceSpeaking, setSentenceSpeaking] = useState(false);
   const [totalEncounters, setTotalEncounters] = useState<number | null>(null);
+  const sentenceAudioRef = useRef<HTMLAudioElement | null>(null);
   const normalizedForm = useMemo(() => form.trim().toLowerCase(), [form]);
   const speechAvailable = useSpeechAvailable();
   const isPhraseLookup = lookupKind === "phrase";
@@ -658,6 +660,40 @@ export function LookupCard({
     }
   };
 
+  const handleSpeakOriginalSentence = async () => {
+    const text = originalSentence.trim();
+    if (!text || sentenceSpeaking) return;
+
+    try {
+      sentenceAudioRef.current?.pause();
+      setSentenceSpeaking(true);
+      setSpeakingText(text);
+
+      const response = await fetch("/api/tts?text=" + encodeURIComponent(text));
+      if (!response.ok) throw new Error(`TTS failed: ${response.status}`);
+
+      const blob = await response.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      sentenceAudioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        setSpeakingText(null);
+        setSentenceSpeaking(false);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl);
+        setSpeakingText(null);
+        setSentenceSpeaking(false);
+      };
+      await audio.play();
+    } catch (error) {
+      console.error("Speak original sentence failed", error);
+      setSpeakingText(null);
+      setSentenceSpeaking(false);
+    }
+  };
+
   return (
     <div
       className={
@@ -845,6 +881,21 @@ export function LookupCard({
           </div>
         )
       )}
+
+      {source?.type === "import" && originalSentence.trim() ? (
+        <button
+          className={`mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-full text-sm font-semibold transition ${
+            sentenceSpeaking
+              ? "bg-brand-500/15 text-brand-700 dark:text-brand-300"
+              : "bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-500/10 dark:text-brand-300"
+          }`}
+          onClick={handleSpeakOriginalSentence}
+          type="button"
+        >
+          <span>{sentenceSpeaking ? "正在朗读" : "朗读整句"}</span>
+          <span className="rounded-full bg-white/70 px-2 py-0.5 text-[11px] font-bold text-brand-700 dark:bg-white/10 dark:text-brand-200">0.1</span>
+        </button>
+      ) : null}
 
       {/* 遭遇卡片/例句 Encounter Card */}
       {example ? (

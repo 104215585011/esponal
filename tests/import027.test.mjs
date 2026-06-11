@@ -39,8 +39,8 @@ test("IMPORT-3 client renders EPUB chapters instead of the接入中 fallback", a
   const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
   const epub = await read("src/app/import/[id]/EpubReader.tsx");
 
-  assert.match(client, /import \{ EpubReader \} from "\.\/EpubReader"/);
-  assert.match(client, /lastPosition:\s*`epub:\$\{epubChapterIndex\}`/);
+  assert.match(client, /import \{ EpubReader,\s*type EpubChapter \} from "\.\/EpubReader"/);
+  assert.match(client, /lastPosition:\s*`epub:\$\{epubChapterIndex\}:\$\{epubPageInChapter\}`/);
   assert.match(client, /epubChapterIndex/);
   assert.match(epub, /type EpubChapter/);
   assert.match(epub, /chapters,\s*setChapters/);
@@ -48,6 +48,7 @@ test("IMPORT-3 client renders EPUB chapters instead of the接入中 fallback", a
   assert.match(epub, /payload\.chapters/);
   assert.match(epub, /const loadedChapters = payload\.chapters/);
   assert.match(epub, /setChapters\(loadedChapters\)/);
+  assert.match(epub, /setChapterList\(loadedChapters\)/);
   assert.match(epub, /activeChapter/);
   assert.match(epub, /data-testid="import-epub-reader"/);
   assert.match(epub, /dangerouslySetInnerHTML/);

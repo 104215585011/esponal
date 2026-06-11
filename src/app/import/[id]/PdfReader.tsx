@@ -1,9 +1,10 @@
-// Timestamp: 2026-06-11 09:30
+// Timestamp: 2026-06-11 10:15
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Loader2, ZoomIn, ZoomOut } from "lucide-react";
 import { LookupCardStack } from "@/app/watch/LookupCard";
+import { type ImportReaderSettings } from "@/lib/import/reader-settings";
 
 type PdfReaderProps = {
   documentId: string;
@@ -11,6 +12,7 @@ type PdfReaderProps = {
   readerUrl: string;
   setPageCount: (pageCount: number) => void;
   setPageNumber: (updater: (current: number) => number) => void;
+  settings: ImportReaderSettings;
   showReaderChrome: () => void;
 };
 
@@ -38,6 +40,7 @@ type PdfTextLayerItem = {
   id: string;
   text: string;
   lineText: string;
+  sentenceText: string;
   left: number;
   top: number;
   width: number;
@@ -102,10 +105,12 @@ function buildPdfTextLayerItems(textContent: PdfTextContent, viewport: PdfViewpo
       const text = match[0];
       const startRatio = (match.index ?? 0) / Math.max(1, lineText.length);
       const widthRatio = text.length / Math.max(1, lineText.length);
+      const sentenceText = closestSentenceForPdfItem(lineText, match.index ?? 0);
       items.push({
         id: `${itemIndex}-${match.index ?? 0}-${text}`,
         text,
         lineText,
+        sentenceText,
         left: x + lineWidth * startRatio,
         top: y - lineHeight,
         width: Math.max(24, lineWidth * widthRatio),
@@ -116,12 +121,20 @@ function buildPdfTextLayerItems(textContent: PdfTextContent, viewport: PdfViewpo
   return items;
 }
 
+function closestSentenceForPdfItem(lineText: string, index: number) {
+  const leftBoundary = Math.max(lineText.lastIndexOf(".", index - 1), lineText.lastIndexOf("?", index - 1), lineText.lastIndexOf("!", index - 1));
+  const rightStops = [lineText.indexOf(".", index), lineText.indexOf("?", index), lineText.indexOf("!", index)].filter((value) => value >= 0);
+  const rightBoundary = rightStops.length > 0 ? Math.min(...rightStops) + 1 : lineText.length;
+  return lineText.slice(leftBoundary + 1, rightBoundary).trim() || lineText;
+}
+
 export function PdfReader({
   documentId,
   pageNumber,
   readerUrl,
   setPageCount,
   setPageNumber,
+  settings,
   showReaderChrome,
 }: PdfReaderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -235,7 +248,7 @@ export function PdfReader({
     setActivePdfLookup({
       anchorX: rect.left,
       anchorY: rect.bottom + 6,
-      lineText: item.lineText,
+      lineText: item.sentenceText,
       cards: [{ id: `word-${item.text}`, form: item.text, lookupKind: "word" }],
     });
   };
@@ -263,9 +276,9 @@ export function PdfReader({
     <>
       {pdfLoading ? <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 text-sm font-medium text-zinc-500 backdrop-blur-sm"><Loader2 className="mr-2 h-4 w-4 animate-spin text-brand-500" aria-hidden />正在渲染 PDF</div> : null}
       {error ? <div className="mx-4 mt-[18vh] rounded-3xl bg-red-50 px-6 py-8 text-center text-sm font-medium text-red-600">{error}</div> : (
-        <div ref={pdfFrameRef} className={`flex h-[100dvh] w-full justify-center overflow-x-auto ${pdfPageFitsViewport ? "items-center" : "items-start"}`}>
+        <div ref={pdfFrameRef} className={`flex h-[100dvh] w-full justify-center overflow-hidden px-0 ${pdfPageFitsViewport ? "items-center" : "items-start"}`} data-testid="import-pdf-page-strip">
           <div className="relative mx-auto" style={{ minWidth: canvasCssSize.width || undefined, width: canvasCssSize.width || undefined, height: canvasCssSize.height || undefined }}>
-            <canvas ref={canvasRef} className="bg-white" />
+            <canvas ref={canvasRef} className={settings.paper === "night" ? "bg-white shadow-2xl shadow-black/40" : "bg-white"} />
             <div className="absolute left-0 top-0 z-[2]" data-testid="import-pdf-text-layer" style={{ width: canvasCssSize.width, height: canvasCssSize.height }}>
               {pdfTextLayerItems.map((item) => (
                 <button aria-label={`查询 ${item.text}`} className="absolute rounded-sm bg-brand-500/0 text-transparent outline-none transition hover:bg-brand-500/15 focus:bg-brand-500/20" data-testid="import-pdf-word" key={item.id} onClick={(event) => openPdfLookup(event, item)} style={{ left: item.left, top: item.top, width: item.width, height: item.height }} type="button">{item.text}</button>
