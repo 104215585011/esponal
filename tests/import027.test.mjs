@@ -44,8 +44,9 @@ test("IMPORT-7 M1 client renders EPUB through epub.js instead of parsed chapter 
   assert.match(client, /epubChapterIndex/);
   assert.match(epub, /type EpubChapter/);
   assert.match(epub, /import\("epubjs"\)/);
-  assert.match(epub, /fetch\(`\/api\/import\/\$\{documentId\}\/url`/);
-  assert.match(epub, /payload\.url/);
+  assert.match(epub, /fetch\(`\/api\/import\/\$\{documentId\}\/file`/);
+  assert.match(epub, /response\.arrayBuffer\(\)/);
+  assert.match(epub, /URL\.createObjectURL/);
   assert.match(epub, /book\.renderTo/);
   assert.match(epub, /flow:\s*"paginated"/);
   assert.match(epub, /spread:\s*"none"/);
@@ -54,6 +55,7 @@ test("IMPORT-7 M1 client renders EPUB through epub.js instead of parsed chapter 
   assert.match(epub, /data-testid="import-epubjs-stage"/);
   assert.doesNotMatch(epub, /dangerouslySetInnerHTML/);
   assert.doesNotMatch(epub, /data-epub-word/);
+  assert.doesNotMatch(epub, /\/api\/import\/\$\{documentId\}\/url/);
 });
 
 test("IMPORT-3 EPUB parser extracts OPF spine chapters as readable text", async () => {

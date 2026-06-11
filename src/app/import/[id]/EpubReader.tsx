@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-11 15:25
+// Timestamp: 2026-06-11 16:05
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -42,10 +42,10 @@ type EpubRendition = {
 
 const M1_FALLBACK_PAGE_COUNT = 999;
 
-async function createEpubBook(url: string) {
+async function createEpubBook(source: string) {
   const epubModule = await import("epubjs");
   const createBook = (epubModule.default ?? epubModule) as unknown as (source: string) => EpubBook;
-  return createBook(url);
+  return createBook(source);
 }
 
 export function EpubReader({
@@ -61,24 +61,28 @@ export function EpubReader({
   const lastPageRef = useRef(pageInChapter);
   const [epubLoading, setEpubLoading] = useState(true);
   const [error, setError] = useState("");
+  const [renditionReady, setRenditionReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let book: EpubBook | null = null;
     let rendition: EpubRendition | null = null;
+    let objectUrl = "";
 
     async function mountEpub() {
       const stage = stageRef.current;
       if (!stage) return;
       setEpubLoading(true);
       setError("");
+      setRenditionReady(false);
       try {
-        const response = await fetch(`/api/import/${documentId}/url`, { cache: "no-store", credentials: "same-origin" });
-        if (!response.ok) throw new Error(`EPUB url failed: ${response.status}`);
-        const payload = (await response.json()) as { url?: string };
-        if (!payload.url) throw new Error("EPUB url missing");
+        const response = await fetch(`/api/import/${documentId}/file`, { cache: "no-store", credentials: "same-origin" });
+        if (!response.ok) throw new Error(`EPUB file failed: ${response.status}`);
+        const buffer = await response.arrayBuffer();
+        if (buffer.byteLength === 0) throw new Error("EPUB file empty");
 
-        book = await createEpubBook(payload.url);
+        objectUrl = URL.createObjectURL(new Blob([buffer], { type: "application/epub+zip" }));
+        book = await createEpubBook(objectUrl);
         if (cancelled) return;
 
         rendition = book.renderTo(stage, {
@@ -102,6 +106,7 @@ export function EpubReader({
         }
 
         await rendition.display();
+        if (!cancelled) setRenditionReady(true);
       } catch (loadError) {
         console.error("Imported EPUB epub.js load failed", loadError);
         if (!cancelled) setError("EPUB 加载失败，请返回导入库后重试。");
@@ -113,22 +118,35 @@ export function EpubReader({
     void mountEpub();
     return () => {
       cancelled = true;
+      setRenditionReady(false);
       renditionRef.current = null;
       rendition?.destroy?.();
       book?.destroy?.();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [documentId, setChapterCount, setChapterIndex, setChapterList, title]);
 
   useEffect(() => {
+    if (!renditionReady) return;
     const stage = stageRef.current;
     if (!stage) return;
-    const resize = () => renditionRef.current?.resize?.("100%", "100%");
+    const resize = () => {
+      try {
+        renditionRef.current?.resize?.("100%", "100%");
+      } catch (resizeError) {
+        console.warn("Imported EPUB resize skipped", resizeError);
+      }
+    };
     const observer = new ResizeObserver(resize);
     observer.observe(stage);
     return () => observer.disconnect();
-  }, []);
+  }, [renditionReady]);
 
   useEffect(() => {
+    if (!renditionReady) {
+      lastPageRef.current = pageInChapter;
+      return;
+    }
     const rendition = renditionRef.current;
     if (!rendition) {
       lastPageRef.current = pageInChapter;
@@ -145,7 +163,7 @@ export function EpubReader({
       }
     };
     void turn();
-  }, [pageInChapter]);
+  }, [pageInChapter, renditionReady]);
 
   return (
     <div className="relative h-[100dvh] w-screen overflow-hidden bg-[#f7f4eb]" data-testid="import-epub-reader">

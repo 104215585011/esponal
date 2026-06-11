@@ -1,3 +1,39 @@
+## Codex1 Hotfix Report: IMPORT-7 M1 epub.js production load fix
+**Time**: 2026-06-11 16:05
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_true_device
+
+**Why this exists**:
+- User's deployed Vercel screenshot showed the epub.js M1 reader stuck on `正在加载 EPUB`.
+- Console showed repeated `GET /api/import/<id>/... 404` from inside the EPUB load path, plus a resize error while rendition initialization was incomplete.
+
+**Root cause**:
+- The M1 implementation passed `/api/import/[id]/url` into epub.js as the book source.
+- epub.js then resolved EPUB internal relative resources against the app route root, causing requests like `/api/import/<id>/...` that do not exist.
+
+**Fix**:
+- `EpubReader.tsx` now fetches authenticated same-origin `/api/import/[id]/file` directly.
+- The client converts the response to an `ArrayBuffer`, creates an `application/epub+zip` Blob URL, and passes that object URL to epub.js.
+- Cleanup revokes the Blob URL.
+- ResizeObserver and prev/next calls now wait for `rendition.display()` to complete via `renditionReady`, avoiding resize calls against a half-created epub.js rendition.
+- M2 lookup, M3 theme/TOC/CFI, and M4 PDF remain intentionally untouched.
+
+**Verification**:
+- Red check: `node --test tests/import034.test.mjs tests/import027.test.mjs` failed first because the old reader still fetched `/api/import/${documentId}/url`.
+- Focused: `node --test tests/import034.test.mjs tests/import027.test.mjs` -> 4/4 pass.
+- Import reader regression: `node --test tests/import027.test.mjs tests/import029.test.mjs tests/import030.test.mjs tests/import031.test.mjs tests/import032.test.mjs tests/import033.test.mjs tests/import034.test.mjs` -> 14/14 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 506/506 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Re-open the same deployed EPUB on mobile after Vercel finishes deploying this commit.
+- Confirm the console no longer shows `/api/import/<id>/... 404` resource requests from epub.js.
+- Confirm it leaves `正在加载 EPUB`, renders the EPUB body/images, and the bottom prev/next controls can turn pages.
+- This is still M1: no word lookup, theme polish, TOC/CFI resume, or final EPUB reader QA signoff yet.
+
 ## Codex1 Hotfix Report: IMPORT-6/7 PDF continuous preview + EPUB pagination repair
 **Time**: 2026-06-11 13:20
 **From**: Codex1 (DEV)

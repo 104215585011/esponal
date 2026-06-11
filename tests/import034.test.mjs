@@ -12,12 +12,16 @@ test("IMPORT-7 M1 uses epub.js for minimal paginated EPUB rendering", async () =
 
   assert.ok(pkg.dependencies?.epubjs, "epubjs dependency must be installed for the M1 reader");
   assert.match(epub, /import\("epubjs"\)/);
-  assert.match(epub, /\/api\/import\/\$\{documentId\}\/url/);
-  assert.match(epub, /payload\.url/);
+  assert.match(epub, /\/api\/import\/\$\{documentId\}\/file/);
+  assert.match(epub, /response\.arrayBuffer\(\)/);
+  assert.match(epub, /new Blob\(\[buffer\],\s*\{\s*type:\s*"application\/epub\+zip"\s*\}\)/);
+  assert.match(epub, /URL\.createObjectURL/);
+  assert.match(epub, /URL\.revokeObjectURL/);
   assert.match(epub, /book\.renderTo\(/);
   assert.match(epub, /flow:\s*"paginated"/);
   assert.match(epub, /spread:\s*"none"/);
   assert.match(epub, /rendition\.display\(/);
+  assert.match(epub, /renditionReady/);
   assert.match(epub, /renditionRef\.current\?\.next\(\)/);
   assert.match(epub, /renditionRef\.current\?\.prev\(\)/);
   assert.match(epub, /data-testid="import-epubjs-stage"/);
@@ -26,5 +30,7 @@ test("IMPORT-7 M1 uses epub.js for minimal paginated EPUB rendering", async () =
   assert.doesNotMatch(epub, /columnWidth/);
   assert.doesNotMatch(epub, /wrapSentencesInEpubHtml/);
   assert.doesNotMatch(epub, /data-epub-word/);
+  assert.doesNotMatch(epub, /\/api\/import\/\$\{documentId\}\/url/);
+  assert.doesNotMatch(epub, /payload\.url/);
   assert.doesNotMatch(epub, /\/api\/import\/\$\{documentId\}\/epub/);
 });
