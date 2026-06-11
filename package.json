@@ -15,7 +15,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node --test tests/*.test.mjs",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/run-playwright-e2e.mjs",
     "seed:e2e": "node scripts/seed-e2e-user.mjs",
     "seed:talk": "node scripts/seed-talk-characters.mjs",
     "ci:local": "npm run lint:encoding && npm test && npm run build",

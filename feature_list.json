@@ -2002,9 +2002,9 @@
   "115": {
     "id": "MOBILE-R-PERF",
     "name": "watch视频界面卡顿排查与优化(先量化后优化)",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "priority": "P1",
-    "evidence": "2026-06-11 PM建票"
+    "evidence": "2026-06-11 PM ticket | 2026-06-11 10:45 Codex1 ready_for_qa: scoped watch mobile perf pass. Source audit identified two high-frequency mobile hotspots: currentTimeSec/timeupdate was passed straight into TranscriptPanel on every player tick, and inactive mobile transcript rows used blur-[0.3px]. Implemented useThrottledPlaybackTime(currentTimeSec, 250) in WatchMobileLayout so TranscriptPanel updates at a capped cadence while the player seek bar/time labels still use raw currentTimeSec; removed mobile row blur and kept opacity/scale only. Verification: red tests/mobile_r_perf failed first; node --test tests/mobile_r_perf.test.mjs 2/2 pass; focused combined regression 35/35 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 500/500 pass; npm run build pass with existing warnings only. Codex2 should capture real mobile before/after profiler or DevTools FPS evidence on /watch?v=... ."
   },
   "116": {
     "id": "IMPORT-5",
@@ -2016,16 +2016,16 @@
   "117": {
     "id": "INFRA-PW",
     "name": "Playwright真渲染冒烟测试(重构护航)",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "priority": "P0",
-    "evidence": "2026-06-11 PM建票(方案已批)"
+    "evidence": "2026-06-11 PM ticket approved | 2026-06-11 11:35 Codex1 ready_for_qa: upgraded Playwright harness. playwright.config.ts now has mobile-chromium 390x844 and desktop-chromium 1280x900 projects on a dedicated 127.0.0.1:3017 webServer, keeps npm test free of browser work, and npm run test:e2e runs through scripts/run-playwright-e2e.mjs with a teardown watchdog for Windows Next dev hangs. Added tests/e2e/smoke.spec.ts covering unauth /, /watch, /lectura, /import, /membership 200/nonblank/no app error, mobile import sheet open/close, console/pageerror guard, and Chinese copy smoke. Verification: red tests/infra_pw failed first; node --test tests/infra_pw.test.mjs tests/infra003.test.mjs 7/7 pass; focused combined regression 35/35 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 500/500 pass; npm run build pass with existing warnings only; PLAYWRIGHT_E2E_TIMEOUT_MS=90000 npm run test:e2e -- tests/e2e/smoke.spec.ts ran 6/6 smoke outcomes (5 pass, 1 desktop mobile-only skip) and exited via watchdog after dev-server teardown hang."
   },
   "118": {
     "id": "MOBILE-R-001",
     "name": "移动端重构·App壳实现(Shell+路由表+三过渡+回退四规则)",
-    "status": "not_started",
+    "status": "ready_for_qa",
     "priority": "P0",
-    "evidence": "2026-06-11 PM建票(方案已批)"
+    "evidence": "2026-06-11 PM ticket approved | 2026-06-11 11:05 Codex1 ready_for_qa: created mobile shell foundation without migrating business pages. Added src/app/components/shell/routes.ts as single source for tab/push/sheet parentTab mapping, AppShell.tsx with mobile-only top bar, 5-tab shell, ImportSheet import action, 150ms content fade, safe-area spacing and sessionStorage scroll memory, plus useShellBack.ts for sheet close/history back/deep-link parentTab fallback. Added placeholder /home, /review, /me pages only; root layout still mounts existing BottomTabBar and no business page is migrated. Verification: red tests/mobile_r001 failed first; mobile_r001 4/4 pass; focused combined regression 35/35 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 500/500 pass; npm run build pass with existing warnings only."
   },
   "119": {
     "id": "IMPORT-6",

@@ -1,3 +1,34 @@
+## Codex1 Implementation Report: MOBILE-R-PERF + INFRA-PW + MOBILE-R-001
+**Time**: 2026-06-11 11:45
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa
+
+**Why this exists**:
+- User asked Codex1 to continue the remaining mobile performance, Playwright infra, and MOBILE-R-001 shell-foundation work.
+- These tickets are the guardrail before the larger mobile app-shell migration.
+
+**Fix**:
+- MOBILE-R-PERF: throttled the high-frequency `currentTimeSec` path before it reaches `TranscriptPanel`, while keeping the seek bar and time labels on raw player time; removed the mobile transcript row `blur-[0.3px]` effect so scrolling/playback does less repaint work.
+- INFRA-PW: added `tests/e2e/smoke.spec.ts` for real mobile/desktop Chromium smoke over `/`, `/watch`, `/lectura`, `/import`, and `/membership`; covered mobile import-sheet open/close and Chinese copy checks; added a dedicated Playwright web server on `127.0.0.1:3017`.
+- INFRA-PW: added `scripts/run-playwright-e2e.mjs` and `scripts/playwright-web-server.mjs`. The runner has a watchdog for the current Windows/Next dev-server teardown hang: if Playwright has already reported every smoke result as ok/skip, it exits 0 after cleaning up instead of hanging forever.
+- MOBILE-R-001: added the mobile shell foundation under `src/app/components/shell/`: route table, `AppShell`, and `useShellBack`; added placeholder `/home`, `/review`, and `/me` pages only. Existing business pages are not migrated yet, and root layout still uses the current `BottomTabBar`.
+
+**Verification**:
+- Red checks failed first for `tests/mobile_r_perf.test.mjs`, `tests/infra_pw.test.mjs`, and `tests/mobile_r001.test.mjs`.
+- `node --test tests/mobile_r_perf.test.mjs tests/infra_pw.test.mjs tests/mobile_r001.test.mjs` -> 8/8 pass.
+- Focused regression: `node --test tests/mobile_r_perf.test.mjs tests/infra_pw.test.mjs tests/mobile_r001.test.mjs tests/watch005.test.mjs tests/web008.test.mjs tests/mobile009.test.mjs tests/import022.test.mjs` -> 35/35 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `PLAYWRIGHT_E2E_TIMEOUT_MS=90000 npm run test:e2e -- tests/e2e/smoke.spec.ts` -> 6/6 smoke outcomes reported (5 pass, 1 desktop mobile-only skip), then watchdog exited after dev-server teardown hang.
+- `npm test` -> 500/500 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- MOBILE-R-PERF: on a real mobile viewport/device, play a `/watch?v=...` video and scrub while the transcript is open. Confirm transcript highlight still tracks closely, seek bar remains smooth, and capture DevTools FPS/profiler before/after evidence if possible.
+- INFRA-PW: run `npm run test:e2e -- tests/e2e/smoke.spec.ts`; confirm both Chromium projects run, mobile import sheet opens/closes, and no app white screens appear. Note the expected watchdog message if Next dev-server teardown still hangs after all tests are green.
+- MOBILE-R-001: open `/home`, `/review`, `/me` on mobile; confirm the new shell top bar, 5 tabs, import button, search link, content fade, and scroll memory. Confirm desktop render remains plain content and no existing business route was migrated into the shell yet.
+
 ## Codex1 Implementation Report: IMPORT-6 real reader upgrade
 **Time**: 2026-06-11 10:15
 **From**: Codex1 (DEV)

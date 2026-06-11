@@ -1,7 +1,7 @@
-// Timestamp: 2026-06-02 14:19
+// Timestamp: 2026-06-11 10:45
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { BackLink } from "@/app/components/web/BackLink";
 import { TranscriptPanel } from "./TranscriptPanel";
@@ -158,6 +158,26 @@ function VolumeXIcon({ className }: { className?: string }) {
   );
 }
 
+function useThrottledPlaybackTime(currentTimeSec: number, intervalMs: number) {
+  const [throttledTimeSec, setThrottledTimeSec] = useState(currentTimeSec);
+  const lastUpdateRef = useRef(0);
+
+  useEffect(() => {
+    const now = performance.now();
+    const enoughTimePassed = now - lastUpdateRef.current >= intervalMs;
+    const crossedWholeSecond = Math.floor(currentTimeSec) !== Math.floor(throttledTimeSec);
+    const jumped = Math.abs(currentTimeSec - throttledTimeSec) > 1;
+
+    if (!enoughTimePassed && !crossedWholeSecond && !jumped) {
+      return;
+    }
+
+    lastUpdateRef.current = now;
+    setThrottledTimeSec(currentTimeSec);
+  }, [currentTimeSec, intervalMs, throttledTimeSec]);
+
+  return throttledTimeSec;
+}
 
 type ActiveLookup = {
   form: string;
@@ -243,6 +263,7 @@ export function WatchMobileLayout({
   const [mobileTab, setMobileTab] = useState<"transcript" | "related">("transcript");
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
+  const transcriptClockSec = useThrottledPlaybackTime(currentTimeSec, 250);
 
   const handlePlayerTap = () => {
     handlePlayPause();
@@ -328,7 +349,7 @@ export function WatchMobileLayout({
             <div className="h-full w-full -mx-4 px-4 overflow-hidden relative">
               <TranscriptPanel
                 key={`transcript-mobile-${videoId}-${refreshKey}`}
-                currentTimeSec={currentTimeSec}
+                currentTimeSec={transcriptClockSec}
                 onLookup={handleLookup}
                 onCloseLookup={handleCloseLookup}
                 onSeek={handleSeek}

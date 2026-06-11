@@ -1689,7 +1689,7 @@ export function TranscriptPanel({
                   className={`group/sentence relative transition-all duration-300 ${
                     isActive
                       ? isMobile ? "px-4 py-6 opacity-100 scale-100" : "px-6 py-5 bg-zinc-50/50 dark:bg-zinc-900/20 border-l-[3px] border-l-brand-500 pl-[21px]"
-                      : isMobile ? "px-4 py-4 opacity-30 scale-[0.98] blur-[0.3px] hover:opacity-50" : "px-6 py-5 hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
+                      : isMobile ? "px-4 py-4 opacity-35 scale-[0.98] hover:opacity-55" : "px-6 py-5 hover:bg-zinc-50/20 dark:hover:bg-zinc-900/5 border-l-[3px] border-l-transparent pl-[21px]"
                   } ${isMobile ? 'border-none' : 'first:border-t-0 border-b border-zinc-100 dark:border-zinc-900/60'}`}
                   data-cue-index={sentence.startIndex}
                   data-testid="transcript-cue"
