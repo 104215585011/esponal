@@ -1,7 +1,7 @@
-// Timestamp: 2026-06-11 10:15
+// Timestamp: 2026-06-11 14:05
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Loader2 } from "lucide-react";
 import { LookupCardStack } from "@/app/watch/LookupCard";
 import { type ImportReaderSettings, wrapSentencesInEpubHtml } from "@/lib/import/reader-settings";
@@ -31,9 +31,14 @@ type EpubLookupCard = { id: string; form: string; lookupKind: "word" | "phrase";
 type EpubLookupStack = { anchorX: number; anchorY: number; lineText: string; cards: EpubLookupCard[] };
 
 const COLUMN_GAP = 32;
+const REFLOW_ANCHOR_SELECTOR = "[data-sent], h1, h2, h3, h4, h5, h6, p, li, figure, blockquote";
 
 function closestWordElement(target: EventTarget | null) {
   return target instanceof Element ? target.closest<HTMLElement>("[data-epub-word]") : null;
+}
+
+function getAnchorKey(element: HTMLElement, index: number) {
+  return element.dataset.sent ? `sent:${element.dataset.sent}` : `node:${index}`;
 }
 
 export function EpubReader({
@@ -57,9 +62,32 @@ export function EpubReader({
   const [pageWidth, setPageWidth] = useState(0);
   const [pageHeight, setPageHeight] = useState(0);
   const [chapterPageCount, setChapterPageCount] = useState(1);
+  const currentReflowAnchorRef = useRef<string | null>(null);
+  const lastPaginationKeyRef = useRef("");
   const activeChapter = chapters[chapterIndex] ?? null;
   const renderedHtml = useMemo(() => wrapSentencesInEpubHtml(activeChapter?.html ?? "这个 EPUB 没有可显示的正文。"), [activeChapter?.html]);
   const transitionClass = settings.pageTurn === "slide" ? "transition-transform duration-[250ms] ease-out" : "";
+  const paginationKey = `${activeChapter?.href ?? ""}|${pageWidth}|${pageHeight}|${settings.fontSize}|${settings.fontFamily}|${settings.lineHeight}`;
+
+  const getReflowCandidates = useCallback(() => Array.from(contentRef.current?.querySelectorAll<HTMLElement>(REFLOW_ANCHOR_SELECTOR) ?? []), []);
+
+  const captureCurrentReflowAnchor = useCallback(() => {
+    if (pageWidth <= 0) return null;
+    const pageStart = pageInChapter * (pageWidth + COLUMN_GAP);
+    const candidates = getReflowCandidates();
+    const visibleIndex = candidates.findIndex((element) => element.offsetLeft + Math.max(1, element.offsetWidth) > pageStart + 4);
+    if (visibleIndex < 0) return null;
+    return getAnchorKey(candidates[visibleIndex], visibleIndex);
+  }, [getReflowCandidates, pageInChapter, pageWidth]);
+
+  const findPageForReflowAnchor = useCallback((anchor: string, pages: number) => {
+    if (pageWidth <= 0) return null;
+    const candidates = getReflowCandidates();
+    const targetIndex = candidates.findIndex((element, index) => getAnchorKey(element, index) === anchor);
+    if (targetIndex < 0) return null;
+    const page = Math.floor(candidates[targetIndex].offsetLeft / Math.max(1, pageWidth + COLUMN_GAP));
+    return Math.max(0, Math.min(page, pages - 1));
+  }, [getReflowCandidates, pageWidth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,8 +141,16 @@ export function EpubReader({
       const horizontalPages = Math.ceil(content.scrollWidth / Math.max(1, pageWidth + COLUMN_GAP));
       const verticalPages = Math.ceil(content.scrollHeight / Math.max(1, pageHeight));
       const pages = Math.max(1, horizontalPages, verticalPages);
+      const previousKey = lastPaginationKeyRef.current;
+      const reflowedSameChapter = previousKey.length > 0 && previousKey.split("|")[0] === (activeChapter?.href ?? "") && previousKey !== paginationKey;
+      const anchoredPage = reflowedSameChapter && currentReflowAnchorRef.current ? findPageForReflowAnchor(currentReflowAnchorRef.current, pages) : null;
+      lastPaginationKeyRef.current = paginationKey;
       setChapterPageCount(pages);
       setChapterCount(pages);
+      if (anchoredPage !== null) {
+        setPageInChapter(() => anchoredPage);
+        return;
+      }
       setPageInChapter((current) => Math.max(0, Math.min(current, pages - 1)));
     };
     const raf = window.requestAnimationFrame(measure);
@@ -124,7 +160,11 @@ export function EpubReader({
       window.cancelAnimationFrame(raf);
       images.forEach((image) => image.removeEventListener("load", measure));
     };
-  }, [activeChapter?.href, pageHeight, pageWidth, renderedHtml, setChapterCount, setPageInChapter, settings.fontFamily, settings.fontSize, settings.lineHeight]);
+  }, [activeChapter?.href, findPageForReflowAnchor, pageHeight, pageWidth, paginationKey, renderedHtml, setChapterCount, setPageInChapter, settings.fontFamily, settings.fontSize, settings.lineHeight]);
+
+  useEffect(() => {
+    currentReflowAnchorRef.current = captureCurrentReflowAnchor();
+  }, [captureCurrentReflowAnchor, renderedHtml, settings.fontFamily, settings.fontSize, settings.lineHeight]);
 
   const openLookup = (event: MouseEvent<HTMLElement>) => {
     const wordElement = closestWordElement(event.target);

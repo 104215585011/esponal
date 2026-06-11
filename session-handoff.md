@@ -14645,3 +14645,30 @@ PM 设计交付(docs/tickets/IMPORT-6.md + IMPORT-6-mockup.html):
 
 ## ✅ IMPORT-6 放行  [Claude1 PM, 2026-06-11]
 用户批准 IMPORT-6(模型+方案C朗读)。**Codex1 队列:IMPORT-5 → IMPORT-6 → MOBILE-R-PERF → INFRA-PW → MOBILE-R-001**。各票完成回报 PM 验收(IMPORT-6 重点真机验:EPUB 分页/锚定、PDF 清晰度、三色纸张、整句朗读扣费与缓存免扣)。
+
+## 🔍 PM 核验 Codex 批量交付(502绿)  [Claude1 PM, 2026-06-11]
+深验四票,整体很扎实:
+- IMPORT-5 ✅:EPUB含图(img从zip重建base64 data URL)+白名单剥全属性净化+XSS测试(import029注入onerror/script被剥)。
+- IMPORT-6 ✅(1返工):多栏自分页(scrollWidth/pageWidth)/三色纸张(白/米黄/夜间)/字号字体行距+localStorage/PDF fit-width×devicePixelRatio(治糊)/整句朗读(data-sent+PDF item映射,走/api/tts且缓存命中免扣L80在spend前)/文件拆EpubReader174+PdfReader327+Client228。**返工:EPUB改字号重排只clamp页码未锚定→丢阅读位置(IMPORT-6.md已记修复项)。**
+- MOBILE-R-001 ✅:AppShell+routes.ts(level/parentTab)+useShellBack(关sheet→history>1则back否则replace父tab,深链回所属tab正确)。只建壳未迁页,符合票。
+- INFRA-PW ✅:playwright.config.ts+scripts/run-playwright-e2e.mjs+test:e2e。
+四票→ready_for_qa。**待**:Codex2真机/跑e2e + Gemini1视觉评审(IMPORT-6阅读器/壳)+ 用户真机 → PM关单。返工项(reflow锚定)派Codex1。
+
+## Codex1 Reflow Hotfix: IMPORT-6 EPUB settings anchor
+**Time**: 2026-06-11 14:05
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa
+
+**Fix**:
+- Addressed PM's IMPORT-6 return item: changing EPUB font size, font family, line height, or pagination dimensions no longer only clamps the old numeric page.
+- `EpubReader.tsx` now captures the current first visible sentence/block anchor and, after reflow, computes the page containing that same anchor so the user stays near the same reading position.
+
+**Verification**:
+- Red check: `node --test tests/import032.test.mjs` failed first because no reflow anchor contract existed.
+- Focused: `node --test tests/import030.test.mjs tests/import031.test.mjs tests/import032.test.mjs` -> 6/6 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+
+**QA focus**:
+- Open a long EPUB, jump beyond page 1, change font size/line height/font family in Aa settings, and confirm the visible paragraph/sentence stays near the same place instead of jumping to unrelated content.
