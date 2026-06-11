@@ -6,7 +6,7 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-3/7 PDF reader supports continuous fit-width zoom and clickable text lookup", async () => {
+test("IMPORT-3/7 PDF reader supports continuous fit-screen rendering and clickable text lookup", async () => {
   const pdf = await read("src/app/import/[id]/PdfReader.tsx");
   const lookupCard = await read("src/app/watch/LookupCard.tsx");
 
@@ -25,9 +25,12 @@ test("IMPORT-3/7 PDF reader supports continuous fit-width zoom and clickable tex
   assert.doesNotMatch(pdf, /const effectivePdfZoom\s*=\s*pdfZoomMode === "auto"/);
   assert.doesNotMatch(pdf, /calculateAdaptivePdfZoom\([^)]*pageNumber/);
   assert.doesNotMatch(pdf, /\$\{pageNumber\} \/ \$\{pageCount\}.*\$\{Math\.round\(pdfZoom \* 100\)\}%/);
-  assert.match(pdf, /setPdfZoom/);
-  assert.match(pdf, /ZoomIn/);
-  assert.match(pdf, /ZoomOut/);
+  assert.doesNotMatch(pdf, /setPdfZoom/);
+  assert.doesNotMatch(pdf, /ZoomIn/);
+  assert.doesNotMatch(pdf, /ZoomOut/);
+  assert.match(pdf, /const widthScale = frameSize\.width \/ baseViewport\.width/);
+  assert.match(pdf, /const heightScale = availableHeight \/ baseViewport\.height/);
+  assert.match(pdf, /Math\.min\(widthScale,\s*heightScale\)/);
   assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
   assert.match(pdf, /data-testid="import-pdf-page-canvas"/);
   assert.match(pdf, /overflow-y-auto/);

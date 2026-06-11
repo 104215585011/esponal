@@ -46,7 +46,11 @@ test("IMPORT-4 inline upload storage is readable by the import file and EPUB API
 
   const fileRoute = await read("src/app/api/import/[id]/file/route.ts");
   assert.match(fileRoute, /document\.inlineContent/);
-  assert.match(fileRoute, /new Response\(toArrayBuffer\(document\.inlineContent\)/);
+  assert.match(fileRoute, /request\.headers\.get\("range"\)/);
+  assert.match(fileRoute, /document\.inlineContent\.slice\(range\.start,\s*range\.end \+ 1\)/);
+  assert.match(fileRoute, /new Response\(toArrayBuffer\(body\)/);
+  assert.match(fileRoute, /status:\s*range \? 206 : 200/);
+  assert.match(fileRoute, /"Content-Range"/);
   assert.match(fileRoute, /presignGet/);
 
   const epubRoute = await read("src/app/api/import/[id]/epub/route.ts");

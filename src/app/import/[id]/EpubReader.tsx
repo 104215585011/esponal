@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-11 14:05
+// Timestamp: 2026-06-11 14:35
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
@@ -138,9 +138,7 @@ export function EpubReader({
     const content = contentRef.current;
     if (!content || pageWidth <= 0 || pageHeight <= 0) return;
     const measure = () => {
-      const horizontalPages = Math.ceil(content.scrollWidth / Math.max(1, pageWidth + COLUMN_GAP));
-      const verticalPages = Math.ceil(content.scrollHeight / Math.max(1, pageHeight));
-      const pages = Math.max(1, horizontalPages, verticalPages);
+      const pages = Math.max(1, Math.round(content.scrollWidth / Math.max(1, pageWidth + COLUMN_GAP)));
       const previousKey = lastPaginationKeyRef.current;
       const reflowedSameChapter = previousKey.length > 0 && previousKey.split("|")[0] === (activeChapter?.href ?? "") && previousKey !== paginationKey;
       const anchoredPage = reflowedSameChapter && currentReflowAnchorRef.current ? findPageForReflowAnchor(currentReflowAnchorRef.current, pages) : null;
@@ -197,10 +195,10 @@ export function EpubReader({
         <div className="h-full overflow-hidden" data-testid="import-epub-paginator" onClick={openLookup}>
           <article className={`h-full ${transitionClass}`} style={{ transform: `translate3d(-${pageInChapter * (pageWidth + COLUMN_GAP)}px,0,0)` }}>
             <div
-              className="h-full max-w-none text-[length:var(--reader-font-size)] leading-[var(--reader-line-height)] tracking-normal [font-family:var(--reader-font-family)] [&_blockquote]:my-7 [&_blockquote]:border-l-4 [&_blockquote]:border-brand-200 [&_blockquote]:pl-5 [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-zinc-500 [&_figure]:my-8 [&_h1]:mb-5 [&_h1]:mt-8 [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:mb-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mb-3 [&_h3]:mt-7 [&_h3]:text-xl [&_h3]:font-bold [&_img]:mx-auto [&_img]:my-8 [&_img]:max-h-[90vh] [&_img]:max-w-full [&_img]:rounded-xl [&_img]:object-contain [&_li]:my-2 [&_ol]:my-5 [&_ol]:pl-7 [&_p]:my-5 [&_ul]:my-5 [&_ul]:pl-7 [&_[data-epub-word]]:cursor-pointer [&_[data-epub-word]]:rounded-sm [&_[data-epub-word]]:transition [&_[data-epub-word]:active]:bg-brand-100"
+              className="h-full max-w-none text-[length:var(--reader-font-size)] leading-[var(--reader-line-height)] tracking-normal [font-family:var(--reader-font-family)] [&_blockquote]:my-7 [&_blockquote]:break-inside-avoid [&_blockquote]:border-l-4 [&_blockquote]:border-brand-200 [&_blockquote]:pl-5 [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-zinc-500 [&_figure]:my-8 [&_figure]:break-inside-avoid [&_h1]:mb-5 [&_h1]:mt-8 [&_h1]:break-after-avoid [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:mb-4 [&_h2]:mt-8 [&_h2]:break-after-avoid [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mb-3 [&_h3]:mt-7 [&_h3]:break-after-avoid [&_h3]:text-xl [&_h3]:font-bold [&_img]:mx-auto [&_img]:my-8 [&_img]:max-h-full [&_img]:max-w-full [&_img]:break-inside-avoid [&_img]:rounded-xl [&_img]:object-contain [&_li]:my-2 [&_ol]:my-5 [&_ol]:pl-7 [&_p]:my-5 [&_ul]:my-5 [&_ul]:pl-7 [&_[data-epub-word]]:cursor-pointer [&_[data-epub-word]]:rounded-sm [&_[data-epub-word]]:transition [&_[data-epub-word]:active]:bg-brand-100"
               dangerouslySetInnerHTML={{ __html: renderedHtml }}
               ref={contentRef}
-              style={{ columnWidth: pageWidth || undefined, columnGap: COLUMN_GAP, width: pageWidth || undefined }}
+              style={{ columnWidth: pageWidth || undefined, columnGap: COLUMN_GAP, columnFill: "auto" }}
             />
           </article>
         </div>

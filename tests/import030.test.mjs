@@ -76,7 +76,8 @@ test("IMPORT-6/7 EPUB keeps paged rendering while PDF uses continuous original p
   assert.match(epub, /ResizeObserver/);
   assert.match(epub, /wrapSentencesInEpubHtml/);
   assert.match(epub, /closest\("\[data-sent\]"\)/);
-  assert.match(epub, /max-h-\[90vh\]/);
+  assert.match(epub, /max-h-full/);
+  assert.match(epub, /\[&_img\]:break-inside-avoid/);
 
   assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
   assert.match(pdf, /data-testid="import-pdf-page-canvas"/);

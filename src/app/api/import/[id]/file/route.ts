@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-10 10:05
+// Timestamp: 2026-06-11 14:35
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -22,8 +22,17 @@ function toArrayBuffer(bytes: Uint8Array) {
   return buffer;
 }
 
+function parseRange(rangeHeader: string | null, size: number) {
+  const match = rangeHeader?.match(/^bytes=(\d*)-(\d*)$/);
+  if (!match) return null;
+  const start = match[1] ? Number(match[1]) : 0;
+  const end = match[2] ? Number(match[2]) : size - 1;
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || start >= size) return null;
+  return { start, end: Math.min(end, size - 1) };
+}
+
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: { id: string } },
 ) {
   const session = await getServerSession(getAuthOptions());
@@ -40,22 +49,28 @@ export async function GET(
   }
 
   const contentType = contentTypeForKind(document.kind);
+  const rangeHeader = request.headers.get("range");
   if (document.inlineContent) {
-    return new Response(toArrayBuffer(document.inlineContent), {
-      status: 200,
+    const range = parseRange(rangeHeader, document.inlineContent.byteLength);
+    const body = range ? document.inlineContent.slice(range.start, range.end + 1) : document.inlineContent;
+    return new Response(toArrayBuffer(body), {
+      status: range ? 206 : 200,
       headers: {
+        "Accept-Ranges": "bytes",
         "Cache-Control": "private, no-store",
         "Content-Disposition": "inline",
-        "Content-Length": String(document.inlineContent.byteLength),
+        "Content-Length": String(body.byteLength),
         "Content-Type": contentType,
+        ...(range ? { "Content-Range": `bytes ${range.start}-${range.end}/${document.inlineContent.byteLength}` } : {}),
       },
     });
   }
 
   const url = await presignGet({ key: document.ossKey });
-  const upstream = await fetch(url, { cache: "no-store" });
+  const upstream = await fetch(url, { cache: "no-store", headers: rangeHeader ? { Range: rangeHeader } : undefined });
   const sourceContentType = upstream.headers.get("content-type") ?? "";
   const sourceContentLength = upstream.headers.get("content-length");
+  const sourceContentRange = upstream.headers.get("content-range");
 
   if (!upstream.ok || !upstream.body) {
     return NextResponse.json(
@@ -69,6 +84,7 @@ export async function GET(
   }
 
   const headers = new Headers({
+    "Accept-Ranges": "bytes",
     "Cache-Control": "private, no-store",
     "Content-Disposition": "inline",
     "Content-Type": contentType,
@@ -76,9 +92,12 @@ export async function GET(
   if (sourceContentLength) {
     headers.set("Content-Length", sourceContentLength);
   }
+  if (sourceContentRange) {
+    headers.set("Content-Range", sourceContentRange);
+  }
 
   return new Response(upstream.body, {
-    status: 200,
+    status: upstream.status === 206 ? 206 : 200,
     headers,
   });
 }

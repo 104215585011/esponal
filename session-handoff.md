@@ -14672,3 +14672,33 @@ PM 设计交付(docs/tickets/IMPORT-6.md + IMPORT-6-mockup.html):
 
 **QA focus**:
 - Open a long EPUB, jump beyond page 1, change font size/line height/font family in Aa settings, and confirm the visible paragraph/sentence stays near the same place instead of jumping to unrelated content.
+
+## 🔴 用户真机:阅读器不可用→返工IMPORT-7  [Claude1 PM, 2026-06-11]
+用户真机反馈(ready_for_qa 拦下,印证必须真机):EPUB"截断分页根本用不了";PDF卡顿+尺寸像网页百分比缩放非适配屏。PM定位病根:
+- **PDF**:`getDocument({data:bytes})`整本下载→必卡;应`getDocument({url:预签名,rangeChunkSize,disableAutoFetch})`走HTTP Range按页取。尺寸有effectivePdfZoom百分比模型+Math.min(920)→应纯fit-width(cssScale=frameWidth/baseWidth),一页一屏。CORS补暴露Accept-Ranges。
+- **EPUB**:内容容器`columnWidth:pageWidth`+`width:pageWidth`锁成单列→超屏高内容被overflow-hidden裁掉=截断;还算verticalPages掩盖。应:固定高度+column-fill:auto+去掉width锁让列横向铺开+删verticalPages;图break-inside:avoid。修不动退路epub.js paginated(PM复评)。
+- IMPORT-7(P0)含上述+IMPORT-6原reflow锚定返工。**验收以用户真机为准**(Network看PDF是否206 Partial)。IMPORT-6→in_progress。
+## Codex1 Implementation Report: IMPORT-7 PDF Range + EPUB true columns
+**Time**: 2026-06-11 14:35
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa
+
+**Changes**:
+- PDF now uses pdf.js URL loading against the same-origin `/api/import/[id]/file` route with 64KB Range chunks, `disableAutoFetch`, streaming enabled, and credentials preserved for owner-scoped files.
+- `/api/import/[id]/file` now supports `Range` requests for inline files and forwards `Range` to COS-backed files, returning `206`, `Accept-Ranges`, and `Content-Range` when partial content is served.
+- PDF sizing no longer uses the old percentage zoom model. Each page computes a fit-screen CSS scale from the measured mobile frame width/height, renders at capped DPR for clarity, and lazy-renders pages near the viewport.
+- EPUB pagination removed the locked `width: pageWidth` and `verticalPages` fallback. It now uses true horizontal CSS columns with `column-fill: auto`, image/figure `break-inside` guards, and keeps the IMPORT-6 reflow anchor restoration.
+
+**Verification so far**:
+- Red check: `node --test tests/import033.test.mjs` failed first against the old buffered PDF + locked EPUB column contracts.
+- Focused: `node --test tests/import018.test.mjs tests/import023.test.mjs tests/import025.test.mjs tests/import030.test.mjs tests/import031.test.mjs tests/import032.test.mjs tests/import033.test.mjs` -> 15/15 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 505/505 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- On deployed mobile PDF reader, open DevTools Network and confirm `/api/import/[id]/file` returns `206 Partial Content` during PDF rendering instead of one full blocking download.
+- Flip or scroll several PDF pages and confirm sizing stays stable and no page auto-enlarges.
+- Open EPUB with images/long chapters and confirm content is not vertically truncated after page turns or Aa setting changes.

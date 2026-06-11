@@ -8,6 +8,8 @@ declare module "pdfjs-dist/build/pdf.mjs" {
 
   export function getDocument(input: {
     url: string;
+    rangeChunkSize?: number;
+    disableAutoFetch?: boolean;
     withCredentials?: boolean;
     disableRange?: boolean;
     disableStream?: boolean;

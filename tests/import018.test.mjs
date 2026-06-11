@@ -42,7 +42,7 @@ test("IMPORT-3 library delete button calls the owner-scoped document delete API"
   assert.match(source, /Trash2/);
 });
 
-test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js", async () => {
+test("IMPORT-3/7 reader streams original PDF through pdf.js URL range loading", async () => {
   const pagePath = "src/app/import/[id]/page.tsx";
   const clientPath = "src/app/import/[id]/ImportReaderClient.tsx";
   const pdfPath = "src/app/import/[id]/PdfReader.tsx";
@@ -79,9 +79,9 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.doesNotMatch(client, /打开 EPUB 原件/);
   assert.match(client, /kind === "pdf" && readerUrl/);
 
-  assert.match(pdf, /await fetch\(readerUrl,\s*\{\s*cache:\s*"no-store",\s*credentials:\s*"same-origin"\s*\}\)/);
-  assert.match(pdf, /await response\.arrayBuffer\(\)/);
-  assert.match(pdf, /new Uint8Array\(buffer\)/);
+  assert.doesNotMatch(pdf, /await fetch\(readerUrl/);
+  assert.doesNotMatch(pdf, /await response\.arrayBuffer\(\)/);
+  assert.doesNotMatch(pdf, /new Uint8Array\(buffer\)/);
   assert.match(pdf, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
   assert.match(pdf, /configurePdfJsWorker\(pdfjs\)/);
   assert.match(pdf, /const PDF_WORKER_SRC\s*=\s*"\/api\/import\/pdf-worker"/);
@@ -90,14 +90,16 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(pdf, /new Worker\(PDF_WORKER_SRC,\s*\{\s*type:\s*"module"\s*\}\)/);
   assert.doesNotMatch(pdf, /pdfjs-dist\/build\/pdf\.worker\.mjs/);
   assert.match(pdf, /pdfjs\.getDocument/);
-  assert.match(pdf, /data:\s*bytes/);
-  assert.doesNotMatch(pdf, /url:\s*readerUrl/);
+  assert.doesNotMatch(pdf, /data:\s*bytes/);
+  assert.match(pdf, /url:\s*readerUrl/);
+  assert.match(pdf, /rangeChunkSize:\s*PDF_RANGE_CHUNK_SIZE/);
+  assert.match(pdf, /disableAutoFetch:\s*true/);
   assert.doesNotMatch(pdf, /disableWorker/);
   assert.match(pdf, /console\.error\("Imported PDF load failed"/);
   assert.match(pdf, /<canvas/);
   assert.match(pdf, /page\.render/);
-  assert.match(pdf, /pdfZoom/);
-  assert.match(pdf, /effectivePdfZoom/);
+  assert.doesNotMatch(pdf, /pdfZoom/);
+  assert.doesNotMatch(pdf, /effectivePdfZoom/);
   assert.doesNotMatch(pdf, /PDF_DEFAULT_ZOOM/);
   assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
   assert.match(pdf, /data-testid="import-pdf-page-canvas"/);
