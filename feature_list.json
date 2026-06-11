@@ -1991,5 +1991,47 @@
     "priority": "P1",
     "evidence": "2026-06-08 PM??,? plans/2026-06-08-unified-import.md + specs/2026-06-08-unified-import-design.md | 2026-06-08 ??????,????????? | 2026-06-08 Codex1 started IMPORT-4 after IMPORT-1/2/3 passing and Gemini1 IMPORT-3 visual PASS. | 2026-06-08 Codex1 ready_for_qa: added YouTube URL parser and POST /api/import/url redirect contract, desktop /import unified import page, reusable mobile ImportSheet with portal/drag-close/url/file modes, and BottomTabBar centered import fan-out wired to the sheet. Verification: node --test tests/import021.test.mjs tests/import022.test.mjs -> 5/5 pass; node --test tests/import001.test.mjs ... tests/import022.test.mjs tests/mobile009.test.mjs -> 42/42 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test -> 492/492 pass; npm run build pass with existing img/Sentry warnings only. Browser smoke note: next start initially returned /import ready, then local server became unresponsive before Playwright could finish; temporary process was stopped. Needs Codex2 browser/device QA. | 2026-06-09 14:15 Codex1 follow-up: /import standalone page now has page-level exits: 返回语料库 -> /vocab and 我的导入库 -> /import/library, keeping URL/file import flows unchanged. Verification: red import022 failed first; import022/import018 8/8 pass; tsc pass. | 2026-06-10 09:35 Codex1 production hotfix: uploadImportedDocument now falls back to same-origin /api/import/upload for small files when browser direct COS PUT returns 451; new route authenticates, multipart-parses the file, server-side PUTs to COS, and creates ImportedDocument. Verification: red import028 failed first; import027/import028 4/4 pass; import002/import022/import023 8/8 pass; wider import regression 24/24 pass; tsc pass; lint:encoding pass; npm test 486/486 pass; build pass. | 2026-06-08 v2:含客户端直传COS;Gemini IMPORT-4-design✅;依赖IMPORT-1 | 2026-06-10 10:05 Codex1 production hotfix: previous /api/import/upload fallback still touched COS and returned 502 after COS 451. Added ImportedDocument.inlineContent Bytes? and migration 20260610093500_add_import_inline_content; /api/import/upload now stores small fallback files inline in Postgres with inline/... ossKey marker; /api/import/[id]/file and /api/import/[id]/epub serve/parse inline bytes before COS. Verification: red import028 failed first; import028 2/2 pass; import023/import027/import028 7/7 pass; wider import regression 25/25 pass; prisma generate pass; tsc pass; lint:encoding pass; npm test 487/487 pass; build pass with existing img/Sentry warnings only.",
     "notes": "2026-06-08 22:30 v2 ready for Codex2 QA. Desktop /import and mobile ImportSheet now use shared uploadImportedDocument(): /api/import/presign -> browser PUT to COS -> /api/import/document metadata create; old /api/import/file route is removed. Verify /import desktop, mobile bottom-tab fan-out, sheet URL/file modes, paste, drag-down close, safe-area spacing, YouTube redirect, COS upload with real env/CORS, and MOBILE-009 regression. Verification: focused import v2 tests 19/19 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 475/475 pass; npm run build pass with existing img/Sentry warnings only. 2026-06-08 22:55 production 500 fix: restored original import migration and added incremental COS v2 migrations 20260608223000_import_cos_v2 + 20260608223100_import_cos_v2_metadata so already-applied production DB gains pdf enum, ossKey, sizeBytes, unitCount, lastPosition, legacy kind/status normalization, and ready default. Verification: focused import migration tests 15/15 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 475/475 pass; npx prisma validate pass."
+  },
+  "114": {
+    "id": "MOBILE-R-000",
+    "name": "移动端重构·总体方案(App壳+导航IA+回退规则+流程闭合)[Gemini1设计]",
+    "status": "passing",
+    "priority": "P0",
+    "evidence": "2026-06-11 PM建票 | 2026-06-11 PM亲自设计交付:MOBILE-R-000-design.md+mockup.html(5tab/删抽屉/三种过渡/回退四规则/五流程闭合);待用户批准 | 2026-06-11 用户批准方案"
+  },
+  "115": {
+    "id": "MOBILE-R-PERF",
+    "name": "watch视频界面卡顿排查与优化(先量化后优化)",
+    "status": "not_started",
+    "priority": "P1",
+    "evidence": "2026-06-11 PM建票"
+  },
+  "116": {
+    "id": "IMPORT-5",
+    "name": "导入阅读改进:EPUB恢复图文+阅读器拆分",
+    "status": "ready_for_qa",
+    "priority": "P1",
+    "evidence": "2026-06-11 09:04 Codex1 ready_for_qa: restored EPUB image-preserving reader path and split import reader. src/lib/import/epub.ts now returns sanitized chapter html with whitelisted tags, inline data-url images, stripped script/event handlers, and data-epub-word hooks while preserving text fallback. ImportReaderClient is now a thin fullscreen shell dispatching to PdfReader and EpubReader; PdfReader keeps existing pdf.js byte loading, workerPort, adaptive zoom, text-layer lookup, and import LookupCardStack; EpubReader renders sanitized HTML, preserves images, and delegates data-epub-word taps to LookupCardStack. Verification: baseline npm test 487/487 pass; red tests/import029 failed first; import029 2/2 pass; import001/002/003/018/020/021/022/023/024/025/026/027/028/029 29/29 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 489/489 pass; npm run build pass with existing img/Sentry warnings only."
+  },
+  "117": {
+    "id": "INFRA-PW",
+    "name": "Playwright真渲染冒烟测试(重构护航)",
+    "status": "not_started",
+    "priority": "P0",
+    "evidence": "2026-06-11 PM建票(方案已批)"
+  },
+  "118": {
+    "id": "MOBILE-R-001",
+    "name": "移动端重构·App壳实现(Shell+路由表+三过渡+回退四规则)",
+    "status": "not_started",
+    "priority": "P0",
+    "evidence": "2026-06-11 PM建票(方案已批)"
+  },
+  "119": {
+    "id": "IMPORT-6",
+    "name": "阅读器体验升级(EPUB自分页/翻页特效/字号字体/纸张底色/PDF fit-width)",
+    "status": "not_started",
+    "priority": "P1",
+    "evidence": "2026-06-11 PM设计交付:IMPORT-6.md + IMPORT-6-mockup.html;依赖IMPORT-5;待用户批准模型"
   }
 }

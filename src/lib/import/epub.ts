@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-10 09:35
+// Timestamp: 2026-06-11 09:30
 import path from "node:path/posix";
 import AdmZip from "adm-zip";
 
@@ -7,6 +7,7 @@ export type EpubReaderChapter = {
   title: string;
   href: string;
   text: string;
+  html: string;
 };
 
 type ManifestItem = {
@@ -49,6 +50,35 @@ function normalizeManifestHref(href: string) {
   return safeDecodeUriComponent(decodeXmlEntities(withoutFragment));
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function escapeAttribute(value: string) {
+  return escapeHtml(value).replace(/"/g, "&quot;");
+}
+
+function resolveEntryPath(baseDir: string, href: string) {
+  return path.normalize(path.join(baseDir, normalizeManifestHref(href))).replace(/^(\.\.\/)+/, "");
+}
+
+function mediaTypeForPath(entryPath: string, resourceMediaTypes: Map<string, string>) {
+  const fromManifest = resourceMediaTypes.get(entryPath);
+  if (fromManifest) return fromManifest;
+  if (/\.jpe?g$/i.test(entryPath)) return "image/jpeg";
+  if (/\.gif$/i.test(entryPath)) return "image/gif";
+  if (/\.webp$/i.test(entryPath)) return "image/webp";
+  if (/\.svg$/i.test(entryPath)) return "image/svg+xml";
+  return "image/png";
+}
+
+function wrapEpubWords(text: string) {
+  return escapeHtml(decodeXmlEntities(text)).replace(
+    /[\p{L}ÁÉÍÓÚÜÑáéíóúüñ]+/gu,
+    (word) => `<span data-epub-word="${escapeAttribute(word)}">${escapeHtml(word)}</span>`,
+  );
+}
+
 export function stripEpubHtmlToText(html: string) {
   const body = /<body[\s\S]*?>([\s\S]*?)<\/body>/i.exec(html)?.[1] ?? html;
   return decodeXmlEntities(
@@ -63,6 +93,70 @@ export function stripEpubHtmlToText(html: string) {
       .replace(/\n{3,}/g, "\n\n")
       .trim(),
   );
+}
+
+function sanitizeEpubHtmlChapter(
+  html: string,
+  zip: AdmZip,
+  chapterHref: string,
+  resourceMediaTypes: Map<string, string>,
+) {
+  const body = /<body[\s\S]*?>([\s\S]*?)<\/body>/i.exec(html)?.[1] ?? html;
+  const chapterDir = path.dirname(chapterHref) === "." ? "" : path.dirname(chapterHref);
+  const withoutUnsafeBlocks = body
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ");
+  const allowedTags = new Set([
+    "article",
+    "blockquote",
+    "br",
+    "div",
+    "em",
+    "figcaption",
+    "figure",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "i",
+    "li",
+    "ol",
+    "p",
+    "section",
+    "span",
+    "strong",
+    "ul",
+  ]);
+
+  const sanitized = withoutUnsafeBlocks.replace(/<\/?([a-z0-9:-]+)\b[^>]*>/gi, (tag, rawName: string) => {
+    const name = rawName.toLowerCase();
+    const isClosing = /^<\//.test(tag);
+    if (name === "img") {
+      if (isClosing) return "";
+      const src = getAttribute(tag, "src");
+      if (!src) return "";
+      const entryPath = resolveEntryPath(chapterDir, src);
+      const entry = zip.getEntry(entryPath);
+      if (!entry) return "";
+      const alt = decodeXmlEntities(getAttribute(tag, "alt"));
+      const mediaType = mediaTypeForPath(entryPath, resourceMediaTypes);
+      const dataUrl = `data:${mediaType};base64,${entry.getData().toString("base64")}`;
+      return `<img src="${dataUrl}" alt="${escapeAttribute(alt)}" />`;
+    }
+    if (!allowedTags.has(name)) return "";
+    return isClosing ? `</${name}>` : name === "br" ? "<br />" : `<${name}>`;
+  });
+
+  return sanitized
+    .split(/(<[^>]+>)/g)
+    .map((part) => (part.startsWith("<") ? part : wrapEpubWords(part)))
+    .join("")
+    .replace(/\s{3,}/g, " ")
+    .trim();
 }
 
 function extractTitle(html: string, fallback: string) {
@@ -89,13 +183,16 @@ export function parseEpubForReader(bytes: Uint8Array) {
 
   const opfDir = path.dirname(rootfile) === "." ? "" : path.dirname(rootfile);
   const manifest = new Map<string, ManifestItem>();
+  const resourceMediaTypes = new Map<string, string>();
   for (const itemMatch of opf.matchAll(/<item\b[^>]*>/gi)) {
     const item = itemMatch[0];
     const id = getAttribute(item, "id");
     const href = getAttribute(item, "href");
     const mediaType = getAttribute(item, "media-type");
     if (id && href) {
+      const normalizedHref = path.normalize(path.join(opfDir, normalizeManifestHref(href)));
       manifest.set(id, { href, mediaType });
+      resourceMediaTypes.set(normalizedHref, mediaType);
     }
   }
 
@@ -118,9 +215,10 @@ export function parseEpubForReader(bytes: Uint8Array) {
 
       return {
         index,
-        title: extractTitle(html, `第 ${index + 1} 章`),
+        title: extractTitle(html, `Chapter ${index + 1}`),
         href,
         text,
+        html: sanitizeEpubHtmlChapter(html, zip, href, resourceMediaTypes),
       };
     })
     .filter((chapter): chapter is EpubReaderChapter => Boolean(chapter));

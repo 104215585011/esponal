@@ -1,3 +1,38 @@
+## Codex1 Implementation Report: IMPORT-5 EPUB image reader + reader split
+**Time**: 2026-06-11 09:04
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa
+
+**Why this exists**:
+- PM approved IMPORT-5 because the EPUB reader had drifted into server-side plain-text extraction, dropping textbook images and leaving ImportReaderClient as a 745-line mixed PDF/EPUB component.
+
+**Fix**:
+- `src/lib/import/epub.ts` now returns both `text` and sanitized `html` for each chapter.
+- Sanitized EPUB HTML keeps whitelisted structural tags, inlines EPUB image resources as `data:` URLs, strips `<script>`, `<style>`, `<svg>`, comments, unknown tags, and event-handler attributes such as `onclick` / `onerror`.
+- Text inside sanitized HTML is wrapped with `data-epub-word` spans so the client can keep point-word lookup.
+- Split reader UI:
+  - `ImportReaderClient.tsx` is now a thin fullscreen shell for chrome, progress, swipe/tap navigation, and kind dispatch.
+  - `PdfReader.tsx` owns pdf.js byte loading, workerPort, adaptive zoom, canvas rendering, text layer, and PDF LookupCardStack.
+  - `EpubReader.tsx` owns EPUB fetch/render, image-preserving HTML, delegated word taps, and EPUB LookupCardStack.
+- PDF route/rendering behavior was not redesigned.
+
+**Verification**:
+- Baseline: `npm test` -> 487/487 pass before implementation.
+- Red check: `node --test tests/import029.test.mjs` failed first because `chapter.html` and split reader files were missing.
+- Green: `node --test tests/import029.test.mjs` -> 2/2 pass.
+- Import regression: `node --test tests/import001.test.mjs tests/import002.test.mjs tests/import003.test.mjs tests/import018.test.mjs tests/import020.test.mjs tests/import021.test.mjs tests/import022.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs tests/import028.test.mjs tests/import029.test.mjs` -> 29/29 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 489/489 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Open an imported EPUB with images: images should render inside the EPUB page instead of disappearing.
+- Try a malicious EPUB with script/onerror markup: script/event handlers should not appear in rendered chapter HTML.
+- Tap Spanish words in EPUB text: LookupCardStack should open and allow save/related phrase behavior through the existing import source path.
+- Confirm PDF rendering, PDF word lookup, PDF progress, and `/api/import/[id]/file` did not regress.
+
 ## Codex1 Fix Report: IMPORT-4 COS 451 true inline fallback
 **Time**: 2026-06-10 10:05
 **From**: Codex1 (DEV)
@@ -14465,3 +14500,49 @@ brainstorm 定稿(Phase1=YouTube URL + EPUB + PDF含OCR;本地视频/音频+Bili
 ### QA request
 - After deploy, check whether 145% is now usable with the stable sizing pipeline.
 - Important: flip multiple pages and confirm whether the page scale stays consistent rather than growing unexpectedly.
+
+---
+
+## 🚧 移动端重构 Epic 启动 + IMPORT 改进点  [Claude1 PM, 2026-06-11]
+- **MOBILE-R epic 立项**(docs/tickets/MOBILE-R-epic.md):用户拍板大重构,PM 牵头。原则=先 Gemini1 出"App壳+导航IA"总体方案再拆票;设计语言不变;Playwright 冒烟(INFRA)护航前置;按 WebView(Capacitor)就绪设计。等用户补真机痛点。
+- **IMPORT 核验**(487/487 绿):PDF 阅读像样(pdf.js+文字层+复用LookupCardStack);**EPUB 走样=服务端抽纯文本,插图全丢**(违背 v2 图文忠实),需改 epub.js/含图章节渲染;ImportReaderClient 745行需拆 EpubReader/PdfReader。待开 IMPORT 改进票(等用户补真机反馈一起)。
+
+## 📐 重构定调 + 三票派发  [Claude1 PM, 2026-06-11]
+用户真机痛点定调:导航乱/回退混乱/界面破碎像拼接/环节不闭合/watch卡顿/没有使用框架 → 已写入 MOBILE-R-epic。
+- **MOBILE-R-000(Gemini1,P0)**:总体方案票 = App壳规范(三种过渡)+ 导航IA重排(所有入口摊开重分)+ 回退规则 + **流程闭合图**(每条核心流程要有完成态和去向)。产出 MOBILE-R-000-design.md + 壳HTML模型。**批准前不拆实现票。**
+- **MOBILE-R-PERF(Codex1,P1)**:watch 卡顿,先 Profiler 量化再优化(怀疑:字幕tick全量重渲染/列表无虚拟化/blur),证据进 evidence。可与设计并行。
+- **IMPORT-5(Codex1,P1)**:EPUB 恢复图文(含图HTML+sanitize 或 epub.js)+ 拆 EpubReader/PdfReader;PDF 半边良好不动。
+执行顺序建议:Codex1 先 IMPORT-5 → MOBILE-R-PERF;Gemini1 并行出 MOBILE-R-000 方案;方案批准后 PM 拆 MOBILE-R-001…。
+
+## 🎨 MOBILE-R-000 总体方案交付(PM 亲自设计)  [Claude1 PM, 2026-06-11]
+角色变更:用户指定**总体 UI 设计由 Claude1(PM)做**,Gemini1 只在框架内做单页视觉细化(不得改 IA/壳/流程)。
+交付:`docs/tickets/MOBILE-R-000-design.md` + `MOBILE-R-000-mockup.html`(可交互)。要点:
+- **5 tab:首页(使用框架主干)/视频/阅读(并入我的导入书架)/复习/我的(积分·会员·设置)**;**删侧边抽屉**,原抽屉项(发音/对话/语法/拆解)进首页"练习与工具";课程/语料库也进首页;顶栏=标题+搜索+`+`导入。
+- 壳:tab页/推入页/sheet 三类页面;全站只许三种过渡(tab淡入≤150ms/推入滑250ms/sheet上滑250ms);滚动记忆;单player壳层保证;安全区。
+- 回退四规则(tab无返回、推入页back()+深链回所属tab、sheet下拉关、完成态清栈);Android系统返回键一致(Capacitor就绪)。
+- 五条流程闭合(看视频/阅读/导入/复习/积分会员,各有完成态+去向)。
+- 实施拆票(批准后):R-001壳 → R-002首页(PM线框+Gemini细化) → R-003四tab迁入+旧导航下线 → R-004流程闭合补全;R-PERF与Playwright冒烟护航并行。
+**待用户批准方案** → 批后 PM 拆 R-001…实现票。
+
+## ▶️ 方案批准,拆票派发  [Claude1 PM, 2026-06-11]
+用户批准 MOBILE-R-000 总体方案(5tab/删抽屉/三过渡/回退四规则/流程闭合)→ status passing。拆票:
+- **INFRA-PW**(docs/tickets/INFRA-PW.md):Playwright 冒烟,壳动工前落地。npm run test:e2e 独立于 npm test。
+- **MOBILE-R-001**(docs/tickets/MOBILE-R-001.md):App壳(Shell组件+routes.ts路由表+三种过渡+回退四规则+useShellBack+滚动记忆);只建壳不迁页;顶栏接管 `+` 导入。
+**Codex1 队列(按序)**:① IMPORT-5(EPUB图文,在途) → ② MOBILE-R-PERF(watch卡顿) → ③ INFRA-PW → ④ MOBILE-R-001。
+R-002(首页,PM线框+Gemini细化)/R-003(四tab迁入+旧导航下线)/R-004(流程闭合)待前票完成后由 PM 开票。
+
+## 📖 IMPORT-6 真·阅读器设计交付  [Claude1 PM, 2026-06-11]
+用户需求:翻页特效/字体大小样式/纸张底色,"像个真的阅读器";EPUB 需自分页;EPUB/PDF 布局大小有问题。
+PM 设计交付(docs/tickets/IMPORT-6.md + IMPORT-6-mockup.html):
+- **EPUB 自分页 = CSS 多栏法**(column-width=视口宽,scrollWidth/页宽=页数);改字号重排后**锚定回当前段落**;进度升级 epub:<chapter>:<page>(兼容迁移)。
+- **PDF 修正**:fit-width × devicePixelRatio(治糊/大小问题),横向单页滑动与 EPUB 手感统一;捏合缩放 v2。
+- **翻页**:滑动(默认,250ms 同壳曲线,拖拽跟手+左右1/4屏热区)/无动画;**明确不做仿真卷页**(WebView 性能)。
+- **设置面板(Aa sheet)**:字号5档/行距3档/字体(无衬线|衬线 Literata+Noto Serif SC)/**纸张三色(纯白/米黄/夜间,仅阅读器内)**/翻页档;localStorage 持久化;PDF 不适用项置灰。
+- 沉浸:点中央显隐工具条;目录 sheet(EPUB);点词与翻页按拖动阈值区分。
+- 排队:依赖 IMPORT-5(EPUB 含图章节)→ IMPORT-6。待用户批模型。
+
+## 🔊 IMPORT-6 朗读定案(方案C:整句朗读)  [Claude1 PM, 2026-06-11]
+用户定:不做连续朗读,只做"点词→查词卡内『朗读整句 ⚡0.1』"。实现已写入 IMPORT-6.md §6:
+- EPUB 渲染前逐句包 <span data-sent>(西语句界正则+缩写黑名单,不影响多栏分页);PDF 文字层 item 拼页文本切句+区间映射。
+- 走现有 /api/tts(按次0.1+流水);**缓存命中应免扣**(Codex 确认 tts 路由 hash 缓存行为,命中仍扣则改);阅读器单 Audio;播放句高亮。
+- 底部控制条去掉 ▶ 朗读键(Aa/目录/◀页码▶)。

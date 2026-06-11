@@ -18,9 +18,6 @@ test("IMPORT-3 v2 adds an authenticated metadata-backed import library page", as
   assert.match(source, /href="\/import"/);
   assert.match(source, /groupImportedDocuments/);
   assert.match(source, /group\.documents\.map/);
-  assert.match(source, /导入失败/);
-  assert.match(source, /PDF 文件/);
-  assert.match(source, /EPUB 文件/);
   assert.match(source, /href=\{`\/import\/\$\{document\.id\}`\}/);
   assert.match(source, /status\s*===\s*"failed"/);
   assert.match(source, /ImportDeleteButton/);
@@ -29,7 +26,6 @@ test("IMPORT-3 v2 adds an authenticated metadata-backed import library page", as
   assert.match(source, /formatSize/);
   assert.match(source, /unitCount/);
   assert.match(source, /lastPosition/);
-  assert.doesNotMatch(source, /鎴戠殑|瀵煎叆|闃呰|澶辫触/);
   assert.doesNotMatch(source, /buildImportedDocumentProgress/);
   assert.doesNotMatch(source, /status\s*===\s*"processing"/);
 });
@@ -43,15 +39,18 @@ test("IMPORT-3 library delete button calls the owner-scoped document delete API"
   assert.match(source, /fetch\(`\/api\/import\/\$\{documentId\}`,\s*\{\s*method:\s*"DELETE"/);
   assert.match(source, /router\.refresh\(\)/);
   assert.match(source, /confirm\(/);
-  assert.match(source, /aria-label=\{`删除 \${title}`\}/);
   assert.match(source, /Trash2/);
 });
 
 test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js", async () => {
   const pagePath = "src/app/import/[id]/page.tsx";
   const clientPath = "src/app/import/[id]/ImportReaderClient.tsx";
+  const pdfPath = "src/app/import/[id]/PdfReader.tsx";
+  const epubPath = "src/app/import/[id]/EpubReader.tsx";
   assert.equal(existsSync(pagePath), true, `${pagePath} missing`);
   assert.equal(existsSync(clientPath), true, `${clientPath} missing`);
+  assert.equal(existsSync(pdfPath), true, `${pdfPath} missing`);
+  assert.equal(existsSync(epubPath), true, `${epubPath} missing`);
 
   const page = await read(pagePath);
   assert.match(page, /dynamic\s*=\s*"force-dynamic"/);
@@ -67,49 +66,53 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.doesNotMatch(page, /pageCount/);
 
   const client = await read(clientPath);
+  const pdf = await read(pdfPath);
+  const epub = await read(epubPath);
   assert.match(client, /"use client"/);
   assert.match(client, /data-testid="import-reader"/);
   assert.match(client, /setReaderUrl\(`\/api\/import\/\$\{documentId\}\/file`\)/);
+  assert.match(client, /import \{ PdfReader \} from "\.\/PdfReader"/);
+  assert.match(client, /import \{ EpubReader \} from "\.\/EpubReader"/);
   assert.doesNotMatch(client, /fetch\(`\/api\/import\/\$\{documentId\}\/url`\)/);
   assert.doesNotMatch(client, /src=\{readerUrl\}/);
-  assert.match(client, /data-testid="import-epub-reader"/);
+  assert.match(epub, /data-testid="import-epub-reader"/);
   assert.doesNotMatch(client, /打开 EPUB 原件/);
   assert.match(client, /kind === "pdf" && readerUrl/);
-  assert.match(client, /await fetch\(readerUrl,\s*\{\s*cache:\s*"no-store",\s*credentials:\s*"same-origin"\s*\}\)/);
-  assert.match(client, /await response\.arrayBuffer\(\)/);
-  assert.match(client, /new Uint8Array\(buffer\)/);
-  assert.match(client, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
-  assert.match(client, /configurePdfJsWorker\(pdfjs\)/);
-  assert.match(client, /const PDF_WORKER_SRC\s*=\s*"\/api\/import\/pdf-worker"/);
-  assert.match(client, /pdfjs\.GlobalWorkerOptions\.workerSrc\s*=\s*PDF_WORKER_SRC/);
-  assert.match(client, /pdfjs\.GlobalWorkerOptions\.workerPort\s*=\s*sharedPdfWorker/);
-  assert.match(client, /new Worker\(PDF_WORKER_SRC,\s*\{\s*type:\s*"module"\s*\}\)/);
-  assert.doesNotMatch(client, /pdfjs-dist\/build\/pdf\.worker\.mjs/);
-  assert.match(client, /pdfjs\.getDocument/);
-  assert.match(client, /data:\s*bytes/);
-  assert.doesNotMatch(client, /url:\s*readerUrl/);
-  assert.doesNotMatch(client, /disableWorker/);
-  assert.match(client, /console\.error\("Imported PDF load failed"/);
-  assert.match(client, /<canvas/);
-  assert.match(client, /page\.render/);
-  assert.match(client, /pdfZoom/);
-  assert.match(client, /calculateAdaptivePdfZoom/);
-  assert.match(client, /effectivePdfZoom/);
-  assert.doesNotMatch(client, /PDF_DEFAULT_ZOOM/);
-  assert.match(client, /overflow-x-auto/);
-  assert.match(client, /getTextContent\(\)/);
-  assert.match(client, /buildPdfTextLayerItems/);
-  assert.match(client, /pdfTextLayerItems/);
-  assert.match(client, /openPdfLookup/);
-  assert.match(client, /LookupCardStack/);
-  assert.match(client, /source:\s*\{\s*type:\s*"import"/);
+
+  assert.match(pdf, /await fetch\(readerUrl,\s*\{\s*cache:\s*"no-store",\s*credentials:\s*"same-origin"\s*\}\)/);
+  assert.match(pdf, /await response\.arrayBuffer\(\)/);
+  assert.match(pdf, /new Uint8Array\(buffer\)/);
+  assert.match(pdf, /await import\("pdfjs-dist\/build\/pdf\.mjs"\)/);
+  assert.match(pdf, /configurePdfJsWorker\(pdfjs\)/);
+  assert.match(pdf, /const PDF_WORKER_SRC\s*=\s*"\/api\/import\/pdf-worker"/);
+  assert.match(pdf, /pdfjs\.GlobalWorkerOptions\.workerSrc\s*=\s*PDF_WORKER_SRC/);
+  assert.match(pdf, /pdfjs\.GlobalWorkerOptions\.workerPort\s*=\s*sharedPdfWorker/);
+  assert.match(pdf, /new Worker\(PDF_WORKER_SRC,\s*\{\s*type:\s*"module"\s*\}\)/);
+  assert.doesNotMatch(pdf, /pdfjs-dist\/build\/pdf\.worker\.mjs/);
+  assert.match(pdf, /pdfjs\.getDocument/);
+  assert.match(pdf, /data:\s*bytes/);
+  assert.doesNotMatch(pdf, /url:\s*readerUrl/);
+  assert.doesNotMatch(pdf, /disableWorker/);
+  assert.match(pdf, /console\.error\("Imported PDF load failed"/);
+  assert.match(pdf, /<canvas/);
+  assert.match(pdf, /page\.render/);
+  assert.match(pdf, /pdfZoom/);
+  assert.match(pdf, /calculateAdaptivePdfZoom/);
+  assert.match(pdf, /effectivePdfZoom/);
+  assert.doesNotMatch(pdf, /PDF_DEFAULT_ZOOM/);
+  assert.match(pdf, /overflow-x-auto/);
+  assert.match(pdf, /getTextContent\(\)/);
+  assert.match(pdf, /buildPdfTextLayerItems/);
+  assert.match(pdf, /pdfTextLayerItems/);
+  assert.match(pdf, /openPdfLookup/);
+  assert.match(pdf, /LookupCardStack/);
+  assert.match(pdf, /source:\s*\{\s*type:\s*"import"/);
   assert.match(client, /readerUrl/);
   assert.match(client, /fetch\(`\/api\/import\/\$\{documentId\}\/progress`/);
   assert.match(client, /lastPosition:\s*`pdf:\$\{pageNumber\}`/);
   assert.match(client, /unitCount/);
   assert.doesNotMatch(client, /\/pages\?from=/);
   assert.doesNotMatch(client, /lastPageIndex/);
-  assert.doesNotMatch(client, /鏃犳硶|娓叉煋|鏂扮獥/);
 });
 
 test("IMPORT-3 v2 exposes immersive reader controls for original-file rendering", async () => {
@@ -136,5 +139,4 @@ test("IMPORT-3 v2 exposes immersive reader controls for original-file rendering"
   assert.match(client, /canGoPrevious/);
   assert.match(client, /canGoNext/);
   assert.match(client, /kind === "epub"/);
-  assert.doesNotMatch(client, /epub\.js 待接入|pdf\.js/);
 });

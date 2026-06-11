@@ -18,9 +18,9 @@ test("IMPORT-3 serves the pdf.js module worker through a same-origin route", asy
   assert.match(route, /["']content-type["']:\s*"text\/javascript; charset=utf-8"/);
   assert.match(route, /["']cache-control["']:\s*"public, max-age=31536000, immutable"/);
 
-  const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
-  assert.match(client, /const PDF_WORKER_SRC\s*=\s*"\/api\/import\/pdf-worker"/);
-  assert.match(client, /GlobalWorkerOptions\.workerSrc\s*=\s*PDF_WORKER_SRC/);
-  assert.match(client, /GlobalWorkerOptions\.workerPort\s*=\s*sharedPdfWorker/);
-  assert.doesNotMatch(client, /new URL\(\s*"pdfjs-dist\/build\/pdf\.worker/);
+  const pdf = await read("src/app/import/[id]/PdfReader.tsx");
+  assert.match(pdf, /const PDF_WORKER_SRC\s*=\s*"\/api\/import\/pdf-worker"/);
+  assert.match(pdf, /GlobalWorkerOptions\.workerSrc\s*=\s*PDF_WORKER_SRC/);
+  assert.match(pdf, /GlobalWorkerOptions\.workerPort\s*=\s*sharedPdfWorker/);
+  assert.doesNotMatch(pdf, /new URL\(\s*"pdfjs-dist\/build\/pdf\.worker/);
 });
