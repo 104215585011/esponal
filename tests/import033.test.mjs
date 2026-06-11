@@ -26,7 +26,7 @@ test("IMPORT-7 PDF loads through pdf.js Range URL instead of buffering the whole
   assert.match(fileRoute, /headers:\s*rangeHeader \? \{\s*Range:\s*rangeHeader\s*\}/s);
 });
 
-test("IMPORT-7 PDF sizing is fit-to-screen and EPUB pagination uses true horizontal columns", async () => {
+test("IMPORT-7 PDF sizing is fit-to-screen and EPUB uses epub.js paginated rendering", async () => {
   const pdf = await read("src/app/import/[id]/PdfReader.tsx");
   const epub = await read("src/app/import/[id]/EpubReader.tsx");
 
@@ -39,10 +39,16 @@ test("IMPORT-7 PDF sizing is fit-to-screen and EPUB pagination uses true horizon
   assert.match(pdf, /Math\.min\(widthScale,\s*heightScale\)/);
   assert.match(pdf, /pdfFrameSize/);
 
-  assert.match(epub, /columnFill:\s*"auto"/);
+  assert.match(epub, /import\("epubjs"\)/);
+  assert.match(epub, /book\.renderTo/);
+  assert.match(epub, /flow:\s*"paginated"/);
+  assert.match(epub, /spread:\s*"none"/);
+  assert.match(epub, /data-testid="import-epubjs-stage"/);
+  assert.doesNotMatch(epub, /columnFill/);
+  assert.doesNotMatch(epub, /columnWidth/);
   assert.doesNotMatch(epub, /width:\s*pageWidth \|\| undefined/);
   assert.doesNotMatch(epub, /verticalPages/);
-  assert.match(epub, /Math\.round\(content\.scrollWidth \/ Math\.max\(1,\s*pageWidth \+ COLUMN_GAP\)\)/);
-  assert.match(epub, /\[&_img\]:break-inside-avoid/);
-  assert.match(epub, /\[&_figure\]:break-inside-avoid/);
+  assert.doesNotMatch(epub, /Math\.round\(content\.scrollWidth/);
+  assert.doesNotMatch(epub, /\[&_img\]:break-inside-avoid/);
+  assert.doesNotMatch(epub, /\[&_figure\]:break-inside-avoid/);
 });

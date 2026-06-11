@@ -8,7 +8,7 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-3 EPUB reader exposes a same-origin parsed spine API", async () => {
+test("IMPORT-3 EPUB reader still exposes a same-origin parsed spine API for fallback/parser coverage", async () => {
   const helperPath = "src/lib/import/epub.ts";
   const routePath = "src/app/api/import/[id]/epub/route.ts";
   assert.equal(existsSync(helperPath), true, `${helperPath} missing`);
@@ -35,7 +35,7 @@ test("IMPORT-3 EPUB reader exposes a same-origin parsed spine API", async () => 
   assert.match(route, /NextResponse\.json\(\{\s*chapters/);
 });
 
-test("IMPORT-3 client renders EPUB chapters instead of the接入中 fallback", async () => {
+test("IMPORT-7 M1 client renders EPUB through epub.js instead of parsed chapter HTML", async () => {
   const client = await read("src/app/import/[id]/ImportReaderClient.tsx");
   const epub = await read("src/app/import/[id]/EpubReader.tsx");
 
@@ -43,18 +43,17 @@ test("IMPORT-3 client renders EPUB chapters instead of the接入中 fallback", a
   assert.match(client, /lastPosition:\s*`epub:\$\{epubChapterIndex\}:\$\{epubPageInChapter\}`/);
   assert.match(client, /epubChapterIndex/);
   assert.match(epub, /type EpubChapter/);
-  assert.match(epub, /chapters,\s*setChapters/);
-  assert.match(epub, /fetch\(`\/api\/import\/\$\{documentId\}\/epub`/);
-  assert.match(epub, /payload\.chapters/);
-  assert.match(epub, /const loadedChapters = payload\.chapters/);
-  assert.match(epub, /setChapters\(loadedChapters\)/);
-  assert.match(epub, /setChapterList\(loadedChapters\)/);
-  assert.match(epub, /activeChapter/);
+  assert.match(epub, /import\("epubjs"\)/);
+  assert.match(epub, /fetch\(`\/api\/import\/\$\{documentId\}\/url`/);
+  assert.match(epub, /payload\.url/);
+  assert.match(epub, /book\.renderTo/);
+  assert.match(epub, /flow:\s*"paginated"/);
+  assert.match(epub, /spread:\s*"none"/);
+  assert.match(epub, /setChapterList\(chapters\)/);
   assert.match(epub, /data-testid="import-epub-reader"/);
-  assert.match(epub, /dangerouslySetInnerHTML/);
-  assert.match(epub, /data-epub-word/);
-  assert.doesNotMatch(epub, /EPUB 阅读器正在接入/);
-  assert.doesNotMatch(epub, /完整的 EPUB 翻页和点词阅读器会继续接入/);
+  assert.match(epub, /data-testid="import-epubjs-stage"/);
+  assert.doesNotMatch(epub, /dangerouslySetInnerHTML/);
+  assert.doesNotMatch(epub, /data-epub-word/);
 });
 
 test("IMPORT-3 EPUB parser extracts OPF spine chapters as readable text", async () => {
@@ -77,7 +76,7 @@ test("IMPORT-3 EPUB parser extracts OPF spine chapters as readable text", async 
     `),
   );
   zip.addFile("OPS/chapters/one.xhtml", Buffer.from(`<html><head><title>Uno</title></head><body><h1>Uno</h1><p>Hola &amp; bienvenido.</p></body></html>`));
-  zip.addFile("OPS/chapters/two.xhtml", Buffer.from(`<html><body><h2>Dos</h2><p>Adiós.</p><script>bad()</script></body></html>`));
+  zip.addFile("OPS/chapters/two.xhtml", Buffer.from(`<html><body><h2>Dos</h2><p>Adios.</p><script>bad()</script></body></html>`));
 
   const parsed = parseEpubForReader(new Uint8Array(zip.toBuffer()));
 
@@ -86,7 +85,7 @@ test("IMPORT-3 EPUB parser extracts OPF spine chapters as readable text", async 
   assert.match(parsed.chapters[0].text, /Hola & bienvenido/);
   assert.match(parsed.chapters[0].html, /data-epub-word="Hola"/);
   assert.equal(parsed.chapters[1].title, "Dos");
-  assert.match(parsed.chapters[1].text, /Adiós/);
+  assert.match(parsed.chapters[1].text, /Adios/);
   assert.doesNotMatch(parsed.chapters[1].text, /bad/);
   assert.doesNotMatch(parsed.chapters[1].html, /script|bad/);
 });

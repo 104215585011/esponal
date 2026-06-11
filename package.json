@@ -29,6 +29,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "adm-zip": "^0.5.17",
     "bcryptjs": "^3.0.3",
+    "epubjs": "^0.3.93",
     "ioredis": "^5.4.1",
     "lucide-react": "^1.17.0",
     "msedge-tts": "^2.0.5",

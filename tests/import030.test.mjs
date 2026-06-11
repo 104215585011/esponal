@@ -63,21 +63,19 @@ test("IMPORT-6 reader shell exposes immersive sheets, upgraded EPUB progress, an
   assert.match(shell, /data-testid="import-reader-progress-slider"/);
 });
 
-test("IMPORT-6/7 EPUB keeps paged rendering while PDF uses continuous original preview with sentence-aware lookup", async () => {
+test("IMPORT-7 M1 EPUB uses epub.js paginated rendering while PDF keeps continuous lookup", async () => {
   const epub = await read("src/app/import/[id]/EpubReader.tsx");
   const pdf = await read("src/app/import/[id]/PdfReader.tsx");
   const lookup = await read("src/app/watch/LookupCard.tsx");
 
-  assert.match(epub, /data-testid="import-epub-paginator"/);
-  assert.match(epub, /columnWidth/);
-  assert.match(epub, /columnGap/);
-  assert.match(epub, /scrollWidth/);
-  assert.match(epub, /translate3d/);
-  assert.match(epub, /ResizeObserver/);
-  assert.match(epub, /wrapSentencesInEpubHtml/);
-  assert.match(epub, /closest\("\[data-sent\]"\)/);
-  assert.match(epub, /max-h-full/);
-  assert.match(epub, /\[&_img\]:break-inside-avoid/);
+  assert.match(epub, /import\("epubjs"\)/);
+  assert.match(epub, /data-testid="import-epubjs-stage"/);
+  assert.match(epub, /flow:\s*"paginated"/);
+  assert.match(epub, /spread:\s*"none"/);
+  assert.match(epub, /renditionRef\.current\?\.next\(\)/);
+  assert.match(epub, /renditionRef\.current\?\.prev\(\)/);
+  assert.doesNotMatch(epub, /wrapSentencesInEpubHtml/);
+  assert.doesNotMatch(epub, /dangerouslySetInnerHTML/);
 
   assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
   assert.match(pdf, /data-testid="import-pdf-page-canvas"/);

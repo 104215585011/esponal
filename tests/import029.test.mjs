@@ -77,9 +77,11 @@ test("IMPORT-5 reader is split into PDF and EPUB components with a thin dispatch
   assert.match(pdf, /data-testid="import-pdf-text-layer"/);
   assert.ok(pdf.split(/\r?\n/).length < 400, "PdfReader should stay under 400 lines");
 
-  assert.match(epub, /dangerouslySetInnerHTML/);
-  assert.match(epub, /data-epub-word/);
-  assert.match(epub, /LookupCardStack/);
-  assert.match(epub, /source:\s*\{\s*type:\s*"import"/);
+  assert.match(epub, /import\("epubjs"\)/);
+  assert.match(epub, /book\.renderTo/);
+  assert.match(epub, /flow:\s*"paginated"/);
+  assert.match(epub, /data-testid="import-epubjs-stage"/);
+  assert.doesNotMatch(epub, /dangerouslySetInnerHTML/);
+  assert.doesNotMatch(epub, /data-epub-word/);
   assert.ok(epub.split(/\r?\n/).length < 400, "EpubReader should stay under 400 lines");
 });

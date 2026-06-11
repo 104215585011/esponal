@@ -22,16 +22,22 @@ test("IMPORT-7 PDF uses a continuous WPS-style scroll preview instead of a singl
   assert.doesNotMatch(shell, /kind === "pdf" \? pageNumber : epubPageInChapter \+ 1/);
 });
 
-test("IMPORT-7 EPUB pagination uses horizontal columns and resets page position when chapters change", async () => {
+test("IMPORT-7 M1 EPUB pagination is delegated to epub.js instead of local columns", async () => {
   const epub = await read("src/app/import/[id]/EpubReader.tsx");
   const shell = await read("src/app/import/[id]/ImportReaderClient.tsx");
 
-  assert.match(epub, /frame\.clientHeight/);
+  assert.match(epub, /import\("epubjs"\)/);
+  assert.match(epub, /book\.renderTo/);
+  assert.match(epub, /flow:\s*"paginated"/);
+  assert.match(epub, /spread:\s*"none"/);
+  assert.match(epub, /rendition\.display\(\)/);
+  assert.match(epub, /renditionRef\.current\?\.next\(\)/);
+  assert.match(epub, /renditionRef\.current\?\.prev\(\)/);
+  assert.match(epub, /ResizeObserver/);
   assert.doesNotMatch(epub, /verticalPages/);
   assert.doesNotMatch(epub, /scrollHeight/);
-  assert.match(epub, /columnFill:\s*"auto"/);
+  assert.doesNotMatch(epub, /columnFill/);
+  assert.doesNotMatch(epub, /columnWidth/);
   assert.doesNotMatch(epub, /width:\s*pageWidth \|\| undefined/);
-  assert.match(epub, /setPageInChapter\(\(\) => 0\)/);
-  assert.match(epub, /pageHeight/);
   assert.match(shell, /setEpubPageInChapter\(0\)/);
 });

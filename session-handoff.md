@@ -14702,3 +14702,41 @@ PM 设计交付(docs/tickets/IMPORT-6.md + IMPORT-6-mockup.html):
 - On deployed mobile PDF reader, open DevTools Network and confirm `/api/import/[id]/file` returns `206 Partial Content` during PDF rendering instead of one full blocking download.
 - Flip or scroll several PDF pages and confirm sizing stays stable and no page auto-enlarges.
 - Open EPUB with images/long chapters and confirm content is not vertically truncated after page turns or Aa setting changes.
+
+## 🔁 决策:阅读器停止手搓,换成熟引擎  [Claude1 PM, 2026-06-11]
+用户真机再证(连发截图):EPUB截断+丢图+词黏无空格;PDF卡+灰边不fit。对标DejaVocab质感差距大。**根因=手搓阅读器引擎**。决策:
+- EPUB→**epub.js paginated rendition**(分页/图/空格/主题原生),查词层监听rendition事件叠LookupCardStack,主题用rendition.themes(字号/行距/字体/三色纸),进度用CFI。删自写多栏/切词/wrapSentences。
+- PDF→pdf.js `getDocument({url:预签名,rangeChunkSize,disableAutoFetch})`走Range(Network见206)+纯fit-width(删effectivePdfZoom)。
+- IMPORT-7重写为换库;验收以用户真机为准。引入epub.js依赖。
+教训记:渲染/排版这类硬问题不手搓,用成熟库,我们只做查词/学习差异层。
+
+## ▶️ IMPORT-7 派单(分段交付)  [Claude1 PM, 2026-06-11]
+Codex1 按M1→M4分段做,**M1(epub.js最小可用:翻页+显图+词间空格)先停,交用户真机确认质感方向**,过了才进M2(查词)/M3(主题/目录/CFI)/M4(PDF Range+fit)。每段独立真机验。不再"闷头做完一大坨"。
+## Codex1 Implementation Report: IMPORT-7 M1 epub.js minimal reader
+**Time**: 2026-06-11 15:25
+**From**: Codex1 (DEV)
+**To**: User true-device QA / Codex2 / Claude1
+**Status**: M1 ready_for_true_device; stop here before M2/M3/M4
+
+**Scope completed**:
+- Installed `epubjs` and replaced the active EPUB reader internals with a minimal epub.js rendition.
+- `EpubReader.tsx` now fetches `/api/import/[id]/url`, creates an epub.js book from the same-origin file URL, and calls `book.renderTo(stage, { flow: "paginated", spread: "none", width: "100%", height: "100%" })`.
+- Existing reader shell previous/next controls now drive `rendition.prev()` / `rendition.next()`.
+- Removed the active local `dangerouslySetInnerHTML`, word wrapping, and CSS-column pagination path from the EPUB reader. The old parser/API remains only as fallback/parser coverage; M1 runtime does not use it.
+
+**Intentionally not done**:
+- M2 lookup layer, sentence TTS, and click-word overlay are not implemented.
+- M3 themes, TOC, and CFI progress are not implemented.
+- M4 PDF changes are not part of this M1 handoff.
+
+**Verification**:
+- Red check: `node --test tests/import034.test.mjs` failed first because `epubjs` was not installed and EpubReader still used the old local renderer.
+- Focused: `node --test tests/import027.test.mjs tests/import029.test.mjs tests/import030.test.mjs tests/import031.test.mjs tests/import032.test.mjs tests/import033.test.mjs tests/import034.test.mjs` -> 14/14 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 506/506 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**True-device QA gate**:
+- Open an imported EPUB on the deployed app and check only M1 quality: renders, images show, pages turn, and words have normal spacing.
+- Do not evaluate missing lookup/theme/TOC as M1 failures; those are explicitly M2/M3.
