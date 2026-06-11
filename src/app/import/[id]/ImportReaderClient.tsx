@@ -53,9 +53,10 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
   const [epubChapterIndex, setEpubChapterIndex] = useState(() => Math.max(0, Number(/^epub:(\d+)(?::\d+)?$/.exec(lastPosition)?.[1] ?? 0)));
   const [epubPageInChapter, setEpubPageInChapter] = useState(() => Math.max(0, Number(/^epub:\d+:(\d+)$/.exec(lastPosition)?.[1] ?? 0)));
   const [pdfPageCount, setPdfPageCount] = useState(unitCount);
-  const readerUnitCount = kind === "pdf" ? Math.max(1, pdfPageCount) : Math.max(1, currentChapterPageCount);
-  const readerPosition = kind === "pdf" ? pageNumber : epubPageInChapter + 1;
+  const readerUnitCount = Math.max(1, currentChapterPageCount);
+  const readerPosition = epubPageInChapter + 1;
   const pageLabel = `${readerPosition} / ${readerUnitCount}`;
+  const displayPageLabel = kind === "pdf" ? `${pageNumber} / ${Math.max(1, pdfPageCount)}` : pageLabel;
   const paperClass = PAPER_CLASS[settings.paper];
   const readerStyle = useMemo(() => ({
     "--reader-font-size": `${settings.fontSize}px`,
@@ -138,6 +139,7 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
 
   const handleReaderSurfaceClick = (event: MouseEvent<HTMLDivElement>) => {
     if (event.defaultPrevented) return;
+    if (kind === "pdf") return toggleReaderChrome();
     const rect = event.currentTarget.getBoundingClientRect();
     const zoneRatio = (event.clientX - rect.left) / Math.max(1, rect.width);
     if (zoneRatio <= 0.25) return goPreviousPage();
@@ -150,8 +152,8 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
       event.preventDefault();
       toggleReaderChrome();
     }
-    if (event.key === "ArrowLeft") goPreviousPage();
-    if (event.key === "ArrowRight") goNextPage();
+    if (kind === "epub" && event.key === "ArrowLeft") goPreviousPage();
+    if (kind === "epub" && event.key === "ArrowRight") goNextPage();
   };
 
   const handleReaderTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -163,6 +165,7 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
     const start = touchStartRef.current;
     const touch = event.changedTouches[0];
     touchStartRef.current = null;
+    if (kind === "pdf") return;
     if (!start || !touch) return;
     const deltaX = touch.clientX - start.x;
     const deltaY = touch.clientY - start.y;
@@ -181,7 +184,7 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
         )}
       </div>
 
-      {!readerChromeVisible ? <><div className="pointer-events-none fixed left-4 top-3 z-40 max-w-[50%] truncate text-[10px] text-zinc-400" data-testid="import-reader-title-watermark">{title}</div><div className="pointer-events-none fixed bottom-3 right-4 z-40 text-[10px] text-zinc-400" data-testid="import-reader-page-watermark">{pageLabel}</div></> : null}
+      {!readerChromeVisible ? <><div className="pointer-events-none fixed left-4 top-3 z-40 max-w-[50%] truncate text-[10px] text-zinc-400" data-testid="import-reader-title-watermark">{title}</div><div className="pointer-events-none fixed bottom-3 right-4 z-40 text-[10px] text-zinc-400" data-testid="import-reader-page-watermark">{displayPageLabel}</div></> : null}
 
       <div className={`fixed inset-x-0 top-0 z-50 flex h-14 items-center gap-2 border-b border-black/5 bg-white/80 px-2 text-zinc-800 shadow-sm backdrop-blur-md transition-transform duration-300 ${readerChromeVisible ? "translate-y-0" : "-translate-y-full"} ${settings.paper === "night" ? "border-white/10 bg-zinc-950/80 text-zinc-100" : ""}`} data-testid="import-reader-chrome" onClick={(event) => event.stopPropagation()}>
         <Link aria-label="退出阅读器" className="flex h-10 w-10 items-center justify-center rounded-full active:bg-black/5" href="/import/library"><ChevronLeft className="h-6 w-6" aria-hidden /></Link>
@@ -190,7 +193,7 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
         {kind === "pdf" && readerUrl ? <a aria-label="新窗口打开原文" className="flex h-10 w-10 items-center justify-center rounded-full active:bg-black/5" href={readerUrl} rel="noreferrer" target="_blank"><ExternalLink className="h-4 w-4" aria-hidden /></a> : <span className="h-10 w-10" />}
       </div>
 
-      <div className={`fixed inset-x-4 bottom-4 z-50 rounded-full border border-black/10 bg-white/85 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-md transition-transform duration-300 ${readerChromeVisible ? "translate-y-0" : "translate-y-[140%]"} ${settings.paper === "night" ? "border-white/10 bg-zinc-950/85 text-zinc-100" : ""}`} data-testid="import-reader-bottom-chrome" onClick={(event) => event.stopPropagation()}>
+      {kind === "epub" ? <div className={`fixed inset-x-4 bottom-4 z-50 rounded-full border border-black/10 bg-white/85 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-md transition-transform duration-300 ${readerChromeVisible ? "translate-y-0" : "translate-y-[140%]"} ${settings.paper === "night" ? "border-white/10 bg-zinc-950/85 text-zinc-100" : ""}`} data-testid="import-reader-bottom-chrome" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-3 px-5 pt-4">
           <span className="w-8 text-right text-xs font-medium text-zinc-500">{readerPosition}</span>
           <input aria-label="跳转页码" className="flex-1 accent-brand-500" data-testid="import-reader-progress-slider" disabled={readerUnitCount <= 1} max={readerUnitCount} min={1} onChange={(event) => jumpToReaderPosition(Number(event.currentTarget.value))} type="range" value={Math.max(1, Math.min(readerPosition, readerUnitCount))} />
@@ -199,11 +202,11 @@ export function ImportReaderClient({ documentId, title, kind, unitCount, lastPos
         <div className="flex items-center justify-between px-6 py-2">
           <button aria-label="阅读设置" className="flex h-10 w-10 items-center justify-center rounded-full active:bg-black/5" onClick={() => setSettingsOpen(true)} type="button"><Type className="h-5 w-5" aria-hidden /></button>
           <button aria-label="目录" className="flex h-10 w-10 items-center justify-center rounded-full active:bg-black/5" onClick={() => setTocOpen(true)} type="button"><List className="h-5 w-5" aria-hidden /></button>
-          <button aria-label={kind === "pdf" ? "上一页" : "上一页"} className="flex h-10 w-10 items-center justify-center rounded-full active:bg-black/5 disabled:opacity-30" disabled={!canGoPrevious} onClick={() => goPreviousPage({ revealChrome: true })} type="button"><ChevronLeft className="h-5 w-5" aria-hidden /></button>
+          <button aria-label="上一页" className="flex h-10 w-10 items-center justify-center rounded-full active:bg-black/5 disabled:opacity-30" disabled={!canGoPrevious} onClick={() => goPreviousPage({ revealChrome: true })} type="button"><ChevronLeft className="h-5 w-5" aria-hidden /></button>
           <span className="min-w-16 text-center text-xs font-bold">{pageLabel}</span>
-          <button aria-label={kind === "pdf" ? "下一页" : "下一页"} className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30" disabled={!canGoNext} onClick={() => goNextPage({ revealChrome: true })} type="button"><ChevronRight className="h-5 w-5" aria-hidden /></button>
+          <button aria-label="下一页" className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white active:bg-brand-600 disabled:opacity-30" disabled={!canGoNext} onClick={() => goNextPage({ revealChrome: true })} type="button"><ChevronRight className="h-5 w-5" aria-hidden /></button>
         </div>
-      </div>
+      </div> : null}
 
       {(settingsOpen || tocOpen) ? <button aria-label="关闭阅读器弹层" className="fixed inset-0 z-[58] bg-black/35 backdrop-blur-[1px]" onClick={() => { setSettingsOpen(false); setTocOpen(false); }} type="button" /> : null}
       <section className={`fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-3 text-zinc-950 shadow-2xl transition-transform duration-300 ${settingsOpen ? "translate-y-0" : "translate-y-full"}`} data-testid="import-reader-settings-sheet" onClick={(event) => event.stopPropagation()}>

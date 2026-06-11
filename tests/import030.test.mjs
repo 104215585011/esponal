@@ -63,7 +63,7 @@ test("IMPORT-6 reader shell exposes immersive sheets, upgraded EPUB progress, an
   assert.match(shell, /data-testid="import-reader-progress-slider"/);
 });
 
-test("IMPORT-6 EPUB and PDF readers use paged rendering with sentence-aware lookup", async () => {
+test("IMPORT-6/7 EPUB keeps paged rendering while PDF uses continuous original preview with sentence-aware lookup", async () => {
   const epub = await read("src/app/import/[id]/EpubReader.tsx");
   const pdf = await read("src/app/import/[id]/PdfReader.tsx");
   const lookup = await read("src/app/watch/LookupCard.tsx");
@@ -78,8 +78,9 @@ test("IMPORT-6 EPUB and PDF readers use paged rendering with sentence-aware look
   assert.match(epub, /closest\("\[data-sent\]"\)/);
   assert.match(epub, /max-h-\[90vh\]/);
 
-  assert.match(pdf, /data-testid="import-pdf-page-strip"/);
-  assert.match(pdf, /PDF_AUTO_MAX_ZOOM\s*=\s*1/);
+  assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
+  assert.match(pdf, /data-testid="import-pdf-page-canvas"/);
+  assert.match(pdf, /IntersectionObserver/);
   assert.match(pdf, /window\.devicePixelRatio/);
   assert.match(pdf, /closestSentenceForPdfItem/);
   assert.match(pdf, /sentenceText/);

@@ -1,3 +1,34 @@
+## Codex1 Hotfix Report: IMPORT-6/7 PDF continuous preview + EPUB pagination repair
+**Time**: 2026-06-11 13:20
+**From**: Codex1 (DEV)
+**To**: Codex2 (QA) / Claude1
+**Status**: ready_for_qa
+
+**Why this exists**:
+- User reported that EPUB pagination was still poor, and PDF should behave more like WPS/system preview: a continuous original document, not a novel-style reader frame.
+
+**Fix**:
+- PDF path now splits away from the EPUB reader model.
+- `PdfReader.tsx` renders all PDF pages in a vertical continuous scroll preview (`import-pdf-continuous-scroll`) instead of a single `page-strip`.
+- PDF keeps same-origin byte loading, pdf.js worker setup, DPR canvas rendering, zoom buttons, progress persistence, and text-layer lookup; the current page is updated by `IntersectionObserver`.
+- PDF no longer uses the bottom previous/next reader dock. Touch swipes and arrow-key paging are disabled for PDF; users scroll naturally.
+- EPUB keeps the reader controls, but pagination now measures both `clientWidth` and `clientHeight`, considers `scrollHeight`, listens for image `load` reflow, and resets page-in-chapter when chapter content changes.
+
+**Verification**:
+- Red check: `node --test tests/import031.test.mjs` failed first against the old PDF single-page strip and width-only EPUB pagination.
+- Focused: `node --test tests/import031.test.mjs tests/import030.test.mjs` -> 5/5 pass.
+- Import reader regression: `node --test tests/import018.test.mjs tests/import020.test.mjs tests/import023.test.mjs tests/import024.test.mjs tests/import025.test.mjs tests/import026.test.mjs tests/import027.test.mjs tests/import028.test.mjs tests/import029.test.mjs tests/import030.test.mjs tests/import031.test.mjs` -> 22/22 pass.
+- `npx tsc --noEmit --pretty false` -> pass.
+- `npm run lint:encoding` -> pass.
+- `npm test` -> 502/502 pass.
+- `npm run build` -> pass with existing `<img>` and Sentry warnings only.
+
+**QA focus**:
+- Open a large imported PDF on mobile. It should be a continuous vertical document, without the old bottom previous/next dock or large reader frame feel.
+- Scroll through a PDF and confirm page progress persists and resumes near the same page.
+- Tap PDF text where text layer aligns; lookup should still open. If a scanned/image PDF has no usable text layer, reading should still work.
+- Open an EPUB with images and long chapters; pagination should not inherit the previous chapter's page index and should remeasure after images load.
+
 ## Codex1 Implementation Report: MOBILE-R-PERF + INFRA-PW + MOBILE-R-001
 **Time**: 2026-06-11 11:45
 **From**: Codex1 (DEV)

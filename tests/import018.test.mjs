@@ -97,11 +97,12 @@ test("IMPORT-3 v2 reader fetches original PDF bytes before rendering with pdf.js
   assert.match(pdf, /<canvas/);
   assert.match(pdf, /page\.render/);
   assert.match(pdf, /pdfZoom/);
-  assert.match(pdf, /calculateAdaptivePdfZoom/);
   assert.match(pdf, /effectivePdfZoom/);
   assert.doesNotMatch(pdf, /PDF_DEFAULT_ZOOM/);
-  assert.match(pdf, /data-testid="import-pdf-page-strip"/);
-  assert.match(pdf, /overflow-hidden/);
+  assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
+  assert.match(pdf, /data-testid="import-pdf-page-canvas"/);
+  assert.match(pdf, /overflow-y-auto/);
+  assert.match(pdf, /IntersectionObserver/);
   assert.match(pdf, /getTextContent\(\)/);
   assert.match(pdf, /buildPdfTextLayerItems/);
   assert.match(pdf, /pdfTextLayerItems/);

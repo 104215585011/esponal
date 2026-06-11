@@ -55,6 +55,7 @@ export function EpubReader({
   const [chapters, setChapters] = useState<EpubChapter[]>([]);
   const [activeLookup, setActiveLookup] = useState<EpubLookupStack | null>(null);
   const [pageWidth, setPageWidth] = useState(0);
+  const [pageHeight, setPageHeight] = useState(0);
   const [chapterPageCount, setChapterPageCount] = useState(1);
   const activeChapter = chapters[chapterIndex] ?? null;
   const renderedHtml = useMemo(() => wrapSentencesInEpubHtml(activeChapter?.html ?? "这个 EPUB 没有可显示的正文。"), [activeChapter?.html]);
@@ -91,7 +92,10 @@ export function EpubReader({
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    const measure = () => setPageWidth(Math.max(280, frame.clientWidth));
+    const measure = () => {
+      setPageWidth(Math.max(280, frame.clientWidth));
+      setPageHeight(Math.max(360, frame.clientHeight));
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(frame);
@@ -99,17 +103,28 @@ export function EpubReader({
   }, []);
 
   useEffect(() => {
+    setPageInChapter(() => 0);
+  }, [activeChapter?.href, setPageInChapter]);
+
+  useEffect(() => {
     const content = contentRef.current;
-    if (!content || pageWidth <= 0) return;
+    if (!content || pageWidth <= 0 || pageHeight <= 0) return;
     const measure = () => {
-      const pages = Math.max(1, Math.ceil(content.scrollWidth / Math.max(1, pageWidth + COLUMN_GAP)));
+      const horizontalPages = Math.ceil(content.scrollWidth / Math.max(1, pageWidth + COLUMN_GAP));
+      const verticalPages = Math.ceil(content.scrollHeight / Math.max(1, pageHeight));
+      const pages = Math.max(1, horizontalPages, verticalPages);
       setChapterPageCount(pages);
       setChapterCount(pages);
       setPageInChapter((current) => Math.max(0, Math.min(current, pages - 1)));
     };
     const raf = window.requestAnimationFrame(measure);
-    return () => window.cancelAnimationFrame(raf);
-  }, [activeChapter?.href, pageWidth, renderedHtml, setChapterCount, setPageInChapter, settings.fontFamily, settings.fontSize, settings.lineHeight]);
+    const images = Array.from(content.querySelectorAll("img"));
+    images.forEach((image) => image.addEventListener("load", measure, { once: true }));
+    return () => {
+      window.cancelAnimationFrame(raf);
+      images.forEach((image) => image.removeEventListener("load", measure));
+    };
+  }, [activeChapter?.href, pageHeight, pageWidth, renderedHtml, setChapterCount, setPageInChapter, settings.fontFamily, settings.fontSize, settings.lineHeight]);
 
   const openLookup = (event: MouseEvent<HTMLElement>) => {
     const wordElement = closestWordElement(event.target);

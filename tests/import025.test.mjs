@@ -6,31 +6,32 @@ async function read(path) {
   return readFile(path, "utf8");
 }
 
-test("IMPORT-3 PDF reader supports adaptive stable zoom and clickable text lookup", async () => {
+test("IMPORT-3/7 PDF reader supports continuous fit-width zoom and clickable text lookup", async () => {
   const pdf = await read("src/app/import/[id]/PdfReader.tsx");
   const lookupCard = await read("src/app/watch/LookupCard.tsx");
 
   assert.doesNotMatch(pdf, /const PDF_DEFAULT_ZOOM/);
-  assert.match(pdf, /function calculateAdaptivePdfZoom/);
-  assert.match(pdf, /PDF_AUTO_MIN_ZOOM/);
-  assert.match(pdf, /const PDF_AUTO_MAX_ZOOM\s*=\s*1/);
-  assert.doesNotMatch(pdf, /return PDF_AUTO_MAX_ZOOM/);
+  assert.doesNotMatch(pdf, /function calculateAdaptivePdfZoom/);
+  assert.doesNotMatch(pdf, /PDF_AUTO_MIN_ZOOM/);
+  assert.doesNotMatch(pdf, /PDF_AUTO_MAX_ZOOM/);
   assert.doesNotMatch(pdf, /frameWidth >= 430 \? 0\.16/);
   assert.doesNotMatch(pdf, /frameWidth >= 430 \? 0\.03/);
   assert.match(pdf, /ResizeObserver/);
   assert.match(pdf, /pdfFrameRef/);
-  assert.match(pdf, /pdfFrameHeight,\s*setPdfFrameHeight/);
-  assert.match(pdf, /pdfPageFitsViewport/);
-  assert.match(pdf, /pdfZoomMode,\s*setPdfZoomMode/);
-  assert.match(pdf, /setPdfZoomMode\("manual"\)/);
-  assert.match(pdf, /const effectivePdfZoom\s*=\s*pdfZoomMode === "auto"/);
+  assert.doesNotMatch(pdf, /pdfFrameHeight,\s*setPdfFrameHeight/);
+  assert.doesNotMatch(pdf, /pdfPageFitsViewport/);
+  assert.doesNotMatch(pdf, /pdfZoomMode,\s*setPdfZoomMode/);
+  assert.doesNotMatch(pdf, /setPdfZoomMode\("manual"\)/);
+  assert.doesNotMatch(pdf, /const effectivePdfZoom\s*=\s*pdfZoomMode === "auto"/);
   assert.doesNotMatch(pdf, /calculateAdaptivePdfZoom\([^)]*pageNumber/);
   assert.doesNotMatch(pdf, /\$\{pageNumber\} \/ \$\{pageCount\}.*\$\{Math\.round\(pdfZoom \* 100\)\}%/);
   assert.match(pdf, /setPdfZoom/);
   assert.match(pdf, /ZoomIn/);
   assert.match(pdf, /ZoomOut/);
-  assert.match(pdf, /data-testid="import-pdf-page-strip"/);
-  assert.match(pdf, /overflow-hidden/);
+  assert.match(pdf, /data-testid="import-pdf-continuous-scroll"/);
+  assert.match(pdf, /data-testid="import-pdf-page-canvas"/);
+  assert.match(pdf, /overflow-y-auto/);
+  assert.match(pdf, /IntersectionObserver/);
   assert.doesNotMatch(pdf, /className="flex min-h-\[100dvh\] w-full justify-center overflow-x-auto"/);
   assert.match(pdf, /minWidth:\s*canvasCssSize\.width/);
 
