@@ -999,7 +999,7 @@ export function SubtitlePanel({
 
               {/* Chinese translation line */}
               {displayMode !== "spanish" ? (
-                <p className="mt-1.5 text-zinc-300 text-xs font-medium leading-relaxed">
+                <p className="mt-3 text-zinc-300 text-xs font-medium leading-relaxed">
                   {chineseLine || "…"}
                 </p>
               ) : null}
