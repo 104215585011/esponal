@@ -353,7 +353,12 @@ export function WatchClient({ videoId, videoInfo, relatedVideos, startSeconds = 
 
         playerRef.current = new yt.Player(PLAYER_IFRAME_ID, {
           playerVars: {
-            origin: window.location.origin
+            origin: window.location.origin,
+            // Keep YouTube's native captions off. We render our own bilingual
+            // subtitles from /api/subtitle, and YouTube remembers a user's
+            // in-iframe CC toggle, so a bare cc_load_policy=0 is not enough.
+            cc_load_policy: 0,
+            cc_lang_pref: "invalid"
           },
           events: {
             onReady: () => {

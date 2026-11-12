@@ -112,7 +112,7 @@ export function WatchDesktopLayout({
               allowFullScreen
               className="h-full w-full border-0"
               id={PLAYER_IFRAME_ID}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0${startSeconds > 0 ? `&start=${startSeconds}` : ""}`}
+              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0&cc_lang_pref=invalid${startSeconds > 0 ? `&start=${startSeconds}` : ""}`}
               title={videoInfo.title}
             />
           </div>

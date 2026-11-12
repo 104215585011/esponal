@@ -11,9 +11,11 @@ test("WATCH-005: YouTube iframe parameters updated", async () => {
 
   const clientText = await readText(watchClientPath);
 
-  // iframe src should have cc_load_policy=0 and no hl/cc_lang_pref
+  // Native captions must stay off: we render our own bilingual subtitles.
+  // cc_lang_pref=invalid suppresses YouTube's remembered CC preference.
   assert.match(clientText, /cc_load_policy=0/);
   assert.doesNotMatch(clientText, /cc_load_policy=1/);
+  assert.match(clientText, /cc_lang_pref:\s*"invalid"/);
   assert.doesNotMatch(clientText, /hl=es/);
   assert.doesNotMatch(clientText, /cc_lang_pref=es/);
 });
