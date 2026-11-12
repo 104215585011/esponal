@@ -8,6 +8,7 @@ const harvestEntry = path.join(extensionRoot, "harvest.js");
 const parseJson3Entry = path.join(extensionRoot, "parseJson3.js");
 const esponalSiteEntry = path.join(extensionRoot, "esponal-site.js");
 const hookTimedtextEntry = path.join(extensionRoot, "hook-timedtext.js");
+const contentEntry = path.join(extensionRoot, "content.js");
 
 const EXT_INGEST_TOKEN = process.env.EXT_INGEST_TOKEN ?? "";
 const ESPONAL_APP_ORIGIN =
@@ -22,6 +23,7 @@ await build({
   },
   entryPoints: {
     harvest: harvestEntry,
+    content: contentEntry,
     "esponal-site": esponalSiteEntry,
     "hook-timedtext": hookTimedtextEntry
   },

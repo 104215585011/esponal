@@ -74,7 +74,8 @@ test("EXT-002 manifest and popup support persistent Chinese subtitle toggling", 
 test("EXT-002 content script observes YouTube captions and injects reviewed overlay styling", async () => {
   const content = await readText("extension/content.js");
 
-  assert.match(content, /http:\/\/localhost:3000\/api\/translate/);
+  assert.match(content, /ESPONAL_APP_ORIGIN/);
+  assert.match(content, /api\/translate/);
   assert.match(content, /MutationObserver/);
   assert.match(content, /\.ytp-caption-segment/);
   assert.match(content, /\.html5-video-player/);

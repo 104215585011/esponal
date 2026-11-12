@@ -27,7 +27,7 @@ test("extension content scripts cover YouTube harvesting and Esponal site detect
   const [youtubeScript, siteScript] = manifest.content_scripts;
 
   assert.deepEqual(youtubeScript.matches, ["https://www.youtube.com/watch*"]);
-  assert.deepEqual(youtubeScript.js, ["content.js", "dist/harvest.js"]);
+  assert.deepEqual(youtubeScript.js, ["dist/content.js", "dist/harvest.js"]);
   assert.equal(youtubeScript.run_at, "document_idle");
   assert.deepEqual(siteScript.matches, [
     "http://localhost:3000/*",
@@ -60,12 +60,24 @@ test("extension files provide background, content, and popup behavior", async ()
   const popupScript = await readText("extension/popup.js");
 
   assert.match(background, /Esponal extension service worker started/);
-  assert.match(content, /http:\/\/localhost:3000\/api\/translate/);
+  assert.match(content, /ESPONAL_APP_ORIGIN/);
+  assert.match(content, /api\/translate/);
   assert.match(content, /esponal-extension-ready/);
   assert.match(popup, /Esponal/);
   assert.match(popupScript, /chrome\.tabs\.create/);
   assert.match(popupScript, /chrome\.storage\.local/);
   assert.match(popupScript, /TOGGLE_CHINESE_SUBTITLES/);
+});
+
+test("extension hides YouTube native captions and reads timedtext directly", async () => {
+  const content = await readText("extension/content.js");
+
+  assert.match(content, /HIDE_NATIVE_CAPTIONS_CSS/);
+  assert.match(content, /ytp-caption-window-container/);
+  assert.match(content, /ensureNativeCaptionsHidden/);
+  assert.match(content, /parseTimedtextToCues/);
+  assert.match(content, /esponal-captured-timedtext/);
+  assert.match(content, /listenForTimedtextCaptures/);
 });
 
 test("extension has an esbuild package scaffold", async () => {

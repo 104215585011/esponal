@@ -1,8 +1,12 @@
-const ESPONAL_TRANSLATE_URL = "http://localhost:3000/api/translate";
-const ESPONAL_LEMMATIZE_URL = "http://localhost:3000/api/lemmatize";
-const ESPONAL_VOCAB_ADD_URL = "http://localhost:3000/api/vocab/add";
-const ESPONAL_VOCAB_HIGHLIGHT_URL = "http://localhost:3000/api/vocab/highlight";
-const ESPONAL_LOGIN_URL = "http://localhost:3000/api/auth/signin";
+const ESPONAL_APP_ORIGIN =
+  typeof __ESPONAL_APP_ORIGIN__ === "string"
+    ? __ESPONAL_APP_ORIGIN__
+    : "http://localhost:3000";
+const ESPONAL_TRANSLATE_URL = `${ESPONAL_APP_ORIGIN}/api/translate`;
+const ESPONAL_LEMMATIZE_URL = `${ESPONAL_APP_ORIGIN}/api/lemmatize`;
+const ESPONAL_VOCAB_ADD_URL = `${ESPONAL_APP_ORIGIN}/api/vocab/add`;
+const ESPONAL_VOCAB_HIGHLIGHT_URL = `${ESPONAL_APP_ORIGIN}/api/vocab/highlight`;
+const ESPONAL_LOGIN_URL = `${ESPONAL_APP_ORIGIN}/api/auth/signin`;
 const SHOW_CHINESE_KEY = "showChineseSubtitles";
 const WORD_HIGHLIGHT_COLORS = {
   course: "#86EFAC",
@@ -30,6 +34,33 @@ const savedLemmaSet = new Set();
 function markPageReady() {
   document.documentElement.dataset.esponalExtensionReady = "true";
   document.documentElement.classList.add("esponal-extension-ready");
+}
+
+// Hide YouTube's own native captions so only our bilingual overlay shows.
+// The caption window is `.ytp-caption-window-container` (and its segment
+// wrapper `.ytp-caption-segment`); inject a high-specificity stylesheet that
+// keeps them from rendering without removing them from the DOM (which would
+// otherwise break YouTube's caption module and our DOM reader).
+const HIDE_NATIVE_CAPTIONS_CSS = `
+.ytp-caption-window-container,
+.ytp-caption-window-container * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+`;
+
+function ensureNativeCaptionsHidden() {
+  const id = "esponal-hide-native-captions";
+  if (document.getElementById(id)) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = HIDE_NATIVE_CAPTIONS_CSS;
+  (document.head || document.documentElement).append(style);
 }
 
 function normalizeWordToken(token) {
@@ -273,6 +304,114 @@ function readCaptionText() {
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// ---- Timedtext-backed caption source (survives native-caption hiding) ----
+// YouTube's native captions are hidden by CSS, but that also hides the DOM
+// nodes our old `.ytp-caption-segment` reader relied on. Instead, decode the
+// raw `/api/timedtext` responses the MAIN-world hook captures, and pick the
+// cue matching the video's current time. This keeps subtitles flowing even
+// with native captions fully suppressed.
+
+let timedtextCues = [];
+let timedtextActiveText = "";
+let timedtextIntervalId = null;
+
+function decodeHtmlEntities(value) {
+  return value
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&#x27;", "'");
+}
+
+function parseTimedtextToCues(body) {
+  let json;
+  try {
+    json = JSON.parse(body);
+  } catch {
+    return [];
+  }
+
+  const events = Array.isArray(json?.events) ? json.events : [];
+  const cues = [];
+
+  for (const event of events) {
+    const startMs = Number(event?.tStartMs);
+    const durMs = Number(event?.dDurationMs);
+    const segs = Array.isArray(event?.segs) ? event.segs : [];
+    const text = decodeHtmlEntities(
+      segs
+        .map((seg) => (typeof seg?.utf8 === "string" ? seg.utf8 : ""))
+        .join("")
+        .replace(/\s+/g, " ")
+        .trim()
+    );
+
+    if (!Number.isFinite(startMs) || !Number.isFinite(durMs) || durMs <= 0 || !text) {
+      continue;
+    }
+
+    cues.push({ start: startMs / 1000, dur: durMs / 1000, text });
+  }
+
+  return cues;
+}
+
+function activeTimedtextCue() {
+  const video = document.querySelector("video");
+  if (!video || Number.isNaN(video.currentTime)) {
+    return null;
+  }
+
+  const t = video.currentTime;
+  for (const cue of timedtextCues) {
+    if (t >= cue.start && t <= cue.start + cue.dur) {
+      return cue;
+    }
+  }
+  return null;
+}
+
+function startTimedtextScheduler() {
+  if (timedtextIntervalId !== null) {
+    return;
+  }
+
+  timedtextIntervalId = window.setInterval(() => {
+    const cue = activeTimedtextCue();
+    const text = cue ? cue.text : "";
+
+    if (text && text !== timedtextActiveText) {
+      timedtextActiveText = text;
+      void renderSubtitle(text);
+    }
+  }, 250);
+}
+
+function handleTimedtextCapture(url, body) {
+  const cues = parseTimedtextToCues(body);
+  if (cues.length === 0) {
+    return;
+  }
+
+  timedtextCues = cues.sort((a, b) => a.start - b.start);
+  startTimedtextScheduler();
+}
+
+function listenForTimedtextCaptures() {
+  if (window.__esponalTimedtextListenerInstalled) {
+    return;
+  }
+  window.__esponalTimedtextListenerInstalled = true;
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window) return;
+    if (event.data?.type !== "esponal-captured-timedtext") return;
+    handleTimedtextCapture(event.data.url, event.data.body);
+  });
 }
 
 async function translateSubtitle(text) {
@@ -762,10 +901,12 @@ if (typeof chrome !== "undefined" && chrome.runtime) {
 
 try {
   markPageReady();
+  ensureNativeCaptionsHidden();
   bindGlobalCardListeners();
   startCaptionObserver();
+  listenForTimedtextCaptures();
   console.info("Esponal content script active", {
-    apiBaseUrl: ESPONAL_TRANSLATE_URL,
+    apiBaseUrl: ESPONAL_APP_ORIGIN,
     href: window.location.href
   });
 } catch (error) {
