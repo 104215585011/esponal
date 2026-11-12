@@ -25,7 +25,8 @@ test("WEB-019 user search page remains the only normal YouTube search consumer",
 
   assert.match(watchPage, /fetchSearchFallbackVideos/);
   assert.match(watchPage, /\/api\/youtube\/search\?q=\$\{encodeURIComponent\(query\)\}&maxResults=8/);
-  assert.match(searchPage, /\/api\/youtube\/search\?q=\$\{encodeURIComponent\(query\)\}&maxResults=20/);
+  assert.match(searchPage, /\/api\/youtube\/search\?\$\{params\.toString\(\)\}/);
+  assert.match(searchPage, /maxResults:\s*["']20["']/);
   assert.match(searchRoute, /search\.list costs 100 quota units/);
   assert.match(searchRoute, /SEARCH_CACHE_TTL_SECONDS = 60 \* 60 \* 24/);
 });

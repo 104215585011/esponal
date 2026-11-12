@@ -3,6 +3,35 @@ import { redis } from "@/lib/redis";
 
 const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
+// A structured error so callers can distinguish "our daily quota is gone"
+// from "the upstream call broke for some other reason". The old code turned
+// both into the same 500, which the search page then rendered as "no results".
+export class YouTubeApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly reason: string
+  ) {
+    super(message);
+    this.name = "YouTubeApiError";
+  }
+}
+
+const QUOTA_EXCEEDED_REASONS = new Set([
+  "quotaExceeded",
+  "dailyLimitExceeded",
+  "rateLimitExceeded",
+  "userRateLimitExceeded"
+]);
+
+export function isQuotaExceededError(error: unknown): boolean {
+  if (!(error instanceof YouTubeApiError)) {
+    return false;
+  }
+
+  return error.status === 429 || QUOTA_EXCEEDED_REASONS.has(error.reason);
+}
+
 type YouTubeThumbnailSet = {
   default?: { url?: string };
   medium?: { url?: string };
@@ -78,17 +107,41 @@ async function safeCacheSet(cacheKey: string, value: string, ttlSeconds: number)
 // cold rehydration and can burn through search.list quota especially quickly.
 const STALE_FALLBACK_TTL_SECONDS = 60 * 60 * 24 * 7;
 
-export async function getCachedJson<T>(
+// How old a cached payload may be before we refuse to serve it as a fallback.
+// The Redis TTL above keeps bytes around for 7 days, but a week-old search
+// result is worse than an honest error. Defaults to one day and is tunable.
+const DEFAULT_MAX_STALE_AGE_SECONDS = 60 * 60 * 24;
+
+function getMaxStaleAgeSeconds() {
+  const configured = Number.parseInt(
+    process.env.YOUTUBE_STALE_MAX_AGE_SECONDS ?? "",
+    10
+  );
+
+  return Number.isFinite(configured) && configured > 0
+    ? configured
+    : DEFAULT_MAX_STALE_AGE_SECONDS;
+}
+
+export type CachedResult<T> = {
+  data: T;
+  stale: boolean;
+  fetchedAt: number;
+  fromCache: boolean;
+};
+
+export async function getCachedJsonWithMeta<T>(
   namespace: string,
   cacheInput: string,
   ttlSeconds: number,
-  resolver: () => Promise<T>
-) {
+  resolver: () => Promise<T>,
+  options: { forceFresh?: boolean } = {}
+): Promise<CachedResult<T>> {
   const cacheKey = buildCacheKey(namespace, cacheInput);
-  const cached = await safeCacheGet(cacheKey);
+  const cached = options.forceFresh ? null : await safeCacheGet(cacheKey);
 
   let staleData: T | null = null;
-  let hasStale = false;
+  let staleFetchedAt = 0;
 
   if (cached) {
     try {
@@ -98,10 +151,15 @@ export async function getCachedJson<T>(
           ? (parsed as { data: T; ts: number })
           : { data: parsed as T, ts: 0 };
       staleData = envelope.data;
-      hasStale = true;
+      staleFetchedAt = envelope.ts;
 
-      if (Date.now() - envelope.ts < ttlSeconds * 1000) {
-        return envelope.data;
+      if (!options.forceFresh && Date.now() - envelope.ts < ttlSeconds * 1000) {
+        return {
+          data: envelope.data,
+          stale: false,
+          fetchedAt: envelope.ts,
+          fromCache: true
+        };
       }
     } catch {
       // Corrupt cache entry — ignore and refetch.
@@ -110,19 +168,46 @@ export async function getCachedJson<T>(
 
   try {
     const value = await resolver();
+    const fetchedAt = Date.now();
+
     await safeCacheSet(
       cacheKey,
-      JSON.stringify({ data: value, ts: Date.now() }),
+      JSON.stringify({ data: value, ts: fetchedAt }),
       Math.max(ttlSeconds, STALE_FALLBACK_TTL_SECONDS)
     );
-    return value;
+
+    return { data: value, stale: false, fetchedAt, fromCache: false };
   } catch (error) {
-    if (hasStale) {
+    const canUseStale =
+      staleData !== null &&
+      staleFetchedAt > 0 &&
+      Date.now() - staleFetchedAt <= getMaxStaleAgeSeconds() * 1000;
+
+    if (canUseStale) {
       console.warn("YouTube fetch failed; serving stale cache", error);
-      return staleData as T;
+
+      return {
+        data: staleData as T,
+        stale: true,
+        fetchedAt: staleFetchedAt,
+        fromCache: true
+      };
     }
+
     throw error;
   }
+}
+
+// Existing callers (channel route, older consumers) keep the plain-T contract.
+export async function getCachedJson<T>(
+  namespace: string,
+  cacheInput: string,
+  ttlSeconds: number,
+  resolver: () => Promise<T>
+): Promise<T> {
+  return (
+    await getCachedJsonWithMeta(namespace, cacheInput, ttlSeconds, resolver)
+  ).data;
 }
 
 export async function fetchYouTubeJson<T>(
@@ -142,7 +227,23 @@ export async function fetchYouTubeJson<T>(
   );
 
   if (!response.ok) {
-    throw new Error(`YouTube ${resource} request failed: ${response.status}`);
+    const bodyText = await response.text().catch(() => "");
+    let reason = "";
+
+    try {
+      const body = JSON.parse(bodyText) as {
+        error?: { errors?: Array<{ reason?: string }> };
+      };
+      reason = body.error?.errors?.[0]?.reason ?? "";
+    } catch {
+      // Non-JSON error body — the status code is still enough to classify.
+    }
+
+    throw new YouTubeApiError(
+      `YouTube ${resource} request failed: ${response.status}`,
+      response.status,
+      reason
+    );
   }
 
   return (await response.json()) as T;

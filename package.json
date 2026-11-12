@@ -18,6 +18,7 @@
     "test:e2e": "node scripts/run-playwright-e2e.mjs",
     "seed:e2e": "node scripts/seed-e2e-user.mjs",
     "seed:talk": "node scripts/seed-talk-characters.mjs",
+    "search:dump": "node scripts/dump-youtube-search.mjs",
     "ci:local": "npm run lint:encoding && npm test && npm run build",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate"
