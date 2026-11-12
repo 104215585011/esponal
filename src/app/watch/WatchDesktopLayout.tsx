@@ -24,6 +24,7 @@ type WatchDesktopLayoutProps = {
     channelTitle: string;
   };
   relatedVideos: YouTubeVideoPayload[];
+  startSeconds?: number;
   currentTimeSec: number;
   playbackRate: number;
   videoEnded: boolean;
@@ -59,6 +60,7 @@ export function WatchDesktopLayout({
   videoId,
   videoInfo,
   relatedVideos,
+  startSeconds = 0,
   currentTimeSec,
   playbackRate,
   videoEnded,
@@ -110,7 +112,7 @@ export function WatchDesktopLayout({
               allowFullScreen
               className="h-full w-full border-0"
               id={PLAYER_IFRAME_ID}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0`}
+              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0${startSeconds > 0 ? `&start=${startSeconds}` : ""}`}
               title={videoInfo.title}
             />
           </div>

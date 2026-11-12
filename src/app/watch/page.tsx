@@ -7,6 +7,7 @@ import { fetchYouTubeJson } from "@/lib/youtube";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { curatedChannels } from "@/lib/channels";
 import { VideoCard } from "@/app/components/web/VideoCard";
+import { OpenVideoInput } from "@/app/components/web/OpenVideoInput";
 import Link from "next/link";
 import { WatchClient } from "./WatchClient";
 
@@ -23,6 +24,7 @@ const MOCK_CHAPTERS = [
 type WatchPageProps = {
   searchParams?: {
     v?: string;
+    t?: string;
   };
 };
 
@@ -173,6 +175,7 @@ async function fetchChannelVideos(channelId: string) {
 
 export default async function WatchPage({ searchParams }: WatchPageProps) {
   const videoId = searchParams?.v?.trim() ?? "";
+  const startSeconds = Number.parseInt(searchParams?.t ?? "", 10) || 0;
   const videoInfo = await fetchVideoInfo(videoId);
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelId, videoInfo.channelTitle, videoId);
 
@@ -196,6 +199,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           videoId={videoId}
           videoInfo={videoInfo}
           relatedVideos={relatedVideos}
+          startSeconds={startSeconds}
         />
       ) : (
         <div className="mx-auto w-full max-w-app-shell px-4 py-12 sm:px-6 lg:px-8">
@@ -204,6 +208,9 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
               精选 YouTube 优质西语频道，搭配逐词翻译与智能拆解，带你边听边记。
             </p>
+            <div className="mt-4 max-w-2xl">
+              <OpenVideoInput />
+            </div>
           </div>
 
           <div id="video-sections">

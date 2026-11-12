@@ -27,6 +27,7 @@ type WatchClientProps = {
     channelTitle: string;
   };
   relatedVideos: YouTubeVideoPayload[];
+  startSeconds?: number;
 };
 
 type ActiveLookup = {
@@ -92,7 +93,7 @@ function useIsMobileViewport() {
   return isMobileViewport;
 }
 
-export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientProps) {
+export function WatchClient({ videoId, videoInfo, relatedVideos, startSeconds = 0 }: WatchClientProps) {
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1.0);
@@ -622,6 +623,7 @@ export function WatchClient({ videoId, videoInfo, relatedVideos }: WatchClientPr
     videoId,
     videoInfo,
     relatedVideos,
+    startSeconds,
     currentTimeSec,
     playbackRate,
     videoEnded,

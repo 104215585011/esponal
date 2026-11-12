@@ -39,3 +39,40 @@ export function parseYouTubeVideoId(input: string) {
 
   return null;
 }
+
+// Extract a `t=` start-time hint from a YouTube URL. Accepts the compact
+// `1h2m3s` form YouTube uses in share links, plus a bare number of seconds.
+export function parseYouTubeStartSeconds(input: string): number | null {
+  let url: URL;
+
+  try {
+    url = new URL(input.trim());
+  } catch {
+    return null;
+  }
+
+  const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+  if (
+    hostname !== "youtu.be" &&
+    hostname !== "youtube.com" &&
+    hostname !== "m.youtube.com"
+  ) {
+    return null;
+  }
+
+  const raw = url.searchParams.get("t") ?? "";
+  if (!raw) return null;
+
+  if (/^\d+$/.test(raw)) {
+    return Number.parseInt(raw, 10);
+  }
+
+  const parts = raw.match(/(\d+h)?(\d+m)?(\d+s)?/);
+  if (!parts || parts[0] === "") return null;
+
+  const hours = Number.parseInt(parts[1] ?? "0", 10) || 0;
+  const minutes = Number.parseInt(parts[2] ?? "0", 10) || 0;
+  const seconds = Number.parseInt(parts[3] ?? "0", 10) || 0;
+
+  return hours * 3600 + minutes * 60 + seconds;
+}

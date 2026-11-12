@@ -193,6 +193,7 @@ type WatchMobileLayoutProps = {
     channelTitle: string;
   };
   relatedVideos: YouTubeVideoPayload[];
+  startSeconds?: number;
   currentTimeSec: number;
   playbackRate: number;
   videoEnded: boolean;
@@ -229,6 +230,7 @@ export function WatchMobileLayout({
   videoId,
   videoInfo,
   relatedVideos,
+  startSeconds = 0,
   currentTimeSec,
   playbackRate,
   videoEnded,
@@ -300,7 +302,7 @@ export function WatchMobileLayout({
             allowFullScreen
             className="absolute inset-0 w-full h-full border-0 pointer-events-none"
             id={PLAYER_IFRAME_ID}
-            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0&controls=0&disablekb=1&rel=0&playsinline=1&iv_load_policy=3&modestbranding=1`}
+            src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&fs=1&cc_load_policy=0&controls=0&disablekb=1&rel=0&playsinline=1&iv_load_policy=3&modestbranding=1${startSeconds > 0 ? `&start=${startSeconds}` : ""}`}
             title={videoInfo.title}
           />
           {/* Invisible tap target layer */}
