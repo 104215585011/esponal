@@ -12,10 +12,13 @@ test("WATCH-005: YouTube iframe parameters updated", async () => {
   const clientText = await readText(watchClientPath);
 
   // Native captions must stay off: we render our own bilingual subtitles.
-  // cc_lang_pref=invalid suppresses YouTube's remembered CC preference.
+  // cc_lang_pref=invalid suppresses YouTube's remembered CC preference, and
+  // unloadModule("captions"/"cc") removes the module on ready and state change.
   assert.match(clientText, /cc_load_policy=0/);
   assert.doesNotMatch(clientText, /cc_load_policy=1/);
   assert.match(clientText, /cc_lang_pref:\s*"invalid"/);
+  assert.match(clientText, /unloadModule\("captions"\)/);
+  assert.match(clientText, /unloadModule\("cc"\)/);
   assert.doesNotMatch(clientText, /hl=es/);
   assert.doesNotMatch(clientText, /cc_lang_pref=es/);
 });

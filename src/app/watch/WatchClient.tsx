@@ -363,6 +363,21 @@ export function WatchClient({ videoId, videoInfo, relatedVideos, startSeconds = 
           events: {
             onReady: () => {
               isPlayerReadyRef.current = true;
+
+              // Aggressively suppress YouTube's native captions. cc_lang_pref
+              // alone is unreliable with auto-generated (ASR) tracks, so also
+              // unload the caption modules. `captions` is the HTML5 module and
+              // `cc` is the legacy fallback; both are no-ops when absent.
+              try {
+                const player = playerRef.current;
+                if (typeof player?.unloadModule === "function") {
+                  player.unloadModule("captions");
+                  player.unloadModule("cc");
+                }
+              } catch (err) {
+                console.warn("Failed to unload YouTube caption modules", err);
+              }
+
               // Apply initial speed
               try {
                 const currentSpeed = getPlaybackRate();
@@ -395,6 +410,16 @@ export function WatchClient({ videoId, videoInfo, relatedVideos, startSeconds = 
               const playing = yt.PlayerState?.PLAYING ?? 1;
               const buffering = yt.PlayerState?.BUFFERING ?? 3;
               const paused = yt.PlayerState?.PAUSED ?? 2;
+
+              // YouTube can re-load the caption module when playback state
+              // changes; keep it unloaded on every state transition.
+              try {
+                const player = playerRef.current;
+                if (typeof player?.unloadModule === "function") {
+                  player.unloadModule("captions");
+                  player.unloadModule("cc");
+                }
+              } catch (err) {}
 
               if (event.data === playing || event.data === buffering) {
                 pendingMobilePlayRef.current = null;
