@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 const readText = (path) => readFile(path, "utf8");
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 
-test("EXT-002 translate API route validates input, calls Tencent TMT, and caches translations", async () => {
+test("EXT-002 translate API route validates input, translates via DeepSeek/DashScope, and caches translations", async () => {
   const routePath = "src/app/api/translate/route.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
 
@@ -15,12 +15,8 @@ test("EXT-002 translate API route validates input, calls Tencent TMT, and caches
   assert.match(route, /export\s+async\s+function\s+POST/);
   assert.match(route, /NextResponse\.json/);
   assert.match(route, /text/);
-  assert.match(route, /TENCENT_SECRET_ID/);
-  assert.match(route, /TENCENT_SECRET_KEY/);
-  assert.match(route, /TextTranslate/);
-  assert.match(route, /TC3-HMAC-SHA256/);
-  assert.match(route, /tmt\.tencentcloudapi\.com/);
-  assert.match(route, /translate:v2:\$\{sha256Hex\(text\)\}/);
+  assert.match(route, /translateEsToZh/);
+  assert.match(route, /translate:v3:\$\{sha256Hex\(text\)\}/);
   assert.match(route, /60\s*\*\s*60\s*\*\s*24\s*\*\s*7/);
   assert.match(route, /redis\.get/);
   assert.match(route, /redis\.set/);
@@ -31,6 +27,22 @@ test("EXT-002 translate API route validates input, calls Tencent TMT, and caches
   assert.match(route, /falling back to source text|Falling back to source text/);
   assert.match(route, /degraded:\s*true/);
   assert.doesNotMatch(route, /status:\s*500/);
+});
+
+test("EXT-002 translate providers chain DeepSeek then DashScope", async () => {
+  const libPath = "src/lib/translate.ts";
+  assert.ok(existsSync(libPath), `${libPath} should exist`);
+
+  const lib = await readText(libPath);
+
+  assert.match(lib, /translateWithDeepSeek/);
+  assert.match(lib, /translateWithDashScope/);
+  assert.match(lib, /DEEPSEEK_API_KEY/);
+  assert.match(lib, /DASHSCOPE_API_KEY/);
+  assert.match(lib, /deepseek-chat/);
+  assert.match(lib, /glm-5/);
+  assert.match(lib, /containsChinese/);
+  assert.match(lib, /export\s+async\s+function\s+translateEsToZh/);
 });
 
 test("EXT-002 environment example documents MiniMax credentials", async () => {
