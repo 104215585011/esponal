@@ -16,17 +16,18 @@
 **直接下载安装**,不需要电脑、不需要 Expo Go:
 
 ```
-https://github.com/104215585011/esponal/releases/download/mobile-v0.4.1/esponal-v0.4.1.apk
+https://github.com/104215585011/esponal/releases/download/mobile-v0.5.0/esponal-v0.5.0.apk
 ```
 
 手机浏览器打开 → 下载 → 允许「安装未知来源应用」→ 安装。
 
-当前包:v0.4.1(2026-11-14),30.9MB,arm64-v8a。
+当前包:v0.5.0(2026-11-14),30.9MB,arm64-v8a。
 签名用的是 debug keystore —— **能装能用**,但不是上架用的正式签名。
 
 **版本历史**
 | 版本 | 内容 |
 |---|---|
+| v0.5.0 | + 应用内更新(App 内下载 APK 并拉起安装器)、登录态跨版本保留 |
 | v0.4.1 | + 阅读器打开即标记已读(列表显示「已读」) |
 | v0.4.0 | + 应用内更新检查(启动自动检查、我的页手动检查、一键下载) |
 | v0.3.0 | + 阅读器段落朗读(连续播放、当前段高亮) |
@@ -35,16 +36,23 @@ https://github.com/104215585011/esponal/releases/download/mobile-v0.4.1/esponal-
 
 ### 更新机制(重要)
 
-侧载 APK 不会自动更新,所以做了**应用内更新检查**:
+侧载 APK 不会自动更新,所以做了**应用内更新**:
 
 - App 启动(登录后)静默请求 `GET /api/mobile/app-version`
-- 后端从 GitHub Releases 读最新 `mobile-v*` tag,**发新版即生效,无需人工维护**
-- 发现新版 → 弹窗显示版本对比 + 更新说明 + 「去下载」按钮(打开浏览器下载 APK)
+- 后端从 GitHub Releases 读最新 `mobile-v*` tag,**发新版即生效,无需人工维护**(Redis 缓存 5 分钟)
+- 发现新版 → 弹窗 → 点「**立即更新**」→ **在 App 内下载 APK(带进度)→ 自动拉起系统安装器**
 - 「我的」页也能手动检查
 
-**发版时必做**:改 `app.json` 的 `version`(递增)和 `android.versionCode`(递增),否则 App 认为自己是新版、不会提示。
+**登录态会保留**,因为:
 
-> Android 系统限制:应用不能静默安装 APK,最后一步必须用户手动确认。
+1. 所有版本用同一个 `android/app/debug.keystore` 签名 —— 已实测 v0.4.0 与 v0.4.1 证书 SHA-256 完全相同(`fac61745dc090378...`)
+2. 同签名覆盖安装时,Android 保留应用数据,`expo-secure-store` 里的 token 和用户信息都还在
+3. `app.json` 加了 `REQUEST_INSTALL_PACKAGES` 权限,App 才能拉起安装器
+
+> **系统限制**:Android 不允许应用静默安装 APK,下载完成后必须用户点「安装」确认。
+> 这是安全策略,任何侧载 App 都一样。首次更新可能需要在系统设置里允许「安装未知应用」。
+
+**发版时必做**:改 `app.json` 的 `version`(递增)和 `android.versionCode`(递增),否则 App 认为自己是新版、不会提示。
 
 ---
 
