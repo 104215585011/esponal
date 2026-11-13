@@ -33,3 +33,16 @@ export async function fetchStory(slug: string) {
   );
   return res.story;
 }
+
+/** 标记已读。失败不抛错 —— 阅读体验不该被这个打断。 */
+export async function markStoryRead(slug: string) {
+  try {
+    await apiFetch<{ ok: boolean }>(
+      `/api/lectura/${encodeURIComponent(slug)}/read`,
+      { method: "POST" }
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}

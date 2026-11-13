@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { fetchStory, type LecturaStory } from "@/api/lectura";
+import { fetchStory, markStoryRead, type LecturaStory } from "@/api/lectura";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
 import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
@@ -42,6 +42,8 @@ export default function LecturaReaderScreen() {
     try {
       const data = await fetchStory(String(slug));
       setStory(data);
+      // 打开即记为已读(失败静默,不打断阅读)
+      void markStoryRead(String(slug));
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
