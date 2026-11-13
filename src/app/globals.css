@@ -303,6 +303,13 @@ body {
    CSS 统一给内容让位,壳本身不包 children。
    --------------------------------------------------------------- */
 @media (max-width: 767px) {
+  /* 壳时代的安全网:任何元素横向溢出都会把移动端布局视口撑大,
+     固定底栏(bottom:0)会被顶到可视区外(2026-11-13 真机反馈)。
+     clip 不产生滚动容器,组件内的 overflow-x-auto 横滑不受影响。 */
+  html {
+    overflow-x: clip;
+  }
+
   body[data-shell="tab"] {
     padding-top: 52px;
     padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));

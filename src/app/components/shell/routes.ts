@@ -2,7 +2,7 @@
 import { BookOpen, Home, Play, RotateCcw, User, type LucideIcon } from "lucide-react";
 
 export type ShellRouteLevel = "tab" | "push" | "sheet";
-export type ShellTabPath = "/home" | "/watch" | "/lectura" | "/review" | "/me";
+export type ShellTabPath = "/" | "/watch" | "/lectura" | "/review" | "/me";
 
 export type ShellRoute = {
   path: string;
@@ -16,7 +16,9 @@ export type ShellRoute = {
  * 五个一级 tab。壳里的底栏就是这张表,别处不许再写第二份导航。
  */
 export const shellTabRoutes: ShellRoute[] = [
-  { path: "/home", label: "首页", level: "tab", parentTab: "/home", Icon: Home },
+  // 首页 tab 就是登录后仪表盘 "/"(MOBILE-R2-001 真机反馈:此前 / 被登记成 push,
+  // 顶栏是 logo、底栏却隐藏,用户掉进导航真空)。/home 仅作旧链接兼容,重定向到 /。
+  { path: "/", label: "首页", level: "tab", parentTab: "/", Icon: Home },
   { path: "/watch", label: "视频", level: "tab", parentTab: "/watch", Icon: Play },
   { path: "/lectura", label: "阅读", level: "tab", parentTab: "/lectura", Icon: BookOpen },
   { path: "/review", label: "复习", level: "tab", parentTab: "/review", Icon: RotateCcw },
@@ -28,30 +30,29 @@ export const shellTabRoutes: ShellRoute[] = [
  * 顺序有意义:具体路径必须排在 `[slug]` 之前。
  */
 export const shellPushRoutes: ShellRoute[] = [
-  { path: "/", label: "Esponal", level: "push", parentTab: "/home" },
   { path: "/import/library", label: "我的导入", level: "push", parentTab: "/lectura" },
   { path: "/import/[id]", label: "导入阅读", level: "push", parentTab: "/lectura" },
   { path: "/import", label: "导入", level: "push", parentTab: "/lectura" },
   { path: "/lectura/[slug]", label: "短文阅读", level: "push", parentTab: "/lectura" },
   { path: "/vocab/review", label: "复习队列", level: "push", parentTab: "/review" },
-  { path: "/vocab", label: "语料库", level: "push", parentTab: "/home" },
+  { path: "/vocab", label: "语料库", level: "push", parentTab: "/" },
   { path: "/account/credits", label: "积分账户", level: "push", parentTab: "/me" },
   { path: "/membership", label: "会员", level: "push", parentTab: "/me" },
   { path: "/settings", label: "设置", level: "push", parentTab: "/me" },
-  { path: "/learn/phase-1", label: "第一阶词汇", level: "push", parentTab: "/home" },
-  { path: "/learn/foundation/[day]", label: "基础课程", level: "push", parentTab: "/home" },
-  { path: "/learn/foundation", label: "基础课程", level: "push", parentTab: "/home" },
-  { path: "/learn/[slug]", label: "课程", level: "push", parentTab: "/home" },
-  { path: "/learn", label: "学习路线", level: "push", parentTab: "/home" },
-  { path: "/talk/[characterId]", label: "对话", level: "push", parentTab: "/home" },
-  { path: "/talk", label: "AI 对话", level: "push", parentTab: "/home" },
-  { path: "/phonics", label: "字母发音", level: "push", parentTab: "/home" },
-  { path: "/grammar/[slug]", label: "语法", level: "push", parentTab: "/home" },
-  { path: "/grammar", label: "语法", level: "push", parentTab: "/home" },
-  { path: "/dissect", label: "拆解", level: "push", parentTab: "/home" },
-  { path: "/search", label: "搜索", level: "push", parentTab: "/home" },
-  { path: "/extension", label: "浏览器扩展", level: "push", parentTab: "/home" },
-  { path: "import-sheet", label: "导入", level: "sheet", parentTab: "/home" },
+  { path: "/learn/phase-1", label: "第一阶词汇", level: "push", parentTab: "/" },
+  { path: "/learn/foundation/[day]", label: "基础课程", level: "push", parentTab: "/" },
+  { path: "/learn/foundation", label: "基础课程", level: "push", parentTab: "/" },
+  { path: "/learn/[slug]", label: "课程", level: "push", parentTab: "/" },
+  { path: "/learn", label: "学习路线", level: "push", parentTab: "/" },
+  { path: "/talk/[characterId]", label: "对话", level: "push", parentTab: "/" },
+  { path: "/talk", label: "AI 对话", level: "push", parentTab: "/" },
+  { path: "/phonics", label: "字母发音", level: "push", parentTab: "/" },
+  { path: "/grammar/[slug]", label: "语法", level: "push", parentTab: "/" },
+  { path: "/grammar", label: "语法", level: "push", parentTab: "/" },
+  { path: "/dissect", label: "拆解", level: "push", parentTab: "/" },
+  { path: "/search", label: "搜索", level: "push", parentTab: "/" },
+  { path: "/extension", label: "浏览器扩展", level: "push", parentTab: "/" },
+  { path: "import-sheet", label: "导入", level: "sheet", parentTab: "/" },
 ];
 
 export const shellRoutes: ShellRoute[] = [...shellTabRoutes, ...shellPushRoutes];
@@ -74,7 +75,7 @@ export function getShellRouteForPath(pathname: string) {
 }
 
 export function getParentTabForPath(pathname: string): ShellTabPath {
-  return getShellRouteForPath(pathname)?.parentTab ?? "/home";
+  return getShellRouteForPath(pathname)?.parentTab ?? "/";
 }
 
 export function isShellHiddenPath(pathname: string) {

@@ -33,7 +33,7 @@ test("CORPUS-001 → MOBILE-R2: 语料库 becomes a push entry, the tab bar only
   const shell = await readText("src/app/components/shell/AppShell.tsx");
 
   // 语料库仍是可达入口,但降为推入页(父 tab = 首页)
-  assert.match(routes, /path:\s*"\/vocab", label: "语料库", level: "push", parentTab: "\/home"/);
+  assert.match(routes, /path:\s*"\/vocab", label: "语料库", level: "push", parentTab: "\/"/);
   assert.doesNotMatch(shell, /label:\s*"语料库"/);
 });
 

@@ -11,7 +11,7 @@ test("MOBILE-R-001 route table is the single source for tabs, pushes, sheets, an
   assert.equal(existsSync(routePath), true, `${routePath} missing`);
   const routes = await readText(routePath);
 
-  for (const path of ["/home", "/watch", "/lectura", "/review", "/me"]) {
+  for (const path of ["/", "/watch", "/lectura", "/review", "/me"]) {
     const literalPath = escapeRegExp(path);
     assert.match(routes, new RegExp(`path:\\s*"${literalPath}"`));
     assert.match(routes, new RegExp(`path:\\s*"${literalPath}"[\\s\\S]*?level:\\s*"tab"`));

@@ -52,7 +52,7 @@ test("MOBILE-003 homepage uses mockup-style mobile stats and a horizontal learni
   assert.match(source, /px-4 py-\[14px\]/);
   assert.match(source, /stats\?\.totalSaved \?\? 119/);
   assert.match(source, /readCount \?\? 4/);
-  assert.match(source, /-mx-4 mt-\[18px\] flex snap-x snap-mandatory gap-\[13px\] overflow-x-auto px-\[22px\] pb-2/);
+  assert.match(source, /mt-\[18px\] flex snap-x snap-mandatory gap-\[13px\] overflow-x-auto px-\[22px\] pb-2/);
   assert.match(source, /flex-none basis-\[195px\] snap-start/);
   assert.match(source, /rounded-\[20px\] border border-zinc-200\/70 bg-white p-\[18px\] shadow-card/);
   assert.match(source, /grid h-\[38px\] w-\[38px\] place-items-center rounded-\[12px\] bg-brand-50/);

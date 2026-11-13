@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 30_000,
   fullyParallel: false,
+  // mobile/desktop 两个 project 并行打同一个 next dev 时,编译互踩会产生
+  // ERR_CONNECTION_RESET(触发冒烟的 console 断言),串行即可稳定
+  workers: process.env.CI ? 2 : 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "list" : "list",
   use: {

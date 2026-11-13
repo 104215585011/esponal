@@ -239,7 +239,8 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="-mx-4 mt-[18px] flex snap-x snap-mandatory gap-[13px] overflow-x-auto px-[22px] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+          {/* 注意:父容器是 px-0,不能再叠 -mx-4(会把文档撑到 406px 触发移动端视口缩放,底栏被顶出屏) */}
+          <div className="mt-[18px] flex snap-x snap-mandatory gap-[13px] overflow-x-auto px-[22px] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
             {mobileLearningSteps.map((step) => (
               <LearningStepCard key={step.step} {...step} />
             ))}

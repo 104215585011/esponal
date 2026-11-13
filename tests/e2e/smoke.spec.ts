@@ -24,6 +24,18 @@ const ignoredConsolePatterns = [
   /favicon/i,
 ];
 
+// 第三方 CDN(YouTube 缩略图等)在本环境不可达时会报
+// "Failed to load resource: net::ERR_*"。资源加载失败有 UI 降级,
+// 不属于产品 console 错误,按 URL 放行(页面自身的资源失败仍会被拦)。
+const externalResourceNoise =
+  /Failed to load resource[\s\S]*net::(ERR_CONNECTION_RESET|ERR_CONNECTION_TIMED_OUT|ERR_TIMED_OUT|ERR_NAME_NOT_RESOLVED|ERR_BLOCKED_BY_CLIENT)/i;
+
+function isExternalResourceNoise(message: import("@playwright/test").ConsoleMessage) {
+  if (!externalResourceNoise.test(message.text())) return false;
+  const url = message.location()?.url ?? "";
+  return /ytimg\.com|youtube\.com|googleusercontent\.com|ggpht\.com|fonts\.gstatic\.com|fonts\.googleapis\.com/i.test(url);
+}
+
 function attachConsoleGuard(page: Page) {
   const consoleMessages: string[] = [];
   const pageErrors: string[] = [];
@@ -32,6 +44,7 @@ function attachConsoleGuard(page: Page) {
     if (message.type() !== "error") return;
     const text = message.text();
     if (ignoredConsolePatterns.some((pattern) => pattern.test(text))) return;
+    if (isExternalResourceNoise(message)) return;
     consoleMessages.push(text);
   });
 
@@ -101,7 +114,7 @@ const SHELL = "[data-testid='mobile-app-shell']";
 const TABBAR = "[data-testid='mobile-shell-tabbar']";
 
 const SHELL_TABS = [
-  { href: "/home", label: "首页" },
+  { href: "/", label: "首页" },
   { href: "/watch", label: "视频" },
   { href: "/lectura", label: "阅读" },
   { href: "/review", label: "复习" },
@@ -122,7 +135,7 @@ test("mobile shell renders all five tabs on every tab page", async ({ page }, te
 test("tab bar DOM survives tab switches without remounting", async ({ page }, testInfo) => {
   test.skip(!isMobileProject(testInfo.project.name), "mobile-only shell contract");
 
-  await page.goto("/home", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   const tabbar = page.locator(TABBAR);
   await expect(tabbar).toBeVisible();
 
@@ -147,7 +160,7 @@ test("tab bar DOM survives tab switches without remounting", async ({ page }, te
 test("desktop never mounts the mobile shell", async ({ page }, testInfo) => {
   test.skip(isMobileProject(testInfo.project.name), "desktop-only shell contract");
 
-  for (const route of ["/", "/watch", "/home"]) {
+  for (const route of ["/", "/watch"]) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     await expect(page.locator(SHELL)).toHaveCount(0);
     await expect(page.locator(TABBAR)).toHaveCount(0);
