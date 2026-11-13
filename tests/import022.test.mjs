@@ -75,19 +75,18 @@ test("IMPORT-4 v2 adds a reusable mobile ImportSheet with portal, drag close, UR
   assert.doesNotMatch(source, /\/api\/import\/file/);
 });
 
-test("IMPORT-4 upgrades the mobile bottom tab bar with a centered import fan-out trigger", async () => {
-  const source = await read("src/app/components/web/BottomTabBar.tsx");
+test("IMPORT-4 → MOBILE-R2: the global import fan-out lives in the shell top bar", async () => {
+  const source = await read("src/app/components/shell/AppShell.tsx");
 
-  assert.match(source, /ImportSheet/);
-  assert.match(source, /Plus/);
-  assert.match(source, /Youtube/);
-  assert.match(source, /FileText/);
-  assert.match(source, /data-testid="mobile-import-trigger"/);
-  assert.match(source, /w-12 h-12 rounded-full bg-brand-500 text-white shadow-\[0_8px_16px_-6px_rgba\(16,185,129,0\.5\)\]/);
-  assert.match(source, /absolute bottom-20 left-1\/2 -translate-x-1\/2 w-\[calc\(100vw-32px\)\] max-w-sm bg-white rounded-\[24px\]/);
-  assert.match(source, /grid grid-cols-2 gap-2/);
-  assert.match(source, /瑙嗛閾炬帴|视频链接/);
-  assert.match(source, /EPUB\/PDF/);
-  assert.match(source, /setSheetMode\("url"\)/);
-  assert.match(source, /setSheetMode\("file"\)/);
+  // 位置从底栏中央挪到顶栏右侧,但两个入口都在
+  assert.ok(source.includes("ImportSheet"));
+  assert.ok(source.includes("data-testid=\"mobile-import-trigger\""));
+  assert.ok(source.includes("aria-label=\"导入\""));
+  assert.ok(source.includes("grid grid-cols-2 gap-2"));
+  assert.ok(source.includes("视频链接"));
+  assert.ok(source.includes("EPUB/PDF"));
+  assert.ok(source.includes("setSheetMode(\"url\")"));
+  assert.ok(source.includes("setSheetMode(\"file\")"));
+  // 浮层随路由变化收起,不能跨页残留
+  assert.ok(source.includes("setFanOpen(false)"));
 });

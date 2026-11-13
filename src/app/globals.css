@@ -297,3 +297,24 @@ body {
   );
   background-size: 200% 100%;
 }
+
+/* ---------------------------------------------------------------
+   移动端持久壳(MOBILE-R2):由 AppShell 写入 body[data-shell],
+   CSS 统一给内容让位,壳本身不包 children。
+   --------------------------------------------------------------- */
+@media (max-width: 767px) {
+  body[data-shell="tab"] {
+    padding-top: 52px;
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body[data-shell="push"] {
+    padding-top: 52px;
+  }
+
+  /* 沉浸页(视频播放):顶栏底栏都退场,内容自己占满 */
+  body[data-shell="immersive"] {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}

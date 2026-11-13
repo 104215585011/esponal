@@ -34,6 +34,7 @@ export default defineConfig({
     command: "node scripts/playwright-web-server.mjs",
     url: "http://127.0.0.1:3017",
     timeout: 60_000,
-    reuseExistingServer: false
+    // 本地已在跑 dev server 时直接复用,避免 Next 启动期重复编译导致 30s 超时;CI 仍强制新起
+    reuseExistingServer: !process.env.CI
   }
 });

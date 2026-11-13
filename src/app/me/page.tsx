@@ -1,27 +1,33 @@
-// Timestamp: 2026-06-11 11:05
+// Timestamp: 2026-11-13 14:02
 import Link from "next/link";
-import { AppShell } from "@/app/components/shell/AppShell";
+
+const rows = [
+  { label: "积分账户", href: "/account/credits" },
+  { label: "会员与订阅", href: "/membership" },
+  { label: "设置", href: "/settings" },
+  { label: "语料库", href: "/vocab" }
+];
 
 export default function MobileMePage() {
   return (
-    <AppShell title="我的">
-      <main className="px-4 py-6">
-        <section className="rounded-[28px] border border-zinc-200/70 bg-white px-5 py-6 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.35)]">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">Me</p>
-          <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-zinc-950">我的建设中</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            这里会承接资料、积分账户、会员和设置。当前票只搭建移动壳。
-          </p>
-          <div className="mt-5 grid gap-2">
-            <Link className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-700" href="/account/credits">
-              积分账户
-            </Link>
-            <Link className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-700" href="/membership">
-              会员
-            </Link>
-          </div>
-        </section>
-      </main>
-    </AppShell>
+    <main className="px-4 pb-2 pt-5">
+      <h1 className="text-[22px] font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50">我的</h1>
+      <p className="mt-1.5 text-[12.5px] leading-6 text-zinc-500">
+        资料、积分、会员、设置收在这一页。正式版在 P2 迁入。
+      </p>
+
+      <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200/70 bg-white dark:border-zinc-800/70 dark:bg-zinc-900">
+        {rows.map((row) => (
+          <Link
+            className="flex items-center justify-between border-b border-zinc-100 px-4 py-3.5 text-[14px] font-medium text-zinc-800 last:border-b-0 active:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-100 dark:active:bg-zinc-800"
+            href={row.href}
+            key={row.href}
+          >
+            <span>{row.label}</span>
+            <span className="text-[12px] text-zinc-400">→</span>
+          </Link>
+        ))}
+      </div>
+    </main>
   );
 }

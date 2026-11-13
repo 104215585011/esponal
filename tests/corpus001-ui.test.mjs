@@ -28,15 +28,13 @@ test("CORPUS-001 mobile vocab page splits desktop and mobile corpus layouts", as
   assert.match(page, /我的语料库/);
 });
 
-test("CORPUS-001 bottom tab uses corpus label instead of old vocab label", async () => {
-  const tabPath = "src/app/components/web/BottomTabBar.tsx";
-  assert.equal(existsSync(tabPath), true, `${tabPath} should exist`);
+test("CORPUS-001 → MOBILE-R2: 语料库 becomes a push entry, the tab bar only carries the five shell tabs", async () => {
+  const routes = await readText("src/app/components/shell/routes.ts");
+  const shell = await readText("src/app/components/shell/AppShell.tsx");
 
-  const tabs = await readText(tabPath);
-
-  assert.match(tabs, /href:\s*"\/vocab"/);
-  assert.match(tabs, /label:\s*"语料库"/);
-  assert.doesNotMatch(tabs, /label:\s*"词库"/);
+  // 语料库仍是可达入口,但降为推入页(父 tab = 首页)
+  assert.match(routes, /path:\s*"\/vocab", label: "语料库", level: "push", parentTab: "\/home"/);
+  assert.doesNotMatch(shell, /label:\s*"语料库"/);
 });
 
 test("CORPUS-001 mobile corpus shell provides video, article, word, and phrase tabs", async () => {

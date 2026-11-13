@@ -73,20 +73,19 @@ test("MOBILE-003 hides duplicate mobile tools and keeps video only as a hidden l
   assert.doesNotMatch(source, /<VideoCard/);
 });
 
-test("MOBILE-003 shared shell visual polish follows the mockup glass treatment without changing structure", async () => {
-  const topBar = await readText("src/app/components/web/MobileTopBar.tsx");
-  const tabBar = await readText("src/app/components/web/BottomTabBar.tsx");
+test("MOBILE-003 → MOBILE-R2: glass treatment moved into the persistent shell unchanged", async () => {
+  const shell = await readText("src/app/components/shell/AppShell.tsx");
 
-  assert.match(topBar, /bg-white\/78/);
-  assert.match(topBar, /backdrop-blur-\[16px\]/);
-  assert.match(topBar, /border-b border-zinc-200\/60/);
-  assert.match(topBar, /px-5/);
-  assert.match(topBar, /h-\[52px\]/);
+  // 顶栏:毛玻璃 + 细线 + 52px
+  assert.match(shell, /bg-white\/88/);
+  assert.match(shell, /backdrop-blur-\[16px\]/);
+  assert.match(shell, /border-b border-zinc-200\/70/);
+  assert.match(shell, /h-\[52px\]/);
 
-  assert.match(tabBar, /bg-white\/90/);
-  assert.match(tabBar, /backdrop-blur-\[18px\]/);
-  assert.match(tabBar, /border-t border-zinc-200\/60/);
-  assert.match(tabBar, /px-2 pt-\[9px\] pb-\[calc\(9px\+env\(safe-area-inset-bottom\)\)\]/);
-  assert.match(tabBar, /text-\[10\.5px\]/);
-  assert.match(tabBar, /text-brand-700/);
+  // 底栏:更轻的毛玻璃 + 10.5px 标签 + 翡翠高亮
+  assert.match(shell, /bg-white\/92/);
+  assert.match(shell, /backdrop-blur-\[18px\]/);
+  assert.match(shell, /border-t border-zinc-200\/70/);
+  assert.match(shell, /text-\[10\.5px\]/);
+  assert.match(shell, /text-brand-700/);
 });

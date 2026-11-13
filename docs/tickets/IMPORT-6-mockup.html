@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esponal · IMPORT-6 真·阅读器模型</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Noto+Sans+SC:wght@300;400;500;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#121413;--ink-2:#3f433f;--muted:#8a8f88;--line:#eceeec;--bg-soft:#f7f8f7;
+    --brand:#10b981;--brand-deep:#059669;--brand-soft:#ecf8f2;
+    --paper:#ffffff;--paper-ink:#1f2421;--paper-muted:#8a8f88;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9eae8;min-height:100vh;display:flex;align-items:center;justify-content:center;gap:24px;padding:28px 16px;
+    font-family:"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased;flex-wrap:wrap}
+  .num{font-family:"Plus Jakarta Sans","Noto Sans SC"}
+  .phone{width:390px;max-width:100%;height:820px;border-radius:44px;overflow:hidden;position:relative;background:var(--paper);
+    box-shadow:0 40px 90px -20px rgba(0,0,0,.4),0 0 0 10px #16181a,0 0 0 11px #2a2d30;transition:background .25s}
+  .note{width:300px;font-size:12px;color:#555;line-height:1.8}
+  .note b{color:#111}
+
+  /* 顶栏(沉浸可隐藏) */
+  .rtop{position:absolute;top:0;left:0;right:0;height:52px;z-index:20;display:flex;align-items:center;gap:8px;padding:0 12px;
+    background:color-mix(in srgb, var(--paper) 88%, transparent);backdrop-filter:blur(12px);border-bottom:1px solid color-mix(in srgb, var(--paper-ink) 8%, transparent);transition:transform .25s}
+  .rtop.hide{transform:translateY(-100%)}
+  .rtop .bk{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:0;background:none;color:var(--paper-ink);cursor:pointer}
+  .rtop .bk svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
+  .rtop .t{flex:1;font-size:13.5px;font-weight:600;color:var(--paper-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* 书页(CSS 多栏分页示意:横向滑动) */
+  .pagewrap{position:absolute;inset:0;overflow:hidden}
+  .pages{position:absolute;inset:0;display:flex;transition:transform .25s cubic-bezier(.32,.72,.32,1)}
+  .page{flex:0 0 100%;height:100%;padding:72px 26px 96px;overflow:hidden}
+  .page p{font-size:var(--fs,17px);line-height:var(--lh,1.75);color:var(--paper-ink);margin-bottom:.9em;font-family:var(--ff,"Noto Sans SC",sans-serif);text-align:justify}
+  .page .es{}
+  .page .word{border-bottom:1.5px dotted color-mix(in srgb, var(--brand) 55%, transparent);cursor:pointer}
+  .page img.ill{width:100%;border-radius:12px;margin:6px 0 12px}
+  .ill-ph{width:100%;height:140px;border-radius:12px;background:linear-gradient(140deg,#dcebe2,#f3ead6);display:grid;place-items:center;color:#7d8a80;font-size:11px;margin:6px 0 14px}
+
+  /* 底部控制条 */
+  .dock{position:absolute;left:16px;right:16px;bottom:16px;z-index:20;height:58px;display:flex;align-items:center;justify-content:space-between;gap:4px;
+    border-radius:999px;padding:0 10px;background:color-mix(in srgb, var(--paper) 82%, transparent);backdrop-filter:blur(14px);
+    border:1px solid color-mix(in srgb, var(--paper-ink) 10%, transparent);box-shadow:0 14px 34px -18px rgba(0,0,0,.35);transition:transform .25s}
+  .dock.hide{transform:translateY(140%)}
+  .dk{width:42px;height:42px;border-radius:50%;border:0;background:none;display:grid;place-items:center;color:var(--paper-ink);cursor:pointer;font-weight:700}
+  .dk svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .dk.play{background:var(--brand);color:#fff;border-radius:14px;width:46px}
+  .dk.aa{font-family:"Plus Jakarta Sans";font-size:15px}
+  .pgnum{font-family:"Plus Jakarta Sans";font-size:12px;font-weight:700;color:var(--paper-ink);min-width:64px;text-align:center;cursor:pointer}
+
+  /* 设置 sheet */
+  .scrim{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;background:#fff;border-radius:24px 24px 0 0;padding:10px 22px 30px;
+    transform:translateY(105%);transition:transform .25s cubic-bezier(.32,.72,.32,1)}
+  .sheet.on{transform:translateY(0)}
+  .grab{width:40px;height:5px;border-radius:999px;background:#e3e5e3;margin:6px auto 14px}
+  .srow{margin-bottom:16px}
+  .srow .lb{font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .seg{display:flex;background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+  .seg button{flex:1;border:0;background:none;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--muted);padding:8px 0;border-radius:9px;cursor:pointer}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .fsline{display:flex;align-items:center;gap:14px}
+  .fsline button{width:44px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;font-family:"Plus Jakarta Sans";font-weight:700;cursor:pointer;color:var(--ink)}
+  .fsline .cur{flex:1;text-align:center;font-family:"Plus Jakarta Sans";font-weight:800;font-size:15px;color:var(--brand-deep)}
+  .papers{display:flex;gap:10px}
+  .pp{flex:1;height:52px;border-radius:13px;border:2px solid var(--line);cursor:pointer;display:grid;place-items:center;font-size:11px;font-weight:600}
+  .pp.on{border-color:var(--brand)}
+  .pp.w{background:#fff;color:#222} .pp.s{background:#f7efdc;color:#5d5544} .pp.n{background:#15181b;color:#c8cdc9}
+</style>
+</head>
+<body>
+
+<div class="phone" id="ph">
+  <!-- 顶栏 -->
+  <div class="rtop" id="rtop">
+    <button class="bk"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+    <span class="t">Aula internacional 1 · Unidad 3</span>
+    <button class="bk"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+  </div>
+
+  <!-- 书页:横向分页(两页示意) -->
+  <div class="pagewrap" id="wrap">
+    <div class="pages" id="pages">
+      <div class="page">
+        <p class="es"><span class="word">Hola</span>, me <span class="word">llamo</span> Marta y soy de <span class="word">Sevilla</span>. Trabajo en una <span class="word">escuela</span> de idiomas en el centro de la ciudad.</p>
+        <div class="ill-ph">〔教材插图:版式与图随分页保留〕</div>
+        <p class="es">Por las mañanas <span class="word">desayuno</span> café con leche y una <span class="word">tostada</span> con tomate. Después voy al trabajo en <span class="word">bicicleta</span> porque me gusta el aire fresco.</p>
+        <p class="es">Los fines de semana <span class="word">quedo</span> con mis amigos en la plaza y charlamos durante horas.</p>
+      </div>
+      <div class="page">
+        <p class="es">En verano, mi familia y yo vamos al <span class="word">pueblo</span> de mis abuelos. Allí las tardes son largas y tranquilas.</p>
+        <p class="es">Mi abuela prepara una <span class="word">paella</span> enorme los domingos y toda la familia come junta en el patio.</p>
+        <p class="es">— 第二页:EPUB 由 CSS 多栏自分页,改字号会重排并锚定回当前段落,不丢位置。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部控制条 -->
+  <div class="dock" id="dock">
+    <button class="dk aa" onclick="openSheet(event)">Aa</button>
+    <button class="dk play"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 5l12 7-12 7V5z"/></svg></button>
+    <span style="flex:1"></span>
+    <button class="dk" onclick="turn(-1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+    <span class="pgnum num" id="pg">42 / 300</span>
+    <button class="dk" onclick="turn(1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></svg></button>
+  </div>
+
+  <!-- 设置 sheet -->
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="grab"></div>
+    <div class="srow"><div class="lb">字号</div>
+      <div class="fsline">
+        <button onclick="fs(-1)">A−</button><span class="cur" id="fsv">17</span><button onclick="fs(1)">A+</button>
+      </div>
+    </div>
+    <div class="srow"><div class="lb">字体</div>
+      <div class="seg" id="ffseg">
+        <button class="on" onclick="ff(this,'sans')">无衬线</button>
+        <button onclick="ff(this,'serif')">衬线(书感)</button>
+      </div>
+    </div>
+    <div class="srow"><div class="lb">行距</div>
+      <div class="seg" id="lhseg">
+        <button onclick="lh(this,1.6)">紧</button><button class="on" onclick="lh(this,1.75)">标准</button><button onclick="lh(this,1.95)">松</button>
+      </div>
+    </div>
+    <div class="srow"><div class="lb">纸张底色</div>
+      <div class="papers">
+        <div class="pp w on" onclick="paper(this,'#ffffff','#1f2421','w')">纯白</div>
+        <div class="pp s" onclick="paper(this,'#f7efdc','#433c2c','s')">米黄护眼</div>
+        <div class="pp n" onclick="paper(this,'#15181b','#c8cdc9','n')">夜间</div>
+      </div>
+    </div>
+    <div class="srow" style="margin-bottom:0"><div class="lb">翻页</div>
+      <div class="seg"><button class="on">滑动</button><button>无动画</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>IMPORT-6 真·阅读器模型(可点)</b><br><br>
+  · <b>Aa</b> 打开设置:字号步进 / 衬线切换 / 行距 / <b>三种纸张底色</b>(点了立即生效)/ 翻页档。<br><br>
+  · <b>◀ ▶ 翻页</b>:横向一页页滑(EPUB 用 CSS 多栏自分页;PDF 一页=一屏,fit-width+DPR 不再糊)。实机另有:左右 1/4 屏点按翻页、拖拽跟手、点中央显隐工具条。<br><br>
+  · 虚线下划词 = 可点查词(原查词卡不变,翻页手势与点词按拖动阈值区分)。<br><br>
+  · 改字号/字体后 EPUB 重排,<b>锚定回当前段落不丢位置</b>;设置 localStorage 持久化。<br><br>
+  · 不做仿真卷页(WebView 性能);细则见 <b>IMPORT-6.md</b>。
+</div>
+
+<script>
+  let cur=0,fsi=17,pgBase=42;
+  const fsteps=[15,16,17,19,21,23];
+  function turn(d){
+    cur=Math.max(0,Math.min(1,cur+d));
+    document.getElementById('pages').style.transform='translateX(-'+(cur*100)+'%)';
+    document.getElementById('pg').textContent=(pgBase+cur)+' / 300';
+  }
+  function openSheet(e){e.stopPropagation();document.getElementById('sheet').classList.add('on');document.getElementById('scrim').classList.add('on');}
+  function closeSheet(){document.getElementById('sheet').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+  function fs(d){
+    let i=fsteps.indexOf(fsi); i=Math.max(0,Math.min(fsteps.length-1,i+d)); fsi=fsteps[i];
+    document.getElementById('fsv').textContent=fsi;
+    document.getElementById('ph').style.setProperty('--fs',fsi+'px');
+  }
+  function ff(btn,kind){
+    seg(btn);
+    document.getElementById('ph').style.setProperty('--ff', kind==='serif' ? '"Literata","Noto Serif SC",serif' : '"Noto Sans SC",sans-serif');
+  }
+  function lh(btn,v){seg(btn);document.getElementById('ph').style.setProperty('--lh',v);}
+  function paper(el,bg,ink,k){
+    el.parentElement.querySelectorAll('.pp').forEach(p=>p.classList.remove('on'));el.classList.add('on');
+    const ph=document.getElementById('ph');
+    ph.style.setProperty('--paper',bg);ph.style.setProperty('--paper-ink',ink);ph.style.background=bg;
+  }
+  function seg(btn){btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+  // 点中央显隐工具条
+  document.getElementById('wrap').addEventListener('click',e=>{
+    const x=e.clientX-document.getElementById('ph').getBoundingClientRect().left;
+    if(x<98){turn(-1);return;} if(x>292){turn(1);return;}
+    document.getElementById('rtop').classList.toggle('hide');
+    document.getElementById('dock').classList.toggle('hide');
+  });
+</script>
+</body>
+</html>

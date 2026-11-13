@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esponal · MOBILE-R-000 App 壳总体方案模型</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff;--bg-soft:#f7f8f7;--ink:#121413;--ink-2:#3f433f;--muted:#8a8f88;--line:#eceeec;
+    --brand:#10b981;--brand-deep:#059669;--brand-soft:#ecf8f2;
+    --shadow:0 1px 2px rgba(16,24,20,.04),0 8px 24px -16px rgba(16,24,20,.18);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9eae8;min-height:100vh;display:flex;align-items:center;justify-content:center;gap:24px;padding:28px 16px;
+    font-family:"Noto Sans SC",sans-serif;-webkit-font-smoothing:antialiased;flex-wrap:wrap}
+  .num{font-family:"Plus Jakarta Sans","Noto Sans SC"}
+  .phone{width:390px;max-width:100%;height:820px;border-radius:44px;overflow:hidden;position:relative;background:var(--bg);
+    box-shadow:0 40px 90px -20px rgba(0,0,0,.4),0 0 0 10px #16181a,0 0 0 11px #2a2d30}
+  .note{width:300px;font-size:12px;color:#555;line-height:1.8}
+  .note b{color:#111}
+
+  /* ===== 壳:顶栏 ===== */
+  .topbar{position:absolute;top:0;left:0;right:0;height:56px;z-index:30;display:flex;align-items:center;gap:10px;padding:0 18px;
+    background:rgba(255,255,255,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+  .topbar .logo{font-family:"Plus Jakarta Sans";font-size:17px;font-weight:800;color:var(--ink)}
+  .topbar .logo i{color:var(--brand);font-style:normal}
+  .topbar .title{font-size:15px;font-weight:600;color:var(--ink)}
+  .topbar .sp{flex:1}
+  .tbtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:0;background:transparent;cursor:pointer;color:var(--ink-2)}
+  .tbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .tbtn.plus{background:var(--brand);color:#fff;box-shadow:0 6px 14px -6px rgba(16,185,129,.6)}
+
+  /* ===== 壳:页面容器 ===== */
+  .stage{position:absolute;inset:0;padding:56px 0 64px;overflow:hidden}
+  .tabview{position:absolute;inset:56px 0 64px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .15s}
+  .tabview.on{opacity:1;pointer-events:auto}
+  .tabview::-webkit-scrollbar{display:none}
+
+  /* ===== 壳:底部 5 tab ===== */
+  .tabbar{position:absolute;bottom:0;left:0;right:0;height:64px;z-index:30;display:flex;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:none;cursor:pointer;color:var(--muted)}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .tab span{font-size:10px;font-weight:500}
+  .tab.on{color:var(--brand-deep)} .tab.on span{font-weight:700}
+
+  /* ===== 首页内容 ===== */
+  .sec{padding:18px 18px 0}
+  .hello{font-size:20px;font-weight:700;color:var(--ink)}
+  .hello small{display:block;margin-top:4px;font-size:12px;color:var(--muted);font-weight:300}
+  .cont{margin-top:14px;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;background:#fff}
+  .cont .thumb{height:120px;background:linear-gradient(140deg,#0e3b2c,#10b981);display:flex;align-items:center;justify-content:center;color:#fff;position:relative}
+  .cont .thumb .play{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.25);backdrop-filter:blur(4px);display:grid;place-items:center}
+  .cont .thumb .tagc{position:absolute;left:12px;top:12px;font-size:10px;font-weight:600;background:rgba(0,0,0,.35);padding:3px 9px;border-radius:999px}
+  .cont .body{padding:13px 16px}
+  .cont .t{font-size:14px;font-weight:600;color:var(--ink)}
+  .cont .bar{margin-top:9px;height:4px;border-radius:999px;background:var(--bg-soft);overflow:hidden}
+  .cont .bar i{display:block;height:100%;width:64%;background:var(--brand);border-radius:999px}
+  .duo{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mini{border:1px solid var(--line);border-radius:18px;padding:14px;background:#fff;box-shadow:var(--shadow);cursor:pointer}
+  .mini .n{font-family:"Plus Jakarta Sans";font-size:24px;font-weight:800;color:var(--ink)}
+  .mini .l{margin-top:2px;font-size:11.5px;color:var(--muted)}
+  .mini.green{background:var(--brand-soft);border-color:#d3efe3} .mini.green .n{color:var(--brand-deep)}
+  .sech{margin:20px 0 10px;font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:space-between}
+  .sech a{font-size:11px;color:var(--brand-deep);text-decoration:none;font-weight:600}
+  .tools{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .tool{display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 4px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer}
+  .tool .ic{width:34px;height:34px;border-radius:11px;background:var(--brand-soft);display:grid;place-items:center}
+  .tool .ic svg{width:17px;height:17px;stroke:var(--brand-deep);fill:none;stroke-width:1.9}
+  .tool b{font-size:11px;font-weight:500;color:var(--ink-2)}
+  .vrow{display:flex;gap:12px;overflow-x:auto;padding-bottom:18px}
+  .vrow::-webkit-scrollbar{display:none}
+  .vcard{flex:0 0 150px;cursor:pointer}
+  .vcard .vt{height:84px;border-radius:14px;background:linear-gradient(120deg,#e8efe9,#d4e6da)}
+  .vcard .vn{margin-top:7px;font-size:12px;font-weight:500;color:var(--ink);line-height:1.35}
+
+  /* ===== 简化的其它 tab ===== */
+  .ph{padding:24px 18px;font-size:13px;color:var(--muted);line-height:1.9}
+  .shelf{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 18px 18px}
+  .book{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fff;box-shadow:var(--shadow)}
+  .book .cv{height:88px;border-radius:10px;background:linear-gradient(150deg,#eef4ef,#dcebe2);margin-bottom:9px}
+  .book .bn{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35}
+  .book .bm{margin-top:5px;font-size:10px;color:var(--muted)}
+  .badge{display:inline-block;font-size:9px;font-weight:600;color:var(--brand-deep);background:var(--brand-soft);padding:2px 7px;border-radius:999px;margin-top:6px}
+  .melist{margin:0 18px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+  .merow{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+  .merow:last-child{border-bottom:0}
+  .merow svg{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.8}
+  .merow b{flex:1;font-size:13.5px;font-weight:500;color:var(--ink)}
+  .merow .v{font-size:12px;color:var(--brand-deep);font-weight:600}
+  .merow .chev{color:var(--muted)}
+  .mehead{display:flex;align-items:center;gap:13px;padding:22px 18px 16px}
+  .ava{width:54px;height:54px;border-radius:50%;background:linear-gradient(140deg,#10b981,#0e3b2c);display:grid;place-items:center;color:#fff;font-weight:700;font-size:19px}
+  .mehead .nm{font-size:16px;font-weight:700;color:var(--ink)}
+  .mehead .pl{margin-top:3px;font-size:11px;color:var(--brand-deep);font-weight:600;background:var(--brand-soft);display:inline-block;padding:2px 9px;border-radius:999px}
+
+  /* ===== 推入页 ===== */
+  .push{position:absolute;inset:0;z-index:40;background:#fff;transform:translateX(100%);transition:transform .25s cubic-bezier(.32,.72,.32,1)}
+  .push.on{transform:translateX(0)}
+  .push .ptop{height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.9);backdrop-filter:blur(14px)}
+  .push .video{height:220px;background:linear-gradient(140deg,#0e3b2c,#10b981);display:grid;place-items:center;color:#fff}
+  .push .pbody{padding:16px 18px;font-size:13px;color:var(--ink-2);line-height:1.8}
+
+  /* ===== 导入 Popover ===== */
+  .pop{position:absolute;top:60px;right:14px;z-index:50;width:220px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 60px -16px rgba(0,0,0,.18);padding:8px;display:none}
+  .pop.on{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .popi{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px;border-radius:14px;cursor:pointer}
+  .popi:hover{background:var(--bg-soft)}
+  .popi .pic{width:34px;height:34px;border-radius:50%;display:grid;place-items:center}
+  .popi.v .pic{background:#fdecec;color:#e5544b} .popi.f .pic{background:var(--brand-soft);color:var(--brand-deep)}
+  .popi svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .popi b{font-size:11.5px;font-weight:600;color:var(--ink)}
+  .scrim{position:absolute;inset:0;z-index:45;display:none}
+  .scrim.on{display:block}
+</style>
+</head>
+<body>
+
+<div class="phone" id="app">
+  <!-- 壳:顶栏(tab 级) -->
+  <div class="topbar" id="topbar">
+    <span class="logo" id="tbTitle">Espo<i>ñ</i>al</span>
+    <span class="sp"></span>
+    <button class="tbtn"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg></button>
+    <button class="tbtn plus" onclick="togglePop(event)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+
+  <!-- ===== tab 1 首页 ===== -->
+  <div class="tabview on" id="v-home">
+    <div class="sec">
+      <div class="hello">Hola, Wang 👋<small>每天 20 分钟,把西语变成习惯</small></div>
+      <div class="cont" onclick="openPush()">
+        <div class="thumb"><span class="tagc">继续学习 · 看到 12:40</span><div class="play">▶</div></div>
+        <div class="body"><div class="t">Aprende español con historias cortas</div><div class="bar"><i></i></div></div>
+      </div>
+      <div class="duo">
+        <div class="mini green"><div class="n">18</div><div class="l">待复习生词 · 去复习 →</div></div>
+        <div class="mini"><div class="n num">D3</div><div class="l">学习路线 · 继续第 3 天 →</div></div>
+      </div>
+      <div class="sech">练习与工具</div>
+      <div class="tools">
+        <div class="tool"><div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 10h8M8 14h5M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6.5A8 8 0 1121 12z"/></svg></div><b>对话</b></div>
+        <div class="tool"><div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5L6 9H3v6h3l5 4V5zM16 9a3 3 0 010 6"/></svg></div><b>发音</b></div>
+        <div class="tool"><div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h10"/></svg></div><b>语法</b></div>
+        <div class="tool"><div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><b>拆解</b></div>
+      </div>
+      <div style="margin-top:10px" class="tools">
+        <div class="tool"><div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2zM19 17H6"/></svg></div><b>语料库</b></div>
+        <div class="tool" style="opacity:.45"><div class="ic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><b>更多</b></div>
+        <div class="tool" style="visibility:hidden"></div><div class="tool" style="visibility:hidden"></div>
+      </div>
+      <div class="sech">为你推荐 <a href="#">视频 tab 查看全部 →</a></div>
+      <div class="vrow">
+        <div class="vcard"><div class="vt"></div><div class="vn">Dreaming Spanish · 超慢速对话</div></div>
+        <div class="vcard"><div class="vt"></div><div class="vn">Hola Spanish · 阿根廷口音</div></div>
+        <div class="vcard"><div class="vt"></div><div class="vn">Español con Juan · 故事</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== tab 3 阅读(平台读物+我的导入合并书架) ===== -->
+  <div class="tabview" id="v-read">
+    <div class="sec"><div class="sech" style="margin-top:6px">平台读物</div></div>
+    <div class="shelf">
+      <div class="book"><div class="cv"></div><div class="bn">La paella de domingo</div><div class="bm">A1 · 380 词 · 已读完 ✅</div></div>
+      <div class="book"><div class="cv"></div><div class="bn">Un día en Madrid</div><div class="bm">A2 · 520 词 · 60%</div></div>
+    </div>
+    <div class="sec"><div class="sech" style="margin-top:0">我的导入</div></div>
+    <div class="shelf">
+      <div class="book"><div class="cv" style="background:linear-gradient(150deg,#fdf3e3,#f7e3c3)"></div><div class="bn">Aula internacional 1</div><div class="bm">PDF · 142/300 页</div><span class="badge">PDF</span></div>
+      <div class="book"><div class="cv" style="background:linear-gradient(150deg,#e8ecf6,#d3dcef)"></div><div class="bn">Cuentos para principiantes</div><div class="bm">EPUB · 第 3/12 章</div><span class="badge">EPUB</span></div>
+    </div>
+  </div>
+
+  <!-- ===== tab 2/4 占位(线框级) ===== -->
+  <div class="tabview" id="v-video"><div class="ph"><b style="color:#111">视频 tab</b><br>= 现有 watch 首页迁入壳(频道/推荐/搜索)。视觉沿用,仅去掉自带顶栏/底栏,由壳提供。</div></div>
+  <div class="tabview" id="v-review"><div class="ph"><b style="color:#111">复习 tab</b><br>= 生词本 + SRS 复习 + 学习数据。入口升一级(原藏在抽屉/页面深处)。<br><br>复习完成 → 完成页「今日复习完成 ✅ 18 词」→ 回首页,待复习卡变 ✅(流程闭合示范)。</div></div>
+
+  <!-- ===== tab 5 我的 ===== -->
+  <div class="tabview" id="v-me">
+    <div class="mehead"><div class="ava">W</div><div><div class="nm">Wang</div><span class="pl">进阶会员</span></div></div>
+    <div class="melist">
+      <div class="merow"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg><b>积分账户</b><span class="v num">⚡ 320</span><span class="chev">›</span></div>
+      <div class="merow"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5L12 3z"/></svg><b>会员</b><span class="v">续费 / 升级</span><span class="chev">›</span></div>
+      <div class="merow"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2zM19 17H6"/></svg><b>我的导入</b><span class="chev">›</span></div>
+      <div class="merow"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M10.3 4.3a1.7 1.7 0 013.4 0l.2 1.2a7 7 0 012 1.2l1.2-.5a1.7 1.7 0 011.7 3l-1 .8a7 7 0 010 2.3l1 .8a1.7 1.7 0 01-1.7 3l-1.2-.5a7 7 0 01-2 1.2l-.2 1.2a1.7 1.7 0 01-3.4 0l-.2-1.2a7 7 0 01-2-1.2l-1.2.5a1.7 1.7 0 01-1.7-3l1-.8a7 7 0 010-2.3l-1-.8a1.7 1.7 0 011.7-3l1.2.5a7 7 0 012-1.2l.2-1.2zM12 14a2 2 0 100-4 2 2 0 000 4z"/></svg><b>设置</b><span class="chev">›</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 推入页示例(watch)===== -->
+  <div class="push" id="push">
+    <div class="ptop">
+      <button class="tbtn" onclick="closePush()"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg></button>
+      <span class="title" style="font-size:14px;font-weight:600">Aprende español…</span>
+    </div>
+    <div class="video">▶ 播放器(单 player,壳层保证)</div>
+    <div class="pbody">
+      <b style="color:#111">推入页规范示范</b><br>
+      · 右滑入 250ms,返回左滑出;底部 tab 栏隐藏(沉浸)<br>
+      · 返回箭头 = router.back();深链直达时回「视频」tab<br>
+      · 字幕/查词 sheet 从底部上滑,下拉关闭(第三种过渡)<br>
+      · 收藏词 → toast「已加入生词本」→ 流程闭合到复习
+    </div>
+  </div>
+
+  <!-- ===== 导入 Popover ===== -->
+  <div class="scrim" id="scrim" onclick="closeAll()"></div>
+  <div class="pop" id="pop">
+    <div class="popi v"><div class="pic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 8s0-2-1.5-2.5C18 5 12 5 12 5s-6 0-7.5.5C3 6 3 8 3 8s-.5 1.5-.5 4 .5 4 .5 4 0 2 1.5 2.5C6 19 12 19 12 19s6 0 7.5-.5C21 18 21 16 21 16s.5-1.5.5-4-.5-4-.5-4zM10 9l5 3-5 3V9z"/></svg></div><b>视频链接</b></div>
+    <div class="popi f"><div class="pic"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-6-6zM14 3v6h6"/></svg></div><b>EPUB / PDF</b></div>
+  </div>
+
+  <!-- 壳:底部 5 tab -->
+  <div class="tabbar">
+    <button class="tab on" data-v="v-home" onclick="sw(this)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1v-9z"/></svg><span>首页</span></button>
+    <button class="tab" data-v="v-video" onclick="sw(this)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16v12H4zM10 9.5l4.5 2.5-4.5 2.5v-5z"/></svg><span>视频</span></button>
+    <button class="tab" data-v="v-read" onclick="sw(this)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 19V5a2 2 0 012-2h13v18H6a2 2 0 01-2-2zM19 17H6"/></svg><span>阅读</span></button>
+    <button class="tab" data-v="v-review" onclick="sw(this)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 12a9 9 0 109-9M3 12l3-3M3 12l3 3M12 7v5l3 3"/></svg><span>复习</span></button>
+    <button class="tab" data-v="v-me" onclick="sw(this)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0"/></svg><span>我的</span></button>
+  </div>
+</div>
+
+<div class="note">
+  <b>MOBILE-R-000 壳模型(可点)</b><br><br>
+  · 底部 <b>5 tab</b>:首页(使用框架主干)/视频/阅读(平台+我的导入合并书架)/复习/我的(积分·会员·设置)。<b>抽屉删除</b>,原抽屉项进首页「练习与工具」。<br><br>
+  · 顶栏:左标题,右 <b>搜索 + `+`导入</b>(点 + 看 Popover)。头像/订阅从顶栏移走。<br><br>
+  · 点首页「继续学习」卡 → <b>推入页</b>(右滑入,返回箭头,tab 栏隐藏)。全站只许三种过渡:tab 淡入 / 推入滑 / sheet 上滑。<br><br>
+  · 视频/复习 tab 此处为线框占位 —— 迁入现有页面,视觉不重做。<br><br>
+  · 详细规则见 <b>MOBILE-R-000-design.md</b>(IA 映射表 / 回退四规则 / 五条流程闭合)。
+</div>
+
+<script>
+  function sw(btn){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('.tabview').forEach(v=>v.classList.remove('on'));
+    document.getElementById(btn.dataset.v).classList.add('on');
+    const titles={'v-home':'','v-video':'视频','v-read':'阅读','v-review':'复习','v-me':'我的'};
+    const t=document.getElementById('tbTitle');
+    if(btn.dataset.v==='v-home'){t.innerHTML='Espo<i>ñ</i>al';t.className='logo';}
+    else{t.textContent=titles[btn.dataset.v];t.className='title';}
+    closeAll();
+  }
+  function openPush(){document.getElementById('push').classList.add('on');}
+  function closePush(){document.getElementById('push').classList.remove('on');}
+  function togglePop(e){e.stopPropagation();document.getElementById('pop').classList.toggle('on');document.getElementById('scrim').classList.toggle('on');}
+  function closeAll(){document.getElementById('pop').classList.remove('on');document.getElementById('scrim').classList.remove('on');}
+</script>
+</body>
+</html>

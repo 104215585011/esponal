@@ -47,6 +47,8 @@ test("WEB-013 SiteHeader keeps SiteNav and hides desktop search on small screens
 
   assert.match(source, /SiteNav/);
   assert.match(source, /<SiteNav vocabHref=\{vocabHref\} session=\{session\}/);
-  assert.match(source, /MobileTopBar/);
+  // MOBILE-R2:移动顶栏移交持久壳,桌面 header 只在 md 以上出现
+  assert.doesNotMatch(source, /MobileTopBar/);
+  assert.match(source, /hidden[\s\S]{0,80}md:sticky md:top-0/);
   assert.match(source, /className="hidden lg:flex/);
 });

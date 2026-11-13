@@ -2,7 +2,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_SC, Plus_Jakarta_Sans } from "next/font/google";
 import { Suspense } from "react";
-import { BottomTabBar } from "@/app/components/web/BottomTabBar";
+import { AppShell } from "@/app/components/shell/AppShell";
 import { ServiceWorkerRegister } from "@/app/components/web/ServiceWorkerRegister";
 import "./globals.css";
 
@@ -64,8 +64,9 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ServiceWorkerRegister />
         {children}
+        {/* 移动端持久壳:全站唯一实例,Mobile/R2 的硬约束 */}
         <Suspense fallback={null}>
-          <BottomTabBar />
+          <AppShell />
         </Suspense>
       </body>
     </html>

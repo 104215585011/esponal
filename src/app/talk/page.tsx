@@ -1,7 +1,6 @@
 // Timestamp: 2026-06-04 11:18
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { MobileTopBar } from "@/app/components/web/MobileTopBar";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAuthOptions } from "@/lib/auth";
 import { TALK_CHARACTERS } from "@/lib/talk/characters";
@@ -27,7 +26,6 @@ export default async function TalkIndexPage() {
   return (
     <main className="min-h-screen bg-app">
       <div className="hidden md:block"><SiteHeader /></div>
-      <MobileTopBar session={session} />
 
       <section className="mx-auto max-w-app-shell px-4 py-6 md:py-10">
         <header className="mb-5 md:mb-8">

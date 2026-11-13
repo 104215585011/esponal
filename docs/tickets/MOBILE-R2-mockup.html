@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esponal · 移动端重构界面模拟 (MOBILE-R2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f7f8f7;
+    --ink:#121413; --ink-2:#3f433f; --muted:#8a8f88; --line:#eceeec;
+    --brand:#10b981; --deep:#059669; --soft:#ecf8f2;
+    --shadow:0 1px 2px rgba(16,24,20,.04), 0 8px 24px -16px rgba(16,24,20,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#eff1ef;color:var(--ink);padding:44px 28px 80px;
+    font-family:"Noto Sans SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  }
+  .lat,.num{font-family:"Plus Jakarta Sans","Noto Sans SC",sans-serif;font-variant-numeric:tabular-nums}
+
+  /* ---------- page header ---------- */
+  .head{max-width:1420px;margin:0 auto 34px}
+  .head .kicker{font-size:11.5px;font-weight:700;letter-spacing:.2em;color:var(--deep);text-transform:uppercase}
+  .head h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:12px;line-height:1.3}
+  .head h1 em{font-style:normal;color:var(--deep)}
+  .head p{margin-top:12px;max-width:760px;font-size:14px;line-height:1.9;color:#6b706a;font-weight:300}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:12px;color:var(--ink-2)}
+  .chip b{color:var(--deep);font-weight:700}
+
+  /* ---------- stage ---------- */
+  .stage{max-width:1420px;margin:0 auto;display:flex;flex-wrap:wrap;gap:48px 40px;align-items:flex-start}
+  .shot{display:flex;flex-direction:column;gap:14px}
+  .cap{width:390px}
+  .cap .no{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--deep)}
+  .cap h3{font-size:15px;font-weight:700;margin-top:5px;display:flex;align-items:center;gap:8px}
+  .cap .tag{font-size:10.5px;font-weight:600;padding:2.5px 8px;border-radius:999px;background:var(--soft);color:var(--deep);letter-spacing:.02em}
+  .cap .tag.push{background:#eef2ff;color:#4f5bd5}
+  .cap .tag.sheet{background:#fff4e8;color:#a86a2b}
+  .cap p{font-size:11.5px;line-height:1.7;color:#8a8f88;margin-top:6px;font-weight:300}
+
+  /* ---------- phone ---------- */
+  .phone{
+    width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;background:var(--bg);
+    display:flex;flex-direction:column;
+    box-shadow:0 40px 90px -30px rgba(20,30,25,.45), 0 0 0 10px #14171a, 0 0 0 11px #2c3033;
+  }
+  .sb{height:44px;flex:0 0 44px;display:flex;align-items:flex-end;justify-content:space-between;
+      padding:0 26px 6px;font-size:12.5px;font-weight:600;color:var(--ink);background:transparent;position:relative;z-index:30}
+  .sb .r{display:flex;align-items:center;gap:6px}
+  .sb svg{display:block}
+  .sb.dark{color:#fff}
+  .topbar{flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:0 18px;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);z-index:20}
+  .logo{font-family:"Plus Jakarta Sans";font-size:19px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+  .logo i{font-style:normal;color:var(--brand)}
+  .ttl{font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .tb-act{display:flex;align-items:center;gap:2px}
+  .ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2)}
+  .ic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .plus{width:34px;height:34px;border-radius:50%;background:var(--brand);display:grid;place-items:center;
+    box-shadow:0 8px 18px -8px rgba(16,185,129,.75)}
+  .plus svg{width:17px;height:17px;stroke:#fff;stroke-width:2.4;fill:none;stroke-linecap:round}
+
+  .scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:26px}
+  .scroll::-webkit-scrollbar{display:none}
+  .pad{padding:0 22px}
+
+  /* tabbar */
+  .tabbar{flex:0 0 auto;display:flex;justify-content:space-around;padding:9px 6px 22px;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:#9aa09a;font-weight:500;width:64px}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .tab.on{color:var(--deep);font-weight:700}
+
+  /* home hero */
+  .hero{padding:26px 22px 0}
+  .greet{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--deep);margin-bottom:14px}
+  .greet .d{width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px var(--soft)}
+  h1.big{font-size:31px;line-height:1.34;font-weight:700;letter-spacing:-.02em}
+  h1.big em{font-style:normal;color:var(--deep)}
+  .sub{margin-top:13px;font-size:13.5px;line-height:1.85;color:var(--muted);font-weight:300;max-width:310px}
+  .cta{margin-top:20px;display:inline-flex;align-items:center;gap:9px;background:var(--brand);color:#fff;
+    padding:13px 20px 13px 22px;border-radius:14px;font-size:14.5px;font-weight:600;
+    box-shadow:0 10px 22px -10px rgba(16,185,129,.6)}
+  .cta svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  .stat{margin:26px 22px 0;display:flex;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+  .stat .c{flex:1;padding:13px 14px}
+  .stat .c+.c{border-left:1px solid var(--line)}
+  .stat .n{font-size:21px;font-weight:700;line-height:1;display:flex;align-items:baseline;gap:3px}
+  .stat .n i{font-style:normal;font-size:11px;color:var(--muted);font-weight:500}
+  .stat .k{font-size:11px;color:var(--muted);margin-top:5px}
+
+  .sec{margin-top:32px}
+  .sec-h{display:flex;align-items:baseline;justify-content:space-between;padding:0 22px}
+  .sec-h h2{font-size:17.5px;font-weight:700;letter-spacing:-.01em}
+  .sec-h .more{font-size:12px;color:var(--muted)}
+
+  /* resume card */
+  .resume{margin:14px 22px 0;display:flex;gap:13px;padding:12px;border:1px solid var(--line);
+    border-radius:18px;background:#fff;box-shadow:var(--shadow)}
+  .thumb{width:96px;height:64px;border-radius:11px;flex:0 0 auto;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#0f766e,#10b981 60%,#6ee7b7)}
+  .thumb.v2{background:linear-gradient(135deg,#1e3a5f,#3b6ea5 60%,#93c5fd)}
+  .thumb.v3{background:linear-gradient(135deg,#7c2d12,#c2410c 60%,#fdba74)}
+  .thumb .pl{position:absolute;inset:0;display:grid;place-items:center}
+  .thumb .pl svg{width:24px;height:24px;fill:rgba(255,255,255,.92)}
+  .thumb .dur{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;
+    padding:1.5px 5px;border-radius:5px;font-weight:600}
+  .resume .meta{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px}
+  .resume .meta .t{font-size:13.5px;font-weight:600;line-height:1.4}
+  .resume .meta .s{font-size:11px;color:var(--muted)}
+  .bar{height:3px;border-radius:3px;background:#eef0ee;overflow:hidden;margin-top:6px}
+  .bar i{display:block;height:100%;background:var(--brand);border-radius:3px}
+
+  /* rail */
+  .rail{display:flex;gap:12px;overflow-x:auto;padding:14px 22px 4px;scroll-snap-type:x mandatory}
+  .rail::-webkit-scrollbar{display:none}
+  .pcard{flex:0 0 168px;scroll-snap-align:start;border:1px solid var(--line);border-radius:18px;padding:15px;
+    background:#fff;box-shadow:var(--shadow)}
+  .pnum{width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--deep);display:grid;place-items:center;
+    font-family:"Plus Jakarta Sans";font-weight:700;font-size:14px}
+  .pcard h4{margin-top:12px;font-size:14px;font-weight:600}
+  .pcard .d{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.6;min-height:34px;font-weight:300}
+  .pcard .pbar{margin-top:9px;display:flex;align-items:center;gap:7px}
+  .pcard .pbar .bar{flex:1;margin:0}
+  .pcard .pbar span{font-size:10px;color:var(--muted);font-weight:600}
+
+  /* tools */
+  .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 22px 0}
+  .tool{border:1px solid var(--line);border-radius:14px;background:#fff;padding:13px 8px;text-align:center}
+  .tool .ti{width:34px;height:34px;border-radius:10px;background:var(--soft);display:grid;place-items:center;margin:0 auto 8px}
+  .tool .ti svg{width:17px;height:17px;stroke:var(--deep);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tool span{font-size:11.5px;color:var(--ink-2);font-weight:500}
+
+  .footer{margin:34px 22px 10px;font-size:10px;letter-spacing:.16em;color:#c9cdc8;font-family:"Plus Jakarta Sans"}
+
+  /* chips row */
+  .filters{display:flex;gap:8px;padding:14px 22px 4px;overflow-x:auto}
+  .filters::-webkit-scrollbar{display:none}
+  .fl{flex:0 0 auto;font-size:12px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:#fff}
+  .fl.on{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+
+  /* video list */
+  .vlist{padding:6px 22px 0;display:flex;flex-direction:column;gap:16px;margin-top:6px}
+  .vrow{display:flex;gap:12px}
+  .vrow .thumb{width:132px;height:76px;border-radius:12px}
+  .vrow .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;padding-top:2px}
+  .vrow .t{font-size:13px;font-weight:600;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .vrow .c{font-size:11px;color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;
+    background:var(--soft);color:var(--deep);letter-spacing:.04em}
+
+  /* segmented */
+  .seg{display:flex;gap:4px;margin:14px 22px 0;background:#f2f4f2;padding:4px;border-radius:12px}
+  .seg div{flex:1;text-align:center;font-size:12.5px;font-weight:600;color:#8a8f88;padding:8px 0;border-radius:9px}
+  .seg div.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,30,25,.1)}
+
+  /* reading list */
+  .rlist{padding:12px 22px 0;display:flex;flex-direction:column;gap:11px}
+  .rcard{border:1px solid var(--line);border-radius:16px;padding:14px 15px;background:#fff}
+  .rcard .top{display:flex;align-items:center;gap:8px}
+  .rcard .t-es{font-size:14px;font-weight:600;letter-spacing:-.01em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rcard .m{font-size:11px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:8px}
+  .rcard .m .dot{width:2.5px;height:2.5px;border-radius:50%;background:#d3d7d2}
+  .rcard .bar{margin-top:10px}
+  .lvl{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--soft);color:var(--deep)}
+  .lvl.b1{background:#eef2ff;color:#4f5bd5}
+  .continue{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--ink);color:#fff}
+
+  /* review */
+  .bigcard{margin:18px 22px 0;border:1px solid var(--line);border-radius:20px;padding:20px;background:#fff;box-shadow:var(--shadow)}
+  .bigcard .n{font-size:52px;font-weight:800;line-height:.95;letter-spacing:-.04em}
+  .bigcard .n i{font-style:normal;font-size:13px;color:var(--muted);font-weight:500;margin-left:6px;letter-spacing:0}
+  .bigcard .lbl{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:13px;font-size:14px;font-weight:600}
+  .btn.pri{background:var(--brand);color:#fff;box-shadow:0 10px 22px -10px rgba(16,185,129,.6)}
+  .btn.ghost{background:#f4f6f4;color:var(--ink-2)}
+  .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  .wrow{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .wrow:last-child{border-bottom:0}
+  .wrow .w{flex:1;min-width:0}
+  .wrow .es{font-size:14px;font-weight:600;font-family:"Plus Jakarta Sans"}
+  .wrow .zh{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .wrow .mt{font-size:10.5px;color:#a9aea8;white-space:nowrap}
+  .speak{width:30px;height:30px;border-radius:50%;background:var(--soft);display:grid;place-items:center;flex:0 0 auto}
+  .speak svg{width:14px;height:14px;stroke:var(--deep);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+  .weekcard{margin:12px 22px 0;border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff}
+  .bars{display:flex;align-items:flex-end;gap:9px;height:66px;margin-top:14px}
+  .bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .bars .b i{width:100%;border-radius:5px;background:#e9efeb;display:block}
+  .bars .b.on i{background:var(--brand)}
+  .bars .b span{font-size:9.5px;color:#a9aea8}
+
+  /* me */
+  .profile{display:flex;align-items:center;gap:13px;padding:22px 22px 0}
+  .avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:var(--brand);
+    color:#fff;font-size:19px;font-weight:700;font-family:"Plus Jakarta Sans"}
+  .profile .nm{font-size:17px;font-weight:700}
+  .profile .em{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .creditcard{margin:18px 22px 0;border-radius:18px;padding:16px 17px;background:var(--soft);border:1px solid #d9f0e5;
+    display:flex;align-items:center;justify-content:space-between}
+  .creditcard .l{font-size:11.5px;color:var(--deep);font-weight:600}
+  .creditcard .n{font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:4px;line-height:1}
+  .creditcard .n i{font-style:normal;font-size:11px;color:#4e9c7c;font-weight:500;margin-left:5px;letter-spacing:0}
+  .rows{margin:20px 22px 0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff}
+  .rows .row{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line)}
+  .rows .row:last-child{border-bottom:0}
+  .rows .row svg.ri{width:18px;height:18px;stroke:var(--ink-2);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .rows .row .rl{flex:1;font-size:13.5px;font-weight:500}
+  .rows .row .rv{font-size:11px;color:var(--muted)}
+  .rows .row svg.ch{width:15px;height:15px;stroke:#c3c8c2;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* player (push) */
+  .player{background:#fff;flex:1;overflow-y:auto}
+  .player::-webkit-scrollbar{display:none}
+  .video{position:relative;height:219px;background:linear-gradient(150deg,#123a33,#0a1f1c 45%,#06120f)}
+  .video .glow{position:absolute;inset:0;background:radial-gradient(120% 80% at 30% 20%,rgba(16,185,129,.28),transparent 60%)}
+  .pnav{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:10px 12px;z-index:5}
+  .pnav .b{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.35);display:grid;place-items:center;backdrop-filter:blur(6px)}
+  .pnav .b svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .pnav .t{color:#fff;font-size:12.5px;font-weight:600;opacity:.9;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .playbig{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;backdrop-filter:blur(8px)}
+  .playbig svg{width:22px;height:22px;fill:#fff;margin-left:3px}
+  .subt{position:absolute;left:0;right:0;bottom:34px;text-align:center;padding:0 26px}
+  .subt .es{color:#fff;font-size:14px;font-weight:600;font-family:"Plus Jakarta Sans";text-shadow:0 1px 8px rgba(0,0,0,.6)}
+  .subt .zh{color:rgba(255,255,255,.72);font-size:11.5px;margin-top:4px}
+  .prog{position:absolute;left:0;right:0;bottom:0;padding:0 14px 10px;display:flex;align-items:center;gap:9px}
+  .prog .pl{font-size:9.5px;color:rgba(255,255,255,.7);font-family:"Plus Jakarta Sans";font-weight:600}
+  .prog .pb{flex:1;height:2.5px;background:rgba(255,255,255,.24);border-radius:2px;position:relative}
+  .prog .pb i{position:absolute;left:0;top:0;bottom:0;width:48%;background:var(--brand);border-radius:2px}
+  .prog .pb b{position:absolute;left:48%;top:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:#fff}
+
+  .psheet{background:#fff;border-radius:22px 22px 0 0;margin-top:-18px;position:relative;z-index:4;padding:18px 22px 26px}
+  .ptitle{font-size:15.5px;font-weight:700;line-height:1.45}
+  .pmeta{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:11px;color:var(--muted)}
+  .pacts{display:flex;gap:9px;margin-top:15px}
+  .pact{flex:1;height:40px;border-radius:11px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+    gap:6px;font-size:12px;font-weight:600;color:var(--ink-2)}
+  .pact svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .pact.on{background:var(--soft);border-color:#d9f0e5;color:var(--deep)}
+  .trans{margin-top:20px;padding-bottom:20px}
+  .trans .th{font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:space-between}
+  .trans .th span{font-size:10.5px;color:var(--muted);font-weight:400}
+  .tline{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f4f6f4}
+  .tline .ts{font-size:9.5px;color:#b3b8b2;font-family:"Plus Jakarta Sans";padding-top:2px;flex:0 0 30px}
+  .tline .tx{font-size:12.5px;line-height:1.6;font-family:"Plus Jakarta Sans";color:var(--ink-2)}
+  .tline.cur .tx{color:var(--ink);font-weight:600}
+  .tline.cur{background:linear-gradient(90deg,var(--soft),transparent);border-radius:8px;padding-left:8px;margin-left:-8px}
+  .w{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:#c9cec8;text-underline-offset:3px}
+  .w.hit{text-decoration-color:var(--brand);color:var(--deep);font-weight:600}
+
+  /* immersive player (push) */
+  .player2{flex:1;background:#0d100e;display:flex;flex-direction:column;overflow:hidden}
+  .vwrap{position:relative;flex:0 0 234px;background:linear-gradient(150deg,#123a33,#0a1f1c 45%,#06120f)}
+  .vprog{position:absolute;left:0;right:0;bottom:0;height:2.5px;background:rgba(255,255,255,.14)}
+  .vprog i{position:absolute;left:0;top:0;bottom:0;width:48%;background:var(--brand);border-radius:0 2px 2px 0}
+  .vtime{position:absolute;right:12px;bottom:9px;font-size:9.5px;color:rgba(255,255,255,.55);font-family:"Plus Jakarta Sans";font-weight:600;letter-spacing:.03em}
+  .subs{flex:1;padding:20px 26px 0;display:flex;flex-direction:column;overflow:hidden}
+  .scur{text-align:center;padding:2px 2px 0}
+  .scur .idx{font-size:10px;color:#5e6a63;font-family:"Plus Jakarta Sans";font-weight:600;letter-spacing:.06em}
+  .scur .es{margin-top:10px;color:#fff;font-size:17.5px;font-weight:600;line-height:1.65;font-family:"Plus Jakarta Sans";letter-spacing:-.01em}
+  .scur .zh{color:rgba(255,255,255,.52);font-size:12px;margin-top:9px;font-weight:300}
+  .snext{margin-top:24px;border-top:1px solid rgba(255,255,255,.07);padding-top:16px;display:flex;flex-direction:column;gap:13px}
+  .snext .row{display:flex;gap:13px;align-items:baseline}
+  .snext .ts{flex:0 0 30px;font-size:9.5px;color:#48584f;font-family:"Plus Jakarta Sans";font-weight:600}
+  .snext .tx{font-size:13px;color:rgba(255,255,255,.38);font-family:"Plus Jakarta Sans";line-height:1.6}
+  .snext .row.cur .tx{color:#fff;font-weight:600}
+  .w2{text-decoration:underline;text-decoration-style:dotted;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:4px;text-decoration-thickness:1px}
+  .w2.hit{color:#6ee7b7;text-decoration-color:#6ee7b7;font-weight:700}
+  .pbottom{flex:0 0 auto;padding:13px 20px 24px;border-top:1px solid rgba(255,255,255,.08);background:rgba(9,12,10,.92)}
+  .pacts{display:flex;justify-content:space-around}
+  .pact2{display:flex;flex-direction:column;align-items:center;gap:6px;color:#8fa096;font-size:10px;font-weight:500}
+  .pact2 svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .pact2.on{color:#6ee7b7}
+  .pact2 .tx{font-family:"Plus Jakarta Sans";font-weight:700;font-size:11px;letter-spacing:.02em}
+  .scrub{display:flex;align-items:center;gap:10px;margin-top:15px}
+  .scrub .pl{font-size:9.5px;color:rgba(255,255,255,.55);font-family:"Plus Jakarta Sans";font-weight:600}
+  .scrub .pb{flex:1;height:3px;background:rgba(255,255,255,.16);border-radius:3px;position:relative}
+  .scrub .pb i{position:absolute;left:0;top:0;bottom:0;width:48%;background:var(--brand);border-radius:3px}
+  .scrub .pb b{position:absolute;left:48%;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(16,185,129,.35)}
+
+  /* reader */
+  .art{padding:20px 24px 0}
+  .art .etitle{font-size:19px;font-weight:700;line-height:1.4;font-family:"Plus Jakarta Sans";letter-spacing:-.02em}
+  .art .emeta{font-size:10.5px;color:var(--muted);margin-top:8px;letter-spacing:.02em}
+  .art p{font-size:15px;line-height:2.05;color:var(--ink-2);margin-top:18px;font-family:"Plus Jakarta Sans";font-weight:400}
+  .art p.zh{font-size:10.5px;color:#b0b5af;line-height:1.9;margin-top:8px;font-family:"Noto Sans SC";font-weight:300}
+  .rprog{height:2px;background:#f0f2f0;position:relative;flex:0 0 2px}
+  .rprog i{position:absolute;left:0;top:0;bottom:0;width:34%;background:var(--brand)}
+  .rbar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px 22px;
+    border-top:1px solid var(--line);background:#fff}
+  .rbar .pg{font-size:11px;color:var(--muted);font-family:"Plus Jakarta Sans";font-weight:600}
+  .navbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center}
+  .navbtn svg{width:16px;height:16px;stroke:var(--ink-2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* dim overlay */
+  .dim{position:absolute;inset:0;background:rgba(16,22,19,.42);backdrop-filter:blur(1px);z-index:40}
+
+  /* sheet */
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:45;background:#fff;border-radius:24px 24px 0 0;
+    box-shadow:0 -14px 40px -18px rgba(0,0,0,.35);padding:10px 22px 26px}
+  .grab{width:38px;height:4px;border-radius:4px;background:#e3e6e3;margin:0 auto 16px}
+  .sheet h3{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .sheet .sp{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.7;font-weight:300}
+
+  .opt{display:flex;align-items:center;gap:13px;padding:15px 0;border-bottom:1px solid var(--line)}
+  .opt .oi{width:42px;height:42px;border-radius:13px;background:var(--soft);display:grid;place-items:center;flex:0 0 auto}
+  .opt .oi svg{width:19px;height:19px;stroke:var(--deep);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .opt .ot{flex:1;min-width:0}
+  .opt .ot .a{font-size:13.5px;font-weight:600}
+  .opt .ot .b{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+  .opt:last-of-type{border-bottom:0}
+
+  /* lookup sheet */
+  .lw{font-size:28px;font-weight:800;letter-spacing:-.02em;font-family:"Plus Jakarta Sans"}
+  .phon{font-size:12px;color:var(--muted);margin-top:6px;font-family:"Plus Jakarta Sans";display:flex;align-items:center;gap:9px}
+  .pos{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;background:#f2f4f2;color:var(--ink-2)}
+  .def{font-size:16px;font-weight:600;margin-top:14px}
+  .defs{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6}
+  .eg{margin-top:14px;background:var(--bg-soft);border-radius:12px;padding:12px 13px}
+  .eg .e1{font-size:12.5px;font-family:"Plus Jakarta Sans";line-height:1.6}
+  .eg .e2{font-size:11px;color:var(--muted);margin-top:5px}
+  .lfoot{margin-top:14px;font-size:10.5px;color:#a9aea8;display:flex;align-items:center;gap:6px}
+  .lfoot i{width:4px;height:4px;border-radius:50%;background:#d3d7d2;display:block}
+
+  /* done */
+  .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;text-align:center}
+  .ring{width:88px;height:88px;border-radius:50%;background:var(--soft);display:grid;place-items:center;position:relative}
+  .ring::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:1px solid #e4f6ed}
+  .ring svg{width:38px;height:38px;stroke:var(--brand);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .done h2{font-size:23px;font-weight:700;margin-top:28px;letter-spacing:-.02em}
+  .done .sp{font-size:12.5px;color:var(--muted);margin-top:9px}
+  .dstat{display:flex;gap:0;margin-top:26px;border:1px solid var(--line);border-radius:16px;overflow:hidden;width:100%;background:#fff}
+  .dstat .c{flex:1;padding:13px 6px}
+  .dstat .c+.c{border-left:1px solid var(--line)}
+  .dstat .n{font-size:19px;font-weight:700;letter-spacing:-.02em}
+  .dstat .n i{font-style:normal;font-size:10px;color:var(--muted);font-weight:500;margin-left:2px}
+  .dstat .k{font-size:10px;color:var(--muted);margin-top:4px}
+  .done .btns{width:100%;margin-top:26px;display:flex;flex-direction:column;gap:10px}
+
+  /* rules strip */
+  .rules{max-width:1420px;margin:64px auto 0;background:#fff;border:1px solid var(--line);border-radius:24px;padding:30px 34px}
+  .rules h2{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .rules .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:22px}
+  .rules .cell{border-left:2px solid var(--soft);padding-left:16px}
+  .rules .cell b{font-size:13px;font-weight:700}
+  .rules .cell p{font-size:11.5px;line-height:1.85;color:#7b807a;margin-top:7px;font-weight:300}
+  .rules .cell code{font-family:"Plus Jakarta Sans";background:var(--bg-soft);padding:1px 5px;border-radius:4px;font-size:11px}
+  .rules .foot{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);font-size:11.5px;color:#7b807a;line-height:1.9}
+  @media (max-width:900px){ .rules .grid{grid-template-columns:1fr} .head h1{font-size:26px} }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="kicker">MOBILE-R2 · 界面模拟</div>
+  <h1>移动端重构:先把<em>壳</em>做对,再把<em>内容</em>填满</h1>
+  <p>上一轮失败不是审美问题:壳是每页各包一层、旧底栏与抽屉还在同时在线、首页是"建设中"占位。这次的结构是<b>持久壳</b>(路由组,只渲染一次)+ 三层导航(tab / 推入 / sheet)+ 三种过渡。下面 10 屏是把这套结构做出来之后的样子。</p>
+  <div class="chips">
+    <span class="chip"><b>5</b> 个 tab,抽屉删除</span>
+    <span class="chip"><b>3</b> 层导航,3 种过渡</span>
+    <span class="chip">底栏<b>永不重建</b></span>
+    <span class="chip">每个流程都有<b>完成态</b></span>
+    <span class="chip">推入页<b>隐藏底栏</b>(沉浸)</span>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ 01 首页 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">01</div>
+      <h3>首页<span class="tag">tab</span></h3>
+      <p>一屏答完"我今天干什么":待复习 + 继续学习 + 路线 + 工具。上一轮这页写的是"首页建设中"。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+
+      <div class="topbar">
+        <div class="logo">Esponal<i>.</i></div>
+        <div class="tb-act">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg></div>
+          <div class="plus"><svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg></div>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <div class="hero">
+          <div class="greet"><i class="d"></i>11 月 13 日 · 周四</div>
+          <h1 class="big">今天有 <em>12 个词</em><br>等着和你重逢</h1>
+          <p class="sub">昨天那篇《Una mañana en Madrid》里,4 个词你已经连续三天遇见。再过一遍,它们就归你了。</p>
+          <div class="cta">开始复习
+            <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"/></svg>
+          </div>
+        </div>
+
+        <div class="stat">
+          <div class="c"><div class="n num">12<i>词</i></div><div class="k">待复习</div></div>
+          <div class="c"><div class="n num">486<i>词</i></div><div class="k">已掌握</div></div>
+          <div class="c"><div class="n num">7<i>天</i></div><div class="k">连续</div></div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>继续学习</h2><span class="more">全部</span></div>
+          <div class="resume">
+            <div class="thumb">
+              <div class="pl"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></div>
+              <span class="dur num">8:40</span>
+            </div>
+            <div class="meta">
+              <div class="t">Extra en Español · Ep. 3</div>
+              <div class="s">视频 · 上次看到 04:12</div>
+              <div class="bar"><i style="width:52%"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>学习路线</h2><span class="more">A1 → B1</span></div>
+          <div class="rail">
+            <div class="pcard">
+              <div class="pnum">1</div>
+              <h4>字母与发音</h4>
+              <div class="d">27 个字母、重音规则、连读</div>
+              <div class="pbar"><div class="bar"><i style="width:66%"></i></div><span>8/12</span></div>
+            </div>
+            <div class="pcard">
+              <div class="pnum">2</div>
+              <h4>日常问候</h4>
+              <div class="d">介绍自己、问路、买东西</div>
+              <div class="pbar"><div class="bar"><i style="width:30%"></i></div><span>3/10</span></div>
+            </div>
+            <div class="pcard">
+              <div class="pnum">3</div>
+              <h4>过去时</h4>
+              <div class="d">pretérito 与 imperfecto 的分工</div>
+              <div class="pbar"><div class="bar"><i style="width:0%"></i></div><span>0/14</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>练习与工具</h2></div>
+          <div class="tools">
+            <div class="tool"><div class="ti"><svg viewBox="0 0 24 24"><path d="M4 6h7M7.5 6v13M4.5 13h6"/><path d="M14 9h6M17 9v10"/></svg></div><span>字母发音</span></div>
+            <div class="tool"><div class="ti"><svg viewBox="0 0 24 24"><path d="M4 6h16v9H9l-4 4z"/></svg></div><span>AI 对话</span></div>
+            <div class="tool"><div class="ti"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M9 9h6M9 13h4"/></svg></div><span>语法</span></div>
+            <div class="tool"><div class="ti"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg></div><span>拆解</span></div>
+            <div class="tool"><div class="ti"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></svg></div><span>语料库</span></div>
+            <div class="tool"><div class="ti"><svg viewBox="0 0 24 24"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 16v3h16v-3"/></svg></div><span>导入</span></div>
+          </div>
+        </div>
+
+        <div class="footer">ESPONAL · A1 → B1</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>首页</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M10 9.5v5l4.5-2.5z"/></svg>视频</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20a3 3 0 0 1 0-6h11"/></svg>阅读</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>复习</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 02 视频 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">02</div>
+      <h3>视频<span class="tag">tab</span></h3>
+      <p>列表页只负责"挑一个"。播放是推入页(见 06),两者分开,底栏不会在播放时还杵在那。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div class="ttl">视频</div>
+        <div class="tb-act">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg></div>
+          <div class="plus"><svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg></div>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <div class="filters">
+          <div class="fl on">全部</div>
+          <div class="fl">西语日常</div>
+          <div class="fl">文化</div>
+          <div class="fl">慢速新闻</div>
+          <div class="fl">已收藏</div>
+        </div>
+
+        <div class="sec" style="margin-top:22px">
+          <div class="sec-h"><h2>继续观看</h2></div>
+          <div class="resume">
+            <div class="thumb">
+              <div class="pl"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></div>
+              <span class="dur num">8:40</span>
+            </div>
+            <div class="meta">
+              <div class="t">Extra en Español · Ep. 3</div>
+              <div class="s">¿Cómo estás? · 已看 52%</div>
+              <div class="bar"><i style="width:52%"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>为你推荐</h2><span class="more">换一批</span></div>
+          <div class="vlist">
+            <div class="vrow">
+              <div class="thumb v2"><span class="dur num">12:04</span></div>
+              <div class="info">
+                <div class="t">在餐厅点一份海鲜饭 · SpanishPod101</div>
+                <div class="c">SpanishPod101 · 12 万次播放</div>
+                <span class="badge">A1</span>
+              </div>
+            </div>
+            <div class="vrow">
+              <div class="thumb v3"><span class="dur num">6:22</span></div>
+              <div class="info">
+                <div class="t">巴塞罗那街头采访:你幸福吗?</div>
+                <div class="c">Easy Spanish · 48 万次播放</div>
+                <span class="badge">A2</span>
+              </div>
+            </div>
+            <div class="vrow">
+              <div class="thumb"><span class="dur num">9:15</span></div>
+              <div class="info">
+                <div class="t">La siesta:西班牙人真的每天都睡吗</div>
+                <div class="c">Esponal 原创 · 3 千次播放</div>
+                <span class="badge">A2</span>
+              </div>
+            </div>
+            <div class="vrow">
+              <div class="thumb v2"><span class="dur num">15:30</span></div>
+              <div class="info">
+                <div class="t">慢速新闻:马德里地铁涨价</div>
+                <div class="c">DW Español · 21 万次播放</div>
+                <span class="badge">B1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>首页</div>
+        <div class="tab on"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M10 9.5v5l4.5-2.5z"/></svg>视频</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20a3 3 0 0 1 0-6h11"/></svg>阅读</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>复习</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 03 阅读 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">03</div>
+      <h3>阅读<span class="tag">tab</span></h3>
+      <p>平台读物 + 「我的导入」合并成一个书架。上一轮导入库藏在抽屉里,等于没有入口。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div class="ttl">阅读</div>
+        <div class="tb-act">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg></div>
+          <div class="plus"><svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg></div>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <div class="seg"><div class="on">平台读物 35</div><div>我的导入 3</div></div>
+
+        <div class="rlist">
+          <div class="rcard">
+            <div class="top"><span class="lvl">A1</span><div class="t-es">Una mañana en Madrid</div><span class="continue">继续</span></div>
+            <div class="m"><span>320 词</span><span class="dot"></span><span>约 5 分钟</span></div>
+            <div class="bar"><i style="width:60%"></i></div>
+          </div>
+          <div class="rcard">
+            <div class="top"><span class="lvl">A2</span><div class="t-es">El mercado de San Miguel</div></div>
+            <div class="m"><span>480 词</span><span class="dot"></span><span>约 7 分钟</span></div>
+          </div>
+          <div class="rcard">
+            <div class="top"><span class="lvl">A1</span><div class="t-es">La siesta, ¿mito o costumbre?</div></div>
+            <div class="m"><span>260 词</span><span class="dot"></span><span>约 4 分钟</span></div>
+          </div>
+          <div class="rcard">
+            <div class="top"><span class="lvl b1">B1</span><div class="t-es">Fútbol y identidad</div></div>
+            <div class="m"><span>620 词</span><span class="dot"></span><span>约 9 分钟</span><span class="dot"></span><span>已读 ✅</span></div>
+          </div>
+        </div>
+
+        <div class="sec" style="margin-top:26px">
+          <div class="sec-h"><h2>我的导入</h2><span class="more">＋ 导入</span></div>
+          <div class="rlist" style="padding-top:12px">
+            <div class="rcard">
+              <div class="top"><span class="lvl">EPUB</span><div class="t-es">El principito</div><span class="continue">新</span></div>
+              <div class="m"><span>Antoine de Saint-Exupéry</span></div>
+              <div class="bar"><i style="width:12%"></i></div>
+            </div>
+            <div class="rcard">
+              <div class="top"><span class="lvl">PDF</span><div class="t-es">Gramática de uso A1</div></div>
+              <div class="m"><span>234 页 · 上次读到 78 页</span></div>
+              <div class="bar"><i style="width:34%"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>首页</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M10 9.5v5l4.5-2.5z"/></svg>视频</div>
+        <div class="tab on"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20a3 3 0 0 1 0-6h11"/></svg>阅读</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>复习</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 04 复习 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">04</div>
+      <h3>复习<span class="tag">tab</span></h3>
+      <p>生词本是一级入口,不是工具。上面是"今天要做什么",下面是"我这周做了什么"——留存靠这个闭环。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div class="ttl">复习</div>
+        <div class="tb-act"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg></div></div>
+      </div>
+
+      <div class="scroll">
+        <div class="bigcard">
+          <div class="n num">12<i>词待复习</i></div>
+          <div class="lbl">预计 4 分钟 · 其中 4 个已连续遇见 3 天</div>
+          <div class="btn pri" style="margin-top:16px">开始复习
+            <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"/></svg>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>生词本</h2><span class="more">全部 137</span></div>
+          <div class="pad" style="margin-top:4px">
+            <div class="wrow">
+              <div class="w"><div class="es">aprovechar</div><div class="zh">利用;趁(机会)</div></div>
+              <div class="mt">遇到 5 次</div>
+              <div class="speak"><svg viewBox="0 0 24 24"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg></div>
+            </div>
+            <div class="wrow">
+              <div class="w"><div class="es">aunque</div><div class="zh">虽然;即使</div></div>
+              <div class="mt">遇到 8 次</div>
+              <div class="speak"><svg viewBox="0 0 24 24"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg></div>
+            </div>
+            <div class="wrow">
+              <div class="w"><div class="es">el mercado</div><div class="zh">市场</div></div>
+              <div class="mt">遇到 3 次</div>
+              <div class="speak"><svg viewBox="0 0 24 24"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg></div>
+            </div>
+            <div class="wrow">
+              <div class="w"><div class="es">madrugar</div><div class="zh">早起</div></div>
+              <div class="mt">遇到 1 次</div>
+              <div class="speak"><svg viewBox="0 0 24 24"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h2>本周</h2><span class="more">学习数据</span></div>
+          <div class="weekcard">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted)">
+              <span>复习 46 词</span><span>新掌握 12 词</span>
+            </div>
+            <div class="bars">
+              <div class="b on"><i style="height:62%"></i><span>一</span></div>
+              <div class="b on"><i style="height:78%"></i><span>二</span></div>
+              <div class="b"><i style="height:22%"></i><span>三</span></div>
+              <div class="b on"><i style="height:90%"></i><span>四</span></div>
+              <div class="b on"><i style="height:46%"></i><span>五</span></div>
+              <div class="b"><i style="height:14%"></i><span>六</span></div>
+              <div class="b"><i style="height:0%"></i><span>日</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>首页</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M10 9.5v5l4.5-2.5z"/></svg>视频</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20a3 3 0 0 1 0-6h11"/></svg>阅读</div>
+        <div class="tab on"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>复习</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 05 我的 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">05</div>
+      <h3>我的<span class="tag">tab</span></h3>
+      <p>收拢原来的顶栏头像 + 抽屉杂项 + 订阅入口。商业化入口固定在这里,不再靠顶栏挂一个"订阅"按钮。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar"><div class="ttl">我的</div><div class="tb-act"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div></div></div>
+
+      <div class="scroll">
+        <div class="profile">
+          <div class="avatar">王</div>
+          <div style="flex:1">
+            <div class="nm">王</div>
+            <div class="em">wang@example.com</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted)">编辑</div>
+        </div>
+
+        <div class="creditcard">
+          <div>
+            <div class="l">积分余额</div>
+            <div class="n num">820<i>分</i></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10.5px;color:#4e9c7c">本月已用 180</div>
+            <div style="font-size:11.5px;font-weight:600;color:var(--deep);margin-top:6px">明细 →</div>
+          </div>
+        </div>
+
+        <div class="rows">
+          <div class="row">
+            <svg class="ri" viewBox="0 0 24 24"><path d="m12 4 2.4 5 5.6.8-4 3.9 1 5.5-5-2.6-5 2.6 1-5.5-4-3.9 5.6-.8z"/></svg>
+            <div class="rl">会员与订阅</div>
+            <div class="rv">基础版</div>
+            <svg class="ch" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+          </div>
+          <div class="row">
+            <svg class="ri" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>
+            <div class="rl">学习数据</div>
+            <svg class="ch" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+          </div>
+          <div class="row">
+            <svg class="ri" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+            <div class="rl">设置</div>
+            <svg class="ch" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+          </div>
+          <div class="row">
+            <svg class="ri" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 16v-5M12 8.5v.5"/></svg>
+            <div class="rl">帮助与反馈</div>
+            <svg class="ch" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+          </div>
+          <div class="row">
+            <svg class="ri" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8v.5"/></svg>
+            <div class="rl">关于 Esponal</div>
+            <div class="rv">v0.9.3</div>
+            <svg class="ch" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+          </div>
+        </div>
+
+        <div class="pad" style="margin-top:22px;text-align:center;font-size:12px;color:#c2413b">退出登录</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>首页</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M10 9.5v5l4.5-2.5z"/></svg>视频</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20a3 3 0 0 1 0-6h11"/></svg>阅读</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>复习</div>
+        <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>我的</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 06 播放页 · 沉浸 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">06</div>
+      <h3>播放页 · 沉浸<span class="tag push">推入</span></h3>
+      <p>整页都是深色:视频在上、字幕在下,标题栏会自动淡出,底部只留一条控制条。当前句居中大字,后面的句子压暗 —— 词就是按钮,点词出查词层(下一屏)。</p>
+    </div>
+    <div class="phone">
+      <div class="sb dark" style="background:#0d100e"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+
+      <div class="player2">
+        <div class="vwrap">
+          <div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 30% 20%,rgba(16,185,129,.26),transparent 60%)"></div>
+          <div class="pnav">
+            <div class="b"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></div>
+            <div class="t">Extra en Español · Ep. 3</div>
+          </div>
+          <div class="playbig"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></div>
+          <div class="vprog"><i></i></div>
+          <div class="vtime">04:12 / 08:40</div>
+        </div>
+
+        <div class="subs">
+          <div class="scur">
+            <div class="idx">SUB 03 / 42</div>
+            <div class="es">¿Y tú <span class="w2 hit">cómo</span> te <span class="w2">llamas</span>?</div>
+            <div class="zh">那你叫什么名字?</div>
+          </div>
+          <div class="snext">
+            <div class="row"><div class="ts">4:12</div><div class="tx">Me llamo Ana. Mucho gusto.</div></div>
+            <div class="row"><div class="ts">4:20</div><div class="tx">Encantado. ¿De dónde <span class="w2">eres</span>?</div></div>
+            <div class="row"><div class="ts">4:27</div><div class="tx">Soy de México, pero vivo en Madrid.</div></div>
+            <div class="row"><div class="ts">4:35</div><div class="tx">¿Y tú? ¿Eres de aquí?</div></div>
+          </div>
+        </div>
+
+        <div class="pbottom">
+          <div class="pacts">
+            <div class="pact2"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg>上一句</div>
+            <div class="pact2"><span class="tx">0.75x</span>倍速</div>
+            <div class="pact2 on"><svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg>收藏本句</div>
+            <div class="pact2"><svg viewBox="0 0 24 24"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg>朗读</div>
+          </div>
+          <div class="scrub">
+            <span class="pl">4:12</span>
+            <div class="pb"><i></i><b></b></div>
+            <span class="pl">8:40</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 07 播放页 · 点词查词 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">07</div>
+      <h3>播放页 · 点词查词<span class="tag sheet">sheet</span></h3>
+      <p>点字幕里的任何词,查词层从底部上来 —— 视频和整句话都留在原地,关掉就继续看。收藏后这个词回到首页的"待复习"里。</p>
+    </div>
+    <div class="phone">
+      <div class="sb dark" style="background:#0d100e"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+
+      <div class="player2">
+        <div class="vwrap">
+          <div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 30% 20%,rgba(16,185,129,.26),transparent 60%)"></div>
+          <div class="pnav">
+            <div class="b"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></div>
+            <div class="t">Extra en Español · Ep. 3</div>
+          </div>
+          <div class="playbig"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></div>
+          <div class="vprog"><i></i></div>
+          <div class="vtime">04:12 / 08:40</div>
+        </div>
+
+        <div class="subs">
+          <div class="scur">
+            <div class="idx">SUB 03 / 42</div>
+            <div class="es">¿Y tú cómo te <span class="w2 hit">llamas</span>?</div>
+            <div class="zh">那你叫什么名字?</div>
+          </div>
+          <div class="snext">
+            <div class="row"><div class="ts">4:12</div><div class="tx">Me llamo Ana. Mucho gusto.</div></div>
+            <div class="row"><div class="ts">4:20</div><div class="tx">Encantado. ¿De dónde eres?</div></div>
+          </div>
+        </div>
+
+        <div class="pbottom">
+          <div class="pacts">
+            <div class="pact2"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg>上一句</div>
+            <div class="pact2"><span class="tx">0.75x</span>倍速</div>
+            <div class="pact2 on"><svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></svg>收藏本句</div>
+            <div class="pact2"><svg viewBox="0 0 24 24"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg>朗读</div>
+          </div>
+          <div class="scrub">
+            <span class="pl">4:12</span>
+            <div class="pb"><i></i><b></b></div>
+            <span class="pl">8:40</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dim"></div>
+      <div class="sheet" style="padding-bottom:30px">
+        <div class="grab"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div class="lw">llamarse</div>
+            <div class="phon">/ʎa.ˈmaɾ.se/
+              <span class="pos">反身动词</span>
+            </div>
+          </div>
+          <div class="speak" style="width:38px;height:38px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 7a8 8 0 0 1 0 10"/></svg></div>
+        </div>
+        <div class="def">叫;称为;给……打电话</div>
+        <div class="defs">原形 llamar · 反身:llamarse(我叫 llamo,你叫 llamas)</div>
+        <div class="eg">
+          <div class="e1">¿Y tú cómo te llamas?</div>
+          <div class="e2">那你叫什么名字?</div>
+        </div>
+        <div style="display:flex;gap:9px;margin-top:16px">
+          <div class="btn pri" style="flex:1;height:44px">加入生词本</div>
+          <div class="btn ghost" style="width:96px;height:44px">整句收藏</div>
+        </div>
+        <div class="lfoot"><span>第 1 次遇到</span><i></i><span>来自本视频字幕</span><i></i><span>收藏后进入今日复习</span></div>
+      </div>
+    </div>
+  </div>
+  <!-- ============ 07 阅读器 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">08</div>
+      <h3>阅读器<span class="tag push">推入</span></h3>
+      <p>正文只有两种下划线:虚线(可查)和翡翠(你收藏过)。上一轮试过的四色热力图已撤回,不再复现。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+          <div class="ic" style="width:32px;margin-left:-8px"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></div>
+          <div class="ttl" style="font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Una mañana en Madrid</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em">Aa</div>
+      </div>
+      <div class="rprog"><i></i></div>
+
+      <div class="scroll">
+        <div class="art">
+          <div class="etitle">Una mañana en Madrid</div>
+          <div class="emeta">A1 · 320 词 · 第 3 / 12 段</div>
+
+          <p>Madrid <span class="w hit">amanece</span> despacio. A las siete, las calles todavía están vacías y el aire huele a pan recién hecho. <span class="w hit">Aprovecho</span> estos minutos para caminar sin prisa.</p>
+          <p class="zh">马德里醒得很慢。七点钟,街上还是空的,空气里是刚出炉的面包味。我趁这几分钟慢慢走。</p>
+
+          <p>En la esquina hay un <span class="w">mercado</span> pequeño. Los dueños abren las persianas y colocan las naranjas en pirámides perfectas. <span class="w">Aunque</span> es temprano, ya hay tres personas esperando el primer café.</p>
+          <p class="zh">拐角有个小市场。摊主拉开卷帘门,把橙子码成整齐的金字塔。虽然还很早,已经有三个人在等第一杯咖啡。</p>
+
+          <p>—Buenos días, ¿qué le pongo?<br>—Un café con leche, por favor.</p>
+        </div>
+      </div>
+
+      <div class="rbar">
+        <div class="pg">3 / 12</div>
+        <div style="display:flex;gap:10px">
+          <div class="navbtn"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></div>
+          <div class="navbtn" style="background:var(--soft);border-color:#d9f0e5"><svg viewBox="0 0 24 24" style="stroke:var(--deep)"><path d="m10 6 6 6-6 6"/></svg></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 08 查词 sheet ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">09</div>
+      <h3>查词<span class="tag sheet">sheet</span></h3>
+      <p>从底部上来,不离开当前页 —— 关掉就回到刚才那一句。收藏后卡片会显示"第几次遇到",这是产品唯一的护城河。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="ic" style="width:32px;margin-left:-8px"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg></div>
+          <div class="ttl" style="font-size:14.5px">Una mañana en Madrid</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600">Aa</div>
+      </div>
+      <div class="rprog"><i style="width:40%"></i></div>
+
+      <div class="scroll">
+        <div class="art">
+          <div class="etitle">Una mañana en Madrid</div>
+          <div class="emeta">A1 · 320 词 · 第 3 / 12 段</div>
+          <p>Madrid <span class="w">amanece</span> despacio. A las siete, las calles todavía están vacías y el aire huele a pan recién hecho. <span class="w hit">Aprovecho</span> estos minutos para caminar sin prisa.</p>
+          <p class="zh">马德里醒得很慢。七点钟,街上还是空的,空气里是刚出炉的面包味。我趁这几分钟慢慢走。</p>
+          <p>En la esquina hay un <span class="w">mercado</span> pequeño. Los dueños abren las persianas...</p>
+        </div>
+      </div>
+
+      <div class="dim"></div>
+      <div class="sheet" style="padding-bottom:30px">
+        <div class="grab"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <div class="lw">aprovechar</div>
+            <div class="phon">/a.pɾo.βeˈtʃaɾ/
+              <span class="pos">动词</span>
+            </div>
+          </div>
+          <div class="speak" style="width:38px;height:38px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M11 6 7 10H4v4h3l4 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 7a8 8 0 0 1 0 10"/></svg></div>
+        </div>
+        <div class="def">利用;趁(机会)</div>
+        <div class="defs">及物动词 · 原形 aprovechar · 陈述式现在时 yo aprovecho</div>
+        <div class="eg">
+          <div class="e1">Aprovecho estos minutos para caminar sin prisa.</div>
+          <div class="e2">我趁这几分钟慢慢走。</div>
+        </div>
+        <div style="display:flex;gap:9px;margin-top:16px">
+          <div class="btn pri" style="flex:1;height:44px">加入生词本</div>
+          <div class="btn ghost" style="width:96px;height:44px">已收藏</div>
+        </div>
+        <div class="lfoot"><span>第 3 次遇到</span><i></i><span>上次 5 天前</span><i></i><span>来自《Una mañana en Madrid》</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 09 导入 sheet ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">10</div>
+      <h3>导入<span class="tag sheet">sheet</span></h3>
+      <p>全局只有一个 `+`,点开两列:贴链接或传文件。导入完成直接进阅读器,不再回一个空页面找自己刚传的东西。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div class="logo">Esponal<i>.</i></div>
+        <div class="tb-act">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg></div>
+          <div class="plus"><svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg></div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="hero">
+          <div class="greet"><i class="d"></i>11 月 13 日 · 周四</div>
+          <h1 class="big">今天有 <em>12 个词</em><br>等着和你重逢</h1>
+          <p class="sub">昨天那篇《Una mañana en Madrid》里,4 个词你已经连续三天遇见。</p>
+          <div class="cta">开始复习</div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>首页</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"/><path d="M10 9.5v5l4.5-2.5z"/></svg>视频</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20a3 3 0 0 1 0-6h11"/></svg>阅读</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3.2-6.4"/><path d="M20 4v5h-5"/></svg>复习</div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>我的</div>
+      </div>
+
+      <div class="dim"></div>
+      <div class="sheet" style="padding-bottom:30px">
+        <div class="grab"></div>
+        <h3>导入</h3>
+        <div class="sp">把你在外面看的东西带进来,遇到过的词都会进同一本词典。</div>
+
+        <div class="opt" style="margin-top:6px">
+          <div class="oi"><svg viewBox="0 0 24 24"><path d="M10 13.5a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7L11.5 6.4"/><path d="M14 10.5a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.3-1.3"/></svg></div>
+          <div class="ot"><div class="a">粘贴视频链接</div><div class="b">YouTube · 自动抓取双语字幕</div></div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c3c8c2" stroke-width="2" stroke-linecap="round"><path d="m9 5 7 7-7 7"/></svg>
+        </div>
+
+        <div class="opt">
+          <div class="oi"><svg viewBox="0 0 24 24"><path d="M7 4h7l4 4v12H7z"/><path d="M14 4v4h4"/></svg></div>
+          <div class="ot"><div class="a">上传文件</div><div class="b">EPUB · PDF,单个不超过 50MB</div></div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c3c8c2" stroke-width="2" stroke-linecap="round"><path d="m9 5 7 7-7 7"/></svg>
+        </div>
+
+        <div style="margin-top:18px;background:var(--bg-soft);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:11px">
+          <div class="oi" style="width:34px;height:34px;border-radius:10px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/></svg></div>
+          <div style="flex:1">
+            <div style="font-size:12.5px;font-weight:600">最近:El principito.epub</div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px">2 天前导入 · 已读 12%</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--deep);font-weight:600">继续</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 10 完成态 ============ -->
+  <div class="shot">
+    <div class="cap">
+      <div class="no">11</div>
+      <h3>复习完成<span class="tag push">推入</span></h3>
+      <p>上一轮最缺的就是这个:流程走完要有明确的"结束"和"下一步"。这里清栈,按返回不会穿回单词卡。</p>
+    </div>
+    <div class="phone">
+      <div class="sb"><span class="num">9:41</span><span class="r">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 10.5 5.2 7.6a4 4 0 0 1 5.6 0L8 10.5Zm-4-4.2L2.4 4.6a8 8 0 0 1 11.2 0L12 6.3a6 6 0 0 0-8 0Z"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="currentColor"/><path d="M21.5 3.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity=".5"/></svg>
+      </span></div>
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="ic" style="width:32px;margin-left:-8px"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
+          <div class="ttl" style="font-size:14.5px">复习</div>
+        </div>
+      </div>
+
+      <div class="done">
+        <div class="ring"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+        <h2>今日复习完成</h2>
+        <div class="sp">12 个词 · 其中 3 个已归入长期记忆</div>
+
+        <div class="dstat">
+          <div class="c"><div class="n num">4:32</div><div class="k">用时</div></div>
+          <div class="c"><div class="n num">92<i>%</i></div><div class="k">正确率</div></div>
+          <div class="c"><div class="n num">7<i>天</i></div><div class="k">连续</div></div>
+        </div>
+
+        <div class="btns">
+          <div class="btn pri">回首页
+            <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6.5 18.5 12 13 17.5"/></svg>
+          </div>
+          <div class="btn ghost">再来一轮</div>
+        </div>
+        <div style="font-size:10.5px;color:#b0b5af;margin-top:16px">明天还有 8 个词到期</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="rules">
+  <h2>结构规则(模拟背后只有这三层,三种动效)</h2>
+  <div class="grid">
+    <div class="cell">
+      <b>tab · 淡入</b>
+      <p>5 个一级页活在同一个 <code>layout</code> 里,壳只渲染一次。切 tab 时只有内容区换,底栏不动、不闪、不位移,过渡 <code>120–150ms</code> 淡入,不做横向滑动。</p>
+    </div>
+    <div class="cell">
+      <b>push · 右滑入</b>
+      <p>播放页、阅读器、积分、会员是覆盖层:底栏隐藏,顶栏变成"返回箭头 + 标题",<code>250ms</code> 右滑入。深链直达时返回箭头回它所属的 tab。</p>
+    </div>
+    <div class="cell">
+      <b>sheet · 上滑</b>
+      <p>查词、导入、选页从底部上来,<code>250ms</code>;下拉 / 点遮罩 / 系统返回都是关 sheet,不退出页面。查词绝不跳页 —— 一跳页就丢了刚读的那句。</p>
+    </div>
+  </div>
+  <div class="foot">
+    <b>回退四条:</b>tab 页无返回箭头(Android 物理返回:非首页 → 回首页);push 页箭头 = back(),无历史则回所属 tab;sheet 的返回只关 sheet;流程完成态的按钮清栈回起点,按返回不能穿回中间页。
+  </div>
+</div>
+
+</body>
+</html>

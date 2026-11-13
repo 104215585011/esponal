@@ -54,3 +54,15 @@ test("WEB-004 bottom subtitle panel accepts object subtitle payloads", async () 
   assert.match(subtitlePanel, /payload\.cues\s*\?\?\s*\[\]/);
   assert.match(subtitlePanel, /setSubtitleCues\(cues\)/);
 });
+
+test("WEB-004 subtitle panel does not cache degraded translate responses as Chinese", async () => {
+  // 2026-11-13:翻译缓存逻辑已迁到 TranscriptPanel(字幕列表面板),断言跟随实现文件
+  const subtitlePanel = await readText("src/app/watch/TranscriptPanel.tsx");
+
+  assert.match(subtitlePanel, /type TranslateResponse/);
+  assert.match(subtitlePanel, /degraded\?:\s*boolean/);
+  assert.match(subtitlePanel, /looksTranslated/);
+  assert.match(subtitlePanel, /!payload\.degraded/);
+  assert.doesNotMatch(subtitlePanel, /const translation = payload\.translation\?\.trim\(\) \|\| activeText/);
+  assert.doesNotMatch(subtitlePanel, /translationCacheRef\.current\.set\(activeText,\s*translation\);[\s\S]{0,120}setChineseLine\(translation\)/);
+});

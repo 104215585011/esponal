@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
 import { GlobalSearchOverlay } from "@/app/components/web/GlobalSearchOverlay";
-import { MobileTopBar } from "@/app/components/web/MobileTopBar";
 import { SiteNav } from "@/app/components/web/SiteNav";
 import { ThemeToggle } from "@/app/components/web/ThemeToggle";
 import { getAuthOptions } from "@/lib/auth";
@@ -33,14 +32,8 @@ export async function SiteHeader({
   const creditSummary = userId ? await getCreditSummary(userId) : null;
 
   return (
-    <header className="z-50 border-b border-zinc-200/50 shadow-sm transition-all duration-300 dark:border-zinc-800/50 md:sticky md:top-0">
+    <header className="z-50 hidden md:sticky md:top-0 md:block border-b border-zinc-200/50 shadow-sm transition-all duration-300 dark:border-zinc-800/50">
       <div className="glass-header absolute inset-0 z-[-1]" />
-      <MobileTopBar
-        creditSummary={creditSummary}
-        initialQuery={initialQuery}
-        searchAction={searchAction}
-        session={session}
-      />
       <div className="hidden md:flex mx-auto h-16 w-full max-w-app-shell items-center gap-3 px-4 sm:px-6 lg:gap-4">
         <Link className="group flex shrink-0 items-center gap-2.5" href="/">
           <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 text-white shadow-md shadow-brand-500/20 transition-transform duration-300 group-hover:scale-105 dark:from-brand-600 dark:to-teal-400 dark:shadow-brand-950/20">

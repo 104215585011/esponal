@@ -5,12 +5,15 @@ import test from "node:test";
 
 const readText = (filePath) => readFile(filePath, "utf8");
 
-test("MOBILE-006 talk list swaps to MobileTopBar on mobile and compact horizontal cards", async () => {
+test("MOBILE-006 → MOBILE-R2: talk list relies on the persistent shell for mobile chrome", async () => {
   const source = await readText("src/app/talk/page.tsx");
+  const shell = await readText("src/app/components/shell/AppShell.tsx");
 
   assert.match(source, /getServerSession/);
   assert.match(source, /getAuthOptions/);
-  assert.match(source, /MobileTopBar/);
+  // 移动顶栏由壳统一提供,页面不再自挂一份
+  assert.doesNotMatch(source, /MobileTopBar/);
+  assert.match(shell, /data-testid="mobile-app-shell"/);
   assert.match(source, /hidden md:block"><SiteHeader/);
   assert.match(source, /font-display text-2xl font-semibold tracking-tight/);
   assert.match(source, /grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 lg:grid-cols-3/);

@@ -47,6 +47,10 @@ test("MOBILE-R-001 app shell provides mobile-only chrome, five tabs, import acti
   assert.match(shell, /requestAnimationFrame/);
   assert.match(shell, /transition-opacity duration-\[150ms\]/);
   assert.doesNotMatch(shell, /SiteHeader/);
+
+  // MOBILE-R2:壳必须按视口在 JS 层隔离开,桌面端不挂载壳 DOM
+  assert.match(shell, /useIsMobile/);
+  assert.match(shell, /document\.body\.dataset\.shell/);
 });
 
 test("MOBILE-R-001 back hook encapsulates the four approved back rules", async () => {
@@ -62,15 +66,14 @@ test("MOBILE-R-001 back hook encapsulates the four approved back rules", async (
   assert.match(hook, /closeSheet/);
 });
 
-test("MOBILE-R-001 placeholder tab pages mount the shell without migrating business pages", async () => {
+test("MOBILE-R2 supersedes MOBILE-R-001: tab pages render content only, the shell mounts once in the root layout", async () => {
   for (const path of ["src/app/home/page.tsx", "src/app/review/page.tsx", "src/app/me/page.tsx"]) {
     assert.equal(existsSync(path), true, `${path} missing`);
     const page = await readText(path);
-    assert.match(page, /AppShell/);
-    assert.match(page, /建设中/);
+    assert.doesNotMatch(page, /AppShell/, `${path} must not wrap the shell again`);
   }
 
   const layout = await readText("src/app/layout.tsx");
-  assert.match(layout, /<BottomTabBar \/>/);
-  assert.doesNotMatch(layout, /<AppShell/);
+  assert.match(layout, /<AppShell \/>/);
+  assert.doesNotMatch(layout, /BottomTabBar/);
 });
