@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { lookupWord, saveWord, type LookupResult } from "@/api/watch";
+import { lookupWord, saveWord, translateText, type LookupResult } from "@/api/watch";
 import { colors, radius, spacing } from "@/theme";
 
 type LookupSheetProps = {
@@ -35,6 +35,8 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savedHint, setSavedHint] = useState<string | null>(null);
+  /** 词典未收录时的机器翻译兜底(仅供参考) */
+  const [mtMeaning, setMtMeaning] = useState<string | null>(null);
 
   useEffect(() => {
     if (!word) {
@@ -42,6 +44,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
       setError(null);
       setSaved(false);
       setSavedHint(null);
+      setMtMeaning(null);
       return;
     }
 
@@ -50,12 +53,28 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
     setError(null);
     setSaved(false);
     setSavedHint(null);
+    setMtMeaning(null);
 
     lookupWord(word)
-      .then((res) => {
+      .then(async (res) => {
         if (cancelled) return;
         setData(res);
         setSaved(Boolean(res.isSaved));
+
+        // 词典完全没内容(词库 + 外部词典都查不到)→ 退到机器翻译,别让用户看空白
+        const empty =
+          !(res.meanings ?? []).length &&
+          !res.morphInfo?.trim() &&
+          !res.usageNote?.trim() &&
+          !(res.examples ?? []).length &&
+          !(res.relatedPhrases ?? []).length &&
+          !res.nounForms &&
+          !res.adjectiveForms;
+
+        if (empty) {
+          const mt = await translateText(word);
+          if (!cancelled) setMtMeaning(mt);
+        }
       })
       .catch((e) => {
         if (cancelled) return;
@@ -126,6 +145,9 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
       Boolean(formsLine)
     );
   }, [data, meanings, examples, relatedPhrases, formsLine]);
+
+  /** 词典没内容但机器翻译拿到了 → 也算有内容 */
+  const showMtFallback = !hasContent && Boolean(mtMeaning?.trim());
 
   return (
     <Modal
@@ -206,8 +228,16 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
               </View>
             ) : null}
 
+            {/* 词典未收录 → 机器翻译兜底 */}
+            {showMtFallback ? (
+              <View style={styles.usageBox}>
+                <Text style={styles.usageTitle}>机器翻译 · 词典未收录</Text>
+                <Text style={styles.usageText}>{mtMeaning?.trim()}</Text>
+              </View>
+            ) : null}
+
             {/* 完全没有内容时的兜底提示,别让用户对着空白按钮发呆 */}
-            {!hasContent ? (
+            {!hasContent && !showMtFallback ? (
               <Text style={styles.emptyHint}>
                 词典里暂时没有「{data.lemma}」的释义,可以先把单词存入词库。
               </Text>

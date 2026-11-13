@@ -45,6 +45,13 @@ export default function WatchPlayerScreen() {
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [follow, setFollow] = useState(true);
 
+  // 字幕末尾时间 —— 播放器时长拿不到时的兜底(安卓上 getDuration 在首次播放前经常返回 0)
+  const cueDuration = useMemo(() => {
+    if (cues.length === 0) return 0;
+    const last = cues[cues.length - 1];
+    return last.start + last.dur + 2;
+  }, [cues]);
+
   // 双语字幕:只翻译「当前句 ±2」的滑动窗口,文本级缓存避免重复请求(会花翻译额度)
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const translationCacheRef = useRef(new Map<string, string>());
@@ -100,26 +107,18 @@ export default function WatchPlayerScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  // 总时长:播放器就绪后取一次(拿不到就多试几次)
-  useEffect(() => {
-    let attempts = 0;
-    const probe = async () => {
-      try {
-        const d = await playerRef.current?.getDuration();
-        if (typeof d === "number" && d > 0) {
-          setDuration(d);
-          return;
-        }
-      } catch {
-        // ignore
-      }
-      attempts += 1;
-      if (attempts < 15) {
-        setTimeout(probe, 800);
-      }
-    };
-    const start = setTimeout(probe, 600);
-    return () => clearTimeout(start);
+  // 总时长:优先用播放器真实时长;拿不到就退回字幕推算时长,保证进度条始终可用
+  const totalDuration = duration > 0 ? duration : cueDuration;
+
+  // 时长探测:playerReady / 开始播放时都会触发。安卓上首次播放前 getDuration 返回 0,
+  // 所以播放开始后还要再探一次。
+  const probeDuration = useCallback(async () => {
+    try {
+      const d = await playerRef.current?.getDuration();
+      if (typeof d === "number" && d > 0) setDuration(d);
+    } catch {
+      // 播放器未就绪时忽略
+    }
   }, []);
 
   /** 当前播到第几句 */
@@ -223,20 +222,39 @@ export default function WatchPlayerScreen() {
       <View style={[styles.videoWrap, { height: videoHeight }]}>
         <YoutubePlayer
           height={videoHeight}
+          // HTML 打进安装包,不再依赖 GitHub Pages(国内网络下那个域名经常加载失败,
+          // 加载失败 = YT API 播放器初始化不了,所有控制全部失灵)
+          useLocalHTML
+          // Android WebView 默认拦程序化播放,换桌面 UA 才能让 playVideo()/pauseVideo() 稳定生效
+          forceAndroidAutoplay
           initialPlayerParams={{
             controls: false,
             modestbranding: true,
             rel: false,
             preventFullScreen: false
           }}
+          onReady={() => {
+            void probeDuration();
+          }}
           onChangeState={(state: string) => {
-            if (state === "playing") setPlaying(true);
+            if (state === "playing") {
+              setPlaying(true);
+              // 首次播放后元数据才可用,补探一次时长
+              void probeDuration();
+            }
             if (state === "paused" || state === "ended") setPlaying(false);
           }}
           play={playing}
           ref={playerRef}
           videoId={String(videoId)}
           width={width}
+        />
+
+        {/* 透明触摸层:拦截视频区的所有点击,播放/暂停只走我们自己的控制,
+            防止 YouTube iframe 内部的"点击切换播放"和我们的状态打架 */}
+        <Pressable
+          onPress={() => setPlaying((prev) => !prev)}
+          style={StyleSheet.absoluteFill}
         />
 
         <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={10}>
@@ -250,7 +268,7 @@ export default function WatchPlayerScreen() {
           <Text style={styles.timeText}>{formatClock(currentTime)}</Text>
           <Slider
             maximumTrackTintColor={colors.border}
-            maximumValue={duration > 0 ? duration : 1}
+            maximumValue={totalDuration > 0 ? totalDuration : 1}
             minimumTrackTintColor={colors.brand500}
             minimumValue={0}
             onSlidingComplete={(value) => {
@@ -267,9 +285,9 @@ export default function WatchPlayerScreen() {
             step={0}
             style={styles.slider}
             thumbTintColor={colors.brand500}
-            value={duration > 0 ? Math.min(currentTime, duration) : 0}
+            value={totalDuration > 0 ? Math.min(currentTime, totalDuration) : 0}
           />
-          <Text style={styles.timeTextRight}>{formatClock(duration)}</Text>
+          <Text style={styles.timeTextRight}>{formatClock(totalDuration)}</Text>
         </View>
 
         <View style={styles.controlBar}>
