@@ -29,19 +29,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthState["status"]>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  // 启动:有 token 就当已登录。真实有效性由首个请求的 401 兜底(会触发刷新或登出)。
+  // 启动:有 token 就当已登录,并恢复缓存的用户信息
+  // (覆盖安装 APK 时 SecureStore 会保留,所以更新后不需要重新登录)
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      const [access, refresh] = await Promise.all([
+      const [access, refresh, cachedUser] = await Promise.all([
         tokenStore.getAccess(),
-        tokenStore.getRefresh()
+        tokenStore.getRefresh(),
+        tokenStore.getUser<AuthUser>()
       ]);
 
       if (cancelled) return;
 
       if (access && refresh) {
+        if (cachedUser) setUser(cachedUser);
         setStatus("signedIn");
       } else {
         setStatus("signedOut");
@@ -84,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     await tokenStore.save(body.accessToken, body.refreshToken);
+    await tokenStore.saveUser(body.user);
     setUser(body.user);
     setStatus("signedIn");
   }, []);

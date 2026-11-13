@@ -13,6 +13,7 @@ export const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? "https://www.pcmuz.c
 
 const KEY_ACCESS = "esponal.accessToken";
 const KEY_REFRESH = "esponal.refreshToken";
+const KEY_USER = "esponal.user";
 
 export const tokenStore = {
   async getAccess() {
@@ -27,10 +28,27 @@ export const tokenStore = {
       SecureStore.setItemAsync(KEY_REFRESH, refreshToken)
     ]);
   },
+  /** 缓存用户信息,让 App 重启/覆盖更新后「我的」页仍能显示账号 */
+  async saveUser(user: unknown) {
+    try {
+      await SecureStore.setItemAsync(KEY_USER, JSON.stringify(user));
+    } catch {
+      // 存不下不算致命
+    }
+  },
+  async getUser<T>(): Promise<T | null> {
+    try {
+      const raw = await SecureStore.getItemAsync(KEY_USER);
+      return raw ? (JSON.parse(raw) as T) : null;
+    } catch {
+      return null;
+    }
+  },
   async clear() {
     await Promise.all([
       SecureStore.deleteItemAsync(KEY_ACCESS),
-      SecureStore.deleteItemAsync(KEY_REFRESH)
+      SecureStore.deleteItemAsync(KEY_REFRESH),
+      SecureStore.deleteItemAsync(KEY_USER)
     ]);
   }
 };
@@ -64,8 +82,11 @@ async function refreshAccessToken(): Promise<string | null> {
       const data = (await res.json()) as {
         accessToken: string;
         refreshToken: string;
+        user?: unknown;
       };
       await tokenStore.save(data.accessToken, data.refreshToken);
+      // 刷新响应里带最新用户信息,顺带更新缓存
+      if (data.user) await tokenStore.saveUser(data.user);
       return data.accessToken;
     })().finally(() => {
       refreshing = null;
