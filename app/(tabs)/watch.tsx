@@ -1,41 +1,140 @@
-// Timestamp: 2026-11-13 17:45
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+// Timestamp: 2026-11-13 18:00
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
+import { curatedChannels, fetchChannelVideos, formatDuration, type VideoItem } from "@/api/watch";
 import { colors, radius, spacing } from "@/theme";
 
-/**
- * 视频 tab —— P2 会做成:YouTube iframe(唯一 WebView 区域)+ 原生字幕列表 + 点词查词。
- * 现在先占位,保证 5 tab 完整、导航不空。
- */
+type ChannelState = {
+  id: string;
+  title: string;
+  hint: string;
+  videos: VideoItem[];
+  error: string | null;
+};
+
 export default function WatchScreen() {
+  const router = useRouter();
+  const [channels, setChannels] = useState<ChannelState[]>(
+    curatedChannels.map((c) => ({ ...c, videos: [], error: null }))
+  );
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    const next = await Promise.all(
+      curatedChannels.map(async (channel) => {
+        try {
+          const videos = await fetchChannelVideos(channel.id, 8);
+          return { ...channel, videos, error: null };
+        } catch (e) {
+          return {
+            ...channel,
+            videos: [],
+            error: e instanceof Error ? e.message : "加载失败"
+          };
+        }
+      })
+    );
+
+    setChannels(next);
+    setLoading(false);
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.brand500]}
+            onRefresh={() => load(true)}
+            refreshing={refreshing}
+            tintColor={colors.brand500}
+          />
+        }
+      >
         <Text style={styles.eyebrow}>Video</Text>
         <Text style={styles.title}>视频</Text>
+        <Text style={styles.subtitle}>
+          精选西语频道,配逐句字幕。点视频进入播放页,点单词直接查词。
+        </Text>
 
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderTitle}>P2 上线</Text>
-          <Text style={styles.placeholderBody}>
-            这一屏会做成:上方 YouTube 画面(平台限制,只能用 iframe),
-            下方原生字幕列表 —— 滚动、当前句高亮、点词查词全部原生控件。
-          </Text>
-        </View>
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator color={colors.brand500} />
+            <Text style={styles.loadingText}>正在取视频列表…</Text>
+          </View>
+        ) : (
+          channels.map((channel) => (
+            <View key={channel.id} style={styles.section}>
+              <View style={styles.sectionHead}>
+                <Text style={styles.channelTitle}>{channel.title}</Text>
+                <Text style={styles.channelHint}>{channel.hint}</Text>
+              </View>
 
-        <View style={styles.list}>
-          {[
-            "原生字幕列表(FlashList,长视频不卡)",
-            "点词 → 原生查词面板(300ms 内出卡)",
-            "播放控制条自己画(进度/倍速/上下句)",
-            "字幕本地缓存,离线可看"
-          ].map((item) => (
-            <View key={item} style={styles.row}>
-              <View style={styles.dot} />
-              <Text style={styles.rowText}>{item}</Text>
+              {channel.error ? (
+                <Text style={styles.sectionError}>{channel.error}</Text>
+              ) : (
+                channel.videos.map((video) => (
+                  <Pressable
+                    key={video.id}
+                    onPress={() =>
+                      // typedRoutes 的类型在首次 `expo start` 后才生成,这里先绕过
+                      router.push({
+                        pathname: "/watch/[videoId]",
+                        params: { videoId: video.id, title: video.title }
+                      } as never)
+                    }
+                    style={({ pressed }) => [
+                      styles.card,
+                      pressed && styles.cardPressed
+                    ]}
+                  >
+                    <View style={styles.thumbWrap}>
+                      <Image
+                        source={{ uri: video.thumbnail }}
+                        style={styles.thumb}
+                        // 缩略图来自 i.ytimg.com,加载失败时留一块底色而不是破图
+                      />
+                      <View style={styles.durationBadge}>
+                        <Text style={styles.durationText}>
+                          {formatDuration(video.duration)}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.cardBody}>
+                      <Text numberOfLines={2} style={styles.videoTitle}>
+                        {video.title}
+                      </Text>
+                      <Text style={styles.videoMeta}>{video.channelTitle}</Text>
+                    </View>
+                  </Pressable>
+                ))
+              )}
             </View>
-          ))}
-        </View>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -43,7 +142,11 @@ export default function WatchScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bgSubtle },
-  scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.xxl },
+  scroll: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl
+  },
   eyebrow: {
     fontSize: 11,
     fontWeight: "700",
@@ -58,29 +161,53 @@ const styles = StyleSheet.create({
     letterSpacing: -0.6,
     color: colors.text
   },
-  placeholder: {
-    marginTop: spacing.xl,
-    backgroundColor: colors.bg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg
-  },
-  placeholderTitle: { fontSize: 15, fontWeight: "700", color: colors.text },
-  placeholderBody: {
-    marginTop: 8,
+  subtitle: {
+    marginTop: spacing.sm,
     fontSize: 13,
     lineHeight: 21,
     color: colors.textSecondary
   },
-  list: { marginTop: spacing.lg, gap: spacing.md },
-  row: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start" },
-  dot: {
-    marginTop: 7,
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.brand500
+  loadingBox: {
+    paddingVertical: 60,
+    alignItems: "center",
+    gap: spacing.md
   },
-  rowText: { flex: 1, fontSize: 13, lineHeight: 21, color: colors.textSecondary }
+  loadingText: { fontSize: 12.5, color: colors.textTertiary },
+  section: { marginTop: spacing.xl, gap: spacing.md },
+  sectionHead: { gap: 2 },
+  channelTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
+  channelHint: { fontSize: 12, color: colors.textTertiary },
+  sectionError: { fontSize: 12.5, color: colors.danger },
+  card: {
+    backgroundColor: colors.bg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden"
+  },
+  cardPressed: { backgroundColor: colors.surfaceMuted },
+  thumbWrap: { position: "relative" },
+  thumb: {
+    width: "100%",
+    aspectRatio: 16 / 9,
+    backgroundColor: colors.surfaceMuted
+  },
+  durationBadge: {
+    position: "absolute",
+    right: 8,
+    bottom: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: "rgba(0,0,0,0.72)"
+  },
+  durationText: { fontSize: 10.5, fontWeight: "700", color: "#fff" },
+  cardBody: { padding: spacing.md, gap: 4 },
+  videoTitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "600",
+    color: colors.text
+  },
+  videoMeta: { fontSize: 11.5, color: colors.textSecondary }
 });
