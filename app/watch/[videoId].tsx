@@ -225,6 +225,9 @@ export default function WatchPlayerScreen() {
           // HTML 打进安装包,不再依赖 GitHub Pages(国内网络下那个域名经常加载失败,
           // 加载失败 = YT API 播放器初始化不了,所有控制全部失灵)
           useLocalHTML
+          // YouTube 2025 起的嵌入校验(Error 153):本地 HTML 的 origin 是空,
+          // 必须给 WebView 指定一个真实 HTTPS 域名当来源;Web 端在 pcmuz.cn 下嵌 YouTube 正常,说明该来源被认可
+          baseUrlOverride="https://www.pcmuz.cn"
           // Android WebView 默认拦程序化播放,换桌面 UA 才能让 playVideo()/pauseVideo() 稳定生效
           forceAndroidAutoplay
           initialPlayerParams={{
