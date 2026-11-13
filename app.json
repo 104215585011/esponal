@@ -2,7 +2,7 @@
   "expo": {
     "name": "Esponal",
     "slug": "esponal",
-    "version": "1.0.0",
+    "version": "0.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "esponal",
@@ -20,7 +20,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 4
     },
     "web": {
       "bundler": "metro",

@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-13 17:28
-import { useEffect } from "react";
+// Timestamp: 2026-11-14 02:52
+import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -7,6 +7,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
 import { AuthProvider, useAuth } from "@/auth/AuthProvider";
+import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
+import { UpdateDialog } from "@/components/UpdateDialog";
 import { colors } from "@/theme";
 
 export { ErrorBoundary } from "expo-router";
@@ -30,6 +32,31 @@ function RootNavigator() {
   const { status } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  const [update, setUpdate] = useState<{ current: string; info: AppVersionInfo } | null>(
+    null
+  );
+
+  // 登录后静默检查一次更新(失败静默,不打扰用户)
+  useEffect(() => {
+    if (status !== "signedIn") return;
+
+    let cancelled = false;
+
+    checkForUpdate()
+      .then((result) => {
+        if (!cancelled && result.hasUpdate) {
+          setUpdate({ current: result.current, info: result.latest });
+        }
+      })
+      .catch(() => {
+        // 检查更新失败不弹任何东西
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -55,10 +82,19 @@ function RootNavigator() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="sign-in" options={{ animation: "fade" }} />
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="sign-in" options={{ animation: "fade" }} />
+      </Stack>
+
+      <UpdateDialog
+        current={update?.current ?? ""}
+        info={update?.info ?? null}
+        onDismiss={() => setUpdate(null)}
+        visible={Boolean(update)}
+      />
+    </>
   );
 }
 

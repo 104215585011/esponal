@@ -1,19 +1,52 @@
-// Timestamp: 2026-11-13 17:48
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+// Timestamp: 2026-11-14 02:56
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/auth/AuthProvider";
 import { API_BASE } from "@/api/client";
+import { checkForUpdate, currentVersion, type AppVersionInfo } from "@/api/appVersion";
+import { UpdateDialog } from "@/components/UpdateDialog";
 import { colors, radius, spacing } from "@/theme";
 
 export default function MeScreen() {
   const { user, signOut } = useAuth();
+  const [checking, setChecking] = useState(false);
+  const [update, setUpdate] = useState<{ current: string; info: AppVersionInfo } | null>(
+    null
+  );
 
   const confirmSignOut = () => {
     Alert.alert("退出登录", "下次需要重新输入密码。", [
       { text: "取消", style: "cancel" },
       { text: "退出", style: "destructive", onPress: () => void signOut() }
     ]);
+  };
+
+  const handleCheckUpdate = async () => {
+    if (checking) return;
+    setChecking(true);
+
+    try {
+      const result = await checkForUpdate();
+      if (result.hasUpdate) {
+        setUpdate({ current: result.current, info: result.latest });
+      } else {
+        Alert.alert("已是最新版本", `当前 v${result.current}`);
+      }
+    } catch {
+      Alert.alert("检查失败", "网络或服务异常,稍后再试");
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
@@ -36,14 +69,28 @@ export default function MeScreen() {
 
         <View style={styles.metaList}>
           <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>版本</Text>
+            <Text style={styles.metaValue}>v{currentVersion()}</Text>
+          </View>
+
+          <Pressable
+            disabled={checking}
+            onPress={handleCheckUpdate}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>检查更新</Text>
+            {checking ? (
+              <ActivityIndicator color={colors.brand500} size="small" />
+            ) : (
+              <Text style={styles.metaAction}>检查</Text>
+            )}
+          </Pressable>
+
+          <View style={[styles.metaRow, styles.metaRowLast]}>
             <Text style={styles.metaLabel}>API</Text>
             <Text style={styles.metaValue} numberOfLines={1}>
               {API_BASE}
             </Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>版本</Text>
-            <Text style={styles.metaValue}>P1 骨架</Text>
           </View>
         </View>
 
@@ -54,6 +101,13 @@ export default function MeScreen() {
           <Text style={styles.signOutText}>退出登录</Text>
         </Pressable>
       </ScrollView>
+
+      <UpdateDialog
+        current={update?.current ?? ""}
+        info={update?.info ?? null}
+        onDismiss={() => setUpdate(null)}
+        visible={Boolean(update)}
+      />
     </SafeAreaView>
   );
 }
@@ -118,6 +172,9 @@ const styles = StyleSheet.create({
   },
   metaLabel: { fontSize: 12.5, color: colors.textSecondary },
   metaValue: { flex: 1, textAlign: "right", fontSize: 12.5, color: colors.text },
+  metaRowPressed: { backgroundColor: colors.surfaceMuted },
+  metaRowLast: { borderBottomWidth: 0 },
+  metaAction: { fontSize: 12.5, fontWeight: "700", color: colors.brand600 },
   signOut: {
     marginTop: spacing.xl,
     height: 50,
