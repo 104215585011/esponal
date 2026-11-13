@@ -575,6 +575,9 @@ export function TranscriptPanel({
   const [renderStart, setRenderStart] = useState(0);
   const [renderEnd, setRenderEnd] = useState(INITIAL_RENDER_COUNT);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // 移动端字幕区:自绘的优雅滚动指示条(0~1 进度 + 是否可滚动)
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isScrollable, setIsScrollable] = useState(false);
 
   const panelRef = useRef<HTMLElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -859,6 +862,35 @@ export function TranscriptPanel({
       scrollContainer.removeEventListener("keydown", handleKeyDown);
     };
   }, [resetAutoFollowTimer]);
+
+  // 移动端:跟踪滚动进度,驱动右侧细指示条(替换掉廉价的默认滚动条)
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || !isMobile) {
+      return undefined;
+    }
+
+    const updateScrollProgress = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      const maxScroll = Math.max(0, scrollHeight - clientHeight);
+      setIsScrollable(maxScroll > 1);
+      setScrollProgress(maxScroll > 0 ? Math.min(Math.max(scrollTop / maxScroll, 0), 1) : 0);
+    };
+
+    updateScrollProgress();
+    scrollContainer.addEventListener("scroll", updateScrollProgress, { passive: true });
+    // 观察容器内容(字幕行增删导致 scrollHeight 变化),容器本身尺寸不变所以只 observe 内容
+    const resizeObserver = new ResizeObserver(updateScrollProgress);
+    if (scrollContainer.firstElementChild) {
+      resizeObserver.observe(scrollContainer.firstElementChild);
+    }
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updateScrollProgress);
+      resizeObserver.disconnect();
+    };
+    // renderedCues/visibleCues 变化说明内容窗口更新了,需要重新绑定 observer(内容节点会替换)
+  }, [isMobile, hasLoadedSubtitles, transcriptMode, renderStart, renderEnd]);
 
   // Load subtitles with polling for auto-ingestion support
   useEffect(() => {
@@ -1623,7 +1655,7 @@ export function TranscriptPanel({
       )}
 
       <div
-        className="relative flex-1 overflow-y-auto pb-12 pt-2"
+        className={`relative flex-1 overflow-y-auto pb-12 pt-2 ${isMobile ? "scrollbar-none" : ""}`}
         ref={scrollContainerRef}
         tabIndex={0}
       >
@@ -1941,6 +1973,24 @@ export function TranscriptPanel({
           </>
         )}
       </div>
+
+      {/* 移动端:精致滚动指示条(右侧细轨道 + 品牌色滑块,随进度移动,取代默认滚动条) */}
+      {isMobile && isScrollable ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-[3px] top-[calc(3.5rem+8px)] bottom-6 z-10 w-[3px] rounded-full"
+        >
+          <div className="relative h-full w-full rounded-full bg-zinc-800/70">
+            <div
+              className="absolute left-0 top-0 w-full rounded-full bg-brand-500/80 transition-[top] duration-150 ease-out"
+              style={{
+                height: "34%",
+                top: `${Math.round(scrollProgress * 66)}%`
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* Floating Detached browsing follow button */}
       {!followMode && activeCue ? (

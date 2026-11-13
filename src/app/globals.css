@@ -267,6 +267,19 @@ body {
   scrollbar-color: rgba(161, 161, 170, 0.25) transparent;
 }
 
+/* 隐藏默认滚动条但保留滚动能力:用于深色沉浸页面(如移动端字幕区),
+   避免浅灰滚动条在深色背景上显得廉价;由业务组件自绘精致的指示条。 */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* Shimmer animation for loading placeholders */
 @keyframes shimmer {
   0% {
