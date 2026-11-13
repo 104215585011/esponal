@@ -63,6 +63,23 @@ export async function saveWord(body: {
   });
 }
 
+/** 句级翻译。服务端有 v3 缓存,同一句不会重复花额度。 */
+export async function translateText(text: string): Promise<string | null> {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  try {
+    const res = await apiFetch<{ translation?: string }>("/api/translate", {
+      method: "POST",
+      body: JSON.stringify({ text: trimmed })
+    });
+    return res.translation?.trim() || null;
+  } catch {
+    // 翻译失败不能影响字幕显示 —— 静默降级为只显示西语
+    return null;
+  }
+}
+
 /** "PT18M28S" → "18:28";也兼容 "PT1H2M3S" */
 export function formatDuration(raw: string) {
   const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(raw ?? "");

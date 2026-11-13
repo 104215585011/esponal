@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import YoutubePlayer, { type YoutubeIframeRef } from "react-native-youtube-iframe";
 
-import { fetchSubtitles, formatClock, type Cue } from "@/api/watch";
+import { fetchSubtitles, formatClock, translateText, type Cue } from "@/api/watch";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
 import { colors, radius, spacing } from "@/theme";
@@ -41,6 +41,13 @@ export default function WatchPlayerScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [follow, setFollow] = useState(true);
+
+  // 双语字幕:只翻译「当前句 ±2」的滑动窗口,文本级缓存避免重复请求(会花翻译额度)
+  const [translations, setTranslations] = useState<Record<number, string>>({});
+  const translationCacheRef = useRef(new Map<string, string>());
+  const translationsRef = useRef<Record<number, string>>({});
+  const translatingRef = useRef(new Set<number>());
+  const [bilingual, setBilingual] = useState(true);
 
   const videoHeight = Math.round((width * 9) / 16);
 
@@ -95,6 +102,48 @@ export default function WatchPlayerScreen() {
     }
     return 0;
   }, [cues, currentTime]);
+
+  // 双语字幕:预翻译当前句 ±2,串行执行避免触发翻译限流
+  useEffect(() => {
+    if (!bilingual || activeIndex < 0 || cues.length === 0) return;
+
+    let cancelled = false;
+    const start = Math.max(0, activeIndex - 2);
+    const end = Math.min(cues.length - 1, activeIndex + 2);
+
+    const run = async () => {
+      for (let i = start; i <= end; i += 1) {
+        if (cancelled) return;
+
+        const text = cues[i]?.text?.trim();
+        if (!text) continue;
+        if (translationsRef.current[i] || translatingRef.current.has(i)) continue;
+
+        const cached = translationCacheRef.current.get(text);
+        if (cached) {
+          translationsRef.current = { ...translationsRef.current, [i]: cached };
+          setTranslations(translationsRef.current);
+          continue;
+        }
+
+        translatingRef.current.add(i);
+        const result = await translateText(text);
+        translatingRef.current.delete(i);
+
+        if (cancelled || !result) continue;
+
+        translationCacheRef.current.set(text, result);
+        translationsRef.current = { ...translationsRef.current, [i]: result };
+        setTranslations(translationsRef.current);
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeIndex, cues, bilingual]);
 
   // 自动跟随:滚动到当前句(用户手动滚动后会暂停跟随)
   useEffect(() => {
@@ -194,6 +243,15 @@ export default function WatchPlayerScreen() {
         </View>
 
         <Pressable
+          onPress={() => setBilingual((prev) => !prev)}
+          style={[styles.followChip, bilingual && styles.followChipOn]}
+        >
+          <Text style={[styles.followChipText, bilingual && styles.followChipTextOn]}>
+            中文
+          </Text>
+        </Pressable>
+
+        <Pressable
           onPress={() => {
             setFollow(true);
             if (activeIndex >= 0) seekTo(cues[activeIndex].start);
@@ -236,6 +294,7 @@ export default function WatchPlayerScreen() {
               onSeek={() => seekTo(item.start)}
               onWordPress={handleWordPress}
               text={item.text}
+              translation={bilingual ? translations[index] : null}
             />
           )}
           showsVerticalScrollIndicator={false}
