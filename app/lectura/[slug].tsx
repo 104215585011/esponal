@@ -1,5 +1,5 @@
 // Timestamp: 2026-11-13 23:38
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { fetchStory, type LecturaStory } from "@/api/lectura";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
+import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
 import { colors, radius, spacing } from "@/theme";
 
 export default function LecturaReaderScreen() {
@@ -26,6 +27,12 @@ export default function LecturaReaderScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+
+  const paragraphs = useMemo(() => story?.paragraphs ?? [], [story]);
+  const speech = useParagraphSpeech(
+    typeof slug === "string" ? slug : undefined,
+    paragraphs.length
+  );
 
   const load = useCallback(async () => {
     if (!slug) return;
@@ -74,6 +81,19 @@ export default function LecturaReaderScreen() {
         <Text style={styles.topTitle} numberOfLines={1}>
           {story.titleZh}
         </Text>
+        <Pressable
+          onPress={speech.togglePlayAll}
+          style={[styles.listenButton, speech.playingIndex !== null && styles.listenButtonOn]}
+        >
+          <Text
+            style={[
+              styles.listenText,
+              speech.playingIndex !== null && styles.listenTextOn
+            ]}
+          >
+            {speech.playingIndex !== null ? "停止" : "朗读"}
+          </Text>
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -91,15 +111,22 @@ export default function LecturaReaderScreen() {
         <View style={styles.divider} />
 
         {story.paragraphs.map((paragraph, index) => (
-          <ParagraphBlock
-            first={index === 0}
+          <View
             key={index}
-            onWordPress={(word) => {
-              setLookupWord(word);
-              setLookupContext(paragraph);
-            }}
-            text={paragraph}
-          />
+            style={[
+              styles.paraWrap,
+              speech.playingIndex === index && styles.paraActive
+            ]}
+          >
+            <ParagraphBlock
+              first={index === 0}
+              onWordPress={(word) => {
+                setLookupWord(word);
+                setLookupContext(paragraph);
+              }}
+              text={paragraph}
+            />
+          </View>
         ))}
 
         {story.glossary.length > 0 ? (
@@ -183,6 +210,31 @@ const styles = StyleSheet.create({
     fontWeight: "300"
   },
   topTitle: { flex: 1, fontSize: 13, fontWeight: "600", color: colors.textSecondary },
+  listenButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg
+  },
+  listenButtonOn: {
+    backgroundColor: colors.brand500,
+    borderColor: colors.brand500
+  },
+  listenText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
+  listenTextOn: { color: "#fff" },
+  paraWrap: {
+    borderLeftWidth: 3,
+    borderLeftColor: "transparent",
+    paddingLeft: spacing.md,
+    marginLeft: -spacing.md,
+    borderRadius: radius.sm
+  },
+  paraActive: {
+    borderLeftColor: colors.brand500,
+    backgroundColor: colors.brand50
+  },
   scroll: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
