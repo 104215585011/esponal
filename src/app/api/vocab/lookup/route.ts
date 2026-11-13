@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
+import { getOptionalUserId } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
-import { getAuthOptions } from "@/lib/auth";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
 import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
@@ -156,14 +155,10 @@ async function withSavedState<T extends { lemma: string }>(payload: T, userId: s
 
 export async function GET(request: Request) {
   const startedAt = performance.now();
-  const session = await getServerSession(getAuthOptions()).catch(() => null);
-  const rateLimit = await checkRateLimit(
-    lookupLimiter,
-    request,
-    session?.user && "id" in session.user && typeof session.user.id === "string"
-      ? session.user.id
-      : null
-  );
+  // 双通道鉴权:Web 走 cookie session,App 走 Bearer token。
+  // 之前只用 getServerSession,App 的 Bearer 解不出来 → isSaved 永远 false、限流只能按 IP。
+  const userId = await getOptionalUserId(request);
+  const rateLimit = await checkRateLimit(lookupLimiter, request, userId);
 
   if (!rateLimit.allowed) {
     const retryAfterSec = getRetryAfterSec(rateLimit.reset);
@@ -185,10 +180,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    const userId =
-      session?.user && "id" in session.user && typeof session.user.id === "string"
-        ? session.user.id
-        : null;
     const relatedEntries = await findRelatedPhraseEntries(word);
     const constructionEntry = await findConstructionEntry(word);
     const relatedPhrases = relatedEntries.map((entry) => ({

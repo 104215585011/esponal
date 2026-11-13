@@ -11,11 +11,11 @@ test("VOCAB-010 lookup route returns isSaved based on the signed-in user's saved
 
   const route = await readText(routePath);
 
-  assert.match(route, /getServerSession/);
+  // PLATFORM-001 双通道:Web cookie session 与 App Bearer token 都能解出 userId
+  assert.match(route, /getOptionalUserId|getServerSession/);
   assert.match(route, /lookupDictionary/);
   assert.match(route, /isSaved/);
   assert.match(route, /getWordWithEncounters|prisma\.word\.find/);
-  assert.match(route, /session\?\.user/);
 });
 
 test("VOCAB-010 LookupCard exposes an already_saved button state with amber styling and disabled interaction", async () => {
