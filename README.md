@@ -3,54 +3,75 @@
 原生 App。与 Web 端共用同一个后端(https://www.pcmuz.cn)、同一套账号。
 架构与决策见主仓库 `docs/tickets/PLATFORM-001-native-app.md`。
 
+**仓库位置**:`C:\e`(独立 git 仓库,远程为 `esponal` 仓库的 `mobile` 分支)
+
+> ⚠️ 为什么不在 `C:\Users\wang\esponal-mobile`?
+> Windows 有 260 字符路径上限,RN 新架构编译时 CMake 会把源码绝对路径镜像到构建目录,
+> 原路径直接超限、构建失败。移到 `C:\e` 后路径缩短 24 字符,问题解决。
+
 ---
 
-## 一、打 APK 装到手机(推荐)
+## 一、装到手机(最快)
 
-APK 是**独立安装包**,不依赖电脑、不依赖 Metro,装上就能用。
+**直接下载安装**,不需要电脑、不需要 Expo Go:
 
-### 本地构建(release)
+```
+https://github.com/104215585011/esponal/releases/download/mobile-v0.1.0/esponal-v0.1.0.apk
+```
 
-前置(本机已配好):
-- JDK 17 → `C:\Program Files\Java\jdk-17`
-- Android SDK → `C:\Users\wang\android-sdk`(已装 platform-tools / android-36 / build-tools 36.0.0)
+手机浏览器打开 → 下载 → 允许「安装未知来源应用」→ 安装。
+
+当前包:v0.1.0(2026-11-13),29.8MB,arm64-v8a。
+签名用的是 debug keystore —— **能装能用**,但不是上架用的正式签名。
+
+---
+
+## 二、重新出包:GitHub Actions(推荐)
+
+本地 Windows 构建有坑(见附录),**云端构建是已验证可靠的路径**。
 
 ```bash
-cd C:\Users\wang\esponal-mobile\android
+cd C:\e
+git add -A && git commit -m "feat: xxx"
+git push origin master:mobile
+```
+
+推送到 `mobile` 分支即自动触发 `.github/workflows/build-apk.yml`:
+
+1. Ubuntu + Node 22 + JDK 17 + 预装 Android SDK
+2. `expo prebuild` 生成原生工程
+3. 单 ABI(arm64-v8a)编译 release APK
+4. 上传 artifact `esponal-apk`
+
+**拿产物**:仓库 → Actions → 最新 `Build Android APK` → 页面底部 Artifacts → `esponal-apk.zip`(需登录 GitHub)
+
+**发成公开直链**:用 GitHub API 建 release 并把 apk 上传为 asset,得到
+`https://github.com/<owner>/<repo>/releases/download/<tag>/<name>.apk`,手机点开即下。
+
+构建耗时:约 13-15 分钟(首次),之后走缓存更快。
+
+---
+
+## 三、本地构建(可选,有坑)
+
+前置:JDK 17(`C:\Program Files\Java\jdk-17`)、Android SDK(`C:\Users\wang\android-sdk`)
+
+```bash
+cd C:\e\android
 ./gradlew assembleRelease
 ```
 
-产物:
-```
-android/app/build/outputs/apk/release/app-release.apk
-```
+产物:`android/app/build/outputs/apk/release/app-release.apk`
 
-> 首次构建会下 Gradle 发行版和依赖(约 200-400MB),之后走缓存。
-> release 默认用 `debug.keystore` 签名 —— **能装能用**,但不是上架用的正式签名。
-> 正式上架前必须生成自己的 keystore(见第五节)。
-
-### 安装
-
-- 数据线连电脑,把 apk 拷进手机,用文件管理器点开安装
-- 或 `adb install -r android\app\build\outputs\apk\release\app-release.apk`
-- 手机需允许「安装未知来源应用」
-
-### 云端构建(没有 Android SDK 时)
-
-```bash
-npm i -g eas-cli
-eas login          # 需要 Expo 账号
-eas build -p android --profile preview
-```
-产出下载链接,`eas.json` 里 `preview` 已配成 APK。
+如非必要,优先用 GitHub Actions。
 
 ---
 
-## 二、开发期调试(Expo Go,改代码实时刷新)
+## 四、开发期调试(Expo Go,改代码实时刷新)
 
 1. 手机装 **Expo Go**(Google Play / App Store)
 2. ```bash
-   cd C:\Users\wang\esponal-mobile
+   cd C:\e
    npx expo start
    ```
 3. 手机与电脑**同一 WiFi**,用 Expo Go 扫终端二维码
@@ -60,7 +81,7 @@ eas build -p android --profile preview
 
 ---
 
-## 三、登录
+## 五、登录
 
 用网页版的同一个账号。
 
@@ -69,7 +90,7 @@ eas build -p android --profile preview
 
 ---
 
-## 四、完成度
+## 六、完成度
 
 ### P1 骨架
 - [x] expo-router 5 tab:首页 / 视频 / 阅读 / 复习 / 我的
@@ -88,17 +109,18 @@ eas build -p android --profile preview
 
 ---
 
-## 五、上架前必须做的(别忘)
+## 七、上架前必须做的
 
-1. **生成正式 keystore**,替换 `android/app/build.gradle` 里的 release 签名配置
+1. **生成正式 keystore**,替换 `android/app/build.gradle` 的 release 签名配置
 2. 删除测试账号 `e2e@esponal.test`
 3. 加「注销账号」入口(Play 强制要求)
 4. 隐私政策链接(用 Web 端已有页面)
-5. targetSdk 跟随 Google 要求(2026-08-31 起需 36)
+5. targetSdk 跟随 Google 要求(2026-08-31 起需 36+)
+6. Play 新账号需 12 名测试者 × 14 天封闭测试
 
 ---
 
-## 六、结构
+## 八、结构
 
 ```
 app/                      expo-router 路由
@@ -113,11 +135,14 @@ src/
   components/TranscriptRow.tsx   字幕行(分词,单词可点)
   components/LookupSheet.tsx     查词面板
   theme.ts                设计 token(与 Web 端一致)
-android/                  prebuild 生成,已被 gitignore
-eas.json                  云构建配置
+.github/workflows/build-apk.yml 云端构建
+android/                  prebuild 生成(gitignore)
+eas.json                  EAS 云构建配置(备用)
 ```
 
-## 七、环境变量
+---
+
+## 九、环境变量
 
 默认连生产 API。要连本地后端:
 
@@ -125,8 +150,22 @@ eas.json                  云构建配置
 EXPO_PUBLIC_API_BASE=http://192.168.x.x:3000 npx expo start
 ```
 
-打 APK 时同样可以传(需在构建前设置):
+构建时同理(CI 里已写死 `https://www.pcmuz.cn`)。
 
-```bash
-$env:EXPO_PUBLIC_API_BASE="https://www.pcmuz.cn"
-```
+---
+
+## 附录:本地构建踩过的坑(2026-11-13 实测)
+
+按顺序遇到并解决的问题,留作以后参考:
+
+| # | 现象 | 根因 | 处理 |
+|---|---|---|---|
+| 1 | `next dev` / npm 安装失败 `SAFE_DELETE_BULK_CONFIRM_REQUIRED` | 沙箱文件删除保护(50 文件/次) | 先手动清 `.next` / `node_modules/.cache` |
+| 2 | `npx expo install` 崩溃 | CLI 子命令异常 | 查 `node_modules/expo/bundledNativeModules.json` 拿版本号,直接 `npm install` |
+| 3 | `Unable to resolve module react-native-web-webview` | `react-native-youtube-iframe` 的 web 适配包缺失,Metro 会扫所有平台文件 | `npm i react-native-web-webview` |
+| 4 | 构建卡 1 小时无输出 | Gradle 默认编 4 个 ABI(armeabi-v7a/arm64-v8a/x86/x86_64) | `reactNativeArchitectures=arm64-v8a` |
+| 5 | `ninja: error: mkdir(...): No such file or directory` | **Windows 260 字符路径上限**(CMake 镜像源码绝对路径) | 项目移到 `C:\e` |
+| 6 | Gradle 死锁(CPU 不涨、无进程活动) | 并行构建 + 路径异常 | `--max-workers=1` 可绕过,或换 Linux 云端构建 |
+| 7 | 移动目录后 `projectDirectory ... does not exist` | autolinking / gradle 缓存了旧绝对路径 | 删 `android/build`、`android/.gradle`、`.expo`、`node_modules/.cache` |
+
+**结论**:Windows 本地构建 RN 新架构不稳定,**优先用 GitHub Actions**。
