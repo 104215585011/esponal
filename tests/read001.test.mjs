@@ -108,7 +108,8 @@ test("READ-001 adds LecturaRead persistence schema and API routes", async () => 
 
   const postRoute = await readText("src/app/api/lectura/[slug]/read/route.ts");
   assert.match(postRoute, /export async function POST/);
-  assert.match(postRoute, /getServerSession/);
+  // PLATFORM-001: 鉴权收敛到双通道 helper(cookie | Bearer)
+  assert.match(postRoute, /getAuthedUserId|getServerSession/);
   assert.match(postRoute, /status:\s*401/);
   assert.match(postRoute, /prisma\.lecturaRead\.upsert/);
   assert.match(postRoute, /userId_slug/);

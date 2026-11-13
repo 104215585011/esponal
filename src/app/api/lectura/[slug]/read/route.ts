@@ -1,20 +1,17 @@
-import { getServerSession } from "next-auth";
+// Timestamp: 2026-11-14 02:55
 import { NextResponse } from "next/server";
-import { getAuthOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthedUserId } from "@/lib/api-auth";
 
 type ReadRouteContext = {
   params: { slug: string };
 };
 
-export async function POST(_: Request, { params }: ReadRouteContext) {
-  const session = await getServerSession(getAuthOptions());
+export async function POST(request: Request, { params }: ReadRouteContext) {
+  // PLATFORM-001: cookie(Web) 与 Bearer(App) 双通道
+  const userId = await getAuthedUserId(request);
 
-  if (
-    !session?.user ||
-    !("id" in session.user) ||
-    typeof session.user.id !== "string"
-  ) {
+  if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -27,12 +24,12 @@ export async function POST(_: Request, { params }: ReadRouteContext) {
   const read = await prisma.lecturaRead.upsert({
     where: {
       userId_slug: {
-        userId: session.user.id,
+        userId,
         slug
       }
     },
     create: {
-      userId: session.user.id,
+      userId,
       slug
     },
     update: {
