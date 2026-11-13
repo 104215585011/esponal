@@ -111,7 +111,7 @@ test("CREDITS Phase 2 phrase detection is premium-gated and billed by sentence c
 test("CREDITS Phase 2 subtitle route buckets website unlock cost and only charges uncached generation paths", async () => {
   const source = await read("src/app/api/subtitle/route.ts");
 
-  assert.match(source, /getServerSession/);
+  assert.match(source, /getOptionalUserId|getAuthedUserId|getServerSession/);
   assert.match(source, /requireCredits/);
   assert.match(source, /ACTION_COST_MINOR\.video_unlock_short/);
   assert.match(source, /ACTION_COST_MINOR\.video_unlock_mid/);

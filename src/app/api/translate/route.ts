@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { getAuthOptions } from "@/lib/auth";
+import { getOptionalUserId } from "@/lib/api-auth";
 import { reportTranslateFailure } from "@/lib/monitor";
 import {
   checkRateLimit,
@@ -41,14 +40,9 @@ async function safeCacheSet(cacheKey: string, translation: string) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions()).catch(() => null);
-  const rateLimit = await checkRateLimit(
-    translateLimiter,
-    request,
-    session?.user && "id" in session.user && typeof session.user.id === "string"
-      ? session.user.id
-      : null
-  );
+  // PLATFORM-001: 翻译登录非必需(匿名也能翻,只是限流 key 不同)
+  const userId = await getOptionalUserId(request);
+  const rateLimit = await checkRateLimit(translateLimiter, request, userId);
 
   if (!rateLimit.allowed) {
     const retryAfterSec = getRetryAfterSec(rateLimit.reset);

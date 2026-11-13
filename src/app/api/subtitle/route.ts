@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { getAuthOptions } from "@/lib/auth";
+import { getOptionalUserId } from "@/lib/api-auth";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
 import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
@@ -487,11 +486,9 @@ async function fetchSubtitlesWithFallback(
 }
 
 export async function GET(request: Request) {
-  const session = await getServerSession(getAuthOptions()).catch(() => null);
-  const userId =
-    session?.user && "id" in session.user && typeof session.user.id === "string"
-      ? session.user.id
-      : null;
+  // PLATFORM-001: 字幕是公开资源但登录后有更好体验(个性化缓存/额度),
+  // 用 optional 通道 —— Bearer 或 cookie 都能认,cookie 异常也不阻断。
+  const userId = await getOptionalUserId(request);
   const { searchParams } = new URL(request.url);
   const videoId = searchParams.get("v")?.trim() ?? "";
   const lang = searchParams.get("lang")?.trim() || "es";

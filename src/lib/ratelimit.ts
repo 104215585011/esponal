@@ -50,6 +50,8 @@ export const searchLimiter = createLimiter(20, "rl:youtube:search");
 export const channelLimiter = createLimiter(30, "rl:youtube:channel");
 export const ttsLimiter = createLimiter(60, "rl:tts");
 export const ingestLimiter = createLimiter(30, "rl:subtitle:ingest");
+// PLATFORM-001:原生 App 登录 —— 5 次/分钟,按 IP 计,防密码爆破
+export const loginLimiter = createLimiter(5, "rl:mobile:login");
 
 export function getClientIp(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");

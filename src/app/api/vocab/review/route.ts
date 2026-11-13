@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { getDueReviewWords, getDueReviewCount } from "@/lib/vocab";
 
-export async function GET() {
-  const session = await getServerSession(getAuthOptions());
+export async function GET(request: Request) {
+  // PLATFORM-001: cookie(Web) 与 Bearer(App) 双通道,统一取 userId
+  const userId = await getAuthedUserId(request);
 
-  if (
-    !session?.user ||
-    !("id" in session.user) ||
-    typeof session.user.id !== "string"
-  ) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const userId = session.user.id;
   const now = new Date();
 
   const [dueWords, totalDue] = await Promise.all([

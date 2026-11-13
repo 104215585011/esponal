@@ -55,7 +55,8 @@ test("VOCAB-006 review API routes exist and enforce auth/rating contracts", asyn
   const postRoute = await readText(postRoutePath);
 
   assert.match(getRoute, /export async function GET/);
-  assert.match(getRoute, /getServerSession/);
+  // PLATFORM-001: 鉴权收敛到双通道 helper(cookie | Bearer),不再直接调 getServerSession
+  assert.match(getRoute, /getAuthedUserId|getServerSession/);
   assert.match(getRoute, /status:\s*401/);
   assert.match(getRoute, /srsDue/);
   assert.match(getRoute, /take:\s*20/);
