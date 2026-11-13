@@ -14,7 +14,7 @@ import { redis } from "@/lib/redis";
 
 const REPO = "104215585011/esponal";
 const CACHE_KEY = "mobile:app-version";
-const CACHE_TTL_SEC = 60 * 10;
+const CACHE_TTL_SEC = 60 * 5;
 
 type VersionPayload = {
   latestVersion: string;
