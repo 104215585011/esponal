@@ -43,6 +43,13 @@ export type LookupResult = {
   meanings?: string[];
   examples?: Array<{ es: string; zh: string }>;
   phonetic?: string | null;
+  /** 词法讲解(词库条目的 explanationZh),meanings 为空时的兜底内容 */
+  morphInfo?: string | null;
+  /** 用法说明(固定搭配/构词) */
+  usageNote?: string | null;
+  relatedPhrases?: Array<{ lemma: string; translationZh: string | null; kind: string }>;
+  nounForms?: { singular: string; plural: string; gender: string };
+  adjectiveForms?: { ms: string; fs: string; mp: string; fp: string };
   isSaved?: boolean;
   wordId?: string | null;
 };

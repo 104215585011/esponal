@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import Slider from "@react-native-community/slider";
 import YoutubePlayer, { type YoutubeIframeRef } from "react-native-youtube-iframe";
 
 import { fetchSubtitles, formatClock, translateText, type Cue } from "@/api/watch";
@@ -33,8 +34,10 @@ export default function WatchPlayerScreen() {
   const playerRef = useRef<YoutubeIframeRef>(null);
   const listRef = useRef<FlatList<Cue>>(null);
 
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const seekingRef = useRef(false);
   const [cues, setCues] = useState<Cue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,9 +81,12 @@ export default function WatchPlayerScreen() {
     };
   }, [videoId]);
 
-  // 轮询播放进度:驱动当前句高亮
+  // 轮询播放进度:驱动当前句高亮 + 进度条
   useEffect(() => {
     const timer = setInterval(async () => {
+      // 用户正在拖进度条时不要被轮询覆盖
+      if (seekingRef.current) return;
+
       try {
         const t = await playerRef.current?.getCurrentTime();
         if (typeof t === "number" && Number.isFinite(t)) {
@@ -89,9 +95,31 @@ export default function WatchPlayerScreen() {
       } catch {
         // 播放器未就绪时忽略
       }
-    }, 500);
+    }, 400);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // 总时长:播放器就绪后取一次(拿不到就多试几次)
+  useEffect(() => {
+    let attempts = 0;
+    const probe = async () => {
+      try {
+        const d = await playerRef.current?.getDuration();
+        if (typeof d === "number" && d > 0) {
+          setDuration(d);
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      attempts += 1;
+      if (attempts < 15) {
+        setTimeout(probe, 800);
+      }
+    };
+    const start = setTimeout(probe, 600);
+    return () => clearTimeout(start);
   }, []);
 
   /** 当前播到第几句 */
@@ -216,31 +244,57 @@ export default function WatchPlayerScreen() {
         </Pressable>
       </View>
 
-      {/* 原生控制条 */}
-      <View style={styles.controlBar}>
-        <Pressable onPress={() => stepCue(-1)} style={styles.stepButton} hitSlop={8}>
-          <Text style={styles.stepIcon}>⏮</Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => setPlaying((prev) => !prev)}
-          style={styles.playButton}
-        >
-          <Text style={styles.playIcon}>{playing ? "⏸" : "▶"}</Text>
-        </Pressable>
-
-        <Pressable onPress={() => stepCue(1)} style={styles.stepButton} hitSlop={8}>
-          <Text style={styles.stepIcon}>⏭</Text>
-        </Pressable>
-
-        <View style={styles.metaBox}>
+      {/* 原生控制条:进度条 + 按钮行 */}
+      <View style={styles.controlWrap}>
+        <View style={styles.progressRow}>
           <Text style={styles.timeText}>{formatClock(currentTime)}</Text>
-          {title ? (
-            <Text numberOfLines={1} style={styles.titleText}>
-              {title}
-            </Text>
-          ) : null}
+          <Slider
+            maximumTrackTintColor={colors.border}
+            maximumValue={duration > 0 ? duration : 1}
+            minimumTrackTintColor={colors.brand500}
+            minimumValue={0}
+            onSlidingComplete={(value) => {
+              seekingRef.current = false;
+              seekTo(value);
+            }}
+            onSlidingStart={() => {
+              seekingRef.current = true;
+            }}
+            onValueChange={(value) => {
+              // 拖动时先更新显示,松手才真正 seek
+              setCurrentTime(value);
+            }}
+            step={0}
+            style={styles.slider}
+            thumbTintColor={colors.brand500}
+            value={duration > 0 ? Math.min(currentTime, duration) : 0}
+          />
+          <Text style={styles.timeTextRight}>{formatClock(duration)}</Text>
         </View>
+
+        <View style={styles.controlBar}>
+          <Pressable onPress={() => stepCue(-1)} style={styles.stepButton} hitSlop={8}>
+            <Text style={styles.stepIcon}>⏮</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setPlaying((prev) => !prev)}
+            style={styles.playButton}
+          >
+            <Text style={styles.playIcon}>{playing ? "⏸" : "▶"}</Text>
+          </Pressable>
+
+          <Pressable onPress={() => stepCue(1)} style={styles.stepButton} hitSlop={8}>
+            <Text style={styles.stepIcon}>⏭</Text>
+          </Pressable>
+
+          <View style={styles.metaBox}>
+            {title ? (
+              <Text numberOfLines={1} style={styles.titleText}>
+                {title}
+              </Text>
+            ) : null}
+          </View>
 
         <Pressable
           onPress={() => setBilingual((prev) => !prev)}
@@ -262,6 +316,7 @@ export default function WatchPlayerScreen() {
             跟随
           </Text>
         </Pressable>
+        </View>
       </View>
 
       {/* 原生字幕列表 */}
@@ -343,14 +398,36 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "300"
   },
+  controlWrap: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border
+  },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm
+  },
+  slider: {
+    flex: 1,
+    height: 32
+  },
+  timeTextRight: {
+    minWidth: 38,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    color: colors.textTertiary,
+    textAlign: "right"
+  },
   controlBar: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border
+    paddingBottom: spacing.sm,
+    paddingTop: 0
   },
   stepButton: {
     width: 34,

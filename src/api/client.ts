@@ -139,12 +139,29 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
-    const errorBody = body as { error?: string; code?: string } | null;
-    throw new ApiError(
-      errorBody?.error ?? `请求失败 (${res.status})`,
-      res.status,
-      errorBody?.code
-    );
+    // 服务端错误有两种形态:error 为字符串("rate limited"),或对象({code, message},如 402 额度不足)。
+    // 兼容两种,否则对象会被塞进 message 显示成 [object Object]。
+    const errorBody = body as
+      | {
+          error?: string | { code?: string; message?: string };
+          code?: string;
+          message?: string;
+        }
+      | null;
+
+    const raw = errorBody?.error;
+    const message =
+      typeof raw === "string"
+        ? raw
+        : typeof raw?.message === "string" && raw.message
+          ? raw.message
+          : typeof errorBody?.message === "string" && errorBody.message
+            ? errorBody.message
+            : `请求失败 (${res.status})`;
+    const code =
+      typeof raw === "object" && raw?.code ? raw.code : errorBody?.code;
+
+    throw new ApiError(message, res.status, code);
   }
 
   return body as T;

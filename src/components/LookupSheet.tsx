@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-13 17:50
-import { useCallback, useEffect, useState } from "react";
+// Timestamp: 2026-11-14 04:00
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -20,6 +20,13 @@ type LookupSheetProps = {
   onClose: () => void;
 };
 
+/**
+ * 点词查词面板。
+ *
+ * 渲染服务端返回的全部字段:释义 / 词法讲解 / 用法 / 例句 / 相关词组 / 名词与形容词变位。
+ * 词库条目可能只有 explanationZh(存进 morphInfo)而 meanings 为空 —— 必须有兜底,
+ * 否则用户看到的就是一块空白 + 一个"加入词库"按钮。
+ */
 export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   const insets = useSafeAreaInsets();
   const [data, setData] = useState<LookupResult | null>(null);
@@ -84,6 +91,42 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
     }
   }, [data, saving, saved, context]);
 
+  const meanings = data?.meanings ?? [];
+  const examples = data?.examples ?? [];
+  const relatedPhrases = data?.relatedPhrases ?? [];
+
+  /** 名词/形容词变位拼成一行文字 */
+  const formsLine = useMemo(() => {
+    if (!data) return null;
+    if (data.nounForms) {
+      const g =
+        data.nounForms.gender === "f"
+          ? "阴性"
+          : data.nounForms.gender === "mf"
+            ? "阴阳同形"
+            : "阳性";
+      return `单数 ${data.nounForms.singular} · 复数 ${data.nounForms.plural} · ${g}`;
+    }
+    if (data.adjectiveForms) {
+      const f = data.adjectiveForms;
+      return `阳性 ${f.ms} · 阴性 ${f.fs} · 复数 ${f.mp}/${f.fp}`;
+    }
+    return null;
+  }, [data]);
+
+  /** 有没有任何可展示的内容(决定是否显示空态提示) */
+  const hasContent = useMemo(() => {
+    if (!data) return false;
+    return (
+      meanings.length > 0 ||
+      Boolean(data.morphInfo?.trim()) ||
+      Boolean(data.usageNote?.trim()) ||
+      examples.length > 0 ||
+      relatedPhrases.length > 0 ||
+      Boolean(formsLine)
+    );
+  }, [data, meanings, examples, relatedPhrases, formsLine]);
+
   return (
     <Modal
       animationType="slide"
@@ -117,16 +160,32 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
               <Text style={styles.pos}>{data.partOfSpeech}</Text>
             ) : null}
 
-            {(data.meanings ?? []).map((meaning, index) => (
-              <Text key={index} style={styles.meaning}>
-                {index + 1}. {meaning}
-              </Text>
-            ))}
+            {meanings.length > 0 ? (
+              meanings.map((meaning, index) => (
+                <Text key={index} style={styles.meaning}>
+                  {meanings.length > 1 ? `${index + 1}. ${meaning}` : meaning}
+                </Text>
+              ))
+            ) : null}
 
-            {(data.examples ?? []).length > 0 ? (
+            {/* 词法讲解:meanings 为空时的主要兜底内容 */}
+            {data.morphInfo?.trim() ? (
+              <Text style={styles.meaning}>{data.morphInfo.trim()}</Text>
+            ) : null}
+
+            {formsLine ? <Text style={styles.formsLine}>{formsLine}</Text> : null}
+
+            {data.usageNote?.trim() ? (
+              <View style={styles.usageBox}>
+                <Text style={styles.usageTitle}>用法</Text>
+                <Text style={styles.usageText}>{data.usageNote.trim()}</Text>
+              </View>
+            ) : null}
+
+            {examples.length > 0 ? (
               <View style={styles.examples}>
                 <Text style={styles.sectionTitle}>例句</Text>
-                {(data.examples ?? []).slice(0, 3).map((ex, index) => (
+                {examples.slice(0, 3).map((ex, index) => (
                   <View key={index} style={styles.example}>
                     <Text style={styles.exampleEs}>{ex.es}</Text>
                     <Text style={styles.exampleZh}>{ex.zh}</Text>
@@ -135,13 +194,29 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
               </View>
             ) : null}
 
+            {relatedPhrases.length > 0 ? (
+              <View style={styles.examples}>
+                <Text style={styles.sectionTitle}>相关词组</Text>
+                {relatedPhrases.slice(0, 4).map((phrase, index) => (
+                  <Text key={index} style={styles.exampleEs}>
+                    {phrase.lemma}
+                    {phrase.translationZh ? ` —— ${phrase.translationZh}` : ""}
+                  </Text>
+                ))}
+              </View>
+            ) : null}
+
+            {/* 完全没有内容时的兜底提示,别让用户对着空白按钮发呆 */}
+            {!hasContent ? (
+              <Text style={styles.emptyHint}>
+                词典里暂时没有「{data.lemma}」的释义,可以先把单词存入词库。
+              </Text>
+            ) : null}
+
             <Pressable
               disabled={saving || saved}
               onPress={handleSave}
-              style={[
-                styles.saveButton,
-                saved && styles.saveButtonDone
-              ]}
+              style={[styles.saveButton, saved && styles.saveButtonDone]}
             >
               <Text style={[styles.saveButtonText, saved && styles.saveButtonTextDone]}>
                 {saved ? "已在词库" : saving ? "加入中…" : "加入词库"}
@@ -215,6 +290,25 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: colors.text
   },
+  formsLine: {
+    marginTop: 4,
+    fontSize: 12.5,
+    color: colors.textTertiary
+  },
+  usageBox: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted
+  },
+  usageTitle: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    color: colors.textTertiary,
+    marginBottom: 4
+  },
+  usageText: { fontSize: 14, lineHeight: 22, color: colors.text },
   examples: { marginTop: spacing.lg, gap: spacing.md },
   sectionTitle: {
     fontSize: 11,
@@ -226,6 +320,13 @@ const styles = StyleSheet.create({
   example: { gap: 3 },
   exampleEs: { fontSize: 14, lineHeight: 22, color: colors.text },
   exampleZh: { fontSize: 13, lineHeight: 20, color: colors.textSecondary },
+  emptyHint: {
+    marginTop: spacing.lg,
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.textTertiary,
+    textAlign: "center"
+  },
   saveButton: {
     marginTop: spacing.xl,
     height: 50,
