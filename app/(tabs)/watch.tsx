@@ -79,6 +79,15 @@ export default function WatchScreen() {
           精选西语频道,配逐句字幕。点视频进入播放页,点单词直接查词。
         </Text>
 
+        {/* 搜索入口:精选频道只有三个,想找别的内容用这里 */}
+        <Pressable
+          onPress={() => router.push("/search" as never)}
+          style={({ pressed }) => [styles.searchBar, pressed && styles.cardPressed]}
+        >
+          <Text style={styles.searchIcon}>🔍</Text>
+          <Text style={styles.searchPlaceholder}>搜任意西语视频…</Text>
+        </Pressable>
+
         {loading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator color={colors.brand500} />
@@ -102,7 +111,12 @@ export default function WatchScreen() {
                       // typedRoutes 的类型在首次 `expo start` 后才生成,这里先绕过
                       router.push({
                         pathname: "/watch/[videoId]",
-                        params: { videoId: video.id, title: video.title }
+                        params: {
+                          videoId: video.id,
+                          title: video.title,
+                          channelTitle: video.channelTitle,
+                          thumbnail: video.thumbnail
+                        }
                       } as never)
                     }
                     style={({ pressed }) => [
@@ -167,6 +181,18 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: colors.textSecondary
   },
+  searchBar: {
+    marginTop: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    height: 42,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: 14
+  },
+  searchIcon: { fontSize: 12.5 },
+  searchPlaceholder: { fontSize: 13, color: colors.textTertiary },
   loadingBox: {
     paddingVertical: 60,
     alignItems: "center",

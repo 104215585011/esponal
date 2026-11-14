@@ -17,6 +17,7 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import YoutubePlayer, { type YoutubeIframeRef } from "react-native-youtube-iframe";
 
 import { fetchSubtitles, formatClock, translateText, type Cue } from "@/api/watch";
+import { reportWatchHistory } from "@/api/stats";
 import {
   getDownloadJob,
   startSubtitleDownload,
@@ -37,8 +38,16 @@ import { colors, radius, spacing } from "@/theme";
  * 全屏实现:同一播放器实例不重挂,只切换外层容器为绝对定位铺满屏幕 +
  * 锁横屏(useWindowDimensions 随旋转自动更新宽高)。
  */
+/** 倍速档位:点一下循环切换 */
+const RATE_STEPS = [0.75, 1, 1.25, 1.5];
+
 export default function WatchPlayerScreen() {
-  const { videoId, title } = useLocalSearchParams<{ videoId: string; title?: string }>();
+  const { videoId, title, channelTitle, thumbnail } = useLocalSearchParams<{
+    videoId: string;
+    title?: string;
+    channelTitle?: string;
+    thumbnail?: string;
+  }>();
   const router = useRouter();
   const { width, height: winHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -63,6 +72,8 @@ export default function WatchPlayerScreen() {
   const [downloadJob, setDownloadJob] = useState<DownloadJobState>(getDownloadJob());
   /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
   const [playerError, setPlayerError] = useState<string | null>(null);
+  /** 倍速:精听时放慢,泛听时加速(YouTube iframe 原生支持,不改音调) */
+  const [rate, setRate] = useState(1);
 
   // 字幕末尾时间 —— 播放器时长拿不到时的兜底(安卓上 getDuration 在首次播放前经常返回 0)
   const cueDuration = useMemo(() => {
@@ -209,6 +220,17 @@ export default function WatchPlayerScreen() {
   useEffect(() => {
     return subscribeDownloadJob((state) => setDownloadJob(state));
   }, []);
+
+  // 进入播放页静默上报观看历史(首页「最近观看」从这里来);缺频道信息就不报
+  useEffect(() => {
+    if (!videoId || !title || !channelTitle) return;
+    void reportWatchHistory({
+      videoId: String(videoId),
+      title: String(title),
+      channelTitle: String(channelTitle),
+      thumbnail: thumbnail ? String(thumbnail) : null
+    });
+  }, [videoId, title, channelTitle, thumbnail]);
 
   const handleDownloadSubtitles = useCallback(() => {
     if (downloadJob.running || cues.length === 0 || !videoId) return;
@@ -368,6 +390,7 @@ export default function WatchPlayerScreen() {
             if (state === "paused" || state === "ended") setPlaying(false);
           }}
           play={playing}
+          playbackRate={rate}
           ref={playerRef}
           videoId={String(videoId)}
           width={fullscreen ? fsFit.w : width}
@@ -532,7 +555,10 @@ export default function WatchPlayerScreen() {
               </Text>
             ) : null}
           </View>
+        </View>
 
+        {/* 开关行:中文 / 跟随 / 循环 / 倍速(单独一行,避免挤标题) */}
+        <View style={styles.chipBar}>
           <Pressable
             onPress={() => setBilingual((prev) => !prev)}
             style={[styles.followChip, bilingual && styles.followChipOn]}
@@ -560,6 +586,21 @@ export default function WatchPlayerScreen() {
           >
             <Text style={[styles.followChipText, loop && styles.followChipTextOn]}>
               循环
+            </Text>
+          </Pressable>
+
+          {/* 倍速循环切换 0.75 → 1 → 1.25 → 1.5 */}
+          <Pressable
+            onPress={() =>
+              setRate((prev) => {
+                const i = RATE_STEPS.indexOf(prev);
+                return RATE_STEPS[(i + 1) % RATE_STEPS.length];
+              })
+            }
+            style={[styles.followChip, rate !== 1 && styles.followChipOn]}
+          >
+            <Text style={[styles.followChipText, rate !== 1 && styles.followChipTextOn]}>
+              {rate}x
             </Text>
           </Pressable>
         </View>
@@ -789,7 +830,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: 4,
     paddingTop: 0
   },
   stepButton: {
@@ -809,6 +850,14 @@ const styles = StyleSheet.create({
   },
   playIcon: { fontSize: 16, color: "#fff" },
   metaBox: { flex: 1, paddingHorizontal: spacing.sm },
+  chipBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingTop: 2
+  },
   timeText: {
     fontSize: 11,
     fontWeight: "700",
