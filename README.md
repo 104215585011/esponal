@@ -16,17 +16,18 @@
 **直接下载安装**,不需要电脑、不需要 Expo Go:
 
 ```
-https://github.com/104215585011/esponal/releases/download/mobile-v1.0.3/esponal-v1.0.3.apk
+https://github.com/104215585011/esponal/releases/download/mobile-v1.0.4/esponal-v1.0.4.apk
 ```
 
 手机浏览器打开 → 下载 → 允许「安装未知来源应用」→ 安装。
 
-当前包:v1.0.3(2026-11-14),31.5MB,arm64-v8a。
+当前包:v1.0.4(2026-11-14),31.5MB,arm64-v8a。
 签名用的是 debug keystore —— **能装能用**,但不是上架用的正式签名。
 
 **版本历史**
 | 版本 | 内容 |
 |---|---|
+| v1.0.4 | Google 登录稳定性:换 token 移到服务端,失败显示 Google 具体原因(客户端换 token 失败会静默) |
 | v1.0.3 | Google 登录正式可用(Android OAuth client 已配,原生 id_token 流程)+ 修复「加入词库/收藏搭配」unauthorized |
 | v1.0.2 | Google 登录代码与服务端验签接口(当时未配 client id,按钮置灰) |
 | v1.0.1 | AI 口语练习(和 Carlos 用西语对话:朗读/纠错/新词)+ 我的词库(搜索/筛选/删除)+ 短语与搭配 + 复习卡例句与下次复习时间 + 阅读分段朗读/下一篇 + 注册入口 + 积分余额 |
