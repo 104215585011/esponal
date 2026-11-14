@@ -93,14 +93,29 @@ async function fetchFromGitHub(): Promise<VersionPayload | null> {
   }
 }
 
+/**
+ * 版本号必须是最新的,所以显式禁掉 Next / Vercel 的边缘缓存。
+ * 之前只靠 `redis.set(..., "EX", 300)` 兜:一旦 EX 没生效(或边缘缓存按 must-revalidate
+ * 仍给旧响应),就会出现「新版本已经发布了,App 检查更新永远看到上一版」——
+ * 用户点下载装的还是旧包,这种问题从表面完全看不出来。
+ */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_STORE = { "Cache-Control": "no-store, max-age=0, must-revalidate" };
+
 export async function GET() {
-  // 1. 先看缓存
+  // 1. 先看缓存(缓存值自带写入时间,超过 TTL 就当没有——不依赖 Redis 的 EX 语义)
   try {
     const cached = await redis.get(CACHE_KEY);
     if (typeof cached === "string") {
-      return NextResponse.json(JSON.parse(cached), {
-        headers: { "X-Version-Source": "cache" }
-      });
+      const entry = JSON.parse(cached) as { at?: number; payload?: VersionPayload };
+      const age = Date.now() - (entry.at ?? 0);
+      if (entry.payload && age >= 0 && age < CACHE_TTL_SEC * 1000) {
+        return NextResponse.json(entry.payload, {
+          headers: { ...NO_STORE, "X-Version-Source": "cache" }
+        });
+      }
     }
   } catch {
     // Redis 异常不阻断
@@ -111,13 +126,18 @@ export async function GET() {
 
   if (fromGithub) {
     try {
-      await redis.set(CACHE_KEY, JSON.stringify(fromGithub), "EX", CACHE_TTL_SEC);
+      await redis.set(
+        CACHE_KEY,
+        JSON.stringify({ at: Date.now(), payload: fromGithub }),
+        "EX",
+        CACHE_TTL_SEC
+      );
     } catch {
       // 写入失败不影响返回
     }
 
     return NextResponse.json(fromGithub, {
-      headers: { "X-Version-Source": "github" }
+      headers: { ...NO_STORE, "X-Version-Source": "github" }
     });
   }
 
@@ -131,6 +151,6 @@ export async function GET() {
       publishedAt: null,
       releaseUrl: "https://github.com/104215585011/esponal/releases"
     } satisfies VersionPayload,
-    { headers: { "X-Version-Source": "fallback" } }
+    { headers: { ...NO_STORE, "X-Version-Source": "fallback" } }
   );
 }
