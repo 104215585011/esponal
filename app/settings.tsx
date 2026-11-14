@@ -120,7 +120,8 @@ export default function SettingsScreen() {
                   key={option.value}
                   onPress={() => {
                     void updatePreferences({ accent: option.value });
-                    speakSpanish("Hola, ¿qué tal?", { accent: option.value, interrupt: false });
+                    // 连点不同口音时不打断的话,几段示例音会叠在一起念
+                    speakSpanish("Hola, ¿qué tal?", { accent: option.value });
                   }}
                   style={[styles.option, active && styles.optionActive]}
                 >
@@ -146,10 +147,7 @@ export default function SettingsScreen() {
                   key={option.value}
                   onPress={() => {
                     void updatePreferences({ rate: option.value });
-                    speakSpanish("Buenos días, vamos a practicar.", {
-                      rate: option.value,
-                      interrupt: false
-                    });
+                    speakSpanish("Buenos días, vamos a practicar.", { rate: option.value });
                   }}
                   style={[styles.rateChip, active && styles.rateChipActive]}
                 >
