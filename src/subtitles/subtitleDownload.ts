@@ -95,7 +95,14 @@ function formatClock(seconds: number) {
   return `${min}:${String(sec).padStart(2, "0")}`;
 }
 
-/** 与 Web 端同款版式的双语讲义 HTML,expo-print 用系统 WebView 渲染成 PDF(中/西文都没问题) */
+/**
+ * 与 Web 端 pdf-helpers.ts renderTranscriptPdfPages 同款版式。
+ * Web 是 1240x1754 Canvas 绘制再塞进 A4(595.28x841.89pt) PDF,
+ * 这里按 canvas px -> css px(794/1240 ≈ 0.64) 换算所有尺寸与颜色:
+ *   页边距 106 -> 68 | 标题 38 -> 24 | 副标题 18 -> 11.5 | 绿条 4 -> 3(高)
+ *   时间戳列宽 92 -> 60 | 西语 600 23px -> 15px | 中文 500 21px -> 13.5px
+ *   分隔线 #f4f4f5 | 时间戳/中文灰 #71717a | 绿条 #10b981
+ */
 function buildHandoutHtml(
   title: string,
   videoId: string,
@@ -103,12 +110,12 @@ function buildHandoutHtml(
 ) {
   const rowsHtml = rows
     .map(
-      (row, index) => `
+      (row) => `
       <div class="row${row.es.trim() ? "" : " empty"}">
-        <span class="time">${formatClock(row.start)}</span>
+        <span class="time">[${formatClock(row.start)}]</span>
         <div class="text">
-          <div class="es">${index + 1}. ${esc(row.es)}</div>
-          <div class="zh">${row.zh ? esc(row.zh) : "—"}</div>
+          ${row.es.trim() ? `<div class="es">${esc(row.es)}</div>` : ""}
+          ${row.zh.trim() ? `<div class="zh">${esc(row.zh)}</div>` : ""}
         </div>
       </div>`
     )
@@ -119,21 +126,65 @@ function buildHandoutHtml(
   <head>
     <meta charset="utf-8" />
     <style>
-      body { font-family: sans-serif; color: #18181b; margin: 28px 34px; }
-      h1 { font-size: 20px; margin: 0 0 4px; }
-      .meta { font-size: 10.5px; color: #71717a; margin-bottom: 18px; }
-      .row { display: flex; gap: 12px; padding: 7px 0; border-bottom: 1px solid #f1f1f1; }
+      @page { size: A4; margin: 0; }
+      * { box-sizing: border-box; }
+      body {
+        font-family: "Plus Jakarta Sans", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+        color: #18181b;
+        margin: 0;
+        padding: 26px 68px 40px;
+      }
+      h1 { font-size: 24px; font-weight: 700; margin: 0; line-height: 1.3; }
+      .video-title {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #71717a;
+        margin-top: 7px;
+        line-height: 1.4;
+        word-break: break-word;
+      }
+      .rule { height: 3px; background: #10b981; margin-top: 11px; }
+      .rows { margin-top: 18px; }
+      .row {
+        display: flex;
+        align-items: baseline;
+        padding: 11px 0 8px;
+        border-bottom: 1px solid #f4f4f5;
+        page-break-inside: avoid;
+      }
       .row.empty { display: none; }
-      .time { font-size: 10px; font-weight: 700; color: #16a34a; min-width: 34px; padding-top: 3px; }
-      .text { flex: 1; }
-      .es { font-size: 13px; line-height: 1.5; }
-      .zh { font-size: 11.5px; line-height: 1.5; color: #52525b; margin-top: 2px; }
+      .time {
+        flex: 0 0 60px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #71717a;
+        letter-spacing: 0.2px;
+        tab-size: 4;
+        font-variant-numeric: tabular-nums;
+      }
+      .text { flex: 1; min-width: 0; }
+      .es {
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.26;
+        letter-spacing: 0.03px;
+        overflow-wrap: break-word;
+      }
+      .text .es + .zh { margin-top: 5px; }
+      .zh {
+        font-size: 13.5px;
+        font-weight: 500;
+        line-height: 1.28;
+        color: #71717a;
+        overflow-wrap: break-word;
+      }
     </style>
   </head>
   <body>
-    <h1>${esc(title)}</h1>
-    <div class="meta">Esponal 双语字幕讲义 · youtube.com/watch?v=${esc(videoId)} · 共 ${rows.length} 句 · 生成于 ${new Date().toLocaleString("zh-CN")}</div>
-    ${rowsHtml}
+    <h1>Esponal 字幕讲义</h1>
+    <div class="video-title">${esc(title || videoId)}</div>
+    <div class="rule"></div>
+    <div class="rows">${rowsHtml}</div>
   </body>
 </html>`;
 }

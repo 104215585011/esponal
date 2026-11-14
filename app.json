@@ -2,7 +2,7 @@
   "expo": {
     "name": "Esponal",
     "slug": "esponal",
-    "version": "0.8.1",
+    "version": "0.8.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "esponal",
@@ -21,7 +21,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "versionCode": 14,
+      "versionCode": 15,
       "permissions": [
         "android.permission.REQUEST_INSTALL_PACKAGES"
       ]
