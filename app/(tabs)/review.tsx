@@ -50,6 +50,8 @@ export default function ReviewScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
+  /** 评分后轻提示:"下次 3 天后"(FSRS 的真实反馈,比单纯跳下一张有获得感) */
+  const [lastFeedback, setLastFeedback] = useState<string | null>(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -82,8 +84,19 @@ export default function ReviewScreen() {
 
       setGrading(rating);
       try {
-        await gradeReviewWord(word.id, rating);
+        const result = await gradeReviewWord(word.id, rating);
         setDoneCount((n) => n + 1);
+
+        // 把 ISO 时间翻译成人话,给学习者一个明确的间隔感
+        const days = Math.max(
+          0,
+          Math.round((new Date(result.nextDue).getTime() - Date.now()) / 86_400_000)
+        );
+        setLastFeedback(
+          days <= 0 ? "下次:今天再来一次" : days === 1 ? "下次:明天" : `下次:${days} 天后`
+        );
+        setTimeout(() => setLastFeedback(null), 2200);
+
         setFlipped(false);
         setIndex((i) => i + 1);
       } catch (e) {
@@ -135,6 +148,7 @@ export default function ReviewScreen() {
   }
 
   const meanings = current.dictData?.meanings ?? [];
+  const examples = current.dictData?.examples ?? [];
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -143,7 +157,11 @@ export default function ReviewScreen() {
         <Text style={styles.progressText}>
           {index + 1} / {queue.length}
         </Text>
-        <Text style={styles.dueText}>今日待复习 {totalDue}</Text>
+        {lastFeedback ? (
+          <Text style={styles.feedback}>{lastFeedback}</Text>
+        ) : (
+          <Text style={styles.dueText}>今日待复习 {totalDue}</Text>
+        )}
       </View>
 
       <ScrollView
@@ -185,6 +203,24 @@ export default function ReviewScreen() {
                   </Text>
                 ))
               ) : null}
+
+              {/* 例句:记忆真正挂钩的地方,之前存了 dictData.examples 但没渲染 */}
+              {examples.length > 0 ? (
+                <View style={styles.examples}>
+                  {examples.slice(0, 2).map((ex, i) => (
+                    <View key={i} style={styles.exampleBox}>
+                      <Text style={styles.exampleEs}>{ex.es}</Text>
+                      {ex.zh ? <Text style={styles.exampleZh}>{ex.zh}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              <Text style={styles.repsHint}>
+                {(current.srsReps ?? 0) > 0
+                  ? `已复习 ${current.srsReps} 次`
+                  : "第一次见到这个词"}
+              </Text>
 
               {/* 四档评分:FSRS 调度下次复习时间 */}
               <View style={styles.ratingRow}>
@@ -326,6 +362,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.textSecondary
   },
+  examples: { marginTop: spacing.md, gap: spacing.sm },
+  exampleBox: {
+    borderLeftWidth: 2,
+    borderLeftColor: colors.brand100,
+    paddingLeft: 9,
+    gap: 2
+  },
+  exampleEs: { fontSize: 13.5, lineHeight: 20, color: colors.text },
+  exampleZh: { fontSize: 12, lineHeight: 18, color: colors.textTertiary },
+  repsHint: { marginTop: spacing.sm, fontSize: 11, color: colors.textTertiary },
+  feedback: { fontSize: 12, fontWeight: "700", color: colors.brand600 },
   ratingRow: {
     marginTop: spacing.xl,
     flexDirection: "row",

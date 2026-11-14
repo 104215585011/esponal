@@ -14,6 +14,8 @@ export type DueWord = {
   } | null;
   srsDue: string | null;
   srsState: string | null;
+  /** FSRS 累计复习次数,用来显示"已复习 N 次" */
+  srsReps?: number;
 };
 
 export type ReviewQueue = {

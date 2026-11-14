@@ -72,6 +72,22 @@ export default function MeScreen() {
         <View style={styles.metaList}>
           <Pressable
             // typedRoutes 类型要等 expo start/prebuild 生成,这里先绕过(与 watch.tsx 同款做法)
+            onPress={() => router.push("/vocab" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>我的词库</Text>
+            <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push("/phrases" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>短语与搭配</Text>
+            <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
+          <Pressable
             onPress={() => router.push("/downloads" as never)}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >

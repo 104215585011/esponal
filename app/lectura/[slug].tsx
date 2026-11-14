@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { fetchStory, markStoryRead, type LecturaStory } from "@/api/lectura";
+import { fetchStories, fetchStory, markStoryRead, type LecturaStory } from "@/api/lectura";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
 import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
@@ -27,6 +27,8 @@ export default function LecturaReaderScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [glossaryOpen, setGlossaryOpen] = useState(false);
+  /** 下一篇(同难度优先),读完直接接着读 */
+  const [nextSlug, setNextSlug] = useState<string | null>(null);
 
   const paragraphs = useMemo(() => story?.paragraphs ?? [], [story]);
   const speech = useParagraphSpeech(
@@ -44,6 +46,17 @@ export default function LecturaReaderScreen() {
       setStory(data);
       // 打开即记为已读(失败静默,不打断阅读)
       void markStoryRead(String(slug));
+
+      // 找同难度的下一篇:读完不用退回列表
+      try {
+        const all = await fetchStories();
+        const sameLevel = all.filter((item) => item.level === data.level);
+        const pos = sameLevel.findIndex((item) => item.slug === data.slug);
+        const next = pos >= 0 ? sameLevel[pos + 1] : null;
+        setNextSlug(next?.slug ?? null);
+      } catch {
+        setNextSlug(null);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -120,14 +133,40 @@ export default function LecturaReaderScreen() {
               speech.playingIndex === index && styles.paraActive
             ]}
           >
-            <ParagraphBlock
-              first={index === 0}
-              onWordPress={(word) => {
-                setLookupWord(word);
-                setLookupContext(paragraph);
-              }}
-              text={paragraph}
-            />
+            <View style={styles.paraRow}>
+              {/* 单段朗读:精读时反复听某一段 */}
+              <Pressable
+                hitSlop={8}
+                onPress={() => {
+                  if (speech.playingIndex === index) speech.stop();
+                  else speech.playParagraph(index);
+                }}
+                style={[
+                  styles.paraPlay,
+                  speech.playingIndex === index && styles.paraPlayOn
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.paraPlayIcon,
+                    speech.playingIndex === index && styles.paraPlayIconOn
+                  ]}
+                >
+                  {speech.playingIndex === index ? "■" : "▶"}
+                </Text>
+              </Pressable>
+
+              <View style={styles.paraBody}>
+                <ParagraphBlock
+                  first={index === 0}
+                  onWordPress={(word) => {
+                    setLookupWord(word);
+                    setLookupContext(paragraph);
+                  }}
+                  text={paragraph}
+                />
+              </View>
+            </View>
           </View>
         ))}
 
@@ -160,6 +199,24 @@ export default function LecturaReaderScreen() {
         ) : null}
 
         <Text style={styles.footnote}>点任意单词查词,长按可选择文字。</Text>
+
+        {nextSlug ? (
+          <Pressable
+            onPress={() =>
+              router.replace({
+                pathname: "/lectura/[slug]",
+                params: { slug: nextSlug }
+              } as never)
+            }
+            style={styles.nextButton}
+          >
+            <Text style={styles.nextText}>读下一篇 →</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => router.back()} style={styles.nextButton}>
+            <Text style={styles.nextText}>返回列表</Text>
+          </Pressable>
+        )}
       </ScrollView>
 
       <LookupSheet
@@ -306,5 +363,28 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: colors.textTertiary,
     textAlign: "center"
-  }
+  },
+  paraRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
+  paraBody: { flex: 1 },
+  paraPlay: {
+    marginTop: 5,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  paraPlayOn: { backgroundColor: colors.brand500 },
+  paraPlayIcon: { fontSize: 9, color: colors.textSecondary, marginLeft: 1 },
+  paraPlayIconOn: { color: "#fff" },
+  nextButton: {
+    marginTop: spacing.xl,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand50,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  nextText: { fontSize: 14, fontWeight: "700", color: colors.brand700 }
 });
