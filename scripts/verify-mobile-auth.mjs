@@ -78,6 +78,74 @@ const run = async () => {
   check("业务接口 Bearer → 200", withBearer.status, 200);
   check("返 dueWords 字段", Array.isArray(withBearer.body?.dueWords), true);
 
+  // ---- 3b. 加词/收藏搭配的双通道回归(VOCAB-APP) ----
+  const addWord = await call("/api/vocab/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({
+      lemma: "e2e-verify-word",
+      translation: "验证词",
+      form: "e2e-verify-word",
+      sourceType: "video",
+      sourceUrl: "https://www.youtube.com/watch?v=e2e-verify",
+      timestampSec: 1,
+      originalSentence: "Frase de verificación e2e.",
+      translatedSentence: "e2e 验证句子。"
+    })
+  });
+  check("vocab/add Bearer → 200", addWord.status, 200);
+  const addRepeat = await call("/api/vocab/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({
+      lemma: "e2e-verify-word",
+      translation: "验证词",
+      form: "e2e-verify-word",
+      sourceType: "video",
+      sourceUrl: "https://www.youtube.com/watch?v=e2e-verify",
+      timestampSec: 2,
+      originalSentence: "Segunda frase de verificación e2e.",
+      translatedSentence: "e2e 第二个验证句子。"
+    })
+  });
+  check("vocab/add 重复加词 → 200", addRepeat.status, 200);
+  check(
+    "vocab/add 无 token → 401",
+    (
+      await call("/api/vocab/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lemma: "x", translation: "x", form: "x", sourceUrl: "x", timestampSec: 0, originalSentence: "x" })
+      })
+    ).status,
+    401
+  );
+  const addPhrase = await call("/api/vocab/phrase/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({
+      lemma: "e2e-verify-phrase",
+      kind: "phrase",
+      translationZh: "e2e 验证短语"
+    })
+  });
+  check("phrase/add Bearer → 200", addPhrase.status, 200);
+  check(
+    "phrase/add 无 token → 401",
+    (
+      await call("/api/vocab/phrase/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lemma: "x", kind: "phrase" })
+      })
+    ).status,
+    401
+  );
+  const phraseList = await call("/api/vocab/phrase/list?limit=5", {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  check("phrase/list Bearer → 200", phraseList.status, 200);
+
   // ---- 4. 可选登录的接口 ----
   check(
     "字幕匿名可访问 → 200",

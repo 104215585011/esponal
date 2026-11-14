@@ -17,12 +17,29 @@ import { checkRateLimit, getRetryAfterSec, loginLimiter } from "@/lib/ratelimit"
  * 响应:与 /api/mobile/auth/login 完全一致(tokens + user)
  */
 
-/** 允许的 audience:Android 客户端 + Web 客户端(Web 端 OAuth 走 NextAuth,这里只为兼容 id_token 的 aud) */
+/**
+ * 允许的 audience:
+ *   - GOOGLE_ANDROID_CLIENT_ID:App 打包时用的 Android 客户端(环境变量)
+ *   - GOOGLE_CLIENT_ID:Web 端 OAuth 的客户端(NextAuth 已在用)
+ *   - BUILTIN:兜底内置的自家 Android 客户端 id
+ *
+ * 内置一份的原因:这个 id 是公开信息(每个 APK 里都能翻出来),而 Vercel
+ * 环境变量名字写错/漏配会让 App 登录在最后一步失败,排查成本远高于内置的成本。
+ * 它只放宽到「本项目的客户端」,不会接受别人的 id_token。
+ */
+const BUILTIN_ANDROID_CLIENT_ID =
+  "944314756480-p5qqusb05evjcbf18dhvk8prril23onv.apps.googleusercontent.com";
+
 function allowedAudiences() {
-  return [
+  const candidates = [
     process.env.GOOGLE_ANDROID_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_ID
-  ].filter((value): value is string => Boolean(value && value.trim()));
+    process.env.GOOGLE_CLIENT_ID,
+    BUILTIN_ANDROID_CLIENT_ID
+  ];
+
+  return Array.from(
+    new Set(candidates.filter((v): v is string => Boolean(v && v.trim())).map((v) => v.trim()))
+  );
 }
 
 export async function POST(request: Request) {
