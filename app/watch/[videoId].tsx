@@ -1,7 +1,8 @@
-// Timestamp: 2026-11-13 17:55
+// Timestamp: 2026-11-14 12:00
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
   FlatList,
   Pressable,
   StyleSheet,
@@ -9,9 +10,10 @@ import {
   View,
   useWindowDimensions
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Slider from "@react-native-community/slider";
+import * as ScreenOrientation from "expo-screen-orientation";
 import YoutubePlayer, { type YoutubeIframeRef } from "react-native-youtube-iframe";
 
 import { fetchSubtitles, formatClock, translateText, type Cue } from "@/api/watch";
@@ -24,12 +26,16 @@ import { colors, radius, spacing } from "@/theme";
  *
  * 视频画面:YouTube iframe —— 这是平台规则限制(官方不允许第三方拉流),
  *          任何 App 都绕不开。但只限这一块。
- * 其余全部原生:字幕列表、当前句高亮、点词查词、控制条。
+ * 其余全部原生:字幕列表、当前句高亮、点词查词、控制条、横屏全屏。
+ *
+ * 全屏实现:同一播放器实例不重挂,只切换外层容器为绝对定位铺满屏幕 +
+ * 锁横屏(useWindowDimensions 随旋转自动更新宽高)。
  */
 export default function WatchPlayerScreen() {
   const { videoId, title } = useLocalSearchParams<{ videoId: string; title?: string }>();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height: winHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const playerRef = useRef<YoutubeIframeRef>(null);
   const listRef = useRef<FlatList<Cue>>(null);
@@ -44,6 +50,7 @@ export default function WatchPlayerScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [follow, setFollow] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
   /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
   const [playerError, setPlayerError] = useState<string | null>(null);
 
@@ -62,6 +69,7 @@ export default function WatchPlayerScreen() {
   const [bilingual, setBilingual] = useState(true);
 
   const videoHeight = Math.round((width * 9) / 16);
+  const totalDuration = duration > 0 ? duration : cueDuration;
 
   // 字幕加载
   useEffect(() => {
@@ -109,9 +117,6 @@ export default function WatchPlayerScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  // 总时长:优先用播放器真实时长;拿不到就退回字幕推算时长,保证进度条始终可用
-  const totalDuration = duration > 0 ? duration : cueDuration;
-
   // 时长探测:playerReady / 开始播放时都会触发。安卓上首次播放前 getDuration 返回 0,
   // 所以播放开始后还要再探一次。
   const probeDuration = useCallback(async () => {
@@ -122,6 +127,45 @@ export default function WatchPlayerScreen() {
       // 播放器未就绪时忽略
     }
   }, []);
+
+  // 横屏全屏
+  const enterFullscreen = useCallback(async () => {
+    try {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    } catch {
+      // 锁失败就不进全屏,避免竖屏铺满的诡异布局
+      return;
+    }
+    setFullscreen(true);
+  }, []);
+
+  const exitFullscreen = useCallback(async () => {
+    try {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    } catch {
+      // ignore
+    }
+    setFullscreen(false);
+  }, []);
+
+  // 离开页面时必须恢复竖屏,否则其他页面跟着横屏
+  useEffect(() => {
+    return () => {
+      void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(
+        () => {}
+      );
+    };
+  }, []);
+
+  // 全屏时 Android 返回键先退全屏,不直接出页面
+  useEffect(() => {
+    if (!fullscreen) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      void exitFullscreen();
+      return true;
+    });
+    return () => sub.remove();
+  }, [fullscreen, exitFullscreen]);
 
   /** 当前播到第几句 */
   const activeIndex = useMemo(() => {
@@ -218,17 +262,25 @@ export default function WatchPlayerScreen() {
     );
   }
 
+  const fsSliderMax = totalDuration > 0 ? totalDuration : 1;
+
   return (
     <View style={styles.root}>
-      {/* 视频区(唯一使用 WebView 的地方) */}
-      <View style={[styles.videoWrap, { height: videoHeight }]}>
+      {/* 视频区(唯一使用 WebView 的地方);全屏时该容器绝对定位铺满整屏 */}
+      <View
+        style={[
+          styles.videoWrap,
+          { height: videoHeight },
+          fullscreen && styles.videoWrapFullscreen
+        ]}
+      >
         <YoutubePlayer
-          height={videoHeight}
+          height={fullscreen ? winHeight : videoHeight}
           // HTML 打进安装包,不再依赖 GitHub Pages(国内网络下那个域名经常加载失败,
           // 加载失败 = YT API 播放器初始化不了,所有控制全部失灵)
           useLocalHTML
           // YouTube 2025 起的嵌入校验(Error 153):本地 HTML 的 origin 是空,
-          // 必须给 WebView 指定一个真实 HTTPS 域名当来源;Web 端在 pcmuz.cn 下嵌 YouTube 正常,说明该来源被认可
+          // 必须给 WebView 指定一个真实 HTTPS 域名当来源;Web 端在 pcmuz.cn 下嵌 YouTube 正常
           baseUrlOverride="https://www.pcmuz.cn"
           // Android WebView 默认拦程序化播放,换桌面 UA 才能让 playVideo()/pauseVideo() 稳定生效
           forceAndroidAutoplay
@@ -241,8 +293,8 @@ export default function WatchPlayerScreen() {
           onReady={() => {
             void probeDuration();
           }}
-          onError={(error: string) => {
-            setPlayerError(error);
+          onError={(err: string) => {
+            setPlayerError(err);
           }}
           onChangeState={(state: string) => {
             if (state === "playing") {
@@ -265,9 +317,69 @@ export default function WatchPlayerScreen() {
           style={StyleSheet.absoluteFill}
         />
 
-        <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={10}>
-          <Text style={styles.backIcon}>‹</Text>
-        </Pressable>
+        {fullscreen ? (
+          <>
+            {/* 全屏右上角:退出 */}
+            <Pressable
+              onPress={() => void exitFullscreen()}
+              style={[styles.fsExitButton, { top: insets.top + 8, right: 16 }]}
+            >
+              <Text style={styles.fsExitText}>✕ 退出全屏</Text>
+            </Pressable>
+
+            {playerError ? (
+              <Text style={[styles.fsErrorText, { top: insets.top + 12, left: 16 }]}>
+                播放器错误:{playerError}
+              </Text>
+            ) : null}
+
+            {/* 全屏底部:半透明进度条 */}
+            <View style={[styles.fsBottomBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+              <Text style={styles.fsTimeText}>{formatClock(currentTime)}</Text>
+              <Slider
+                maximumTrackTintColor="rgba(255,255,255,0.3)"
+                maximumValue={fsSliderMax}
+                minimumTrackTintColor={colors.brand500}
+                minimumValue={0}
+                onSlidingComplete={(value) => {
+                  seekingRef.current = false;
+                  seekTo(value);
+                }}
+                onSlidingStart={() => {
+                  seekingRef.current = true;
+                }}
+                onValueChange={(value) => {
+                  setCurrentTime(value);
+                }}
+                step={0}
+                style={styles.fsSlider}
+                thumbTintColor={colors.brand500}
+                value={fsSliderMax > 0 ? Math.min(currentTime, fsSliderMax) : 0}
+              />
+              <Text style={styles.fsTimeText}>{formatClock(totalDuration)}</Text>
+              <Pressable onPress={() => setPlaying((prev) => !prev)} style={styles.fsPlayButton}>
+                <Text style={styles.playIcon}>{playing ? "⏸" : "▶"}</Text>
+              </Pressable>
+            </View>
+          </>
+        ) : (
+          <>
+            <Pressable
+              onPress={() => router.back()}
+              style={[styles.backButton, { top: insets.top + 8 }]}
+            >
+              <Text style={styles.backIcon}>‹</Text>
+            </Pressable>
+
+            {/* 竖屏右下角:进全屏 */}
+            <Pressable
+              onPress={() => void enterFullscreen()}
+              style={[styles.fsEnterButton, { top: insets.top + 8, right: 12 }]}
+            >
+              <Text style={styles.fsEnterIcon}>⛶</Text>
+            </Pressable>
+          </>
+        )}
       </View>
 
       {/* 原生控制条:进度条 + 按钮行 */}
@@ -325,26 +437,26 @@ export default function WatchPlayerScreen() {
             ) : null}
           </View>
 
-        <Pressable
-          onPress={() => setBilingual((prev) => !prev)}
-          style={[styles.followChip, bilingual && styles.followChipOn]}
-        >
-          <Text style={[styles.followChipText, bilingual && styles.followChipTextOn]}>
-            中文
-          </Text>
-        </Pressable>
+          <Pressable
+            onPress={() => setBilingual((prev) => !prev)}
+            style={[styles.followChip, bilingual && styles.followChipOn]}
+          >
+            <Text style={[styles.followChipText, bilingual && styles.followChipTextOn]}>
+              中文
+            </Text>
+          </Pressable>
 
-        <Pressable
-          onPress={() => {
-            setFollow(true);
-            if (activeIndex >= 0) seekTo(cues[activeIndex].start);
-          }}
-          style={[styles.followChip, follow && styles.followChipOn]}
-        >
-          <Text style={[styles.followChipText, follow && styles.followChipTextOn]}>
-            跟随
-          </Text>
-        </Pressable>
+          <Pressable
+            onPress={() => {
+              setFollow(true);
+              if (activeIndex >= 0) seekTo(cues[activeIndex].start);
+            }}
+            style={[styles.followChip, follow && styles.followChipOn]}
+          >
+            <Text style={[styles.followChipText, follow && styles.followChipTextOn]}>
+              跟随
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -409,16 +521,24 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#000"
   },
+  videoWrapFullscreen: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10
+  },
   backButton: {
     position: "absolute",
     left: 12,
-    top: 12,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "rgba(0,0,0,0.45)",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    zIndex: 3
   },
   backIcon: {
     marginTop: -3,
@@ -426,6 +546,61 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     color: "#fff",
     fontWeight: "300"
+  },
+  fsEnterButton: {
+    position: "absolute",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 3
+  },
+  fsEnterIcon: { fontSize: 16, color: "#fff", marginTop: 1 },
+  fsExitButton: {
+    position: "absolute",
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    zIndex: 3
+  },
+  fsExitText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
+  fsErrorText: {
+    position: "absolute",
+    fontSize: 12,
+    color: "#ff8a8a",
+    zIndex: 3
+  },
+  fsBottomBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 3
+  },
+  fsSlider: { flex: 1, height: 30 },
+  fsTimeText: {
+    minWidth: 38,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center"
+  },
+  fsPlayButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.brand500,
+    alignItems: "center",
+    justifyContent: "center"
   },
   controlWrap: {
     borderBottomWidth: StyleSheet.hairlineWidth,
