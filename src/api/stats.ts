@@ -29,6 +29,9 @@ export type WatchHistoryItem = {
   channelTitle: string;
   thumbnail: string | null;
   viewedAt: string;
+  /** 服务端记录的观看进度（秒）；老记录可能没有 */
+  position?: number | null;
+  duration?: number | null;
 };
 
 export async function fetchVocabStats() {

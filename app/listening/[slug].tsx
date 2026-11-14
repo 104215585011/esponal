@@ -19,6 +19,7 @@ import { speakSpanish } from "@/lib/speech";
 import {
   CAUSE_OPTIONS,
   RATIO_OPTIONS,
+  getStoryLog,
   getStorySummary,
   loadListeningLog,
   saveParagraphLog,
@@ -52,6 +53,8 @@ export default function ListeningPracticeScreen() {
   const [causes, setCauses] = useState<ListenCause[]>([]);
   const [finished, setFinished] = useState(false);
   const [summary, setSummary] = useState<StorySummary | null>(null);
+  /** 上次练到哪一段（>0 时给一句提示，免得用户以为回到第 1 段了） */
+  const [resumeFrom, setResumeFrom] = useState<number | null>(null);
 
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>(undefined);
@@ -70,6 +73,22 @@ export default function ListeningPracticeScreen() {
       const data = await fetchStory(storySlug);
       await loadListeningLog();
       setStory(data);
+
+      /**
+       * 从上次没练的那一段接着练。
+       * 每次进来都从第 1 段开始是没意义的——已经听懂过的段落再听一遍，
+       * 只会让"练完一篇"变成一件很难完成的事。
+       */
+      const saved = getStoryLog(storySlug);
+      const total = data.paragraphs.length;
+      let start = 0;
+      if (saved) {
+        const next = data.paragraphs.findIndex((_, i) => !saved.paragraphs[String(i)]);
+        // -1 表示全都练过了,那就从头再来一遍
+        start = next === -1 ? 0 : next;
+      }
+      setIndex(start);
+      setResumeFrom(start > 0 ? start : null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -208,6 +227,7 @@ export default function ListeningPracticeScreen() {
             onPress={() => {
               setFinished(false);
               setSummary(null);
+              setResumeFrom(null);
               goToParagraph(0);
             }}
             style={styles.secondary}
@@ -233,6 +253,12 @@ export default function ListeningPracticeScreen() {
                 {player.isPlaying ? "停止" : player.plays > 0 ? "再听一遍" : "开始听"}
               </Text>
             </Pressable>
+
+            {resumeFrom !== null ? (
+              <Text style={styles.resumeNote}>
+                上次练到第 {resumeFrom} 段,已跳到这一段
+              </Text>
+            ) : null}
 
             <Text style={styles.playsNote}>
               {player.plays === 0 ? "还没听" : `这一段已听 ${player.plays} 遍`}
@@ -415,6 +441,7 @@ const styles = StyleSheet.create({
   playText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
   playTextOn: { color: "#FFFFFF" },
   playsNote: { fontSize: 12, color: colors.textSecondary },
+  resumeNote: { fontSize: 11.5, fontWeight: "600", color: colors.brand600 },
   rateRow: { flexDirection: "row", gap: spacing.sm, marginTop: 4 },
   rateChip: {
     paddingHorizontal: spacing.md,

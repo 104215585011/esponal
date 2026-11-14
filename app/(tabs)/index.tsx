@@ -23,6 +23,7 @@ import {
 } from "@/api/stats";
 import { colors, radius, spacing } from "@/theme";
 import {
+  adoptServerProgress,
   formatPosition,
   getAllWatchProgress,
   loadWatchProgress,
@@ -55,6 +56,9 @@ export default function HomeScreen() {
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
 
+    // 先把本地进度读进内存,后面才能用服务端那份去补/比对
+    await loadWatchProgress();
+
     const [queueRes, statsRes, historyRes] = await Promise.allSettled([
       fetchReviewQueue(),
       fetchVocabStats(),
@@ -63,12 +67,18 @@ export default function HomeScreen() {
 
     if (queueRes.status === "fulfilled") setDue(queueRes.value.totalDue ?? 0);
     if (statsRes.status === "fulfilled") setStats(statsRes.value);
-    if (historyRes.status === "fulfilled") setHistory(historyRes.value);
 
-    // 进度是本地数据,和上面三个接口并行读,失败也不影响首页
-    await loadWatchProgress();
+    if (historyRes.status === "fulfilled") {
+      setHistory(historyRes.value);
+      // 历史接口现在带着服务端进度：换过设备时本地是空的，靠这里补齐显示
+      historyRes.value.forEach((item) => {
+        if (typeof item.position === "number" && item.position > 0) {
+          adoptServerProgress(item.videoId, item.position, item.duration ?? 0);
+        }
+      });
+    }
+
     setProgress(getAllWatchProgress());
-
     setLoading(false);
     setRefreshing(false);
   }, []);

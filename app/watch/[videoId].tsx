@@ -28,6 +28,7 @@ import { getPreferences, updatePreferences } from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
 import {
+  adoptServerProgress,
   clearWatchProgress,
   formatPosition,
   getWatchProgress,
@@ -35,6 +36,7 @@ import {
   saveWatchProgress,
   shouldResume
 } from "@/lib/watchProgress";
+import { fetchServerProgress, pushServerProgress } from "@/api/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
 /**
@@ -94,6 +96,8 @@ export default function WatchPlayerScreen() {
   const lastSavedRef = useRef(0);
   const videoIdRef = useRef(String(videoId ?? ""));
   const durationRef = useRef(0);
+  /** 服务端上报节流:本地 5 秒一存,服务端 15 秒一报,别把接口打爆 */
+  const lastPushedRef = useRef(0);
 
   // 字幕末尾时间 —— 播放器时长拿不到时的兜底(安卓上 getDuration 在首次播放前经常返回 0)
   const cueDuration = useMemo(() => {
@@ -149,20 +153,30 @@ export default function WatchPlayerScreen() {
     };
   }, [videoId]);
 
-  // 续播:进页面读一次本地进度（还没播就先准备好位置，等播放器报出时长再跳）
+  // 续播:先读本地（立刻可用）,再问服务端要一份（换设备时靠它把进度带过来）
   useEffect(() => {
     let cancelled = false;
     resumedRef.current = false;
     setResumeAt(null);
     setResumeNotice(null);
 
-    void loadWatchProgress().then(() => {
+    void (async () => {
+      await loadWatchProgress();
       if (cancelled) return;
-      const progress = getWatchProgress(String(videoId));
-      if (shouldResume(progress)) setResumeAt(progress!.position);
-      // 只看了几秒、或已经看到片尾的，把记录清掉，别让首页一直显示"看了一半"
-      else if (progress) void clearWatchProgress(String(videoId));
-    });
+
+      const local = getWatchProgress(String(videoId));
+      if (local && shouldResume(local)) setResumeAt(local.position);
+
+      const server = await fetchServerProgress([String(videoId)]);
+      if (cancelled) return;
+
+      const remote = server[String(videoId)];
+      if (remote && adoptServerProgress(String(videoId), remote.position, remote.duration)) {
+        const merged = getWatchProgress(String(videoId));
+        // 已经跳过的不要改位置,否则用户正在看会被拽走
+        if (!resumedRef.current && merged && shouldResume(merged)) setResumeAt(merged.position);
+      }
+    })();
 
     return () => {
       cancelled = true;
@@ -227,7 +241,9 @@ export default function WatchPlayerScreen() {
     videoIdRef.current = String(videoId ?? "");
     return () => {
       const t = currentTimeRef.current;
-      if (t > 1) void saveWatchProgress(videoIdRef.current, t, durationRef.current);
+      if (t <= 1) return;
+      void saveWatchProgress(videoIdRef.current, t, durationRef.current);
+      void pushServerProgress(videoIdRef.current, t, durationRef.current);
     };
   }, [videoId]);
 
@@ -247,6 +263,12 @@ export default function WatchPlayerScreen() {
           if (t > 0 && Date.now() - lastSavedRef.current > 5000) {
             lastSavedRef.current = Date.now();
             void saveWatchProgress(String(videoIdRef.current), t, durationRef.current);
+          }
+
+          // 服务端 15 秒一报:换设备才用到,报太勤没意义
+          if (t > 0 && Date.now() - lastPushedRef.current > 15000) {
+            lastPushedRef.current = Date.now();
+            void pushServerProgress(String(videoIdRef.current), t, durationRef.current);
           }
 
           // 单句循环:播完当前字幕句就跳回句首

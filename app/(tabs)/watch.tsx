@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-13 18:00
+// Timestamp: 2026-11-14 23:40
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,9 +11,16 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
 import { curatedChannels, fetchChannelVideos, formatDuration, type VideoItem } from "@/api/watch";
+import {
+  formatPosition,
+  getAllWatchProgress,
+  loadWatchProgress,
+  shouldResume,
+  type WatchProgress
+} from "@/lib/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
 type ChannelState = {
@@ -31,10 +38,20 @@ export default function WatchScreen() {
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  /** 观看进度只读快照：列表本身不拉接口，只从本地缓存取，避免每张卡片一次请求 */
+  const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
+
+  const refreshProgress = useCallback(async () => {
+    await loadWatchProgress();
+    setProgress(getAllWatchProgress());
+  }, []);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
+
+    // 从播放页返回时进度已经落盘，这里顺手刷一次，不用等下拉刷新
+    void refreshProgress();
 
     const next = await Promise.all(
       curatedChannels.map(async (channel) => {
@@ -54,11 +71,18 @@ export default function WatchScreen() {
     setChannels(next);
     setLoading(false);
     setRefreshing(false);
-  }, []);
+  }, [refreshProgress]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // 从播放页返回时列表不会重新挂载，回到前台补刷一次进度
+  useFocusEffect(
+    useCallback(() => {
+      void refreshProgress();
+    }, [refreshProgress])
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -104,47 +128,72 @@ export default function WatchScreen() {
               {channel.error ? (
                 <Text style={styles.sectionError}>{channel.error}</Text>
               ) : (
-                channel.videos.map((video) => (
-                  <Pressable
-                    key={video.id}
-                    onPress={() =>
-                      // typedRoutes 的类型在首次 `expo start` 后才生成,这里先绕过
-                      router.push({
-                        pathname: "/watch/[videoId]",
-                        params: {
-                          videoId: video.id,
-                          title: video.title,
-                          channelTitle: video.channelTitle,
-                          thumbnail: video.thumbnail
-                        }
-                      } as never)
-                    }
-                    style={({ pressed }) => [
-                      styles.card,
-                      pressed && styles.cardPressed
-                    ]}
-                  >
-                    <View style={styles.thumbWrap}>
-                      <Image
-                        source={{ uri: video.thumbnail }}
-                        style={styles.thumb}
-                        // 缩略图来自 i.ytimg.com,加载失败时留一块底色而不是破图
-                      />
-                      <View style={styles.durationBadge}>
-                        <Text style={styles.durationText}>
-                          {formatDuration(video.duration)}
-                        </Text>
-                      </View>
-                    </View>
+                channel.videos.map((video) => {
+                  const saved = progress[video.id];
+                  const resumable = shouldResume(saved);
+                  const pct =
+                    resumable && saved && saved.duration > 0
+                      ? Math.min(100, (saved.position / saved.duration) * 100)
+                      : 0;
 
-                    <View style={styles.cardBody}>
-                      <Text numberOfLines={2} style={styles.videoTitle}>
-                        {video.title}
-                      </Text>
-                      <Text style={styles.videoMeta}>{video.channelTitle}</Text>
-                    </View>
-                  </Pressable>
-                ))
+                  return (
+                    <Pressable
+                      key={video.id}
+                      onPress={() =>
+                        // typedRoutes 的类型在首次 `expo start` 后才生成,这里先绕过
+                        router.push({
+                          pathname: "/watch/[videoId]",
+                          params: {
+                            videoId: video.id,
+                            title: video.title,
+                            channelTitle: video.channelTitle,
+                            thumbnail: video.thumbnail
+                          }
+                        } as never)
+                      }
+                      style={({ pressed }) => [
+                        styles.card,
+                        pressed && styles.cardPressed
+                      ]}
+                    >
+                      <View style={styles.thumbWrap}>
+                        <Image
+                          source={{ uri: video.thumbnail }}
+                          style={styles.thumb}
+                          // 缩略图来自 i.ytimg.com,加载失败时留一块底色而不是破图
+                        />
+                        <View style={styles.durationBadge}>
+                          <Text style={styles.durationText}>
+                            {formatDuration(video.duration)}
+                          </Text>
+                        </View>
+
+                        {/* 看了一半的标记:和首页「接着看」用同一套 shouldResume 判定 */}
+                        {resumable && saved ? (
+                          <>
+                            <View style={styles.resumeBadge}>
+                              <Text style={styles.resumeText}>
+                                看到 {formatPosition(saved.position)}
+                              </Text>
+                            </View>
+                            <View style={styles.progressTrack}>
+                              <View
+                                style={[styles.progressFill, { width: `${Math.max(3, pct)}%` }]}
+                              />
+                            </View>
+                          </>
+                        ) : null}
+                      </View>
+
+                      <View style={styles.cardBody}>
+                        <Text numberOfLines={2} style={styles.videoTitle}>
+                          {video.title}
+                        </Text>
+                        <Text style={styles.videoMeta}>{video.channelTitle}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })
               )}
             </View>
           ))
@@ -228,6 +277,25 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.72)"
   },
   durationText: { fontSize: 10.5, fontWeight: "700", color: "#fff" },
+  resumeBadge: {
+    position: "absolute",
+    left: 8,
+    bottom: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: "rgba(0,0,0,0.72)"
+  },
+  resumeText: { fontSize: 10.5, fontWeight: "700", color: "#fff" },
+  progressTrack: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 3,
+    backgroundColor: "rgba(255,255,255,0.3)"
+  },
+  progressFill: { height: "100%", backgroundColor: colors.brand500 },
   cardBody: { padding: spacing.md, gap: 4 },
   videoTitle: {
     fontSize: 14,

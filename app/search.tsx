@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 14:42
+// Timestamp: 2026-11-14 23:45
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,10 +12,11 @@ import {
   View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
 import { searchVideos } from "@/api/search";
 import { formatDuration, type VideoItem } from "@/api/watch";
+import { getAllWatchProgress, loadWatchProgress, shouldResume, type WatchProgress } from "@/lib/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
 /** 一键试搜的主题词(都是真实能搜到西语内容的方向) */
@@ -47,6 +48,17 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** 搜索结果里也标出「看了一半」——只加一条细进度条，小缩略图放不下文字 */
+  const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
+
+  useFocusEffect(
+    useCallback(() => {
+      void (async () => {
+        await loadWatchProgress();
+        setProgress(getAllWatchProgress());
+      })();
+    }, [])
+  );
 
   const runSearch = useCallback(async (keyword: string) => {
     const q = keyword.trim();
@@ -170,37 +182,51 @@ export default function SearchScreen() {
               <Text style={styles.endText}>— 没有更多了 —</Text>
             )
           }
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: "/watch/[videoId]",
-                  params: {
-                    videoId: item.id,
-                    title: item.title,
-                    channelTitle: item.channelTitle,
-                    thumbnail: item.thumbnail
-                  }
-                } as never)
-              }
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            >
-              <View style={styles.thumbWrap}>
-                <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-                {item.duration ? (
-                  <Text style={styles.duration}>{formatDuration(item.duration)}</Text>
-                ) : null}
-              </View>
-              <View style={styles.rowText}>
-                <Text numberOfLines={2} style={styles.rowTitle}>
-                  {item.title}
-                </Text>
-                <Text numberOfLines={1} style={styles.rowChannel}>
-                  {item.channelTitle}
-                </Text>
-              </View>
-            </Pressable>
-          )}
+          renderItem={({ item }) => {
+            const saved = progress[item.id];
+            const resumable = shouldResume(saved);
+            const pct =
+              resumable && saved && saved.duration > 0
+                ? Math.min(100, (saved.position / saved.duration) * 100)
+                : 0;
+
+            return (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/watch/[videoId]",
+                    params: {
+                      videoId: item.id,
+                      title: item.title,
+                      channelTitle: item.channelTitle,
+                      thumbnail: item.thumbnail
+                    }
+                  } as never)
+                }
+                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              >
+                <View style={styles.thumbWrap}>
+                  <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
+                  {item.duration ? (
+                    <Text style={styles.duration}>{formatDuration(item.duration)}</Text>
+                  ) : null}
+                  {resumable ? (
+                    <View style={styles.progressTrack}>
+                      <View style={[styles.progressFill, { width: `${Math.max(3, pct)}%` }]} />
+                    </View>
+                  ) : null}
+                </View>
+                <View style={styles.rowText}>
+                  <Text numberOfLines={2} style={styles.rowTitle}>
+                    {item.title}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.rowChannel}>
+                    {item.channelTitle}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          }}
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -272,6 +298,15 @@ const styles = StyleSheet.create({
   rowPressed: { opacity: 0.7 },
   thumbWrap: { width: 132, height: 74, borderRadius: radius.sm, overflow: "hidden", backgroundColor: "#000" },
   thumb: { width: "100%", height: "100%" },
+  progressTrack: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 3,
+    backgroundColor: "rgba(255,255,255,0.3)"
+  },
+  progressFill: { height: "100%", backgroundColor: colors.brand500 },
   duration: {
     position: "absolute",
     right: 4,

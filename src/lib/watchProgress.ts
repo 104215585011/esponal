@@ -71,6 +71,40 @@ export function shouldResume(progress: WatchProgress | undefined): boolean {
   return true;
 }
 
+function persist(): Promise<void> {
+  return AsyncStorage.setItem(KEY, JSON.stringify(cache)).catch(() => undefined);
+}
+
+/**
+ * 采纳服务端那份进度。
+ *
+ * 只在「本地没有」或「服务端更靠后」时才采纳——同一台设备刚看完，
+ * 服务端那条是 15 秒前上报的旧值，直接覆盖会把人往回拖。
+ */
+export function adoptServerProgress(
+  videoId: string,
+  position: number,
+  duration: number
+): boolean {
+  if (!videoId || !Number.isFinite(position) || position <= 0) return false;
+
+  const local = cache[videoId];
+  if (local && local.position >= position) return false;
+
+  cache = {
+    ...cache,
+    [videoId]: {
+      videoId,
+      position: Math.floor(position),
+      duration: Number.isFinite(duration) && duration > 0 ? Math.floor(duration) : 0,
+      updatedAt: new Date().toISOString()
+    }
+  };
+
+  void persist();
+  return true;
+}
+
 export async function saveWatchProgress(
   videoId: string,
   position: number,
