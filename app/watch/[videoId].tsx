@@ -17,6 +17,12 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import YoutubePlayer, { type YoutubeIframeRef } from "react-native-youtube-iframe";
 
 import { fetchSubtitles, formatClock, translateText, type Cue } from "@/api/watch";
+import {
+  getDownloadJob,
+  startSubtitleDownload,
+  subscribeDownloadJob,
+  type DownloadJobState
+} from "@/subtitles/subtitleDownload";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
 import { colors, radius, spacing } from "@/theme";
@@ -53,6 +59,8 @@ export default function WatchPlayerScreen() {
   /** 单句循环:当前字幕句播完自动跳回句首(学语言刚需) */
   const [loop, setLoop] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  /** 字幕下载任务状态(模块级,离开页面任务也不中断) */
+  const [downloadJob, setDownloadJob] = useState<DownloadJobState>(getDownloadJob());
   /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
   const [playerError, setPlayerError] = useState<string | null>(null);
 
@@ -186,6 +194,28 @@ export default function WatchPlayerScreen() {
     });
     return () => sub.remove();
   }, [fullscreen, exitFullscreen]);
+
+  // 订阅下载任务状态
+  useEffect(() => {
+    return subscribeDownloadJob((state) => setDownloadJob(state));
+  }, []);
+
+  const handleDownloadSubtitles = useCallback(() => {
+    if (downloadJob.running || cues.length === 0 || !videoId) return;
+    void startSubtitleDownload({
+      videoId: String(videoId),
+      title: title ?? "",
+      cues,
+      translations
+    });
+  }, [downloadJob.running, cues, videoId, title, translations]);
+
+  /** 当前播放页对应的下载任务(进度条只显示自己的) */
+  const thisJob = downloadJob.videoId === String(videoId) ? downloadJob : null;
+  const dlPct =
+    thisJob && thisJob.total > 0
+      ? Math.round((thisJob.translated / thisJob.total) * 100)
+      : 0;
 
   /** 当前播到第几句 */
   const activeIndex = useMemo(() => {
@@ -339,6 +369,16 @@ export default function WatchPlayerScreen() {
 
         {fullscreen ? (
           <>
+            {/* 全屏字幕浮层:只在全屏时出现,退出/非全屏自动消失 */}
+            {cues.length > 0 && activeIndex >= 0 ? (
+              <View style={styles.fsCaptionBox} pointerEvents="none">
+                <Text style={styles.fsCaptionEs}>{cues[activeIndex].text}</Text>
+                {bilingual && translations[activeIndex] ? (
+                  <Text style={styles.fsCaptionZh}>{translations[activeIndex]}</Text>
+                ) : null}
+              </View>
+            ) : null}
+
             {/* 全屏右上角:退出 */}
             <Pressable
               onPress={() => void exitFullscreen()}
@@ -398,12 +438,35 @@ export default function WatchPlayerScreen() {
             >
               <Text style={styles.fsEnterIcon}>⛶</Text>
             </Pressable>
+
+            {/* 竖屏:下载字幕讲义(全量翻译后生成 PDF,进度显示在控制条上方) */}
+            <Pressable
+              onPress={handleDownloadSubtitles}
+              disabled={downloadJob.running}
+              style={[styles.fsEnterButton, { top: insets.top + 52, right: 12 }]}
+            >
+              <Text style={styles.fsEnterIcon}>{downloadJob.running ? "…" : "⬇"}</Text>
+            </Pressable>
           </>
         )}
       </View>
 
       {/* 原生控制条:进度条 + 按钮行 */}
       <View style={styles.controlWrap}>
+        {/* 字幕下载进度(后台任务,离开页面也不中断) */}
+        {thisJob?.running ? (
+          <View style={styles.dlBanner}>
+            <Text style={styles.dlText}>
+              翻译字幕中 {thisJob.translated}/{thisJob.total}({dlPct}%)
+            </Text>
+            <View style={styles.dlTrack}>
+              <View style={[styles.dlFill, { width: `${Math.max(3, dlPct)}%` }]} />
+            </View>
+          </View>
+        ) : thisJob?.done && thisJob.entry ? (
+          <Text style={styles.dlDone}>✓ 双语字幕讲义已保存,可在「我的-我的下载」打开</Text>
+        ) : null}
+
         {playerError ? (
           <Text style={styles.playerErrorText}>播放器错误:{playerError}</Text>
         ) : null}
@@ -630,6 +693,51 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand500,
     alignItems: "center",
     justifyContent: "center"
+  },
+  fsCaptionBox: {
+    position: "absolute",
+    left: 24,
+    right: 24,
+    bottom: 64,
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    zIndex: 2
+  },
+  fsCaptionEs: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "600",
+    color: "#fff",
+    textAlign: "center"
+  },
+  fsCaptionZh: {
+    marginTop: 2,
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: "rgba(255,255,255,0.85)",
+    textAlign: "center"
+  },
+  dlBanner: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm
+  },
+  dlText: { fontSize: 11, fontWeight: "600", color: colors.brand700 },
+  dlTrack: {
+    marginTop: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceMuted,
+    overflow: "hidden"
+  },
+  dlFill: { height: 4, backgroundColor: colors.brand500, borderRadius: 2 },
+  dlDone: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    fontSize: 11.5,
+    color: colors.brand700
   },
   controlWrap: {
     borderBottomWidth: StyleSheet.hairlineWidth,

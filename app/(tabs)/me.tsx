@@ -10,6 +10,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import { useAuth } from "@/auth/AuthProvider";
 import { API_BASE } from "@/api/client";
@@ -18,6 +19,7 @@ import { UpdateDialog } from "@/components/UpdateDialog";
 import { colors, radius, spacing } from "@/theme";
 
 export default function MeScreen() {
+  const router = useRouter();
   const { user, signOut } = useAuth();
   const [checking, setChecking] = useState(false);
   const [update, setUpdate] = useState<{ current: string; info: AppVersionInfo } | null>(
@@ -68,6 +70,15 @@ export default function MeScreen() {
         </View>
 
         <View style={styles.metaList}>
+          <Pressable
+            // typedRoutes 类型要等 expo start/prebuild 生成,这里先绕过(与 watch.tsx 同款做法)
+            onPress={() => router.push("/downloads" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>我的下载</Text>
+            <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>版本</Text>
             <Text style={styles.metaValue}>v{currentVersion()}</Text>
