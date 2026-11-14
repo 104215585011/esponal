@@ -189,7 +189,8 @@ export async function signInWithGoogleProfile(
     tokens,
     user: {
       id: user.id,
-      email: user.email,
+      // profile.email 一定非空(verifyGoogleIdToken 里过滤过),User.email 可空所以用 profile 的
+      email: profile.email,
       name: user.name ?? profile.name,
       image: user.image ?? profile.picture,
       plan: user.plan
