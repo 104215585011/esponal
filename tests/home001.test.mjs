@@ -43,13 +43,13 @@ test("HOME-001 homepage adds learning path and tools while keeping curated video
   assert.match(page, /Esponal 为中文母语者设计的西语学习平台/);
 });
 
-test("HOME-001 learning path keeps desktop arrows and desktop-only progress rings", async () => {
+test("HOME-001 learning path keeps desktop arrows without forbidden progress rings or fake guest stats", async () => {
   const page = await readText("src/app/page.tsx");
 
   assert.match(page, /hidden lg:block text-gray-300 mt-8 text-lg/);
-  assert.match(page, /stats\?\.totalSaved \?\? 119/);
-  assert.match(page, /readCount \?\? 4/);
-  assert.match(page, /hidden h-3\.5 w-3\.5 -rotate-90 shrink-0 md:inline/);
+  assert.doesNotMatch(page, /stats\?\.totalSaved \?\? 119/);
+  assert.doesNotMatch(page, /readCount \?\? 4/);
+  assert.doesNotMatch(page, /pathLength="100"/);
 });
 
 test("HOME-001 learning path cards reserve progress space and keep desktop equal heights", async () => {

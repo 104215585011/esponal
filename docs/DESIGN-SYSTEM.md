@@ -62,8 +62,8 @@
 
 | 字体 | CSS 变量 | utility | 用途 |
 |---|---|---|---|
-| Inter | `--font-inter` | `font-sans`（默认） | 正文 / UI 文字 |
-| Outfit | `--font-outfit` | `font-display` | 大标题 / 数字 / Logo |
+| Plus Jakarta Sans | `--font-plus-jakarta` | `font-sans` / `font-display` | 西文 / 数字 / 标题 |
+| Noto Sans SC | `--font-noto-sc` | `font-sans` / `font-display` | 中文正文 / UI 文字 |
 
 **字号阶梯**（不要发明新尺寸）：
 

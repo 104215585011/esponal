@@ -1,8 +1,9 @@
-// Timestamp: 2026-06-11 16:05
+// Timestamp: 2026-11-15 02:40
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { LookupCard } from "@/app/watch/LookupCard";
 import { type ImportReaderSettings } from "@/lib/import/reader-settings";
 
 export type EpubChapter = {
@@ -38,7 +39,36 @@ type EpubRendition = {
   next: () => Promise<unknown>;
   prev: () => Promise<unknown>;
   resize?: (width?: number | string, height?: number | string) => void;
+  hooks?: {
+    content?: {
+      register: (fn: (contents: { document?: Document }) => void) => void;
+    };
+  };
 };
+
+const WORD_CHAR_RE = /[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/;
+
+function extractWordAtPoint(doc: Document, x: number, y: number): { form: string; sentence: string } | null {
+  let range: Range | null = null;
+  if (typeof doc.caretRangeFromPoint === "function") {
+    range = doc.caretRangeFromPoint(x, y);
+  }
+  if (!range || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+  const text = range.startContainer.textContent ?? "";
+  let start = range.startOffset;
+  let end = range.startOffset;
+  if (start > 0 && !WORD_CHAR_RE.test(text[start] ?? "") && WORD_CHAR_RE.test(text[start - 1] ?? "")) {
+    start -= 1;
+    end = start;
+  }
+  if (!WORD_CHAR_RE.test(text[start] ?? "")) return null;
+  while (start > 0 && WORD_CHAR_RE.test(text[start - 1] ?? "")) start -= 1;
+  while (end < text.length && WORD_CHAR_RE.test(text[end] ?? "")) end += 1;
+  const form = text.slice(start, end).trim();
+  if (form.length < 2) return null;
+  const sentence = text.trim().slice(0, 240);
+  return { form, sentence: sentence || form };
+}
 
 const M1_FALLBACK_PAGE_COUNT = 999;
 
@@ -62,6 +92,7 @@ export function EpubReader({
   const [epubLoading, setEpubLoading] = useState(true);
   const [error, setError] = useState("");
   const [renditionReady, setRenditionReady] = useState(false);
+  const [selectedLookup, setSelectedLookup] = useState<{ form: string; sentence: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +124,14 @@ export function EpubReader({
           width: "100%",
         });
         renditionRef.current = rendition;
+        rendition.hooks?.content?.register((contents) => {
+          const doc = contents?.document;
+          if (!doc) return;
+          doc.addEventListener("click", (event) => {
+            const hit = extractWordAtPoint(doc, event.clientX, event.clientY);
+            if (hit) setSelectedLookup(hit);
+          });
+        });
 
         const navigation = await book.loaded?.navigation?.catch(() => null);
         if (!cancelled) {
@@ -175,6 +214,20 @@ export function EpubReader({
         </div>
       ) : null}
       {error ? <div className="absolute inset-x-4 top-[18vh] z-20 rounded-3xl bg-red-50 px-6 py-8 text-center text-sm font-medium text-red-600">{error}</div> : null}
+      {selectedLookup ? (
+        <LookupCard
+          form={selectedLookup.form}
+          onClose={() => setSelectedLookup(null)}
+          originalSentence={selectedLookup.sentence}
+          source={{
+            type: "import",
+            documentId,
+            pageNumber: pageInChapter + 1,
+            sentence: selectedLookup.sentence,
+          }}
+          translatedSentence=""
+        />
+      ) : null}
     </div>
   );
 }

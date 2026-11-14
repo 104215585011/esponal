@@ -50,8 +50,8 @@ test("MOBILE-003 homepage uses mockup-style mobile stats and a horizontal learni
   assert.match(source, /mt-\[38px\] md:mt-16/);
   assert.match(source, /mx-\[22px\] mt-\[24px\] flex overflow-hidden rounded-\[16px\] border border-zinc-200\/70 bg-white/);
   assert.match(source, /px-4 py-\[14px\]/);
-  assert.match(source, /stats\?\.totalSaved \?\? 119/);
-  assert.match(source, /readCount \?\? 4/);
+  assert.match(source, /userId \? stats\?\.totalSaved \?\? 0 : null/);
+  assert.match(source, /userId \? readCount \?\? 0 : null/);
   assert.match(source, /mt-\[18px\] flex snap-x snap-mandatory gap-\[13px\] overflow-x-auto px-\[22px\] pb-2/);
   assert.match(source, /flex-none basis-\[195px\] snap-start/);
   assert.match(source, /rounded-\[20px\] border border-zinc-200\/70 bg-white p-\[18px\] shadow-card/);

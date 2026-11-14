@@ -1,10 +1,12 @@
 // Timestamp: 2026-06-04 12:08
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { ContinueLearning } from "@/app/components/web/ContinueLearning";
 import { HomeHero } from "@/app/components/web/HomeHero";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
 import { getAuthOptions } from "@/lib/auth";
 import { curatedChannels } from "@/lib/channels";
+import { getLastCourseEncounter, getLastVideoEncounter } from "@/lib/continueLearning";
 import { prisma } from "@/lib/prisma";
 import { getVocabStats } from "@/lib/vocab";
 import { lecturaStories } from "@/../content/lectura";
@@ -73,7 +75,7 @@ function LearningStepCard({ step, title, description, href, progress }: Learning
   );
 }
 
-function DesktopLearningStepCard({ step, title, description, href, progress, percentage }: LearningStep & { percentage?: number }) {
+function DesktopLearningStepCard({ step, title, description, href, progress }: LearningStep) {
   return (
     <div
       className="group flex min-h-[220px] min-w-0 flex-1 flex-col rounded-card border border-zinc-200/50 bg-white/70 p-6 shadow-card transition-transform dark:border-zinc-800/60 dark:bg-zinc-900/70"
@@ -91,31 +93,6 @@ function DesktopLearningStepCard({ step, title, description, href, progress, per
       <div className="mt-3 min-h-[22px]">
         {progress ? (
           <div className="flex w-fit items-center gap-1.5 rounded bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:bg-brand-950/50 dark:text-brand-400">
-            {percentage !== undefined ? (
-              <svg className="hidden h-3.5 w-3.5 -rotate-90 shrink-0 md:inline" viewBox="0 0 36 36">
-                <circle
-                  className="text-brand-200/50 dark:text-brand-900/35"
-                  cx="18"
-                  cy="18"
-                  fill="transparent"
-                  r="16"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <circle
-                  className="text-brand-600 transition-all duration-500 ease-out dark:text-brand-400"
-                  cx="18"
-                  cy="18"
-                  fill="transparent"
-                  pathLength="100"
-                  r="16"
-                  stroke="currentColor"
-                  strokeDasharray={`${percentage} 100`}
-                  strokeLinecap="round"
-                  strokeWidth="4"
-                />
-              </svg>
-            ) : null}
             <span>{progress}</span>
           </div>
         ) : null}
@@ -149,9 +126,11 @@ function ToolCard({ title, description, href }: ToolItem) {
 export default async function HomePage() {
   const session = await getServerSession(getAuthOptions());
   const userId = (session?.user as SessionUserWithId | undefined)?.id;
-  const [stats, readCount] = await Promise.all([
+  const [stats, readCount, lastVideo, lastCourse] = await Promise.all([
     userId ? getVocabStats(userId) : Promise.resolve(null),
     userId ? prisma.lecturaRead.count({ where: { userId } }) : Promise.resolve(null),
+    userId ? getLastVideoEncounter(userId).catch(() => null) : Promise.resolve(null),
+    userId ? getLastCourseEncounter(userId).catch(() => null) : Promise.resolve(null),
   ]);
 
   // Kept for static test verification (tests/home001.test.mjs):
@@ -159,10 +138,10 @@ export default async function HomePage() {
   const checkCuratedChannels = curatedChannels;
   void checkCuratedChannels;
 
-  const savedWordCount = stats?.totalSaved ?? 119;
-  const displayReadCount = readCount ?? 4;
+  const savedWordCount = userId ? stats?.totalSaved ?? 0 : null;
+  const displayReadCount = userId ? readCount ?? 0 : null;
 
-  const allLearningSteps: Array<LearningStep & { percentage?: number }> = [
+  const allLearningSteps: LearningStep[] = [
     {
       step: 1,
       title: "字母发音",
@@ -174,16 +153,14 @@ export default async function HomePage() {
       title: "骨架课程",
       description: "按阶段把高频词、基础句型和最早该学的规则串起来。",
       href: "/learn",
-      progress: `已收藏 ${savedWordCount} 词`,
-      percentage: Math.min(100, Math.round((savedWordCount / 50) * 100))
+      progress: savedWordCount !== null ? `已收藏 ${savedWordCount} 词` : undefined
     },
     {
       step: 3,
       title: "阅读",
       description: "短篇分级小故事，适合通勤和碎片时间反复读。",
       href: "/lectura",
-      progress: `已读 ${displayReadCount} 篇`,
-      percentage: lecturaStories.length > 0 ? Math.min(100, Math.round((displayReadCount / lecturaStories.length) * 100)) : undefined
+      progress: displayReadCount !== null ? `已读 ${displayReadCount} 篇` : `${lecturaStories.length} 篇分级短文`
     },
     {
       step: 4,
@@ -199,7 +176,7 @@ export default async function HomePage() {
     }
   ];
 
-  const mobileLearningSteps = allLearningSteps.slice(0, 3).map(({ percentage: _percentage, ...step }) => step);
+  const mobileLearningSteps = allLearningSteps.slice(0, 3);
 
   return (
     <main className="min-h-screen bg-white md:bg-app">
@@ -212,20 +189,26 @@ export default async function HomePage() {
           <HomeHero isLoggedIn={!!userId} />
         </div>
 
-        <section className="mx-[22px] mt-[24px] flex overflow-hidden rounded-[16px] border border-zinc-200/70 bg-white md:hidden">
-          <div className="flex-1 px-4 py-[14px]">
-            <div className="flex items-baseline gap-1 font-display text-[22px] font-bold leading-none text-zinc-950">
-              <span>{savedWordCount}</span>
-              <span className="text-xs font-medium text-zinc-400">词</span>
-            </div>
-            <div className="mt-1 text-[11.5px] text-zinc-500">已收藏</div>
+        {userId ? (
+          <div className="mx-[22px] mt-6 md:mx-0">
+            <ContinueLearning videoEncounter={lastVideo} courseEncounter={lastCourse} />
           </div>
-          <div className="flex-1 border-l border-zinc-200/70 px-4 py-[14px]">
-            <div className="flex items-baseline gap-1 font-display text-[22px] font-bold leading-none text-zinc-950">
-              <span>{displayReadCount}</span>
+        ) : null}
+
+        <section className="mx-[22px] mt-[24px] flex overflow-hidden rounded-[16px] border border-zinc-200/70 bg-white dark:border-zinc-800/70 dark:bg-zinc-900 md:hidden">
+          <div className="flex-1 px-4 py-[14px]">
+            <div className="flex items-baseline gap-1 font-display text-[22px] font-bold leading-none text-zinc-950 dark:text-zinc-50">
+              <span>{savedWordCount !== null ? savedWordCount : 27}</span>
+              <span className="text-xs font-medium text-zinc-400">{savedWordCount !== null ? "词" : "字母"}</span>
+            </div>
+            <div className="mt-1 text-[11.5px] text-zinc-500">{savedWordCount !== null ? "已收藏" : "发音入门"}</div>
+          </div>
+          <div className="flex-1 border-l border-zinc-200/70 px-4 py-[14px] dark:border-zinc-800/70">
+            <div className="flex items-baseline gap-1 font-display text-[22px] font-bold leading-none text-zinc-950 dark:text-zinc-50">
+              <span>{displayReadCount !== null ? displayReadCount : lecturaStories.length}</span>
               <span className="text-xs font-medium text-zinc-400">篇</span>
             </div>
-            <div className="mt-1 text-[11.5px] text-zinc-500">已读文章</div>
+            <div className="mt-1 text-[11.5px] text-zinc-500">{displayReadCount !== null ? "已读文章" : "分级短文"}</div>
           </div>
         </section>
 

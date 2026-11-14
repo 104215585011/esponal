@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 18:45
+// Timestamp: 2026-11-15 02:48
 import EmptyState from "@/app/components/ui/EmptyState";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -6,20 +6,13 @@ import { getSiteUrl } from "@/lib/site-url";
 import { fetchYouTubeJson } from "@/lib/youtube";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { curatedChannels } from "@/lib/channels";
-import { VideoCard } from "@/app/components/web/VideoCard";
 import { OpenVideoInput } from "@/app/components/web/OpenVideoInput";
-import Link from "next/link";
 import { WatchClient } from "./WatchClient";
+import { WatchHomeDiscovery } from "./WatchHomeDiscovery";
 
 export const dynamic = "force-dynamic";
 
 const PLAYER_IFRAME_ID = "esponal-youtube-player";
-const MOCK_CHAPTERS = [
-  { time: "0:00", title: "介绍与嘉宾登场" },
-  { time: "1:45", title: "加拿大人学西语的旅程" },
-  { time: "5:20", title: "阿根廷口音的特点" },
-  { time: "9:10", title: "vos 用法与日常对话" }
-];
 
 type WatchPageProps = {
   searchParams?: {
@@ -41,12 +34,6 @@ type VideoListResponse = {
       channelTitle?: string;
     };
   }>;
-};
-
-const channelDescriptions: Record<string, string> = {
-  "Dreaming Spanish": "推荐入门，语速慢，适合建立可理解输入。",
-  "Extra Spanish": "轻松情景剧，适合跟着语境反复吸收表达。",
-  "Español con Juan": "偏讲解型频道，适合把输入和语法串起来。"
 };
 
 async function fetchVideoInfo(videoId: string) {
@@ -213,40 +200,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
             </div>
           </div>
 
-          <div id="video-sections">
-            {channelSections.map(({ channel, videos }) => (
-              <section
-                className="mb-12 border-t border-zinc-100 dark:border-zinc-800 pt-8 first:border-t-0 first:pt-0"
-                key={channel.id}
-              >
-                <div className="mb-4 flex items-end justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">{channel.title}</h2>
-                    <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">
-                      {channelDescriptions[channel.title] ?? "策划频道内容。"}
-                    </p>
-                  </div>
-                  <Link
-                    className="shrink-0 text-sm font-medium text-brand-600 hover:underline"
-                    href={`/search?q=${encodeURIComponent(channel.title)}`}
-                  >
-                    查看全部 →
-                  </Link>
-                </div>
-
-                <div className="flex gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {videos.map((video) => (
-                    <VideoCard key={video.id} video={video} />
-                  ))}
-                  {videos.length === 0 ? (
-                    <div className="flex h-40 w-full items-center justify-center rounded-surface border border-dashed border-zinc-200 dark:border-zinc-800 bg-surface text-sm text-zinc-400 dark:text-zinc-500">
-                      暂时还没有拉到视频数据
-                    </div>
-                  ) : null}
-                </div>
-              </section>
-            ))}
-          </div>
+          <WatchHomeDiscovery sections={channelSections} />
 
           {/* Kept for tests: EmptyState */}
           <div className="hidden">

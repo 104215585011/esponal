@@ -39,7 +39,7 @@ test("WEB-010 ContinueLearning component still renders video and course cards wi
   assert.match(component, /shadow-card/);
 });
 
-test("WEB-010 homepage now uses shared progress data instead of ContinueLearning cards", async () => {
+test("WEB-010 homepage uses shared progress data and ContinueLearning for signed-in users", async () => {
   const page = await readText("src/app/page.tsx");
 
   assert.match(page, /getVocabStats/);
@@ -48,7 +48,7 @@ test("WEB-010 homepage now uses shared progress data instead of ContinueLearning
   assert.match(page, /allLearningSteps/);
   assert.match(page, /mobileLearningSteps/);
   assert.match(page, /<HomeHero isLoggedIn=\{!!userId\} \/>/);
-  assert.doesNotMatch(page, /ContinueLearning/);
+  assert.match(page, /ContinueLearning/);
 });
 
 test("WEB-010 schema adds an encounter source/time index for recent lookups", async () => {

@@ -81,6 +81,14 @@ export async function SiteHeader({
 
         <GlobalSearchOverlay initialQuery={initialQuery} searchAction={searchAction} />
 
+        <Link
+          className="hidden shrink-0 items-center gap-1 rounded-full bg-brand-500 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-600 lg:inline-flex"
+          href="/import"
+        >
+          <span aria-hidden="true">+</span>
+          <span>导入</span>
+        </Link>
+
         <div className="hidden shrink-0 lg:block">
           <PlaybackRateControl className="shrink-0" />
         </div>
