@@ -41,18 +41,27 @@
 
 ---
 
-## 四、填到哪里(两处,做完就生效)
+## 四、当前状态(2026-11-14 已配置)
 
-### 1)App 构建
+Android client id 已填入 `app.config.js` 的 `FALLBACK_GOOGLE_ANDROID_CLIENT_ID`:
 
-GitHub 仓库 → Settings → Secrets and variables → Actions → New repository secret
+```
+944314756480-p5qqusb05evjcbf18dhvk8prril23onv.apps.googleusercontent.com
+```
 
-- Name:`GOOGLE_ANDROID_CLIENT_ID`
-- Secret:`1234567890-abcdefg.apps.googleusercontent.com`
+它同时被写进 `scheme`(`com.googleusercontent.apps.944314756480-p5qqusb05evjcbf18dhvk8prril23onv`)
+和 `extra.googleAndroidClientId`,由 `src/config/google.ts` 读取 —— 改 id 只需动 `app.config.js` 一处。
 
-构建脚本已经把 `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` 透传给 prebuild 和 gradle,所以:
+下面是「以后换 client 时」的通用流程。
+
+### 1)App 构建(二选一)
+
+- 直接改 `app.config.js` 里的 `FALLBACK_GOOGLE_ANDROID_CLIENT_ID`(当前采用的方式);或
+- GitHub 仓库 → Settings → Secrets and variables → Actions → New repository secret,Name `GOOGLE_ANDROID_CLIENT_ID`(构建脚本已把它透传成 `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`,优先级更高)。
+
+两种方式都会让:
 - `src/config/google.ts` 自动读到 id,登录页按钮从「待配置 client id」变成「使用 Google 继续」
-- `app.config.js` 自动把回跳 scheme `com.googleusercontent.apps.1234567890-abcdefg` 写进 AndroidManifest
+- `app.config.js` 自动把回跳 scheme `com.googleusercontent.apps.<id 反写>` 写进 AndroidManifest
   (少这一步会表现为「在浏览器里授权完回不到 App」)
 
 ### 2)服务端验签
