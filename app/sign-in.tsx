@@ -14,10 +14,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/auth/AuthProvider";
+import { registerAccount } from "@/api/account";
 import { colors, radius, spacing } from "@/theme";
 
 export default function SignInScreen() {
   const { signIn } = useAuth();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +34,16 @@ export default function SignInScreen() {
       setError("请输入邮箱和密码");
       return;
     }
+    if (mode === "signup" && password.length < 8) {
+      setError("密码至少需要 8 位");
+      return;
+    }
 
     setBusy(true);
     try {
+      if (mode === "signup") {
+        await registerAccount({ email: email.trim(), password, name: name.trim() });
+      }
       await signIn(email.trim(), password);
     } catch (e) {
       setError(e instanceof Error ? e.message : "登录失败");
@@ -59,16 +69,31 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.headline}>
-            <Text style={styles.eyebrow}>欢迎回来</Text>
+            <Text style={styles.eyebrow}>{mode === "signin" ? "欢迎回来" : "新建账号"}</Text>
             <Text style={styles.title}>
               西班牙语,{"\n"}从<Text style={styles.titleAccent}>听懂</Text>开始
             </Text>
             <Text style={styles.subtitle}>
-              登录后继续你的进度:生词、字幕、阅读都在这儿。
+              {mode === "signin"
+                ? "登录后继续你的进度:生词、字幕、阅读都在这儿。"
+                : "注册一个账号,网页版与 App 的进度共用一份。"}
             </Text>
           </View>
 
           <View style={styles.form}>
+            {mode === "signup" ? (
+              <View style={styles.field}>
+                <Text style={styles.label}>昵称(可留空)</Text>
+                <TextInput
+                  onChangeText={setName}
+                  placeholder="怎么称呼你"
+                  placeholderTextColor={colors.textTertiary}
+                  style={styles.input}
+                  value={name}
+                />
+              </View>
+            ) : null}
+
             <View style={styles.field}>
               <Text style={styles.label}>邮箱</Text>
               <TextInput
@@ -115,10 +140,24 @@ export default function SignInScreen() {
               {busy ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>登录</Text>
+                <Text style={styles.buttonText}>
+                  {mode === "signin" ? "登录" : "注册并登录"}
+                </Text>
               )}
             </Pressable>
           </View>
+
+          <Pressable
+            onPress={() => {
+              setMode((prev) => (prev === "signin" ? "signup" : "signin"));
+              setError(null);
+            }}
+            style={styles.switchRow}
+          >
+            <Text style={styles.switchText}>
+              {mode === "signin" ? "还没有账号?注册一个 →" : "已有账号?直接登录 →"}
+            </Text>
+          </Pressable>
 
           <Text style={styles.footnote}>
             同一个账号通用于网页版,进度自动同步。
@@ -199,8 +238,10 @@ const styles = StyleSheet.create({
   buttonPressed: { backgroundColor: colors.brand600 },
   buttonBusy: { opacity: 0.8 },
   buttonText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  switchRow: { marginTop: spacing.lg, alignItems: "center" },
+  switchText: { fontSize: 13, fontWeight: "600", color: colors.brand600 },
   footnote: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     fontSize: 12,
     color: colors.textTertiary,
     textAlign: "center"

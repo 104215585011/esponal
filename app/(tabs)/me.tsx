@@ -1,5 +1,5 @@
 // Timestamp: 2026-11-14 02:56
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { useAuth } from "@/auth/AuthProvider";
+import { fetchCredits } from "@/api/account";
 import { API_BASE } from "@/api/client";
 import { checkForUpdate, currentVersion, type AppVersionInfo } from "@/api/appVersion";
 import { UpdateDialog } from "@/components/UpdateDialog";
@@ -25,6 +26,21 @@ export default function MeScreen() {
   const [update, setUpdate] = useState<{ current: string; info: AppVersionInfo } | null>(
     null
   );
+  /** 积分余额:口语每轮扣费,这里给个可见数字 */
+  const [credits, setCredits] = useState<string | null>(null);
+
+  const loadCredits = useCallback(async () => {
+    try {
+      const res = await fetchCredits();
+      setCredits(res.balanceDisplay);
+    } catch {
+      setCredits(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCredits();
+  }, [loadCredits]);
 
   const confirmSignOut = () => {
     Alert.alert("退出登录", "下次需要重新输入密码。", [
@@ -101,6 +117,14 @@ export default function MeScreen() {
           >
             <Text style={styles.metaLabel}>我的下载</Text>
             <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => void loadCredits()}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>积分余额</Text>
+            <Text style={styles.metaAction}>{credits ?? "点击刷新"}</Text>
           </Pressable>
 
           <View style={styles.metaRow}>

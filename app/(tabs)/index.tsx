@@ -260,6 +260,7 @@ const ENTRIES = [
   { icon: "🎬", title: "看视频", hint: "双语字幕 + 点词查词", href: "/watch" },
   { icon: "🔍", title: "搜视频", hint: "按关键词找任意西语内容", href: "/search" },
   { icon: "📖", title: "读短文", hint: "分级读物 + 逐句解析", href: "/lectura" },
+  { icon: "📚", title: "我的词库", hint: "全部生词,按掌握度筛", href: "/vocab" },
   { icon: "⬇️", title: "我的下载", hint: "已保存的双语字幕讲义", href: "/downloads" }
 ];
 
