@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 14:48
+// Timestamp: 2026-11-15 07:05
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,6 +21,7 @@ import {
   type VocabStats,
   type WatchHistoryItem
 } from "@/api/stats";
+import { AppIcon, type AppIconName } from "@/components/AppIcon";
 import { colors, radius, spacing } from "@/theme";
 import {
   adoptServerProgress,
@@ -31,15 +32,65 @@ import {
   type WatchProgress
 } from "@/lib/watchProgress";
 
+type QuickTool = {
+  icon: AppIconName;
+  tint: string;
+  tintBg: string;
+  tag: string;
+  title: string;
+  desc: string;
+  href: string;
+};
+
+const QUICK_TOOLS: QuickTool[] = [
+  {
+    icon: "headphones",
+    tint: colors.brand700,
+    tintBg: colors.brand50,
+    tag: "30s 盲听",
+    title: "听力精听",
+    desc: "分段反复听 + 找漏听词",
+    href: "/listening"
+  },
+  {
+    icon: "mic",
+    tint: colors.indigo600,
+    tintBg: colors.indigo50,
+    tag: "AI 对话",
+    title: "口语练习",
+    desc: "情景西语对话 + 纠正表达",
+    href: "/talk"
+  },
+  {
+    icon: "grammar",
+    tint: colors.amber700,
+    tintBg: colors.amber50,
+    tag: "人称/时态",
+    title: "语法知识库",
+    desc: "变位规律与句型随时查",
+    href: "/grammar"
+  },
+  {
+    icon: "phonics",
+    tint: colors.sky600,
+    tintBg: colors.sky50,
+    tag: "A1 入门",
+    title: "字母发音",
+    desc: "西语拼读与重音规则",
+    href: "/phonics"
+  }
+];
+
+const BUCKET_COLORS = ["#D6EFE3", "#A7DFC6", "#5EC79B", colors.brand600];
+
 /**
- * 首页 = 学习看板。
+ * 首页 = 泛听泛读出发台。
  *
- * 数据全部来自真实接口:
- * - /api/vocab/review  → 今日待复习张数(主 CTA)
- * - /api/vocab/stats   → 词库总量 / 本周新增 / 见过次数分布(掌握度)
- * - /api/watch/history → 最近观看(点一下接着看)
- *
- * 三个接口用 allSettled 并发,任一失败不拖垮整页 —— 没数据就先显示占位。
+ * 视觉重心：
+ * 1. 今日主卡片：优先衔接最近观看的视频（泛听），附带「顺便复习」轻量引导；
+ * 2. 最近观看横滑 + 我的书架快捷入口；
+ * 3. 2x2 专项工具网格（替代原来冗长的 9 行列表，消灭与「我的」的重复）；
+ * 4. 词库概览轻卡（点一下直接进 复习 -> 我的词库）。
  */
 export default function HomeScreen() {
   const router = useRouter();
@@ -48,7 +99,6 @@ export default function HomeScreen() {
   const [due, setDue] = useState<number | null>(null);
   const [stats, setStats] = useState<VocabStats | null>(null);
   const [history, setHistory] = useState<WatchHistoryItem[]>([]);
-  /** 本地观看进度:用来在「接着看」上标出看到哪了 */
   const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,7 +106,6 @@ export default function HomeScreen() {
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
 
-    // 先把本地进度读进内存,后面才能用服务端那份去补/比对
     await loadWatchProgress();
 
     const [queueRes, statsRes, historyRes] = await Promise.allSettled([
@@ -70,7 +119,6 @@ export default function HomeScreen() {
 
     if (historyRes.status === "fulfilled") {
       setHistory(historyRes.value);
-      // 历史接口现在带着服务端进度：换过设备时本地是空的，靠这里补齐显示
       historyRes.value.forEach((item) => {
         if (typeof item.position === "number" && item.position > 0) {
           adoptServerProgress(item.videoId, item.position, item.duration ?? 0);
@@ -83,7 +131,6 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, []);
 
-  // useFocusEffect 在首次挂载和每次回到本页时都会触发,不用另加 useEffect(会重复请求)
   useFocusEffect(
     useCallback(() => {
       void load();
@@ -95,6 +142,10 @@ export default function HomeScreen() {
   const buckets = stats?.encounterBuckets ?? [];
   const mastered = buckets.find((b) => b.label.includes("6"))?.count ?? 0;
   const bucketTotal = buckets.reduce((sum, b) => sum + b.count, 0);
+
+  const resumeItem = history[0] ?? null;
+  const resumeSaved = resumeItem ? progress[resumeItem.videoId] : undefined;
+  const canResume = Boolean(resumeItem && shouldResume(resumeSaved));
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -109,103 +160,96 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* 顶栏 */}
         <View style={styles.brandRow}>
           <Text style={styles.brand}>
             Esponal<Text style={styles.brandDot}>.</Text>
           </Text>
-          <Pressable
-            onPress={() => router.push("/search" as never)}
-            style={({ pressed }) => [styles.searchEntry, pressed && styles.pressed]}
-          >
-            <Text style={styles.searchEntryText}>🔍 搜视频</Text>
-          </Pressable>
+          <View style={styles.topActions}>
+            <Pressable
+              onPress={() =>
+                router.push({ pathname: "/lectura", params: { tab: "shelf" } } as never)
+              }
+              style={({ pressed }) => [styles.topPill, pressed && styles.pressed]}
+            >
+              <AppIcon color={colors.textSecondary} name="shelf" size={14} />
+              <Text style={styles.topPillText}>书架</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/search" as never)}
+              style={({ pressed }) => [styles.topPill, pressed && styles.pressed]}
+            >
+              <AppIcon color={colors.textSecondary} name="search" size={14} />
+              <Text style={styles.topPillText}>搜视频</Text>
+            </Pressable>
+          </View>
         </View>
 
         <Text style={styles.hello}>
-          {user?.name ? `${user.name},` : "Hola,"}今天先从哪一步开始?
+          {user?.name ? `Hola, ${user.name}` : "Hola"} · 今天逛点什么？
         </Text>
 
-        {/* 主 CTA:今日待复习 */}
-        <Pressable
-          onPress={() => router.push("/review" as never)}
-          style={({ pressed }) => [styles.dueCard, pressed && styles.pressed]}
-        >
-          <View style={styles.dueTextWrap}>
-            <Text style={styles.dueLabel}>今日待复习</Text>
-            {loading && due === null ? (
-              <ActivityIndicator color="#fff" style={styles.dueSpin} />
-            ) : (
-              <Text style={styles.dueNumber}>
-                {due ?? 0}
-                <Text style={styles.dueUnit}> 张</Text>
+        {/* 主引导卡：泛听泛读优先 + 温和复习联动 */}
+        <View style={styles.heroCard}>
+          <Text style={styles.heroEyebrow}>IMMERSION · 泛听泛读</Text>
+          {canResume && resumeItem ? (
+            <>
+              <Text numberOfLines={2} style={styles.heroTitle}>
+                继续：{resumeItem.title}
               </Text>
-            )}
-            <Text style={styles.dueHint}>
-              {due === 0 ? "清空了,可以找点新材料听听" : "按 FSRS 排的,先刷完再学新的"}
-            </Text>
-          </View>
-          <View style={styles.dueAction}>
-            <Text style={styles.dueActionText}>{due === 0 ? "去复习" : "开始"}</Text>
-            <Text style={styles.dueArrow}>→</Text>
-          </View>
-        </Pressable>
+              <Text style={styles.heroSub}>
+                {resumeItem.channelTitle} · 上次看到{" "}
+                {resumeSaved ? formatPosition(resumeSaved.position) : "开头"}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.heroTitle}>看一条西语视频，或读一篇短文</Text>
+              <Text style={styles.heroSub}>
+                双语字幕与阅读正文都支持轻触查词、查看完整动词变位。
+              </Text>
+            </>
+          )}
 
-        {/* 统计三宫格 */}
-        <View style={styles.statRow}>
-          <View style={styles.statCell}>
-            <Text style={styles.statValue}>{loading && !stats ? "—" : totalSaved}</Text>
-            <Text style={styles.statLabel}>词库总数</Text>
-          </View>
-          <View style={[styles.statCell, styles.statCellMiddle]}>
-            <Text style={styles.statValue}>{loading && !stats ? "—" : weeklyNew}</Text>
-            <Text style={styles.statLabel}>本周新增</Text>
-          </View>
-          <View style={styles.statCell}>
-            <Text style={styles.statValue}>{loading && !stats ? "—" : mastered}</Text>
-            <Text style={styles.statLabel}>见过 6 次+</Text>
+          <View style={styles.heroActions}>
+            <Pressable
+              onPress={() => {
+                if (canResume && resumeItem) {
+                  router.push({
+                    pathname: "/watch/[videoId]",
+                    params: {
+                      videoId: resumeItem.videoId,
+                      title: resumeItem.title,
+                      channelTitle: resumeItem.channelTitle,
+                      thumbnail: resumeItem.thumbnail ?? ""
+                    }
+                  } as never);
+                } else {
+                  router.push("/watch" as never);
+                }
+              }}
+              style={({ pressed }) => [styles.heroPrimaryBtn, pressed && styles.pressed]}
+            >
+              <AppIcon color={colors.brand700} name="play" size={14} />
+              <Text style={styles.heroPrimaryText}>
+                {canResume ? "继续观看" : "去看视频"}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/review" as never)}
+              style={({ pressed }) => [styles.heroGhostBtn, pressed && styles.pressed]}
+            >
+              {loading && due === null ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.heroGhostText}>
+                  {due && due > 0 ? `待复习 ${due} 词` : "去复习 / 词库"}
+                </Text>
+              )}
+            </Pressable>
           </View>
         </View>
-
-        {/* 掌握度分布:见过次数越多越牢 */}
-        {bucketTotal > 0 ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>记忆深度</Text>
-            <View style={styles.bucketBar}>
-              {buckets.map((bucket, index) => {
-                const pct = bucketTotal > 0 ? (bucket.count / bucketTotal) * 100 : 0;
-                if (pct <= 0) return null;
-                return (
-                  <View
-                    key={bucket.label}
-                    style={{
-                      width: `${pct}%`,
-                      height: "100%",
-                      backgroundColor: BUCKET_COLORS[index % BUCKET_COLORS.length]
-                    }}
-                  />
-                );
-              })}
-            </View>
-            <View style={styles.legendRow}>
-              {buckets.map((bucket, index) => (
-                <View key={bucket.label} style={styles.legendItem}>
-                  <View
-                    style={[
-                      styles.legendDot,
-                      { backgroundColor: BUCKET_COLORS[index % BUCKET_COLORS.length] }
-                    ]}
-                  />
-                  <Text style={styles.legendText}>
-                    {bucket.label} {bucket.count}
-                  </Text>
-                </View>
-              ))}
-            </View>
-            <Text style={styles.cardFoot}>
-              同一词在不同材料里反复出现才会进右边几档 —— 这是最能说明"真的记住了"的指标。
-            </Text>
-          </View>
-        ) : null}
 
         {/* 最近观看 */}
         {history.length > 0 ? (
@@ -213,7 +257,7 @@ export default function HomeScreen() {
             <View style={styles.sectionHead}>
               <Text style={styles.sectionTitle}>接着看</Text>
               <Pressable onPress={() => router.push("/watch" as never)}>
-                <Text style={styles.sectionMore}>全部 ›</Text>
+                <Text style={styles.sectionMore}>全部视频 ›</Text>
               </Pressable>
             </View>
             <ScrollView
@@ -259,7 +303,9 @@ export default function HomeScreen() {
                     {resumable && saved ? (
                       <View style={styles.historyProgressRow}>
                         <View style={styles.historyProgressTrack}>
-                          <View style={[styles.historyProgressFill, { width: `${Math.max(4, pct)}%` }]} />
+                          <View
+                            style={[styles.historyProgressFill, { width: `${Math.max(4, pct)}%` }]}
+                          />
                         </View>
                         <Text style={styles.historyProgressText}>
                           看到 {formatPosition(saved.position)}
@@ -273,41 +319,106 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {/* 功能入口 */}
-        <View style={styles.entryList}>
-          {ENTRIES.map((entry) => (
+        {/* 2x2 专项工具与训练 */}
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>专项训练与参考</Text>
             <Pressable
-              key={entry.title}
-              onPress={() => router.push(entry.href as never)}
-              style={({ pressed }) => [styles.entryRow, pressed && styles.entryRowPressed]}
+              onPress={() => router.push("/lectura" as never)}
             >
-              <Text style={styles.entryIcon}>{entry.icon}</Text>
-              <View style={styles.entryText}>
-                <Text style={styles.entryTitle}>{entry.title}</Text>
-                <Text style={styles.entryHint}>{entry.hint}</Text>
-              </View>
-              <Text style={styles.entryArrow}>›</Text>
+              <Text style={styles.sectionMore}>读短文 / 书架 ›</Text>
             </Pressable>
-          ))}
+          </View>
+
+          <View style={styles.toolGrid}>
+            {QUICK_TOOLS.map((tool) => (
+              <Pressable
+                key={tool.title}
+                onPress={() => router.push(tool.href as never)}
+                style={({ pressed }) => [styles.toolCard, pressed && styles.pressed]}
+              >
+                <View style={styles.toolTop}>
+                  <View style={[styles.toolIconBox, { backgroundColor: tool.tintBg }]}>
+                    <AppIcon color={tool.tint} name={tool.icon} size={17} />
+                  </View>
+                  <Text style={styles.toolTag}>{tool.tag}</Text>
+                </View>
+                <Text style={styles.toolTitle}>{tool.title}</Text>
+                <Text numberOfLines={2} style={styles.toolDesc}>
+                  {tool.desc}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
+
+        {/* 词汇资产轻卡 */}
+        <Pressable
+          onPress={() =>
+            router.push({ pathname: "/review", params: { tab: "vocab" } } as never)
+          }
+          style={({ pressed }) => [styles.vocabCard, pressed && styles.pressed]}
+        >
+          <View style={styles.vocabHead}>
+            <Text style={styles.vocabTitle}>我的词汇积累</Text>
+            <Text style={styles.vocabLink}>查看词库 ›</Text>
+          </View>
+
+          <View style={styles.statRow}>
+            <View style={styles.statCell}>
+              <Text style={styles.statValue}>{loading && !stats ? "—" : totalSaved}</Text>
+              <Text style={styles.statLabel}>词库总数</Text>
+            </View>
+            <View style={[styles.statCell, styles.statCellMiddle]}>
+              <Text style={styles.statValue}>{loading && !stats ? "—" : weeklyNew}</Text>
+              <Text style={styles.statLabel}>本周新增</Text>
+            </View>
+            <View style={styles.statCell}>
+              <Text style={styles.statValue}>{loading && !stats ? "—" : mastered}</Text>
+              <Text style={styles.statLabel}>见过 6 次+</Text>
+            </View>
+          </View>
+
+          {bucketTotal > 0 ? (
+            <>
+              <View style={styles.bucketBar}>
+                {buckets.map((bucket, index) => {
+                  const pct = bucketTotal > 0 ? (bucket.count / bucketTotal) * 100 : 0;
+                  if (pct <= 0) return null;
+                  return (
+                    <View
+                      key={bucket.label}
+                      style={{
+                        width: `${pct}%`,
+                        height: "100%",
+                        backgroundColor: BUCKET_COLORS[index % BUCKET_COLORS.length]
+                      }}
+                    />
+                  );
+                })}
+              </View>
+              <View style={styles.legendRow}>
+                {buckets.map((bucket, index) => (
+                  <View key={bucket.label} style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        { backgroundColor: BUCKET_COLORS[index % BUCKET_COLORS.length] }
+                      ]}
+                    />
+                    <Text style={styles.legendText}>
+                      {bucket.label} {bucket.count}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : null}
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const BUCKET_COLORS = ["#D6EFE3", "#A7DFC6", "#5EC79B", colors.brand600];
-
-const ENTRIES = [
-  { icon: "🎧", title: "听力精听", hint: "盲听 30 秒一段,自评听懂率 + 找错因", href: "/listening" },
-  { icon: "💬", title: "口语练习", hint: "和 AI 角色用西语对话", href: "/talk" },
-  { icon: "🎬", title: "看视频", hint: "双语字幕 + 点词查词", href: "/watch" },
-  { icon: "🔍", title: "搜视频", hint: "按关键词找任意西语内容", href: "/search" },
-  { icon: "📖", title: "读短文", hint: "分级读物 + 逐句解析", href: "/lectura" },
-  { icon: "🧩", title: "语法知识库", hint: "变位、性别、句式,都带现成例句", href: "/grammar" },
-  { icon: "🗣️", title: "短语与搭配", hint: "日常固定说法,背了就能用", href: "/phrases" },
-  { icon: "📚", title: "我的词库", hint: "全部生词,按掌握度筛", href: "/vocab" },
-  { icon: "⬇️", title: "我的下载", hint: "已保存的双语字幕讲义", href: "/downloads" }
-];
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bgSubtle },
@@ -321,123 +432,118 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between"
   },
-  brand: { fontSize: 19, fontWeight: "800", letterSpacing: -0.6, color: colors.text },
+  brand: { fontSize: 21, fontWeight: "800", letterSpacing: -0.6, color: colors.text },
   brandDot: { color: colors.brand500 },
-  searchEntry: {
-    paddingHorizontal: 12,
+  topActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  topPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 11,
     paddingVertical: 7,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border
   },
-  searchEntryText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
-  pressed: { opacity: 0.75 },
+  topPillText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
+  pressed: { opacity: 0.78 },
   hello: {
     marginTop: spacing.lg,
     fontSize: 21,
-    lineHeight: 30,
+    lineHeight: 28,
     fontWeight: "800",
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     color: colors.text
   },
-  dueCard: {
-    marginTop: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  heroCard: {
+    marginTop: spacing.md,
     backgroundColor: colors.brand600,
     borderRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.md
+    padding: spacing.lg + 2,
+    gap: 6
   },
-  dueTextWrap: { flex: 1 },
-  dueLabel: {
-    fontSize: 11,
+  heroEyebrow: {
+    fontSize: 10.5,
     fontWeight: "700",
     letterSpacing: 1.2,
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.78)"
+    color: "rgba(255,255,255,0.8)"
   },
-  dueSpin: { alignSelf: "flex-start", marginTop: 6 },
-  dueNumber: { marginTop: 2, fontSize: 34, fontWeight: "800", color: "#fff", letterSpacing: -1 },
-  dueUnit: { fontSize: 14, fontWeight: "700", color: "rgba(255,255,255,0.8)" },
-  dueHint: { marginTop: 2, fontSize: 11.5, color: "rgba(255,255,255,0.82)" },
-  dueAction: {
+  heroTitle: {
+    fontSize: 18,
+    lineHeight: 25,
+    fontWeight: "800",
+    color: "#fff"
+  },
+  heroSub: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: "rgba(255,255,255,0.86)"
+  },
+  heroActions: {
+    marginTop: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    borderRadius: radius.pill,
+    gap: spacing.sm
+  },
+  heroPrimaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#fff",
+    borderRadius: radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 9
+    paddingVertical: 10
   },
-  dueActionText: { fontSize: 13, fontWeight: "700", color: "#fff" },
-  dueArrow: { fontSize: 13, fontWeight: "700", color: "#fff" },
-  statRow: {
-    marginTop: spacing.md,
-    flexDirection: "row",
-    backgroundColor: colors.bg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.md
+  heroPrimaryText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.brand700
   },
-  statCell: { flex: 1, alignItems: "center", gap: 3 },
-  statCellMiddle: {
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border
+  heroGhostBtn: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 10
   },
-  statValue: { fontSize: 19, fontWeight: "800", color: colors.text, letterSpacing: -0.4 },
-  statLabel: { fontSize: 11, color: colors.textTertiary },
-  card: {
-    marginTop: spacing.md,
-    backgroundColor: colors.bg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg
+  heroGhostText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff"
   },
-  cardTitle: { fontSize: 13, fontWeight: "700", color: colors.text },
-  bucketBar: {
-    marginTop: spacing.md,
-    flexDirection: "row",
-    height: 10,
-    borderRadius: 5,
-    overflow: "hidden",
-    backgroundColor: colors.surfaceMuted
-  },
-  legendRow: { marginTop: spacing.md, flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  legendDot: { width: 7, height: 7, borderRadius: 4 },
-  legendText: { fontSize: 10.5, color: colors.textSecondary },
-  cardFoot: {
-    marginTop: spacing.sm,
-    fontSize: 11,
-    lineHeight: 17,
-    color: colors.textTertiary
-  },
-  section: { marginTop: spacing.lg },
+  section: { marginTop: spacing.xl },
   sectionHead: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: spacing.sm
+    marginBottom: spacing.sm + 2
   },
-  sectionTitle: { fontSize: 14, fontWeight: "800", color: colors.text },
-  sectionMore: { fontSize: 11.5, color: colors.textTertiary },
+  sectionTitle: { fontSize: 15, fontWeight: "800", color: colors.text },
+  sectionMore: { fontSize: 12, fontWeight: "600", color: colors.brand600 },
   historyRow: { gap: spacing.md, paddingRight: spacing.md },
-  historyCard: { width: 168 },
-  historyThumb: { width: 168, height: 94, borderRadius: radius.sm, backgroundColor: "#000" },
+  historyCard: {
+    width: 172,
+    backgroundColor: colors.bg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 8
+  },
+  historyThumb: { width: "100%", height: 90, borderRadius: radius.sm - 2, backgroundColor: "#000" },
   historyThumbEmpty: { backgroundColor: colors.surfaceMuted },
   historyTitle: {
-    marginTop: 6,
-    fontSize: 12,
-    fontWeight: "600",
+    marginTop: 7,
+    fontSize: 12.5,
+    fontWeight: "700",
     lineHeight: 17,
     color: colors.text
   },
   historyChannel: { marginTop: 2, fontSize: 10.5, color: colors.textTertiary },
-  historyProgressRow: { marginTop: 4, gap: 3 },
+  historyProgressRow: { marginTop: 6, gap: 3 },
   historyProgressTrack: {
     height: 3,
     borderRadius: 2,
@@ -446,27 +552,85 @@ const styles = StyleSheet.create({
   },
   historyProgressFill: { height: 3, borderRadius: 2, backgroundColor: colors.brand500 },
   historyProgressText: { fontSize: 10, fontWeight: "600", color: colors.brand600 },
-  entryList: {
+  toolGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: spacing.md
+  },
+  toolCard: {
+    width: "48.3%",
+    backgroundColor: colors.bg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md + 2,
+    gap: 6
+  },
+  toolTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  toolIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  toolTag: {
+    fontSize: 10.5,
+    fontWeight: "600",
+    color: colors.textTertiary
+  },
+  toolTitle: {
+    marginTop: 2,
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: colors.text
+  },
+  toolDesc: {
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: colors.textSecondary
+  },
+  vocabCard: {
     marginTop: spacing.xl,
     backgroundColor: colors.bg,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    overflow: "hidden"
+    padding: spacing.lg,
+    gap: spacing.md
   },
-  entryRow: {
+  vocabHead: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderSubtle
+    justifyContent: "space-between"
   },
-  entryRowPressed: { backgroundColor: colors.surfaceMuted },
-  entryIcon: { fontSize: 16, width: 22, textAlign: "center" },
-  entryText: { flex: 1, gap: 2 },
-  entryTitle: { fontSize: 14, fontWeight: "600", color: colors.text },
-  entryHint: { fontSize: 11.5, color: colors.textTertiary },
-  entryArrow: { fontSize: 18, color: colors.textTertiary }
+  vocabTitle: { fontSize: 14.5, fontWeight: "800", color: colors.text },
+  vocabLink: { fontSize: 12, fontWeight: "600", color: colors.brand600 },
+  statRow: {
+    flexDirection: "row"
+  },
+  statCell: { flex: 1, alignItems: "center", gap: 3 },
+  statCellMiddle: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border
+  },
+  statValue: { fontSize: 20, fontWeight: "800", color: colors.text, letterSpacing: -0.4 },
+  statLabel: { fontSize: 11, color: colors.textTertiary },
+  bucketBar: {
+    flexDirection: "row",
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceMuted
+  },
+  legendRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  legendDot: { width: 7, height: 7, borderRadius: 4 },
+  legendText: { fontSize: 10.5, color: colors.textSecondary }
 });

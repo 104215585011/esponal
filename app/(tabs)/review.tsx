@@ -1,15 +1,15 @@
-// Timestamp: 2026-11-15 01:40
+// Timestamp: 2026-11-15 07:10
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import {
   fetchReviewQueue,
@@ -17,9 +17,15 @@ import {
   type DueWord,
   type ReviewRating
 } from "@/api/review";
-import { colors, radius, spacing } from "@/theme";
-import { speakSpanish } from "@/lib/speech";
+import { AppIcon } from "@/components/AppIcon";
+import { PhrasesListPanel } from "@/components/PhrasesListPanel";
+import { SegmentedControl } from "@/components/SegmentedControl";
+import { VocabListPanel } from "@/components/VocabListPanel";
 import { usePreferences } from "@/hooks/usePreferences";
+import { speakSpanish } from "@/lib/speech";
+import { colors, radius, spacing } from "@/theme";
+
+type ReviewTab = "queue" | "vocab" | "phrases";
 
 const RATING_BUTTONS: Array<{
   rating: ReviewRating;
@@ -32,18 +38,27 @@ const RATING_BUTTONS: Array<{
   { rating: "Easy", label: "简单", color: "#0284C7" }
 ];
 
-/** 西语发音(设备端 TTS,不花额度;口音/语速跟随设置页) */
 function speakEs(text: string) {
   speakSpanish(text);
 }
 
 /**
- * 复习 tab:卡片式刷词。
- * 正面:单词 + 发音 → 翻面看释义 → 四档评分(FSRS 调度) → 下一张。
- * 批末:评分分布小结;点过「忘了」的词可以补练一轮(只重看,不推进 FSRS);
- *       今日还有剩余时自动续批,不用手动点「再取一批」。
+ * 复习与词库中心：
+ * 顶部三段切换「今日复习 / 我的词库 / 短语搭配」，把原本散落在「我的」里的词汇资产统一收口。
  */
 export default function ReviewScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [subTab, setSubTab] = useState<ReviewTab>(
+    params.tab === "vocab" ? "vocab" : params.tab === "phrases" ? "phrases" : "queue"
+  );
+
+  useEffect(() => {
+    if (params.tab === "vocab" || params.tab === "phrases" || params.tab === "queue") {
+      setSubTab(params.tab);
+    }
+  }, [params.tab]);
+
   const [queue, setQueue] = useState<DueWord[]>([]);
   const [totalDue, setTotalDue] = useState(0);
   const [index, setIndex] = useState(0);
@@ -52,16 +67,11 @@ export default function ReviewScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  /** 评分后轻提示:"下次 3 天后"(FSRS 的真实反馈,比单纯跳下一张有获得感) */
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
-  /** 设置页的「复习时自动发音」,开了就每换一张卡自动念单词 */
   const prefs = usePreferences();
 
-  /** 补练轮进行中:重看忘词、只按「记住了」,不调评分接口(纯巩固,不造假数据) */
   const [reinforcing, setReinforcing] = useState(false);
-  /** 补练完成后置 true:小结页不再重复推荐补练 */
   const [reinforceDone, setReinforceDone] = useState(false);
-  /** 本轮评分分布(跨批累计,小结时展示) */
   const [counts, setCounts] = useState<Record<ReviewRating, number>>({
     Again: 0,
     Hard: 0,
@@ -69,11 +79,8 @@ export default function ReviewScreen() {
     Easy: 0
   });
   const doneTotalRef = useRef(0);
-  /** 本会话点过「忘了」的词(批末小结给「再过一遍」用;ref 即可,小结时机必然伴随渲染) */
   const forgottenRef = useRef<DueWord[]>([]);
-  /** 自动续批进行中的标记(避免 effect 重复触发) */
   const [autoLoading, setAutoLoading] = useState(false);
-  const [autoNote, setAutoNote] = useState<string | null>(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -87,7 +94,6 @@ export default function ReviewScreen() {
       setIndex(0);
       setFlipped(false);
       if (!isRefresh) {
-        // 全量重取 = 开新的一轮:计数、忘词、补练标记全部归零
         setCounts({ Again: 0, Hard: 0, Good: 0, Easy: 0 });
         setReinforcing(false);
         setReinforceDone(false);
@@ -103,16 +109,15 @@ export default function ReviewScreen() {
   }, []);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
-  /** 换了卡片就念一遍(听音辩义:先听再想,比看拼写更接近真实听力) */
   useEffect(() => {
-    if (!prefs.autoSpeakReview) return;
+    if (subTab !== "queue" || !prefs.autoSpeakReview) return;
     const word = queue[index];
     if (!word?.lemma) return;
     speakSpanish(word.lemma);
-  }, [prefs.autoSpeakReview, queue, index]);
+  }, [subTab, prefs.autoSpeakReview, queue, index]);
 
   const handleGrade = useCallback(
     async (rating: ReviewRating) => {
@@ -125,13 +130,11 @@ export default function ReviewScreen() {
         doneTotalRef.current += 1;
         setCounts((c) => ({ ...c, [rating]: c[rating] + 1 }));
 
-        // 点「忘了」的词进补练名单:批末重看一遍,不推进 FSRS(纯巩固,不造假数据)
         if (rating === "Again") {
           const list = forgottenRef.current;
           if (!list.some((item) => item.id === word.id)) list.push(word);
         }
 
-        // 把 ISO 时间翻译成人话,给学习者一个明确的间隔感
         const days = Math.max(
           0,
           Math.round((new Date(result.nextDue).getTime() - Date.now()) / 86_400_000)
@@ -152,7 +155,6 @@ export default function ReviewScreen() {
     [queue, index, grading]
   );
 
-  /** 批末取下一批;服务端没货(返回 0 张)就停,避免无限循环 */
   const continueNextBatch = useCallback(async () => {
     if (autoLoading) return;
     setAutoLoading(true);
@@ -165,19 +167,13 @@ export default function ReviewScreen() {
       setQueue(next);
       setIndex(0);
       setFlipped(false);
-      setAutoNote(`已自动续一批 ${next.length} 张`);
-      setTimeout(() => setAutoNote(null), 2500);
     } catch {
-      // 拉不到就停在小结页,用户可手动点「再取一批」
+      // 保持在小结页
     } finally {
       setAutoLoading(false);
     }
   }, [autoLoading]);
 
-  /**
-   * 自动续批:刷完一批且今日还有剩余时触发。
-   * 有忘词且还没补练时先不自动续,把「再过一遍忘词」的选择留给用户。
-   */
   useEffect(() => {
     if (loading || autoLoading) return;
     if (queue.length > 0 && index < queue.length) return;
@@ -196,7 +192,6 @@ export default function ReviewScreen() {
     continueNextBatch
   ]);
 
-  /** 开始补练:把忘词塞回队列顶部重看(不计分) */
   const startReinforce = useCallback(() => {
     const list = forgottenRef.current;
     if (list.length === 0) return;
@@ -206,10 +201,8 @@ export default function ReviewScreen() {
     setReinforcing(true);
   }, []);
 
-  /** 补练中的「记住了」:只前进,不调接口 */
   const advanceReinforce = useCallback(() => {
     if (index + 1 >= queue.length) {
-      // 补练结束:清空队列回到小结页
       setQueue([]);
       setIndex(0);
       setFlipped(false);
@@ -221,210 +214,267 @@ export default function ReviewScreen() {
     setIndex((i) => i + 1);
   }, [index, queue.length]);
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
-        <ActivityIndicator color={colors.brand500} />
-        <Text style={styles.loadingText}>正在取复习队列…</Text>
-      </SafeAreaView>
-    );
-  }
+  const renderQueueBody = () => {
+    if (loading) {
+      return (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.brand500} />
+          <Text style={styles.loadingText}>正在取复习队列…</Text>
+        </View>
+      );
+    }
 
-  if (error && queue.length === 0) {
-    return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
-        <Text style={styles.errorTitle}>加载失败</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <Pressable onPress={() => load()} style={styles.retry}>
-          <Text style={styles.retryText}>重试</Text>
-        </Pressable>
-      </SafeAreaView>
-    );
-  }
-
-  const current = queue[index];
-
-  /** 刷完了:评分分布小结 + 忘词补练 + 自动续批 */
-  if (!current) {
-    const remaining = Math.max(0, totalDue - doneTotalRef.current);
-    const forgottenCount = forgottenRef.current.length;
-    const offerReinforce = !reinforcing && forgottenCount > 0 && !reinforceDone;
-    const reinforceJustFinished = !reinforcing && reinforceDone && forgottenCount > 0;
-    const totalGraded = counts.Again + counts.Hard + counts.Good + counts.Easy;
-
-    return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
-        <Text style={styles.doneEmoji}>{reinforceJustFinished ? "💪" : "🎉"}</Text>
-        <Text style={styles.doneTitle}>
-          {reinforceJustFinished ? "补练完了" : "这批复习完了"}
-        </Text>
-        <Text style={styles.doneText}>
-          刚才复习了 {totalGraded} 张{remaining > 0 ? `,今日还剩 ${remaining} 张` : ""}
-        </Text>
-
-        {/* 评分分布:一眼看出这轮的质量 */}
-        {totalGraded > 0 ? (
-          <Text style={styles.distribution}>
-            忘了 {counts.Again} · 困难 {counts.Hard} · 良好 {counts.Good} · 简单 {counts.Easy}
-          </Text>
-        ) : null}
-
-        {offerReinforce ? (
-          <>
-            <Pressable onPress={startReinforce} style={styles.retry}>
-              <Text style={styles.retryText}>再过一遍忘词({forgottenCount})</Text>
-            </Pressable>
-            {remaining > 0 ? (
-              <Pressable
-                onPress={() => setReinforceDone(true)}
-                style={styles.skipButton}
-              >
-                <Text style={styles.skipText}>跳过,继续复习</Text>
-              </Pressable>
-            ) : null}
-          </>
-        ) : autoLoading ? (
-          <ActivityIndicator color={colors.brand500} style={styles.autoSpin} />
-        ) : (
-          <Pressable onPress={() => load()} style={styles.retry}>
-            <Text style={styles.retryText}>再取一批</Text>
+    if (error && queue.length === 0) {
+      return (
+        <View style={styles.center}>
+          <Text style={styles.errorTitle}>加载失败</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable onPress={() => void load()} style={styles.retry}>
+            <Text style={styles.retryText}>重试</Text>
           </Pressable>
-        )}
-      </SafeAreaView>
-    );
-  }
+        </View>
+      );
+    }
 
-  const meanings = current.dictData?.meanings ?? [];
-  const examples = current.dictData?.examples ?? [];
+    const current = queue[index];
+    if (!current) {
+      const remaining = Math.max(0, totalDue - doneTotalRef.current);
+      const forgottenCount = forgottenRef.current.length;
+      const offerReinforce = !reinforcing && forgottenCount > 0 && !reinforceDone;
+      const reinforceJustFinished = !reinforcing && reinforceDone && forgottenCount > 0;
+      const totalGraded = counts.Again + counts.Hard + counts.Good + counts.Easy;
 
-  return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      {/* 顶部进度 */}
-      <View style={styles.topBar}>
-        <Text style={styles.progressText}>
-          {index + 1} / {queue.length}
-        </Text>
-        {reinforcing ? (
-          <Text style={styles.feedback}>补练 {forgottenRef.current.length} 个忘词 · 不计分</Text>
-        ) : lastFeedback ? (
-          <Text style={styles.feedback}>{lastFeedback}</Text>
-        ) : (
-          <Text style={styles.dueText}>今日待复习 {totalDue}</Text>
-        )}
-      </View>
+      return (
+        <View style={styles.center}>
+          <Text style={styles.doneEmoji}>{reinforceJustFinished ? "💪" : "🎉"}</Text>
+          <Text style={styles.doneTitle}>
+            {reinforceJustFinished ? "补练完了" : totalGraded > 0 ? "这批复习完了" : "暂无待复习词"}
+          </Text>
+          <Text style={styles.doneText}>
+            {totalGraded > 0
+              ? `刚才复习了 ${totalGraded} 张${remaining > 0 ? `，今日还剩 ${remaining} 张` : ""}`
+              : "去看看视频或阅读文章，点选新词收藏就会进入复习队列。"}
+          </Text>
 
-      <ScrollView
-        contentContainerStyle={styles.body}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* 卡片正面:单词 + 发音 */}
-        <View style={styles.card}>
-          <View style={styles.cardHead}>
-            {current.partOfSpeech ? (
-              <Text style={styles.pos}>{current.partOfSpeech}</Text>
-            ) : null}
-            <Pressable onPress={() => speakEs(current.lemma)} hitSlop={8}>
-              <Text style={styles.speakIcon}>🔊</Text>
-            </Pressable>
-          </View>
+          {totalGraded > 0 ? (
+            <Text style={styles.distribution}>
+              忘了 {counts.Again} · 困难 {counts.Hard} · 良好 {counts.Good} · 简单 {counts.Easy}
+            </Text>
+          ) : null}
 
-          <Text style={styles.lemma}>{current.lemma}</Text>
-
-          {!flipped ? (
-            <Pressable
-              onPress={() => setFlipped(true)}
-              style={styles.revealButton}
-            >
-              <Text style={styles.revealText}>想不起来?查看释义</Text>
-            </Pressable>
-          ) : (
+          {offerReinforce ? (
             <>
-              <View style={styles.divider} />
-
-              {current.translation ? (
-                <Text style={styles.translation}>{current.translation}</Text>
-              ) : null}
-
-              {meanings.length > 0 ? (
-                meanings.slice(0, 3).map((m, i) => (
-                  <Text key={i} style={styles.meaningLine}>
-                    {i + 1}. {m}
-                  </Text>
-                ))
-              ) : null}
-
-              {/* 例句:记忆真正挂钩的地方,之前存了 dictData.examples 但没渲染 */}
-              {examples.length > 0 ? (
-                <View style={styles.examples}>
-                  {examples.slice(0, 2).map((ex, i) => (
-                    <View key={i} style={styles.exampleBox}>
-                      <Text style={styles.exampleEs}>{ex.es}</Text>
-                      {ex.zh ? <Text style={styles.exampleZh}>{ex.zh}</Text> : null}
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-
-              <Text style={styles.repsHint}>
-                {(current.srsReps ?? 0) > 0
-                  ? `已复习 ${current.srsReps} 次`
-                  : "第一次见到这个词"}
-              </Text>
-
-              {reinforcing ? (
-                /* 补练轮:只有一个按钮,不调 FSRS —— 重看的目的是巩固,不是制造复习记录 */
-                <Pressable onPress={advanceReinforce} style={styles.reinforceButton}>
-                  <Text style={styles.ratingText}>
-                    {index + 1 >= queue.length ? "记住了,收工" : "记住了,下一个"}
-                  </Text>
+              <Pressable onPress={startReinforce} style={styles.retry}>
+                <Text style={styles.retryText}>再过一遍忘词 ({forgottenCount})</Text>
+              </Pressable>
+              {remaining > 0 ? (
+                <Pressable
+                  onPress={() => setReinforceDone(true)}
+                  style={styles.skipButton}
+                >
+                  <Text style={styles.skipText}>跳过,继续复习</Text>
                 </Pressable>
-              ) : (
-                /* 四档评分:FSRS 调度下次复习时间 */
-                <View style={styles.ratingRow}>
-                  {RATING_BUTTONS.map((btn) => (
-                    <Pressable
-                      disabled={Boolean(grading)}
-                      key={btn.rating}
-                      onPress={() => void handleGrade(btn.rating)}
-                      style={[
-                        styles.ratingButton,
-                        { backgroundColor: btn.color },
-                        grading === btn.rating && styles.ratingButtonActive
-                      ]}
-                    >
-                      <Text style={styles.ratingText}>{btn.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-
-              {error ? <Text style={styles.gradeError}>{error}</Text> : null}
+              ) : null}
             </>
+          ) : autoLoading ? (
+            <ActivityIndicator color={colors.brand500} style={styles.autoSpin} />
+          ) : (
+            <Pressable onPress={() => void load()} style={styles.retry}>
+              <Text style={styles.retryText}>{totalGraded > 0 ? "再取一批" : "刷新队列"}</Text>
+            </Pressable>
+          )}
+
+          {/* 任务流联动：复习完成后自然引导去口语练习造句 */}
+          <Pressable
+            onPress={() => router.push("/talk" as never)}
+            style={({ pressed }) => [styles.bridgeCard, pressed && { opacity: 0.8 }]}
+          >
+            <View style={styles.bridgeIconBox}>
+              <AppIcon color={colors.indigo600} name="mic" size={16} />
+            </View>
+            <View style={styles.bridgeText}>
+              <Text style={styles.bridgeTitle}>去口语里用一用</Text>
+              <Text style={styles.bridgeDesc}>和 AI 对话把刚记住的词说出来</Text>
+            </View>
+            <AppIcon color={colors.textTertiary} name="chevron" size={14} />
+          </Pressable>
+        </View>
+      );
+    }
+
+    const meanings = current.dictData?.meanings ?? [];
+    const examples = current.dictData?.examples ?? [];
+
+    return (
+      <>
+        <View style={styles.topBar}>
+          <Text style={styles.progressText}>
+            {index + 1} / {queue.length}
+          </Text>
+          {reinforcing ? (
+            <Text style={styles.feedback}>补练 {forgottenRef.current.length} 个忘词 · 不计分</Text>
+          ) : lastFeedback ? (
+            <Text style={styles.feedback}>{lastFeedback}</Text>
+          ) : (
+            <Text style={styles.dueText}>今日待复习 {totalDue}</Text>
           )}
         </View>
 
-        <Text style={styles.hint}>
-          {reinforcing
-            ? "补练只重看一遍,不影响复习计划"
-            : flipped
-              ? "凭诚实评分:想不起来就点「忘了」,间隔会自动缩短"
-              : "先自己想意思,再翻面"}
-        </Text>
-      </ScrollView>
+        <ScrollView
+          contentContainerStyle={styles.body}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.card}>
+            <View style={styles.cardHead}>
+              {current.partOfSpeech ? (
+                <Text style={styles.pos}>{current.partOfSpeech}</Text>
+              ) : <View />}
+              <Pressable onPress={() => speakEs(current.lemma)} hitSlop={8}>
+                <AppIcon color={colors.brand600} name="speak" size={20} />
+              </Pressable>
+            </View>
 
-      <Pressable
-        onPress={() => load(true)}
-        style={styles.refreshLink}
-      >
-        <Text style={styles.refreshText}>↻ 重新取队列</Text>
-      </Pressable>
-      {refreshing ? <ActivityIndicator style={styles.refreshSpin} color={colors.brand500} /> : null}
+            <Text style={styles.lemma}>{current.lemma}</Text>
+
+            {!flipped ? (
+              <Pressable
+                onPress={() => setFlipped(true)}
+                style={styles.revealButton}
+              >
+                <Text style={styles.revealText}>想不起来？查看释义</Text>
+              </Pressable>
+            ) : (
+              <>
+                <View style={styles.divider} />
+
+                {current.translation ? (
+                  <Text style={styles.translation}>{current.translation}</Text>
+                ) : null}
+
+                {meanings.length > 0 ? (
+                  meanings.slice(0, 3).map((m, i) => (
+                    <Text key={i} style={styles.meaningLine}>
+                      {i + 1}. {m}
+                    </Text>
+                  ))
+                ) : null}
+
+                {examples.length > 0 ? (
+                  <View style={styles.examples}>
+                    {examples.slice(0, 2).map((ex, i) => (
+                      <View key={i} style={styles.exampleBox}>
+                        <Text style={styles.exampleEs}>{ex.es}</Text>
+                        {ex.zh ? <Text style={styles.exampleZh}>{ex.zh}</Text> : null}
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+
+                <Text style={styles.repsHint}>
+                  {(current.srsReps ?? 0) > 0
+                    ? `已复习 ${current.srsReps} 次`
+                    : "第一次见到这个词"}
+                </Text>
+
+                {reinforcing ? (
+                  <Pressable onPress={advanceReinforce} style={styles.reinforceButton}>
+                    <Text style={styles.ratingText}>
+                      {index + 1 >= queue.length ? "记住了,收工" : "记住了,下一个"}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.ratingRow}>
+                    {RATING_BUTTONS.map((btn) => (
+                      <Pressable
+                        disabled={Boolean(grading)}
+                        key={btn.rating}
+                        onPress={() => void handleGrade(btn.rating)}
+                        style={[
+                          styles.ratingButton,
+                          { backgroundColor: btn.color },
+                          grading === btn.rating && styles.ratingButtonActive
+                        ]}
+                      >
+                        <Text style={styles.ratingText}>{btn.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+
+                {error ? <Text style={styles.gradeError}>{error}</Text> : null}
+              </>
+            )}
+          </View>
+
+          <Text style={styles.hint}>
+            {reinforcing
+              ? "补练只重看一遍，不影响复习计划"
+              : flipped
+                ? "凭诚实评分：想不起来就点「忘了」，间隔会自动缩短"
+                : "先自己想意思，再翻面"}
+          </Text>
+        </ScrollView>
+
+        <Pressable onPress={() => void load(true)} style={styles.refreshLink}>
+          <Text style={styles.refreshText}>↻ 重新取队列</Text>
+        </Pressable>
+        {refreshing ? <ActivityIndicator style={styles.refreshSpin} color={colors.brand500} /> : null}
+      </>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safe} edges={["top"]}>
+      <View style={styles.tabHeader}>
+        <Text style={styles.eyebrow}>Repaso</Text>
+        <Text style={styles.pageTitle}>复习与词库</Text>
+        <View style={styles.segWrap}>
+          <SegmentedControl
+            onChange={setSubTab}
+            options={[
+              { key: "queue", label: "今日复习", badge: totalDue > 0 ? totalDue : undefined },
+              { key: "vocab", label: "我的词库" },
+              { key: "phrases", label: "短语搭配" }
+            ]}
+            value={subTab}
+          />
+        </View>
+      </View>
+
+      {subTab === "vocab" ? (
+        <VocabListPanel />
+      ) : subTab === "phrases" ? (
+        <PhrasesListPanel />
+      ) : (
+        renderQueueBody()
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bgSubtle },
+  tabHeader: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    backgroundColor: colors.bgSubtle
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.6,
+    textTransform: "uppercase",
+    color: colors.brand600
+  },
+  pageTitle: {
+    marginTop: 4,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+    color: colors.text
+  },
+  segWrap: { marginTop: spacing.md },
   center: {
     flex: 1,
     alignItems: "center",
@@ -446,11 +496,34 @@ const styles = StyleSheet.create({
   retryText: { fontSize: 14, fontWeight: "700", color: "#fff" },
   doneEmoji: { fontSize: 44 },
   doneTitle: { fontSize: 18, fontWeight: "700", color: colors.text },
-  doneText: { fontSize: 13.5, color: colors.textSecondary, textAlign: "center" },
+  doneText: { fontSize: 13.5, color: colors.textSecondary, textAlign: "center", lineHeight: 20 },
   distribution: { fontSize: 12.5, color: colors.textTertiary },
   skipButton: { marginTop: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   skipText: { fontSize: 13, color: colors.textTertiary },
   autoSpin: { marginTop: spacing.md },
+  bridgeCard: {
+    marginTop: spacing.lg,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.bg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md + 2
+  },
+  bridgeIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: colors.indigo50,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  bridgeText: { flex: 1, gap: 2 },
+  bridgeTitle: { fontSize: 14, fontWeight: "700", color: colors.text },
+  bridgeDesc: { fontSize: 11.5, color: colors.textSecondary },
   reinforceButton: {
     marginTop: spacing.xl,
     height: 44,
@@ -464,7 +537,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md
+    paddingTop: spacing.sm
   },
   progressText: {
     fontSize: 13,
@@ -473,7 +546,7 @@ const styles = StyleSheet.create({
   },
   dueText: { fontSize: 12, color: colors.textTertiary },
   body: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl
@@ -500,7 +573,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     overflow: "hidden"
   },
-  speakIcon: { fontSize: 20 },
   lemma: {
     marginTop: spacing.md,
     fontSize: 32,

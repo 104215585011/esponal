@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 02:56
+// Timestamp: 2026-11-15 07:05
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,9 +16,15 @@ import { useAuth } from "@/auth/AuthProvider";
 import { fetchCredits } from "@/api/account";
 import { API_BASE } from "@/api/client";
 import { checkForUpdate, currentVersion, type AppVersionInfo } from "@/api/appVersion";
+import { AppIcon } from "@/components/AppIcon";
 import { UpdateDialog } from "@/components/UpdateDialog";
 import { colors, radius, spacing } from "@/theme";
 
+/**
+ * 我的（瘦身后的纯个人中心）：
+ * 学习功能已按职责归入「首页快捷工具 / 阅读(书架) / 复习(词库·搭配)」，
+ * 这里只保留账号资产、离线下载与设备偏好设置。
+ */
 export default function MeScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
@@ -26,7 +32,6 @@ export default function MeScreen() {
   const [update, setUpdate] = useState<{ current: string; info: AppVersionInfo } | null>(
     null
   );
-  /** 积分余额:口语每轮扣费,这里给个可见数字 */
   const [credits, setCredits] = useState<string | null>(null);
 
   const loadCredits = useCallback(async () => {
@@ -69,10 +74,11 @@ export default function MeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.eyebrow}>Cuenta</Text>
         <Text style={styles.title}>我的</Text>
 
+        {/* 账号卡片 */}
         <View style={styles.card}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
@@ -81,113 +87,81 @@ export default function MeScreen() {
           </View>
           <View style={styles.userText}>
             <Text style={styles.userName}>{user?.name ?? user?.email ?? "已登录"}</Text>
-            <Text style={styles.userPlan}>套餐:{user?.plan ?? "free"}</Text>
+            <View style={styles.planBadge}>
+              <Text style={styles.planBadgeText}>{user?.plan ?? "free"}</Text>
+            </View>
           </View>
         </View>
 
+        {/* 资产与离线内容 */}
+        <Text style={styles.groupTitle}>资产与离线</Text>
         <View style={styles.metaList}>
-          <Pressable
-            // typedRoutes 类型要等 expo start/prebuild 生成,这里先绕过(与 watch.tsx 同款做法)
-            onPress={() => router.push("/vocab" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>我的词库</Text>
-            <Text style={styles.metaAction}>查看</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/talk" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>口语练习</Text>
-            <Text style={styles.metaAction}>开始</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/listening" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>听力精听</Text>
-            <Text style={styles.metaAction}>继续</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/phrases" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>短语与搭配</Text>
-            <Text style={styles.metaAction}>查看</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/grammar" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>语法知识库</Text>
-            <Text style={styles.metaAction}>查看</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/phonics" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>字母发音</Text>
-            <Text style={styles.metaAction}>入门</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/imports" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>我的导入库</Text>
-            <Text style={styles.metaAction}>查看</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/downloads" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>我的下载</Text>
-            <Text style={styles.metaAction}>查看</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push("/settings" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
-          >
-            <Text style={styles.metaLabel}>设置</Text>
-            <Text style={styles.metaAction}>发音 / 缓存</Text>
-          </Pressable>
-
           <Pressable
             onPress={() => router.push("/credits" as never)}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >
-            <Text style={styles.metaLabel}>积分余额</Text>
-            <Text style={styles.metaAction}>{credits ?? "查看明细"}</Text>
+            <View style={styles.rowLeft}>
+              <AppIcon color={colors.amber700} name="credits" size={16} />
+              <Text style={styles.metaLabel}>积分余额</Text>
+            </View>
+            <View style={styles.rowRight}>
+              <Text style={styles.metaAction}>{credits ?? "查看明细"}</Text>
+              <AppIcon color={colors.textTertiary} name="chevron" size={14} />
+            </View>
           </Pressable>
 
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>版本</Text>
-            <Text style={styles.metaValue}>v{currentVersion()}</Text>
-          </View>
+          <Pressable
+            onPress={() => router.push("/downloads" as never)}
+            style={({ pressed }) => [
+              styles.metaRow,
+              styles.metaRowLast,
+              pressed && styles.metaRowPressed
+            ]}
+          >
+            <View style={styles.rowLeft}>
+              <AppIcon color={colors.brand600} name="download" size={16} />
+              <Text style={styles.metaLabel}>我的下载</Text>
+            </View>
+            <View style={styles.rowRight}>
+              <Text style={styles.metaAction}>离线讲义</Text>
+              <AppIcon color={colors.textTertiary} name="chevron" size={14} />
+            </View>
+          </Pressable>
+        </View>
+
+        {/* 偏好与应用 */}
+        <Text style={styles.groupTitle}>设置与版本</Text>
+        <View style={styles.metaList}>
+          <Pressable
+            onPress={() => router.push("/settings" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <View style={styles.rowLeft}>
+              <AppIcon color={colors.textSecondary} name="settings" size={16} />
+              <Text style={styles.metaLabel}>发音与缓存设置</Text>
+            </View>
+            <AppIcon color={colors.textTertiary} name="chevron" size={14} />
+          </Pressable>
 
           <Pressable
             disabled={checking}
             onPress={handleCheckUpdate}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >
-            <Text style={styles.metaLabel}>检查更新</Text>
+            <View style={styles.rowLeft}>
+              <AppIcon color={colors.brand600} name="update" size={16} />
+              <Text style={styles.metaLabel}>检查更新</Text>
+            </View>
             {checking ? (
               <ActivityIndicator color={colors.brand500} size="small" />
             ) : (
-              <Text style={styles.metaAction}>检查</Text>
+              <Text style={styles.metaValue}>v{currentVersion()}</Text>
             )}
           </Pressable>
 
           <View style={[styles.metaRow, styles.metaRowLast]}>
-            <Text style={styles.metaLabel}>API</Text>
-            <Text style={styles.metaValue} numberOfLines={1}>
+            <Text style={styles.metaLabel}>API 服务</Text>
+            <Text numberOfLines={1} style={styles.metaValue}>
               {API_BASE}
             </Text>
           </View>
@@ -213,7 +187,7 @@ export default function MeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bgSubtle },
-  scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.xxl },
+  scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl },
   eyebrow: {
     fontSize: 11,
     fontWeight: "700",
@@ -222,14 +196,14 @@ const styles = StyleSheet.create({
     color: colors.brand600
   },
   title: {
-    marginTop: 6,
-    fontSize: 28,
+    marginTop: 4,
+    fontSize: 26,
     fontWeight: "800",
     letterSpacing: -0.6,
     color: colors.text
   },
   card: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.lg,
@@ -240,19 +214,32 @@ const styles = StyleSheet.create({
     padding: spacing.lg
   },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.brand50,
     alignItems: "center",
     justifyContent: "center"
   },
-  avatarText: { fontSize: 18, fontWeight: "800", color: colors.brand700 },
-  userText: { flex: 1, gap: 3 },
-  userName: { fontSize: 15, fontWeight: "700", color: colors.text },
-  userPlan: { fontSize: 12, color: colors.textSecondary },
+  avatarText: { fontSize: 19, fontWeight: "800", color: colors.brand700 },
+  userText: { flex: 1, gap: 4, alignItems: "flex-start" },
+  userName: { fontSize: 16, fontWeight: "700", color: colors.text },
+  planBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted
+  },
+  planBadgeText: { fontSize: 11, fontWeight: "600", color: colors.textSecondary },
+  groupTitle: {
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.textTertiary,
+    letterSpacing: 0.4
+  },
   metaList: {
-    marginTop: spacing.lg,
     backgroundColor: colors.bg,
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -264,16 +251,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.lg,
+    paddingVertical: spacing.md + 1,
+    gap: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.borderSubtle
   },
-  metaLabel: { fontSize: 12.5, color: colors.textSecondary },
-  metaValue: { flex: 1, textAlign: "right", fontSize: 12.5, color: colors.text },
+  rowLeft: { flexDirection: "row", alignItems: "center", gap: spacing.sm + 2 },
+  rowRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+  metaLabel: { fontSize: 14, fontWeight: "600", color: colors.text },
+  metaValue: { flex: 1, textAlign: "right", fontSize: 12.5, color: colors.textTertiary },
   metaRowPressed: { backgroundColor: colors.surfaceMuted },
   metaRowLast: { borderBottomWidth: 0 },
-  metaAction: { fontSize: 12.5, fontWeight: "700", color: colors.brand600 },
+  metaAction: { fontSize: 13, fontWeight: "700", color: colors.brand600 },
   signOut: {
     marginTop: spacing.xl,
     height: 50,

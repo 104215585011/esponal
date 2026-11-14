@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 
 import { curatedChannels, fetchChannelVideos, formatDuration, type VideoItem } from "@/api/watch";
+import { AppIcon } from "@/components/AppIcon";
 import {
   formatPosition,
   getAllWatchProgress,
@@ -164,12 +165,12 @@ export default function WatchScreen() {
           精选西语频道,配逐句字幕。点视频进入播放页,点单词直接查词。
         </Text>
 
-        {/* 搜索入口:精选频道只有三个,想找别的内容用这里 */}
+        {/* 搜索入口 */}
         <Pressable
           onPress={() => router.push("/search" as never)}
           style={({ pressed }) => [styles.searchBar, pressed && styles.cardPressed]}
         >
-          <Text style={styles.searchIcon}>🔍</Text>
+          <AppIcon color={colors.textTertiary} name="search" size={16} />
           <Text style={styles.searchPlaceholder}>搜任意西语视频…</Text>
         </Pressable>
 
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bgSubtle },
   scroll: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxl
   },
   eyebrow: {
@@ -378,29 +379,30 @@ const styles = StyleSheet.create({
     color: colors.brand600
   },
   title: {
-    marginTop: 6,
-    fontSize: 28,
+    marginTop: 4,
+    fontSize: 26,
     fontWeight: "800",
     letterSpacing: -0.6,
     color: colors.text
   },
   subtitle: {
-    marginTop: spacing.sm,
+    marginTop: spacing.xs + 2,
     fontSize: 13,
-    lineHeight: 21,
+    lineHeight: 20,
     color: colors.textSecondary
   },
   searchBar: {
-    marginTop: spacing.lg,
+    marginTop: spacing.md + 2,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     height: 42,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
     paddingHorizontal: 14
   },
-  searchIcon: { fontSize: 12.5 },
   searchPlaceholder: { fontSize: 13, color: colors.textTertiary },
   linkRow: {
     marginTop: spacing.sm,

@@ -11,6 +11,13 @@ export const colors = {
   brand600: "#059669",
   brand700: "#047857",
 
+  indigo50: "#EEF2FF",
+  indigo600: "#4F46E5",
+  amber50: "#FFFBEB",
+  amber700: "#B45309",
+  sky50: "#F0F9FF",
+  sky600: "#0284C7",
+
   bg: "#FFFFFF",
   bgSubtle: "#FAF9F6",
   surface: "#FFFFFF",

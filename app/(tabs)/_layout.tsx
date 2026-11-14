@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-13 17:35
+// Timestamp: 2026-11-15 07:05
 import { SymbolView } from "expo-symbols";
 import { Tabs } from "expo-router";
 
@@ -12,6 +12,10 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.brand600,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
+          height: 62,
+          paddingTop: 6,
+          paddingBottom: 8,
+          borderTopWidth: 1,
           borderTopColor: colors.borderSubtle,
           backgroundColor: colors.bg
         },
@@ -29,7 +33,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: "house.fill", android: "home", web: "home" }}
               tintColor={color}
-              size={24}
+              size={22}
             />
           )
         }}
@@ -42,7 +46,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: "play.rectangle.fill", android: "play_circle", web: "play_circle" }}
               tintColor={color}
-              size={24}
+              size={22}
             />
           )
         }}
@@ -55,7 +59,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: "book.fill", android: "menu_book", web: "menu_book" }}
               tintColor={color}
-              size={24}
+              size={22}
             />
           )
         }}
@@ -68,7 +72,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: "arrow.clockwise", android: "refresh", web: "refresh" }}
               tintColor={color}
-              size={24}
+              size={22}
             />
           )
         }}
@@ -81,7 +85,7 @@ export default function TabLayout() {
             <SymbolView
               name={{ ios: "person.fill", android: "person", web: "person" }}
               tintColor={color}
-              size={24}
+              size={22}
             />
           )
         }}
