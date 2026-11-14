@@ -1,5 +1,5 @@
 // Timestamp: 2026-11-14 14:48
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -60,14 +60,10 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  // 从复习/播放页返回时自动刷新,避免数字过期
+  // useFocusEffect 在首次挂载和每次回到本页时都会触发,不用另加 useEffect(会重复请求)
   useFocusEffect(
     useCallback(() => {
-      void load(true);
+      void load();
     }, [load])
   );
 
