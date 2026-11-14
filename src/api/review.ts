@@ -30,8 +30,10 @@ export type GradeResult = {
   state: string;
 };
 
-export async function fetchReviewQueue() {
-  return apiFetch<ReviewQueue>("/api/vocab/review");
+/** 批大小可选(默认 20,服务端上限 50);自动续批时用同一默认,保持节奏稳定 */
+export async function fetchReviewQueue(limit?: number) {
+  const query = limit && limit > 0 ? `?limit=${Math.floor(limit)}` : "";
+  return apiFetch<ReviewQueue>(`/api/vocab/review${query}`);
 }
 
 /** 四档评分,服务端 FSRS 调度,返回下次复习时间 */

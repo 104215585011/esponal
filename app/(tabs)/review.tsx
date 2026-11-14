@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-14 12:35
-import { useCallback, useEffect, useState } from "react";
+// Timestamp: 2026-11-15 01:40
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -40,6 +40,8 @@ function speakEs(text: string) {
 /**
  * 复习 tab:卡片式刷词。
  * 正面:单词 + 发音 → 翻面看释义 → 四档评分(FSRS 调度) → 下一张。
+ * 批末:评分分布小结;点过「忘了」的词可以补练一轮(只重看,不推进 FSRS);
+ *       今日还有剩余时自动续批,不用手动点「再取一批」。
  */
 export default function ReviewScreen() {
   const [queue, setQueue] = useState<DueWord[]>([]);
@@ -50,11 +52,28 @@ export default function ReviewScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [doneCount, setDoneCount] = useState(0);
   /** 评分后轻提示:"下次 3 天后"(FSRS 的真实反馈,比单纯跳下一张有获得感) */
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
   /** 设置页的「复习时自动发音」,开了就每换一张卡自动念单词 */
   const prefs = usePreferences();
+
+  /** 补练轮进行中:重看忘词、只按「记住了」,不调评分接口(纯巩固,不造假数据) */
+  const [reinforcing, setReinforcing] = useState(false);
+  /** 补练完成后置 true:小结页不再重复推荐补练 */
+  const [reinforceDone, setReinforceDone] = useState(false);
+  /** 本轮评分分布(跨批累计,小结时展示) */
+  const [counts, setCounts] = useState<Record<ReviewRating, number>>({
+    Again: 0,
+    Hard: 0,
+    Good: 0,
+    Easy: 0
+  });
+  const doneTotalRef = useRef(0);
+  /** 本会话点过「忘了」的词(批末小结给「再过一遍」用;ref 即可,小结时机必然伴随渲染) */
+  const forgottenRef = useRef<DueWord[]>([]);
+  /** 自动续批进行中的标记(避免 effect 重复触发) */
+  const [autoLoading, setAutoLoading] = useState(false);
+  const [autoNote, setAutoNote] = useState<string | null>(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -67,7 +86,14 @@ export default function ReviewScreen() {
       setTotalDue(res.totalDue ?? 0);
       setIndex(0);
       setFlipped(false);
-      setDoneCount(0);
+      if (!isRefresh) {
+        // 全量重取 = 开新的一轮:计数、忘词、补练标记全部归零
+        setCounts({ Again: 0, Hard: 0, Good: 0, Easy: 0 });
+        setReinforcing(false);
+        setReinforceDone(false);
+        doneTotalRef.current = 0;
+        forgottenRef.current = [];
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -96,7 +122,14 @@ export default function ReviewScreen() {
       setGrading(rating);
       try {
         const result = await gradeReviewWord(word.id, rating);
-        setDoneCount((n) => n + 1);
+        doneTotalRef.current += 1;
+        setCounts((c) => ({ ...c, [rating]: c[rating] + 1 }));
+
+        // 点「忘了」的词进补练名单:批末重看一遍,不推进 FSRS(纯巩固,不造假数据)
+        if (rating === "Again") {
+          const list = forgottenRef.current;
+          if (!list.some((item) => item.id === word.id)) list.push(word);
+        }
 
         // 把 ISO 时间翻译成人话,给学习者一个明确的间隔感
         const days = Math.max(
@@ -118,6 +151,75 @@ export default function ReviewScreen() {
     },
     [queue, index, grading]
   );
+
+  /** 批末取下一批;服务端没货(返回 0 张)就停,避免无限循环 */
+  const continueNextBatch = useCallback(async () => {
+    if (autoLoading) return;
+    setAutoLoading(true);
+    try {
+      const res = await fetchReviewQueue();
+      const next = res.dueWords ?? [];
+      setTotalDue(res.totalDue ?? 0);
+      if (next.length === 0) return;
+
+      setQueue(next);
+      setIndex(0);
+      setFlipped(false);
+      setAutoNote(`已自动续一批 ${next.length} 张`);
+      setTimeout(() => setAutoNote(null), 2500);
+    } catch {
+      // 拉不到就停在小结页,用户可手动点「再取一批」
+    } finally {
+      setAutoLoading(false);
+    }
+  }, [autoLoading]);
+
+  /**
+   * 自动续批:刷完一批且今日还有剩余时触发。
+   * 有忘词且还没补练时先不自动续,把「再过一遍忘词」的选择留给用户。
+   */
+  useEffect(() => {
+    if (loading || autoLoading) return;
+    if (queue.length > 0 && index < queue.length) return;
+    if (reinforcing) return;
+    if (forgottenRef.current.length > 0 && !reinforceDone) return;
+    if (totalDue - doneTotalRef.current <= 0) return;
+    void continueNextBatch();
+  }, [
+    queue,
+    index,
+    reinforcing,
+    reinforceDone,
+    loading,
+    autoLoading,
+    totalDue,
+    continueNextBatch
+  ]);
+
+  /** 开始补练:把忘词塞回队列顶部重看(不计分) */
+  const startReinforce = useCallback(() => {
+    const list = forgottenRef.current;
+    if (list.length === 0) return;
+    setQueue([...list]);
+    setIndex(0);
+    setFlipped(false);
+    setReinforcing(true);
+  }, []);
+
+  /** 补练中的「记住了」:只前进,不调接口 */
+  const advanceReinforce = useCallback(() => {
+    if (index + 1 >= queue.length) {
+      // 补练结束:清空队列回到小结页
+      setQueue([]);
+      setIndex(0);
+      setFlipped(false);
+      setReinforcing(false);
+      setReinforceDone(true);
+      return;
+    }
+    setFlipped(false);
+    setIndex((i) => i + 1);
+  }, [index, queue.length]);
 
   if (loading) {
     return (
@@ -142,18 +244,52 @@ export default function ReviewScreen() {
 
   const current = queue[index];
 
-  /** 刷完了:小结 + 剩余数量 */
+  /** 刷完了:评分分布小结 + 忘词补练 + 自动续批 */
   if (!current) {
+    const remaining = Math.max(0, totalDue - doneTotalRef.current);
+    const forgottenCount = forgottenRef.current.length;
+    const offerReinforce = !reinforcing && forgottenCount > 0 && !reinforceDone;
+    const reinforceJustFinished = !reinforcing && reinforceDone && forgottenCount > 0;
+    const totalGraded = counts.Again + counts.Hard + counts.Good + counts.Easy;
+
     return (
       <SafeAreaView style={styles.center} edges={["top"]}>
-        <Text style={styles.doneEmoji}>🎉</Text>
-        <Text style={styles.doneTitle}>这批复习完了</Text>
-        <Text style={styles.doneText}>
-          刚才复习了 {doneCount} 张{totalDue > 0 ? `,今日还剩 ${Math.max(0, totalDue - doneCount)} 张` : ""}
+        <Text style={styles.doneEmoji}>{reinforceJustFinished ? "💪" : "🎉"}</Text>
+        <Text style={styles.doneTitle}>
+          {reinforceJustFinished ? "补练完了" : "这批复习完了"}
         </Text>
-        <Pressable onPress={() => load()} style={styles.retry}>
-          <Text style={styles.retryText}>再取一批</Text>
-        </Pressable>
+        <Text style={styles.doneText}>
+          刚才复习了 {totalGraded} 张{remaining > 0 ? `,今日还剩 ${remaining} 张` : ""}
+        </Text>
+
+        {/* 评分分布:一眼看出这轮的质量 */}
+        {totalGraded > 0 ? (
+          <Text style={styles.distribution}>
+            忘了 {counts.Again} · 困难 {counts.Hard} · 良好 {counts.Good} · 简单 {counts.Easy}
+          </Text>
+        ) : null}
+
+        {offerReinforce ? (
+          <>
+            <Pressable onPress={startReinforce} style={styles.retry}>
+              <Text style={styles.retryText}>再过一遍忘词({forgottenCount})</Text>
+            </Pressable>
+            {remaining > 0 ? (
+              <Pressable
+                onPress={() => setReinforceDone(true)}
+                style={styles.skipButton}
+              >
+                <Text style={styles.skipText}>跳过,继续复习</Text>
+              </Pressable>
+            ) : null}
+          </>
+        ) : autoLoading ? (
+          <ActivityIndicator color={colors.brand500} style={styles.autoSpin} />
+        ) : (
+          <Pressable onPress={() => load()} style={styles.retry}>
+            <Text style={styles.retryText}>再取一批</Text>
+          </Pressable>
+        )}
       </SafeAreaView>
     );
   }
@@ -168,7 +304,9 @@ export default function ReviewScreen() {
         <Text style={styles.progressText}>
           {index + 1} / {queue.length}
         </Text>
-        {lastFeedback ? (
+        {reinforcing ? (
+          <Text style={styles.feedback}>补练 {forgottenRef.current.length} 个忘词 · 不计分</Text>
+        ) : lastFeedback ? (
           <Text style={styles.feedback}>{lastFeedback}</Text>
         ) : (
           <Text style={styles.dueText}>今日待复习 {totalDue}</Text>
@@ -233,23 +371,32 @@ export default function ReviewScreen() {
                   : "第一次见到这个词"}
               </Text>
 
-              {/* 四档评分:FSRS 调度下次复习时间 */}
-              <View style={styles.ratingRow}>
-                {RATING_BUTTONS.map((btn) => (
-                  <Pressable
-                    disabled={Boolean(grading)}
-                    key={btn.rating}
-                    onPress={() => void handleGrade(btn.rating)}
-                    style={[
-                      styles.ratingButton,
-                      { backgroundColor: btn.color },
-                      grading === btn.rating && styles.ratingButtonActive
-                    ]}
-                  >
-                    <Text style={styles.ratingText}>{btn.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
+              {reinforcing ? (
+                /* 补练轮:只有一个按钮,不调 FSRS —— 重看的目的是巩固,不是制造复习记录 */
+                <Pressable onPress={advanceReinforce} style={styles.reinforceButton}>
+                  <Text style={styles.ratingText}>
+                    {index + 1 >= queue.length ? "记住了,收工" : "记住了,下一个"}
+                  </Text>
+                </Pressable>
+              ) : (
+                /* 四档评分:FSRS 调度下次复习时间 */
+                <View style={styles.ratingRow}>
+                  {RATING_BUTTONS.map((btn) => (
+                    <Pressable
+                      disabled={Boolean(grading)}
+                      key={btn.rating}
+                      onPress={() => void handleGrade(btn.rating)}
+                      style={[
+                        styles.ratingButton,
+                        { backgroundColor: btn.color },
+                        grading === btn.rating && styles.ratingButtonActive
+                      ]}
+                    >
+                      <Text style={styles.ratingText}>{btn.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
 
               {error ? <Text style={styles.gradeError}>{error}</Text> : null}
             </>
@@ -257,9 +404,11 @@ export default function ReviewScreen() {
         </View>
 
         <Text style={styles.hint}>
-          {flipped
-            ? "凭诚实评分:想不起来就点「忘了」,间隔会自动缩短"
-            : "先自己想意思,再翻面"}
+          {reinforcing
+            ? "补练只重看一遍,不影响复习计划"
+            : flipped
+              ? "凭诚实评分:想不起来就点「忘了」,间隔会自动缩短"
+              : "先自己想意思,再翻面"}
         </Text>
       </ScrollView>
 
@@ -298,6 +447,18 @@ const styles = StyleSheet.create({
   doneEmoji: { fontSize: 44 },
   doneTitle: { fontSize: 18, fontWeight: "700", color: colors.text },
   doneText: { fontSize: 13.5, color: colors.textSecondary, textAlign: "center" },
+  distribution: { fontSize: 12.5, color: colors.textTertiary },
+  skipButton: { marginTop: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  skipText: { fontSize: 13, color: colors.textTertiary },
+  autoSpin: { marginTop: spacing.md },
+  reinforceButton: {
+    marginTop: spacing.xl,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand600,
+    alignItems: "center",
+    justifyContent: "center"
+  },
   topBar: {
     flexDirection: "row",
     alignItems: "center",
