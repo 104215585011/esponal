@@ -50,6 +50,8 @@ export default function WatchPlayerScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [follow, setFollow] = useState(true);
+  /** 单句循环:当前字幕句播完自动跳回句首(学语言刚需) */
+  const [loop, setLoop] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
   const [playerError, setPlayerError] = useState<string | null>(null);
@@ -98,7 +100,7 @@ export default function WatchPlayerScreen() {
     };
   }, [videoId]);
 
-  // 轮询播放进度:驱动当前句高亮 + 进度条
+  // 轮询播放进度:驱动当前句高亮 + 进度条 + 单句循环
   useEffect(() => {
     const timer = setInterval(async () => {
       // 用户正在拖进度条时不要被轮询覆盖
@@ -108,6 +110,24 @@ export default function WatchPlayerScreen() {
         const t = await playerRef.current?.getCurrentTime();
         if (typeof t === "number" && Number.isFinite(t)) {
           setCurrentTime(t);
+
+          // 单句循环:播完当前字幕句就跳回句首
+          if (loop && cues.length > 0) {
+            let idx = -1;
+            for (let i = cues.length - 1; i >= 0; i -= 1) {
+              if (t + 0.15 >= cues[i].start) {
+                idx = i;
+                break;
+              }
+            }
+            if (idx >= 0) {
+              const cue = cues[idx];
+              if (t >= cue.start + cue.dur - 0.05) {
+                playerRef.current?.seekTo(cue.start, true);
+                setCurrentTime(cue.start);
+              }
+            }
+          }
         }
       } catch {
         // 播放器未就绪时忽略
@@ -115,7 +135,7 @@ export default function WatchPlayerScreen() {
     }, 400);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [loop, cues]);
 
   // 时长探测:playerReady / 开始播放时都会触发。安卓上首次播放前 getDuration 返回 0,
   // 所以播放开始后还要再探一次。
@@ -455,6 +475,15 @@ export default function WatchPlayerScreen() {
           >
             <Text style={[styles.followChipText, follow && styles.followChipTextOn]}>
               跟随
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setLoop((prev) => !prev)}
+            style={[styles.followChip, loop && styles.followChipOn]}
+          >
+            <Text style={[styles.followChipText, loop && styles.followChipTextOn]}>
+              循环
             </Text>
           </Pressable>
         </View>

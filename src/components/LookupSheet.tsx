@@ -9,6 +9,7 @@ import {
   Text,
   View
 } from "react-native";
+import * as Speech from "expo-speech";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { lookupWord, saveWord, translateText, type LookupResult } from "@/api/watch";
@@ -176,6 +177,16 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
             <View style={styles.headRow}>
               <Text style={styles.lemma}>{data.lemma}</Text>
               {data.phonetic ? <Text style={styles.phonetic}>{data.phonetic}</Text> : null}
+              {/* 西语发音:设备端 TTS,不花额度 */}
+              <Pressable
+                hitSlop={10}
+                onPress={() =>
+                  Speech.speak(data.lemma, { language: "es-ES", rate: 0.85 })
+                }
+                style={styles.speakButton}
+              >
+                <Text style={styles.speakIcon}>🔊</Text>
+              </Pressable>
             </View>
 
             {data.partOfSpeech ? (
@@ -302,6 +313,16 @@ const styles = StyleSheet.create({
     color: colors.text
   },
   phonetic: { fontSize: 13, color: colors.textTertiary },
+  speakButton: {
+    marginLeft: "auto",
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.brand50,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  speakIcon: { fontSize: 16 },
   pos: {
     alignSelf: "flex-start",
     marginTop: 4,
