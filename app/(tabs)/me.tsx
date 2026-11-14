@@ -112,11 +112,27 @@ export default function MeScreen() {
           </Pressable>
 
           <Pressable
+            onPress={() => router.push("/grammar" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>语法知识库</Text>
+            <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
+          <Pressable
             onPress={() => router.push("/downloads" as never)}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >
             <Text style={styles.metaLabel}>我的下载</Text>
             <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push("/settings" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>设置</Text>
+            <Text style={styles.metaAction}>发音 / 缓存</Text>
           </Pressable>
 
           <Pressable

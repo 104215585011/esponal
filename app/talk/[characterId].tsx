@@ -26,10 +26,14 @@ import {
 } from "@/api/talk";
 import { ApiError } from "@/api/client";
 import { colors, radius, spacing } from "@/theme";
+import { speakSpanish } from "@/lib/speech";
 
-/** 各角色朗读语言(设备端 TTS,不花额度) */
-const SPEECH_LANG: Record<string, string> = {
-  carlos: "es-ES",
+/**
+ * 各角色朗读语言(设备端 TTS,不花额度)。
+ * 西语角色不再写死 es-ES,交给 speakSpanish 用设置里的口音;
+ * 这里只给非西语角色标注语言。
+ */
+const NON_SPANISH_LANG: Record<string, string> = {
   emma: "en-GB",
   jake: "en-US",
   sophie: "fr-FR",
@@ -56,7 +60,20 @@ export default function TalkChatScreen() {
   const [error, setError] = useState<string | null>(null);
   const [speakOn, setSpeakOn] = useState(true);
 
-  const lang = SPEECH_LANG[String(characterId)] ?? "es-ES";
+  const nonSpanishLang = NON_SPANISH_LANG[String(characterId)] ?? null;
+
+  /** 西语走设置里的口音,其它语言按角色固定 */
+  const speakLine = useCallback(
+    (text: string, rate = 0.9) => {
+      if (nonSpanishLang) {
+        Speech.stop();
+        Speech.speak(text, { language: nonSpanishLang, rate });
+        return;
+      }
+      speakSpanish(text, { rate });
+    },
+    [nonSpanishLang]
+  );
 
   // 角色信息 + 历史消息
   useEffect(() => {
@@ -131,8 +148,7 @@ export default function TalkChatScreen() {
       ]);
 
       if (speakOn && res.reply) {
-        Speech.stop();
-        Speech.speak(res.reply, { language: lang, rate: 0.9 });
+        speakLine(res.reply);
       }
     } catch (e) {
       setMessages((prev) =>
@@ -149,7 +165,7 @@ export default function TalkChatScreen() {
     } finally {
       setSending(false);
     }
-  }, [draft, sending, characterId, sessionId, speakOn, lang]);
+  }, [draft, sending, characterId, sessionId, speakOn, speakLine]);
 
   const handleRestart = useCallback(() => {
     Alert.alert("重新开始", "当前对话会被归档,下一句将开启新会话。", [
@@ -283,7 +299,7 @@ export default function TalkChatScreen() {
                         return (
                           <Pressable
                             key={index}
-                            onPress={() => Speech.speak(text, { language: lang, rate: 0.85 })}
+                            onPress={() => speakLine(text, 0.85)}
                             style={styles.wordChip}
                           >
                             <Text style={styles.wordChipText}>

@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 
 import { API_BASE } from "@/api/client";
+import { usePreferences } from "@/hooks/usePreferences";
+import { updatePreferences } from "@/lib/preferences";
 
 /**
  * 阅读器段落朗读。
@@ -22,9 +24,17 @@ function paragraphAudioUrl(slug: string, index: number) {
 export function useParagraphSpeech(slug: string | undefined, paragraphCount: number) {
   const player = useAudioPlayer();
   const status = useAudioPlayerStatus(player);
+  const prefs = usePreferences();
 
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
-  const [autoNext, setAutoNext] = useState(true);
+  /**
+   * 连续朗读开关由全局偏好驱动(设置页 → 连续朗读下一段)。
+   * 之前是 hook 内部的 useState(true),用户在设置里关掉也不生效。
+   */
+  const autoNext = prefs.autoNextParagraph;
+  const setAutoNext = useCallback((value: boolean) => {
+    void updatePreferences({ autoNextParagraph: value });
+  }, []);
 
   const playingIndexRef = useRef<number | null>(null);
   const autoNextRef = useRef(true);

@@ -9,11 +9,11 @@ import {
   Text,
   View
 } from "react-native";
-import * as Speech from "expo-speech";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { lookupWord, savePhrase, saveWord, translateText, type LookupResult } from "@/api/watch";
 import { colors, radius, spacing } from "@/theme";
+import { speakSpanish } from "@/lib/speech";
 
 type LookupSheetProps = {
   word: string | null;
@@ -212,9 +212,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
               {/* 西语发音:设备端 TTS,不花额度 */}
               <Pressable
                 hitSlop={10}
-                onPress={() =>
-                  Speech.speak(data.lemma, { language: "es-ES", rate: 0.85 })
-                }
+                onPress={() => speakSpanish(data.lemma)}
                 style={styles.speakButton}
               >
                 <Text style={styles.speakIcon}>🔊</Text>

@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import * as Speech from "expo-speech";
 
 import { fetchSavedPhrases, type SavedPhrase } from "@/api/vocabList";
 import { colors, radius, spacing } from "@/theme";
+import { speakSpanish } from "@/lib/speech";
 
 const KIND_LABEL: Record<string, string> = {
   collocation: "搭配",
@@ -126,7 +126,7 @@ export default function PhrasesScreen() {
                   <Text style={styles.lemma}>{item.lemma}</Text>
                   <Pressable
                     hitSlop={8}
-                    onPress={() => Speech.speak(item.lemma, { language: "es-ES", rate: 0.85 })}
+                    onPress={() => speakSpanish(item.lemma)}
                   >
                     <Text style={styles.speak}>🔊</Text>
                   </Pressable>

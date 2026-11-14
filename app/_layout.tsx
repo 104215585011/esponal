@@ -9,6 +9,7 @@ import "react-native-reanimated";
 import { AuthProvider, useAuth } from "@/auth/AuthProvider";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
 import { UpdateDialog } from "@/components/UpdateDialog";
+import { loadPreferences } from "@/lib/preferences";
 import { colors } from "@/theme";
 
 export { ErrorBoundary } from "expo-router";
@@ -39,6 +40,9 @@ function RootNavigator() {
 
   // 登录后静默检查一次更新(失败静默,不打扰用户)
   useEffect(() => {
+    // 设备偏好(口音/语速/自动朗读)启动时读一次,先到内存,后面各页同步读
+    void loadPreferences();
+
     if (status !== "signedIn") return;
 
     let cancelled = false;

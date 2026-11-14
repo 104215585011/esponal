@@ -1,6 +1,5 @@
 // Timestamp: 2026-11-14 12:35
 import { useCallback, useEffect, useState } from "react";
-import * as Speech from "expo-speech";
 import {
   ActivityIndicator,
   Pressable,
@@ -19,6 +18,8 @@ import {
   type ReviewRating
 } from "@/api/review";
 import { colors, radius, spacing } from "@/theme";
+import { speakSpanish } from "@/lib/speech";
+import { usePreferences } from "@/hooks/usePreferences";
 
 const RATING_BUTTONS: Array<{
   rating: ReviewRating;
@@ -31,9 +32,9 @@ const RATING_BUTTONS: Array<{
   { rating: "Easy", label: "简单", color: "#0284C7" }
 ];
 
-/** 西语发音(设备端 TTS,不花额度) */
+/** 西语发音(设备端 TTS,不花额度;口音/语速跟随设置页) */
 function speakEs(text: string) {
-  Speech.speak(text, { language: "es-ES", rate: 0.85 });
+  speakSpanish(text);
 }
 
 /**
@@ -52,6 +53,8 @@ export default function ReviewScreen() {
   const [doneCount, setDoneCount] = useState(0);
   /** 评分后轻提示:"下次 3 天后"(FSRS 的真实反馈,比单纯跳下一张有获得感) */
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
+  /** 设置页的「复习时自动发音」,开了就每换一张卡自动念单词 */
+  const prefs = usePreferences();
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -76,6 +79,14 @@ export default function ReviewScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /** 换了卡片就念一遍(听音辩义:先听再想,比看拼写更接近真实听力) */
+  useEffect(() => {
+    if (!prefs.autoSpeakReview) return;
+    const word = queue[index];
+    if (!word?.lemma) return;
+    speakSpanish(word.lemma);
+  }, [prefs.autoSpeakReview, queue, index]);
 
   const handleGrade = useCallback(
     async (rating: ReviewRating) => {
