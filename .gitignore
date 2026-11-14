@@ -45,3 +45,4 @@ yarn-error.*
 tmp_*
 
 .release-tmp/
+check.sh
