@@ -199,7 +199,13 @@ export async function getDueReviewCount(userId: string, now = new Date()) {
   }
 }
 
-export async function getDueReviewWords(userId: string, now = new Date()) {
+export async function getDueReviewWords(
+  userId: string,
+  now = new Date(),
+  limit = 20
+) {
+  // 上限 50:一次拉太多,session 中途断了浪费;客户端要更多就自己再取一批
+  const batchSize = Math.max(1, Math.min(50, Math.floor(limit)));
   try {
     const dueWords = await prisma.word.findMany({
       where: {
@@ -212,10 +218,10 @@ export async function getDueReviewWords(userId: string, now = new Date()) {
         }
       },
       orderBy: [{ srsDue: "asc" }, { createdAt: "asc" }],
-      take: 20
+      take: batchSize
     });
 
-    const slotsForNew = Math.max(0, Math.min(10, 20 - dueWords.length));
+    const slotsForNew = Math.max(0, Math.min(10, batchSize - dueWords.length));
     const newWords = slotsForNew
       ? await prisma.word.findMany({
           where: {

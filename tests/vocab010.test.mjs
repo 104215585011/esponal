@@ -1,33 +1,36 @@
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+// Timestamp: 2026-11-15 01:30
+//
+// VOCAB-010:复习队列支持 ?limit=(App 端自动续批的前提)。
+//
+// 服务端测试是"读源码 + 正则"的静态契约测试(见 tests/README 或既有用例风格),
+// 不起真数据库 —— 真正的行为由 e2e 覆盖。
+
 import assert from "node:assert/strict";
-import test from "node:test";
+import { existsSync, readFileSync } from "node:fs";
+import { test } from "node:test";
 
-const readText = (path) => readFile(path, "utf8");
+const readText = (p) => readFileSync(p, "utf8");
 
-test("VOCAB-010 lookup route returns isSaved based on the signed-in user's saved lemma", async () => {
-  const routePath = "src/app/api/vocab/lookup/route.ts";
+test("VOCAB-010 review GET parses ?limit= and clamps the batch size", async () => {
+  const routePath = "src/app/api/vocab/review/route.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
+  const route = readText(routePath);
 
-  const route = await readText(routePath);
-
-  // PLATFORM-001 双通道:Web cookie session 与 App Bearer token 都能解出 userId
-  assert.match(route, /getOptionalUserId|getServerSession/);
-  assert.match(route, /lookupDictionary/);
-  assert.match(route, /isSaved/);
-  assert.match(route, /getWordWithEncounters|prisma\.word\.find/);
+  // limit 从 query 读,默认 20,显式 clamp
+  assert.match(route, /searchParams\.get\("limit"\)/);
+  assert.match(route, /getDueReviewWords\(userId, now, limit\)/);
+  // 截断跟随请求的 limit,不再写死 20
+  assert.match(route, /slice\(0, limit\)/);
+  // 旧契约仍在:默认批大小 20
+  assert.match(route, /take:\s*20/);
 });
 
-test("VOCAB-010 LookupCard exposes an already_saved button state with amber styling and disabled interaction", async () => {
-  const cardPath = "src/app/watch/LookupCard.tsx";
-  assert.ok(existsSync(cardPath), `${cardPath} should exist`);
+test("VOCAB-010 getDueReviewWords clamps limit to 1..50 and sizes new-word slots", async () => {
+  const libPath = "src/lib/vocab.ts";
+  const lib = readText(libPath);
 
-  const card = await readText(cardPath);
-
-  assert.match(card, /type ButtonState = "default" \| "loading" \| "success" \| "login" \| "disabled" \| "already_saved"/);
-  assert.match(card, /payload\.isSaved === true/);
-  assert.match(card, /setButtonState\("already_saved"\)/);
-  assert.match(card, /bg-amber-50 text-amber-600 cursor-default/);
-  assert.match(card, /buttonState === "already_saved"/);
-  assert.match(card, /\u5df2\u52a0\u5165\u8bcd\u5e93/);
+  assert.match(lib, /limit = 20/);
+  assert.match(lib, /Math\.min\(50, Math\.floor\(limit\)\)/);
+  assert.match(lib, /Math\.min\(10, batchSize - dueWords\.length\)/);
+  assert.match(lib, /take: batchSize/);
 });

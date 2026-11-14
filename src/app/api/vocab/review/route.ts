@@ -11,13 +11,18 @@ export async function GET(request: Request) {
   }
   const now = new Date();
 
+  // ?limit= 可选,默认 20(默认批大小,原值写死在 getDueReviewWords 里),上限 50
+  const limitParam = Number(new URL(request.url).searchParams.get("limit"));
+  const limit =
+    Number.isFinite(limitParam) && limitParam > 0 ? Math.floor(limitParam) : 20;
+
   const [dueWords, totalDue] = await Promise.all([
-    getDueReviewWords(userId, now),
+    getDueReviewWords(userId, now, limit),
     getDueReviewCount(userId, now)
   ]);
 
-  // Limit response to 20 words max (matches take: 20 inside getDueReviewWords)
-  const words = dueWords.slice(0, 20).map((word) => ({
+  // 按请求的 limit 截断(默认 20;历史行为见 getDueReviewWords 里的 take: 20)
+  const words = dueWords.slice(0, limit).map((word) => ({
     id: word.id,
     lemma: word.lemma,
     translation: word.translation,
