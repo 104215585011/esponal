@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { scheduleCard, type ReviewRating } from "@/lib/srs";
 import { prisma } from "@/lib/prisma";
 
@@ -10,17 +9,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ wordId: string }> }
 ) {
-  const session = await getServerSession(getAuthOptions());
+  // PLATFORM-001: cookie(Web) 与 Bearer(App) 双通道,统一取 userId
+  const userId = await getAuthedUserId(request);
 
-  if (
-    !session?.user ||
-    !("id" in session.user) ||
-    typeof session.user.id !== "string"
-  ) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const userId = session.user.id;
   const { wordId } = await params;
 
   let body: { rating?: string };
