@@ -73,9 +73,17 @@ async function fetchFromGitHub(): Promise<VersionPayload | null> {
       asset.name?.toLowerCase().endsWith(".apk")
     );
 
+    /**
+     * 发布脚本是"先建 release,再传 apk",这中间有几秒到几十秒的空窗。
+     * 如果这期间有人点了「检查更新」,assets 还是空的,会缓存一个 downloadUrl:null,
+     * App 端点了下载就报"没有下载地址"。这里按约定文件名兜一个直链出来。
+     */
+    const tag = candidate.tag_name ?? "";
+    const fallbackUrl = `https://github.com/${REPO}/releases/download/${tag}/esponal-v${version}.apk`;
+
     return {
       latestVersion: version,
-      downloadUrl: apk?.browser_download_url ?? null,
+      downloadUrl: apk?.browser_download_url ?? fallbackUrl,
       notes: (candidate.body ?? candidate.name ?? "").trim().slice(0, 500),
       publishedAt: candidate.published_at ?? null,
       releaseUrl: candidate.html_url ?? null
