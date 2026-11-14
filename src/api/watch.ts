@@ -18,9 +18,9 @@ export type Cue = {
 
 /** 精选频道 —— 与 Web 端 src/lib/channels.ts 保持一致 */
 export const curatedChannels = [
-  { id: "UCouyFdE9-Lrjo3M_2idKq1A", title: "Dreaming Spanish", hint: "推荐入门,语速慢" },
-  { id: "UCW1FQuVy10_biDAxAj1iTEQ", title: "Spanish Okay", hint: "日常对话" },
-  { id: "UCAL4AMMMXKxHDu3FqZV6CbQ", title: "Easy Spanish", hint: "街头采访" }
+  { id: "UCouyFdE9-Lrjo3M_2idKq1A", title: "Dreaming Spanish", hint: "推荐入门,语速慢", level: "A1 入门" },
+  { id: "UCW1FQuVy10_biDAxAj1iTEQ", title: "Spanish Okay", hint: "日常对话", level: "A1–A2" },
+  { id: "UCAL4AMMMXKxHDu3FqZV6CbQ", title: "Easy Spanish", hint: "街头采访", level: "A2–B1" }
 ] as const;
 
 export async function fetchChannelVideos(channelId: string, maxResults = 12) {

@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-14 23:40
-import { useCallback, useEffect, useState } from "react";
+// Timestamp: 2026-11-15 02:45
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -27,9 +27,22 @@ type ChannelState = {
   id: string;
   title: string;
   hint: string;
+  level: string;
   videos: VideoItem[];
   error: string | null;
 };
+
+function getFreshnessLabel(videos: VideoItem[]) {
+  const latest = videos
+    .map((v) => Date.parse(v.publishedAt))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => b - a)[0];
+  if (!latest) return null;
+  const ageDays = (Date.now() - latest) / (1000 * 60 * 60 * 24);
+  if (ageDays <= 45) return "近期更新";
+  if (ageDays >= 180) return "经典合集";
+  return "精选片库";
+}
 
 export default function WatchScreen() {
   const router = useRouter();
@@ -38,8 +51,31 @@ export default function WatchScreen() {
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<string>("全部");
+  const [shuffleSeed, setShuffleSeed] = useState(0);
   /** 观看进度只读快照：列表本身不拉接口，只从本地缓存取，避免每张卡片一次请求 */
   const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
+
+  const allVideos = useMemo(() => channels.flatMap((c) => c.videos), [channels]);
+  const featuredVideo = useMemo(() => {
+    if (allVideos.length === 0) return null;
+    return allVideos[shuffleSeed % allVideos.length];
+  }, [allVideos, shuffleSeed]);
+
+  const levels = useMemo(() => ["全部", ...curatedChannels.map((c) => c.level)], []);
+
+  const visibleChannels = useMemo(() => {
+    const filtered =
+      selectedLevel === "全部"
+        ? channels
+        : channels.filter((c) => c.level === selectedLevel);
+    if (shuffleSeed === 0) return filtered;
+    return filtered.map((c) => {
+      if (c.videos.length <= 1) return c;
+      const offset = shuffleSeed % c.videos.length;
+      return { ...c, videos: [...c.videos.slice(offset), ...c.videos.slice(0, offset)] };
+    });
+  }, [channels, selectedLevel, shuffleSeed]);
 
   const refreshProgress = useCallback(async () => {
     await loadWatchProgress();
@@ -112,16 +148,87 @@ export default function WatchScreen() {
           <Text style={styles.searchPlaceholder}>搜任意西语视频…</Text>
         </Pressable>
 
+        {!loading && featuredVideo ? (
+          <View style={styles.discoveryCard}>
+            <Text style={styles.discoveryEyebrow}>随机挑一集</Text>
+            <Text numberOfLines={2} style={styles.discoveryTitle}>
+              {featuredVideo.title}
+            </Text>
+            <Text style={styles.discoveryMeta}>
+              {featuredVideo.channelTitle} · {formatDuration(featuredVideo.duration)}
+            </Text>
+            <View style={styles.discoveryActions}>
+              <Pressable
+                onPress={() => setShuffleSeed((s) => s + 1)}
+                style={({ pressed }) => [styles.shuffleBtn, pressed && styles.cardPressed]}
+              >
+                <Text style={styles.shuffleBtnText}>换一批排列</Text>
+              </Pressable>
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/watch/[videoId]",
+                    params: {
+                      videoId: featuredVideo.id,
+                      title: featuredVideo.title,
+                      channelTitle: featuredVideo.channelTitle,
+                      thumbnail: featuredVideo.thumbnail
+                    }
+                  } as never)
+                }
+                style={({ pressed }) => [styles.playNowBtn, pressed && styles.cardPressed]}
+              >
+                <Text style={styles.playNowBtnText}>立即观看 →</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+
+        {!loading ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterRow}
+          >
+            {levels.map((level) => {
+              const active = selectedLevel === level;
+              return (
+                <Pressable
+                  key={level}
+                  onPress={() => setSelectedLevel(level)}
+                  style={[styles.filterPill, active && styles.filterPillActive]}
+                >
+                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                    {level}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+
         {loading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator color={colors.brand500} />
             <Text style={styles.loadingText}>正在取视频列表…</Text>
           </View>
         ) : (
-          channels.map((channel) => (
+          visibleChannels.map((channel) => {
+            const freshness = getFreshnessLabel(channel.videos);
+            return (
             <View key={channel.id} style={styles.section}>
               <View style={styles.sectionHead}>
-                <Text style={styles.channelTitle}>{channel.title}</Text>
+                <View style={styles.sectionTitleRow}>
+                  <Text style={styles.channelTitle}>{channel.title}</Text>
+                  <View style={styles.levelBadge}>
+                    <Text style={styles.levelBadgeText}>{channel.level}</Text>
+                  </View>
+                  {freshness ? (
+                    <View style={styles.freshBadge}>
+                      <Text style={styles.freshBadgeText}>{freshness}</Text>
+                    </View>
+                  ) : null}
+                </View>
                 <Text style={styles.channelHint}>{channel.hint}</Text>
               </View>
 
@@ -196,7 +303,8 @@ export default function WatchScreen() {
                 })
               )}
             </View>
-          ))
+            );
+          })
         )}
       </ScrollView>
     </SafeAreaView>
@@ -242,6 +350,46 @@ const styles = StyleSheet.create({
   },
   searchIcon: { fontSize: 12.5 },
   searchPlaceholder: { fontSize: 13, color: colors.textTertiary },
+  discoveryCard: {
+    marginTop: spacing.lg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+    padding: spacing.md,
+    gap: 6
+  },
+  discoveryEyebrow: { fontSize: 11, fontWeight: "700", color: colors.brand600 },
+  discoveryTitle: { fontSize: 15, fontWeight: "700", lineHeight: 21, color: colors.text },
+  discoveryMeta: { fontSize: 11.5, color: colors.textSecondary },
+  discoveryActions: { marginTop: 6, flexDirection: "row", gap: 8 },
+  shuffleBtn: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 8
+  },
+  shuffleBtnText: { fontSize: 12, fontWeight: "600", color: colors.text },
+  playNowBtn: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand500,
+    paddingHorizontal: 14,
+    paddingVertical: 8
+  },
+  playNowBtnText: { fontSize: 12, fontWeight: "600", color: "#fff" },
+  filterRow: { marginTop: spacing.md, gap: 8, paddingVertical: 2 },
+  filterPill: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 12,
+    paddingVertical: 6
+  },
+  filterPillActive: { borderColor: colors.brand500, backgroundColor: colors.brand500 },
+  filterPillText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
+  filterPillTextActive: { color: "#fff" },
   loadingBox: {
     paddingVertical: 60,
     alignItems: "center",
@@ -249,7 +397,22 @@ const styles = StyleSheet.create({
   },
   loadingText: { fontSize: 12.5, color: colors.textTertiary },
   section: { marginTop: spacing.xl, gap: spacing.md },
-  sectionHead: { gap: 2 },
+  sectionHead: { gap: 4 },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 },
+  levelBadge: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand50,
+    paddingHorizontal: 8,
+    paddingVertical: 2
+  },
+  levelBadgeText: { fontSize: 10.5, fontWeight: "700", color: colors.brand600 },
+  freshBadge: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 2
+  },
+  freshBadgeText: { fontSize: 10.5, fontWeight: "600", color: colors.textSecondary },
   channelTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
   channelHint: { fontSize: 12, color: colors.textTertiary },
   sectionError: { fontSize: 12.5, color: colors.danger },
