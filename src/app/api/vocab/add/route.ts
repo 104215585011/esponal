@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { addEncounter, createWord, getWordWithEncounters } from "@/lib/vocab";
@@ -20,17 +19,14 @@ type AddVocabBody = {
 };
 
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions());
+  // 双通道鉴权:Web 走 cookie,App 走 Bearer(否则 App 加词永远 unauthorized)
+  const userId = await getAuthedUserId(request);
 
-  if (
-    !session?.user ||
-    !("id" in session.user) ||
-    typeof session.user.id !== "string"
-  ) {
+  if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const rateLimit = await checkRateLimit(addLimiter, request, session.user.id);
+  const rateLimit = await checkRateLimit(addLimiter, request, userId);
 
   if (!rateLimit.allowed) {
     const retryAfterSec = getRetryAfterSec(rateLimit.reset);
@@ -84,10 +80,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid timestampSec" }, { status: 400 });
     }
 
-    const existingWord = await getWordWithEncounters(session.user.id, lemma);
+    const existingWord = await getWordWithEncounters(userId, lemma);
 
     if (!existingWord) {
-      const saveAccess = await assertUnlimitedSavesAccess(session.user.id);
+      const saveAccess = await assertUnlimitedSavesAccess(userId);
       if (!saveAccess.ok) {
         return NextResponse.json(
           {
@@ -103,7 +99,7 @@ export async function POST(request: Request) {
     }
 
     const word = await createWord({
-      userId: session.user.id,
+      userId: userId,
       lemma,
       translation,
       forms: existingWord ? [...existingWord.forms, form] : [form],

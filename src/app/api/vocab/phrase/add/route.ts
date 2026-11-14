@@ -1,7 +1,6 @@
 // Timestamp: 2026-06-03 10:05
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import {
@@ -20,14 +19,6 @@ type SavePhraseBody = {
 };
 
 const VALID_PHRASE_KINDS = ["collocation", "phrase", "idiom"] as const;
-
-function getUserId(session: unknown) {
-  const maybeSession = session as { user?: { id?: unknown } } | null;
-
-  return maybeSession?.user && typeof maybeSession.user.id === "string"
-    ? maybeSession.user.id
-    : null;
-}
 
 function isValidPhraseKind(kind: unknown): kind is SavePhraseKind {
   return (
@@ -54,8 +45,8 @@ async function checkUserRateLimit(request: Request, userId: string) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  // 双通道鉴权:Web 走 cookie,App 走 Bearer(否则 App 收藏搭配永远 unauthorized)
+  const userId = await getAuthedUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -125,8 +116,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId = await getAuthedUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

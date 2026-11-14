@@ -65,7 +65,8 @@ test("CORPUS-001 exposes protected saved phrase API", async () => {
 
   assert.match(route, /export async function POST/);
   assert.match(route, /export async function GET/);
-  assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
+  // PLATFORM-001:双通道鉴权(cookie | Bearer)后,旧断言放宽
+  assert.match(route, /getAuthedUserId|getServerSession\(getAuthOptions\(\)\)/);
   assert.match(route, /status:\s*401/);
   assert.match(route, /"collocation"[\s\S]*"phrase"[\s\S]*"idiom"/);
   assert.match(route, /invalid phrase kind/);
