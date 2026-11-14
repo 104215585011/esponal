@@ -269,6 +269,82 @@ export const grammarTopics: GrammarTopic[] = [
       { spanish: "Voy a llamar a mi madre esta tarde.", chinese: "我今天下午要给我妈打电话。", reason: "voy a + llamar，表达近期计划。" },
       { spanish: "¿Vas a comer aquí?", chinese: "你要在这里吃吗？", reason: "vas a + comer，询问对方计划。" }
     ],
+  },
+  {
+    slug: "personal-pronouns-conjugation",
+    group: "动词变位",
+    title: "人称代词与动词变位入门",
+    intro: "西语的 6 个核心人称决定动词词尾；看懂词尾，就不需要每句都写「我/你/他」。",
+    analogy:
+      "中文动词不变形（我吃/你吃/他吃），必须靠主语区分谁在做；西语把「谁在做」直接烤进了动词尾巴里，所以日常说话经常省略 yo / tú / nosotros。",
+    conjugations: [
+      { pronoun: standardPronouns[0][0], person: standardPronouns[0][1], form: "soy / hablo / como", audioLabel: "yo" },
+      { pronoun: standardPronouns[1][0], person: standardPronouns[1][1], form: "eres / hablas / comes", audioLabel: "tú" },
+      { pronoun: standardPronouns[2][0], person: standardPronouns[2][1], form: "es / habla / come", audioLabel: "él" },
+      { pronoun: standardPronouns[3][0], person: standardPronouns[3][1], form: "somos / hablamos / comemos", audioLabel: "nosotros" },
+      { pronoun: standardPronouns[4][0], person: standardPronouns[4][1], form: "sois / habláis / coméis", audioLabel: "vosotros" },
+      { pronoun: standardPronouns[5][0], person: standardPronouns[5][1], form: "son / hablan / comen", audioLabel: "ellos" }
+    ],
+    rules: [
+      "西班牙用 vosotros（你们），拉美大多数国家统一用 ustedes + 第三人称复数变位。",
+      "usted（您）虽然意思是第二人称，但语法上借用第三人称单数变位（usted habla）。",
+      "yo / tú 这类主语代词通常只在「强调」或「对比」时才说出来。"
+    ],
+    examples: [
+      { spanish: "Hablo español un poco.", chinese: "我会说一点西班牙语。", reason: "-o 结尾已经表明主语是 yo，不用再加 Yo。" },
+      { spanish: "¿Cómo estás? — Estoy bien, ¿y tú?", chinese: "你好吗？— 我很好，你呢？", reason: "tú 在反问对比时保留出来。" }
+    ],
+    related: [{ label: "查看相关语法 → 规则动词 -ar 变位", slug: "regular-ar" }]
+  },
+  {
+    slug: "past-tenses-overview",
+    group: "动词变位",
+    title: "过去时态：简单过去 vs 未完成 vs 现在完成",
+    intro: "讲过去发生的事时，西语最常用三种时态：一次性完成（简单过去）、背景习惯（未完成）、对现在仍有影响（现在完成）。",
+    analogy:
+      "简单过去像「按下快门的一瞬间」；未完成过去像「一直在播放的背景录像」；现在完成像中文的「已经……过了」。",
+    conjugations: [
+      { pronoun: standardPronouns[0][0], person: standardPronouns[0][1], form: "hablé / hablaba / he hablado" },
+      { pronoun: standardPronouns[1][0], person: standardPronouns[1][1], form: "hablaste / hablabas / has hablado" },
+      { pronoun: standardPronouns[2][0], person: standardPronouns[2][1], form: "habló / hablaba / ha hablado" },
+      { pronoun: standardPronouns[3][0], person: standardPronouns[3][1], form: "hablamos / hablábamos / hemos hablado" },
+      { pronoun: standardPronouns[4][0], person: standardPronouns[4][1], form: "hablasteis / hablabais / habéis hablado" },
+      { pronoun: standardPronouns[5][0], person: standardPronouns[5][1], form: "hablaron / hablaban / han hablado" }
+    ],
+    rules: [
+      "简单过去时（Pretérito indefinido）：ayer（昨天）、la semana pasada（上周）等明确结束的时间点。",
+      "未完成过去时（Pretérito imperfecto）：描写过去年龄、天气、习惯（cuando era niño）。",
+      "现在完成时（Pretérito perfecto）：haber 现在时 + 过去分词（-ado / -ido），常配 hoy、esta semana。"
+    ],
+    examples: [
+      { spanish: "Ayer comí con mi amigo.", chinese: "昨天我和朋友吃了饭。", reason: "昨天是已结束的时间点，用简单过去时 comí。" },
+      { spanish: "Hoy he trabajado mucho.", chinese: "今天我已经工作很多了。", reason: "hoy 还没过完，西班牙常用现在完成时 he trabajado。" }
+    ]
+  },
+  {
+    slug: "future-and-subjunctive",
+    group: "动词变位",
+    title: "将来时与现在虚拟式入门",
+    intro: "将来时直接把词尾接在动词原形后面；虚拟式则用来表达希望、建议、怀疑或不确定。",
+    analogy:
+      "将来时最省心，原形后面统一加 -é / -ás / -á / -emos / -éis / -án；虚拟式就像英语里的「我希望你……」，把陈述语气变成带主观情绪的语气。",
+    conjugations: [
+      { pronoun: standardPronouns[0][0], person: standardPronouns[0][1], form: "将来 hablaré · 虚拟 hable" },
+      { pronoun: standardPronouns[1][0], person: standardPronouns[1][1], form: "将来 hablarás · 虚拟 hables" },
+      { pronoun: standardPronouns[2][0], person: standardPronouns[2][1], form: "将来 hablará · 虚拟 hable" },
+      { pronoun: standardPronouns[3][0], person: standardPronouns[3][1], form: "将来 hablaremos · 虚拟 hablemos" },
+      { pronoun: standardPronouns[4][0], person: standardPronouns[4][1], form: "将来 hablaréis · 虚拟 habléis" },
+      { pronoun: standardPronouns[5][0], person: standardPronouns[5][1], form: "将来 hablarán · 虚拟 hablen" }
+    ],
+    rules: [
+      "规则将来时：-ar / -er / -ir 三类动词都直接用「原形 + é, ás, á, emos, éis, án」。",
+      "现在虚拟式（Presente de subjuntivo）口诀「元音互换」：-ar 动词换成 e 组词尾，-er/-ir 动词换成 a 组词尾。",
+      "常见触发词：espero que...（我希望）、quiero que...（我想要）、es importante que...（重要的是）。"
+    ],
+    examples: [
+      { spanish: "Mañana hablaré con él.", chinese: "明天我会和他谈。", reason: "原形 hablar + é，表达将来动作。" },
+      { spanish: "Espero que tengas un buen día.", chinese: "祝你今天愉快（我希望你度过美好的一天）。", reason: "espero que 后接 tener 的现在虚拟式 tengas。" }
+    ]
   }
 ];
 

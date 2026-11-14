@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import EmptyState from "@/app/components/ui/EmptyState";
+import { VerbConjugationBox } from "./VerbConjugationBox";
 import { speak, useSpeechAvailable } from "@/lib/speak";
 
 export type LookupSource =
@@ -1063,6 +1064,10 @@ export function LookupCard({
           </div>
         </div>
       )}
+
+      {lookupState.kind === "ready" && lookupState.conjugations ? (
+        <VerbConjugationBox conjugations={lookupState.conjugations} />
+      ) : null}
 
       {/* 底部保存生词本 Actions */}
       <div className={

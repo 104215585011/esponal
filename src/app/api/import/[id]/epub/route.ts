@@ -1,24 +1,20 @@
-// Timestamp: 2026-06-10 10:05
+// Timestamp: 2026-11-15 04:45
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { parseEpubForReader } from "@/lib/import/epub";
 import { getImportedDocumentFileByIdForUser } from "@/lib/import/service";
 import { presignGet } from "@/lib/storage/cos";
 
-function getUserId(session: unknown) {
-  const maybeSession = session as { user?: { id?: unknown } } | null;
-  return maybeSession?.user && typeof maybeSession.user.id === "string"
-    ? maybeSession.user.id
-    : null;
-}
-
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: { id: string } },
 ) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId =
+    (await getAuthedUserId(request)) ??
+    ((await getServerSession(getAuthOptions()))?.user as { id?: string } | undefined)?.id ??
+    null;
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
