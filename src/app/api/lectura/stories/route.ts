@@ -1,17 +1,21 @@
-// Timestamp: 2026-11-13 23:20
+// Timestamp: 2026-11-15 07:48
 import { NextResponse } from "next/server";
 import { lecturaStories } from "@/../content/lectura";
-import { prisma } from "@/lib/prisma";
 import { getOptionalUserId } from "@/lib/api-auth";
+import { crawlLecturaRssFeeds } from "@/lib/lectura/rss-crawler";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/lectura/stories
  *
- * 分级阅读列表(PLATFORM-001:给原生 App 用的页面级聚合接口)。
- * 登录后额外返回已读状态;未登录也能拿到列表(内容本身公开)。
+ * 分级阅读列表（汇总精选分级短文 + 西媒 RSS 实时抓取文章）。
+ * 传 `?refresh=1` 可强制刷新 RSS 缓存；传 `?source=curated` 可仅返回内置短文。
  */
 export async function GET(request: Request) {
   const userId = await getOptionalUserId(request);
+  const { searchParams } = new URL(request.url);
+  const forceRefresh = searchParams.get("refresh") === "1";
+  const onlyCurated = searchParams.get("source") === "curated";
 
   let readSlugs = new Set<string>();
 
@@ -22,18 +26,37 @@ export async function GET(request: Request) {
     readSlugs = new Set(reads.map((read) => read.slug));
   }
 
-  // 列表不返回正文,减小响应体积
-  const items = lecturaStories.map((story) => ({
+  const crawled = onlyCurated
+    ? []
+    : await crawlLecturaRssFeeds(forceRefresh).catch(() => []);
+
+  const curatedItems = lecturaStories.map((story) => ({
     slug: story.slug,
     title: story.title,
     titleZh: story.titleZh,
     level: story.level,
     source: story.source,
+    sourceType: "curated" as const,
     durationMin: story.durationMin,
     summaryZh: story.summaryZh,
     paragraphCount: story.paragraphs.length,
-    isRead: readSlugs.has(story.slug)
+    isRead: readSlugs.has(story.slug),
   }));
 
-  return NextResponse.json({ items, total: items.length });
+  const rssItems = crawled.map((story) => ({
+    slug: story.slug,
+    title: story.title,
+    titleZh: story.titleZh,
+    level: story.level,
+    source: story.source,
+    sourceType: "rss" as const,
+    durationMin: story.durationMin,
+    summaryZh: story.summaryZh,
+    paragraphCount: story.paragraphs.length,
+    publishedAt: story.publishedAt,
+    isRead: readSlugs.has(story.slug),
+  }));
+
+  const items = [...rssItems, ...curatedItems];
+  return NextResponse.json({ items, total: items.length, crawledCount: rssItems.length });
 }

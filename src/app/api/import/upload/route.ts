@@ -1,8 +1,10 @@
-// Timestamp: 2026-06-10 10:05
+// Timestamp: 2026-11-15 07:35
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { getAuthOptions } from "@/lib/auth";
+import { parseEpubForReader } from "@/lib/import/epub";
 import { createImportedDocument } from "@/lib/import/service";
 
 const MAX_PROXY_UPLOAD_BYTES = 4 * 1024 * 1024;
@@ -37,8 +39,9 @@ function titleFromFile(file: File, title: FormDataEntryValue | null) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId =
+    (await getAuthedUserId(request)) ??
+    getUserId(await getServerSession(getAuthOptions()));
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -69,10 +72,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "proxy_file_too_large" }, { status: 413 });
   }
 
-  const contentType = file.type || CONTENT_TYPES[kind];
   const randomId = randomUUID().replace(/-/g, "");
   const ossKey = `inline/${userId}/${randomId}${extensionForKind(kind)}`;
   const inlineContent = Buffer.from(await file.arrayBuffer());
+
+  let unitCount = 0;
+  if (kind === "epub") {
+    try {
+      const parsed = await parseEpubForReader(inlineContent);
+      unitCount = parsed.chapters.length;
+    } catch {
+      unitCount = 0;
+    }
+  }
 
   const document = await createImportedDocument({
     userId,
@@ -81,6 +93,7 @@ export async function POST(request: Request) {
     ossKey,
     sizeBytes: file.size,
     inlineContent,
+    unitCount,
   });
 
   return NextResponse.json({ document });

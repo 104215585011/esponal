@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Esponal 移动端 UI 重构与任务流串联方案</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-muted: #f1f5f9;
+      --text: #0f172a;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --border: #e2e8f0;
+      --brand-50: #ecfdf5;
+      --brand-100: #d1fae5;
+      --brand-500: #10b981;
+      --brand-600: #059669;
+      --brand-700: #047857;
+      --amber-50: #fffbeb;
+      --amber-700: #b45309;
+      --indigo-50: #eef2ff;
+      --indigo-600: #4f46e5;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 24px 72px;
+      display: grid;
+      grid-template-columns: 1.15fr 400px;
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .page { grid-template-columns: 1fr; }
+      .phone-col { position: static !important; justify-self: center; }
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--text-2);
+      margin: 0 0 24px;
+      font-size: 15px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      margin-bottom: 18px;
+    }
+
+    .card h2 {
+      font-size: 17px;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--brand-50);
+      color: var(--brand-700);
+    }
+
+    .badge.amber {
+      background: var(--amber-50);
+      color: var(--amber-700);
+    }
+
+    .badge.indigo {
+      background: var(--indigo-50);
+      color: var(--indigo-600);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      color: var(--text-2);
+      font-weight: 600;
+      font-size: 12px;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .flow-diagram {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 4px;
+    }
+    .flow-node {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .flow-node.primary {
+      background: var(--brand-50);
+      border-color: var(--brand-100);
+      color: var(--brand-700);
+    }
+    .flow-arrow { color: var(--text-3); font-weight: 700; }
+
+    ul.clean {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: var(--text-2);
+      font-size: 13.5px;
+    }
+    ul.clean li { margin-bottom: 6px; }
+
+    /* Phone Simulator */
+    .phone-col {
+      position: sticky;
+      top: 24px;
+    }
+    .phone-caption {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-2);
+      margin-bottom: 10px;
+    }
+    .phone-frame {
+      width: 375px;
+      height: 760px;
+      background: #0f172a;
+      border-radius: 42px;
+      padding: 12px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-screen {
+      flex: 1;
+      background: #f8fafc;
+      border-radius: 32px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-status {
+      height: 28px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .phone-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px 20px;
+    }
+    .phone-tabs {
+      height: 62px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      padding-bottom: 6px;
+    }
+    .tab-btn {
+      border: none;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-3);
+      cursor: pointer;
+    }
+    .tab-btn.active { color: var(--brand-600); }
+    .tab-icon { font-size: 17px; line-height: 1; }
+
+    /* Mock Screen Components */
+    .m-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .m-brand { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+    .m-brand span { color: var(--brand-500); }
+    .m-pill-btn {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+    .m-hero-card {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .m-hero-eyebrow { font-size: 10.5px; opacity: 0.85; font-weight: 700; letter-spacing: 0.06em; }
+    .m-hero-title { font-size: 18px; font-weight: 800; margin: 4px 0 6px; }
+    .m-hero-sub { font-size: 12px; opacity: 0.9; margin-bottom: 12px; }
+    .m-hero-actions { display: flex; gap: 8px; }
+    .m-btn-white {
+      background: #ffffff;
+      color: var(--brand-700);
+      border: none;
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .m-btn-ghost {
+      background: rgba(255,255,255,0.18);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .m-sec-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .m-sec-more { font-size: 11.5px; color: var(--brand-600); font-weight: 600; cursor: pointer; }
+
+    .m-continue-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .m-thumb {
+      width: 68px;
+      height: 46px;
+      border-radius: 8px;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .m-c-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .m-c-meta { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+    .m-tool-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .m-tool-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px 12px;
+      cursor: pointer;
+    }
+    .m-tool-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .m-tool-title { font-size: 13px; font-weight: 700; }
+    .m-tool-desc { font-size: 11px; color: var(--text-2); }
+
+    .m-seg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface-muted);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 12px;
+    }
+    .m-seg-btn {
+      border: none;
+      background: transparent;
+      border-radius: 9px;
+      padding: 7px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+    .m-seg-btn.active {
+      background: #ffffff;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .m-list-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    .m-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--brand-50);
+      color: var(--brand-700);
+      margin-bottom: 4px;
+    }
+
+    .m-voice-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 14px;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .m-orb {
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 10px auto;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.28);
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div>
+      <h1>Esponal 移动端 UI 重构与任务流方案</h1>
+      <p class="subtitle">
+        定位：以<strong>「视频 + 阅读」泛听泛读为主</strong>，将「导入书架」并入阅读，为「复习 / 词库」收口资产，把「听力播客 / 语音对话 Robot / 语法 / 发音」做成轻量快捷工具区。
+      </p>
+
+      <div class="card">
+        <h2>1. 底部 5 Tab 与页面归属重组 <span class="badge">结构瘦身</span></h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:90px">Tab</th>
+              <th>现状问题</th>
+              <th>改版后职责（唯一入口，不再多处重复）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>首页</strong></td>
+              <td>9 个平级长列表 + 统计图，与「我的」大量重复</td>
+              <td><strong>每日出发台</strong>：继续看/读（1~2 张）+ 待复习轻提醒 + <strong>4 格工具快捷区</strong>（听力精听、语音对话、语法、字母发音）+ 搜视频</td>
+            </tr>
+            <tr>
+              <td><strong>视频</strong></td>
+              <td>仅频道列表与搜视频入口</td>
+              <td><strong>泛听泛视主阵地</strong>：顶部搜索 + 频道/近期更新 + 继续观看进度条 + 双语字幕点词查词</td>
+            </tr>
+            <tr>
+              <td><strong>阅读</strong></td>
+              <td>只有 AI 短文，导入库藏在「我的」最深处</td>
+              <td><strong>双切换「精选短文 / 我的书架」</strong>：精选短文接入真实西语媒体（如 RFI/BBC Mundo 爬虫）；我的书架承接 EPUB/PDF 阅读</td>
+            </tr>
+            <tr>
+              <td><strong>复习</strong></td>
+              <td>只放 FSRS 刷卡，词库/短语却藏在「我的」</td>
+              <td><strong>记忆与词库中心</strong>：顶部切换「今日卡片 / 我的词库 / 短语搭配」，查词收藏后直接在这里巩固</td>
+            </tr>
+            <tr>
+              <td><strong>我的</strong></td>
+              <td>塞了 8 个业务入口 + 6 个设置项，像杂物间</td>
+              <td><strong>纯粹个人中心</strong>：账号与积分、我的下载（离线 PDF）、发音/缓存设置、检查更新、退出登录</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>2. 任务流串联：轻量闭环，不加打卡压力 <span class="badge">核心体验</span></h2>
+        <div class="flow-diagram">
+          <div class="flow-node primary">视频 / 播客 / 西媒阅读 / 书架</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">点词查词（含动词时态变位）</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">复习 Tab（卡片 + 词库/搭配）</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node primary">语音 Robot / 精听巩固</div>
+        </div>
+        <ul class="clean">
+          <li><strong>首页不逼用户打卡</strong>：首页顶部只给一个温和的「接着学」主卡（如果正在看视频/读书，优先恢复；有待复习时用副按钮提示“顺便过 12 个词”）。</li>
+          <li><strong>复习批末自然衔接输出</strong>：刷完一组 FSRS 卡片后，小结页底部给一个轻入口：「用刚复习的词和 AI 聊 2 分钟」直接带出关键词进入语音对话。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>3. 三个重点模块的内容与交互升级方案 <span class="badge indigo">内容与 AI</span></h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:120px">模块</th>
+              <th>可行技术方案</th>
+              <th>为什么这样选</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>听力精听<br/><span class="badge amber">Podcast 接入</span></strong></td>
+              <td>
+                后端配置精选西语播客 <strong>RSS 源</strong>（如 Notes in Spanish、Español con Juan、RFI Español 音频节目），抓取真实 MP3 音频 URL 与标题，并按 30 秒片段做精听切片 + 转写对照；Spotify 链接可作为外部播客发现补充。
+              </td>
+              <td>
+                Spotify Web API 出于版权限制，不提供完整 MP3 音频流（仅 30 秒 preview），无法直接做精听切片；而公开 Podcast RSS 本身就是标准直链 MP3，稳定合法且可做 30s 精听+字幕对齐。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>阅读精选<br/><span class="badge amber">西媒爬虫</span></strong></td>
+              <td>
+                服务端定时任务（Cron / 手动触发）抓取 <strong>RFI 西语之声、BBC Mundo、20 Minutos</strong> 等公开 RSS，抽取正文并做段落清洗，自动标注 A1-B1 难度与中文导读，存入数据库供 Web 与移动端阅读。
+              </td>
+              <td>
+                比纯 AI 生成更地道、有时效性；复用现有阅读器点击查词与动词变位能力，真正实现“读真实西语新闻”。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>口语 Robot<br/><span class="badge indigo">语音直聊</span></strong></td>
+              <td>
+                从“文字聊天框”改为 <strong>Voice-first 通话界面</strong>：大麦克风按钮按住/点击说话 → 录音上传 → Whisper 转写 → AI 角色生成简短西语回复（带中文提示折叠）→ 自动语音播报，形成连续对话流。
+              </td>
+              <td>
+                移动端场景下打字练口语太重，语音输入 + 自动 TTS 播报才真正接近“和西语 Robot 直接对话”的体验。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 右侧可交互手机原型 -->
+    <div class="phone-col">
+      <div class="phone-caption">👆 可点击下方 Tab 与切换按钮预览新版移动端布局</div>
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-status">
+            <span>09:41</span>
+            <span>Esponal v2</span>
+            <span>5G</span>
+          </div>
+
+          <div class="phone-body">
+            <!-- TAB 1: 首页 -->
+            <div id="tab-home">
+              <div class="m-header">
+                <div class="m-brand">Esponal<span>.</span></div>
+                <button class="m-pill-btn" onclick="alert('跳转搜视频页面')">🔍 搜西语视频</button>
+              </div>
+
+              <div class="m-hero-card">
+                <div class="m-hero-eyebrow">TODAY · 泛听泛读</div>
+                <div class="m-hero-title">继续：Cómo pedir café en Madrid</div>
+                <div class="m-hero-sub">上次看到 02:14 · 今日还有 14 个生词可顺便复习</div>
+                <div class="m-hero-actions">
+                  <button class="m-btn-white" onclick="switchTab('watch')">继续看视频 →</button>
+                  <button class="m-btn-ghost" onclick="switchTab('review')">先刷 14 词</button>
+                </div>
+              </div>
+
+              <div class="m-sec-head">
+                <span>专项训练与工具</span>
+                <span class="m-sec-more">轻量随时练</span>
+              </div>
+              <div class="m-tool-grid">
+                <div class="m-tool-card" onclick="alert('进入播客听力精听')">
+                  <div class="m-tool-top"><span>🎧</span><span class="badge">播客源</span></div>
+                  <div class="m-tool-title">听力精听</div>
+                  <div class="m-tool-desc">西语播客 30s 盲听切片</div>
+                </div>
+                <div class="m-tool-card" onclick="switchTab('talk')">
+                  <div class="m-tool-top"><span>🎙️</span><span class="badge indigo">语音直聊</span></div>
+                  <div class="m-tool-title">口语 Robot</div>
+                  <div class="m-tool-desc">按住说话 · 自动语音回复</div>
+                </div>
+                <div class="m-tool-card" onclick="alert('进入语法知识库')">
+                  <div class="m-tool-top"><span>🧩</span><span class="badge">含变位</span></div>
+                  <div class="m-tool-title">语法知识库</div>
+                  <div class="m-tool-desc">人称变位 / 时态 / 句式</div>
+                </div>
+                <div class="m-tool-card" onclick="alert('进入字母发音')">
+                  <div class="m-tool-top"><span>🔤</span><span class="badge">入门</span></div>
+                  <div class="m-tool-title">字母发音</div>
+                  <div class="m-tool-desc">27 个字母与拼读规则</div>
+                </div>
+              </div>
+
+              <div class="m-sec-head">
+                <span>我的书架 · 最近阅读</span>
+                <span class="m-sec-more" onclick="switchTab('read', 'shelf')">全部 ›</span>
+              </div>
+              <div class="m-continue-card" onclick="switchTab('read', 'shelf')">
+                <div class="m-thumb">📘</div>
+                <div>
+                  <div class="m-c-title">El Principito (EPUB)</div>
+                  <div class="m-c-meta">第 3 章 · 轻触任意单词可查变位</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: 视频 -->
+            <div id="tab-watch" class="hidden">
+              <div class="m-header">
+                <div class="m-brand" style="font-size:18px">视频泛听</div>
+                <button class="m-pill-btn">🔍 搜关键词</button>
+              </div>
+              <div class="m-list-card">
+                <span class="m-tag">刚刚更新 · 西语日常</span>
+                <div class="m-c-title">Un día en Barcelona · 街头采访</div>
+                <div class="m-c-meta">双语字幕 · 点击任意词查看过去/将来/虚拟式变位</div>
+              </div>
+              <div class="m-list-card">
+                <span class="m-tag">A1-A2 推荐</span>
+                <div class="m-c-title">Dreaming Spanish · 慢速故事输入</div>
+                <div class="m-c-meta">已看完 45% · 支持导出双语 PDF 讲义</div>
+              </div>
+            </div>
+
+            <!-- TAB 3: 阅读（短文 + 书架） -->
+            <div id="tab-read" class="hidden">
+              <div class="m-header">
+                <div class="m-brand" style="font-size:18px">阅读</div>
+              </div>
+              <div class="m-seg">
+                <button id="seg-news" class="m-seg-btn active" onclick="switchReadSub('news')">精选短文</button>
+                <button id="seg-shelf" class="m-seg-btn" onclick="switchReadSub('shelf')">我的书架</button>
+              </div>
+
+              <div id="read-news">
+                <div class="m-list-card">
+                  <span class="m-tag">RFI 西语之声 · 今日抓取</span>
+                  <div class="m-c-title">Nuevas rutas ferroviarias en España</div>
+                  <div class="m-c-meta">B1 · 约 3 分钟 · 真实新闻正文 + 点词查词</div>
+                </div>
+                <div class="m-list-card">
+                  <span class="m-tag">A1 入门短文</span>
+                  <div class="m-c-title">En la cafetería del barrio</div>
+                  <div class="m-c-meta">带段落朗读与中文对照</div>
+                </div>
+              </div>
+
+              <div id="read-shelf" class="hidden">
+                <div class="m-list-card">
+                  <span class="m-tag">EPUB · 上次读到第 3 章</span>
+                  <div class="m-c-title">El Principito</div>
+                  <div class="m-c-meta">点击直接进章节阅读器 · 支持点词查变位</div>
+                </div>
+                <div class="m-list-card">
+                  <span class="m-tag">PDF · 24 页</span>
+                  <div class="m-c-title">Gramática esencial A1-A2.pdf</div>
+                  <div class="m-c-meta">点击下载并调用本机阅读器打开</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 4: 复习 & 词库 -->
+            <div id="tab-review" class="hidden">
+              <div class="m-header">
+                <div class="m-brand" style="font-size:18px">复习与词库</div>
+              </div>
+              <div class="m-seg" style="grid-template-columns: 1fr 1fr 1fr;">
+                <button class="m-seg-btn active">待复习(14)</button>
+                <button class="m-seg-btn">我的词库</button>
+                <button class="m-seg-btn">短语搭配</button>
+              </div>
+              <div class="m-list-card" style="text-align:center; padding: 28px 16px;">
+                <div style="font-size:26px; font-weight:800;">tener</div>
+                <div style="font-size:12.5px; color:var(--text-2); margin: 6px 0 16px;">点击翻面看释义、例句与时态变位</div>
+                <button class="m-btn-white" style="border:1px solid var(--border); background:var(--brand-50)">🔊 听发音 / 翻面</button>
+              </div>
+              <div class="m-list-card" onclick="switchTab('talk')" style="cursor:pointer;">
+                <span class="m-tag">推荐联动</span>
+                <div class="m-c-title">用刚复习的词去口语 Robot 造句 →</div>
+              </div>
+            </div>
+
+            <!-- TAB 5: 我的（瘦身后） -->
+            <div id="tab-me" class="hidden">
+              <div class="m-header">
+                <div class="m-brand" style="font-size:18px">我的</div>
+              </div>
+              <div class="m-list-card">
+                <div class="m-c-title">学习者账号</div>
+                <div class="m-c-meta">积分余额：120 · 当前版本 v1.0.13</div>
+              </div>
+              <div class="m-list-card">
+                <div class="m-c-title">我的下载</div>
+                <div class="m-c-meta">离线双语字幕 PDF 讲义</div>
+              </div>
+              <div class="m-list-card">
+                <div class="m-c-title">偏好设置</div>
+                <div class="m-c-meta">西语口音 / 语速 / 自动朗读 / 缓存清理</div>
+              </div>
+              <div class="m-list-card">
+                <div class="m-c-title">检查更新 &amp; 退出登录</div>
+              </div>
+            </div>
+
+            <!-- 模拟语音口语 Robot 页面 -->
+            <div id="tab-talk" class="hidden">
+              <div class="m-header">
+                <button class="m-pill-btn" onclick="switchTab('home')">← 返回</button>
+                <div style="font-weight:700; font-size:14px;">口语 Robot · 咖啡馆点单</div>
+                <span style="width:40px"></span>
+              </div>
+              <div class="m-list-card">
+                <span class="m-tag">AI 语音回复（自动播报）</span>
+                <div class="m-c-title">¡Hola! ¿Qué te gustaría tomar hoy?</div>
+                <div class="m-c-meta">展开中文提示：你好！你今天想喝点什么？</div>
+              </div>
+              <div class="m-voice-box">
+                <div style="font-size:12px; color:var(--text-2);">已用语音模式 · 无需打字</div>
+                <div class="m-orb">🎙️</div>
+                <div style="font-size:13.5px; font-weight:700;">按住说话，松开自动发送</div>
+                <div style="font-size:11px; color:var(--text-3); margin-top:4px;">可随时切换「听不懂时显示文字提示」</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone-tabs">
+            <button class="tab-btn active" id="nav-home" onclick="switchTab('home')">
+              <span class="tab-icon">🏠</span><span>首页</span>
+            </button>
+            <button class="tab-btn" id="nav-watch" onclick="switchTab('watch')">
+              <span class="tab-icon">▶️</span><span>视频</span>
+            </button>
+            <button class="tab-btn" id="nav-read" onclick="switchTab('read')">
+              <span class="tab-icon">📖</span><span>阅读</span>
+            </button>
+            <button class="tab-btn" id="nav-review" onclick="switchTab('review')">
+              <span class="tab-icon">🔁</span><span>复习</span>
+            </button>
+            <button class="tab-btn" id="nav-me" onclick="switchTab('me')">
+              <span class="tab-icon">👤</span><span>我的</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(name, sub) {
+      const ids = ['home', 'watch', 'read', 'review', 'me', 'talk'];
+      ids.forEach((id) => {
+        document.getElementById('tab-' + id).classList.toggle('hidden', id !== name);
+        const nav = document.getElementById('nav-' + id);
+        if (nav) nav.classList.toggle('active', id === name);
+      });
+      if (name === 'read' && sub) switchReadSub(sub);
+    }
+
+    function switchReadSub(sub) {
+      document.getElementById('read-news').classList.toggle('hidden', sub !== 'news');
+      document.getElementById('read-shelf').classList.toggle('hidden', sub !== 'shelf');
+      document.getElementById('seg-news').classList.toggle('active', sub === 'news');
+      document.getElementById('seg-shelf').classList.toggle('active', sub === 'shelf');
+    }
+  </script>
+</body>
+</html>

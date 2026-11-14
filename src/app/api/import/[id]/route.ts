@@ -1,6 +1,7 @@
-// Timestamp: 2026-06-09 12:20
+// Timestamp: 2026-11-15 07:35
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { deleteImportedDocumentForUser, getImportedDocumentByIdForUser } from "@/lib/import/service";
 import { presignDelete } from "@/lib/storage/cos";
@@ -13,11 +14,12 @@ function getUserId(session: unknown) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: { id: string } },
 ) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId =
+    (await getAuthedUserId(request)) ??
+    getUserId(await getServerSession(getAuthOptions()));
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -35,11 +37,12 @@ export async function GET(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: { id: string } },
 ) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId =
+    (await getAuthedUserId(request)) ??
+    getUserId(await getServerSession(getAuthOptions()));
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -51,13 +54,15 @@ export async function DELETE(
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
-  let storageDeleted = false;
-  try {
-    const url = await presignDelete({ key: document.ossKey });
-    const response = await fetch(url, { method: "DELETE", cache: "no-store" });
-    storageDeleted = response.ok || response.status === 404;
-  } catch (error) {
-    console.warn("Imported document storage delete failed; removing metadata only", error);
+  let storageDeleted = document.ossKey.startsWith("inline/");
+  if (!storageDeleted) {
+    try {
+      const url = await presignDelete({ key: document.ossKey });
+      const response = await fetch(url, { method: "DELETE", cache: "no-store" });
+      storageDeleted = response.ok || response.status === 404;
+    } catch (error) {
+      console.warn("Imported document storage delete failed; removing metadata only", error);
+    }
   }
 
   const deleted = await deleteImportedDocumentForUser(userId, context.params.id);
