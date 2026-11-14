@@ -18,6 +18,7 @@ import { useAuth } from "@/auth/AuthProvider";
 import { registerAccount } from "@/api/account";
 import {
   GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_ANDROID_REDIRECT_URI,
   GOOGLE_IOS_CLIENT_ID,
   GOOGLE_WEB_CLIENT_ID,
   isGoogleConfigured
@@ -27,12 +28,6 @@ import { colors, radius, spacing } from "@/theme";
 export default function SignInScreen() {
   const { signIn, signInWithGoogleToken } = useAuth();
 
-  // Google 原生登录:id_token 交给服务端验签,客户端不接触 client_secret
-  const [googleRequest, googleResponse, promptGoogle] = Google.useIdTokenAuthRequest({
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
-    iosClientId: GOOGLE_IOS_CLIENT_ID || undefined,
-    webClientId: GOOGLE_WEB_CLIENT_ID || undefined
-  });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -54,19 +49,6 @@ export default function SignInScreen() {
     },
     [signInWithGoogleToken]
   );
-
-  useEffect(() => {
-    if (!googleResponse) return;
-
-    if (googleResponse.type === "success") {
-      const idToken =
-        googleResponse.params?.id_token ?? googleResponse.authentication?.idToken ?? null;
-      if (idToken) void handleGoogleIdToken(idToken);
-      else setError("Google 没有返回 id_token,请重试");
-    } else if (googleResponse.type === "error") {
-      setError("Google 登录被取消或失败");
-    }
-  }, [googleResponse, handleGoogleIdToken]);
 
   const submit = async () => {
     if (busy) return;
@@ -123,20 +105,14 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.form}>
-            <Pressable
-              disabled={busy || !isGoogleConfigured || !googleRequest}
-              onPress={() => void promptGoogle()}
-              style={({ pressed }) => [
-                styles.googleButton,
-                pressed && styles.googlePressed,
-                (!isGoogleConfigured || busy) && styles.googleDisabled
-              ]}
-            >
-              <Text style={styles.googleG}>G</Text>
-              <Text style={styles.googleText}>
-                {isGoogleConfigured ? "使用 Google 继续" : "Google 登录(待配置 client id)"}
-              </Text>
-            </Pressable>
+            {isGoogleConfigured ? (
+              <GoogleAuthButton busy={busy} onIdToken={handleGoogleIdToken} onError={setError} />
+            ) : (
+              <View style={[styles.googleButton, styles.googleDisabled]}>
+                <Text style={styles.googleG}>G</Text>
+                <Text style={styles.googleText}>Google 登录(待配置 client id)</Text>
+              </View>
+            )}
 
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
@@ -228,6 +204,62 @@ export default function SignInScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+/**
+ * Google 登录按钮。
+ *
+ * 单独抽出来是因为 useIdTokenAuthRequest 在 client id 为空时会**直接抛错**
+ * (ProviderUtils.invariantClientId),如果放在登录页里调用,没配 id 的包
+ * 一进登录页就崩。所以只在 isGoogleConfigured 为真时才挂载这个组件。
+ */
+function GoogleAuthButton({
+  busy,
+  onIdToken,
+  onError
+}: {
+  busy: boolean;
+  onIdToken: (idToken: string) => void | Promise<void>;
+  onError: (message: string) => void;
+}) {
+  // redirectUri 必须显式给成 com.googleusercontent.apps.<id>:/oauthredirect,
+  // 否则默认用包名 scheme,Google 侧会 redirect_uri_mismatch
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    // 至少给一个非空值,否则 hook 内部 invariantClientId 会抛错
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID || GOOGLE_IOS_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID || undefined,
+    webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
+    redirectUri: GOOGLE_ANDROID_REDIRECT_URI,
+    shouldAutoExchangeCode: true
+  });
+
+  useEffect(() => {
+    if (!response) return;
+
+    if (response.type === "success") {
+      const idToken =
+        response.params?.id_token ?? response.authentication?.idToken ?? null;
+      if (idToken) void onIdToken(idToken);
+      else onError("Google 没有返回 id_token,请重试");
+    } else if (response.type === "error") {
+      onError("Google 登录被取消或失败");
+    }
+  }, [response, onIdToken, onError]);
+
+  return (
+    <Pressable
+      disabled={busy || !request}
+      onPress={() => void promptAsync()}
+      style={({ pressed }) => [
+        styles.googleButton,
+        pressed && styles.googlePressed,
+        busy && styles.googleDisabled
+      ]}
+    >
+      <Text style={styles.googleG}>G</Text>
+      <Text style={styles.googleText}>使用 Google 继续</Text>
+    </Pressable>
   );
 }
 

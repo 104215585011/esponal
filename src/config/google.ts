@@ -30,6 +30,22 @@ export const GOOGLE_ANDROID_CLIENT_ID = (HARD_ANDROID || ENV_ANDROID).trim();
 export const GOOGLE_IOS_CLIENT_ID = (HARD_IOS || ENV_IOS).trim();
 export const GOOGLE_WEB_CLIENT_ID = (HARD_WEB || ENV_WEB).trim();
 
+/**
+ * Google 的 Android 客户端只认一种回跳地址:
+ *   com.googleusercontent.apps.<id>:/oauthredirect
+ * 也就是「客户端 id 反写 + /oauthredirect」。
+ *
+ * expo-auth-session 在独立包里默认用的是 `${包名}:/oauthredirect`(cn.pcmuz.esponal),
+ * Google 那边会直接报 redirect_uri_mismatch,表现是授权页报错或授权完回不到 App。
+ * 所以这里显式算好传给它。
+ *
+ * app.config.js 会把同一个 scheme 写进 AndroidManifest,两边必须一致。
+ * 123-abc.apps.googleusercontent.com -> com.googleusercontent.apps.123-abc
+ */
+export const GOOGLE_ANDROID_REDIRECT_URI = GOOGLE_ANDROID_CLIENT_ID
+  ? `${GOOGLE_ANDROID_CLIENT_ID.split(".").reverse().join(".")}:/oauthredirect`
+  : undefined;
+
 /** 没填 client id 时,登录页把 Google 按钮置灰并提示,而不是点了报错 */
 export const isGoogleConfigured = Boolean(
   GOOGLE_ANDROID_CLIENT_ID || GOOGLE_IOS_CLIENT_ID || GOOGLE_WEB_CLIENT_ID
