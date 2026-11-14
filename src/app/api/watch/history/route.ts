@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { getVideoViewsByUser, upsertVideoView } from "@/lib/corpus";
+import { readWatchProgress } from "@/lib/watch-progress";
 
 type WatchHistoryBody = {
   videoId?: unknown;
@@ -92,6 +93,12 @@ export async function GET(request: Request) {
     Number.isFinite(limitValue) ? limitValue : 100
   );
 
+  // 顺带把观看进度带上，App 首页「接着看」才能显示看到哪
+  const progress = await readWatchProgress(
+    userId,
+    views.map((view) => view.videoId)
+  );
+
   return NextResponse.json({
     videos: views.map((view) => ({
       id: view.id,
@@ -99,7 +106,9 @@ export async function GET(request: Request) {
       title: view.title,
       channelTitle: view.channelTitle,
       thumbnail: view.thumbnail,
-      viewedAt: view.viewedAt.toISOString()
+      viewedAt: view.viewedAt.toISOString(),
+      position: progress[view.videoId]?.position ?? null,
+      duration: progress[view.videoId]?.duration ?? null
     }))
   });
 }
