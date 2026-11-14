@@ -272,7 +272,20 @@ export const grammarTopics: GrammarTopic[] = [
   }
 ];
 
-export const grammarGroups: GrammarGroup[] = ["动词变位", "名词性别"];
+/**
+ * 分组顺序,决定 App 里筛选 chip 的排列。
+ * 不要手写死列表 —— 之前只写了两个分组,导致「常见辨析」「句型结构」的文章
+ * 在列表页筛不出来,现在改成按顺序表 + 实际文章反推,新增分组漏写就会被兜住。
+ */
+const GROUP_ORDER: GrammarGroup[] = ["动词变位", "名词性别", "句型结构", "常见辨析"];
+
+export const grammarGroups: GrammarGroup[] = [
+  ...GROUP_ORDER.filter((group) => grammarTopics.some((topic) => topic.group === group)),
+  // 兜底:有文章挂在没登记的组上时也要能被筛到
+  ...Array.from(new Set(grammarTopics.map((topic) => topic.group))).filter(
+    (group) => !GROUP_ORDER.includes(group)
+  )
+];
 
 export function getGrammarTopic(slug: string) {
   return grammarTopics.find((topic) => topic.slug === slug);
