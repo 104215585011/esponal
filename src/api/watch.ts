@@ -36,6 +36,28 @@ export async function fetchSubtitles(videoId: string) {
   return res.cues ?? [];
 }
 
+export type VerbConjugationPersons = {
+  yo: string;
+  tu: string;
+  el: string;
+  nosotros: string;
+  vosotros: string;
+  ellos: string;
+};
+
+export type VerbConjugationsPayload = {
+  infinitive: string;
+  presente: VerbConjugationPersons;
+  preteritoIndefinido?: VerbConjugationPersons;
+  preteritoImperfecto?: VerbConjugationPersons;
+  preteritoPerfectoCompuesto?: VerbConjugationPersons;
+  futuro?: VerbConjugationPersons;
+  presenteSubjuntivo?: VerbConjugationPersons;
+  condicional?: VerbConjugationPersons;
+  participio?: string;
+  gerundio?: string;
+};
+
 export type LookupResult = {
   word: string;
   lemma: string;
@@ -50,6 +72,7 @@ export type LookupResult = {
   relatedPhrases?: Array<{ lemma: string; translationZh: string | null; kind: string }>;
   nounForms?: { singular: string; plural: string; gender: string };
   adjectiveForms?: { ms: string; fs: string; mp: string; fp: string };
+  conjugations?: VerbConjugationsPayload;
   isSaved?: boolean;
   wordId?: string | null;
 };

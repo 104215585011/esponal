@@ -92,10 +92,26 @@ export default function ImportsScreen() {
         ) : (
           <View style={styles.list}>
             {docs.map((doc) => (
-              <View key={doc.id} style={styles.card}>
+              <Pressable
+                key={doc.id}
+                onPress={() =>
+                  router.push({
+                    pathname: "/import/[id]",
+                    params: {
+                      id: doc.id,
+                      title: doc.title,
+                      kind: doc.kind,
+                      lastPosition: doc.lastPosition ?? ""
+                    }
+                  } as never)
+                }
+                style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}
+              >
                 <View style={styles.cardHead}>
                   <Text style={styles.kindBadge}>{doc.kind.toUpperCase()}</Text>
-                  <Text style={styles.statusText}>{doc.status === "ready" ? "已就绪" : doc.status}</Text>
+                  <Text style={styles.statusText}>
+                    {doc.status === "ready" ? "点击阅读 →" : doc.status}
+                  </Text>
                 </View>
                 <Text numberOfLines={2} style={styles.docTitle}>
                   {doc.title}
@@ -103,7 +119,7 @@ export default function ImportsScreen() {
                 <Text style={styles.docMeta}>
                   共 {doc.unitCount} 单元 · 上次位置 {doc.lastPosition || "起始位置"}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         )}

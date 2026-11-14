@@ -11,9 +11,45 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { lookupWord, savePhrase, saveWord, translateText, type LookupResult } from "@/api/watch";
+import {
+  lookupWord,
+  savePhrase,
+  saveWord,
+  translateText,
+  type LookupResult,
+  type VerbConjugationPersons,
+  type VerbConjugationsPayload
+} from "@/api/watch";
 import { colors, radius, spacing } from "@/theme";
 import { speakSpanish } from "@/lib/speech";
+
+type TenseKey =
+  | "presente"
+  | "preteritoIndefinido"
+  | "preteritoImperfecto"
+  | "preteritoPerfectoCompuesto"
+  | "futuro"
+  | "presenteSubjuntivo"
+  | "condicional";
+
+const VERB_TENSES: Array<{ key: TenseKey; label: string }> = [
+  { key: "presente", label: "现在时" },
+  { key: "preteritoIndefinido", label: "简单过去" },
+  { key: "preteritoImperfecto", label: "未完成过去" },
+  { key: "preteritoPerfectoCompuesto", label: "现在完成" },
+  { key: "futuro", label: "将来时" },
+  { key: "presenteSubjuntivo", label: "虚拟式" },
+  { key: "condicional", label: "条件式" }
+];
+
+const PERSON_ROWS: Array<{ key: keyof VerbConjugationPersons; label: string }> = [
+  { key: "yo", label: "yo" },
+  { key: "tu", label: "tú" },
+  { key: "el", label: "él / ella" },
+  { key: "nosotros", label: "nosotros" },
+  { key: "vosotros", label: "vosotros" },
+  { key: "ellos", label: "ellos" }
+];
 
 type LookupSheetProps = {
   word: string | null;
@@ -40,6 +76,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   const [savedHint, setSavedHint] = useState<string | null>(null);
   /** 词典未收录时的机器翻译兜底(仅供参考) */
   const [mtMeaning, setMtMeaning] = useState<string | null>(null);
+  const [activeTense, setActiveTense] = useState<TenseKey>("presente");
 
   useEffect(() => {
     if (!word) {
@@ -49,6 +86,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
       setPhraseSaved(false);
       setSavedHint(null);
       setMtMeaning(null);
+      setActiveTense("presente");
       return;
     }
 
@@ -58,6 +96,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
     setSaved(false);
     setPhraseSaved(false);
     setSavedHint(null);
+    setActiveTense("presente");
     setMtMeaning(null);
 
     lookupWord(word)
@@ -238,6 +277,14 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
 
             {formsLine ? <Text style={styles.formsLine}>{formsLine}</Text> : null}
 
+            {data.conjugations ? (
+              <VerbConjugationSection
+                activeTense={activeTense}
+                conjugations={data.conjugations}
+                onSelectTense={setActiveTense}
+              />
+            ) : null}
+
             {data.usageNote?.trim() ? (
               <View style={styles.usageBox}>
                 <Text style={styles.usageTitle}>用法</Text>
@@ -320,6 +367,68 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   );
 }
 
+function VerbConjugationSection({
+  conjugations,
+  activeTense,
+  onSelectTense
+}: {
+  conjugations: VerbConjugationsPayload;
+  activeTense: TenseKey;
+  onSelectTense: (tense: TenseKey) => void;
+}) {
+  const availableTenses = VERB_TENSES.filter((item) => Boolean(conjugations[item.key]));
+  if (availableTenses.length === 0) return null;
+
+  const currentKey = conjugations[activeTense] ? activeTense : availableTenses[0].key;
+  const currentForms = conjugations[currentKey];
+  if (!currentForms) return null;
+
+  return (
+    <View style={styles.conjBox}>
+      <View style={styles.conjHeader}>
+        <Text style={styles.conjTitle}>动词变位 · {conjugations.infinitive}</Text>
+        {conjugations.participio || conjugations.gerundio ? (
+          <Text style={styles.conjNonFinite}>
+            {conjugations.gerundio ? `副动词 ${conjugations.gerundio}` : ""}
+            {conjugations.gerundio && conjugations.participio ? " · " : ""}
+            {conjugations.participio ? `过去分词 ${conjugations.participio}` : ""}
+          </Text>
+        ) : null}
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.tenseTabs}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        {availableTenses.map((item) => {
+          const active = item.key === currentKey;
+          return (
+            <Pressable
+              key={item.key}
+              onPress={() => onSelectTense(item.key)}
+              style={[styles.tenseTab, active && styles.tenseTabActive]}
+            >
+              <Text style={[styles.tenseTabText, active && styles.tenseTabTextActive]}>
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      <View style={styles.personGrid}>
+        {PERSON_ROWS.map((row) => (
+          <View key={row.key} style={styles.personCell}>
+            <Text style={styles.personLabel}>{row.label}</Text>
+            <Text style={styles.personValue}>{currentForms[row.key]}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
@@ -393,6 +502,74 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12.5,
     color: colors.textTertiary
+  },
+  conjBox: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
+    gap: spacing.sm
+  },
+  conjHeader: {
+    gap: 2
+  },
+  conjTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.textSecondary
+  },
+  conjNonFinite: {
+    fontSize: 11.5,
+    color: colors.textTertiary
+  },
+  tenseTabs: {
+    flexDirection: "row",
+    gap: 6,
+    paddingVertical: 2
+  },
+  tenseTab: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  tenseTabActive: {
+    backgroundColor: colors.brand500,
+    borderColor: colors.brand500
+  },
+  tenseTabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.textSecondary
+  },
+  tenseTabTextActive: {
+    color: "#fff"
+  },
+  personGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  personCell: {
+    width: "48%",
+    backgroundColor: colors.bg,
+    borderRadius: radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  personLabel: {
+    fontSize: 11,
+    color: colors.textTertiary
+  },
+  personValue: {
+    marginTop: 2,
+    fontSize: 13.5,
+    fontWeight: "600",
+    color: colors.text
   },
   usageBox: {
     marginTop: spacing.md,
