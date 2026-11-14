@@ -97,6 +97,14 @@ export default function LecturaReaderScreen() {
           {story.titleZh}
         </Text>
         <Pressable
+          onPress={() =>
+            router.push({ pathname: "/listening/[slug]", params: { slug: story.slug } } as never)
+          }
+          style={styles.blindButton}
+        >
+          <Text style={styles.blindText}>🎧 盲听</Text>
+        </Pressable>
+        <Pressable
           onPress={speech.togglePlayAll}
           style={[styles.listenButton, speech.playingIndex !== null && styles.listenButtonOn]}
         >
@@ -283,6 +291,13 @@ const styles = StyleSheet.create({
   },
   listenText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
   listenTextOn: { color: "#fff" },
+  blindButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand50
+  },
+  blindText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
   paraWrap: {
     borderLeftWidth: 3,
     borderLeftColor: "transparent",

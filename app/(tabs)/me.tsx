@@ -104,6 +104,14 @@ export default function MeScreen() {
           </Pressable>
 
           <Pressable
+            onPress={() => router.push("/listening" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>听力精听</Text>
+            <Text style={styles.metaAction}>继续</Text>
+          </Pressable>
+
+          <Pressable
             onPress={() => router.push("/phrases" as never)}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >
