@@ -26,6 +26,9 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Generate native project
+        # GOOGLE_ANDROID_CLIENT_ID 决定 Google 登录回跳 scheme 是否写进 AndroidManifest
+        env:
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID }}
         run: npx expo prebuild --platform android --no-install
 
       - name: Configure build (single ABI + SDK path)
@@ -38,6 +41,8 @@ jobs:
       - name: Build release APK
         env:
           EXPO_PUBLIC_API_BASE: https://www.pcmuz.cn
+          # EXPO_PUBLIC_* 在打包 JS 时内联,所以这里也必须给
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID }}
         run: |
           cd android
           chmod +x gradlew
