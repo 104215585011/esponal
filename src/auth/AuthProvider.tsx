@@ -1,6 +1,7 @@
 // Timestamp: 2026-11-13 17:25
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { API_BASE, apiFetch, setSessionExpiredHandler, tokenStore } from "@/api/client";
+import { GOOGLE_ANDROID_REDIRECT_URI } from "@/config/google";
 
 export type AuthUser = {
   id: string;
@@ -16,6 +17,12 @@ type AuthState = {
   signIn: (email: string, password: string) => Promise<void>;
   /** Google 登录:把 expo-auth-session 拿到的 id_token 交给服务端验签并换 token */
   signInWithGoogleToken: (idToken: string) => Promise<void>;
+  /**
+   * Google 登录(主路径):authorization code + PKCE verifier 交给服务端换 token。
+   * 客户端自己换 code 的路径在 expo-auth-session 里没有任何错误处理,失败时一片安静,
+   * 所以这里走服务端交换,Google 的具体错误能显示出来。
+   */
+  signInWithGoogleCode: (code: string, codeVerifier: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -125,6 +132,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("signedIn");
   }, []);
 
+  const signInWithGoogleCode = useCallback(async (code: string, codeVerifier: string) => {
+    const res = await fetch(`${API_BASE}/api/mobile/auth/google-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, codeVerifier, redirectUri: GOOGLE_ANDROID_REDIRECT_URI })
+    });
+
+    const body = (await res.json().catch(() => null)) as
+      | (LoginResponse & {
+          error?: string | { code?: string; message?: string };
+          code?: string;
+          errorDescription?: string | null;
+        })
+      | null;
+
+    if (!res.ok || !body?.accessToken) {
+      const code =
+        typeof body?.error === "object" ? body?.error?.code : (body?.code ?? body?.error);
+      throw new Error(
+        code === "NOT_CONFIGURED"
+          ? "服务端还没配置 Google 登录"
+          : code === "EMAIL_NOT_VERIFIED"
+            ? "这个 Google 邮箱还没验证"
+            : code === "GOOGLE_EXCHANGE_FAILED"
+              ? `Google 授权交换失败:${body?.errorDescription ?? body?.error ?? "未知原因"}`
+              : code === "INVALID_GOOGLE_TOKEN"
+                ? "Google 凭证已失效,请重试"
+                : "Google 登录失败,请稍后再试"
+      );
+    }
+
+    await tokenStore.save(body.accessToken, body.refreshToken);
+    await tokenStore.saveUser(body.user);
+    setUser(body.user);
+    setStatus("signedIn");
+  }, []);
+
   const signOut = useCallback(async () => {
     const refreshToken = await tokenStore.getRefresh();
 
@@ -142,8 +186,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, signIn, signInWithGoogleToken, signOut }),
-    [status, user, signIn, signInWithGoogleToken, signOut]
+    () => ({ status, user, signIn, signInWithGoogleToken, signInWithGoogleCode, signOut }),
+    [status, user, signIn, signInWithGoogleToken, signInWithGoogleCode, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

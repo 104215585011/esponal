@@ -26,7 +26,7 @@ import {
 import { colors, radius, spacing } from "@/theme";
 
 export default function SignInScreen() {
-  const { signIn, signInWithGoogleToken } = useAuth();
+  const { signIn, signInWithGoogleCode } = useAuth();
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
@@ -35,19 +35,20 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const handleGoogleIdToken = useCallback(
-    async (idToken: string) => {
+  const handleGoogleCode = useCallback(
+    async (code: string, codeVerifier: string) => {
       setBusy(true);
       setError(null);
       try {
-        await signInWithGoogleToken(idToken);
+        await signInWithGoogleCode(code, codeVerifier);
       } catch (e) {
+        // 服务端会把 Google 的具体错误(error_description)透传过来,直接显示方便定位
         setError(e instanceof Error ? e.message : "Google 登录失败");
       } finally {
         setBusy(false);
       }
     },
-    [signInWithGoogleToken]
+    [signInWithGoogleCode]
   );
 
   const submit = async () => {
@@ -106,7 +107,7 @@ export default function SignInScreen() {
 
           <View style={styles.form}>
             {isGoogleConfigured ? (
-              <GoogleAuthButton busy={busy} onIdToken={handleGoogleIdToken} onError={setError} />
+              <GoogleAuthButton busy={busy} onCode={handleGoogleCode} onError={setError} />
             ) : (
               <View style={[styles.googleButton, styles.googleDisabled]}>
                 <Text style={styles.googleG}>G</Text>
@@ -216,11 +217,11 @@ export default function SignInScreen() {
  */
 function GoogleAuthButton({
   busy,
-  onIdToken,
+  onCode,
   onError
 }: {
   busy: boolean;
-  onIdToken: (idToken: string) => void | Promise<void>;
+  onCode: (code: string, codeVerifier: string) => void | Promise<void>;
   onError: (message: string) => void;
 }) {
   // redirectUri 必须显式给成 com.googleusercontent.apps.<id>:/oauthredirect,
@@ -231,21 +232,30 @@ function GoogleAuthButton({
     iosClientId: GOOGLE_IOS_CLIENT_ID || undefined,
     webClientId: GOOGLE_WEB_CLIENT_ID || undefined,
     redirectUri: GOOGLE_ANDROID_REDIRECT_URI,
-    shouldAutoExchangeCode: true
+    // 关键:不让 expo-auth-session 在客户端换 code —— 它那段代码没有错误处理,
+    // Google 拒绝时表现为"什么都没发生"。code + verifier 交给服务端换,错误可见。
+    shouldAutoExchangeCode: false
   });
 
   useEffect(() => {
     if (!response) return;
 
     if (response.type === "success") {
-      const idToken =
-        response.params?.id_token ?? response.authentication?.idToken ?? null;
-      if (idToken) void onIdToken(idToken);
-      else onError("Google 没有返回 id_token,请重试");
+      const code = response.params?.code ?? response.authentication?.idToken ?? null;
+      const verifier = request?.codeVerifier ?? "";
+      if (code && verifier) {
+        void onCode(code, verifier);
+      } else if (!code) {
+        onError("Google 没有返回授权码,请重试");
+      } else {
+        onError("本地缺少 PKCE 校验串,请重试");
+      }
     } else if (response.type === "error") {
-      onError("Google 登录被取消或失败");
+      const detail =
+        (response.error as { message?: string } | undefined)?.message ?? null;
+      onError(detail ? `Google 登录出错:${detail}` : "Google 登录被取消或失败");
     }
-  }, [response, onIdToken, onError]);
+  }, [response, request?.codeVerifier, onCode, onError]);
 
   return (
     <Pressable
