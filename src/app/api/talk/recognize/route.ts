@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
 import { transcribeViaWhisperTunnel } from "@/lib/talk/whisper-client";
+import { getAuthedUserId } from "@/lib/api-auth";
 
 type Body = {
   audioBase64?: unknown;
@@ -9,15 +8,8 @@ type Body = {
   mimeType?: unknown;
 };
 
-function getSessionUserId(session: unknown): string | null {
-  if (!session || typeof session !== "object" || !("user" in session)) return null;
-  const user = (session as { user?: { id?: unknown } }).user;
-  return typeof user?.id === "string" ? user.id : null;
-}
-
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  if (!getSessionUserId(session)) {
+  if (!(await getAuthedUserId(request))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

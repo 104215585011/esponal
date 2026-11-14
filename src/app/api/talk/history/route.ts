@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getTalkCharacterById } from "@/lib/talk/characters";
 import { listUserHistory } from "@/lib/talk/history-service";
 import { getMessageEncryptionSecret } from "@/lib/talk/env";
-
-function getSessionUserId(session: unknown): string | null {
-  if (!session || typeof session !== "object" || !("user" in session)) return null;
-  const user = (session as { user?: { id?: unknown } }).user;
-  return typeof user?.id === "string" ? user.id : null;
-}
+import { getAuthedUserId } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getSessionUserId(session);
+  const userId = await getAuthedUserId(request);
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }

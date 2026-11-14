@@ -1,19 +1,11 @@
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
 import { getTalkCharacterById } from "@/lib/talk/characters";
 import { synthesizeSpeech } from "@/lib/talk/speech";
+import { getAuthedUserId } from "@/lib/api-auth";
 
 type Body = { characterId?: unknown; text?: unknown };
 
-function getSessionUserId(session: unknown): string | null {
-  if (!session || typeof session !== "object" || !("user" in session)) return null;
-  const user = (session as { user?: { id?: unknown } }).user;
-  return typeof user?.id === "string" ? user.id : null;
-}
-
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  if (!getSessionUserId(session)) {
+  if (!(await getAuthedUserId(request))) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { "content-type": "application/json" }
