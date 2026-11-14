@@ -81,6 +81,16 @@ export default function WatchPlayerScreen() {
   const videoHeight = Math.round((width * 9) / 16);
   const totalDuration = duration > 0 ? duration : cueDuration;
 
+  // 全屏 16:9 适配:以屏幕短边为限,等比缩放居中,多余部分留黑边。
+  // 不能直接铺满 —— 手机横屏普遍是 20:9,直接满屏会裁掉视频底部并把控制条挤出屏幕。
+  const fsFit = useMemo(() => {
+    if (width / winHeight > 16 / 9) {
+      const h = winHeight;
+      return { w: Math.round((h * 16) / 9), h };
+    }
+    return { w: width, h: Math.round((width * 9) / 16) };
+  }, [width, winHeight]);
+
   // 字幕加载
   useEffect(() => {
     if (!videoId) return;
@@ -316,16 +326,19 @@ export default function WatchPlayerScreen() {
 
   return (
     <View style={styles.root}>
-      {/* 视频区(唯一使用 WebView 的地方);全屏时该容器绝对定位铺满整屏 */}
+      {/* 视频区(唯一使用 WebView 的地方);全屏时该容器绝对定位铺满整屏,
+          播放器按 16:9 适配后居中(多余留黑边) */}
       <View
         style={[
           styles.videoWrap,
           { height: videoHeight },
-          fullscreen && styles.videoWrapFullscreen
+          fullscreen
+            ? { ...styles.videoWrapFullscreen, height: winHeight }
+            : null
         ]}
       >
         <YoutubePlayer
-          height={fullscreen ? winHeight : videoHeight}
+          height={fullscreen ? fsFit.h : videoHeight}
           // HTML 打进安装包,不再依赖 GitHub Pages(国内网络下那个域名经常加载失败,
           // 加载失败 = YT API 播放器初始化不了,所有控制全部失灵)
           useLocalHTML
@@ -357,7 +370,7 @@ export default function WatchPlayerScreen() {
           play={playing}
           ref={playerRef}
           videoId={String(videoId)}
-          width={width}
+          width={fullscreen ? fsFit.w : width}
         />
 
         {/* 透明触摸层:拦截视频区的所有点击,播放/暂停只走我们自己的控制,
@@ -619,7 +632,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 10
+    zIndex: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000"
   },
   backButton: {
     position: "absolute",
