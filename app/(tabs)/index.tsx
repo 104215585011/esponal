@@ -22,6 +22,13 @@ import {
   type WatchHistoryItem
 } from "@/api/stats";
 import { colors, radius, spacing } from "@/theme";
+import {
+  formatPosition,
+  getAllWatchProgress,
+  loadWatchProgress,
+  shouldResume,
+  type WatchProgress
+} from "@/lib/watchProgress";
 
 /**
  * 首页 = 学习看板。
@@ -40,6 +47,8 @@ export default function HomeScreen() {
   const [due, setDue] = useState<number | null>(null);
   const [stats, setStats] = useState<VocabStats | null>(null);
   const [history, setHistory] = useState<WatchHistoryItem[]>([]);
+  /** 本地观看进度:用来在「接着看」上标出看到哪了 */
+  const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -55,6 +64,10 @@ export default function HomeScreen() {
     if (queueRes.status === "fulfilled") setDue(queueRes.value.totalDue ?? 0);
     if (statsRes.status === "fulfilled") setStats(statsRes.value);
     if (historyRes.status === "fulfilled") setHistory(historyRes.value);
+
+    // 进度是本地数据,和上面三个接口并行读,失败也不影响首页
+    await loadWatchProgress();
+    setProgress(getAllWatchProgress());
 
     setLoading(false);
     setRefreshing(false);
@@ -198,35 +211,54 @@ export default function HomeScreen() {
               horizontal
               showsHorizontalScrollIndicator={false}
             >
-              {history.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/watch/[videoId]",
-                      params: {
-                        videoId: item.videoId,
-                        title: item.title,
-                        channelTitle: item.channelTitle,
-                        thumbnail: item.thumbnail ?? ""
-                      }
-                    } as never)
-                  }
-                  style={({ pressed }) => [styles.historyCard, pressed && styles.pressed]}
-                >
-                  {item.thumbnail ? (
-                    <Image source={{ uri: item.thumbnail }} style={styles.historyThumb} />
-                  ) : (
-                    <View style={[styles.historyThumb, styles.historyThumbEmpty]} />
-                  )}
-                  <Text numberOfLines={2} style={styles.historyTitle}>
-                    {item.title}
-                  </Text>
-                  <Text numberOfLines={1} style={styles.historyChannel}>
-                    {item.channelTitle}
-                  </Text>
-                </Pressable>
-              ))}
+              {history.map((item) => {
+                const saved = progress[item.videoId];
+                const resumable = shouldResume(saved);
+                const pct =
+                  resumable && saved && saved.duration > 0
+                    ? Math.min(100, (saved.position / saved.duration) * 100)
+                    : 0;
+
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/watch/[videoId]",
+                        params: {
+                          videoId: item.videoId,
+                          title: item.title,
+                          channelTitle: item.channelTitle,
+                          thumbnail: item.thumbnail ?? ""
+                        }
+                      } as never)
+                    }
+                    style={({ pressed }) => [styles.historyCard, pressed && styles.pressed]}
+                  >
+                    {item.thumbnail ? (
+                      <Image source={{ uri: item.thumbnail }} style={styles.historyThumb} />
+                    ) : (
+                      <View style={[styles.historyThumb, styles.historyThumbEmpty]} />
+                    )}
+                    <Text numberOfLines={2} style={styles.historyTitle}>
+                      {item.title}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.historyChannel}>
+                      {item.channelTitle}
+                    </Text>
+                    {resumable && saved ? (
+                      <View style={styles.historyProgressRow}>
+                        <View style={styles.historyProgressTrack}>
+                          <View style={[styles.historyProgressFill, { width: `${Math.max(4, pct)}%` }]} />
+                        </View>
+                        <Text style={styles.historyProgressText}>
+                          看到 {formatPosition(saved.position)}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </View>
         ) : null}
@@ -395,6 +427,15 @@ const styles = StyleSheet.create({
     color: colors.text
   },
   historyChannel: { marginTop: 2, fontSize: 10.5, color: colors.textTertiary },
+  historyProgressRow: { marginTop: 4, gap: 3 },
+  historyProgressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceMuted,
+    overflow: "hidden"
+  },
+  historyProgressFill: { height: 3, borderRadius: 2, backgroundColor: colors.brand500 },
+  historyProgressText: { fontSize: 10, fontWeight: "600", color: colors.brand600 },
   entryList: {
     marginTop: spacing.xl,
     backgroundColor: colors.bg,

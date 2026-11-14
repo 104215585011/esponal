@@ -24,6 +24,8 @@ export type Preferences = {
   autoNextParagraph: boolean;
   /** 复习时换到新卡片自动念一遍单词 */
   autoSpeakReview: boolean;
+  /** 视频播放倍速:精听的人习惯长期用 0.75,不该每次进页面都回到 1x */
+  videoRate: number;
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -32,7 +34,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   // 点「朗读」本来就该一段接一段念下去,默认开;不想要连续的人自己去设置页关
   autoNextParagraph: true,
   // 复习卡自动发音比较打扰,默认关
-  autoSpeakReview: false
+  autoSpeakReview: false,
+  videoRate: 1
 };
 
 export const ACCENT_OPTIONS: Array<{ value: SpeechAccent; label: string; hint: string }> = [
@@ -66,7 +69,11 @@ function normalize(raw: unknown): Preferences {
     rate,
     // 只有明确存过 false 才关(老版本存档里没这个字段 → 保持"开")
     autoNextParagraph: value.autoNextParagraph !== false,
-    autoSpeakReview: value.autoSpeakReview === true
+    autoSpeakReview: value.autoSpeakReview === true,
+    videoRate:
+      typeof value.videoRate === "number" && value.videoRate >= 0.5 && value.videoRate <= 2
+        ? value.videoRate
+        : DEFAULT_PREFERENCES.videoRate
   };
 }
 

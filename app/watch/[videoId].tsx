@@ -24,8 +24,17 @@ import {
   subscribeDownloadJob,
   type DownloadJobState
 } from "@/subtitles/subtitleDownload";
+import { getPreferences, updatePreferences } from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
+import {
+  clearWatchProgress,
+  formatPosition,
+  getWatchProgress,
+  loadWatchProgress,
+  saveWatchProgress,
+  shouldResume
+} from "@/lib/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
 /**
@@ -72,8 +81,19 @@ export default function WatchPlayerScreen() {
   const [downloadJob, setDownloadJob] = useState<DownloadJobState>(getDownloadJob());
   /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
   const [playerError, setPlayerError] = useState<string | null>(null);
-  /** 倍速:精听时放慢,泛听时加速(YouTube iframe 原生支持,不改音调) */
-  const [rate, setRate] = useState(1);
+  /** 倍速:精听时放慢,泛听时加速(YouTube iframe 原生支持,不改音调);记住上次选择 */
+  const [rate, setRate] = useState(() => getPreferences().videoRate ?? 1);
+  /**
+   * 续播:进页面读一次本地进度,播放器就绪后跳过去。
+   * resumedRef 防止 probeDuration 被调用多次时反复 seek(那会把用户拖回起点)。
+   */
+  const [resumeAt, setResumeAt] = useState<number | null>(null);
+  const resumedRef = useRef(false);
+  const [resumeNotice, setResumeNotice] = useState<number | null>(null);
+  const currentTimeRef = useRef(0);
+  const lastSavedRef = useRef(0);
+  const videoIdRef = useRef(String(videoId ?? ""));
+  const durationRef = useRef(0);
 
   // 字幕末尾时间 —— 播放器时长拿不到时的兜底(安卓上 getDuration 在首次播放前经常返回 0)
   const cueDuration = useMemo(() => {
@@ -129,6 +149,88 @@ export default function WatchPlayerScreen() {
     };
   }, [videoId]);
 
+  // 续播:进页面读一次本地进度（还没播就先准备好位置，等播放器报出时长再跳）
+  useEffect(() => {
+    let cancelled = false;
+    resumedRef.current = false;
+    setResumeAt(null);
+    setResumeNotice(null);
+
+    void loadWatchProgress().then(() => {
+      if (cancelled) return;
+      const progress = getWatchProgress(String(videoId));
+      if (shouldResume(progress)) setResumeAt(progress!.position);
+      // 只看了几秒、或已经看到片尾的，把记录清掉，别让首页一直显示"看了一半"
+      else if (progress) void clearWatchProgress(String(videoId));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [videoId]);
+
+  /** 时长一到就跳到上次位置。只跳一次，resumedRef 挡住后续重复 seek */
+  const applyResume = useCallback(async () => {
+    if (resumedRef.current || resumeAt === null) return;
+
+    try {
+      const d = await playerRef.current?.getDuration();
+      if (!(typeof d === "number" && d > 0)) return;
+
+      if (resumeAt >= d * 0.92) {
+        // 换设备/换版本后时长变了，原本的位置其实已经到片尾
+        resumedRef.current = true;
+        void clearWatchProgress(String(videoId));
+        return;
+      }
+
+      resumedRef.current = true;
+      await playerRef.current?.seekTo(resumeAt, true);
+      setCurrentTime(resumeAt);
+      currentTimeRef.current = resumeAt;
+      setResumeNotice(resumeAt);
+    } catch {
+      // 播放器未就绪时忽略,下次 playing 还会再试
+    }
+  }, [resumeAt, videoId]);
+
+  // 本地进度是异步读出来的，可能比 onReady 晚。位置一到就补一次跳转
+  useEffect(() => {
+    if (resumeAt === null) return;
+    void applyResume();
+  }, [resumeAt, applyResume]);
+
+  // 提示条 8 秒后自动收起，别一直占着屏幕
+  useEffect(() => {
+    if (resumeNotice === null) return;
+    const timer = setTimeout(() => setResumeNotice(null), 8000);
+    return () => clearTimeout(timer);
+  }, [resumeNotice]);
+
+  /** 从头开始:清掉进度并回到 0（"我看到一半但想重看" 是很常见的动作） */
+  const restartFromBeginning = useCallback(() => {
+    try {
+      playerRef.current?.seekTo(0, true);
+    } catch {
+      // ignore
+    }
+    setCurrentTime(0);
+    currentTimeRef.current = 0;
+    setResumeNotice(null);
+    setResumeAt(null);
+    resumedRef.current = true;
+    void clearWatchProgress(String(videoId));
+  }, [videoId]);
+
+  // 离开页面时补存一次，避免最后 5 秒的进度丢掉
+  useEffect(() => {
+    videoIdRef.current = String(videoId ?? "");
+    return () => {
+      const t = currentTimeRef.current;
+      if (t > 1) void saveWatchProgress(videoIdRef.current, t, durationRef.current);
+    };
+  }, [videoId]);
+
   // 轮询播放进度:驱动当前句高亮 + 进度条 + 单句循环
   useEffect(() => {
     const timer = setInterval(async () => {
@@ -139,6 +241,13 @@ export default function WatchPlayerScreen() {
         const t = await playerRef.current?.getCurrentTime();
         if (typeof t === "number" && Number.isFinite(t)) {
           setCurrentTime(t);
+          currentTimeRef.current = t;
+
+          // 每 5 秒落一次盘。写得太频繁没必要，太稀疏则闪退会丢比较多
+          if (t > 0 && Date.now() - lastSavedRef.current > 5000) {
+            lastSavedRef.current = Date.now();
+            void saveWatchProgress(String(videoIdRef.current), t, durationRef.current);
+          }
 
           // 单句循环:播完当前字幕句就跳回句首
           if (loop && cues.length > 0) {
@@ -171,11 +280,16 @@ export default function WatchPlayerScreen() {
   const probeDuration = useCallback(async () => {
     try {
       const d = await playerRef.current?.getDuration();
-      if (typeof d === "number" && d > 0) setDuration(d);
+      if (typeof d === "number" && d > 0) {
+        setDuration(d);
+        durationRef.current = d;
+        // 时长一拿到就能续播了（安卓上首次播放前 getDuration 返回 0，所以放这里）
+        void applyResume();
+      }
     } catch {
       // 播放器未就绪时忽略
     }
-  }, []);
+  }, [applyResume]);
 
   // 横屏全屏
   const enterFullscreen = useCallback(async () => {
@@ -487,6 +601,18 @@ export default function WatchPlayerScreen() {
         )}
       </View>
 
+      {/* 续播提示:明确告诉用户"不是从头开始",并给一个回到开头的出口 */}
+      {resumeNotice !== null ? (
+        <View style={styles.resumeBar}>
+          <Text style={styles.resumeText}>
+            已从 {formatPosition(resumeNotice)} 继续上次进度
+          </Text>
+          <Pressable hitSlop={8} onPress={restartFromBeginning}>
+            <Text style={styles.resumeAction}>从头开始</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {/* 原生控制条:进度条 + 按钮行 */}
       <View style={styles.controlWrap}>
         {/* 字幕下载进度(后台任务,离开页面也不中断) */}
@@ -589,12 +715,14 @@ export default function WatchPlayerScreen() {
             </Text>
           </Pressable>
 
-          {/* 倍速循环切换 0.75 → 1 → 1.25 → 1.5 */}
+          {/* 倍速循环切换 0.75 → 1 → 1.25 → 1.5,记住上次的选择 */}
           <Pressable
             onPress={() =>
               setRate((prev) => {
                 const i = RATE_STEPS.indexOf(prev);
-                return RATE_STEPS[(i + 1) % RATE_STEPS.length];
+                const next = RATE_STEPS[(i + 1) % RATE_STEPS.length];
+                void updatePreferences({ videoRate: next });
+                return next;
               })
             }
             style={[styles.followChip, rate !== 1 && styles.followChipOn]}
@@ -781,6 +909,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm
   },
+  resumeBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.sm,
+    backgroundColor: colors.brand50
+  },
+  resumeText: { flex: 1, fontSize: 12, fontWeight: "600", color: colors.brand700 },
+  resumeAction: { fontSize: 12, fontWeight: "700", color: colors.brand600 },
   dlText: { fontSize: 11, fontWeight: "600", color: colors.brand700 },
   dlTrack: {
     marginTop: 4,
