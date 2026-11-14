@@ -1,5 +1,5 @@
 // Timestamp: 2026-11-13 17:32
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,18 +13,60 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import * as Google from "expo-auth-session/providers/google";
 import { useAuth } from "@/auth/AuthProvider";
 import { registerAccount } from "@/api/account";
+import {
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+  isGoogleConfigured
+} from "@/config/google";
 import { colors, radius, spacing } from "@/theme";
 
 export default function SignInScreen() {
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogleToken } = useAuth();
+
+  // Google 原生登录:id_token 交给服务端验签,客户端不接触 client_secret
+  const [googleRequest, googleResponse, promptGoogle] = Google.useIdTokenAuthRequest({
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID || undefined,
+    iosClientId: GOOGLE_IOS_CLIENT_ID || undefined,
+    webClientId: GOOGLE_WEB_CLIENT_ID || undefined
+  });
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const handleGoogleIdToken = useCallback(
+    async (idToken: string) => {
+      setBusy(true);
+      setError(null);
+      try {
+        await signInWithGoogleToken(idToken);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Google 登录失败");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [signInWithGoogleToken]
+  );
+
+  useEffect(() => {
+    if (!googleResponse) return;
+
+    if (googleResponse.type === "success") {
+      const idToken =
+        googleResponse.params?.id_token ?? googleResponse.authentication?.idToken ?? null;
+      if (idToken) void handleGoogleIdToken(idToken);
+      else setError("Google 没有返回 id_token,请重试");
+    } else if (googleResponse.type === "error") {
+      setError("Google 登录被取消或失败");
+    }
+  }, [googleResponse, handleGoogleIdToken]);
 
   const submit = async () => {
     if (busy) return;
@@ -81,6 +123,27 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.form}>
+            <Pressable
+              disabled={busy || !isGoogleConfigured || !googleRequest}
+              onPress={() => void promptGoogle()}
+              style={({ pressed }) => [
+                styles.googleButton,
+                pressed && styles.googlePressed,
+                (!isGoogleConfigured || busy) && styles.googleDisabled
+              ]}
+            >
+              <Text style={styles.googleG}>G</Text>
+              <Text style={styles.googleText}>
+                {isGoogleConfigured ? "使用 Google 继续" : "Google 登录(待配置 client id)"}
+              </Text>
+            </Pressable>
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>或</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
             {mode === "signup" ? (
               <View style={styles.field}>
                 <Text style={styles.label}>昵称(可留空)</Text>
@@ -238,6 +301,24 @@ const styles = StyleSheet.create({
   buttonPressed: { backgroundColor: colors.brand600 },
   buttonBusy: { opacity: 0.8 },
   buttonText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    height: 50,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg
+  },
+  googlePressed: { backgroundColor: colors.surfaceMuted },
+  googleDisabled: { opacity: 0.5 },
+  googleG: { fontSize: 17, fontWeight: "800", color: "#4285F4" },
+  googleText: { fontSize: 14.5, fontWeight: "600", color: colors.text },
+  dividerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  dividerText: { fontSize: 11.5, color: colors.textTertiary },
   switchRow: { marginTop: spacing.lg, alignItems: "center" },
   switchText: { fontSize: 13, fontWeight: "600", color: colors.brand600 },
   footnote: {

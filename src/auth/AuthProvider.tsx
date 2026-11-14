@@ -14,6 +14,8 @@ type AuthState = {
   status: "loading" | "signedIn" | "signedOut";
   user: AuthUser | null;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Google 登录:把 expo-auth-session 拿到的 id_token 交给服务端验签并换 token */
+  signInWithGoogleToken: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -92,6 +94,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("signedIn");
   }, []);
 
+  const signInWithGoogleToken = useCallback(async (idToken: string) => {
+    const res = await fetch(`${API_BASE}/api/mobile/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken })
+    });
+
+    const body = (await res.json().catch(() => null)) as
+      | (LoginResponse & { error?: string | { code?: string; message?: string }; code?: string })
+      | null;
+
+    if (!res.ok || !body?.accessToken) {
+      const code =
+        typeof body?.error === "object" ? body?.error?.code : (body?.code ?? body?.error);
+      throw new Error(
+        code === "NOT_CONFIGURED"
+          ? "服务端还没配置 Google 登录"
+          : code === "INVALID_GOOGLE_TOKEN"
+            ? "Google 凭证已失效,请重试"
+            : code === "EMAIL_NOT_VERIFIED"
+              ? "这个 Google 邮箱还没验证"
+              : "Google 登录失败,请稍后再试"
+      );
+    }
+
+    await tokenStore.save(body.accessToken, body.refreshToken);
+    await tokenStore.saveUser(body.user);
+    setUser(body.user);
+    setStatus("signedIn");
+  }, []);
+
   const signOut = useCallback(async () => {
     const refreshToken = await tokenStore.getRefresh();
 
@@ -109,8 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, signIn, signOut }),
-    [status, user, signIn, signOut]
+    () => ({ status, user, signIn, signInWithGoogleToken, signOut }),
+    [status, user, signIn, signInWithGoogleToken, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
