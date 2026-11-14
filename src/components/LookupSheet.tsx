@@ -12,7 +12,7 @@ import {
 import * as Speech from "expo-speech";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { lookupWord, saveWord, translateText, type LookupResult } from "@/api/watch";
+import { lookupWord, savePhrase, saveWord, translateText, type LookupResult } from "@/api/watch";
 import { colors, radius, spacing } from "@/theme";
 
 type LookupSheetProps = {
@@ -35,6 +35,8 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [phraseSaving, setPhraseSaving] = useState(false);
+  const [phraseSaved, setPhraseSaved] = useState(false);
   const [savedHint, setSavedHint] = useState<string | null>(null);
   /** 词典未收录时的机器翻译兜底(仅供参考) */
   const [mtMeaning, setMtMeaning] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
       setData(null);
       setError(null);
       setSaved(false);
+      setPhraseSaved(false);
       setSavedHint(null);
       setMtMeaning(null);
       return;
@@ -53,6 +56,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
     setLoading(true);
     setError(null);
     setSaved(false);
+    setPhraseSaved(false);
     setSavedHint(null);
     setMtMeaning(null);
 
@@ -114,6 +118,34 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   const meanings = data?.meanings ?? [];
   const examples = data?.examples ?? [];
   const relatedPhrases = data?.relatedPhrases ?? [];
+
+  /** 收藏整个词组/搭配:视频里遇到固定搭配时比存单词更有用 */
+  const handleSavePhrase = useCallback(async () => {
+    if (!data || phraseSaving) return;
+    setPhraseSaving(true);
+    setSavedHint(null);
+
+    try {
+      await savePhrase({
+        lemma: data.lemma,
+        kind: data.lemma.trim().includes(" ") ? "collocation" : "phrase",
+        translationZh: data.meanings?.[0] ?? mtMeaning ?? null,
+        explanationZh: data.usageNote || data.morphInfo || null,
+        data: {
+          meanings: data.meanings ?? [],
+          examples: data.examples ?? [],
+          phonetic: data.phonetic ?? null,
+          source: context ? { sentence: context, type: "mobile" } : undefined
+        }
+      });
+      setPhraseSaved(true);
+      setSavedHint("已收藏到「短语与搭配」");
+    } catch (e) {
+      setSavedHint(e instanceof Error ? e.message : "收藏失败");
+    } finally {
+      setPhraseSaving(false);
+    }
+  }, [data, phraseSaving, context, mtMeaning]);
 
   /** 名词/形容词变位拼成一行文字 */
   const formsLine = useMemo(() => {
@@ -254,15 +286,33 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
               </Text>
             ) : null}
 
-            <Pressable
-              disabled={saving || saved}
-              onPress={handleSave}
-              style={[styles.saveButton, saved && styles.saveButtonDone]}
-            >
-              <Text style={[styles.saveButtonText, saved && styles.saveButtonTextDone]}>
-                {saved ? "已在词库" : saving ? "加入中…" : "加入词库"}
-              </Text>
-            </Pressable>
+            <View style={styles.actionRow}>
+              <Pressable
+                disabled={saving || saved}
+                onPress={handleSave}
+                style={[styles.saveButton, styles.actionFlex, saved && styles.saveButtonDone]}
+              >
+                <Text style={[styles.saveButtonText, saved && styles.saveButtonTextDone]}>
+                  {saved ? "已在词库" : saving ? "加入中…" : "加入词库"}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                disabled={phraseSaving || phraseSaved}
+                onPress={handleSavePhrase}
+                style={[
+                  styles.phraseButton,
+                  styles.actionFlex,
+                  phraseSaved && styles.saveButtonDone
+                ]}
+              >
+                <Text
+                  style={[styles.phraseButtonText, phraseSaved && styles.saveButtonTextDone]}
+                >
+                  {phraseSaved ? "已收藏" : phraseSaving ? "收藏中…" : "收藏搭配"}
+                </Text>
+              </Pressable>
+            </View>
 
             {savedHint ? <Text style={styles.savedHint}>{savedHint}</Text> : null}
           </ScrollView>
@@ -379,13 +429,25 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   saveButton: {
-    marginTop: spacing.xl,
+    marginTop: 0,
     height: 50,
     borderRadius: radius.md,
     backgroundColor: colors.brand500,
     alignItems: "center",
     justifyContent: "center"
   },
+  actionRow: { marginTop: spacing.xl, flexDirection: "row", gap: spacing.sm },
+  actionFlex: { flex: 1 },
+  phraseButton: {
+    height: 50,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand500,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.bg
+  },
+  phraseButtonText: { fontSize: 14.5, fontWeight: "700", color: colors.brand600 },
   saveButtonDone: {
     backgroundColor: colors.brand50
   },

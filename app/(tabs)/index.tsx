@@ -256,6 +256,7 @@ export default function HomeScreen() {
 const BUCKET_COLORS = ["#D6EFE3", "#A7DFC6", "#5EC79B", colors.brand600];
 
 const ENTRIES = [
+  { icon: "💬", title: "口语练习", hint: "和 AI 角色用西语对话", href: "/talk" },
   { icon: "🎬", title: "看视频", hint: "双语字幕 + 点词查词", href: "/watch" },
   { icon: "🔍", title: "搜视频", hint: "按关键词找任意西语内容", href: "/search" },
   { icon: "📖", title: "读短文", hint: "分级读物 + 逐句解析", href: "/lectura" },

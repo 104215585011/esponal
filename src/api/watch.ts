@@ -70,6 +70,20 @@ export async function saveWord(body: {
   });
 }
 
+/** 收藏搭配/短语/习语(与 Web 端 LookupCard 同一个接口) */
+export async function savePhrase(body: {
+  lemma: string;
+  kind: "collocation" | "phrase" | "idiom";
+  translationZh?: string | null;
+  explanationZh?: string | null;
+  data?: unknown;
+}) {
+  return apiFetch<{ ok?: boolean }>("/api/vocab/phrase/add", {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
+}
+
 /** 句级翻译。服务端有 v3 缓存,同一句不会重复花额度。 */
 export async function translateText(text: string): Promise<string | null> {
   const trimmed = text.trim();
