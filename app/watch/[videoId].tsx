@@ -44,6 +44,8 @@ export default function WatchPlayerScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [follow, setFollow] = useState(true);
+  /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
+  const [playerError, setPlayerError] = useState<string | null>(null);
 
   // 字幕末尾时间 —— 播放器时长拿不到时的兜底(安卓上 getDuration 在首次播放前经常返回 0)
   const cueDuration = useMemo(() => {
@@ -239,6 +241,9 @@ export default function WatchPlayerScreen() {
           onReady={() => {
             void probeDuration();
           }}
+          onError={(error: string) => {
+            setPlayerError(error);
+          }}
           onChangeState={(state: string) => {
             if (state === "playing") {
               setPlaying(true);
@@ -267,6 +272,9 @@ export default function WatchPlayerScreen() {
 
       {/* 原生控制条:进度条 + 按钮行 */}
       <View style={styles.controlWrap}>
+        {playerError ? (
+          <Text style={styles.playerErrorText}>播放器错误:{playerError}</Text>
+        ) : null}
         <View style={styles.progressRow}>
           <Text style={styles.timeText}>{formatClock(currentTime)}</Text>
           <Slider
@@ -422,6 +430,12 @@ const styles = StyleSheet.create({
   controlWrap: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border
+  },
+  playerErrorText: {
+    fontSize: 12,
+    color: colors.danger,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm
   },
   progressRow: {
     flexDirection: "row",

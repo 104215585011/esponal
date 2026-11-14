@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js b/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js
+index 0be2dad..2d6325d 100644
+--- a/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js
++++ b/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js
+@@ -54,7 +54,17 @@ const YoutubeIframe = (props, ref) => {
+       eventName,
+       meta
+     });
+-    webViewRef.current.postMessage(message);
++    // PATCH (esponal 2026-11-14): react-native-webview v14 的 ref.postMessage
++    // 在原生端是 document.dispatchEvent(MessageEvent) 且默认不冒泡,而本库页面在
++    // window 上监听 message 事件,导致 playVideo/pauseVideo/setVolume 等指令
++    // 全部静默失效。改用 injectJavaScript 同时派发到 document 和 window,
++    // 两种监听方式都能收到。
++    const payload = JSON.stringify(message);
++    if (webViewRef.current && typeof webViewRef.current.injectJavaScript === 'function') {
++      webViewRef.current.injectJavaScript("(function(){try{var data=" + payload + ";var event=new MessageEvent('message',{data:data});document.dispatchEvent(event);window.dispatchEvent(event);}catch(e){}})();true;");
++    } else if (webViewRef.current) {
++      webViewRef.current.postMessage(message);
++    }
+   }, [playerReady]);
+   (0, _react.useImperativeHandle)(ref, () => ({
+     getVideoUrl: () => {
