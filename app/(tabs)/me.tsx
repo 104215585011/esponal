@@ -128,6 +128,22 @@ export default function MeScreen() {
           </Pressable>
 
           <Pressable
+            onPress={() => router.push("/phonics" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>字母发音</Text>
+            <Text style={styles.metaAction}>入门</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push("/imports" as never)}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>我的导入库</Text>
+            <Text style={styles.metaAction}>查看</Text>
+          </Pressable>
+
+          <Pressable
             onPress={() => router.push("/downloads" as never)}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >
@@ -144,11 +160,11 @@ export default function MeScreen() {
           </Pressable>
 
           <Pressable
-            onPress={() => void loadCredits()}
+            onPress={() => router.push("/credits" as never)}
             style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
           >
             <Text style={styles.metaLabel}>积分余额</Text>
-            <Text style={styles.metaAction}>{credits ?? "点击刷新"}</Text>
+            <Text style={styles.metaAction}>{credits ?? "查看明细"}</Text>
           </Pressable>
 
           <View style={styles.metaRow}>

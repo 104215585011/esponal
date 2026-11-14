@@ -2,12 +2,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -44,6 +46,28 @@ function getFreshnessLabel(videos: VideoItem[]) {
   return "精选片库";
 }
 
+function parseVideoIdInput(raw: string): string | null {
+  const value = raw.trim();
+  if (!value) return null;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
+  try {
+    const url = new URL(value.startsWith("http") ? value : `https://${value}`);
+    const v = url.searchParams.get("v");
+    if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
+    const segments = url.pathname.split("/").filter(Boolean);
+    const tail = segments[segments.length - 1];
+    if (url.hostname.includes("youtu.be") && tail && /^[a-zA-Z0-9_-]{11}$/.test(tail)) {
+      return tail;
+    }
+    if ((segments[0] === "shorts" || segments[0] === "embed") && segments[1] && /^[a-zA-Z0-9_-]{11}$/.test(segments[1])) {
+      return segments[1];
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export default function WatchScreen() {
   const router = useRouter();
   const [channels, setChannels] = useState<ChannelState[]>(
@@ -53,6 +77,7 @@ export default function WatchScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<string>("全部");
   const [shuffleSeed, setShuffleSeed] = useState(0);
+  const [linkInput, setLinkInput] = useState("");
   /** 观看进度只读快照：列表本身不拉接口，只从本地缓存取，避免每张卡片一次请求 */
   const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
 
@@ -147,6 +172,33 @@ export default function WatchScreen() {
           <Text style={styles.searchIcon}>🔍</Text>
           <Text style={styles.searchPlaceholder}>搜任意西语视频…</Text>
         </Pressable>
+
+        {/* 贴 YouTube 链接直看 */}
+        <View style={styles.linkRow}>
+          <TextInput
+            value={linkInput}
+            onChangeText={setLinkInput}
+            placeholder="粘贴 YouTube 链接或视频 ID…"
+            placeholderTextColor={colors.textTertiary}
+            autoCapitalize="none"
+            autoCorrect={false}
+            style={styles.linkInput}
+          />
+          <Pressable
+            onPress={() => {
+              const id = parseVideoIdInput(linkInput);
+              if (!id) {
+                Alert.alert("链接无效", "请粘贴有效的 YouTube 链接或 11 位视频 ID");
+                return;
+              }
+              setLinkInput("");
+              router.push({ pathname: "/watch/[videoId]", params: { videoId: id } } as never);
+            }}
+            style={({ pressed }) => [styles.linkBtn, pressed && styles.cardPressed]}
+          >
+            <Text style={styles.linkBtnText}>打开</Text>
+          </Pressable>
+        </View>
 
         {!loading && featuredVideo ? (
           <View style={styles.discoveryCard}>
@@ -350,6 +402,32 @@ const styles = StyleSheet.create({
   },
   searchIcon: { fontSize: 12.5 },
   searchPlaceholder: { fontSize: 13, color: colors.textTertiary },
+  linkRow: {
+    marginTop: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  linkInput: {
+    flex: 1,
+    height: 40,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 14,
+    fontSize: 12.5,
+    color: colors.text
+  },
+  linkBtn: {
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand500,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  linkBtnText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
   discoveryCard: {
     marginTop: spacing.lg,
     borderRadius: radius.lg,
