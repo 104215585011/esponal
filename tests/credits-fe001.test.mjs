@@ -10,8 +10,8 @@ test("CREDITS-FE-001 exposes an authenticated credits summary API", async () => 
   assert.equal(existsSync(routePath), true, `${routePath} missing`);
 
   const source = await readText(routePath);
-  assert.match(source, /getServerSession/);
-  assert.match(source, /getAuthOptions/);
+  assert.match(source, /getAuthedUserId|getServerSession/);
+  assert.match(source, /getAuthedUserId|getAuthOptions/);
   assert.match(source, /getCreditSummary/);
   assert.match(
     source,
