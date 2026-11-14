@@ -245,6 +245,11 @@ function runPythonLemmatizer(words) {
 async function loadLemmaMap(words) {
   const mock = process.env.LEXICON_LEMMA_MOCK?.trim();
   if (mock) {
+    // "identity" = 每个词原样返回。给测试用的:15k+ 词条的 mock JSON
+    // 塞不进单个环境变量(Linux MAX_ARG_STRLEN=128KB 会报 spawn E2BIG)
+    if (mock === "identity") {
+      return Object.fromEntries(words.map((word) => [word, word]));
+    }
     return JSON.parse(mock);
   }
   await runPythonLemmatizer([words[0] ?? "hola"]);

@@ -390,14 +390,9 @@ test("LEX-002 candidate builder defaults to the PM top-15k gate when limit is om
   ], {
     env: {
       ...process.env,
-      LEXICON_LEMMA_MOCK: JSON.stringify(
-        Object.fromEntries(
-          lines.map((line) => {
-            const word = line.split("\t")[1];
-            return [word, word];
-          })
-        )
-      )
+      // 15k 词条的 mock 塞 env 会超 Linux 单变量 128KB 上限(spawn E2BIG),
+      // 用 identity 模式:每个词原样返回
+      LEXICON_LEMMA_MOCK: "identity"
     }
   });
 

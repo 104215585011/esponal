@@ -30,6 +30,16 @@ function parseVersion(tagName: string) {
   return match ? `${match[1]}.${match[2]}.${match[3]}` : null;
 }
 
+/** 数值比较版本号:1.0.10 > 1.0.9。不能拿字符串比,"1.0.10" < "1.0.9" 是字典序陷阱 */
+function compareVersionDesc(a: string, b: string) {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < 3; i += 1) {
+    if ((pa[i] ?? 0) !== (pb[i] ?? 0)) return (pb[i] ?? 0) - (pa[i] ?? 0);
+  }
+  return 0;
+}
+
 async function fetchFromGitHub(): Promise<VersionPayload | null> {
   try {
     const res = await fetch(
@@ -56,13 +66,22 @@ async function fetchFromGitHub(): Promise<VersionPayload | null> {
       assets?: Array<{ browser_download_url?: string; name?: string }>;
     }>;
 
-    const candidate = releases.find(
-      (release) =>
-        !release.draft &&
-        // 只认移动端 tag,避免将来 Web 端的 release 被误当成 App 版本
-        (release.tag_name ?? "").startsWith("mobile-v") &&
-        parseVersion(release.tag_name ?? "")
-    );
+    // 不能只取列表第一条:GitHub 的 releases 排序按 tag 字典序,
+    // "1.0.10" 会被排在 "1.0.9" 后面(实测 mobile-v1.0.10 卡在第 9 位),
+    // 发布两位数版本号的那一刻起,「取第一条」就永远返回旧版。这里自己按数值取最大。
+    const candidate = releases
+      .map((release) => ({
+        release,
+        version: parseVersion(release.tag_name ?? "")
+      }))
+      .filter(
+        (item) =>
+          item.version !== null &&
+          !item.release.draft &&
+          // 只认移动端 tag,避免将来 Web 端的 release 被误当成 App 版本
+          (item.release.tag_name ?? "").startsWith("mobile-v")
+      )
+      .sort((a, b) => compareVersionDesc(a.version!, b.version!))[0]?.release;
 
     if (!candidate) return null;
 
