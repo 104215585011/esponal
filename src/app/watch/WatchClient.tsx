@@ -6,6 +6,7 @@ import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { getPlaybackRate, setPlaybackRate as globalSetPlaybackRate } from "@/lib/playback-rate";
 import { WatchDesktopLayout } from "./WatchDesktopLayout";
 import { WatchMobileLayout } from "./WatchMobileLayout";
+import { loadYouTubeIframeApi, useIsMobileViewport } from "./youtube-iframe-api";
 
 function normalizeLookupWord(token: string) {
   return token
@@ -38,60 +39,6 @@ type ActiveLookup = {
 };
 
 const PLAYER_IFRAME_ID = "esponal-youtube-player";
-
-function loadYouTubeIframeApi(): Promise<any> {
-  if (typeof window === "undefined") {
-    return Promise.reject(new Error("window is not available"));
-  }
-
-  const w = window as any;
-  if (w.YT?.Player) {
-    return Promise.resolve(w.YT);
-  }
-
-  return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[src="https://www.youtube.com/iframe_api"]'
-    );
-
-    const handleReady = () => {
-      if (w.YT?.Player) {
-        resolve(w.YT);
-        return;
-      }
-      reject(new Error("YouTube iframe API did not initialize"));
-    };
-
-    const previousReady = w.onYouTubeIframeAPIReady;
-    w.onYouTubeIframeAPIReady = () => {
-      previousReady?.();
-      handleReady();
-    };
-
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      script.async = true;
-      script.onerror = () => reject(new Error("Failed to load YouTube iframe API"));
-      document.head.appendChild(script);
-    }
-  });
-}
-
-function useIsMobileViewport() {
-  const [isMobileViewport, setIsMobileViewport] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const updateMobileViewport = () => setIsMobileViewport(mediaQuery.matches);
-
-    updateMobileViewport();
-    mediaQuery.addEventListener("change", updateMobileViewport);
-    return () => mediaQuery.removeEventListener("change", updateMobileViewport);
-  }, []);
-
-  return isMobileViewport;
-}
 
 export function WatchClient({ videoId, videoInfo, relatedVideos, startSeconds = 0 }: WatchClientProps) {
   const [currentTimeSec, setCurrentTimeSec] = useState(0);

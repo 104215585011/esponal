@@ -1,19 +1,12 @@
-// Timestamp: 2026-06-08 21:48
+// Timestamp: 2026-11-15 03:18
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { listImportedDocumentsForUser } from "@/lib/import/service";
 
-function getUserId(session: unknown) {
-  const maybeSession = session as { user?: { id?: unknown } } | null;
-  return maybeSession?.user && typeof maybeSession.user.id === "string"
-    ? maybeSession.user.id
-    : null;
-}
+export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+export async function GET(request: Request) {
+  const userId = await getAuthedUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

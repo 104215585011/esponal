@@ -1,6 +1,7 @@
-// Timestamp: 2026-06-05 14:18
+// Timestamp: 2026-11-15 03:18
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { getCreditTransactionsPage } from "@/lib/credits/history";
 
@@ -11,8 +12,10 @@ type SessionUserWithId = {
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = (session?.user as SessionUserWithId | undefined)?.id;
+  const authedId = await getAuthedUserId(request);
+  const userId =
+    authedId ??
+    ((await getServerSession(getAuthOptions()))?.user as SessionUserWithId | undefined)?.id;
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
