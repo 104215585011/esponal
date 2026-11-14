@@ -1,5 +1,5 @@
 // Timestamp: 2026-11-14 20:44
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -16,7 +16,7 @@ import * as Speech from "expo-speech";
 
 import { useAuth } from "@/auth/AuthProvider";
 import { usePreferences } from "@/hooks/usePreferences";
-import { speakSpanish } from "@/lib/speech";
+import { preloadVoices, speakSpanish, speechStatus } from "@/lib/speech";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
 import { listDownloads, removeDownload } from "@/subtitles/subtitleDownload";
 import {
@@ -40,6 +40,26 @@ export default function SettingsScreen() {
 
   const [checking, setChecking] = useState(false);
   const [cacheInfo, setCacheInfo] = useState<{ count: number; bytes: number } | null>(null);
+  /** 设备音色探测结果:用来暴露"没装西语音色时系统会拿英语音色顶上"这个静默降级 */
+  const [voiceStatus, setVoiceStatus] = useState(() => speechStatus("es-ES"));
+  const [detectingVoice, setDetectingVoice] = useState(false);
+
+  const detectVoices = useCallback(async () => {
+    setDetectingVoice(true);
+    try {
+      await preloadVoices();
+    } finally {
+      setVoiceStatus(speechStatus(prefs.accent));
+      setDetectingVoice(false);
+    }
+  }, [prefs.accent]);
+
+  useEffect(() => {
+    // 首帧先显示"正在检测",拿到音色表后刷新成真实结果
+    void detectVoices();
+    // 只做一次;换口音不需要重新枚举音色(语族不变)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const version = Constants.expoConfig?.version ?? "1.0.0";
 
@@ -165,6 +185,57 @@ export default function SettingsScreen() {
               <Text style={styles.tryText}>试听</Text>
             </Pressable>
           </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>语音引擎</Text>
+        <View style={styles.card}>
+          <View style={styles.voiceHead}>
+            <View style={styles.voiceText}>
+              <Text style={styles.rowLabel}>设备西语音色</Text>
+              <Text style={styles.rowHint}>
+                {voiceStatus.known
+                  ? voiceStatus.matched
+                    ? `已装 ${voiceStatus.installedCount} 个,正在用 ${voiceStatus.matched.name}`
+                    : "未安装 —— 系统会用默认(英语)音色念西语,听起来就是「全部读成英语」"
+                  : "正在检测…"}
+              </Text>
+            </View>
+            <Pressable
+              disabled={detectingVoice}
+              onPress={() => void detectVoices()}
+              style={styles.tryButton}
+            >
+              <Text style={styles.tryText}>{detectingVoice ? "检测中" : "重新检测"}</Text>
+            </Pressable>
+          </View>
+
+          {voiceStatus.known && voiceStatus.installedNames.length > 0 ? (
+            <Text style={styles.voiceList} numberOfLines={2}>
+              {voiceStatus.installedNames.join("、")}
+            </Text>
+          ) : null}
+
+          {voiceStatus.known && !voiceStatus.matched ? (
+            <Text style={styles.voiceWarn}>
+              安装路径:设置 → 系统 → 语言和输入 → 文字转语音(Google 语音服务)→
+              安装语音数据 → 选西班牙语。装完回到这里点「重新检测」。
+            </Text>
+          ) : null}
+
+          <View style={styles.divider} />
+
+          <Pressable
+            onPress={() =>
+              speakSpanish("Hola, ¿qué tal? Esta es la voz que se está usando ahora.")
+            }
+            style={({ pressed }) => [styles.actionRow, pressed && styles.actionRowPressed]}
+          >
+            <View style={styles.actionText}>
+              <Text style={styles.rowLabel}>试听当前音色</Text>
+              <Text style={styles.rowHint}>念一句西语,直接听发音对不对</Text>
+            </View>
+            <Text style={styles.chevron}>▶</Text>
+          </Pressable>
         </View>
 
         <Text style={styles.sectionTitle}>朗读行为</Text>
@@ -371,6 +442,23 @@ const styles = StyleSheet.create({
   rateTextActive: { color: "#fff" },
   tryButton: { marginLeft: "auto", paddingHorizontal: 12, paddingVertical: 8 },
   tryText: { fontSize: 13, fontWeight: "700", color: colors.brand600 },
+  voiceHead: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+    paddingVertical: 8
+  },
+  voiceText: { flex: 1 },
+  voiceList: { fontSize: 11, lineHeight: 16, color: colors.textTertiary, marginTop: 2 },
+  voiceWarn: {
+    marginTop: spacing.sm,
+    fontSize: 11.5,
+    lineHeight: 17,
+    color: colors.danger,
+    backgroundColor: colors.dangerBg,
+    borderRadius: radius.sm,
+    padding: spacing.sm
+  },
   switchRow: {
     flexDirection: "row",
     alignItems: "center",

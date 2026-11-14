@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "@/auth/AuthProvider";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
 import { UpdateDialog } from "@/components/UpdateDialog";
 import { loadPreferences } from "@/lib/preferences";
+import { preloadVoices } from "@/lib/speech";
 import { colors } from "@/theme";
 
 export { ErrorBoundary } from "expo-router";
@@ -42,6 +43,9 @@ function RootNavigator() {
   useEffect(() => {
     // 设备偏好(口音/语速/自动朗读)启动时读一次,先到内存,后面各页同步读
     void loadPreferences();
+    // 音色表也提前拉:不然第一次朗读时还不知道设备有没有装西语音色,
+    // 会静默用默认(英文)音色念西语,用户只听到"发音不对"却没有任何提示
+    void preloadVoices();
 
     if (status !== "signedIn") return;
 

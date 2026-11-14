@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import * as Speech from "expo-speech";
 
 import {
   archiveTalkSession,
@@ -26,11 +25,11 @@ import {
 } from "@/api/talk";
 import { ApiError } from "@/api/client";
 import { colors, radius, spacing } from "@/theme";
-import { speakSpanish } from "@/lib/speech";
+import { speakAuto, stopSpeaking } from "@/lib/speech";
 
 /**
  * 各角色朗读语言(设备端 TTS,不花额度)。
- * 西语角色不再写死 es-ES,交给 speakSpanish 用设置里的口音;
+ * 角色语言只作为兜底,实际语言按文本识别(见 speakAuto);
  * 这里只给非西语角色标注语言。
  */
 const NON_SPANISH_LANG: Record<string, string> = {
@@ -62,15 +61,14 @@ export default function TalkChatScreen() {
 
   const nonSpanishLang = NON_SPANISH_LANG[String(characterId)] ?? null;
 
-  /** 西语走设置里的口音,其它语言按角色固定 */
+  /**
+   * 角色语言优先,但文本能识别出来就以文本为准。
+   * 实际例子:Emma 是英籍外教,可她读西语例句时那几句就该用西语音色念,
+   * 否则西语会被英语音色读成"看起来像西语、听起来像英语"的东西。
+   */
   const speakLine = useCallback(
     (text: string, rate = 0.9) => {
-      if (nonSpanishLang) {
-        Speech.stop();
-        Speech.speak(text, { language: nonSpanishLang, rate });
-        return;
-      }
-      speakSpanish(text, { rate });
+      speakAuto(text, { rate, fallbackLang: nonSpanishLang ?? undefined });
     },
     [nonSpanishLang]
   );
@@ -104,7 +102,7 @@ export default function TalkChatScreen() {
     void run();
     return () => {
       cancelled = true;
-      Speech.stop();
+      stopSpeaking();
     };
   }, [characterId, initialSessionId]);
 
@@ -182,7 +180,7 @@ export default function TalkChatScreen() {
                 // 归档失败也允许开新会话
               }
             }
-            Speech.stop();
+            stopSpeaking();
             setSessionId(null);
             setMessages([]);
             setError(null);
@@ -206,7 +204,7 @@ export default function TalkChatScreen() {
       </View>
       <Pressable
         onPress={() => {
-          Speech.stop();
+          stopSpeaking();
           setSpeakOn((prev) => !prev);
         }}
         style={[styles.chip, speakOn && styles.chipOn]}
