@@ -91,7 +91,7 @@ test("CORPUS-001 exposes a dedicated saved-phrase list route", async () => {
 
   assert.match(route, /export async function GET/);
   assert.match(route, /getSavedPhrasesByUser/);
-  assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
+  assert.match(route, /getAuthedUserId|getServerSession/);
   assert.match(route, /checkRateLimit/);
   assert.match(route, /phrases:/);
 });

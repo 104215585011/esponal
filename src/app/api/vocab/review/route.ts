@@ -24,7 +24,8 @@ export async function GET(request: Request) {
     partOfSpeech: word.partOfSpeech,
     dictData: word.dictData,
     srsDue: word.srsDue?.toISOString() ?? null,
-    srsState: word.srsState
+    srsState: word.srsState,
+    srsReps: word.srsReps
   }));
 
   return NextResponse.json({ dueWords: words, totalDue });
