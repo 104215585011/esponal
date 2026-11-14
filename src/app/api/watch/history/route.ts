@@ -1,7 +1,6 @@
 // Timestamp: 2026-06-03 10:05
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { getVideoViewsByUser, upsertVideoView } from "@/lib/corpus";
 
@@ -11,14 +10,6 @@ type WatchHistoryBody = {
   channelTitle?: unknown;
   thumbnail?: unknown;
 };
-
-function getUserId(session: unknown) {
-  const maybeSession = session as { user?: { id?: unknown } } | null;
-
-  return maybeSession?.user && typeof maybeSession.user.id === "string"
-    ? maybeSession.user.id
-    : null;
-}
 
 async function checkUserRateLimit(request: Request, userId: string) {
   const rateLimit = await checkRateLimit(addLimiter, request, userId);
@@ -38,8 +29,7 @@ async function checkUserRateLimit(request: Request, userId: string) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId = await getAuthedUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -86,8 +76,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const session = await getServerSession(getAuthOptions());
-  const userId = getUserId(session);
+  const userId = await getAuthedUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

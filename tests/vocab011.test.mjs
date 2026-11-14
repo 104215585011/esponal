@@ -11,8 +11,8 @@ test("VOCAB-011 exposes an auth-protected vocab stats route with the reviewed re
 
   const route = await readText(routePath);
 
-  assert.match(route, /getServerSession/);
-  assert.match(route, /getAuthOptions/);
+  assert.match(route, /getAuthedUserId|getServerSession/);
+  assert.match(route, /getAuthedUserId|getAuthOptions/);
   assert.match(route, /status:\s*401/);
   assert.match(route, /totalSaved/);
   assert.match(route, /encounterBuckets/);

@@ -1,20 +1,16 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { getAuthOptions } from "@/lib/auth";
+import { getAuthedUserId } from "@/lib/api-auth";
 import { getVocabStats } from "@/lib/vocab";
 
-export async function GET() {
-  const session = await getServerSession(getAuthOptions());
+// Web 走 NextAuth cookie,App 走 Authorization: Bearer(PLATFORM-001 双通道)
+export async function GET(request: Request) {
+  const userId = await getAuthedUserId(request);
 
-  if (
-    !session?.user ||
-    !("id" in session.user) ||
-    typeof session.user.id !== "string"
-  ) {
+  if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const stats = await getVocabStats(session.user.id);
+  const stats = await getVocabStats(userId);
   return NextResponse.json({
     totalSaved: stats.totalSaved,
     encounterBuckets: stats.encounterBuckets,

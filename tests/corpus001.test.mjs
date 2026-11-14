@@ -29,7 +29,7 @@ test("CORPUS-001 exposes protected video history API without YouTube list calls"
 
   assert.match(route, /export async function POST/);
   assert.match(route, /export async function GET/);
-  assert.match(route, /getServerSession\(getAuthOptions\(\)\)/);
+  assert.match(route, /getAuthedUserId\(request\)|getServerSession\(getAuthOptions\(\)\)/);
   assert.match(route, /status:\s*401/);
   assert.match(route, /checkRateLimit[\s\S]*addLimiter|addLimiter[\s\S]*checkRateLimit/);
   assert.match(route, /videoId/);
