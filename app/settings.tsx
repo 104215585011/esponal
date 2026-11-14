@@ -196,7 +196,7 @@ export default function SettingsScreen() {
                 {voiceStatus.known
                   ? voiceStatus.matched
                     ? `已装 ${voiceStatus.installedCount} 个,正在用 ${voiceStatus.matched.name}`
-                    : "未安装 —— 系统会用默认(英语)音色念西语,听起来就是「全部读成英语」"
+                    : "未安装 —— 现在改用服务端西语音频兜底(需联网);装上语音包后离线也能听"
                   : "正在检测…"}
               </Text>
             </View>

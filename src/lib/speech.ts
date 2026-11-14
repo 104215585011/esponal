@@ -1,7 +1,9 @@
 // Timestamp: 2026-11-14 22:38
 import { Alert } from "react-native";
 import * as Speech from "expo-speech";
+import { createAudioPlayer, type AudioPlayer } from "expo-audio";
 
+import { API_BASE } from "@/api/client";
 import { getPreferences, type SpeechAccent } from "@/lib/preferences";
 import { resolveLang } from "@/lib/langDetect";
 import {
@@ -66,8 +68,34 @@ function pushWarning(next: VoiceWarning | null) {
   warningListeners.forEach((listener) => listener(next));
 }
 
+/**
+ * 服务端兜底:设备没装西语音色时,改播服务端合成的西语音频。
+ *
+ * 为什么不干脆让系统用默认音色念:那样念出来是英语发音,而用户听到的只是"发音不对",
+ * 完全不知道发生了什么。宁可多一次网络请求,也要让耳朵收到正确的音。
+ * 服务端 `/api/tts` 限 200 字符,单词/短句够用;长句仍然走设备朗读。
+ */
+const SERVER_TTS_MAX_LEN = 180;
+let remotePlayer: AudioPlayer | null = null;
+
+function speakViaServer(text: string, rate: number): boolean {
+  if (text.length > SERVER_TTS_MAX_LEN) return false;
+
+  try {
+    if (!remotePlayer) remotePlayer = createAudioPlayer();
+    remotePlayer.replace({
+      uri: `${API_BASE}/api/tts?text=${encodeURIComponent(text)}`
+    });
+    remotePlayer.setPlaybackRate(rate, "medium");
+    remotePlayer.play();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** 缺音色时提示一次。不弹第二次——用户知道了就行,反复弹只会烦 */
-function warnMissingVoice(lang: string) {
+function warnMissingVoice(lang: string, usingServerAudio: boolean) {
   const base = voiceBase(lang);
   const installed = describeVoiceCoverage(lang).installed.length;
 
@@ -76,11 +104,22 @@ function warnMissingVoice(lang: string) {
   alertedThisSession = true;
 
   const label = base === "es" ? "西班牙语" : base === "en" ? "英语" : base.toUpperCase();
+
+  if (usingServerAudio) {
+    Alert.alert(
+      `改用服务端${label}音频`,
+      `这台设备没装${label}语音包,系统默认音色会把${label}念成英语腔。\n\n` +
+        `已经改成播服务端合成的${label}音频(需要联网)。\n\n` +
+        "想离线也能听:设置 → 系统 → 语言和输入 → 文字转语音 → 安装语音数据 → 西班牙语。"
+    );
+    return;
+  }
+
   Alert.alert(
     `设备没装${label}语音`,
     `系统会用一个默认音色去念${label},听起来会不对。\n\n` +
       "装一下就行:设置 → 系统 → 语言和输入 → 文字转语音(Google 语音服务)→ 安装语音数据 → 选西班牙语。\n\n" +
-      "装好后回到这里点「重新检测」。"
+      "装好后回到设置页点「重新检测」。"
   );
 }
 
@@ -100,12 +139,23 @@ export function speakAuto(text: string, options: SpeakOptions = {}) {
   const voicesKnown = peekDeviceVoices().length > 0;
   const voice = findVoiceFor(targetLang);
 
-  if (voicesKnown && !voice) warnMissingVoice(targetLang);
-  else if (voice && warning?.base === voiceBase(targetLang)) pushWarning(null);
-
   // 单句朗读场景几乎都是"点了就想马上听",默认打断上一条
   if (options.interrupt !== false) {
     Speech.stop();
+    try {
+      remotePlayer?.pause();
+    } catch {
+      // 播放器还没创建或已释放
+    }
+  }
+
+  if (voicesKnown && !voice) {
+    // 西语缺音色 → 先用服务端音频保证发音正确;其它语言照常让系统念
+    const usedServer = voiceBase(targetLang) === "es" && speakViaServer(content, options.rate ?? prefs.rate);
+    warnMissingVoice(targetLang, usedServer);
+    if (usedServer) return;
+  } else if (voice && warning?.base === voiceBase(targetLang)) {
+    pushWarning(null);
   }
 
   try {
@@ -127,6 +177,11 @@ export function speakSpanish(text: string, options: SpeakOptions = {}) {
 
 export function stopSpeaking() {
   Speech.stop();
+  try {
+    remotePlayer?.pause();
+  } catch {
+    // ignore
+  }
 }
 
 /** 提前加载音色表,让设置页和首次朗读都能立刻判断"有没有装西语音色" */
