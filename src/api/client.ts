@@ -114,10 +114,11 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = await tokenStore.getAccess();
 
+  const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...init.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     }

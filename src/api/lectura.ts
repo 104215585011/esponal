@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-13 23:25
+// Timestamp: 2026-11-15 07:55
 import { apiFetch } from "@/api/client";
 
 export type LecturaLevel = "A1" | "A2" | "B1";
@@ -9,20 +9,24 @@ export type LecturaListItem = {
   titleZh: string;
   level: LecturaLevel;
   source: string;
+  sourceType?: "curated" | "rss";
   durationMin: number;
   summaryZh: string;
   paragraphCount: number;
+  publishedAt?: string;
   isRead: boolean;
 };
 
 export type LecturaStory = LecturaListItem & {
   paragraphs: string[];
   glossary: Array<{ word: string; note: string }>;
+  sourceUrl?: string;
 };
 
-export async function fetchStories() {
+export async function fetchStories(forceRefresh = false) {
+  const query = forceRefresh ? "?refresh=1" : "";
   const res = await apiFetch<{ items: LecturaListItem[]; total: number }>(
-    "/api/lectura/stories"
+    `/api/lectura/stories${query}`
   );
   return res.items;
 }

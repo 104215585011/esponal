@@ -1,7 +1,9 @@
-// Timestamp: 2026-11-15 06:58
+// Timestamp: 2026-11-15 07:55
 import { useCallback, useEffect, useState } from "react";
+import * as DocumentPicker from "expo-document-picker";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -14,6 +16,8 @@ import { useRouter } from "expo-router";
 import { apiFetch } from "@/api/client";
 import { AppIcon } from "@/components/AppIcon";
 import { colors, radius, spacing } from "@/theme";
+
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export type ImportedDoc = {
   id: string;
@@ -34,12 +38,14 @@ function formatPositionLabel(kind: "pdf" | "epub", pos: string) {
   return pos;
 }
 
-/** 导入书架列表（EPUB / PDF），可供「阅读」Tab 书架分段与独立 /imports 页面复用 */
+/** 导入书架列表（EPUB / PDF）：支持添加导入、删除与阅读 */
 export function ImportShelfPanel() {
   const router = useRouter();
   const [docs, setDocs] = useState<ImportedDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const load = useCallback(async (isRefresh = false) => {
@@ -61,6 +67,85 @@ export function ImportShelfPanel() {
     void load();
   }, [load]);
 
+  const handleImport = useCallback(async () => {
+    if (uploading) return;
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "application/epub+zip", "application/octet-stream"],
+        copyToCacheDirectory: true
+      });
+      if (picked.canceled || !picked.assets?.[0]) return;
+
+      const asset = picked.assets[0];
+      const lowerName = (asset.name || "").toLowerCase();
+      if (!lowerName.endsWith(".epub") && !lowerName.endsWith(".pdf")) {
+        Alert.alert("格式不支持", "目前仅支持导入 .epub 或 .pdf 格式的西语书籍。");
+        return;
+      }
+
+      if (typeof asset.size === "number" && asset.size > MAX_UPLOAD_BYTES) {
+        Alert.alert(
+          "文件过大",
+          "手机端直传目前支持 4MB 以内的 EPUB 或 PDF，较大的书籍可从电脑端网页导入。"
+        );
+        return;
+      }
+
+      setUploading(true);
+      const mimeType =
+        asset.mimeType ||
+        (lowerName.endsWith(".epub") ? "application/epub+zip" : "application/pdf");
+
+      const form = new FormData();
+      form.append("file", {
+        uri: asset.uri,
+        name: asset.name || (lowerName.endsWith(".epub") ? "book.epub" : "book.pdf"),
+        type: mimeType
+      } as unknown as Blob);
+
+      const res = await apiFetch<{ document?: ImportedDoc }>("/api/import/upload", {
+        method: "POST",
+        body: form
+      });
+
+      if (res.document) {
+        setDocs((prev) => [res.document!, ...prev]);
+      } else {
+        await load(true);
+      }
+    } catch (e) {
+      Alert.alert("导入失败", e instanceof Error ? e.message : "请稍后再试");
+    } finally {
+      setUploading(false);
+    }
+  }, [uploading, load]);
+
+  const confirmDelete = useCallback((doc: ImportedDoc) => {
+    Alert.alert("删除书籍", `确定从书架移除《${doc.title}》吗？`, [
+      { text: "取消", style: "cancel" },
+      {
+        text: "删除",
+        style: "destructive",
+        onPress: () => {
+          void (async () => {
+            setDeletingId(doc.id);
+            try {
+              await apiFetch<{ deleted: boolean }>(
+                `/api/import/${encodeURIComponent(doc.id)}`,
+                { method: "DELETE" }
+              );
+              setDocs((prev) => prev.filter((item) => item.id !== doc.id));
+            } catch (e) {
+              Alert.alert("删除失败", e instanceof Error ? e.message : "请稍后再试");
+            } finally {
+              setDeletingId(null);
+            }
+          })();
+        }
+      }
+    ]);
+  }, []);
+
   return (
     <ScrollView
       contentContainerStyle={styles.scroll}
@@ -74,11 +159,25 @@ export function ImportShelfPanel() {
       }
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.tipBanner}>
-        <AppIcon color={colors.brand700} name="shelf" size={16} />
-        <Text style={styles.tipText}>
-          同步网页端（www.pcmuz.cn/import）上传的 EPUB 与 PDF，EPUB 支持章节阅读与点词查变位。
-        </Text>
+      <View style={styles.actionHeader}>
+        <Pressable
+          disabled={uploading}
+          onPress={() => void handleImport()}
+          style={({ pressed }) => [
+            styles.importBtn,
+            uploading && styles.btnDisabled,
+            pressed && styles.cardPressed
+          ]}
+        >
+          {uploading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <AppIcon color="#fff" name="shelf" size={16} />
+          )}
+          <Text style={styles.importBtnText}>
+            {uploading ? "正在上传解析…" : "+ 导入 EPUB / PDF（4MB 内）"}
+          </Text>
+        </Pressable>
       </View>
 
       {loading ? (
@@ -96,13 +195,14 @@ export function ImportShelfPanel() {
         <View style={styles.emptyCard}>
           <Text style={styles.emptyTitle}>书架还是空的</Text>
           <Text style={styles.emptyHint}>
-            可以在电脑或手机浏览器打开 www.pcmuz.cn/import 上传西语 PDF 或 EPUB，这里会自动同步。
+            点上方按钮可直接选取手机里的 EPUB / PDF；大文件也可以在网页端 www.pcmuz.cn/import 上传。
           </Text>
         </View>
       ) : (
         <View style={styles.list}>
           {docs.map((doc) => {
             const isEpub = doc.kind === "epub";
+            const isDeleting = deletingId === doc.id;
             return (
               <Pressable
                 key={doc.id}
@@ -125,9 +225,23 @@ export function ImportShelfPanel() {
                       {doc.kind.toUpperCase()}
                     </Text>
                   </View>
-                  <Text style={styles.statusText}>
-                    {doc.status === "ready" ? "打开阅读" : doc.status}
-                  </Text>
+
+                  <View style={styles.headRight}>
+                    <Text style={styles.statusText}>
+                      {doc.status === "ready" ? "打开阅读" : doc.status}
+                    </Text>
+                    <Pressable
+                      disabled={isDeleting}
+                      hitSlop={10}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        confirmDelete(doc);
+                      }}
+                      style={styles.deleteBtn}
+                    >
+                      <Text style={styles.deleteText}>{isDeleting ? "删除中…" : "删除"}</Text>
+                    </Pressable>
+                  </View>
                 </View>
 
                 <Text numberOfLines={2} style={styles.docTitle}>
@@ -136,7 +250,8 @@ export function ImportShelfPanel() {
 
                 <View style={styles.cardFoot}>
                   <Text style={styles.docMeta}>
-                    共 {doc.unitCount} 单元 · {formatPositionLabel(doc.kind, doc.lastPosition)}
+                    {doc.unitCount > 0 ? `共 ${doc.unitCount} 单元 · ` : ""}
+                    {formatPositionLabel(doc.kind, doc.lastPosition)}
                   </Text>
                   <AppIcon color={colors.textTertiary} name="chevron" size={14} />
                 </View>
@@ -150,22 +265,24 @@ export function ImportShelfPanel() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl, gap: spacing.md },
-  tipBanner: {
+  scroll: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
+    gap: spacing.md
+  },
+  actionHeader: { gap: spacing.xs },
+  importBtn: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    backgroundColor: colors.brand50,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: 46,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2
+    backgroundColor: colors.brand600
   },
-  tipText: {
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.brand700
-  },
+  importBtnText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  btnDisabled: { opacity: 0.6 },
   center: { paddingVertical: 60, alignItems: "center", gap: spacing.md },
   errorText: { fontSize: 13, color: colors.danger, textAlign: "center" },
   retryBtn: {
@@ -196,24 +313,24 @@ const styles = StyleSheet.create({
   },
   cardPressed: { opacity: 0.78 },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  headRight: { flexDirection: "row", alignItems: "center", gap: 12 },
   kindBadge: {
     backgroundColor: colors.brand50,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill
   },
-  kindBadgePdf: {
-    backgroundColor: colors.amber50
-  },
-  kindText: {
-    fontSize: 10.5,
-    fontWeight: "700",
-    color: colors.brand700
-  },
-  kindTextPdf: {
-    color: colors.amber700
-  },
+  kindBadgePdf: { backgroundColor: colors.amber50 },
+  kindText: { fontSize: 10.5, fontWeight: "700", color: colors.brand700 },
+  kindTextPdf: { color: colors.amber700 },
   statusText: { fontSize: 12, fontWeight: "600", color: colors.brand600 },
+  deleteBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.dangerBg
+  },
+  deleteText: { fontSize: 11, fontWeight: "600", color: colors.danger },
   docTitle: { fontSize: 15.5, fontWeight: "700", color: colors.text, lineHeight: 22 },
   cardFoot: {
     flexDirection: "row",

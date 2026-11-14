@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 15:35
+// Timestamp: 2026-11-15 07:35
 import { apiFetch } from "@/api/client";
 
 export type TalkCharacter = {
@@ -125,4 +125,27 @@ export async function fetchTalkHistory(input: {
     sessionId: session?.id ?? null,
     messages: session?.messages ?? []
   };
+}
+
+export type SpeechRecognitionResult = {
+  transcript: string;
+  language: string;
+  provider: "whisper" | "unavailable";
+  unavailableReason?: string;
+};
+
+/** 语音转文字(录音文件 base64 发给 /api/talk/recognize) */
+export async function recognizeSpeech(input: {
+  audioBase64: string;
+  language?: string;
+  mimeType?: string;
+}) {
+  return apiFetch<SpeechRecognitionResult>("/api/talk/recognize", {
+    method: "POST",
+    body: JSON.stringify({
+      audioBase64: input.audioBase64,
+      language: input.language ?? "es-MX",
+      mimeType: input.mimeType ?? "audio/m4a"
+    })
+  });
 }

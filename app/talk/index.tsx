@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 15:40
+// Timestamp: 2026-11-15 07:35
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -71,12 +71,12 @@ export default function TalkScreen() {
         <Pressable hitSlop={10} onPress={() => router.back()} style={styles.backHit}>
           <Text style={styles.backIcon}>‹</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>口语练习</Text>
+        <Text style={styles.headerTitle}>语音 Robot</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.intro}>
-          和 AI 角色用西语聊天。说错了它会顺手指出来,聊完还能看到这轮出现的新词。
+          直接开口和语音 Robot 对话,它会实时听写并用外语语音回复。文字、纠错和新词可按需展开,也支持切回键盘打字。
         </Text>
 
         {loading ? (
@@ -113,7 +113,7 @@ export default function TalkScreen() {
                   <View style={styles.heroTitleRow}>
                     <Text style={styles.heroName}>{spanish.name}</Text>
                     <View style={styles.badge}>
-                      <Text style={styles.badgeText}>西班牙语</Text>
+                      <Text style={styles.badgeText}>西语 · 语音直聊</Text>
                     </View>
                   </View>
                   <Text numberOfLines={2} style={styles.heroBio}>

@@ -1,10 +1,11 @@
-// Timestamp: 2026-11-15 07:05
+// Timestamp: 2026-11-15 08:00
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View
@@ -18,18 +19,18 @@ import { SegmentedControl } from "@/components/SegmentedControl";
 import { colors, radius, spacing } from "@/theme";
 
 type ReadTab = "stories" | "shelf";
+type FilterKey = "ALL" | "RSS" | LecturaLevel;
 
-const LEVELS: Array<LecturaLevel | "ALL"> = ["ALL", "A1", "A2", "B1"];
-
-const LEVEL_LABEL: Record<LecturaLevel | "ALL", string> = {
-  ALL: "全部",
-  A1: "A1 入门",
-  A2: "A2 基础",
-  B1: "B1 进阶"
-};
+const FILTERS: Array<{ key: FilterKey; label: string }> = [
+  { key: "ALL", label: "全部" },
+  { key: "RSS", label: "西媒实时" },
+  { key: "A1", label: "A1 入门" },
+  { key: "A2", label: "A2 基础" },
+  { key: "B1", label: "B1 进阶" }
+];
 
 /**
- * 阅读 Tab：合并「精选短文（Lectura）」与「我的书架（导入 EPUB/PDF）」。
+ * 阅读 Tab：合并「精选短文（含西媒 RSS 爬虫） / 我的书架（导入 EPUB·PDF）」。
  * 传 `?tab=shelf` 可直达个人书架。
  */
 export default function LecturaScreen() {
@@ -43,7 +44,7 @@ export default function LecturaScreen() {
   }, [params.tab]);
 
   const [items, setItems] = useState<LecturaListItem[]>([]);
-  const [level, setLevel] = useState<LecturaLevel | "ALL">("ALL");
+  const [filter, setFilter] = useState<FilterKey>("ALL");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,7 +55,7 @@ export default function LecturaScreen() {
     setError(null);
 
     try {
-      const data = await fetchStories();
+      const data = await fetchStories(isRefresh);
       setItems(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
@@ -65,13 +66,14 @@ export default function LecturaScreen() {
   }, []);
 
   useEffect(() => {
-    void load();
+    void load(false);
   }, [load]);
 
-  const filtered = useMemo(
-    () => (level === "ALL" ? items : items.filter((item) => item.level === level)),
-    [items, level]
-  );
+  const filtered = useMemo(() => {
+    if (filter === "ALL") return items;
+    if (filter === "RSS") return items.filter((item) => item.sourceType === "rss");
+    return items.filter((item) => item.level === filter);
+  }, [items, filter]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -105,37 +107,41 @@ export default function LecturaScreen() {
             ) : error ? (
               <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
-                <Pressable onPress={() => void load()} style={styles.retry}>
+                <Pressable onPress={() => void load(false)} style={styles.retry}>
                   <Text style={styles.retryText}>重试</Text>
                 </Pressable>
               </View>
             ) : (
               <View style={styles.center}>
-                <Text style={styles.emptyText}>这个难度还没有文章</Text>
+                <Text style={styles.emptyText}>这个分类暂时没有文章，下拉刷新试试</Text>
               </View>
             )
           }
           ListHeaderComponent={
             <View style={styles.storiesHeader}>
               <Text style={styles.subtitle}>
-                分级西语短文，点击任意单词可查词与查看动词变位。
+                实时抓取西媒新闻与分级短文，点击任意单词可查词与查看动词变位。
               </Text>
-              <View style={styles.chips}>
-                {LEVELS.map((item) => {
-                  const on = level === item;
+              <ScrollView
+                contentContainerStyle={styles.chips}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {FILTERS.map((item) => {
+                  const on = filter === item.key;
                   return (
                     <Pressable
-                      key={item}
-                      onPress={() => setLevel(item)}
+                      key={item.key}
+                      onPress={() => setFilter(item.key)}
                       style={[styles.chip, on && styles.chipOn]}
                     >
                       <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                        {LEVEL_LABEL[item]}
+                        {item.label}
                       </Text>
                     </Pressable>
                   );
                 })}
-              </View>
+              </ScrollView>
             </View>
           }
           refreshControl={
@@ -146,31 +152,35 @@ export default function LecturaScreen() {
               tintColor={colors.brand500}
             />
           }
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: "/lectura/[slug]",
-                  params: { slug: item.slug }
-                } as never)
-              }
-              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-            >
-              <View style={styles.badges}>
-                <Text style={styles.levelBadge}>{item.level}</Text>
-                <Text style={styles.metaText}>
-                  {item.durationMin} 分钟 · {item.paragraphCount} 段
-                </Text>
-                {item.isRead ? <Text style={styles.readBadge}>已读</Text> : null}
-              </View>
+          renderItem={({ item }) => {
+            const isRss = item.sourceType === "rss";
+            return (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/lectura/[slug]",
+                    params: { slug: item.slug }
+                  } as never)
+                }
+                style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+              >
+                <View style={styles.badges}>
+                  <Text style={styles.levelBadge}>{item.level}</Text>
+                  {isRss ? <Text style={styles.rssBadge}>{item.source}</Text> : null}
+                  <Text style={styles.metaText}>
+                    {item.durationMin} 分钟 · {item.paragraphCount} 段
+                  </Text>
+                  {item.isRead ? <Text style={styles.readBadge}>已读</Text> : null}
+                </View>
 
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardTitleZh}>{item.titleZh}</Text>
-              <Text numberOfLines={2} style={styles.cardSummary}>
-                {item.summaryZh}
-              </Text>
-            </Pressable>
-          )}
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardTitleZh}>{item.titleZh}</Text>
+                <Text numberOfLines={2} style={styles.cardSummary}>
+                  {item.summaryZh}
+                </Text>
+              </Pressable>
+            );
+          }}
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -259,13 +269,23 @@ const styles = StyleSheet.create({
   badges: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8
+    flexWrap: "wrap",
+    gap: 6
   },
   levelBadge: {
     fontSize: 11,
     fontWeight: "700",
     color: colors.brand700,
     backgroundColor: colors.brand50,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill
+  },
+  rssBadge: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: colors.indigo600,
+    backgroundColor: colors.indigo50,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.pill
