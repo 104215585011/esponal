@@ -1,10 +1,11 @@
-// Timestamp: 2026-11-15 14:15
+// Timestamp: 2026-11-15 15:15
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
-import { parsePdfForReader } from "../src/lib/import/pdf.ts";
+import { joinPdfTextItems, parsePdfForReader } from "../src/lib/import/pdf.ts";
+import { extractArticleParagraphsFromMarkdown } from "../src/lib/rss-extract.ts";
 import { parseOmniAnalysisJson, wrapPcm24kMonoToWav } from "../src/lib/talk/omni-helpers.ts";
 
 const readText = (path) => readFileSync(path, "utf8");
@@ -55,18 +56,50 @@ test("/api/vocab/add fills safe defaults for mobile lookup payload while preserv
   assert.match(route, /missing required fields/);
 });
 
-test("podcast audio proxy, AI subtitles, multi-lang TTS, and PDF reader routes expose expected contracts", () => {
+test("joinPdfTextItems merges soft PDF line breaks into natural paragraphs", () => {
+  const joined = joinPdfTextItems([
+    { str: "El aprendizaje de idiomas requiere", transform: [1, 0, 0, 12, 50, 700], hasEOL: true },
+    { str: "constancia diaria y buena lectura.", transform: [1, 0, 0, 12, 50, 686], hasEOL: true },
+    { str: "Capítulo segundo: La rutina.", transform: [1, 0, 0, 12, 50, 650], hasEOL: true },
+  ]);
+  assert.match(joined, /requiere constancia diaria y buena lectura\.\n\nCapítulo segundo/);
+});
+
+test("extractArticleParagraphsFromMarkdown strips navigation noise and extracts body paragraphs", () => {
+  const sample = `Title: Noticia de prueba
+URL Source: https://www.rfi.fr/es/test
+
+Markdown Content:
+* [Inicio](https://www.rfi.fr/es/)
+* [Portada](https://www.rfi.fr/es/)
+
+Fuente de la imagen, AFP
+
+Los aeropuertos estadounidenses reanudaron las operaciones comerciales este viernes tras varias horas de retrasos en las terminales principales del país.
+
+Las autoridades señalaron que [el tráfico aéreo](https://www.rfi.fr/es/tag) volverá a la normalidad de forma gradual durante el fin de semana.
+`;
+  const paras = extractArticleParagraphsFromMarkdown(sample, 10);
+  assert.equal(paras.length, 2);
+  assert.match(paras[0], /^Los aeropuertos estadounidenses/);
+  assert.doesNotMatch(paras[1], /https:\/\/www\.rfi\.fr/);
+});
+
+test("podcast audio proxy, 30s subtitles, multi-lang TTS, lectura translate, and all-shelf docs expose expected contracts", () => {
   const audioProxy = readText("src/app/api/listening/audio/route.ts");
   const subtitleRoute = readText("src/app/api/listening/subtitles/route.ts");
   const ttsRoute = readText("src/app/api/tts/route.ts");
   const uploadRoute = readText("src/app/api/import/upload/route.ts");
   const pdfRoute = readText("src/app/api/import/[id]/pdf/route.ts");
+  const docsRoute = readText("src/app/api/import/documents/route.ts");
+  const translateRoute = readText("src/app/api/lectura/translate/route.ts");
 
   assert.match(audioProxy, /isAllowedPodcastAudioUrl/);
   assert.match(audioProxy, /Accept-Ranges/);
 
   assert.match(subtitleRoute, /qwen3-omni-flash/);
-  assert.match(subtitleRoute, /listening:sub:v2:/);
+  assert.match(subtitleRoute, /listening:sub:v3:/);
+  assert.match(subtitleRoute, /WINDOW_SEC = 30/);
 
   assert.match(ttsRoute, /en-US-JennyNeural/);
   assert.match(ttsRoute, /fr-FR-DeniseNeural/);
@@ -78,4 +111,8 @@ test("podcast audio proxy, AI subtitles, multi-lang TTS, and PDF reader routes e
 
   assert.match(pdfRoute, /parsePdfForReader/);
   assert.match(pdfRoute, /getImportedDocumentFileByIdForUser/);
+
+  assert.match(docsRoute, /searchParams\.get\("all"\)/);
+  assert.match(translateRoute, /translateTextToZh/);
+  assert.match(translateRoute, /lectura:zh:v1:/);
 });

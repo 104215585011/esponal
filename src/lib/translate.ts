@@ -30,13 +30,22 @@ function extractContent(
   return data?.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
+const LANG_NAME: Record<string, string> = {
+  es: "Spanish",
+  en: "English",
+  fr: "French",
+  ja: "Japanese"
+};
+
 async function translateWithOpenAICompatible(
   provider: string,
   baseUrl: string,
   apiKey: string,
   model: string,
-  text: string
+  text: string,
+  sourceLang = "es"
 ): Promise<TranslateResult> {
+  const sourceName = LANG_NAME[sourceLang] ?? "Spanish";
   const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/v1/chat/completions`, {
     method: "POST",
     headers: {
@@ -51,9 +60,9 @@ async function translateWithOpenAICompatible(
         {
           role: "system",
           content: [
-            "You translate Spanish subtitle text into Simplified Chinese.",
+            `You translate ${sourceName} text into natural Simplified Chinese.`,
             "Return JSON only with a single key `translation`.",
-            "Preserve tone, contractions and emphasis naturally.",
+            "Preserve tone, nuances and meaning naturally.",
             "Never output the source text unchanged; always give real Chinese."
           ].join(" ")
         },
@@ -91,7 +100,7 @@ async function translateWithOpenAICompatible(
   return { translation, provider };
 }
 
-async function translateWithDeepSeek(text: string): Promise<TranslateResult> {
+async function translateWithDeepSeek(text: string, sourceLang = "es"): Promise<TranslateResult> {
   const apiKey = process.env.DEEPSEEK_API_KEY ?? "";
   const baseUrl = process.env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com";
   const model = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
@@ -100,10 +109,10 @@ async function translateWithDeepSeek(text: string): Promise<TranslateResult> {
     throw new Error("DeepSeek not configured");
   }
 
-  return translateWithOpenAICompatible("deepseek", baseUrl, apiKey, model, text);
+  return translateWithOpenAICompatible("deepseek", baseUrl, apiKey, model, text, sourceLang);
 }
 
-async function translateWithDashScope(text: string): Promise<TranslateResult> {
+async function translateWithDashScope(text: string, sourceLang = "es"): Promise<TranslateResult> {
   const apiKey = process.env.DASHSCOPE_API_KEY ?? "";
   const model = process.env.DASHSCOPE_MODEL ?? "glm-5";
 
@@ -116,18 +125,20 @@ async function translateWithDashScope(text: string): Promise<TranslateResult> {
     "https://dashscope.aliyuncs.com/compatible-mode",
     apiKey,
     model,
-    text
+    text,
+    sourceLang
   );
 }
 
-// Try each provider in order. Returns null when every provider is missing or
-// fails, so the caller can fall back to echoing the source.
-export async function translateEsToZh(text: string): Promise<TranslateResult | null> {
+export async function translateTextToZh(
+  text: string,
+  sourceLang = "es"
+): Promise<TranslateResult | null> {
   const providers = [translateWithDeepSeek, translateWithDashScope];
 
   for (const provider of providers) {
     try {
-      const result = await provider(text);
+      const result = await provider(text, sourceLang);
 
       const sameAsSource = result.translation.trim().toLowerCase() === text.trim().toLowerCase();
       if (sameAsSource || !containsChinese(result.translation)) {
@@ -142,4 +153,10 @@ export async function translateEsToZh(text: string): Promise<TranslateResult | n
   }
 
   return null;
+}
+
+// Try each provider in order. Returns null when every provider is missing or
+// fails, so the caller can fall back to echoing the source.
+export async function translateEsToZh(text: string): Promise<TranslateResult | null> {
+  return translateTextToZh(text, "es");
 }

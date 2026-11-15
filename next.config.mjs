@@ -8,7 +8,7 @@ const nextConfig = {
   // so the runtime loads them straight from node_modules and the WebSocket
   // mask function stays intact.
   experimental: {
-    serverComponentsExternalPackages: ["msedge-tts", "ws"]
+    serverComponentsExternalPackages: ["msedge-tts", "ws", "pdfjs-dist"]
   }
 };
 

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:35
+// Timestamp: 2026-11-15 15:08
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -12,9 +12,23 @@ export const maxDuration = 60;
 const DASHSCOPE_COMPAT_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 const OMNI_MODEL = process.env.DASHSCOPE_OMNI_MODEL?.trim() || "qwen3-omni-flash";
 
-const WINDOW_SEC = 55;
-const DEFAULT_SLICE_BYTES = 520 * 1024;
-const MAX_SLICE_BYTES = 1_200_000;
+// 30 秒分片大幅缩小跨洋音频传输体积（约 250~360KB），避免 Serverless 超时
+const WINDOW_SEC = 30;
+const DEFAULT_SLICE_BYTES = 260 * 1024;
+const MAX_SLICE_BYTES = 450 * 1024;
+
+type AudioMeta = {
+  totalBytes: number;
+  bytesPerSec: number;
+};
+
+function parseTotalBytesFromRange(header: string | null): number {
+  if (!header) return 0;
+  const m = header.match(/\/(\d+)\s*$/);
+  if (!m) return 0;
+  const n = Number(m[1]);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
 
 function parseCuesJson(raw: string, windowStartSec: number, windowSec: number): PodcastCue[] {
   const cleaned = raw
@@ -50,7 +64,7 @@ function parseCuesJson(raw: string, windowStartSec: number, windowSec: number): 
               ? item.text.trim()
               : "";
         const zh = typeof item.zh === "string" ? item.zh.trim() : "";
-        return { rel: Math.min(rel, Math.max(0, windowSec - 2)), text, zh };
+        return { rel: Math.min(rel, Math.max(0, windowSec - 1)), text, zh };
       })
       .filter((item) => item.text.length > 0);
 
@@ -58,7 +72,7 @@ function parseCuesJson(raw: string, windowStartSec: number, windowSec: number): 
       const nextRel = valid[idx + 1]?.rel ?? windowSec;
       return {
         start: Number((windowStartSec + item.rel).toFixed(1)),
-        dur: Number(Math.max(2, nextRel - item.rel).toFixed(1)),
+        dur: Number(Math.max(1.5, nextRel - item.rel).toFixed(1)),
         text: item.text,
         zh: item.zh
       };
@@ -70,7 +84,7 @@ function parseCuesJson(raw: string, windowStartSec: number, windowSec: number): 
 
 /**
  * POST /api/listening/subtitles
- * 拉取播客 MP3 指定时间窗（约 55 秒）切片并由 Qwen3-Omni 直接生成带时间轴的双语字幕。
+ * 拉取播客 MP3 指定 30s 时间窗切片并由 Qwen3-Omni 直接生成带时间轴的双语字幕（7 天 Redis 缓存）。
  */
 export async function POST(request: Request) {
   await getOptionalUserId(request);
@@ -97,15 +111,14 @@ export async function POST(request: Request) {
     typeof body.startSec === "number" && Number.isFinite(body.startSec)
       ? Math.max(0, Math.floor(body.startSec))
       : 0;
-  // 按每 50 秒一段对齐窗口，最大化 Redis 命中率并做到段与段无缝衔接
-  const windowStartSec = Math.floor(requestedStart / 50) * 50;
+  const windowStartSec = Math.floor(requestedStart / WINDOW_SEC) * WINDOW_SEC;
   const durationSec =
     typeof body.durationSec === "number" && Number.isFinite(body.durationSec) && body.durationSec > 0
       ? body.durationSec
       : 1200;
 
   const urlHash = createHash("sha1").update(target.toString()).digest("hex").slice(0, 12);
-  const cacheKey = `listening:sub:v2:${urlHash}:${windowStartSec}`;
+  const cacheKey = `listening:sub:v3:${urlHash}:${windowStartSec}`;
   const cached = await readJsonCache<PodcastCue[]>(cacheKey);
   if (cached && cached.length > 0) {
     return NextResponse.json({
@@ -116,24 +129,11 @@ export async function POST(request: Request) {
     });
   }
 
-  // 先做轻量化 HEAD 拿总字节数，估算比特率截取精确字节范围
-  let totalBytes = 0;
-  try {
-    const head = await fetch(target.toString(), {
-      method: "HEAD",
-      redirect: "follow",
-      signal: AbortSignal.timeout(8000)
-    });
-    const lenHeader = head.headers.get("content-length");
-    if (lenHeader) totalBytes = Number(lenHeader) || 0;
-  } catch {
-    totalBytes = 0;
-  }
+  const metaKey = `listening:meta:v1:${urlHash}`;
+  const cachedMeta = await readJsonCache<AudioMeta>(metaKey);
+  const totalBytes = cachedMeta?.totalBytes ?? 0;
+  const bytesPerSec = cachedMeta?.bytesPerSec ?? 12_000;
 
-  const bytesPerSec =
-    totalBytes > 0 && durationSec > 0
-      ? Math.max(8_000, Math.min(48_000, Math.round(totalBytes / durationSec)))
-      : 12_000;
   const startByte = windowStartSec === 0 ? 0 : Math.floor(windowStartSec * bytesPerSec);
   const sliceLen = Math.min(MAX_SLICE_BYTES, Math.max(DEFAULT_SLICE_BYTES, bytesPerSec * WINDOW_SEC));
   const endByte =
@@ -143,59 +143,96 @@ export async function POST(request: Request) {
     return NextResponse.json({ cues: [], windowStartSec, windowEndSec: windowStartSec });
   }
 
-  const sliceRes = await fetch(target.toString(), {
-    headers: {
-      Range: `bytes=${startByte}-${endByte}`,
-      "User-Agent": "EsponalPodcastProxy/1.0 (+https://www.pcmuz.cn)"
-    },
-    redirect: "follow",
-    signal: AbortSignal.timeout(20_000)
-  });
-
-  if (!sliceRes.ok && sliceRes.status !== 206) {
-    return NextResponse.json({ error: "audio_slice_failed" }, { status: 502 });
+  let sliceRes: Response;
+  try {
+    sliceRes = await fetch(target.toString(), {
+      headers: {
+        Range: `bytes=${startByte}-${endByte}`,
+        "User-Agent": "EsponalPodcastProxy/1.0 (+https://www.pcmuz.cn)"
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(12_000)
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "audio_fetch_timeout", detail: err instanceof Error ? err.message : "timeout" },
+      { status: 504 }
+    );
   }
 
-  const mp3Buf = Buffer.from(await sliceRes.arrayBuffer());
+  if (!sliceRes.ok && sliceRes.status !== 206) {
+    return NextResponse.json(
+      { error: "audio_slice_failed", status: sliceRes.status },
+      { status: 502 }
+    );
+  }
+
+  const detectedTotal = parseTotalBytesFromRange(sliceRes.headers.get("content-range"));
+  const effectiveTotal = detectedTotal || totalBytes;
+  const effectiveBps =
+    effectiveTotal > 0 && durationSec > 0
+      ? Math.max(8_000, Math.min(48_000, Math.round(effectiveTotal / durationSec)))
+      : bytesPerSec;
+  if (detectedTotal > 0 && !cachedMeta) {
+    void writeJsonCache(metaKey, { totalBytes: detectedTotal, bytesPerSec: effectiveBps }, 7 * 24 * 3600);
+  }
+
+  let mp3Buf: Buffer;
+  try {
+    mp3Buf = Buffer.from(await sliceRes.arrayBuffer());
+  } catch (err) {
+    return NextResponse.json(
+      { error: "audio_read_failed", detail: err instanceof Error ? err.message : "read_error" },
+      { status: 502 }
+    );
+  }
+
   if (mp3Buf.length < 4000) {
     return NextResponse.json({ cues: [], windowStartSec, windowEndSec: windowStartSec });
   }
 
-  const actualWindowSec = Math.max(20, Math.round(mp3Buf.length / bytesPerSec));
+  const actualWindowSec = Math.max(15, Math.min(40, Math.round(mp3Buf.length / effectiveBps)));
 
-  const aiRes = await fetch(DASHSCOPE_COMPAT_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: OMNI_MODEL,
-      modalities: ["text"],
-      stream: true,
-      messages: [
-        {
-          role: "system",
-          content: `Listen to this ${actualWindowSec}-second Spanish podcast audio excerpt and produce accurate chronological Spanish subtitles paired with concise Chinese translations.
-Break it into 6-14 natural sentence/clause cues.
-Output ONLY a valid JSON array: [{"offsetSec":0,"es":"...","zh":"..."}, ...].`
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_audio",
-              input_audio: {
-                data: `data:;base64,${mp3Buf.toString("base64")}`,
-                format: "mp3"
+  let aiRes: Response;
+  try {
+    aiRes = await fetch(DASHSCOPE_COMPAT_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: OMNI_MODEL,
+        modalities: ["text"],
+        stream: true,
+        max_tokens: 900,
+        messages: [
+          {
+            role: "system",
+            content: `Transcribe this ~${actualWindowSec}s Spanish podcast excerpt into 4-8 chronological cues paired with natural Simplified Chinese translations. Output ONLY a JSON array: [{"offsetSec":0,"es":"...","zh":"..."}].`
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_audio",
+                input_audio: {
+                  data: `data:;base64,${mp3Buf.toString("base64")}`,
+                  format: "mp3"
+                }
               }
-            }
-          ]
-        }
-      ]
-    }),
-    signal: AbortSignal.timeout(35_000)
-  });
+            ]
+          }
+        ]
+      }),
+      signal: AbortSignal.timeout(24_000)
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: "subtitle_ai_timeout", detail: err instanceof Error ? err.message : "timeout" },
+      { status: 504 }
+    );
+  }
 
   if (!aiRes.ok) {
     const err = await aiRes.text().catch(() => "");

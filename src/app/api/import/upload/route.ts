@@ -26,11 +26,17 @@ function getUserId(session: unknown) {
     : null;
 }
 
-function inferKind(filename: string, mimeType: string) {
+function inferKind(filename: string, mimeType: string, content?: Buffer) {
   const name = filename.toLowerCase();
   const type = mimeType.toLowerCase();
   if (name.endsWith(".epub") || type.includes("epub")) return "epub";
   if (name.endsWith(".pdf") || type === CONTENT_TYPES.pdf) return "pdf";
+  if (content && content.length >= 4) {
+    if (content.subarray(0, 4).toString("ascii") === "%PDF") return "pdf";
+    if (content[0] === 0x50 && content[1] === 0x4b && content[2] === 0x03 && content[3] === 0x04) {
+      return "epub";
+    }
+  }
   return null;
 }
 
@@ -104,7 +110,7 @@ export async function POST(request: Request) {
     inlineContent = Buffer.from(await blob.arrayBuffer());
   }
 
-  const kind = inferKind(filename, mimeType);
+  const kind = inferKind(filename, mimeType, inlineContent);
   if (!kind) {
     return NextResponse.json({ error: "unsupported_file_type" }, { status: 400 });
   }
