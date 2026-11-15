@@ -21,6 +21,7 @@ export async function transcribeAudioWithDeepSeek(input: {
   audioBuffer: Buffer;
   filename?: string;
   mimeType?: string;
+  language?: string;
 }): Promise<DeepSeekAsrResult> {
   const { apiKey, baseUrl } = getDeepseekConfig();
   if (!isConfiguredSecret(apiKey)) {
@@ -31,6 +32,10 @@ export async function transcribeAudioWithDeepSeek(input: {
   const mimeType = input.mimeType || "audio/wav";
   const filename = input.filename || "speech.wav";
   form.append("file", new Blob([new Uint8Array(input.audioBuffer)], { type: mimeType }), filename);
+  if (input.language) {
+    const baseLang = input.language.split(/[-_]/)[0]?.toLowerCase();
+    if (baseLang) form.append("language", baseLang);
+  }
 
   try {
     const response = await fetch(`${baseUrl}/v1/tools/asr`, {

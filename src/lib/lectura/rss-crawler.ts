@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:42
+// Timestamp: 2026-11-15 14:20
 import { type LecturaStory } from "@/../content/lectura";
 import {
   extractArticleParagraphsFromHtml,
@@ -12,6 +12,7 @@ import {
 
 export type CrawledLecturaItem = LecturaStory & {
   sourceUrl: string;
+  audioUrl?: string;
   publishedAt: string;
   feedId: string;
 };
@@ -48,8 +49,8 @@ const NEWS_FEEDS: FeedSource[] = [
   },
 ];
 
-const LIST_CACHE_KEY = "lectura:rss:stories:v1";
-const STORY_CACHE_PREFIX = "lectura:rss:story:v1:";
+const LIST_CACHE_KEY = "lectura:rss:stories:v2";
+const STORY_CACHE_PREFIX = "lectura:rss:story:v2:";
 const LIST_TTL_SEC = 6 * 3600;
 const STORY_TTL_SEC = 24 * 3600;
 
@@ -61,7 +62,7 @@ function toParagraphsFromText(text: string): string[] {
     .split(/\n{2,}/)
     .map((p) => p.replace(/\s+/g, " ").trim())
     .filter((p) => p.length >= 20);
-  if (parts.length > 0) return parts.slice(0, 12);
+  if (parts.length > 0) return parts.slice(0, 35);
   return text.trim() ? [text.trim()] : [];
 }
 
@@ -101,6 +102,10 @@ export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<Crawle
           paragraphs: inlineParagraphs.length > 0 ? inlineParagraphs : [entry.title],
           glossary: [],
           sourceUrl: entry.link,
+          audioUrl:
+            entry.enclosureUrl && /^https?:\/\//i.test(entry.enclosureUrl)
+              ? entry.enclosureUrl
+              : undefined,
           publishedAt: entry.pubDate,
           feedId: feed.id,
         };
@@ -141,9 +146,9 @@ export async function getCrawledLecturaStoryBySlug(
   const base = list.find((item) => item.slug === slug);
   if (!base) return null;
 
-  // 若列表只含简介，抓取原文 HTML 补全完整段落
+  // 若列表段落较少或为博客摘要，抓取原文 HTML 补全完整段落
   let paragraphs = base.paragraphs;
-  if (paragraphs.length <= 2 && base.sourceUrl) {
+  if (paragraphs.length <= 4 && base.sourceUrl) {
     try {
       const response = await fetch(base.sourceUrl, {
         headers: {
@@ -155,7 +160,7 @@ export async function getCrawledLecturaStoryBySlug(
       });
       if (response.ok) {
         const html = await response.text();
-        const extracted = extractArticleParagraphsFromHtml(html, 14);
+        const extracted = extractArticleParagraphsFromHtml(html, 35);
         if (extracted.length > paragraphs.length) {
           paragraphs = extracted;
         }

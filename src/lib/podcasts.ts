@@ -1,9 +1,10 @@
-// Timestamp: 2026-11-15 07:45
+// Timestamp: 2026-11-15 14:20
 import {
   fetchFeedXml,
   parseRssItems,
   readJsonCache,
   stableShortHash,
+  stripHtmlToText,
   writeJsonCache,
 } from "@/lib/rss-shared";
 
@@ -48,7 +49,7 @@ export const CURATED_PODCASTS: PodcastShow[] = [
   },
 ];
 
-const PODCAST_CACHE_KEY = "listening:podcasts:v1";
+const PODCAST_CACHE_KEY = "listening:podcasts:v2";
 const PODCAST_TTL_SEC = 6 * 3600;
 let memoryPodcastCache: { expiresAt: number; episodes: PodcastEpisode[] } | null = null;
 
@@ -81,18 +82,22 @@ export async function fetchPodcastEpisodes(forceRefresh = false): Promise<Podcas
       const items = parseRssItems(xml, 10);
       return items
         .filter((item) => item.enclosureUrl && /^https?:\/\//i.test(item.enclosureUrl))
-        .map((item): PodcastEpisode => ({
-          id: `${show.id}-${stableShortHash(item.enclosureUrl!)}`,
-          showId: show.id,
-          showTitle: show.title,
-          level: show.level,
-          title: item.title,
-          description: item.description.slice(0, 320),
-          audioUrl: item.enclosureUrl!,
-          durationSec: parseDurationToSeconds(item.durationRaw),
-          publishedAt: item.pubDate,
-          link: item.link,
-        }));
+        .map((item): PodcastEpisode => {
+          const fullText = stripHtmlToText(item.contentHtml || item.description);
+          const cleanDesc = (fullText || item.description).slice(0, 6000);
+          return {
+            id: `${show.id}-${stableShortHash(item.enclosureUrl!)}`,
+            showId: show.id,
+            showTitle: show.title,
+            level: show.level,
+            title: item.title,
+            description: cleanDesc,
+            audioUrl: item.enclosureUrl!,
+            durationSec: parseDurationToSeconds(item.durationRaw),
+            publishedAt: item.pubDate,
+            link: item.link,
+          };
+        });
     }),
   );
 

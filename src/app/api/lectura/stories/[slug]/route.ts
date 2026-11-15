@@ -35,6 +35,7 @@ export async function GET(
       paragraphs: story.paragraphs,
       glossary: story.glossary ?? [],
       sourceUrl: "sourceUrl" in story ? story.sourceUrl : undefined,
+      audioUrl: "audioUrl" in story ? story.audioUrl : undefined,
     },
   });
 }

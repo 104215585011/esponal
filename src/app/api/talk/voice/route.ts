@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 08:05
+// Timestamp: 2026-11-15 14:16
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
@@ -6,12 +6,14 @@ import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
 import { prisma } from "@/lib/prisma";
 import { getTalkCharacterById } from "@/lib/talk/characters";
-import { streamChatMessage } from "@/lib/talk/chat-service";
+import { buildInitialSessionTitle, streamChatMessage } from "@/lib/talk/chat-service";
 import {
   synthesizeAudioWithDeepSeek,
   transcribeAudioWithDeepSeek
 } from "@/lib/talk/deepseek-voice";
 import { getMessageEncryptionSecret } from "@/lib/talk/env";
+import { decryptMessageContent, encryptMessageContent } from "@/lib/talk/message-crypto";
+import { hasDashScopeOmni, talkDirectWithQwenOmni } from "@/lib/talk/qwen-omni";
 import { transcribeViaWhisperTunnel } from "@/lib/talk/whisper-client";
 
 export const maxDuration = 60;
@@ -147,7 +149,143 @@ export async function POST(request: Request) {
     );
   }
 
-  // 1) 语音识别：WAV / Ogg 优先直连 DeepSeek /v1/tools/asr，其它格式或失败再尝试 Whisper 隧道
+  // 1) 主通路：DashScope Qwen3-Omni 原生语音直聊（音频直入模型 + 原生语音输出，不经中文偏置 ASR 中转）
+  const encryptionSecret = getMessageEncryptionSecret();
+  const isWavOrMp3 =
+    parsed.mimeType.includes("wav") ||
+    parsed.mimeType.includes("mpeg") ||
+    parsed.mimeType.includes("mp3") ||
+    parsed.mimeType.includes("ogg") ||
+    parsed.filename.endsWith(".wav") ||
+    parsed.filename.endsWith(".mp3") ||
+    parsed.filename.endsWith(".ogg");
+
+  if (hasDashScopeOmni() && isWavOrMp3) {
+    const existingSession = parsed.sessionId
+      ? await prisma.chatSession.findFirst({
+          where: {
+            id: parsed.sessionId,
+            userId,
+            characterId: character.id,
+            status: "ACTIVE"
+          }
+        })
+      : null;
+
+    const historyRows = existingSession
+      ? await prisma.chatMessage.findMany({
+          where: { sessionId: existingSession.id },
+          orderBy: { createdAt: "asc" },
+          take: 20
+        })
+      : [];
+
+    const historyMessages = historyRows
+      .filter((row) => row.role !== "SYSTEM")
+      .map((row) => ({
+        role: row.role === "ASSISTANT" ? ("assistant" as const) : ("user" as const),
+        content:
+          row.contentIv && row.contentAuthTag
+            ? decryptMessageContent(
+                {
+                  content: row.content,
+                  contentIv: row.contentIv,
+                  contentAuthTag: row.contentAuthTag
+                },
+                encryptionSecret
+              )
+            : row.content
+      }));
+
+    const audioFormat: "wav" | "mp3" | "ogg" = parsed.mimeType.includes("mp3") || parsed.filename.endsWith(".mp3")
+      ? "mp3"
+      : parsed.mimeType.includes("ogg") || parsed.filename.endsWith(".ogg")
+        ? "ogg"
+        : "wav";
+
+    const omniRes = await talkDirectWithQwenOmni({
+      characterId: character.id,
+      systemPrompt: character.systemPrompt,
+      historyMessages,
+      audioBuffer: parsed.audioBuffer,
+      audioFormat,
+      wantAudio: parsed.wantTts
+    });
+
+    if (omniRes.ok) {
+      if (omniRes.emptyTranscript) {
+        return NextResponse.json({
+          emptyTranscript: true,
+          sessionId: parsed.sessionId ?? null,
+          userTranscript: "",
+          reply: "",
+          corrections: [],
+          newWords: [],
+          asrProvider: "qwen-omni"
+        });
+      }
+
+      const activeSession =
+        existingSession ??
+        (await prisma.chatSession.create({
+          data: {
+            userId,
+            characterId: character.id,
+            title: buildInitialSessionTitle(omniRes.userTranscript)
+          }
+        }));
+
+      const encryptedUser = encryptMessageContent(omniRes.userTranscript, encryptionSecret);
+      const encryptedAssistant = encryptMessageContent(omniRes.reply, encryptionSecret);
+
+      await prisma.$transaction([
+        prisma.chatMessage.create({
+          data: {
+            sessionId: activeSession.id,
+            role: "USER",
+            ...encryptedUser
+          }
+        }),
+        prisma.chatMessage.create({
+          data: {
+            sessionId: activeSession.id,
+            role: "ASSISTANT",
+            ...encryptedAssistant,
+            corrections: omniRes.corrections,
+            newWords: omniRes.newWords
+          }
+        }),
+        prisma.chatSession.update({
+          where: { id: activeSession.id },
+          data: { updatedAt: new Date() }
+        })
+      ]);
+
+      await spendCredits(userId, ACTION_COST_MINOR.talk_turn, "talk", activeSession.id).catch(
+        () => undefined
+      );
+
+      const fallbackTts =
+        parsed.wantTts && !omniRes.replyAudioBase64
+          ? await synthesizeAudioWithDeepSeek(omniRes.reply, character.id)
+          : null;
+
+      return NextResponse.json({
+        emptyTranscript: false,
+        sessionId: activeSession.id,
+        userTranscript: omniRes.userTranscript,
+        reply: omniRes.reply,
+        replyAudioBase64: omniRes.replyAudioBase64 ?? fallbackTts?.audioBase64 ?? null,
+        replyAudioMimeType: omniRes.replyAudioMimeType ?? fallbackTts?.mimeType ?? null,
+        ttsProvider: omniRes.replyAudioBase64 ? "qwen-omni" : (fallbackTts?.provider ?? null),
+        corrections: omniRes.corrections,
+        newWords: omniRes.newWords,
+        asrProvider: "qwen-omni"
+      });
+    }
+  }
+
+  // 2) 降级通路：WAV / Ogg 走 DeepSeek `/v1/tools/asr`，其余走 Whisper 隧道
   let transcript = "";
   let asrProvider: "deepseek-asr" | "whisper" | "unavailable" = "unavailable";
   let asrReason = "";
@@ -163,7 +301,8 @@ export async function POST(request: Request) {
     const dsRes = await transcribeAudioWithDeepSeek({
       audioBuffer: parsed.audioBuffer,
       filename: parsed.filename,
-      mimeType: parsed.mimeType
+      mimeType: parsed.mimeType,
+      language: parsed.language
     });
     if (dsRes.ok) {
       transcript = dsRes.transcript;
@@ -204,8 +343,7 @@ export async function POST(request: Request) {
     });
   }
 
-  // 2) 对话模型生成回复与纠错
-  const encryptionSecret = getMessageEncryptionSecret();
+  // 2b) 降级对话模型生成回复与纠错
   let streamed = "";
   let done: {
     sessionId: string;

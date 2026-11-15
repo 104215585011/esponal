@@ -11,7 +11,21 @@ import { checkRateLimit, getRetryAfterSec, ttsLimiter } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
-const VOICE = "es-MX-DaliaNeural";
+const DEFAULT_VOICE = "es-MX-DaliaNeural";
+const LANGUAGE_VOICES: Record<string, string> = {
+  es: "es-MX-DaliaNeural",
+  en: "en-US-JennyNeural",
+  fr: "fr-FR-DeniseNeural",
+  ja: "ja-JP-NanamiNeural"
+};
+
+function resolveVoiceForLang(rawLang: string | null): { langKey: string; voice: string } {
+  const base = (rawLang ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  if (base && LANGUAGE_VOICES[base]) {
+    return { langKey: base, voice: LANGUAGE_VOICES[base] };
+  }
+  return { langKey: "es", voice: DEFAULT_VOICE };
+}
 const MAX_LEN = 200;
 const CACHE_TTL = 60 * 60 * 24 * 30;
 const CORS_HEADERS = {
@@ -64,14 +78,16 @@ export async function GET(request: Request) {
     );
   }
 
-  const text = new URL(request.url).searchParams.get("text")?.trim() ?? "";
+  const url = new URL(request.url);
+  const text = url.searchParams.get("text")?.trim() ?? "";
+  const { langKey, voice } = resolveVoiceForLang(url.searchParams.get("lang"));
 
   if (!text || text.length > MAX_LEN) {
     return NextResponse.json({ error: "invalid text" }, { status: 400, headers: CORS_HEADERS });
   }
 
   const hash = createHash("sha256").update(text).digest("hex").slice(0, 16);
-  const cacheKey = `tts:${hash}`;
+  const cacheKey = langKey === "es" ? `tts:${hash}` : `tts:${langKey}:${hash}`;
 
   try {
     const cached = await redis.get(cacheKey);
@@ -97,7 +113,7 @@ export async function GET(request: Request) {
       }
     }
 
-    await tts.setMetadata(VOICE, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(text);
     const chunks: Buffer[] = [];
 
