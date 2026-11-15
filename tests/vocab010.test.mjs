@@ -18,7 +18,7 @@ test("VOCAB-010 review GET parses ?limit= and clamps the batch size", async () =
 
   // limit 从 query 读,默认 20,显式 clamp
   assert.match(route, /searchParams\.get\("limit"\)/);
-  assert.match(route, /getDueReviewWords\(userId, now, limit\)/);
+  assert.match(route, /getDueReviewWords\(userId, now, limit(?:,\s*language)?\)/);
   // 截断跟随请求的 limit,不再写死 20
   assert.match(route, /slice\(0, limit\)/);
   // 旧契约仍在:默认批大小 20

@@ -92,7 +92,7 @@ test("CREDITS Phase 2 lookup route only charges external fallback and keeps lexi
   assert.match(source, /requireCredits/);
   assert.match(source, /ACTION_COST_MINOR\.lookup_fallback/);
   assert.match(source, /if\s*\(lexiconEntry\)/);
-  assert.match(source, /lookupDictionary\(word\)/);
+  assert.match(source, /lookupDictionary\(word/);
   assert.match(source, /spendCredits/);
   assert.match(source, /X-Lookup-Source/);
 });

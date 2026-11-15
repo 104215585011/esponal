@@ -1,7 +1,8 @@
-// Timestamp: 2026-11-15 03:18
+// Timestamp: 2026-11-15 08:12
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { listImportedDocumentsForUser } from "@/lib/import/service";
+import { resolveRequestLanguage } from "@/lib/languages";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const documents = await listImportedDocumentsForUser(userId);
+  const { searchParams } = new URL(request.url);
+  const language = await resolveRequestLanguage(
+    request,
+    searchParams.get("lang") ?? searchParams.get("language"),
+    userId
+  );
+  const documents = await listImportedDocumentsForUser(userId, language);
 
   return NextResponse.json({ documents });
 }

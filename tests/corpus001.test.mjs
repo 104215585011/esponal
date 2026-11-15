@@ -12,7 +12,7 @@ test("CORPUS-001 adds video history and saved phrase data models", async () => {
   assert.match(schema, /videoViews\s+VideoView\[\]/);
   assert.match(schema, /savedPhrases\s+SavedPhrase\[\]/);
   assert.match(schema, /model\s+VideoView\s*\{[\s\S]*userId\s+String[\s\S]*videoId\s+String[\s\S]*title\s+String[\s\S]*channelTitle\s+String[\s\S]*thumbnail\s+String\?[\s\S]*viewedAt\s+DateTime[\s\S]*@@unique\(\[userId,\s*videoId\]\)[\s\S]*@@index\(\[userId,\s*viewedAt\]\)[\s\S]*@@map\("video_views"\)[\s\S]*\}/);
-  assert.match(schema, /model\s+SavedPhrase\s*\{[\s\S]*userId\s+String[\s\S]*lemma\s+String[\s\S]*kind\s+LexiconKind[\s\S]*data\s+Json\?[\s\S]*createdAt\s+DateTime[\s\S]*@@unique\(\[userId,\s*lemma,\s*kind\]\)[\s\S]*@@index\(\[userId,\s*createdAt\]\)[\s\S]*@@map\("saved_phrases"\)[\s\S]*\}/);
+  assert.match(schema, /model\s+SavedPhrase\s*\{[\s\S]*userId\s+String[\s\S]*lemma\s+String[\s\S]*kind\s+LexiconKind[\s\S]*data\s+Json\?[\s\S]*createdAt\s+DateTime[\s\S]*@@unique\(\[userId,\s*language,\s*lemma,\s*kind\]\)[\s\S]*@@index\(\[userId,\s*createdAt\]\)[\s\S]*@@map\("saved_phrases"\)[\s\S]*\}/);
 
   const migrations = await readText("prisma/migrations/20260603095000_add_corpus_models/migration.sql");
   assert.match(migrations, /CREATE TABLE "video_views"/);
@@ -73,7 +73,7 @@ test("CORPUS-001 exposes protected saved phrase API", async () => {
   assert.match(route, /savePhraseForUser/);
   assert.match(route, /getSavedPhrasesByUser/);
   assert.match(helper, /prisma\.savedPhrase\.upsert/);
-  assert.match(helper, /userId_lemma_kind/);
+  assert.match(helper, /userId_language_lemma_kind|userId_lemma_kind/);
 });
 
 test("CORPUS-001 LookupCard lets phrase lookups be saved separately from words", async () => {

@@ -6,9 +6,11 @@ import {
   type LexiconKind,
   type LexiconStatus
 } from "@prisma/client";
+import { normalizeLanguage } from "@/lib/languages";
 import { prisma } from "@/lib/prisma";
 
 export type LexiconUpsertInput = {
+  language?: string;
   kind?: LexiconKind;
   lemma: string;
   displayForm?: string;
@@ -54,13 +56,16 @@ function normalizeForms(lemma: string, displayForm: string, forms: string[] = []
 
 export async function getLexiconEntry(
   lemma: string,
-  kind?: LexiconKind
+  kind?: LexiconKind,
+  language = "es"
 ): Promise<LexiconEntry | null> {
   const normalized = normalizeLexiconText(lemma);
   if (!normalized) return null;
+  const lang = normalizeLanguage(language);
 
   return prisma.lexiconEntry.findFirst({
     where: {
+      language: lang,
       kind: kind ?? "word",
       OR: [
         { lemma: normalized },
@@ -70,14 +75,19 @@ export async function getLexiconEntry(
   });
 }
 
-export async function findLexiconLookupEntry(lemma: string): Promise<LexiconEntry | null> {
+export async function findLexiconLookupEntry(
+  lemma: string,
+  language = "es"
+): Promise<LexiconEntry | null> {
   const normalized = normalizeLexiconText(lemma);
   if (!normalized) return null;
+  const lang = normalizeLanguage(language);
 
   // Only vault (license-clean) and candidate (AI-mined, high local confidence)
   // entries may be served. review / rejected fall through to the AI lookup.
   const word = await prisma.lexiconEntry.findFirst({
     where: {
+      language: lang,
       kind: "word",
       status: { in: ["vault", "candidate"] },
       OR: [
@@ -90,6 +100,7 @@ export async function findLexiconLookupEntry(lemma: string): Promise<LexiconEntr
 
   return prisma.lexiconEntry.findFirst({
     where: {
+      language: lang,
       kind: { in: ["construction", "collocation", "phrase", "idiom"] },
       status: { in: ["vault", "candidate"] },
       OR: [
@@ -110,12 +121,17 @@ export async function listReviewQueue(limit = 50): Promise<LexiconEntry[]> {
   });
 }
 
-export async function findConstructionEntry(lemma: string): Promise<LexiconEntry | null> {
+export async function findConstructionEntry(
+  lemma: string,
+  language = "es"
+): Promise<LexiconEntry | null> {
   const normalized = normalizeLexiconText(lemma);
   if (!normalized) return null;
+  const lang = normalizeLanguage(language);
 
   return prisma.lexiconEntry.findFirst({
     where: {
+      language: lang,
       kind: "construction",
       status: { in: ["vault", "candidate"] },
       OR: [
@@ -126,12 +142,17 @@ export async function findConstructionEntry(lemma: string): Promise<LexiconEntry
   });
 }
 
-export async function findRelatedPhraseEntries(lemma: string): Promise<LexiconEntry[]> {
+export async function findRelatedPhraseEntries(
+  lemma: string,
+  language = "es"
+): Promise<LexiconEntry[]> {
   const normalized = normalizeLexiconText(lemma);
   if (!normalized) return [];
+  const lang = normalizeLanguage(language);
 
   const candidates = await prisma.lexiconEntry.findMany({
     where: {
+      language: lang,
       kind: { in: ["collocation", "phrase", "idiom"] },
       status: { in: ["vault", "candidate"] },
       lemma: { contains: normalized }
@@ -148,6 +169,7 @@ export async function findRelatedPhraseEntries(lemma: string): Promise<LexiconEn
 }
 
 export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<LexiconEntry> {
+  const language = normalizeLanguage(input.language);
   const kind = input.kind ?? "word";
   const lemma = normalizeLexiconText(input.lemma);
   const displayForm = input.displayForm ?? input.lemma.trim();
@@ -157,7 +179,7 @@ export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<Lex
   // Guard: an auto/AI write must never overwrite a license-clean vault entry
   // or a human-rejected entry. Bump its demand counter and leave it untouched.
   const existing = await prisma.lexiconEntry.findUnique({
-    where: { kind_lemma: { kind, lemma } }
+    where: { language_kind_lemma: { language, kind, lemma } }
   });
   if (existing && (existing.status === "vault" || existing.status === "rejected")) {
     return prisma.lexiconEntry.update({
@@ -172,9 +194,10 @@ export async function upsertLexiconEntry(input: LexiconUpsertInput): Promise<Lex
 
   return prisma.lexiconEntry.upsert({
     where: {
-      kind_lemma: { kind, lemma }
+      language_kind_lemma: { language, kind, lemma }
     },
     create: {
+      language,
       kind,
       lemma,
       displayForm,

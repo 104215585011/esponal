@@ -36,12 +36,12 @@ test("IMPORT-1 v2 document and progress routes persist only owner-scoped metadat
   assert.match(progressRoute, /updateImportedDocumentProgress/);
   assert.match(progressRoute, /lastPosition/);
   assert.match(progressRoute, /unitCount/);
-  assert.match(documentsRoute, /listImportedDocumentsForUser\(userId\)/);
+  assert.match(documentsRoute, /listImportedDocumentsForUser\(userId(?:,\s*language)?\)/);
   assert.match(service, /export async function deleteImportedDocumentForUser/);
   assert.match(service, /where:\s*\{\s*id:\s*document\.id\s*\}/);
   assert.match(detailRoute, /export async function DELETE/);
   assert.match(detailRoute, /deleteImportedDocumentForUser\(userId,\s*context\.params\.id\)/);
   assert.match(detailRoute, /presignDelete\(\{\s*key:\s*document\.ossKey\s*\}\)/);
   assert.match(detailRoute, /storageDeleted/);
-  assert.match(service, /where:\s*\{\s*userId\s*\}/);
+  assert.match(service, /where:\s*\{[^}]*userId/);
 });

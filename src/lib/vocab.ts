@@ -1,9 +1,11 @@
 import { Prisma, WordStatus } from "@prisma/client";
 import { tryConjugateVerb } from "@/lib/conjugate";
+import { normalizeLanguage, resolveRequestLanguage } from "@/lib/languages";
 import { prisma } from "@/lib/prisma";
 
 type CreateWordInput = {
   userId: string;
+  language?: string;
   lemma: string;
   translation: string;
   forms?: string[];
@@ -93,6 +95,7 @@ function getVerbForms(lemma: string) {
 
 export async function createWord({
   userId,
+  language,
   lemma,
   translation,
   forms = [],
@@ -100,21 +103,23 @@ export async function createWord({
   partOfSpeech,
   status = WordStatus.NEW
 }: CreateWordInput) {
+  const lang = normalizeLanguage(language);
   const normalizedLemma = lemma.trim().toLowerCase();
-  const normalizedVerbForms = isVerbPos(partOfSpeech)
-    ? getVerbForms(normalizedLemma)
-    : [];
+  const normalizedVerbForms =
+    lang === "es" && isVerbPos(partOfSpeech) ? getVerbForms(normalizedLemma) : [];
   const normalizedForms = normalizeForms([normalizedLemma, ...forms, ...normalizedVerbForms]);
 
   return prisma.word.upsert({
     where: {
-      userId_lemma: {
+      userId_language_lemma: {
         userId,
+        language: lang,
         lemma: normalizedLemma
       }
     },
     create: {
       userId,
+      language: lang,
       lemma: normalizedLemma,
       translation: translation.trim(),
       forms: normalizedForms,
@@ -154,10 +159,15 @@ export async function addEncounter({
   });
 }
 
-export async function getWordsByUser(userId: string) {
+export async function getWordsByUser(userId: string, language?: string) {
+  const lang = language
+    ? normalizeLanguage(language)
+    : await resolveRequestLanguage(null, undefined, userId);
+
   return prisma.word.findMany({
     where: {
-      userId
+      userId,
+      language: lang
     },
     include: {
       encounters: {
@@ -172,11 +182,16 @@ export async function getWordsByUser(userId: string) {
   });
 }
 
-export async function getDueReviewCount(userId: string, now = new Date()) {
+export async function getDueReviewCount(userId: string, now = new Date(), language?: string) {
   try {
+    const lang = language
+      ? normalizeLanguage(language)
+      : await resolveRequestLanguage(null, undefined, userId);
+
     const dueCount = await prisma.word.count({
       where: {
         userId,
+        language: lang,
         srsState: {
           not: null
         },
@@ -188,6 +203,7 @@ export async function getDueReviewCount(userId: string, now = new Date()) {
     const newCount = await prisma.word.count({
       where: {
         userId,
+        language: lang,
         srsState: null
       }
     });
@@ -202,14 +218,20 @@ export async function getDueReviewCount(userId: string, now = new Date()) {
 export async function getDueReviewWords(
   userId: string,
   now = new Date(),
-  limit = 20
+  limit = 20,
+  language?: string
 ) {
   // 上限 50:一次拉太多,session 中途断了浪费;客户端要更多就自己再取一批
   const batchSize = Math.max(1, Math.min(50, Math.floor(limit)));
   try {
+    const lang = language
+      ? normalizeLanguage(language)
+      : await resolveRequestLanguage(null, undefined, userId);
+
     const dueWords = await prisma.word.findMany({
       where: {
         userId,
+        language: lang,
         srsState: {
           not: null
         },
@@ -226,6 +248,7 @@ export async function getDueReviewWords(
       ? await prisma.word.findMany({
           where: {
             userId,
+            language: lang,
             srsState: null
           },
           orderBy: {
@@ -242,11 +265,20 @@ export async function getDueReviewWords(
   }
 }
 
-export async function getWordWithEncounters(userId: string, lemma: string) {
+export async function getWordWithEncounters(
+  userId: string,
+  lemma: string,
+  language?: string
+) {
+  const lang = language
+    ? normalizeLanguage(language)
+    : await resolveRequestLanguage(null, undefined, userId);
+
   return prisma.word.findUnique({
     where: {
-      userId_lemma: {
+      userId_language_lemma: {
         userId,
+        language: lang,
         lemma: lemma.trim().toLowerCase()
       }
     },
@@ -262,25 +294,30 @@ export async function getWordWithEncounters(userId: string, lemma: string) {
 
 export async function getVocabStats(
   userId: string,
-  now = new Date()
+  now = new Date(),
+  language?: string
 ): Promise<VocabStats> {
+  const lang = language
+    ? normalizeLanguage(language)
+    : await resolveRequestLanguage(null, undefined, userId);
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 7);
 
   const [totalSaved, weeklyNew, words, sourceGroups] = await Promise.all([
     prisma.word.count({
-      where: { userId }
+      where: { userId, language: lang }
     }),
     prisma.word.count({
       where: {
         userId,
+        language: lang,
         createdAt: {
           gte: weekAgo
         }
       }
     }),
     prisma.word.findMany({
-      where: { userId },
+      where: { userId, language: lang },
       select: {
         id: true,
         _count: {
@@ -294,7 +331,8 @@ export async function getVocabStats(
       by: ["sourceType"],
       where: {
         word: {
-          userId
+          userId,
+          language: lang
         }
       },
       _count: {

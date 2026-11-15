@@ -27,7 +27,7 @@ test("LEX-001 Phase 1 adds LexiconEntry schema and enums", async () => {
   assert.match(schema, /licenseCode\s+String/);
   assert.match(schema, /qualityScore\s+Int\s+@default\(0\)/);
   assert.match(schema, /lookupCount\s+Int\s+@default\(0\)/);
-  assert.match(schema, /@@unique\(\[kind,\s*lemma\]\)/);
+  assert.match(schema, /@@unique\(\[language,\s*kind,\s*lemma\]\)/);
   assert.match(schema, /@@index\(\[level\]\)/);
   assert.match(schema, /@@index\(\[frequency\]\)/);
   assert.match(schema, /@@index\(\[lookupCount\]\)/);
@@ -63,7 +63,7 @@ test("LEX-001 Phase 1 exposes lexicon helper functions", async () => {
   assert.match(lib, /forms:\s*\{\s*has:/);
   assert.match(lib, /kind:\s*kind\s*\?\?/);
   assert.match(lib, /prisma\.lexiconEntry\.upsert/);
-  assert.match(lib, /where:\s*\{\s*kind_lemma:/);
+  assert.match(lib, /where:\s*\{\s*language_kind_lemma:/);
   assert.match(lib, /const lemma\s*=\s*normalizeLexiconText\(input\.lemma\)/);
   assert.match(lib, /create:\s*\{[\s\S]*lemma,/);
   assert.match(lib, /const displayForm\s*=\s*input\.displayForm\s*\?\?/);

@@ -6,6 +6,7 @@ import { getAuthedUserId } from "@/lib/api-auth";
 import { getAuthOptions } from "@/lib/auth";
 import { parseEpubForReader } from "@/lib/import/epub";
 import { createImportedDocument } from "@/lib/import/service";
+import { resolveRequestLanguage } from "@/lib/languages";
 
 const MAX_PROXY_UPLOAD_BYTES = 4 * 1024 * 1024;
 
@@ -86,8 +87,11 @@ export async function POST(request: Request) {
     }
   }
 
+  const language = await resolveRequestLanguage(request, formData.get("language"), userId);
+
   const document = await createImportedDocument({
     userId,
+    language,
     title: titleFromFile(file, formData.get("title")),
     kind,
     ossKey,

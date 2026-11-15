@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getAuthedUserId } from "@/lib/api-auth";
+import { resolveRequestLanguage } from "@/lib/languages";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -50,9 +51,15 @@ export async function GET(request: Request) {
   const sort = searchParams.get("sort") ?? "recent";
   const limit = Math.min(parsePositiveInt(searchParams.get("limit"), 60) || 60, MAX_LIMIT);
   const offset = parsePositiveInt(searchParams.get("offset"), 0);
+  const language = await resolveRequestLanguage(
+    request,
+    searchParams.get("lang") ?? searchParams.get("language"),
+    userId
+  );
 
   const where: Prisma.WordWhereInput = {
     userId,
+    language,
     ...bucketFilter(bucket),
     ...(q
       ? {

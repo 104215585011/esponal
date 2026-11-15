@@ -5,6 +5,12 @@ import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
 import { type DictionaryEntry, lookupDictionary } from "@/lib/dictionary";
 import {
+  detectQueryLanguage,
+  normalizeLanguage,
+  resolveRequestLanguage,
+  type LearningLanguage
+} from "@/lib/languages";
+import {
   deriveScoreSignals,
   findLexiconLookupEntry,
   findConstructionEntry,
@@ -114,13 +120,14 @@ function mapLexiconEntryToLookupPayload(entry: LexiconEntry, word: string, relat
   };
 }
 
-function scheduleLexiconBackfill(entry: DictionaryEntry) {
+function scheduleLexiconBackfill(entry: DictionaryEntry, language: LearningLanguage) {
   setTimeout(() => {
     void (async () => {
-      const lemmaInDict = await isLemmaInDict(entry.lemma);
+      const lemmaInDict = language === "es" ? await isLemmaInDict(entry.lemma) : false;
       const { score, status } = scoreLexiconEntry(deriveScoreSignals(entry, lemmaInDict));
 
       await upsertLexiconEntry({
+        language,
         kind: "word",
         lemma: entry.lemma,
         displayForm: entry.lemma,
@@ -141,12 +148,21 @@ function scheduleLexiconBackfill(entry: DictionaryEntry) {
   }, 0);
 }
 
-async function withSavedState<T extends { lemma: string }>(payload: T, userId: string | null) {
+async function withSavedState<T extends { lemma: string }>(
+  payload: T,
+  userId: string | null,
+  language: LearningLanguage,
+  detectedLanguage: LearningLanguage | null
+) {
   const savedWord =
-    userId && payload.lemma ? await getWordWithEncounters(userId, payload.lemma) : null;
+    userId && payload.lemma
+      ? await getWordWithEncounters(userId, payload.lemma, language)
+      : null;
 
   return {
     ...payload,
+    language,
+    detectedLanguage,
     isSaved: Boolean(savedWord),
     wordId: savedWord?.id ?? null,
     totalEncounters: savedWord ? savedWord.encounters.length : null
@@ -179,15 +195,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "word is required" }, { status: 400 });
   }
 
+  const language = await resolveRequestLanguage(
+    request,
+    searchParams.get("lang") ?? searchParams.get("language"),
+    userId
+  );
+  const detectedLanguage = detectQueryLanguage(word);
+
   try {
-    const relatedEntries = await findRelatedPhraseEntries(word);
-    const constructionEntry = await findConstructionEntry(word);
+    const relatedEntries = await findRelatedPhraseEntries(word, language);
+    const constructionEntry = await findConstructionEntry(word, language);
     const relatedPhrases = relatedEntries.map((entry) => ({
       lemma: entry.lemma,
       translationZh: entry.translationZh,
       kind: entry.kind
     }));
-    const lexiconEntry = await findLexiconLookupEntry(word);
+    const lexiconEntry = await findLexiconLookupEntry(word, language);
     if (lexiconEntry) {
       await incrementLookupCount(lexiconEntry.id);
       const payload = {
@@ -197,7 +220,7 @@ export async function GET(request: Request) {
           (lexiconEntry.kind === "construction" ? lexiconEntry.explanationZh : null)
       };
       return NextResponse.json(
-        await withSavedState(payload, userId),
+        await withSavedState(payload, userId, language, detectedLanguage),
         { headers: lexiconHeaders(true, "lexicon", startedAt) }
       );
     }
@@ -214,14 +237,14 @@ export async function GET(request: Request) {
       }
     }
 
-    const entry = await lookupDictionary(word);
+    const entry = await lookupDictionary(word, { language: normalizeLanguage(language) });
 
     if (!entry) {
       reportLookupFailure(word, new Error("dictionary returned null"));
       return NextResponse.json({ error: "lookup failed" }, { status: 500 });
     }
 
-    scheduleLexiconBackfill(entry);
+    scheduleLexiconBackfill(entry, language);
 
     if (userId) {
       const spendResult = await spendCredits(
@@ -241,7 +264,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(
-      await withSavedState({ ...entry, relatedPhrases }, userId),
+      await withSavedState({ ...entry, relatedPhrases }, userId, language, detectedLanguage),
       { headers: lexiconHeaders(false, "external", startedAt) }
     );
   } catch (error) {

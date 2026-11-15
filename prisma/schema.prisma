@@ -15,6 +15,7 @@ model User {
   emailVerified      DateTime?
   image              String?
   plan               Plan                @default(free)
+  activeLanguage     String              @default("es")
   creditSource       CreditSource        @default(free)
   creditBalanceMinor Int                 @default(0)
   planExpiresAt      DateTime?
@@ -112,6 +113,7 @@ enum WordStatus {
 model Word {
   id               String          @id @default(cuid())
   userId           String
+  language         String          @default("es")
   lemma            String
   translation      String
   forms            String[]        @default([])
@@ -132,9 +134,11 @@ model Word {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  @@unique([userId, lemma])
+  @@unique([userId, language, lemma])
   @@index([userId])
+  @@index([userId, language])
   @@index([userId, srsDue])
+  @@index([userId, language, srsDue])
 }
 
 model WordEncounter {
@@ -154,20 +158,23 @@ model WordEncounter {
 }
 
 model LecturaRead {
-  id     String   @id @default(cuid())
-  userId String
-  slug   String
-  readAt DateTime @default(now())
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  userId   String
+  language String   @default("es")
+  slug     String
+  readAt   DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, slug])
   @@index([userId, readAt])
+  @@index([userId, language, readAt])
   @@map("lectura_reads")
 }
 
 model VideoView {
   id           String   @id @default(cuid())
   userId       String
+  language     String   @default("es")
   videoId      String
   title        String
   channelTitle String
@@ -179,26 +186,29 @@ model VideoView {
 
   @@unique([userId, videoId])
   @@index([userId, viewedAt])
+  @@index([userId, language, viewedAt])
   @@map("video_views")
 }
 
 model ImportedDocument {
-  id           String       @id @default(cuid())
-  userId       String
-  title        String
-  kind         ImportKind
-  ossKey       String
-  sizeBytes    Int
+  id            String       @id @default(cuid())
+  userId        String
+  language      String       @default("es")
+  title         String
+  kind          ImportKind
+  ossKey        String
+  sizeBytes     Int
   inlineContent Bytes?
-  unitCount    Int          @default(0)
-  lastPosition String       @default("")
-  status       ImportStatus @default(ready)
-  failReason   String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unitCount     Int          @default(0)
+  lastPosition  String       @default("")
+  status        ImportStatus @default(ready)
+  failReason    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([userId, language, createdAt])
 }
 
 enum ImportKind {
@@ -237,6 +247,7 @@ enum LexiconStatus {
 
 model LexiconEntry {
   id            String      @id @default(cuid())
+  language      String      @default("es")
   kind          LexiconKind
   lemma         String
   displayForm   String
@@ -260,7 +271,8 @@ model LexiconEntry {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  @@unique([kind, lemma])
+  @@unique([language, kind, lemma])
+  @@index([language])
   @@index([level])
   @@index([frequency])
   @@index([lookupCount])
@@ -270,6 +282,7 @@ model LexiconEntry {
 model SavedPhrase {
   id            String      @id @default(cuid())
   userId        String
+  language      String      @default("es")
   lemma         String
   kind          LexiconKind
   translationZh String?
@@ -279,8 +292,9 @@ model SavedPhrase {
   updatedAt     DateTime    @updatedAt
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, lemma, kind])
+  @@unique([userId, language, lemma, kind])
   @@index([userId, createdAt])
+  @@index([userId, language, createdAt])
   @@map("saved_phrases")
 }
 

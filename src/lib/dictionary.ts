@@ -4,6 +4,11 @@ import {
   tryConjugateVerb,
   type VerbConjugations
 } from "@/lib/conjugate";
+import {
+  LANGUAGE_LABELS,
+  normalizeLanguage,
+  type LearningLanguage
+} from "@/lib/languages";
 import { reportLookupFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 
@@ -13,6 +18,7 @@ export type DictionaryExample = {
 };
 
 export type DictionaryEntry = {
+  language?: LearningLanguage;
   word: string;
   lemma: string;
   partOfSpeech: string | null;
@@ -207,22 +213,38 @@ async function safeCacheSet(key: string, value: DictionaryEntry) {
 async function fetchAIEntry(
   word: string,
   hintLemma: string,
-  morphInfo: string | null
+  morphInfo: string | null,
+  language: LearningLanguage = "es"
 ): Promise<DictionaryEntry | null> {
   const apiKey = process.env.DASHSCOPE_API_KEY?.trim();
   const model = process.env.DASHSCOPE_MODEL?.trim() || "glm-5";
   if (!apiKey) return null;
 
+  const langPromptName =
+    language === "en"
+      ? "English"
+      : language === "fr"
+        ? "French"
+        : language === "ja"
+          ? "Japanese"
+          : "Spanish";
+
   const promptLines = [
-    "You are a Spanish morphological analyzer and dictionary assistant.",
-    `The learner saw the word "${word}" in a Spanish text.`,
-    "Step 1: Identify its lemma (infinitive for verbs; singular nominative for nouns/adjectives).",
+    `You are a ${langPromptName} (${LANGUAGE_LABELS[language]}) morphological analyzer and dictionary assistant.`,
+    `The learner saw the word "${word}" in a ${langPromptName} text.`,
+    "Step 1: Identify its lemma (infinitive/dictionary base form for verbs; singular nominative for nouns/adjectives).",
     "Step 2: Generate a concise dictionary entry for that lemma in Chinese.",
     "Return JSON only, no markdown fences.",
     "",
-    'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}',
-    'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}',
-    'Adjective example: {"lemma":"rojo","pos":"adj.","meanings":["红色的"],"example":{"es":"La rosa es roja.","zh":"玫瑰是红色的。"},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}',
+    language === "es"
+      ? 'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}'
+      : 'Verb example: {"lemma":"run","morphInfo":"past tense / base","pos":"v.","meanings":["跑","运行"],"example":{"es":"I run every morning.","zh":"我每天早上跑步。"}}',
+    language === "es"
+      ? 'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}'
+      : 'Noun example: {"lemma":"table","pos":"n.","meanings":["桌子","表格"],"example":{"es":"Put the book on the table.","zh":"把书放在桌子上。"}}',
+    language === "es"
+      ? 'Adjective example: {"lemma":"rojo","pos":"adj.","meanings":["红色的"],"example":{"es":"La rosa es roja.","zh":"玫瑰是红色的。"},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}'
+      : "",
     morphInfo ? `Morphology context: ${morphInfo}` : ""
   ]
     .filter(Boolean)
@@ -270,6 +292,7 @@ async function fetchAIEntry(
       : morphInfo;
 
   return {
+    language,
     word,
     lemma: aiLemma,
     partOfSpeech,
@@ -277,9 +300,12 @@ async function fetchAIEntry(
     examples: normalizeExample(parsed.example),
     phonetic: null,
     morphInfo: aiMorphInfo,
-    nounForms: validateNounForms(aiLemma, partOfSpeech, parsed.forms),
+    nounForms:
+      language === "es"
+        ? validateNounForms(aiLemma, partOfSpeech, parsed.forms)
+        : undefined,
     adjectiveForms:
-      partOfSpeech?.toLowerCase().startsWith("adj")
+      language === "es" && partOfSpeech?.toLowerCase().startsWith("adj")
         ? validateAdjectiveForms(parsed.forms)
         : undefined
   };
@@ -295,9 +321,43 @@ export async function isLemmaInDict(value: string): Promise<boolean> {
   return Object.values(lemmaDict).some((entry) => entry.lemma === normalized);
 }
 
-export async function lookupDictionary(wordInput: string): Promise<DictionaryEntry | null> {
+export async function lookupDictionary(
+  wordInput: string,
+  options?: { language?: string }
+): Promise<DictionaryEntry | null> {
+  const language = normalizeLanguage(options?.language);
   const word = normalizeWord(wordInput);
   if (!word) return null;
+
+  if (language !== "es") {
+    const cacheKey = `vocab:dict:v3:${language}:${word}`;
+    const cached = await safeCacheGet(cacheKey);
+    if (cached) {
+      return { ...(JSON.parse(cached) as DictionaryEntry), language, word, cached: true };
+    }
+
+    const aiEntry = await fetchAIEntry(word, word, null, language).catch((error) => {
+      reportLookupFailure(word, error);
+      return null;
+    });
+
+    if (aiEntry) {
+      await safeCacheSet(cacheKey, aiEntry);
+      return aiEntry;
+    }
+
+    return {
+      language,
+      word,
+      lemma: word,
+      partOfSpeech: null,
+      meanings: [],
+      examples: [],
+      phonetic: null,
+      morphInfo: null,
+      degraded: true
+    };
+  }
 
   const lemmaDict = await loadLemmaDict();
   const dictEntry = lemmaDict[word];
@@ -307,10 +367,10 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
 
   const hintCached = await safeCacheGet(hintCacheKey);
   if (hintCached) {
-    return { ...(JSON.parse(hintCached) as DictionaryEntry), word, cached: true };
+    return { ...(JSON.parse(hintCached) as DictionaryEntry), language: "es", word, cached: true };
   }
 
-  const aiEntry = await fetchAIEntry(word, hintLemma, morphInfo).catch((error) => {
+  const aiEntry = await fetchAIEntry(word, hintLemma, morphInfo, "es").catch((error) => {
     reportLookupFailure(word, error);
     return null;
   });
@@ -321,7 +381,7 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
 
     const aiCached = await safeCacheGet(aiCacheKey);
     if (aiCached) {
-      return { ...(JSON.parse(aiCached) as DictionaryEntry), word, cached: true };
+      return { ...(JSON.parse(aiCached) as DictionaryEntry), language: "es", word, cached: true };
     }
 
     if (isVerbPos(aiEntry.partOfSpeech)) {
@@ -336,6 +396,7 @@ export async function lookupDictionary(wordInput: string): Promise<DictionaryEnt
     : (dictEntry?.partOfSpeech ?? null);
 
   return {
+    language: "es",
     word,
     lemma: hintLemma,
     partOfSpeech,

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
+import { resolveRequestLanguage } from "@/lib/languages";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { addEncounter, createWord, getWordWithEncounters } from "@/lib/vocab";
 
 type AddVocabBody = {
+  language?: unknown;
   lemma?: unknown;
   translation?: unknown;
   form?: unknown;
@@ -80,7 +82,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid timestampSec" }, { status: 400 });
     }
 
-    const existingWord = await getWordWithEncounters(userId, lemma);
+    const language = await resolveRequestLanguage(request, body.language, userId);
+    const existingWord = await getWordWithEncounters(userId, lemma, language);
 
     if (!existingWord) {
       const saveAccess = await assertUnlimitedSavesAccess(userId);
@@ -100,6 +103,7 @@ export async function POST(request: Request) {
 
     const word = await createWord({
       userId: userId,
+      language,
       lemma,
       translation,
       forms: existingWord ? [...existingWord.forms, form] : [form],

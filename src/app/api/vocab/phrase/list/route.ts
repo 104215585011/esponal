@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { getSavedPhrasesByUser } from "@/lib/corpus";
+import { resolveRequestLanguage } from "@/lib/languages";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 
 async function checkUserRateLimit(request: Request, userId: string) {
@@ -33,9 +34,15 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const limitValue = Number.parseInt(searchParams.get("limit") ?? "100", 10);
+  const language = await resolveRequestLanguage(
+    request,
+    searchParams.get("lang") ?? searchParams.get("language"),
+    userId
+  );
   const phrases = await getSavedPhrasesByUser(
     userId,
-    Number.isFinite(limitValue) ? limitValue : 100
+    Number.isFinite(limitValue) ? limitValue : 100,
+    language
   );
 
   return NextResponse.json({

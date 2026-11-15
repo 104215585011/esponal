@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
+import { resolveRequestLanguage } from "@/lib/languages";
 import { getDueReviewWords, getDueReviewCount } from "@/lib/vocab";
 
 export async function GET(request: Request) {
@@ -10,15 +11,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const now = new Date();
+  const { searchParams } = new URL(request.url);
+  const language = await resolveRequestLanguage(
+    request,
+    searchParams.get("lang") ?? searchParams.get("language"),
+    userId
+  );
 
   // ?limit= 可选,默认 20(默认批大小,原值写死在 getDueReviewWords 里),上限 50
-  const limitParam = Number(new URL(request.url).searchParams.get("limit"));
+  const limitParam = Number(searchParams.get("limit"));
   const limit =
     Number.isFinite(limitParam) && limitParam > 0 ? Math.floor(limitParam) : 20;
 
   const [dueWords, totalDue] = await Promise.all([
-    getDueReviewWords(userId, now, limit),
-    getDueReviewCount(userId, now)
+    getDueReviewWords(userId, now, limit, language),
+    getDueReviewCount(userId, now, language)
   ]);
 
   // 按请求的 limit 截断(默认 20;历史行为见 getDueReviewWords 里的 take: 20)

@@ -11,7 +11,7 @@ test("Prisma schema defines vocabulary words owned by users", async () => {
   assert.match(schema, /enum\s+WordStatus\s*{[\s\S]*NEW[\s\S]*LEARNING[\s\S]*KNOWN[\s\S]*}/);
   assert.match(schema, /model\s+Word\s*{[\s\S]*userId\s+String[\s\S]*lemma\s+String[\s\S]*translation\s+String[\s\S]*forms\s+String\[\][\s\S]*status\s+WordStatus\s+@default\(NEW\)[\s\S]*}/);
   assert.match(schema, /model\s+Word\s*{[\s\S]*user\s+User\s+@relation\(fields:\s*\[userId\],\s*references:\s*\[id\],\s*onDelete:\s*Cascade\)[\s\S]*}/);
-  assert.match(schema, /@@unique\(\[userId,\s*lemma\]\)/);
+  assert.match(schema, /@@unique\(\[userId,\s*language,\s*lemma\]\)/);
   assert.match(schema, /@@index\(\[userId\]\)/);
 });
 

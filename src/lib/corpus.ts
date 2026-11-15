@@ -1,11 +1,13 @@
-// Timestamp: 2026-06-03 10:05
+// Timestamp: 2026-11-15 08:08
 import type { LexiconKind, Prisma } from "@prisma/client";
+import { normalizeLanguage, resolveRequestLanguage } from "@/lib/languages";
 import { prisma } from "@/lib/prisma";
 
 export type SavePhraseKind = Extract<LexiconKind, "collocation" | "phrase" | "idiom">;
 
 export type UpsertVideoViewInput = {
   userId: string;
+  language?: string;
   videoId: string;
   title: string;
   channelTitle: string;
@@ -14,6 +16,7 @@ export type UpsertVideoViewInput = {
 
 export type SavePhraseInput = {
   userId: string;
+  language?: string;
   lemma: string;
   kind: SavePhraseKind;
   translationZh?: string | null;
@@ -28,11 +31,13 @@ function normalizeText(value: string, fallback: string) {
 
 export async function upsertVideoView({
   userId,
+  language,
   videoId,
   title,
   channelTitle,
   thumbnail
 }: UpsertVideoViewInput) {
+  const lang = normalizeLanguage(language);
   const normalizedVideoId = videoId.trim();
 
   return prisma.videoView.upsert({
@@ -44,6 +49,7 @@ export async function upsertVideoView({
     },
     create: {
       userId,
+      language: lang,
       videoId: normalizedVideoId,
       title: normalizeText(title, "YouTube video"),
       channelTitle: normalizeText(channelTitle, "YouTube"),
@@ -51,6 +57,7 @@ export async function upsertVideoView({
       viewedAt: new Date()
     },
     update: {
+      language: lang,
       title: normalizeText(title, "YouTube video"),
       channelTitle: normalizeText(channelTitle, "YouTube"),
       thumbnail: thumbnail?.trim() || null,
@@ -59,9 +66,17 @@ export async function upsertVideoView({
   });
 }
 
-export async function getVideoViewsByUser(userId: string, limit = 100) {
+export async function getVideoViewsByUser(
+  userId: string,
+  limit = 100,
+  language?: string
+) {
+  const lang = language
+    ? normalizeLanguage(language)
+    : await resolveRequestLanguage(null, undefined, userId);
+
   return prisma.videoView.findMany({
-    where: { userId },
+    where: { userId, language: lang },
     orderBy: {
       viewedAt: "desc"
     },
@@ -71,24 +86,28 @@ export async function getVideoViewsByUser(userId: string, limit = 100) {
 
 export async function savePhraseForUser({
   userId,
+  language,
   lemma,
   kind,
   translationZh,
   explanationZh,
   data
 }: SavePhraseInput) {
+  const lang = normalizeLanguage(language);
   const normalizedLemma = lemma.trim().toLowerCase();
 
   return prisma.savedPhrase.upsert({
     where: {
-      userId_lemma_kind: {
+      userId_language_lemma_kind: {
         userId,
+        language: lang,
         lemma: normalizedLemma,
         kind
       }
     },
     create: {
       userId,
+      language: lang,
       lemma: normalizedLemma,
       kind,
       translationZh: translationZh?.trim() || null,
@@ -107,21 +126,35 @@ export async function getSavedPhraseByUser(
   userId: string,
   lemma: string,
   kind: SavePhraseKind,
+  language?: string
 ) {
+  const lang = language
+    ? normalizeLanguage(language)
+    : await resolveRequestLanguage(null, undefined, userId);
+
   return prisma.savedPhrase.findUnique({
     where: {
-      userId_lemma_kind: {
+      userId_language_lemma_kind: {
         userId,
+        language: lang,
         lemma: lemma.trim().toLowerCase(),
-        kind,
-      },
-    },
+        kind
+      }
+    }
   });
 }
 
-export async function getSavedPhrasesByUser(userId: string, limit = 100) {
+export async function getSavedPhrasesByUser(
+  userId: string,
+  limit = 100,
+  language?: string
+) {
+  const lang = language
+    ? normalizeLanguage(language)
+    : await resolveRequestLanguage(null, undefined, userId);
+
   return prisma.savedPhrase.findMany({
-    where: { userId },
+    where: { userId, language: lang },
     orderBy: {
       createdAt: "desc"
     },

@@ -1,9 +1,11 @@
-// Timestamp: 2026-06-10 10:05
+// Timestamp: 2026-11-15 08:08
 import type { ImportKind } from "@prisma/client";
+import { normalizeLanguage } from "@/lib/languages";
 import { prisma } from "@/lib/prisma";
 
 const importedDocumentSelect = {
   id: true,
+  language: true,
   title: true,
   kind: true,
   ossKey: true,
@@ -23,6 +25,7 @@ const importedDocumentFileSelect = {
 
 export async function createImportedDocument(input: {
   userId: string;
+  language?: string;
   title: string;
   kind: ImportKind;
   ossKey: string;
@@ -33,6 +36,7 @@ export async function createImportedDocument(input: {
   return prisma.importedDocument.create({
     data: {
       userId: input.userId,
+      language: normalizeLanguage(input.language),
       title: input.title,
       kind: input.kind,
       ossKey: input.ossKey,
@@ -52,18 +56,22 @@ export async function getImportedDocumentFileByIdForUser(userId: string, documen
   });
 }
 
-export async function listImportedDocumentsForUser(userId: string) {
+export async function listImportedDocumentsForUser(userId: string, language?: string) {
   return prisma.importedDocument.findMany({
-    where: { userId },
+    where: {
+      userId,
+      ...(language ? { language: normalizeLanguage(language) } : {})
+    },
     orderBy: { createdAt: "desc" },
     select: importedDocumentSelect,
   });
 }
 
-export async function listImportedArticlesForUser(userId: string) {
+export async function listImportedArticlesForUser(userId: string, language?: string) {
   return prisma.importedDocument.findMany({
     where: {
       userId,
+      ...(language ? { language: normalizeLanguage(language) } : {}),
       status: "ready",
       kind: { in: ["pdf", "epub"] },
     },

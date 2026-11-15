@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
+import { resolveRequestLanguage } from "@/lib/languages";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import {
   getSavedPhraseByUser,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/corpus";
 
 type SavePhraseBody = {
+  language?: unknown;
   lemma?: unknown;
   kind?: unknown;
   translationZh?: unknown;
@@ -72,7 +74,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid phrase kind" }, { status: 400 });
     }
 
-    const existingPhrase = await getSavedPhraseByUser(userId, lemma, body.kind);
+    const language = await resolveRequestLanguage(request, body.language, userId);
+    const existingPhrase = await getSavedPhraseByUser(userId, lemma, body.kind, language);
     if (!existingPhrase) {
       const saveAccess = await assertUnlimitedSavesAccess(userId);
       if (!saveAccess.ok) {
@@ -91,6 +94,7 @@ export async function POST(request: Request) {
 
     const phrase = await savePhraseForUser({
       userId,
+      language,
       lemma,
       kind: body.kind,
       translationZh,

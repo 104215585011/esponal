@@ -1,11 +1,13 @@
-// Timestamp: 2026-06-03 10:05
+// Timestamp: 2026-11-15 08:12
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { addLimiter, checkRateLimit, getRetryAfterSec } from "@/lib/ratelimit";
 import { getVideoViewsByUser, upsertVideoView } from "@/lib/corpus";
+import { resolveRequestLanguage } from "@/lib/languages";
 import { readWatchProgress } from "@/lib/watch-progress";
 
 type WatchHistoryBody = {
+  language?: unknown;
   videoId?: unknown;
   title?: unknown;
   channelTitle?: unknown;
@@ -51,8 +53,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "missing required fields" }, { status: 400 });
     }
 
+    const language = await resolveRequestLanguage(request, body.language, userId);
+
     const view = await upsertVideoView({
       userId,
+      language,
       videoId,
       title,
       channelTitle,
@@ -88,9 +93,15 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const limitValue = Number.parseInt(searchParams.get("limit") ?? "100", 10);
+  const language = await resolveRequestLanguage(
+    request,
+    searchParams.get("lang") ?? searchParams.get("language"),
+    userId
+  );
   const views = await getVideoViewsByUser(
     userId,
-    Number.isFinite(limitValue) ? limitValue : 100
+    Number.isFinite(limitValue) ? limitValue : 100,
+    language
   );
 
   // 顺带把观看进度带上，App 首页「接着看」才能显示看到哪
