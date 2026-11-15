@@ -75,6 +75,8 @@ Markdown Content:
 
 Fuente de la imagen, AFP
 
+[](https://www.rfi.fr/es/empty-anchor)[](https://www.rfi.fr/es/empty-anchor-2)
+
 Los aeropuertos estadounidenses reanudaron las operaciones comerciales este viernes tras varias horas de retrasos en las terminales principales del país.
 
 Las autoridades señalaron que [el tráfico aéreo](https://www.rfi.fr/es/tag) volverá a la normalidad de forma gradual durante el fin de semana.

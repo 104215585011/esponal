@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 15:10
+// Timestamp: 2026-11-15 15:16
 import { type LecturaStory } from "@/../content/lectura";
 import {
   extractArticleParagraphsFromHtml,
@@ -50,9 +50,9 @@ const NEWS_FEEDS: FeedSource[] = [
   },
 ];
 
-// v3 缓存命名空间：全量刷新此前截断的 RFI / 博客短文，补全原文完整段落
-const LIST_CACHE_KEY = "lectura:rss:stories:v3";
-const STORY_CACHE_PREFIX = "lectura:rss:story:v3:";
+// v4 缓存命名空间：全量刷新此前截断的 RFI / 博客短文并剔除空 Markdown 链接
+const LIST_CACHE_KEY = "lectura:rss:stories:v4";
+const STORY_CACHE_PREFIX = "lectura:rss:story:v4:";
 const LIST_TTL_SEC = 6 * 3600;
 const STORY_TTL_SEC = 24 * 3600;
 

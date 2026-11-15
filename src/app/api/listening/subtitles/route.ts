@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 15:08
+// Timestamp: 2026-11-15 15:16
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -8,14 +8,15 @@ import { isConfiguredSecret } from "@/lib/talk/env";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+export const preferredRegion = "hnd1";
 
 const DASHSCOPE_COMPAT_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 const OMNI_MODEL = process.env.DASHSCOPE_OMNI_MODEL?.trim() || "qwen3-omni-flash";
 
-// 30 秒分片大幅缩小跨洋音频传输体积（约 250~360KB），避免 Serverless 超时
+// 30 秒分片大幅缩小跨洋音频传输体积（约 240~360KB），避免 Serverless 超时
 const WINDOW_SEC = 30;
-const DEFAULT_SLICE_BYTES = 260 * 1024;
-const MAX_SLICE_BYTES = 450 * 1024;
+const DEFAULT_SLICE_BYTES = 240 * 1024;
+const MAX_SLICE_BYTES = 360 * 1024;
 
 type AudioMeta = {
   totalBytes: number;
@@ -225,7 +226,7 @@ export async function POST(request: Request) {
           }
         ]
       }),
-      signal: AbortSignal.timeout(24_000)
+      signal: AbortSignal.timeout(48_000)
     });
   } catch (err) {
     return NextResponse.json(

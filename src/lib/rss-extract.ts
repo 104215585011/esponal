@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 15:20
+// Timestamp: 2026-11-15 15:16
 export function decodeHtmlEntities(value: string): string {
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
@@ -88,7 +88,7 @@ export function extractArticleParagraphsFromMarkdown(markdown: string, maxParagr
 
     const clean = line
       .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/\[([^\]]*)\]\([^)]+\)/g, "$1")
       .replace(/[*_`>#]/g, "")
       .replace(/\s+/g, " ")
       .trim();
