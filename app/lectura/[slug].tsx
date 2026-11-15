@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:30
+// Timestamp: 2026-11-15 15:25
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,12 +11,59 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { fetchStories, fetchStory, markStoryRead, type LecturaStory } from "@/api/lectura";
+import {
+  fetchStories,
+  fetchStory,
+  markStoryRead,
+  translateParagraphs,
+  type LecturaStory
+} from "@/api/lectura";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
 import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
 import { colors, radius, spacing } from "@/theme";
 
+type DisplayMode = "bilingual" | "target" | "zh";
+type PaperTheme = "white" | "warm" | "night";
+
+const PAPER_STYLES: Record<
+  PaperTheme,
+  { label: string; bg: string; card: string; text: string; sub: string; border: string }
+> = {
+  white: {
+    label: "白",
+    bg: "#FFFFFF",
+    card: "#F8FAFC",
+    text: "#0F172A",
+    sub: "#475569",
+    border: "#E2E8F0"
+  },
+  warm: {
+    label: "暖",
+    bg: "#FBF6EA",
+    card: "#F5ECD7",
+    text: "#3F3526",
+    sub: "#6E5F47",
+    border: "#E7DABF"
+  },
+  night: {
+    label: "夜",
+    bg: "#13161B",
+    card: "#1D222A",
+    text: "#E5E7EB",
+    sub: "#9CA3AF",
+    border: "#2D333D"
+  }
+};
+
+const FONT_SIZES = [16, 18, 21] as const;
+
+/**
+ * 短文精读阅读器（重构版）：
+ * - 全幅舒适书页排版，去掉挤占正文的左侧圆形按钮
+ * - 默认开启「中西对照」（整篇段落自动翻译并带服务端 Redis 缓存）
+ * - 支持「中西对照 / 纯西语 / 纯中文」即时切换、字号与护眼底色调节、单段/整篇朗读与点词查变位
+ */
 export default function LecturaReaderScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
@@ -27,8 +74,13 @@ export default function LecturaReaderScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [glossaryOpen, setGlossaryOpen] = useState(false);
-  /** 下一篇(同难度优先),读完直接接着读 */
   const [nextSlug, setNextSlug] = useState<string | null>(null);
+
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
+  const [paper, setPaper] = useState<PaperTheme>("warm");
+  const [fontSizeIdx, setFontSizeIdx] = useState<number>(1);
+  const [translations, setTranslations] = useState<string[]>([]);
+  const [translating, setTranslating] = useState(false);
 
   const paragraphs = useMemo(() => story?.paragraphs ?? [], [story]);
   const speech = useParagraphSpeech(
@@ -36,18 +88,20 @@ export default function LecturaReaderScreen() {
     paragraphs.length
   );
 
+  const theme = PAPER_STYLES[paper];
+  const fontSize = FONT_SIZES[fontSizeIdx] ?? 18;
+
   const load = useCallback(async () => {
     if (!slug) return;
     setLoading(true);
     setError(null);
+    setTranslations([]);
 
     try {
       const data = await fetchStory(String(slug));
       setStory(data);
-      // 打开即记为已读(失败静默,不打断阅读)
       void markStoryRead(String(slug));
 
-      // 找同难度的下一篇:读完不用退回列表
       try {
         const all = await fetchStories();
         const sameLevel = all.filter((item) => item.level === data.level);
@@ -65,12 +119,35 @@ export default function LecturaReaderScreen() {
   }, [slug]);
 
   useEffect(() => {
-    load();
+    void load();
   }, [load]);
+
+  // 自动拉取当前文章全部段落的中西对照译文
+  useEffect(() => {
+    if (!story || story.paragraphs.length === 0 || displayMode === "target") return;
+    if (translations.length > 0) return;
+
+    let cancelled = false;
+    setTranslating(true);
+    translateParagraphs(story.paragraphs.slice(0, 35), "es")
+      .then((list) => {
+        if (!cancelled) setTranslations(list);
+      })
+      .catch(() => {
+        // 翻译接口暂时不可用时静默保留原文
+      })
+      .finally(() => {
+        if (!cancelled) setTranslating(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [story, displayMode, translations.length]);
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
+      <SafeAreaView style={[styles.center, { backgroundColor: theme.bg }]}>
         <ActivityIndicator color={colors.brand500} />
       </SafeAreaView>
     );
@@ -78,8 +155,8 @@ export default function LecturaReaderScreen() {
 
   if (error || !story) {
     return (
-      <SafeAreaView style={styles.center}>
-        <Text style={styles.errorText}>{error ?? "文章不存在"}</Text>
+      <SafeAreaView style={[styles.center, { backgroundColor: theme.bg }]}>
+        <Text style={[styles.errorText, { color: theme.text }]}>{error ?? "文章不存在"}</Text>
         <Pressable onPress={() => router.back()} style={styles.backButtonWide}>
           <Text style={styles.backButtonText}>返回</Text>
         </Pressable>
@@ -88,12 +165,18 @@ export default function LecturaReaderScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.topBar}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={["top"]}>
+      {/* 顶栏 */}
+      <View
+        style={[
+          styles.topBar,
+          { backgroundColor: theme.bg, borderBottomColor: theme.border }
+        ]}
+      >
         <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backButton}>
-          <Text style={styles.backIcon}>‹</Text>
+          <Text style={[styles.backIcon, { color: theme.text }]}>‹</Text>
         </Pressable>
-        <Text style={styles.topTitle} numberOfLines={1}>
+        <Text style={[styles.topTitle, { color: theme.text }]} numberOfLines={1}>
           {story.titleZh}
         </Text>
         <Pressable
@@ -127,22 +210,73 @@ export default function LecturaReaderScreen() {
               speech.playingIndex !== null && styles.listenTextOn
             ]}
           >
-            {speech.playingIndex !== null ? "停止" : "朗读"}
+            {speech.playingIndex !== null ? "停止" : "全篇朗读"}
           </Text>
         </Pressable>
+      </View>
+
+      {/* 阅读偏好控制条：中西对照 / 纯西语 / 纯中文 + 字号 + 纸张背景 */}
+      <View
+        style={[
+          styles.controlBar,
+          { backgroundColor: theme.card, borderBottomColor: theme.border }
+        ]}
+      >
+        <View style={styles.modeGroup}>
+          {(
+            [
+              { key: "bilingual", label: "中西对照" },
+              { key: "target", label: "纯西语" },
+              { key: "zh", label: "纯中文" }
+            ] as const
+          ).map((mode) => {
+            const active = displayMode === mode.key;
+            return (
+              <Pressable
+                key={mode.key}
+                onPress={() => setDisplayMode(mode.key)}
+                style={[styles.modePill, active && styles.modePillOn]}
+              >
+                <Text style={[styles.modePillText, active && styles.modePillTextOn]}>
+                  {mode.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.appearanceGroup}>
+          <Pressable
+            onPress={() => setFontSizeIdx((prev) => (prev + 1) % FONT_SIZES.length)}
+            style={styles.smallPill}
+          >
+            <Text style={[styles.smallPillText, { color: theme.text }]}>字号 {fontSize}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              const order: PaperTheme[] = ["warm", "white", "night"];
+              const next = order[(order.indexOf(paper) + 1) % order.length];
+              setPaper(next);
+            }}
+            style={styles.smallPill}
+          >
+            <Text style={[styles.smallPillText, { color: theme.text }]}>
+              {theme.label}底
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.badges}>
           <Text style={styles.levelBadge}>{story.level}</Text>
-          <Text style={styles.metaText}>
-            {story.durationMin} 分钟 · {story.paragraphs.length} 段
+          <Text style={[styles.metaText, { color: theme.sub }]}>
+            {story.source} · {story.durationMin} 分钟 · {story.paragraphs.length} 段
           </Text>
         </View>
 
-        <Text style={styles.title}>{story.title}</Text>
-        <Text style={styles.titleZh}>{story.titleZh}</Text>
-        <Text style={styles.summary}>{story.summaryZh}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{story.title}</Text>
+        <Text style={[styles.titleZh, { color: theme.sub }]}>{story.titleZh}</Text>
 
         {story.audioUrl ? (
           <Pressable
@@ -161,69 +295,92 @@ export default function LecturaReaderScreen() {
             style={styles.podcastCard}
           >
             <View style={styles.podcastCardBody}>
-              <Text style={styles.podcastCardTitle}>🎧 打开播客音频 + 双语精听字幕</Text>
+              <Text style={styles.podcastCardTitle}>🎧 打开播客原声 + 双语字幕</Text>
               <Text style={styles.podcastCardHint}>
-                带进度条、倍速调节与 AI 时间轴字幕，支持边听边点词查变位
+                带进度拖拽、倍速、30s 循环与 AI 字幕精听
               </Text>
             </View>
             <Text style={styles.podcastCardArrow}>›</Text>
           </Pressable>
         ) : null}
 
-        <View style={styles.divider} />
+        {translating && displayMode !== "target" && translations.length === 0 ? (
+          <View style={styles.translatingBanner}>
+            <ActivityIndicator color={colors.brand600} size="small" />
+            <Text style={styles.translatingText}>正在生成流畅中文对照译文…</Text>
+          </View>
+        ) : null}
 
-        {story.paragraphs.map((paragraph, index) => (
-          <View
-            key={index}
-            style={[
-              styles.paraWrap,
-              speech.playingIndex === index && styles.paraActive
-            ]}
-          >
-            <View style={styles.paraRow}>
-              {/* 单段朗读:精读时反复听某一段 */}
-              <Pressable
-                hitSlop={8}
-                onPress={() => {
-                  if (speech.playingIndex === index) speech.stop();
-                  else speech.playParagraph(index);
-                }}
-                style={[
-                  styles.paraPlay,
-                  speech.playingIndex === index && styles.paraPlayOn
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.paraPlayIcon,
-                    speech.playingIndex === index && styles.paraPlayIconOn
-                  ]}
-                >
-                  {speech.playingIndex === index ? "■" : "▶"}
-                </Text>
-              </Pressable>
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-              <View style={styles.paraBody}>
+        {story.paragraphs.map((paragraph, index) => {
+          const zh = translations[index];
+          const isSpeaking = speech.playingIndex === index;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.paraWrap,
+                { borderBottomColor: theme.border },
+                isSpeaking && styles.paraActive
+              ]}
+            >
+              {displayMode !== "zh" ? (
                 <ParagraphBlock
-                  first={index === 0}
+                  first
+                  fontSize={fontSize}
                   onWordPress={(word) => {
                     setLookupWord(word);
                     setLookupContext(paragraph);
                   }}
                   text={paragraph}
+                  textColor={theme.text}
                 />
+              ) : null}
+
+              {displayMode !== "target" && zh ? (
+                <Text
+                  style={[
+                    styles.zhParagraph,
+                    {
+                      color: theme.sub,
+                      fontSize: Math.max(14, fontSize - 2),
+                      lineHeight: Math.round(Math.max(14, fontSize - 2) * 1.62)
+                    }
+                  ]}
+                >
+                  {zh}
+                </Text>
+              ) : null}
+
+              <View style={styles.paraFooter}>
+                <Text style={[styles.paraNum, { color: theme.sub }]}>§{index + 1}</Text>
+                <Pressable
+                  hitSlop={8}
+                  onPress={() => {
+                    if (isSpeaking) speech.stop();
+                    else speech.playParagraph(index);
+                  }}
+                  style={[styles.paraPlayChip, isSpeaking && styles.paraPlayChipOn]}
+                >
+                  <Text style={[styles.paraPlayChipText, isSpeaking && styles.paraPlayChipTextOn]}>
+                    {isSpeaking ? "■ 停止朗读" : "🔊 听本段"}
+                  </Text>
+                </Pressable>
               </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
 
         {story.glossary.length > 0 ? (
-          <View style={styles.glossary}>
+          <View style={[styles.glossary, { borderTopColor: theme.border }]}>
             <Pressable
               onPress={() => setGlossaryOpen((prev) => !prev)}
               style={styles.glossaryHead}
             >
-              <Text style={styles.glossaryTitle}>生词表 · {story.glossary.length}</Text>
+              <Text style={[styles.glossaryTitle, { color: theme.text }]}>
+                生词表 · {story.glossary.length}
+              </Text>
               <Text style={styles.glossaryToggle}>{glossaryOpen ? "收起" : "展开"}</Text>
             </Pressable>
 
@@ -235,17 +392,19 @@ export default function LecturaReaderScreen() {
                       setLookupWord(item.word.replace(/[^\wÁÉÍÓÚÜÑáéíóúüñ]/g, ""));
                       setLookupContext(undefined);
                     }}
-                    style={styles.glossaryRow}
+                    style={[styles.glossaryRow, { borderTopColor: theme.border }]}
                   >
-                    <Text style={styles.glossaryWord}>{item.word}</Text>
-                    <Text style={styles.glossaryNote}>{item.note}</Text>
+                    <Text style={[styles.glossaryWord, { color: theme.text }]}>{item.word}</Text>
+                    <Text style={[styles.glossaryNote, { color: theme.sub }]}>{item.note}</Text>
                   </Pressable>
                 ))
               : null}
           </View>
         ) : null}
 
-        <Text style={styles.footnote}>点任意单词查词,长按可选择文字。</Text>
+        <Text style={[styles.footnote, { color: theme.sub }]}>
+          轻触任意西语单词即可查词与查看全部动词变位。
+        </Text>
 
         {nextSlug ? (
           <Pressable
@@ -255,19 +414,23 @@ export default function LecturaReaderScreen() {
                 params: { slug: nextSlug }
               } as never)
             }
-            style={styles.nextButton}
+            style={[styles.nextButton, { borderColor: theme.border, backgroundColor: theme.card }]}
           >
-            <Text style={styles.nextText}>读下一篇 →</Text>
+            <Text style={[styles.nextText, { color: theme.text }]}>读下一篇 →</Text>
           </Pressable>
         ) : (
-          <Pressable onPress={() => router.back()} style={styles.nextButton}>
-            <Text style={styles.nextText}>返回列表</Text>
+          <Pressable
+            onPress={() => router.back()}
+            style={[styles.nextButton, { borderColor: theme.border, backgroundColor: theme.card }]}
+          >
+            <Text style={[styles.nextText, { color: theme.text }]}>返回列表</Text>
           </Pressable>
         )}
       </ScrollView>
 
       <LookupSheet
         context={lookupContext}
+        language="es"
         onClose={() => setLookupWord(null)}
         word={lookupWord}
       />
@@ -276,16 +439,15 @@ export default function LecturaReaderScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
+  safe: { flex: 1 },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.bg
+    paddingHorizontal: spacing.xl
   },
-  errorText: { fontSize: 14, color: colors.text, textAlign: "center" },
+  errorText: { fontSize: 14, textAlign: "center" },
   backButtonWide: {
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
@@ -296,98 +458,82 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderSubtle
+    borderBottomWidth: StyleSheet.hairlineWidth
   },
-  backButton: {
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  backIcon: {
-    marginTop: -3,
-    fontSize: 26,
-    lineHeight: 30,
-    color: colors.text,
-    fontWeight: "300"
-  },
-  topTitle: { flex: 1, fontSize: 13, fontWeight: "600", color: colors.textSecondary },
-  listenButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bg
-  },
-  listenButtonOn: {
-    backgroundColor: colors.brand500,
-    borderColor: colors.brand500
-  },
-  listenText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
-  listenTextOn: { color: "#fff" },
+  backButton: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
+  backIcon: { fontSize: 26, lineHeight: 28 },
+  topTitle: { flex: 1, fontSize: 14.5, fontWeight: "700" },
   blindButton: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: radius.pill,
-    backgroundColor: colors.brand50
+    backgroundColor: colors.indigo50
   },
   blindText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
-  paraWrap: {
-    borderLeftWidth: 3,
-    borderLeftColor: "transparent",
-    paddingLeft: spacing.md,
-    marginLeft: -spacing.md,
-    borderRadius: radius.sm
-  },
-  paraActive: {
-    borderLeftColor: colors.brand500,
+  listenButton: {
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
     backgroundColor: colors.brand50
   },
-  scroll: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: 60
-  },
-  badges: {
+  listenButtonOn: { backgroundColor: colors.brand600 },
+  listenText: { fontSize: 12, fontWeight: "700", color: colors.brand700 },
+  listenTextOn: { color: "#fff" },
+  controlBar: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 8,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm
+    justifyContent: "space-between",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 8
   },
+  modeGroup: { flexDirection: "row", gap: 6 },
+  modePill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(148,163,184,0.14)"
+  },
+  modePillOn: { backgroundColor: colors.brand600 },
+  modePillText: { fontSize: 11.5, fontWeight: "700", color: colors.textSecondary },
+  modePillTextOn: { color: "#fff" },
+  appearanceGroup: { flexDirection: "row", gap: 6 },
+  smallPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(148,163,184,0.14)"
+  },
+  smallPillText: { fontSize: 11, fontWeight: "600" },
+  scroll: {
+    paddingHorizontal: 22,
+    paddingTop: spacing.xl,
+    paddingBottom: 70
+  },
+  badges: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   levelBadge: {
     fontSize: 10.5,
     fontWeight: "700",
     color: colors.brand700,
     backgroundColor: colors.brand50,
-    paddingHorizontal: 7,
+    paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill,
     overflow: "hidden"
   },
-  metaText: { fontSize: 11, color: colors.textTertiary },
+  metaText: { fontSize: 11.5, flex: 1 },
   title: {
     marginTop: spacing.md,
-    fontSize: 26,
-    lineHeight: 35,
+    fontSize: 25,
+    lineHeight: 34,
     fontWeight: "800",
-    letterSpacing: -0.5,
-    color: colors.text
+    letterSpacing: -0.4
   },
-  titleZh: {
-    marginTop: 4,
-    fontSize: 14,
-    color: colors.textSecondary
-  },
-  summary: {
-    marginTop: spacing.md,
-    fontSize: 13,
-    lineHeight: 22,
-    color: colors.textTertiary
-  },
+  titleZh: { marginTop: 4, fontSize: 14 },
   podcastCard: {
     marginTop: spacing.md,
     flexDirection: "row",
@@ -401,75 +547,78 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.brand100
   },
-  podcastCardBody: {
-    flex: 1,
-    gap: 3
+  podcastCardBody: { flex: 1, gap: 3 },
+  podcastCardTitle: { fontSize: 13.5, fontWeight: "700", color: colors.brand700 },
+  podcastCardHint: { fontSize: 11.5, color: colors.textSecondary },
+  podcastCardArrow: { fontSize: 20, fontWeight: "600", color: colors.brand600 },
+  translatingBanner: {
+    marginTop: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand50
   },
-  podcastCardTitle: {
-    fontSize: 13.5,
-    fontWeight: "700",
-    color: colors.brand700
-  },
-  podcastCardHint: {
-    fontSize: 11.5,
-    color: colors.textSecondary
-  },
-  podcastCardArrow: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: colors.brand600
-  },
+  translatingText: { fontSize: 12, fontWeight: "600", color: colors.brand700 },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-    marginVertical: spacing.xl
+    marginVertical: spacing.lg
   },
-  glossary: {
-    marginTop: spacing.xxl,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    paddingTop: spacing.lg
+  paraWrap: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 10
   },
-  glossaryHead: {
+  paraActive: {
+    backgroundColor: "rgba(16,185,129,0.08)",
+    marginHorizontal: -10,
+    paddingHorizontal: 10,
+    borderRadius: radius.md
+  },
+  zhParagraph: {
+    borderLeftWidth: 2,
+    borderLeftColor: colors.brand500,
+    paddingLeft: 10
+  },
+  paraFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between"
   },
-  glossaryTitle: { fontSize: 13, fontWeight: "700", color: colors.text },
-  glossaryToggle: { fontSize: 12, fontWeight: "600", color: colors.brand600 },
-  glossaryRow: {
-    marginTop: spacing.md,
-    gap: 2
+  paraNum: { fontSize: 11, fontWeight: "600" },
+  paraPlayChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(148,163,184,0.14)"
   },
-  glossaryWord: { fontSize: 14, fontWeight: "700", color: colors.text },
-  glossaryNote: { fontSize: 12.5, lineHeight: 20, color: colors.textSecondary },
-  footnote: {
-    marginTop: spacing.xxl,
-    fontSize: 11.5,
-    color: colors.textTertiary,
-    textAlign: "center"
-  },
-  paraRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
-  paraBody: { flex: 1 },
-  paraPlay: {
-    marginTop: 5,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  paraPlayOn: { backgroundColor: colors.brand500 },
-  paraPlayIcon: { fontSize: 9, color: colors.textSecondary, marginLeft: 1 },
-  paraPlayIconOn: { color: "#fff" },
-  nextButton: {
+  paraPlayChipOn: { backgroundColor: colors.brand600 },
+  paraPlayChipText: { fontSize: 11.5, fontWeight: "600", color: colors.textSecondary },
+  paraPlayChipTextOn: { color: "#fff" },
+  glossary: {
     marginTop: spacing.xl,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.brand50,
-    alignItems: "center",
-    justifyContent: "center"
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: spacing.lg
   },
-  nextText: { fontSize: 14, fontWeight: "700", color: colors.brand700 }
+  glossaryHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  glossaryTitle: { fontSize: 14, fontWeight: "700" },
+  glossaryToggle: { fontSize: 12.5, fontWeight: "600", color: colors.brand600 },
+  glossaryRow: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth
+  },
+  glossaryWord: { fontSize: 14.5, fontWeight: "700" },
+  glossaryNote: { marginTop: 2, fontSize: 13 },
+  footnote: { marginTop: spacing.xl, fontSize: 12, textAlign: "center" },
+  nextButton: {
+    marginTop: spacing.lg,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    alignItems: "center"
+  },
+  nextText: { fontSize: 14, fontWeight: "700" }
 });

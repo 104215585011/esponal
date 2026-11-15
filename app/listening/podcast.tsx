@@ -126,7 +126,7 @@ export default function PodcastPlayerScreen() {
   const loadSubtitlesAt = useCallback(
     async (startSec: number, force = false) => {
       if (!rawAudioUrl) return;
-      const alignedWindow = Math.floor(Math.max(0, startSec) / 50) * 50;
+      const alignedWindow = Math.floor(Math.max(0, startSec) / 30) * 30;
       if (!force && fetchedWindows.current.has(alignedWindow)) return;
       if (subLoading) return;
 
@@ -142,11 +142,11 @@ export default function PodcastPlayerScreen() {
         if (res.cues && res.cues.length > 0) {
           setCues((prev) => mergeSortedCues(prev, res.cues));
         } else if (force) {
-          setSubError("这一段未识别到有效语音，可拖到有人声的位置再生成一次。");
+          setSubError("这一段未识别到有效语音，可拖到有人声的位置再试一次。");
         }
       } catch (e) {
         fetchedWindows.current.delete(alignedWindow);
-        setSubError(e instanceof Error ? e.message : "字幕生成失败，请稍后重试");
+        setSubError(e instanceof Error ? e.message : "字幕生成失败，请点重试");
       } finally {
         setSubLoading(false);
       }
@@ -154,7 +154,7 @@ export default function PodcastPlayerScreen() {
     [rawAudioUrl, duration, subLoading]
   );
 
-  // 首屏自动拉取开篇 0~55s 双语字幕，打开就能看
+  // 首屏自动拉取开篇 0~30s 双语字幕，打开就能看
   useEffect(() => {
     if (!rawAudioUrl) return;
     fetchedWindows.current.clear();
@@ -162,6 +162,22 @@ export default function PodcastPlayerScreen() {
     void loadSubtitlesAt(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawAudioUrl]);
+
+  // 播放过程中自动按 30s 窗口滚动作业：快播到当前窗结尾时提前预取下一段
+  useEffect(() => {
+    if (!status.playing || !rawAudioUrl || subLoading) return;
+    const currentWin = Math.floor(Math.max(0, currentTime) / 30) * 30;
+    if (!fetchedWindows.current.has(currentWin)) {
+      void loadSubtitlesAt(currentWin, false);
+      return;
+    }
+    if (currentTime - currentWin >= 20) {
+      const nextWin = currentWin + 30;
+      if ((duration <= 0 || nextWin < duration) && !fetchedWindows.current.has(nextWin)) {
+        void loadSubtitlesAt(nextWin, false);
+      }
+    }
+  }, [status.playing, currentTime, duration, rawAudioUrl, subLoading, loadSubtitlesAt]);
 
   // 当前播放高亮字幕索引
   const activeCueIndex = useMemo(() => {
@@ -394,7 +410,7 @@ export default function PodcastPlayerScreen() {
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <Text style={styles.genSubBtnText}>
-                    生成 {formatClock(Math.floor(currentTime / 50) * 50)} 起字幕
+                    生成 {formatClock(Math.floor(currentTime / 30) * 30)} 字幕
                   </Text>
                 )}
               </Pressable>

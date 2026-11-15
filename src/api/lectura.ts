@@ -39,6 +39,16 @@ export async function fetchStory(slug: string) {
   return res.story;
 }
 
+/** 批量将文章/电子书段落翻译为中文（服务端 Redis 缓存 30 天） */
+export async function translateParagraphs(paragraphs: string[], sourceLang = "es") {
+  if (paragraphs.length === 0) return [] as string[];
+  const res = await apiFetch<{ translations: string[] }>("/api/lectura/translate", {
+    method: "POST",
+    body: JSON.stringify({ paragraphs, sourceLang })
+  });
+  return res.translations ?? [];
+}
+
 /** 标记已读。失败不抛错 —— 阅读体验不该被这个打断。 */
 export async function markStoryRead(slug: string) {
   try {
