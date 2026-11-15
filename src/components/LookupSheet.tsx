@@ -157,11 +157,28 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
     setSavedHint(null);
 
     try {
+      const resolvedTranslation =
+        data.meanings?.[0]?.trim() ||
+        mtMeaning?.trim() ||
+        data.morphInfo?.trim() ||
+        data.lemma;
+      const resolvedSentence =
+        context?.trim() ||
+        data.examples?.[0]?.es?.trim() ||
+        data.word ||
+        data.lemma;
+
       await saveWord({
-        word: data.word,
+        word: data.word || word || data.lemma,
         lemma: data.lemma,
-        translation: data.meanings?.[0],
-        context,
+        translation: resolvedTranslation,
+        context: resolvedSentence,
+        form: data.word || word || data.lemma,
+        sourceType: "lectura",
+        sourceUrl: "app://mobile/lookup",
+        originalSentence: resolvedSentence,
+        translatedSentence: data.examples?.[0]?.zh?.trim() || resolvedTranslation,
+        timestampSec: 0,
         language: lookupLang
       });
       setSaved(true);
@@ -171,7 +188,7 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
     } finally {
       setSaving(false);
     }
-  }, [data, saving, saved, context, lookupLang]);
+  }, [data, saving, saved, context, lookupLang, mtMeaning, word]);
 
   const meanings = data?.meanings ?? [];
   const examples = data?.examples ?? [];

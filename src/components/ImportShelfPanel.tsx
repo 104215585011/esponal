@@ -1,6 +1,7 @@
-// Timestamp: 2026-11-15 07:55
+// Timestamp: 2026-11-15 14:35
 import { useCallback, useEffect, useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
+import { File } from "expo-file-system";
 import {
   ActivityIndicator,
   Alert,
@@ -15,9 +16,11 @@ import { useRouter } from "expo-router";
 
 import { apiFetch } from "@/api/client";
 import { AppIcon } from "@/components/AppIcon";
+import { getPreferences } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const MAX_JSON_FALLBACK_BYTES = Math.floor(2.8 * 1024 * 1024);
 
 export type ImportedDoc = {
   id: string;
@@ -34,6 +37,10 @@ function formatPositionLabel(kind: "pdf" | "epub", pos: string) {
   if (kind === "epub") {
     const match = pos.match(/^epub:(\d+)/);
     if (match) return `第 ${Number(match[1]) + 1} 章`;
+  }
+  if (kind === "pdf") {
+    const match = pos.match(/^pdf:(\d+)/);
+    if (match) return `第 ${match[1]} 页`;
   }
   return pos;
 }
@@ -71,15 +78,20 @@ export function ImportShelfPanel() {
     if (uploading) return;
     try {
       const picked = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "application/epub+zip", "application/octet-stream"],
+        type: ["application/pdf", "application/epub+zip", "*/*"],
         copyToCacheDirectory: true
       });
       if (picked.canceled || !picked.assets?.[0]) return;
 
       const asset = picked.assets[0];
-      const lowerName = (asset.name || "").toLowerCase();
-      if (!lowerName.endsWith(".epub") && !lowerName.endsWith(".pdf")) {
-        Alert.alert("格式不支持", "目前仅支持导入 .epub 或 .pdf 格式的西语书籍。");
+      const rawName = (asset.name || "").trim();
+      const lowerName = rawName.toLowerCase();
+      const rawMime = (asset.mimeType || "").toLowerCase();
+      const isEpub = lowerName.endsWith(".epub") || rawMime.includes("epub");
+      const isPdf = lowerName.endsWith(".pdf") || rawMime.includes("pdf");
+
+      if (!isEpub && !isPdf) {
+        Alert.alert("格式不支持", "目前仅支持导入 .epub 或 .pdf 格式的文档。");
         return;
       }
 
@@ -92,21 +104,45 @@ export function ImportShelfPanel() {
       }
 
       setUploading(true);
-      const mimeType =
-        asset.mimeType ||
-        (lowerName.endsWith(".epub") ? "application/epub+zip" : "application/pdf");
+      const mimeType = isEpub ? "application/epub+zip" : "application/pdf";
+      const safeAsciiName = isEpub ? "upload.epub" : "upload.pdf";
+      const docTitle = rawName.replace(/\.[^.]+$/, "").trim() || "Imported document";
+      const language = getPreferences().learningLang;
 
       const form = new FormData();
       form.append("file", {
         uri: asset.uri,
-        name: asset.name || (lowerName.endsWith(".epub") ? "book.epub" : "book.pdf"),
+        name: safeAsciiName,
         type: mimeType
       } as unknown as Blob);
+      form.append("title", docTitle);
+      form.append("language", language);
 
-      const res = await apiFetch<{ document?: ImportedDoc }>("/api/import/upload", {
-        method: "POST",
-        body: form
-      });
+      let res: { document?: ImportedDoc };
+      try {
+        res = await apiFetch<{ document?: ImportedDoc }>("/api/import/upload", {
+          method: "POST",
+          body: form
+        });
+      } catch (multipartError) {
+        // Android OkHttp multipart 偶尔因文件名或 content:// 流异常失败：对 <= 2.8MB 自动回落到 JSON base64
+        const tooBigForJson =
+          typeof asset.size === "number" && asset.size > MAX_JSON_FALLBACK_BYTES;
+        if (tooBigForJson) {
+          throw multipartError;
+        }
+        const fileBase64 = await new File(asset.uri).base64();
+        res = await apiFetch<{ document?: ImportedDoc }>("/api/import/upload", {
+          method: "POST",
+          body: JSON.stringify({
+            fileBase64,
+            filename: safeAsciiName,
+            mimeType,
+            title: docTitle,
+            language
+          })
+        });
+      }
 
       if (res.document) {
         setDocs((prev) => [res.document!, ...prev]);

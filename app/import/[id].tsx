@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 04:50
+// Timestamp: 2026-11-15 14:35
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { API_BASE, apiFetch, tokenStore } from "@/api/client";
 import { LookupSheet } from "@/components/LookupSheet";
+import { usePreferences } from "@/hooks/usePreferences";
 import { colors, radius, spacing } from "@/theme";
 
 type EpubChapter = {
@@ -30,12 +31,28 @@ type EpubResponse = {
   unitCount: number;
 };
 
-function parseChapterIndex(lastPosition?: string) {
+type PdfPage = {
+  pageNumber: number;
+  text: string;
+};
+
+type PdfResponse = {
+  pages: PdfPage[];
+  unitCount: number;
+};
+
+function parseUnitIndex(kind: "epub" | "pdf", lastPosition?: string) {
   if (!lastPosition) return 0;
-  const match = lastPosition.match(/^epub:(\d+)/);
+  if (kind === "epub") {
+    const match = lastPosition.match(/^epub:(\d+)/);
+    if (!match) return 0;
+    const parsed = Number(match[1]);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  }
+  const match = lastPosition.match(/^pdf:(\d+)/);
   if (!match) return 0;
   const parsed = Number(match[1]);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  return Number.isFinite(parsed) && parsed >= 1 ? parsed - 1 : 0;
 }
 
 function splitTokens(line: string) {
@@ -46,9 +63,10 @@ function cleanWordToken(token: string) {
   return token.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
 }
 
-/** 导入文档阅读页：EPUB 支持章节阅读 + 点词查词；PDF 支持鉴权下载后调用系统阅读器打开 */
+/** 导入文档阅读页：EPUB 与 PDF 均支持应用内分页阅读 + 点词查词；扫描版 PDF 保留外部阅读器兜底 */
 export default function ImportReaderScreen() {
   const router = useRouter();
+  const prefs = usePreferences();
   const params = useLocalSearchParams<{
     id: string;
     title?: string;
@@ -59,14 +77,16 @@ export default function ImportReaderScreen() {
   const id = typeof params.id === "string" ? params.id : "";
   const title = typeof params.title === "string" && params.title ? params.title : "导入文档";
   const kind = params.kind === "pdf" ? "pdf" : "epub";
-  const initialChapter = parseChapterIndex(
+  const initialIndex = parseUnitIndex(
+    kind,
     typeof params.lastPosition === "string" ? params.lastPosition : undefined
   );
 
   const [chapters, setChapters] = useState<EpubChapter[]>([]);
+  const [pdfPages, setPdfPages] = useState<PdfPage[]>([]);
   const [unitCount, setUnitCount] = useState(0);
-  const [chapterIndex, setChapterIndex] = useState(initialChapter);
-  const [loading, setLoading] = useState(kind === "epub");
+  const [unitIndex, setUnitIndex] = useState(initialIndex);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openingPdf, setOpeningPdf] = useState(false);
 
@@ -74,58 +94,81 @@ export default function ImportReaderScreen() {
   const [selectedContext, setSelectedContext] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (kind !== "epub" || !id) return;
+    if (!id) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    apiFetch<EpubResponse>(`/api/import/${encodeURIComponent(id)}/epub`)
-      .then((res) => {
-        if (cancelled) return;
-        const list = res.chapters ?? [];
-        setChapters(list);
-        setUnitCount(res.unitCount ?? list.length);
-        setChapterIndex((prev) =>
-          list.length > 0 ? Math.min(Math.max(0, prev), list.length - 1) : 0
-        );
-      })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "加载电子书失败");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    if (kind === "epub") {
+      apiFetch<EpubResponse>(`/api/import/${encodeURIComponent(id)}/epub`)
+        .then((res) => {
+          if (cancelled) return;
+          const list = res.chapters ?? [];
+          setChapters(list);
+          setUnitCount(res.unitCount ?? list.length);
+          setUnitIndex((prev) =>
+            list.length > 0 ? Math.min(Math.max(0, prev), list.length - 1) : 0
+          );
+        })
+        .catch((e) => {
+          if (!cancelled) setError(e instanceof Error ? e.message : "加载电子书失败");
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    } else {
+      apiFetch<PdfResponse>(`/api/import/${encodeURIComponent(id)}/pdf`)
+        .then((res) => {
+          if (cancelled) return;
+          const list = res.pages ?? [];
+          setPdfPages(list);
+          setUnitCount(res.unitCount ?? list.length);
+          setUnitIndex((prev) =>
+            list.length > 0 ? Math.min(Math.max(0, prev), list.length - 1) : 0
+          );
+        })
+        .catch((e) => {
+          if (!cancelled) setError(e instanceof Error ? e.message : "提取 PDF 文本失败");
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }
 
     return () => {
       cancelled = true;
     };
   }, [id, kind]);
 
+  const totalUnits = kind === "epub" ? chapters.length : pdfPages.length;
+
   const syncProgress = useCallback(
     async (nextIndex: number) => {
       if (!id) return;
+      const lastPosition =
+        kind === "epub" ? `epub:${nextIndex}:0` : `pdf:${nextIndex + 1}`;
       try {
         await apiFetch(`/api/import/${encodeURIComponent(id)}/progress`, {
           method: "POST",
           body: JSON.stringify({
-            lastPosition: `epub:${nextIndex}:0`,
-            unitCount: unitCount || chapters.length
+            lastPosition,
+            unitCount: unitCount || totalUnits
           })
         });
       } catch {
         // 进度同步失败不打断阅读
       }
     },
-    [id, unitCount, chapters.length]
+    [id, kind, unitCount, totalUnits]
   );
 
-  const goToChapter = useCallback(
+  const goToUnit = useCallback(
     (nextIndex: number) => {
-      if (nextIndex < 0 || nextIndex >= chapters.length) return;
-      setChapterIndex(nextIndex);
+      if (nextIndex < 0 || nextIndex >= totalUnits) return;
+      setUnitIndex(nextIndex);
       void syncProgress(nextIndex);
     },
-    [chapters.length, syncProgress]
+    [totalUnits, syncProgress]
   );
 
   const handleOpenPdf = useCallback(async () => {
@@ -172,14 +215,23 @@ export default function ImportReaderScreen() {
     }
   }, [id, openingPdf, title]);
 
-  const currentChapter = chapters[chapterIndex] ?? null;
+  const activeText =
+    kind === "epub"
+      ? (chapters[unitIndex]?.text ?? "")
+      : (pdfPages[unitIndex]?.text ?? "");
+
   const paragraphs = useMemo(() => {
-    if (!currentChapter?.text) return [];
-    return currentChapter.text
+    if (!activeText) return [];
+    return activeText
       .split(/\n{2,}/)
       .map((p) => p.trim())
       .filter(Boolean);
-  }, [currentChapter]);
+  }, [activeText]);
+
+  const activeTitle =
+    kind === "epub"
+      ? chapters[unitIndex]?.title || `第 ${unitIndex + 1} 章`
+      : `第 ${pdfPages[unitIndex]?.pageNumber ?? unitIndex + 1} 页`;
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safe}>
@@ -190,41 +242,50 @@ export default function ImportReaderScreen() {
         <Text numberOfLines={1} style={styles.topTitle}>
           {title}
         </Text>
-        <View style={styles.backBtn} />
+        {kind === "pdf" ? (
+          <Pressable disabled={openingPdf} onPress={handleOpenPdf} style={styles.externalBtn}>
+            <Text style={styles.externalBtnText}>{openingPdf ? "下载中" : "原版 PDF"}</Text>
+          </Pressable>
+        ) : (
+          <View style={styles.backBtn} />
+        )}
       </View>
 
-      {kind === "pdf" ? (
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.brand500} />
+          <Text style={styles.loadingText}>
+            {kind === "pdf" ? "正在提取 PDF 文字页…" : "正在解析电子书章节…"}
+          </Text>
+        </View>
+      ) : kind === "pdf" && (error || pdfPages.length === 0) ? (
         <View style={styles.pdfContainer}>
           <View style={styles.pdfCard}>
             <Text style={styles.kindBadge}>PDF</Text>
             <Text style={styles.pdfTitle}>{title}</Text>
             <Text style={styles.pdfHint}>
-              点击下方按钮下载并调用手机上的 PDF 阅读器打开此文档。
+              {error
+                ? `应用内提取文字失败（${error}），可以直接用手机系统 PDF 阅读器打开原文件。`
+                : "该 PDF 可能是纯图片扫描版，未能提取出可选文字。请用手机上的 PDF 阅读器直接浏览。"}
             </Text>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
             <Pressable
               disabled={openingPdf}
               onPress={handleOpenPdf}
               style={[styles.primaryBtn, openingPdf && styles.btnDisabled]}
             >
               <Text style={styles.primaryBtnText}>
-                {openingPdf ? "正在下载…" : "下载并打开 PDF"}
+                {openingPdf ? "正在下载…" : "下载并用系统 PDF 阅读器打开"}
               </Text>
             </Pressable>
           </View>
-        </View>
-      ) : loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.brand500} />
-          <Text style={styles.loadingText}>正在解析电子书章节…</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
-      ) : chapters.length === 0 ? (
+      ) : totalUnits === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>该电子书暂无可显示的文本章节。</Text>
+          <Text style={styles.loadingText}>该文档暂无可显示的文本内容。</Text>
         </View>
       ) : (
         <>
@@ -234,75 +295,101 @@ export default function ImportReaderScreen() {
               horizontal
               showsHorizontalScrollIndicator={false}
             >
-              {chapters.map((ch, idx) => {
-                const active = idx === chapterIndex;
-                return (
-                  <Pressable
-                    key={`${ch.href}-${idx}`}
-                    onPress={() => goToChapter(idx)}
-                    style={[styles.chapterPill, active && styles.chapterPillActive]}
-                  >
-                    <Text
-                      numberOfLines={1}
-                      style={[styles.chapterPillText, active && styles.chapterPillTextActive]}
-                    >
-                      {ch.title || `第 ${idx + 1} 章`}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+              {kind === "epub"
+                ? chapters.map((ch, idx) => {
+                    const active = idx === unitIndex;
+                    return (
+                      <Pressable
+                        key={`${ch.href}-${idx}`}
+                        onPress={() => goToUnit(idx)}
+                        style={[styles.chapterPill, active && styles.chapterPillActive]}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={[
+                            styles.chapterPillText,
+                            active && styles.chapterPillTextActive
+                          ]}
+                        >
+                          {ch.title || `第 ${idx + 1} 章`}
+                        </Text>
+                      </Pressable>
+                    );
+                  })
+                : pdfPages.map((pg, idx) => {
+                    const active = idx === unitIndex;
+                    return (
+                      <Pressable
+                        key={pg.pageNumber}
+                        onPress={() => goToUnit(idx)}
+                        style={[styles.chapterPill, active && styles.chapterPillActive]}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={[
+                            styles.chapterPillText,
+                            active && styles.chapterPillTextActive
+                          ]}
+                        >
+                          第 {pg.pageNumber} 页
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
             </ScrollView>
           </View>
 
           <ScrollView contentContainerStyle={styles.readerBody}>
-            <Text style={styles.chapterTitle}>
-              {currentChapter?.title || `第 ${chapterIndex + 1} 章`}
-            </Text>
-            <Text style={styles.readerTip}>轻触任意西班牙语单词即可查词与查看动词变位</Text>
+            <Text style={styles.chapterTitle}>{activeTitle}</Text>
+            <Text style={styles.readerTip}>轻触任意外语单词即可查词与加入生词本</Text>
 
-            {paragraphs.map((para, pIdx) => (
-              <Text key={pIdx} style={styles.paragraph}>
-                {splitTokens(para).map((token, tIdx) => {
-                  const cleaned = cleanWordToken(token);
-                  if (!cleaned) {
-                    return <Text key={tIdx}>{token}</Text>;
-                  }
-                  return (
-                    <Text
-                      key={tIdx}
-                      onPress={() => {
-                        setSelectedWord(cleaned);
-                        setSelectedContext(para.slice(0, 160));
-                      }}
-                      style={styles.wordToken}
-                    >
-                      {token}
-                    </Text>
-                  );
-                })}
-              </Text>
-            ))}
+            {paragraphs.length === 0 ? (
+              <Text style={styles.loadingText}>这一页没有提取到文本，请翻页或点右上角“原版 PDF”查看排版。</Text>
+            ) : (
+              paragraphs.map((para, pIdx) => (
+                <Text key={pIdx} style={styles.paragraph}>
+                  {splitTokens(para).map((token, tIdx) => {
+                    const cleaned = cleanWordToken(token);
+                    if (!cleaned) {
+                      return <Text key={tIdx}>{token}</Text>;
+                    }
+                    return (
+                      <Text
+                        key={tIdx}
+                        onPress={() => {
+                          setSelectedWord(cleaned);
+                          setSelectedContext(para.slice(0, 160));
+                        }}
+                        style={styles.wordToken}
+                      >
+                        {token}
+                      </Text>
+                    );
+                  })}
+                </Text>
+              ))
+            )}
 
             <View style={styles.navRow}>
               <Pressable
-                disabled={chapterIndex <= 0}
-                onPress={() => goToChapter(chapterIndex - 1)}
-                style={[styles.navBtn, chapterIndex <= 0 && styles.btnDisabled]}
+                disabled={unitIndex <= 0}
+                onPress={() => goToUnit(unitIndex - 1)}
+                style={[styles.navBtn, unitIndex <= 0 && styles.btnDisabled]}
               >
-                <Text style={styles.navBtnText}>上一章</Text>
+                <Text style={styles.navBtnText}>{kind === "pdf" ? "上一页" : "上一章"}</Text>
               </Pressable>
               <Text style={styles.pageIndicator}>
-                {chapterIndex + 1} / {chapters.length}
+                {unitIndex + 1} / {totalUnits}
               </Text>
               <Pressable
-                disabled={chapterIndex >= chapters.length - 1}
-                onPress={() => goToChapter(chapterIndex + 1)}
+                disabled={unitIndex >= totalUnits - 1}
+                onPress={() => goToUnit(unitIndex + 1)}
                 style={[
                   styles.navBtn,
-                  chapterIndex >= chapters.length - 1 && styles.btnDisabled
+                  unitIndex >= totalUnits - 1 && styles.btnDisabled
                 ]}
               >
-                <Text style={styles.navBtnText}>下一章</Text>
+                <Text style={styles.navBtnText}>{kind === "pdf" ? "下一页" : "下一章"}</Text>
               </Pressable>
             </View>
           </ScrollView>
@@ -311,6 +398,7 @@ export default function ImportReaderScreen() {
 
       <LookupSheet
         context={selectedContext}
+        language={prefs.learningLang}
         onClose={() => setSelectedWord(null)}
         word={selectedWord}
       />
@@ -332,6 +420,8 @@ const styles = StyleSheet.create({
   },
   backBtn: { minWidth: 56 },
   backText: { fontSize: 13.5, fontWeight: "600", color: colors.brand600 },
+  externalBtn: { minWidth: 64, alignItems: "flex-end" },
+  externalBtnText: { fontSize: 12.5, fontWeight: "600", color: colors.brand600 },
   topTitle: {
     flex: 1,
     textAlign: "center",

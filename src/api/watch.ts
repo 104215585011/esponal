@@ -92,10 +92,32 @@ export async function saveWord(body: {
   translation?: string;
   context?: string;
   language?: LearningLanguage;
+  form?: string;
+  sourceType?: "video" | "course" | "lectura" | "dissect" | "grammar" | "import" | "talk";
+  sourceUrl?: string;
+  originalSentence?: string;
+  translatedSentence?: string;
+  timestampSec?: number;
 }) {
+  const word = body.word.trim();
+  const lemma = (body.lemma ?? word).trim() || word;
+  const translation = body.translation?.trim() || lemma;
+  const originalSentence = body.originalSentence?.trim() || body.context?.trim() || word || lemma;
+  const payload = {
+    ...body,
+    word,
+    lemma,
+    translation,
+    form: body.form?.trim() || word || lemma,
+    sourceType: body.sourceType ?? "lectura",
+    sourceUrl: body.sourceUrl?.trim() || "app://mobile/lookup",
+    originalSentence,
+    translatedSentence: body.translatedSentence?.trim() || translation,
+    timestampSec: typeof body.timestampSec === "number" ? body.timestampSec : 0
+  };
   return apiFetch<{ ok?: boolean }>("/api/vocab/add", {
     method: "POST",
-    body: JSON.stringify(body)
+    body: JSON.stringify(payload)
   });
 }
 

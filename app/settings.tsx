@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 08:06
+// Timestamp: 2026-11-15 14:25
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -12,11 +12,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
-import * as Speech from "expo-speech";
 
 import { useAuth } from "@/auth/AuthProvider";
 import { usePreferences } from "@/hooks/usePreferences";
-import { preloadVoices, speakSpanish, speechStatus } from "@/lib/speech";
+import { preloadVoices, speakAuto, speakSpanish, speechStatus, stopSpeaking } from "@/lib/speech";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
 import { fetchAccountLanguage, updateAccountLanguage } from "@/api/account";
 import { listDownloads, removeDownload } from "@/subtitles/subtitleDownload";
@@ -29,6 +28,25 @@ import {
   type LearningLanguage
 } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
+
+const SAMPLE_BY_LANG: Record<LearningLanguage, { speed: string; preview: string }> = {
+  es: {
+    speed: "Buenos días, vamos a practicar.",
+    preview: "Hola, ¿qué tal? Esta es la voz que se está usando ahora."
+  },
+  en: {
+    speed: "Good morning, let's practice at this speed.",
+    preview: "Hello! This is the voice currently playing for English."
+  },
+  fr: {
+    speed: "Bonjour, pratiquons à cette vitesse.",
+    preview: "Bonjour ! Voici la voix utilisée pour le français."
+  },
+  ja: {
+    speed: "おはようございます、一緒に練習しましょう。",
+    preview: "こんにちは。現在使用している日本語の音声です。"
+  }
+};
 
 /**
  * 设置。
@@ -179,39 +197,49 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>发音</Text>
+        <Text style={styles.sectionTitle}>发音与语速（{activeLangMeta.shortLabel}）</Text>
         <View style={styles.card}>
-          <Text style={styles.rowLabel}>口音</Text>
-          <Text style={styles.rowHint}>
-            影响所有朗读(查词、复习卡、短语、语法例句)。角色对话里的西语角色也跟着变。
-          </Text>
-          <View style={styles.optionRow}>
-            {ACCENT_OPTIONS.map((option) => {
-              const active = prefs.accent === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  onPress={() => {
-                    void updatePreferences({ accent: option.value });
-                    // 连点不同口音时不打断的话,几段示例音会叠在一起念
-                    speakSpanish("Hola, ¿qué tal?", { accent: option.value });
-                  }}
-                  style={[styles.option, active && styles.optionActive]}
-                >
-                  <Text style={[styles.optionText, active && styles.optionTextActive]}>
-                    {option.label}
-                  </Text>
-                  <Text style={[styles.optionHint, active && styles.optionHintActive]}>
-                    {option.hint.trim()}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          {prefs.learningLang === "es" ? (
+            <>
+              <Text style={styles.rowLabel}>西语口音</Text>
+              <Text style={styles.rowHint}>
+                仅在学习西班牙语时区分西班牙 / 墨西哥腔调，影响查词与复习卡朗读。
+              </Text>
+              <View style={styles.optionRow}>
+                {ACCENT_OPTIONS.map((option) => {
+                  const active = prefs.accent === option.value;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => {
+                        void updatePreferences({ accent: option.value });
+                        speakSpanish("Hola, ¿qué tal?", { accent: option.value });
+                      }}
+                      style={[styles.option, active && styles.optionActive]}
+                    >
+                      <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                        {option.label}
+                      </Text>
+                      <Text style={[styles.optionHint, active && styles.optionHintActive]}>
+                        {option.hint.trim()}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : (
+            <>
+              <Text style={styles.rowLabel}>{activeLangMeta.shortLabel}发音标准</Text>
+              <Text style={styles.rowHint}>
+                当前学习{activeLangMeta.shortLabel}（{activeLangMeta.label}），已自动匹配对应语言标准云端女声。
+              </Text>
+              <View style={styles.divider} />
+            </>
+          )}
 
-          <View style={styles.divider} />
-
-          <Text style={styles.rowLabel}>语速</Text>
+          <Text style={styles.rowLabel}>全局语速</Text>
           <View style={styles.rateRow}>
             {RATE_OPTIONS.map((option) => {
               const active = Math.abs(prefs.rate - option.value) < 0.01;
@@ -220,7 +248,10 @@ export default function SettingsScreen() {
                   key={option.value}
                   onPress={() => {
                     void updatePreferences({ rate: option.value });
-                    speakSpanish("Buenos días, vamos a practicar.", { rate: option.value });
+                    speakAuto(SAMPLE_BY_LANG[prefs.learningLang].speed, {
+                      lang: targetVoiceLang,
+                      rate: option.value
+                    });
                   }}
                   style={[styles.rateChip, active && styles.rateChipActive]}
                 >
@@ -232,25 +263,24 @@ export default function SettingsScreen() {
             })}
             <Pressable
               hitSlop={8}
-              onPress={() => speakSpanish("Esta es la velocidad actual.")}
+              onPress={() =>
+                speakAuto(SAMPLE_BY_LANG[prefs.learningLang].speed, { lang: targetVoiceLang })
+              }
               style={styles.tryButton}
             >
               <Text style={styles.tryText}>试听</Text>
             </Pressable>
           </View>
-        </View>
 
-        <Text style={styles.sectionTitle}>语音引擎</Text>
-        <View style={styles.card}>
+          <View style={styles.divider} />
+
           <View style={styles.voiceHead}>
             <View style={styles.voiceText}>
-              <Text style={styles.rowLabel}>设备{activeLangMeta.shortLabel}音色</Text>
+              <Text style={styles.rowLabel}>音色来源</Text>
               <Text style={styles.rowHint}>
-                {voiceStatus.known
-                  ? voiceStatus.matched
-                    ? `已装 ${voiceStatus.installedCount} 个,正在用 ${voiceStatus.matched.name}`
-                    : "未安装 —— 现在改用服务端西语音频兜底(需联网);装上语音包后离线也能听"
-                  : "正在检测…"}
+                {voiceStatus.known && voiceStatus.matched
+                  ? `已启用手机离线音色（${voiceStatus.matched.name}），离线也能清晰发音。`
+                  : `已内置${activeLangMeta.shortLabel}云端高清音色（联网自动启用，无需另外下载手机语音包）。`}
               </Text>
             </View>
             <Pressable
@@ -258,34 +288,21 @@ export default function SettingsScreen() {
               onPress={() => void detectVoices()}
               style={styles.tryButton}
             >
-              <Text style={styles.tryText}>{detectingVoice ? "检测中" : "重新检测"}</Text>
+              <Text style={styles.tryText}>{detectingVoice ? "刷新中" : "刷新状态"}</Text>
             </Pressable>
           </View>
-
-          {voiceStatus.known && voiceStatus.installedNames.length > 0 ? (
-            <Text style={styles.voiceList} numberOfLines={2}>
-              {voiceStatus.installedNames.join("、")}
-            </Text>
-          ) : null}
-
-          {voiceStatus.known && !voiceStatus.matched ? (
-            <Text style={styles.voiceWarn}>
-              安装路径:设置 → 系统 → 语言和输入 → 文字转语音(Google 语音服务)→
-              安装语音数据 → 选西班牙语。装完回到这里点「重新检测」。
-            </Text>
-          ) : null}
 
           <View style={styles.divider} />
 
           <Pressable
             onPress={() =>
-              speakSpanish("Hola, ¿qué tal? Esta es la voz que se está usando ahora.")
+              speakAuto(SAMPLE_BY_LANG[prefs.learningLang].preview, { lang: targetVoiceLang })
             }
             style={({ pressed }) => [styles.actionRow, pressed && styles.actionRowPressed]}
           >
             <View style={styles.actionText}>
-              <Text style={styles.rowLabel}>试听当前音色</Text>
-              <Text style={styles.rowHint}>念一句西语,直接听发音对不对</Text>
+              <Text style={styles.rowLabel}>试听{activeLangMeta.shortLabel}例句</Text>
+              <Text style={styles.rowHint}>点一下直接用当前语种与语速试听</Text>
             </View>
             <Text style={styles.chevron}>▶</Text>
           </Pressable>
@@ -356,7 +373,7 @@ export default function SettingsScreen() {
                 {
                   text: "恢复",
                   onPress: () => {
-                    Speech.stop();
+                    stopSpeaking();
                     void resetPreferences();
                   }
                 }
@@ -376,7 +393,7 @@ export default function SettingsScreen() {
                 text: "退出",
                 style: "destructive",
                 onPress: () => {
-                  Speech.stop();
+                  stopSpeaking();
                   void signOut();
                 }
               }

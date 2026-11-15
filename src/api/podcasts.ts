@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-15 07:55
-import { apiFetch } from "@/api/client";
+// Timestamp: 2026-11-15 14:30
+import { API_BASE, apiFetch } from "@/api/client";
 
 export type PodcastShow = {
   id: string;
@@ -22,9 +22,40 @@ export type PodcastEpisode = {
   link: string;
 };
 
+export type PodcastCue = {
+  start: number;
+  dur: number;
+  text: string;
+  zh: string;
+};
+
+/** 走服务器 /api/listening/audio 代理转发海外播客 CDN（国内直连易超时）并保留 Range 断点续传 */
+export function getProxiedPodcastAudioUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return "";
+  if (trimmed.includes("/api/listening/audio")) return trimmed;
+  return `${API_BASE}/api/listening/audio?url=${encodeURIComponent(trimmed)}`;
+}
+
 export async function fetchPodcasts(forceRefresh = false) {
   const query = forceRefresh ? "?refresh=1" : "";
   return apiFetch<{ shows: PodcastShow[]; episodes: PodcastEpisode[]; total: number }>(
     `/api/listening/podcasts${query}`
   );
+}
+
+export async function fetchPodcastSubtitles(body: {
+  audioUrl: string;
+  startSec?: number;
+  durationSec?: number;
+}) {
+  return apiFetch<{
+    cues: PodcastCue[];
+    windowStartSec: number;
+    windowEndSec: number;
+    cached?: boolean;
+  }>("/api/listening/subtitles", {
+    method: "POST",
+    body: JSON.stringify(body)
+  });
 }

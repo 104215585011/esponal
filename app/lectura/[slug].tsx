@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-13 23:38
+// Timestamp: 2026-11-15 14:30
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -97,12 +97,25 @@ export default function LecturaReaderScreen() {
           {story.titleZh}
         </Text>
         <Pressable
-          onPress={() =>
-            router.push({ pathname: "/listening/[slug]", params: { slug: story.slug } } as never)
-          }
+          onPress={() => {
+            if (story.audioUrl) {
+              router.push({
+                pathname: "/listening/podcast",
+                params: {
+                  title: story.title,
+                  showTitle: story.source,
+                  level: story.level,
+                  audioUrl: story.audioUrl,
+                  description: story.paragraphs.join("\n\n") || story.summaryZh
+                }
+              } as never);
+              return;
+            }
+            router.push({ pathname: "/listening/[slug]", params: { slug: story.slug } } as never);
+          }}
           style={styles.blindButton}
         >
-          <Text style={styles.blindText}>🎧 盲听</Text>
+          <Text style={styles.blindText}>{story.audioUrl ? "🎧 精听" : "🎧 盲听"}</Text>
         </Pressable>
         <Pressable
           onPress={speech.togglePlayAll}
@@ -130,6 +143,32 @@ export default function LecturaReaderScreen() {
         <Text style={styles.title}>{story.title}</Text>
         <Text style={styles.titleZh}>{story.titleZh}</Text>
         <Text style={styles.summary}>{story.summaryZh}</Text>
+
+        {story.audioUrl ? (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/listening/podcast",
+                params: {
+                  title: story.title,
+                  showTitle: story.source,
+                  level: story.level,
+                  audioUrl: story.audioUrl,
+                  description: story.paragraphs.join("\n\n") || story.summaryZh
+                }
+              } as never)
+            }
+            style={styles.podcastCard}
+          >
+            <View style={styles.podcastCardBody}>
+              <Text style={styles.podcastCardTitle}>🎧 打开播客音频 + 双语精听字幕</Text>
+              <Text style={styles.podcastCardHint}>
+                带进度条、倍速调节与 AI 时间轴字幕，支持边听边点词查变位
+              </Text>
+            </View>
+            <Text style={styles.podcastCardArrow}>›</Text>
+          </Pressable>
+        ) : null}
 
         <View style={styles.divider} />
 
@@ -348,6 +387,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 22,
     color: colors.textTertiary
+  },
+  podcastCard: {
+    marginTop: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand100
+  },
+  podcastCardBody: {
+    flex: 1,
+    gap: 3
+  },
+  podcastCardTitle: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: colors.brand700
+  },
+  podcastCardHint: {
+    fontSize: 11.5,
+    color: colors.textSecondary
+  },
+  podcastCardArrow: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: colors.brand600
   },
   divider: {
     height: StyleSheet.hairlineWidth,

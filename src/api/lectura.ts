@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:55
+// Timestamp: 2026-11-15 14:30
 import { apiFetch } from "@/api/client";
 
 export type LecturaLevel = "A1" | "A2" | "B1";
@@ -14,6 +14,7 @@ export type LecturaListItem = {
   summaryZh: string;
   paragraphCount: number;
   publishedAt?: string;
+  audioUrl?: string;
   isRead: boolean;
 };
 
