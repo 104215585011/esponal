@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:35
+// Timestamp: 2026-11-15 08:10
 import { apiFetch } from "@/api/client";
 
 export type TalkCharacter = {
@@ -146,6 +146,46 @@ export async function recognizeSpeech(input: {
       audioBase64: input.audioBase64,
       language: input.language ?? "es-MX",
       mimeType: input.mimeType ?? "audio/m4a"
+    })
+  });
+}
+
+export type TalkVoiceTurnReply = {
+  emptyTranscript?: boolean;
+  sessionId: string | null;
+  userTranscript: string;
+  reply: string;
+  replyAudioBase64: string | null;
+  replyAudioMimeType: string | null;
+  ttsProvider: string | null;
+  corrections: Array<TalkCorrection | string>;
+  newWords: Array<TalkNewWord | string>;
+  asrProvider: string;
+};
+
+/**
+ * 语音直聊单次往返接口（Plan A）：
+ * 手机端录 16kHz PCM WAV → 一次请求 `/api/talk/voice` → 服务端 ASR + AI 回复 + DeepSeek TTS WAV 返回。
+ */
+export async function sendTalkVoiceTurn(input: {
+  characterId: string;
+  sessionId?: string;
+  audioBase64: string;
+  mimeType?: string;
+  filename?: string;
+  language?: string;
+  wantTts?: boolean;
+}) {
+  return apiFetch<TalkVoiceTurnReply>("/api/talk/voice", {
+    method: "POST",
+    body: JSON.stringify({
+      characterId: input.characterId,
+      sessionId: input.sessionId,
+      audioBase64: input.audioBase64,
+      mimeType: input.mimeType ?? "audio/wav",
+      filename: input.filename ?? "speech.wav",
+      language: input.language ?? "es-MX",
+      wantTts: input.wantTts ?? true
     })
   });
 }

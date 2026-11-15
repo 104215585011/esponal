@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 20:26
+// Timestamp: 2026-11-15 08:05
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
@@ -14,8 +14,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const KEY = "esponal.preferences.v1";
 
 export type SpeechAccent = "es-ES" | "es-MX" | "es-AR";
+export type LearningLanguage = "es" | "en" | "fr" | "ja";
+
+export const LEARNING_LANGUAGE_OPTIONS: Array<{
+  value: LearningLanguage;
+  label: string;
+  shortLabel: string;
+  ttsLang: string;
+}> = [
+  { value: "es", label: "西班牙语", shortLabel: "西语", ttsLang: "es-ES" },
+  { value: "en", label: "英语", shortLabel: "英语", ttsLang: "en-US" },
+  { value: "fr", label: "法语", shortLabel: "法语", ttsLang: "fr-FR" },
+  { value: "ja", label: "日语", shortLabel: "日语", ttsLang: "ja-JP" }
+];
 
 export type Preferences = {
+  /** 当前活跃学习语种：决定词库/复习/导入/阅读的历史隔离作用域 */
+  learningLang: LearningLanguage;
   /** 朗读用哪种口音(西语各地差异主要在 z/c 的咬舌音和语调) */
   accent: SpeechAccent;
   /** 朗读语速:0.7 慢 / 0.85 标准 / 1.0 快 */
@@ -29,6 +44,7 @@ export type Preferences = {
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
+  learningLang: "es",
   accent: "es-ES",
   rate: 0.85,
   // 点「朗读」本来就该一段接一段念下去,默认开;不想要连续的人自己去设置页关
@@ -56,6 +72,9 @@ const listeners = new Set<(p: Preferences) => void>();
 
 function normalize(raw: unknown): Preferences {
   const value = (raw ?? {}) as Partial<Preferences>;
+  const learningLang = LEARNING_LANGUAGE_OPTIONS.some((o) => o.value === value.learningLang)
+    ? (value.learningLang as LearningLanguage)
+    : DEFAULT_PREFERENCES.learningLang;
   const accent = ACCENT_OPTIONS.some((o) => o.value === value.accent)
     ? (value.accent as SpeechAccent)
     : DEFAULT_PREFERENCES.accent;
@@ -65,6 +84,7 @@ function normalize(raw: unknown): Preferences {
       : DEFAULT_PREFERENCES.rate;
 
   return {
+    learningLang,
     accent,
     rate,
     // 只有明确存过 false 才关(老版本存档里没这个字段 → 保持"开")

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 06:58
+// Timestamp: 2026-11-15 08:08
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,6 +21,7 @@ import {
 } from "@/api/vocabList";
 import { AppIcon } from "@/components/AppIcon";
 import { LookupSheet } from "@/components/LookupSheet";
+import { usePreferences } from "@/hooks/usePreferences";
 import { colors, radius, spacing } from "@/theme";
 
 const BUCKETS: Array<{ key: VocabBucket; label: string }> = [
@@ -57,6 +58,7 @@ export function VocabListPanel({
 }: {
   onTotalChange?: (total: number) => void;
 }) {
+  const { learningLang } = usePreferences();
   const [query, setQuery] = useState("");
   const [bucket, setBucket] = useState<VocabBucket>("all");
   const [sort, setSort] = useState<VocabSort>("recent");
@@ -109,7 +111,7 @@ export function VocabListPanel({
     );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bucket, sort, query]);
+  }, [bucket, sort, query, learningLang]);
 
   const confirmDelete = useCallback(
     (word: VocabListItem) => {

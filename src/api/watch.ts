@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-13 17:40
+// Timestamp: 2026-11-15 08:06
 import { apiFetch } from "@/api/client";
+import type { LearningLanguage } from "@/lib/preferences";
 
 export type VideoItem = {
   id: string;
@@ -61,6 +62,8 @@ export type VerbConjugationsPayload = {
 export type LookupResult = {
   word: string;
   lemma: string;
+  language?: LearningLanguage | string;
+  detectedLanguage?: string | null;
   partOfSpeech?: string | null;
   meanings?: string[];
   examples?: Array<{ es: string; zh: string }>;
@@ -77,8 +80,10 @@ export type LookupResult = {
   wordId?: string | null;
 };
 
-export async function lookupWord(word: string) {
-  return apiFetch<LookupResult>(`/api/vocab/lookup?word=${encodeURIComponent(word)}`);
+export async function lookupWord(word: string, language?: LearningLanguage) {
+  const qs = new URLSearchParams({ word });
+  if (language) qs.set("lang", language);
+  return apiFetch<LookupResult>(`/api/vocab/lookup?${qs.toString()}`);
 }
 
 export async function saveWord(body: {
@@ -86,6 +91,7 @@ export async function saveWord(body: {
   lemma?: string;
   translation?: string;
   context?: string;
+  language?: LearningLanguage;
 }) {
   return apiFetch<{ ok?: boolean }>("/api/vocab/add", {
     method: "POST",
@@ -100,6 +106,7 @@ export async function savePhrase(body: {
   translationZh?: string | null;
   explanationZh?: string | null;
   data?: unknown;
+  language?: LearningLanguage;
 }) {
   return apiFetch<{ ok?: boolean }>("/api/vocab/phrase/add", {
     method: "POST",

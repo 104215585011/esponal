@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:40
+// Timestamp: 2026-11-15 08:12
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -15,13 +15,16 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  createAudioPlayer,
   RecordingPresets,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
   useAudioRecorder,
-  useAudioRecorderState
+  useAudioRecorderState,
+  useAudioStream,
+  type AudioPlayer
 } from "expo-audio";
-import { File } from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 
 import {
   archiveTalkSession,
@@ -29,20 +32,24 @@ import {
   fetchTalkHistory,
   recognizeSpeech,
   sendTalkMessage,
+  sendTalkVoiceTurn,
   type TalkCharacter,
-  type TalkMessage
+  type TalkCorrection,
+  type TalkMessage,
+  type TalkNewWord
 } from "@/api/talk";
 import { ApiError } from "@/api/client";
 import { LookupSheet } from "@/components/LookupSheet";
-import { getPreferences } from "@/lib/preferences";
+import { getPreferences, type LearningLanguage } from "@/lib/preferences";
 import { speakAuto, stopSpeaking } from "@/lib/speech";
 import { colors, radius, spacing } from "@/theme";
 
 /**
- * 语音直聊 Robot 界面。
+ * 语音直聊 Robot 界面（Plan A）：
  *
- * 默认走「开口说话 → Whisper 转写 → Robot 生成回复 → 自动语音播报」闭环；
- * 同时保留可折叠文字/纠错/生词与键盘兜底模式，避免环境无录音或识别服务离线时卡死。
+ * 默认走「直录 16kHz PCM WAV → 单次请求 /api/talk/voice (DeepSeek ASR + 对话模型 + DeepSeek TTS WAV) → 语音气泡直播」闭环；
+ * 若设备端不支持 AudioStream，自动无缝降级到 Recorder + Whisper 隧道 + 本地 TTS；
+ * 并保留可折叠文字/纠错/生词与键盘兜底模式。
  */
 const NON_SPANISH_LANG: Record<string, string> = {
   emma: "en-GB",
@@ -51,13 +58,71 @@ const NON_SPANISH_LANG: Record<string, string> = {
   kenji: "ja-JP"
 };
 
+const CHARACTER_LEARNING_LANG: Record<string, LearningLanguage> = {
+  emma: "en",
+  jake: "en",
+  sophie: "fr",
+  kenji: "ja"
+};
+
 const STARTER_PROMPTS = [
   "Hola, ¿cómo estás hoy?",
   "Quiero practicar cómo pedir comida en un restaurante.",
   "¿Qué planes tienes para este fin de semana?"
 ];
 
-type ChatBubble = TalkMessage & { pending?: boolean; failed?: boolean };
+type ChatBubble = Omit<TalkMessage, "corrections" | "newWords"> & {
+  corrections?: Array<TalkCorrection | string> | null;
+  newWords?: Array<TalkNewWord | string> | null;
+  pending?: boolean;
+  failed?: boolean;
+  isVoiceMessage?: boolean;
+  voiceDurationSec?: number;
+  replyAudioUri?: string | null;
+};
+
+function decodeBase64ToBytes(base64: string): Uint8Array {
+  const clean = base64.replace(/^data:[^;]+;base64,/, "").replace(/\s+/g, "");
+  if (typeof globalThis.atob === "function") {
+    const bin = globalThis.atob(clean);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) {
+      out[i] = bin.charCodeAt(i);
+    }
+    return out;
+  }
+
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const lookup = new Uint8Array(256);
+  for (let i = 0; i < chars.length; i += 1) lookup[chars.charCodeAt(i)] = i;
+  const len = clean.length;
+  let pad = 0;
+  if (clean.endsWith("==")) pad = 2;
+  else if (clean.endsWith("=")) pad = 1;
+  const bytes = new Uint8Array(((len * 3) >> 2) - pad);
+  let p = 0;
+  for (let i = 0; i < len; i += 4) {
+    const a = lookup[clean.charCodeAt(i)];
+    const b = lookup[clean.charCodeAt(i + 1)];
+    const c = lookup[clean.charCodeAt(i + 2)];
+    const d = lookup[clean.charCodeAt(i + 3)];
+    const triple = (a << 18) | (b << 12) | (c << 6) | d;
+    if (p < bytes.length) bytes[p++] = (triple >> 16) & 255;
+    if (p < bytes.length) bytes[p++] = (triple >> 8) & 255;
+    if (p < bytes.length) bytes[p++] = triple & 255;
+  }
+  return bytes;
+}
+
+async function saveBase64WavToCache(base64: string): Promise<string> {
+  const bytes = decodeBase64ToBytes(base64);
+  const file = new File(
+    Paths.cache,
+    `talk-reply-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.wav`
+  );
+  await file.write(bytes);
+  return file.uri;
+}
 
 function formatDuration(ms: number): string {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -75,9 +140,21 @@ export default function TalkRobotScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<ChatBubble>>(null);
 
+  const { stream } = useAudioStream({
+    sampleRate: 16000,
+    channels: 1,
+    encoding: "int16"
+  });
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(recorder, 200);
 
+  const recordingBackendRef = useRef<"stream" | "recorder">("stream");
+  const streamTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamStartedAtRef = useRef<number>(0);
+  const wavPlayerRef = useRef<AudioPlayer | null>(null);
+
+  const [isStreamRecording, setIsStreamRecording] = useState(false);
+  const [streamDurationMs, setStreamDurationMs] = useState(0);
   const [character, setCharacter] = useState<TalkCharacter | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId ?? null);
   const [messages, setMessages] = useState<ChatBubble[]>([]);
@@ -95,8 +172,20 @@ export default function TalkRobotScreen() {
   const [lookupWord, setLookupWord] = useState<{ word: string; context?: string } | null>(null);
 
   const nonSpanishLang = NON_SPANISH_LANG[String(characterId)] ?? null;
+  const sheetLang: LearningLanguage = CHARACTER_LEARNING_LANG[String(characterId)] ?? "es";
   const activeLang = nonSpanishLang ?? getPreferences().accent;
+  const isRecording = isStreamRecording || recorderState.isRecording;
+  const recordingMs = isStreamRecording ? streamDurationMs : recorderState.durationMillis;
   const busy = transcribing || sending;
+
+  const stopAllPlayback = useCallback(() => {
+    stopSpeaking();
+    try {
+      wavPlayerRef.current?.pause();
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const speakLine = useCallback(
     (text: string, rateOverride?: number) => {
@@ -105,6 +194,38 @@ export default function TalkRobotScreen() {
     },
     [nonSpanishLang, slowMode]
   );
+
+  const playAssistantAudio = useCallback(
+    async (item: { content: string; replyAudioUri?: string | null }, rateOverride?: number) => {
+      stopAllPlayback();
+      const rate = rateOverride ?? (slowMode ? 0.75 : 1);
+
+      if (item.replyAudioUri) {
+        try {
+          await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+          if (!wavPlayerRef.current) {
+            wavPlayerRef.current = createAudioPlayer();
+          }
+          wavPlayerRef.current.replace({ uri: item.replyAudioUri });
+          wavPlayerRef.current.setPlaybackRate(rate, "medium");
+          wavPlayerRef.current.play();
+          return;
+        } catch {
+          // 缓存音频损坏或释放时，平滑退回本地 TTS 朗读
+        }
+      }
+
+      speakLine(item.content, rateOverride);
+    },
+    [slowMode, speakLine, stopAllPlayback]
+  );
+
+  const clearStreamTimer = useCallback(() => {
+    if (streamTimerRef.current) {
+      clearInterval(streamTimerRef.current);
+      streamTimerRef.current = null;
+    }
+  }, []);
 
   // 角色信息 + 历史消息
   useEffect(() => {
@@ -135,10 +256,21 @@ export default function TalkRobotScreen() {
     void run();
     return () => {
       cancelled = true;
-      stopSpeaking();
+      clearStreamTimer();
+      try {
+        stream.stop();
+      } catch {
+        // ignore
+      }
+      stopAllPlayback();
+      try {
+        wavPlayerRef.current?.remove();
+      } catch {
+        // ignore
+      }
       void setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
     };
-  }, [characterId, initialSessionId]);
+  }, [characterId, initialSessionId, clearStreamTimer, stream, stopAllPlayback]);
 
   useEffect(() => {
     if (messages.length === 0) return;
@@ -212,10 +344,111 @@ export default function TalkRobotScreen() {
     await sendMessageText(text);
   }, [busy, draft, sendMessageText]);
 
+  const sendVoiceTurn = useCallback(
+    async (uri: string, durationSec: number, mimeType: string, filename: string) => {
+      const tempId = `voice-${Date.now()}`;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          role: "user",
+          content: "🎙️ 正在语音直聊…",
+          isVoiceMessage: true,
+          voiceDurationSec: durationSec,
+          createdAt: new Date().toISOString(),
+          pending: true
+        }
+      ]);
+      setSending(true);
+      setError(null);
+
+      try {
+        const audioBase64 = await new File(uri).base64();
+        if (!audioBase64) {
+          setMessages((prev) => prev.filter((item) => item.id !== tempId));
+          setError("录音内容为空，请重试。");
+          return;
+        }
+
+        const res = await sendTalkVoiceTurn({
+          characterId: String(characterId),
+          sessionId: sessionId ?? undefined,
+          audioBase64,
+          mimeType,
+          filename,
+          language: activeLang,
+          wantTts: autoSpeak
+        });
+
+        if (res.emptyTranscript) {
+          setMessages((prev) => prev.filter((item) => item.id !== tempId));
+          setError("没听清刚才的内容，再靠近一点说一遍，或切到打字试试。");
+          return;
+        }
+
+        let replyAudioUri: string | null = null;
+        if (res.replyAudioBase64) {
+          try {
+            replyAudioUri = await saveBase64WavToCache(res.replyAudioBase64);
+          } catch {
+            replyAudioUri = null;
+          }
+        }
+
+        const assistantId = `assistant-${Date.now()}`;
+        if (res.sessionId) setSessionId(res.sessionId);
+        setMessages((prev) => [
+          ...prev.map((item) =>
+            item.id === tempId
+              ? {
+                  ...item,
+                  content: res.userTranscript || "🎙️ 语音消息",
+                  pending: false
+                }
+              : item
+          ),
+          {
+            id: assistantId,
+            role: "assistant",
+            content: res.reply,
+            replyAudioUri,
+            corrections: res.corrections,
+            newWords: res.newWords,
+            createdAt: new Date().toISOString()
+          }
+        ]);
+
+        if (autoSpeak && res.reply) {
+          await playAssistantAudio({ content: res.reply, replyAudioUri });
+        }
+      } catch (e) {
+        setMessages((prev) =>
+          prev.map((item) =>
+            item.id === tempId
+              ? { ...item, content: "🎙️ 语音消息（发送失败）", pending: false, failed: true }
+              : item
+          )
+        );
+        if (e instanceof ApiError) {
+          if (e.status === 402) setError("积分不足，暂时聊不了。可以先做复习攒积分，或稍后再试。");
+          else if (e.status === 401) setError("登录状态失效，请重新登录。");
+          else if (e.status === 413) setError("这段语音太长了，请控制在 2 分钟以内。");
+          else if (e.status === 503) setError(`${e.message}（可暂用左下角「⌨️ 打字」）`);
+          else setError(e.message);
+        } else {
+          setError(e instanceof Error ? e.message : "语音发送失败");
+        }
+      } finally {
+        setSending(false);
+      }
+    },
+    [characterId, sessionId, activeLang, autoSpeak, playAssistantAudio]
+  );
+
   const startRecording = useCallback(async () => {
     if (busy) return;
     setError(null);
-    stopSpeaking();
+    stopAllPlayback();
 
     const permission = await requestRecordingPermissionsAsync();
     if (!permission.granted) {
@@ -228,25 +461,114 @@ export default function TalkRobotScreen() {
         allowsRecording: true,
         playsInSilentMode: true
       });
+
+      if (Platform.OS !== "web") {
+        try {
+          await stream.start();
+          await stream.startFileRecordingAsync({
+            directory: "cache",
+            format: "wav"
+          });
+          recordingBackendRef.current = "stream";
+          streamStartedAtRef.current = Date.now();
+          setStreamDurationMs(0);
+          setIsStreamRecording(true);
+          clearStreamTimer();
+          streamTimerRef.current = setInterval(() => {
+            setStreamDurationMs(Date.now() - streamStartedAtRef.current);
+          }, 250);
+          return;
+        } catch {
+          clearStreamTimer();
+          setIsStreamRecording(false);
+          try {
+            stream.stop();
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      recordingBackendRef.current = "recorder";
       await recorder.prepareToRecordAsync();
       recorder.record();
     } catch (e) {
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
       setError(e instanceof Error ? e.message : "无法启动录音");
     }
-  }, [busy, recorder]);
+  }, [busy, recorder, stream, clearStreamTimer, stopAllPlayback]);
 
   const cancelRecording = useCallback(async () => {
+    clearStreamTimer();
+    if (recordingBackendRef.current === "stream" || isStreamRecording) {
+      setIsStreamRecording(false);
+      setStreamDurationMs(0);
+      try {
+        await stream.stopFileRecordingAsync();
+      } catch {
+        // ignore
+      }
+      try {
+        stream.stop();
+      } catch {
+        // ignore
+      }
+    }
     try {
-      await recorder.stop();
+      if (recorderState.isRecording) {
+        await recorder.stop();
+      }
     } catch {
       // ignore
     } finally {
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
     }
-  }, [recorder]);
+  }, [clearStreamTimer, isStreamRecording, stream, recorder, recorderState.isRecording]);
 
   const stopAndSendRecording = useCallback(async () => {
+    if (recordingBackendRef.current === "stream" && isStreamRecording) {
+      clearStreamTimer();
+      const elapsedMs = Math.max(streamDurationMs, Date.now() - streamStartedAtRef.current);
+      setIsStreamRecording(false);
+      setStreamDurationMs(0);
+
+      let uri = "";
+      let durationSec = Math.max(1, Math.round(elapsedMs / 1000));
+      try {
+        const recorded = await stream.stopFileRecordingAsync();
+        uri = recorded.uri;
+        if (recorded.duration > 0) {
+          durationSec = Math.max(1, Math.round(recorded.duration));
+        }
+        stream.stop();
+      } catch (e) {
+        try {
+          stream.stop();
+        } catch {
+          // ignore
+        }
+        await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
+        setError(e instanceof Error ? e.message : "停止录音失败");
+        return;
+      }
+
+      // 必须立刻关掉录音模式，否则 Android TTS / 音频播放器会从听筒极小声输出
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
+
+      if (elapsedMs > 0 && elapsedMs < 450) {
+        setError("说话时间太短，请按一下说话、说完再点发送。");
+        return;
+      }
+      if (!uri) {
+        setError("未读取到录音文件，请重试。");
+        return;
+      }
+
+      await sendVoiceTurn(uri, durationSec, "audio/wav", "speech.wav");
+      return;
+    }
+
+    // 降级通路（Web 或不支持 AudioStream 的老设备）：m4a + Whisper 隧道
     const duration = recorderState.durationMillis;
     try {
       await recorder.stop();
@@ -256,7 +578,6 @@ export default function TalkRobotScreen() {
       return;
     }
 
-    // 必须立刻关掉录音模式，否则 Android TTS 会从听筒极小声输出
     await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => {});
 
     if (duration > 0 && duration < 450) {
@@ -312,15 +633,25 @@ export default function TalkRobotScreen() {
     } finally {
       setTranscribing(false);
     }
-  }, [recorder, recorderState.durationMillis, activeLang, sendMessageText]);
+  }, [
+    isStreamRecording,
+    streamDurationMs,
+    clearStreamTimer,
+    stream,
+    sendVoiceTurn,
+    recorder,
+    recorderState.durationMillis,
+    activeLang,
+    sendMessageText
+  ]);
 
   const handleToggleMic = useCallback(() => {
-    if (recorderState.isRecording) {
+    if (isRecording) {
       void stopAndSendRecording();
     } else {
       void startRecording();
     }
-  }, [recorderState.isRecording, startRecording, stopAndSendRecording]);
+  }, [isRecording, startRecording, stopAndSendRecording]);
 
   const handleRestart = useCallback(() => {
     Alert.alert("开启新对话", "当前对话会被归档，下一句将开启新会话。", [
@@ -330,7 +661,7 @@ export default function TalkRobotScreen() {
         style: "destructive",
         onPress: () => {
           void (async () => {
-            if (recorderState.isRecording) {
+            if (isRecording) {
               await cancelRecording();
             }
             if (sessionId) {
@@ -340,7 +671,7 @@ export default function TalkRobotScreen() {
                 // ignore
               }
             }
-            stopSpeaking();
+            stopAllPlayback();
             setSessionId(null);
             setMessages([]);
             setExpandedIds({});
@@ -349,19 +680,19 @@ export default function TalkRobotScreen() {
         }
       }
     ]);
-  }, [recorderState.isRecording, cancelRecording, sessionId, characterId]);
+  }, [isRecording, cancelRecording, sessionId, characterId, stopAllPlayback]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  const robotStatus = recorderState.isRecording
-    ? `正在聆听 · ${formatDuration(recorderState.durationMillis)}`
+  const robotStatus = isRecording
+    ? `正在聆听 · ${formatDuration(recordingMs)}`
     : transcribing
-      ? "正在把语音转成文字…"
+      ? "正在解析语音…"
       : sending
-        ? `${character?.name ?? "Robot"} 正在回复…`
-        : "语音直聊就绪 · 点击下方麦克风开口说";
+        ? `${character?.name ?? "Robot"} 正在语音回复…`
+        : "语音直聊就绪 · 开口说话即直达对方耳朵";
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
@@ -385,7 +716,7 @@ export default function TalkRobotScreen() {
       </Pressable>
       <Pressable
         onPress={() => {
-          stopSpeaking();
+          stopAllPlayback();
           setAutoSpeak((prev) => !prev);
         }}
         style={[styles.chip, autoSpeak && styles.chipOn]}
@@ -406,7 +737,7 @@ export default function TalkRobotScreen() {
 
       {/* Robot 语音状态条 */}
       <View style={styles.robotBanner}>
-        <View style={[styles.robotOrb, recorderState.isRecording && styles.robotOrbActive]}>
+        <View style={[styles.robotOrb, isRecording && styles.robotOrbActive]}>
           <Text style={styles.robotOrbText}>
             {character ? character.name.slice(0, 1).toUpperCase() : "R"}
           </Text>
@@ -477,21 +808,40 @@ export default function TalkRobotScreen() {
                 !isUser &&
                 ((item.corrections ?? []).length > 0 || (item.newWords ?? []).length > 0);
               const isExpanded = Boolean(expandedIds[item.id]);
-              const hideText = !isUser && voiceOnlyMode && !isExpanded;
+              const hideText =
+                voiceOnlyMode && !isExpanded && (!isUser || Boolean(item.isVoiceMessage));
 
               return (
                 <View style={[styles.bubbleWrap, isUser ? styles.bubbleRight : styles.bubbleLeft]}>
                   <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
+                    {isUser && item.isVoiceMessage ? (
+                      <View style={styles.userVoiceRow}>
+                        <Text style={styles.userVoiceTag}>
+                          🎙️ 语音消息
+                          {item.voiceDurationSec ? ` · ${formatDuration(item.voiceDurationSec * 1000)}` : ""}
+                        </Text>
+                        {voiceOnlyMode ? (
+                          <Pressable onPress={() => toggleExpand(item.id)}>
+                            <Text style={styles.userVoiceToggle}>
+                              {isExpanded ? "收起文字" : "看转写"}
+                            </Text>
+                          </Pressable>
+                        ) : null}
+                      </View>
+                    ) : null}
+
                     {!isUser ? (
                       <View style={styles.audioRow}>
                         <Pressable
-                          onPress={() => speakLine(item.content)}
+                          onPress={() => void playAssistantAudio(item)}
                           style={styles.playPill}
                         >
-                          <Text style={styles.playPillText}>🔊 播放语音</Text>
+                          <Text style={styles.playPillText}>
+                            {item.replyAudioUri ? "🔊 播原生语音" : "🔊 播放语音"}
+                          </Text>
                         </Pressable>
                         <Pressable
-                          onPress={() => speakLine(item.content, 0.72)}
+                          onPress={() => void playAssistantAudio(item, 0.72)}
                           style={styles.slowPill}
                         >
                           <Text style={styles.slowPillText}>0.7x 慢读</Text>
@@ -509,10 +859,12 @@ export default function TalkRobotScreen() {
                         {item.content}
                       </Text>
                     ) : (
-                      <Text style={styles.hiddenHint}>已隐藏文字（专注听力模式）</Text>
+                      <Text style={isUser ? styles.hiddenHintUser : styles.hiddenHint}>
+                        {isUser ? "已隐藏语音转写（纯听说模式）" : "已隐藏文字（专注听力模式）"}
+                      </Text>
                     )}
 
-                    {item.pending ? <Text style={styles.pending}>发送中…</Text> : null}
+                    {item.pending ? <Text style={styles.pending}>语音处理中…</Text> : null}
                     {item.failed ? <Text style={styles.failed}>发送失败</Text> : null}
                   </View>
 
@@ -533,13 +885,15 @@ export default function TalkRobotScreen() {
                           <Text style={styles.correctionLabel}>表达优化建议</Text>
                           {(item.corrections ?? []).map((correction, index) => (
                             <Text key={index} style={styles.correctionText}>
-                              {correction.original ? `${correction.original} → ` : ""}
-                              {correction.corrected ?? ""}
-                              {correction.explanation
-                                ? ` · ${correction.explanation}`
-                                : correction.note
-                                  ? ` · ${correction.note}`
-                                  : ""}
+                              {typeof correction === "string"
+                                ? correction
+                                : `${correction.original ? `${correction.original} → ` : ""}${correction.corrected ?? ""}${
+                                    correction.explanation
+                                      ? ` · ${correction.explanation}`
+                                      : correction.note
+                                        ? ` · ${correction.note}`
+                                        : ""
+                                  }`}
                             </Text>
                           ))}
                         </View>
@@ -548,8 +902,10 @@ export default function TalkRobotScreen() {
                       {(item.newWords ?? []).length > 0 ? (
                         <View style={styles.wordsRow}>
                           {(item.newWords ?? []).slice(0, 6).map((word, index) => {
-                            const text = word.word ?? word.lemma ?? "";
-                            const meaning = word.translation ?? word.meaning ?? "";
+                            const text =
+                              typeof word === "string" ? word : (word.word ?? word.lemma ?? "");
+                            const meaning =
+                              typeof word === "string" ? "" : (word.translation ?? word.meaning ?? "");
                             if (!text) return null;
                             return (
                               <Pressable
@@ -589,7 +945,7 @@ export default function TalkRobotScreen() {
             <Pressable
               disabled={busy}
               onPress={() => {
-                if (recorderState.isRecording) {
+                if (isRecording) {
                   void cancelRecording();
                 } else {
                   setInputMode("text");
@@ -597,9 +953,9 @@ export default function TalkRobotScreen() {
               }}
               style={styles.sideDockBtn}
             >
-              <Text style={styles.sideDockIcon}>{recorderState.isRecording ? "✕" : "⌨️"}</Text>
+              <Text style={styles.sideDockIcon}>{isRecording ? "✕" : "⌨️"}</Text>
               <Text style={styles.sideDockLabel}>
-                {recorderState.isRecording ? "取消" : "打字"}
+                {isRecording ? "取消" : "打字"}
               </Text>
             </Pressable>
 
@@ -608,7 +964,7 @@ export default function TalkRobotScreen() {
               onPress={handleToggleMic}
               style={({ pressed }) => [
                 styles.micButton,
-                recorderState.isRecording && styles.micButtonRecording,
+                isRecording && styles.micButtonRecording,
                 busy && styles.micButtonDisabled,
                 pressed && styles.pressed
               ]}
@@ -617,10 +973,10 @@ export default function TalkRobotScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <>
-                  <Text style={styles.micIcon}>{recorderState.isRecording ? "■" : "🎙️"}</Text>
+                  <Text style={styles.micIcon}>{isRecording ? "■" : "🎙️"}</Text>
                   <Text style={styles.micLabel}>
-                    {recorderState.isRecording
-                      ? `完成发送 ${formatDuration(recorderState.durationMillis)}`
+                    {isRecording
+                      ? `完成发送 ${formatDuration(recordingMs)}`
                       : "点击说话"}
                   </Text>
                 </>
@@ -668,6 +1024,7 @@ export default function TalkRobotScreen() {
 
       <LookupSheet
         context={lookupWord?.context}
+        language={sheetLang}
         onClose={() => setLookupWord(null)}
         word={lookupWord?.word ?? null}
       />
@@ -770,7 +1127,16 @@ const styles = StyleSheet.create({
   slowPillText: { fontSize: 10.5, fontWeight: "600", color: colors.textSecondary },
   bubbleText: { fontSize: 14, lineHeight: 21, color: colors.text },
   bubbleTextUser: { color: "#fff" },
+  userVoiceRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  userVoiceTag: { fontSize: 11.5, fontWeight: "700", color: "rgba(255,255,255,0.92)" },
+  userVoiceToggle: {
+    fontSize: 10.5,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.8)",
+    textDecorationLine: "underline"
+  },
   hiddenHint: { fontSize: 12, fontStyle: "italic", color: colors.textTertiary },
+  hiddenHintUser: { fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.78)" },
   pending: { fontSize: 10, color: "rgba(255,255,255,0.75)" },
   failed: { fontSize: 10, color: "#FEE2E2" },
 

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 06:58
+// Timestamp: 2026-11-15 08:08
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,7 +12,9 @@ import {
 
 import { fetchSavedPhrases, type SavedPhrase } from "@/api/vocabList";
 import { AppIcon } from "@/components/AppIcon";
-import { speakSpanish } from "@/lib/speech";
+import { usePreferences } from "@/hooks/usePreferences";
+import { LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
+import { speakAuto } from "@/lib/speech";
 import { colors, radius, spacing } from "@/theme";
 
 const KIND_LABEL: Record<string, string> = {
@@ -30,6 +32,7 @@ const FILTERS: Array<{ key: string; label: string }> = [
 
 /** 短语与搭配面板：可嵌入「复习」Tab，也可独立在 /phrases 页使用 */
 export function PhrasesListPanel() {
+  const { learningLang } = usePreferences();
   const [items, setItems] = useState<SavedPhrase[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -55,7 +58,7 @@ export function PhrasesListPanel() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, learningLang]);
 
   const visible = filter === "all" ? items : items.filter((item) => item.kind === filter);
 
@@ -114,7 +117,10 @@ export function PhrasesListPanel() {
                   <Text style={styles.lemma}>{item.lemma}</Text>
                   <Pressable
                     hitSlop={8}
-                    onPress={() => speakSpanish(item.lemma)}
+                    onPress={() => {
+                      const opt = LEARNING_LANGUAGE_OPTIONS.find((o) => o.value === learningLang);
+                      speakAuto(item.lemma, { fallbackLang: opt?.ttsLang ?? learningLang });
+                    }}
                     style={styles.speakBtn}
                   >
                     <AppIcon color={colors.brand600} name="speak" size={15} />

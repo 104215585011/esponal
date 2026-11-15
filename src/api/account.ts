@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-14 15:58
+// Timestamp: 2026-11-15 08:05
 import { apiFetch } from "@/api/client";
+import type { LearningLanguage } from "@/lib/preferences";
 
 export type CreditSummary = {
   plan: string;
@@ -8,6 +9,18 @@ export type CreditSummary = {
   balanceDisplay: string;
   balanceMinor: number;
 };
+
+/** 账号活跃学习语种 */
+export async function fetchAccountLanguage() {
+  return apiFetch<{ activeLanguage: LearningLanguage }>("/api/user/language");
+}
+
+export async function updateAccountLanguage(language: LearningLanguage) {
+  return apiFetch<{ activeLanguage: LearningLanguage }>("/api/user/language", {
+    method: "PATCH",
+    body: JSON.stringify({ activeLanguage: language })
+  });
+}
 
 /** 注册(公开接口),成功后调用 signIn 拿 token */
 export async function registerAccount(input: {

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 20:44
+// Timestamp: 2026-11-15 08:06
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -18,12 +18,15 @@ import { useAuth } from "@/auth/AuthProvider";
 import { usePreferences } from "@/hooks/usePreferences";
 import { preloadVoices, speakSpanish, speechStatus } from "@/lib/speech";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
+import { fetchAccountLanguage, updateAccountLanguage } from "@/api/account";
 import { listDownloads, removeDownload } from "@/subtitles/subtitleDownload";
 import {
   ACCENT_OPTIONS,
+  LEARNING_LANGUAGE_OPTIONS,
   RATE_OPTIONS,
   resetPreferences,
-  updatePreferences
+  updatePreferences,
+  type LearningLanguage
 } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 
@@ -44,22 +47,45 @@ export default function SettingsScreen() {
   const [voiceStatus, setVoiceStatus] = useState(() => speechStatus("es-ES"));
   const [detectingVoice, setDetectingVoice] = useState(false);
 
-  const detectVoices = useCallback(async () => {
+  const activeLangMeta =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === prefs.learningLang) ??
+    LEARNING_LANGUAGE_OPTIONS[0];
+  const targetVoiceLang = prefs.learningLang === "es" ? prefs.accent : activeLangMeta.ttsLang;
+
+  const detectVoices = useCallback(async (langOverride?: string) => {
     setDetectingVoice(true);
     try {
       await preloadVoices();
     } finally {
-      setVoiceStatus(speechStatus(prefs.accent));
+      setVoiceStatus(speechStatus(langOverride ?? targetVoiceLang));
       setDetectingVoice(false);
     }
-  }, [prefs.accent]);
+  }, [targetVoiceLang]);
 
   useEffect(() => {
     // 首帧先显示"正在检测",拿到音色表后刷新成真实结果
     void detectVoices();
-    // 只做一次;换口音不需要重新枚举音色(语族不变)
+    // 同步账号端活跃学习语种（本地与服务端保持一致）
+    void fetchAccountLanguage()
+      .then((res) => {
+        if (res?.activeLanguage && res.activeLanguage !== prefs.learningLang) {
+          void updatePreferences({ learningLang: res.activeLanguage });
+        }
+      })
+      .catch(() => {
+        // 离线或未登录时保留本机偏好
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleSelectLearningLang = useCallback((lang: LearningLanguage) => {
+    void updatePreferences({ learningLang: lang });
+    const nextMeta = LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === lang);
+    setVoiceStatus(speechStatus(lang === "es" ? prefs.accent : (nextMeta?.ttsLang ?? lang)));
+    void updateAccountLanguage(lang).catch(() => {
+      // 网络失败时本机 header X-Learning-Lang 仍会立即生效
+    });
+  }, [prefs.accent]);
 
   const version = Constants.expoConfig?.version ?? "1.0.0";
 
@@ -126,6 +152,33 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>学习语种</Text>
+        <View style={styles.card}>
+          <Text style={styles.rowLabel}>当前词库与导入隔离</Text>
+          <Text style={styles.rowHint}>
+            切换后，生词本、FSRS 复习队列、导入文档和观看记录均按所选语言独立隔离，不再混入西语词库。
+          </Text>
+          <View style={styles.optionRow}>
+            {LEARNING_LANGUAGE_OPTIONS.map((option) => {
+              const active = prefs.learningLang === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => handleSelectLearningLang(option.value)}
+                  style={[styles.option, active && styles.optionActive]}
+                >
+                  <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                    {option.shortLabel}
+                  </Text>
+                  <Text style={[styles.optionHint, active && styles.optionHintActive]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
         <Text style={styles.sectionTitle}>发音</Text>
         <View style={styles.card}>
           <Text style={styles.rowLabel}>口音</Text>
@@ -191,7 +244,7 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <View style={styles.voiceHead}>
             <View style={styles.voiceText}>
-              <Text style={styles.rowLabel}>设备西语音色</Text>
+              <Text style={styles.rowLabel}>设备{activeLangMeta.shortLabel}音色</Text>
               <Text style={styles.rowHint}>
                 {voiceStatus.known
                   ? voiceStatus.matched

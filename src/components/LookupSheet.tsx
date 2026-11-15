@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 04:00
+// Timestamp: 2026-11-15 08:06
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,7 +21,12 @@ import {
   type VerbConjugationsPayload
 } from "@/api/watch";
 import { colors, radius, spacing } from "@/theme";
-import { speakSpanish } from "@/lib/speech";
+import {
+  getPreferences,
+  LEARNING_LANGUAGE_OPTIONS,
+  type LearningLanguage
+} from "@/lib/preferences";
+import { speakAuto } from "@/lib/speech";
 
 type TenseKey =
   | "presente"
@@ -54,18 +59,25 @@ const PERSON_ROWS: Array<{ key: keyof VerbConjugationPersons; label: string }> =
 type LookupSheetProps = {
   word: string | null;
   context?: string;
+  language?: LearningLanguage;
   onClose: () => void;
 };
+
+function langLabel(code?: string | null) {
+  return LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === code)?.shortLabel ?? "目标语";
+}
 
 /**
  * 点词查词面板。
  *
  * 渲染服务端返回的全部字段:释义 / 词法讲解 / 用法 / 例句 / 相关词组 / 名词与形容词变位。
- * 词库条目可能只有 explanationZh(存进 morphInfo)而 meanings 为空 —— 必须有兜底,
- * 否则用户看到的就是一块空白 + 一个"加入词库"按钮。
+ * 支持在弹窗内即时切换查词与保存的目标语种（避免英文/法文词误入西语词库）。
  */
-export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
+export function LookupSheet({ word, context, language, onClose }: LookupSheetProps) {
   const insets = useSafeAreaInsets();
+  const [lookupLang, setLookupLang] = useState<LearningLanguage>(
+    () => language ?? getPreferences().learningLang
+  );
   const [data, setData] = useState<LookupResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +89,12 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
   /** 词典未收录时的机器翻译兜底(仅供参考) */
   const [mtMeaning, setMtMeaning] = useState<string | null>(null);
   const [activeTense, setActiveTense] = useState<TenseKey>("presente");
+
+  useEffect(() => {
+    if (word) {
+      setLookupLang(language ?? getPreferences().learningLang);
+    }
+  }, [word, language]);
 
   useEffect(() => {
     if (!word) {
@@ -99,7 +117,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
     setActiveTense("presente");
     setMtMeaning(null);
 
-    lookupWord(word)
+    lookupWord(word, lookupLang)
       .then(async (res) => {
         if (cancelled) return;
         setData(res);
@@ -131,7 +149,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
     return () => {
       cancelled = true;
     };
-  }, [word]);
+  }, [word, lookupLang]);
 
   const handleSave = useCallback(async () => {
     if (!data || saving || saved) return;
@@ -143,16 +161,17 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
         word: data.word,
         lemma: data.lemma,
         translation: data.meanings?.[0],
-        context
+        context,
+        language: lookupLang
       });
       setSaved(true);
-      setSavedHint("已加入词库");
+      setSavedHint(`已加入${langLabel(lookupLang)}词库`);
     } catch (e) {
       setSavedHint(e instanceof Error ? e.message : "加入失败");
     } finally {
       setSaving(false);
     }
-  }, [data, saving, saved, context]);
+  }, [data, saving, saved, context, lookupLang]);
 
   const meanings = data?.meanings ?? [];
   const examples = data?.examples ?? [];
@@ -170,6 +189,7 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
         kind: data.lemma.trim().includes(" ") ? "collocation" : "phrase",
         translationZh: data.meanings?.[0] ?? mtMeaning ?? null,
         explanationZh: data.usageNote || data.morphInfo || null,
+        language: lookupLang,
         data: {
           meanings: data.meanings ?? [],
           examples: data.examples ?? [],
@@ -178,13 +198,13 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
         }
       });
       setPhraseSaved(true);
-      setSavedHint("已收藏到「短语与搭配」");
+      setSavedHint(`已收藏到${langLabel(lookupLang)}「短语与搭配」`);
     } catch (e) {
       setSavedHint(e instanceof Error ? e.message : "收藏失败");
     } finally {
       setPhraseSaving(false);
     }
-  }, [data, phraseSaving, context, mtMeaning]);
+  }, [data, phraseSaving, context, mtMeaning, lookupLang]);
 
   /** 名词/形容词变位拼成一行文字 */
   const formsLine = useMemo(() => {
@@ -232,6 +252,23 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
       <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.handle} />
 
+        <View style={styles.langPillRow}>
+          {LEARNING_LANGUAGE_OPTIONS.map((opt) => {
+            const active = lookupLang === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => setLookupLang(opt.value)}
+                style={[styles.langPill, active && styles.langPillActive]}
+              >
+                <Text style={[styles.langPillText, active && styles.langPillTextActive]}>
+                  {opt.shortLabel}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={colors.brand500} />
@@ -245,13 +282,31 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
             contentContainerStyle={styles.body}
             showsVerticalScrollIndicator={false}
           >
+            {data.detectedLanguage && data.detectedLanguage !== lookupLang ? (
+              <Pressable
+                onPress={() => {
+                  const target = LEARNING_LANGUAGE_OPTIONS.find(
+                    (o) => o.value === data.detectedLanguage
+                  )?.value;
+                  if (target) setLookupLang(target);
+                }}
+                style={styles.langWarnBanner}
+              >
+                <Text style={styles.langWarnText}>
+                  检测到更像{langLabel(data.detectedLanguage)}词，点此改查并存入{langLabel(data.detectedLanguage)}词库，避免混入{langLabel(lookupLang)}库 →
+                </Text>
+              </Pressable>
+            ) : null}
+
             <View style={styles.headRow}>
               <Text style={styles.lemma}>{data.lemma}</Text>
               {data.phonetic ? <Text style={styles.phonetic}>{data.phonetic}</Text> : null}
-              {/* 西语发音:设备端 TTS,不花额度 */}
               <Pressable
                 hitSlop={10}
-                onPress={() => speakSpanish(data.lemma)}
+                onPress={() => {
+                  const opt = LEARNING_LANGUAGE_OPTIONS.find((o) => o.value === lookupLang);
+                  speakAuto(data.lemma, { fallbackLang: opt?.ttsLang ?? lookupLang });
+                }}
                 style={styles.speakButton}
               >
                 <Text style={styles.speakIcon}>🔊</Text>
@@ -338,7 +393,11 @@ export function LookupSheet({ word, context, onClose }: LookupSheetProps) {
                 style={[styles.saveButton, styles.actionFlex, saved && styles.saveButtonDone]}
               >
                 <Text style={[styles.saveButtonText, saved && styles.saveButtonTextDone]}>
-                  {saved ? "已在词库" : saving ? "加入中…" : "加入词库"}
+                  {saved
+                    ? `已在${langLabel(lookupLang)}词库`
+                    : saving
+                      ? "加入中…"
+                      : `存入${langLabel(lookupLang)}词库`}
                 </Text>
               </Pressable>
 
@@ -633,5 +692,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     textAlign: "center"
+  },
+  langPillRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: spacing.sm
+  },
+  langPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle
+  },
+  langPillActive: {
+    backgroundColor: colors.brand50,
+    borderColor: colors.brand500
+  },
+  langPillText: { fontSize: 11.5, fontWeight: "700", color: colors.textTertiary },
+  langPillTextActive: { color: colors.brand700 },
+  langWarnBanner: {
+    backgroundColor: "#FEF3C7",
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: "#F59E0B",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.xs
+  },
+  langWarnText: {
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+    color: "#92400E"
   }
 });

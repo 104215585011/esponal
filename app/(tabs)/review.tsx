@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:10
+// Timestamp: 2026-11-15 08:08
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -22,7 +22,8 @@ import { PhrasesListPanel } from "@/components/PhrasesListPanel";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { VocabListPanel } from "@/components/VocabListPanel";
 import { usePreferences } from "@/hooks/usePreferences";
-import { speakSpanish } from "@/lib/speech";
+import { getPreferences, LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
+import { speakAuto } from "@/lib/speech";
 import { colors, radius, spacing } from "@/theme";
 
 type ReviewTab = "queue" | "vocab" | "phrases";
@@ -39,7 +40,9 @@ const RATING_BUTTONS: Array<{
 ];
 
 function speakEs(text: string) {
-  speakSpanish(text);
+  const lang = getPreferences().learningLang;
+  const opt = LEARNING_LANGUAGE_OPTIONS.find((o) => o.value === lang);
+  speakAuto(text, { fallbackLang: opt?.ttsLang ?? lang });
 }
 
 /**
@@ -110,13 +113,13 @@ export default function ReviewScreen() {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, prefs.learningLang]);
 
   useEffect(() => {
     if (subTab !== "queue" || !prefs.autoSpeakReview) return;
     const word = queue[index];
     if (!word?.lemma) return;
-    speakSpanish(word.lemma);
+    speakEs(word.lemma);
   }, [subTab, prefs.autoSpeakReview, queue, index]);
 
   const handleGrade = useCallback(

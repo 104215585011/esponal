@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-13 17:22
+// Timestamp: 2026-11-15 08:06
 import * as SecureStore from "expo-secure-store";
+import { getPreferences } from "@/lib/preferences";
 
 /**
  * API 客户端。
@@ -119,6 +120,7 @@ export async function apiFetch<T>(
     ...init,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      "X-Learning-Lang": getPreferences().learningLang,
       ...init.headers,
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     }
