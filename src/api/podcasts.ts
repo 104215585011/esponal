@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:30
+// Timestamp: 2026-11-16 09:08
 import { API_BASE, apiFetch } from "@/api/client";
 
 export type PodcastShow = {
@@ -7,6 +7,7 @@ export type PodcastShow = {
   host: string;
   level: "A2" | "B1";
   description: string;
+  coverUrl?: string;
 };
 
 export type PodcastEpisode = {
@@ -17,6 +18,7 @@ export type PodcastEpisode = {
   title: string;
   description: string;
   audioUrl: string;
+  coverUrl?: string;
   durationSec: number | null;
   publishedAt: string;
   link: string;
@@ -28,6 +30,14 @@ export type PodcastCue = {
   text: string;
   zh: string;
 };
+
+/** 走服务器 /api/listening/image 代理海外播客/新闻封面图（国内稳定秒开、24h 缓存） */
+export function getProxiedCoverUrl(rawUrl?: string | null): string {
+  const trimmed = rawUrl?.trim() ?? "";
+  if (!trimmed) return "";
+  if (trimmed.includes("/api/listening/image")) return trimmed;
+  return `${API_BASE}/api/listening/image?url=${encodeURIComponent(trimmed)}`;
+}
 
 /** 走服务器 /api/listening/audio 代理转发海外播客 CDN（国内直连易超时）并保留 Range 断点续传 */
 export function getProxiedPodcastAudioUrl(rawUrl: string): string {

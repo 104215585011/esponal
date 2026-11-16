@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 02:52
+// Timestamp: 2026-11-16 09:20
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -8,7 +8,9 @@ import "react-native-reanimated";
 
 import { AuthProvider, useAuth } from "@/auth/AuthProvider";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
+import { GlobalMediaHost } from "@/components/GlobalMediaHost";
 import { UpdateDialog } from "@/components/UpdateDialog";
+import { BackgroundMediaProvider } from "@/context/BackgroundMediaContext";
 import { loadPreferences } from "@/lib/preferences";
 import { preloadVoices } from "@/lib/speech";
 import { colors } from "@/theme";
@@ -23,8 +25,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <StatusBar style="dark" />
-        <RootNavigator />
+        <BackgroundMediaProvider>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </BackgroundMediaProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
@@ -90,11 +94,13 @@ function RootNavigator() {
   }
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="sign-in" options={{ animation: "fade" }} />
       </Stack>
+
+      <GlobalMediaHost />
 
       <UpdateDialog
         current={update?.current ?? ""}
@@ -102,7 +108,7 @@ function RootNavigator() {
         onDismiss={() => setUpdate(null)}
         visible={Boolean(update)}
       />
-    </>
+    </View>
   );
 }
 

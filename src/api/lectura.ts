@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:30
+// Timestamp: 2026-11-16 09:08
 import { apiFetch } from "@/api/client";
 
 export type LecturaLevel = "A1" | "A2" | "B1";
@@ -15,6 +15,7 @@ export type LecturaListItem = {
   paragraphCount: number;
   publishedAt?: string;
   audioUrl?: string;
+  coverUrl?: string;
   isRead: boolean;
 };
 
@@ -22,6 +23,7 @@ export type LecturaStory = LecturaListItem & {
   paragraphs: string[];
   glossary: Array<{ word: string; note: string }>;
   sourceUrl?: string;
+  coverUrl?: string;
 };
 
 export async function fetchStories(forceRefresh = false) {

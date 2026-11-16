@@ -1,10 +1,10 @@
-// Timestamp: 2026-11-15 14:30
+// Timestamp: 2026-11-16 09:22
 import { type ComponentRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Slider from "@react-native-community/slider";
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,10 +15,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   fetchPodcastSubtitles,
+  getProxiedCoverUrl,
   getProxiedPodcastAudioUrl,
   type PodcastCue
 } from "@/api/podcasts";
 import { LookupSheet } from "@/components/LookupSheet";
+import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
 import { colors, radius, spacing } from "@/theme";
 
 const RATES = [0.75, 0.9, 1.0, 1.2] as const;
@@ -59,33 +61,50 @@ function mergeSortedCues(existing: PodcastCue[], incoming: PodcastCue[]): Podcas
 export default function PodcastPlayerScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
+    id?: string;
     title?: string;
     showTitle?: string;
     level?: string;
     audioUrl?: string;
     description?: string;
     durationSec?: string;
+    coverUrl?: string;
   }>();
 
+  const episodeId = typeof params.id === "string" ? params.id : undefined;
   const title = typeof params.title === "string" ? params.title : "西语播客";
   const showTitle = typeof params.showTitle === "string" ? params.showTitle : "Podcast";
   const level = typeof params.level === "string" ? params.level : "B1";
   const rawAudioUrl = typeof params.audioUrl === "string" ? params.audioUrl : "";
   const description = typeof params.description === "string" ? params.description : "";
   const initialDurationSec = Number(params.durationSec) || 0;
+  const rawCoverUrl = typeof params.coverUrl === "string" ? params.coverUrl : "";
 
   const playbackUrl = useMemo(() => getProxiedPodcastAudioUrl(rawAudioUrl), [rawAudioUrl]);
-  const player = useAudioPlayer(playbackUrl ? { uri: playbackUrl } : null);
-  const status = useAudioPlayerStatus(player);
+  const proxiedCoverUrl = useMemo(
+    () => (rawCoverUrl ? getProxiedCoverUrl(rawCoverUrl) ?? rawCoverUrl : null),
+    [rawCoverUrl]
+  );
 
-  const [rate, setRate] = useState<number>(1.0);
-  const [loopAnchor, setLoopAnchor] = useState<number | null>(null);
+  const {
+    podcastStatus: status,
+    podcastRate: rate,
+    podcastLoopAnchor: loopAnchor,
+    podcastAudioError: audioError,
+    openPodcast,
+    togglePodcastPlay: togglePlay,
+    seekPodcastTo,
+    jumpPodcastBy: jumpBy,
+    setPodcastRate: setRate,
+    togglePodcastLoop: toggleLoop,
+    retryPodcastAudio: retryAudio
+  } = useBackgroundMedia();
+
   const [activeTab, setActiveTab] = useState<BottomTab>("subtitles");
 
   const [cues, setCues] = useState<PodcastCue[]>([]);
   const [subLoading, setSubLoading] = useState(false);
   const [subError, setSubError] = useState<string | null>(null);
-  const [audioError, setAudioError] = useState<string | null>(null);
 
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<string | undefined>(undefined);
@@ -97,31 +116,22 @@ export default function PodcastPlayerScreen() {
   const duration = status.duration || initialDurationSec || 0;
   const currentTime = status.currentTime || 0;
 
-  // 确保播放模式走扬声器正常音量，不被之前语音对话录音模式影响
+  // 把节目注册到根级后台播放器：离开当前页或熄屏后继续播
   useEffect(() => {
-    void setAudioModeAsync({
-      allowsRecording: false,
-      playsInSilentMode: true
-    }).catch(() => {});
-  }, []);
-
-  // 保持播放速度设置
-  useEffect(() => {
-    if (!status.isLoaded) return;
-    try {
-      player.setPlaybackRate(rate, "medium");
-    } catch {
-      // 忽略加载过渡期报错
-    }
-  }, [status.isLoaded, rate, player]);
-
-  // 30 秒片段循环：播完 [anchor, anchor+30] 后自动拉回 anchor
-  useEffect(() => {
-    if (loopAnchor === null || !status.playing) return;
-    if (currentTime >= loopAnchor + 30) {
-      void player.seekTo(loopAnchor);
-    }
-  }, [loopAnchor, currentTime, status.playing, player]);
+    if (!playbackUrl) return;
+    openPodcast({
+      id: episodeId,
+      title,
+      showTitle,
+      level,
+      rawAudioUrl,
+      playbackUrl,
+      description,
+      durationSec: initialDurationSec > 0 ? initialDurationSec : undefined,
+      coverUrl: rawCoverUrl || undefined
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playbackUrl]);
 
   const loadSubtitlesAt = useCallback(
     async (startSec: number, force = false) => {
@@ -195,59 +205,15 @@ export default function PodcastPlayerScreen() {
     }
   }, [activeCueIndex, activeTab]);
 
-  const togglePlay = useCallback(() => {
-    setAudioError(null);
-    if (!playbackUrl) {
-      setAudioError("该节目暂无可用音频地址");
-      return;
-    }
-    try {
-      void setAudioModeAsync({
-        allowsRecording: false,
-        playsInSilentMode: true
-      }).catch(() => {});
-      if (status.playing) {
-        player.pause();
-      } else {
-        player.play();
-      }
-    } catch (e) {
-      setAudioError(e instanceof Error ? e.message : "音频播放出错，请点重试");
-    }
-  }, [playbackUrl, status.playing, player]);
-
-  const retryAudio = useCallback(() => {
-    if (!playbackUrl) return;
-    setAudioError(null);
-    try {
-      player.replace({ uri: playbackUrl });
-      player.play();
-    } catch (e) {
-      setAudioError(e instanceof Error ? e.message : "重新加载音频失败");
-    }
-  }, [playbackUrl, player]);
-
-  const jumpBy = useCallback(
-    (delta: number) => {
-      const next = Math.max(0, Math.min(duration || 3600, currentTime + delta));
-      void player.seekTo(next);
-    },
-    [currentTime, duration, player]
-  );
-
   const seekToCue = useCallback(
     (startSec: number) => {
-      void player.seekTo(Math.max(0, startSec));
+      seekPodcastTo(Math.max(0, startSec));
       if (!status.playing) {
-        player.play();
+        togglePlay();
       }
     },
-    [player, status.playing]
+    [seekPodcastTo, status.playing, togglePlay]
   );
-
-  const toggleLoop = useCallback(() => {
-    setLoopAnchor((prev) => (prev === null ? Math.max(0, Math.floor(currentTime)) : null));
-  }, [currentTime]);
 
   const noteParagraphs = useMemo(() => {
     if (!description) return [];
@@ -266,32 +232,45 @@ export default function PodcastPlayerScreen() {
         <Text numberOfLines={1} style={styles.headerTitle}>
           {showTitle}
         </Text>
-        <View style={styles.backBtn} />
+        <Pressable hitSlop={8} onPress={() => router.back()} style={styles.minBtn}>
+          <Text style={styles.minBtnText}>后台听</Text>
+        </Pressable>
       </View>
 
-      {/* 深色音频舞台：对齐视频页播放器结构 */}
+      {/* 深色音频舞台：封面 + 后台/锁屏播提示 + 精听控制台 */}
       <View style={styles.stage}>
-        <View style={styles.metaRow}>
-          <Text style={styles.levelBadge}>{level}</Text>
-          <Text numberOfLines={1} style={styles.showName}>
-            {showTitle}
-          </Text>
-          <Text style={styles.statusChip}>
-            {status.isBuffering && !status.playing
-              ? "缓冲中…"
-              : status.playing
-                ? "正在播放"
-                : status.isLoaded
-                  ? "已就绪"
-                  : rawAudioUrl
-                    ? "正在连接音频"
-                    : "无音频"}
-          </Text>
+        <View style={styles.heroRow}>
+          {proxiedCoverUrl ? (
+            <Image source={{ uri: proxiedCoverUrl }} style={styles.coverArt} />
+          ) : (
+            <View style={styles.coverFallback}>
+              <Text style={styles.coverFallbackIcon}>🎧</Text>
+            </View>
+          )}
+          <View style={styles.heroTextCol}>
+            <View style={styles.metaRow}>
+              <Text style={styles.levelBadge}>{level}</Text>
+              <Text numberOfLines={1} style={styles.showName}>
+                {showTitle}
+              </Text>
+              <Text style={styles.bgPill}>后台/熄屏播</Text>
+            </View>
+            <Text numberOfLines={2} style={styles.title}>
+              {title}
+            </Text>
+            <Text style={styles.statusChip}>
+              {status.isBuffering && !status.playing
+                ? "● 缓冲中…"
+                : status.playing
+                  ? "● 正在播放 · 支持熄屏收听"
+                  : status.isLoaded
+                    ? "已就绪"
+                    : rawAudioUrl
+                      ? "正在连接音频"
+                      : "无音频"}
+            </Text>
+          </View>
         </View>
-
-        <Text numberOfLines={2} style={styles.title}>
-          {title}
-        </Text>
 
         <View style={styles.sliderWrap}>
           <Slider
@@ -300,7 +279,7 @@ export default function PodcastPlayerScreen() {
             minimumTrackTintColor={colors.brand500}
             minimumValue={0}
             onSlidingComplete={(val) => {
-              void player.seekTo(val);
+              seekPodcastTo(val);
             }}
             thumbTintColor="#FFFFFF"
             value={Math.min(currentTime, Math.max(1, duration))}
@@ -520,9 +499,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "#0F172A"
   },
-  backBtn: { width: 32, alignItems: "center" },
+  backBtn: { width: 48, alignItems: "flex-start" },
   back: { fontSize: 26, color: "#E2E8F0", lineHeight: 28 },
   headerTitle: { flex: 1, textAlign: "center", fontSize: 14.5, fontWeight: "700", color: "#F8FAFC" },
+  minBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(255,255,255,0.1)"
+  },
+  minBtnText: { fontSize: 11.5, fontWeight: "700", color: "#E2E8F0" },
   stage: {
     backgroundColor: "#0F172A",
     paddingHorizontal: spacing.xl,
@@ -530,7 +516,26 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: spacing.sm
   },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  heroRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  coverArt: {
+    width: 72,
+    height: 72,
+    borderRadius: 14,
+    backgroundColor: "#1E293B",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)"
+  },
+  coverFallback: {
+    width: 72,
+    height: 72,
+    borderRadius: 14,
+    backgroundColor: "#1E293B",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  coverFallbackIcon: { fontSize: 28 },
+  heroTextCol: { flex: 1, gap: 4 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   levelBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -540,9 +545,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700"
   },
-  showName: { flex: 1, fontSize: 12, fontWeight: "600", color: "#94A3B8" },
-  statusChip: { fontSize: 11, fontWeight: "600", color: "#CBD5E1" },
-  title: { fontSize: 17, fontWeight: "800", color: "#FFFFFF", lineHeight: 23 },
+  showName: { flex: 1, fontSize: 11.5, fontWeight: "600", color: "#94A3B8" },
+  bgPill: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#34D399",
+    backgroundColor: "rgba(16,185,129,0.14)",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.pill
+  },
+  statusChip: { fontSize: 11.5, fontWeight: "600", color: "#94A3B8" },
+  title: { fontSize: 16, fontWeight: "800", color: "#FFFFFF", lineHeight: 22 },
   sliderWrap: { gap: 2, marginTop: 2 },
   clockRow: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 4 },
   clock: { fontSize: 11, color: "#94A3B8", fontVariant: ["tabular-nums"] },

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-14 12:00
+// Timestamp: 2026-11-16 09:25
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,11 +10,10 @@ import {
   View,
   useWindowDimensions
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Slider from "@react-native-community/slider";
 import * as ScreenOrientation from "expo-screen-orientation";
-import YoutubePlayer, { type YoutubeIframeRef } from "react-native-youtube-iframe";
 
 import { fetchSubtitles, formatClock, translateText, type Cue } from "@/api/watch";
 import { reportWatchHistory } from "@/api/stats";
@@ -27,6 +26,7 @@ import {
 import { getPreferences, updatePreferences } from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
+import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
 import {
   adoptServerProgress,
   clearWatchProgress,
@@ -60,16 +60,33 @@ export default function WatchPlayerScreen() {
     thumbnail?: string;
   }>();
   const router = useRouter();
-  const { width, height: winHeight } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
-  const playerRef = useRef<YoutubeIframeRef>(null);
+  const {
+    activeVideo,
+    videoPlaying: playing,
+    videoRate: rate,
+    videoBgEnabled: bgEnabled,
+    videoFullscreen: fullscreen,
+    videoCurrentTime: currentTime,
+    videoDuration: duration,
+    videoError: playerError,
+    videoPlayerRef: playerRef,
+    seekingVideoRef: seekingRef,
+    openVideo,
+    setVideoPlaying: setPlaying,
+    setVideoRate: setRate,
+    setVideoBgEnabled: setBgEnabled,
+    setVideoFullscreen: setFullscreen,
+    setVideoCurrentTime: setCurrentTime,
+    seekVideoTo,
+    probeVideoDuration,
+    setWatchOverlay,
+    onWatchUnmount
+  } = useBackgroundMedia();
+
   const listRef = useRef<FlatList<Cue>>(null);
 
-  const [playing, setPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const seekingRef = useRef(false);
   const [cues, setCues] = useState<Cue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,13 +95,8 @@ export default function WatchPlayerScreen() {
   const [follow, setFollow] = useState(true);
   /** 单句循环:当前字幕句播完自动跳回句首(学语言刚需) */
   const [loop, setLoop] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
   /** 字幕下载任务状态(模块级,离开页面任务也不中断) */
   const [downloadJob, setDownloadJob] = useState<DownloadJobState>(getDownloadJob());
-  /** YouTube 播放器自身报错(153/101/150 等),直接展示省得猜 */
-  const [playerError, setPlayerError] = useState<string | null>(null);
-  /** 倍速:精听时放慢,泛听时加速(YouTube iframe 原生支持,不改音调);记住上次选择 */
-  const [rate, setRate] = useState(() => getPreferences().videoRate ?? 1);
   /**
    * 续播:进页面读一次本地进度,播放器就绪后跳过去。
    * resumedRef 防止 probeDuration 被调用多次时反复 seek(那会把用户拖回起点)。
@@ -93,11 +105,29 @@ export default function WatchPlayerScreen() {
   const resumedRef = useRef(false);
   const [resumeNotice, setResumeNotice] = useState<number | null>(null);
   const currentTimeRef = useRef(0);
-  const lastSavedRef = useRef(0);
   const videoIdRef = useRef(String(videoId ?? ""));
   const durationRef = useRef(0);
-  /** 服务端上报节流:本地 5 秒一存,服务端 15 秒一报,别把接口打爆 */
-  const lastPushedRef = useRef(0);
+
+  currentTimeRef.current = currentTime;
+  durationRef.current = duration;
+
+  // 注册持久视频舞台（若从悬浮 PiP 回来同一视频，不会重新加载 WebView）
+  useEffect(() => {
+    if (!videoId) return;
+    openVideo({
+      videoId: String(videoId),
+      title: title ? String(title) : "西语视频",
+      channelTitle: channelTitle ? String(channelTitle) : undefined,
+      thumbnail: thumbnail ? String(thumbnail) : undefined
+    });
+    void updatePreferences({ videoRate: getPreferences().videoRate ?? 1 });
+  }, [videoId, title, channelTitle, thumbnail, openVideo]);
+
+  useEffect(() => {
+    return () => {
+      onWatchUnmount();
+    };
+  }, [onWatchUnmount]);
 
   // 字幕末尾时间 —— 播放器时长拿不到时的兜底(安卓上 getDuration 在首次播放前经常返回 0)
   const cueDuration = useMemo(() => {
@@ -115,16 +145,6 @@ export default function WatchPlayerScreen() {
 
   const videoHeight = Math.round((width * 9) / 16);
   const totalDuration = duration > 0 ? duration : cueDuration;
-
-  // 全屏 16:9 适配:以屏幕短边为限,等比缩放居中,多余部分留黑边。
-  // 不能直接铺满 —— 手机横屏普遍是 20:9,直接满屏会裁掉视频底部并把控制条挤出屏幕。
-  const fsFit = useMemo(() => {
-    if (width / winHeight > 16 / 9) {
-      const h = winHeight;
-      return { w: Math.round((h * 16) / 9), h };
-    }
-    return { w: width, h: Math.round((width * 9) / 16) };
-  }, [width, winHeight]);
 
   // 字幕加载
   useEffect(() => {
@@ -155,6 +175,12 @@ export default function WatchPlayerScreen() {
 
   // 续播:先读本地（立刻可用）,再问服务端要一份（换设备时靠它把进度带过来）
   useEffect(() => {
+    // 若是从悬浮 PiP 回到同一部正在播的视频，不要再跳回历史位置
+    if (activeVideo?.videoId === String(videoId) && currentTimeRef.current > 2) {
+      resumedRef.current = true;
+      return;
+    }
+
     let cancelled = false;
     resumedRef.current = false;
     setResumeAt(null);
@@ -181,7 +207,7 @@ export default function WatchPlayerScreen() {
     return () => {
       cancelled = true;
     };
-  }, [videoId]);
+  }, [videoId, activeVideo?.videoId]);
 
   /** 时长一到就跳到上次位置。只跳一次，resumedRef 挡住后续重复 seek */
   const applyResume = useCallback(async () => {
@@ -247,71 +273,30 @@ export default function WatchPlayerScreen() {
     };
   }, [videoId]);
 
-  // 轮询播放进度:驱动当前句高亮 + 进度条 + 单句循环
+  // 当全局播放器探测到视频时长后，自动触发一次续播定位
   useEffect(() => {
-    const timer = setInterval(async () => {
-      // 用户正在拖进度条时不要被轮询覆盖
-      if (seekingRef.current) return;
-
-      try {
-        const t = await playerRef.current?.getCurrentTime();
-        if (typeof t === "number" && Number.isFinite(t)) {
-          setCurrentTime(t);
-          currentTimeRef.current = t;
-
-          // 每 5 秒落一次盘。写得太频繁没必要，太稀疏则闪退会丢比较多
-          if (t > 0 && Date.now() - lastSavedRef.current > 5000) {
-            lastSavedRef.current = Date.now();
-            void saveWatchProgress(String(videoIdRef.current), t, durationRef.current);
-          }
-
-          // 服务端 15 秒一报:换设备才用到,报太勤没意义
-          if (t > 0 && Date.now() - lastPushedRef.current > 15000) {
-            lastPushedRef.current = Date.now();
-            void pushServerProgress(String(videoIdRef.current), t, durationRef.current);
-          }
-
-          // 单句循环:播完当前字幕句就跳回句首
-          if (loop && cues.length > 0) {
-            let idx = -1;
-            for (let i = cues.length - 1; i >= 0; i -= 1) {
-              if (t + 0.15 >= cues[i].start) {
-                idx = i;
-                break;
-              }
-            }
-            if (idx >= 0) {
-              const cue = cues[idx];
-              if (t >= cue.start + cue.dur - 0.05) {
-                playerRef.current?.seekTo(cue.start, true);
-                setCurrentTime(cue.start);
-              }
-            }
-          }
-        }
-      } catch {
-        // 播放器未就绪时忽略
-      }
-    }, 400);
-
-    return () => clearInterval(timer);
-  }, [loop, cues]);
-
-  // 时长探测:playerReady / 开始播放时都会触发。安卓上首次播放前 getDuration 返回 0,
-  // 所以播放开始后还要再探一次。
-  const probeDuration = useCallback(async () => {
-    try {
-      const d = await playerRef.current?.getDuration();
-      if (typeof d === "number" && d > 0) {
-        setDuration(d);
-        durationRef.current = d;
-        // 时长一拿到就能续播了（安卓上首次播放前 getDuration 返回 0，所以放这里）
-        void applyResume();
-      }
-    } catch {
-      // 播放器未就绪时忽略
+    if (duration > 0) {
+      void applyResume();
     }
-  }, [applyResume]);
+  }, [duration, applyResume]);
+
+  // 单句循环:播完当前字幕句就跳回句首
+  useEffect(() => {
+    if (!loop || !playing || cues.length === 0 || seekingRef.current) return;
+    let idx = -1;
+    for (let i = cues.length - 1; i >= 0; i -= 1) {
+      if (currentTime + 0.15 >= cues[i].start) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx >= 0) {
+      const cue = cues[idx];
+      if (currentTime >= cue.start + cue.dur - 0.05) {
+        seekVideoTo(cue.start);
+      }
+    }
+  }, [loop, playing, cues, currentTime, seekingRef, seekVideoTo]);
 
   // 横屏全屏
   const enterFullscreen = useCallback(async () => {
@@ -322,7 +307,7 @@ export default function WatchPlayerScreen() {
       return;
     }
     setFullscreen(true);
-  }, []);
+  }, [setFullscreen]);
 
   const exitFullscreen = useCallback(async () => {
     try {
@@ -331,7 +316,7 @@ export default function WatchPlayerScreen() {
       // ignore
     }
     setFullscreen(false);
-  }, []);
+  }, [setFullscreen]);
 
   // 离开页面时必须恢复竖屏,否则其他页面跟着横屏
   useEffect(() => {
@@ -449,11 +434,41 @@ export default function WatchPlayerScreen() {
     return () => clearTimeout(raf);
   }, [activeIndex, follow]);
 
-  const seekTo = useCallback((seconds: number) => {
-    playerRef.current?.seekTo(seconds, true);
-    setCurrentTime(seconds);
-    setFollow(true);
-  }, []);
+  const seekTo = useCallback(
+    (seconds: number) => {
+      seekVideoTo(seconds);
+      setFollow(true);
+    },
+    [seekVideoTo]
+  );
+
+  // 把顶部控制 / 全屏 HUD 状态实时同步到根级 GlobalMediaHost，避免 WebView 被压在下方或重载
+  useEffect(() => {
+    setWatchOverlay({
+      onBack: () => router.back(),
+      onTogglePlay: () => setPlaying((prev) => !prev),
+      onEnterFullscreen: () => void enterFullscreen(),
+      onExitFullscreen: () => void exitFullscreen(),
+      onDownloadSubtitles: handleDownloadSubtitles,
+      onSeek: seekTo,
+      downloadRunning: downloadJob.running,
+      captionEs: cues[activeIndex]?.text ?? null,
+      captionZh: bilingual ? (translations[activeIndex] ?? null) : null
+    });
+  }, [
+    setWatchOverlay,
+    router,
+    setPlaying,
+    enterFullscreen,
+    exitFullscreen,
+    handleDownloadSubtitles,
+    seekTo,
+    downloadJob.running,
+    cues,
+    activeIndex,
+    bilingual,
+    translations
+  ]);
 
   const stepCue = useCallback(
     (delta: number) => {
@@ -480,148 +495,10 @@ export default function WatchPlayerScreen() {
     );
   }
 
-  const fsSliderMax = totalDuration > 0 ? totalDuration : 1;
-
   return (
     <View style={styles.root}>
-      {/* 视频区(唯一使用 WebView 的地方);全屏时该容器绝对定位铺满整屏,
-          播放器按 16:9 适配后居中(多余留黑边) */}
-      <View
-        style={[
-          styles.videoWrap,
-          { height: videoHeight },
-          fullscreen
-            ? { ...styles.videoWrapFullscreen, height: winHeight }
-            : null
-        ]}
-      >
-        <YoutubePlayer
-          height={fullscreen ? fsFit.h : videoHeight}
-          // HTML 打进安装包,不再依赖 GitHub Pages(国内网络下那个域名经常加载失败,
-          // 加载失败 = YT API 播放器初始化不了,所有控制全部失灵)
-          useLocalHTML
-          // YouTube 2025 起的嵌入校验(Error 153):本地 HTML 的 origin 是空,
-          // 必须给 WebView 指定一个真实 HTTPS 域名当来源;Web 端在 pcmuz.cn 下嵌 YouTube 正常
-          baseUrlOverride="https://www.pcmuz.cn"
-          // Android WebView 默认拦程序化播放,换桌面 UA 才能让 playVideo()/pauseVideo() 稳定生效
-          forceAndroidAutoplay
-          initialPlayerParams={{
-            controls: false,
-            modestbranding: true,
-            rel: false,
-            preventFullScreen: false
-          }}
-          onReady={() => {
-            void probeDuration();
-          }}
-          onError={(err: string) => {
-            setPlayerError(err);
-          }}
-          onChangeState={(state: string) => {
-            if (state === "playing") {
-              setPlaying(true);
-              // 首次播放后元数据才可用,补探一次时长
-              void probeDuration();
-            }
-            if (state === "paused" || state === "ended") setPlaying(false);
-          }}
-          play={playing}
-          playbackRate={rate}
-          ref={playerRef}
-          videoId={String(videoId)}
-          width={fullscreen ? fsFit.w : width}
-        />
-
-        {/* 透明触摸层:拦截视频区的所有点击,播放/暂停只走我们自己的控制,
-            防止 YouTube iframe 内部的"点击切换播放"和我们的状态打架 */}
-        <Pressable
-          onPress={() => setPlaying((prev) => !prev)}
-          style={StyleSheet.absoluteFill}
-        />
-
-        {fullscreen ? (
-          <>
-            {/* 全屏字幕浮层:只在全屏时出现,退出/非全屏自动消失 */}
-            {cues.length > 0 && activeIndex >= 0 ? (
-              <View style={styles.fsCaptionBox} pointerEvents="none">
-                <Text style={styles.fsCaptionEs}>{cues[activeIndex].text}</Text>
-                {bilingual && translations[activeIndex] ? (
-                  <Text style={styles.fsCaptionZh}>{translations[activeIndex]}</Text>
-                ) : null}
-              </View>
-            ) : null}
-
-            {/* 全屏右上角:退出 */}
-            <Pressable
-              onPress={() => void exitFullscreen()}
-              style={[styles.fsExitButton, { top: insets.top + 8, right: 16 }]}
-            >
-              <Text style={styles.fsExitText}>✕ 退出全屏</Text>
-            </Pressable>
-
-            {playerError ? (
-              <Text style={[styles.fsErrorText, { top: insets.top + 12, left: 16 }]}>
-                播放器错误:{playerError}
-              </Text>
-            ) : null}
-
-            {/* 全屏底部:半透明进度条 */}
-            <View style={[styles.fsBottomBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-              <Text style={styles.fsTimeText}>{formatClock(currentTime)}</Text>
-              <Slider
-                maximumTrackTintColor="rgba(255,255,255,0.3)"
-                maximumValue={fsSliderMax}
-                minimumTrackTintColor={colors.brand500}
-                minimumValue={0}
-                onSlidingComplete={(value) => {
-                  seekingRef.current = false;
-                  seekTo(value);
-                }}
-                onSlidingStart={() => {
-                  seekingRef.current = true;
-                }}
-                onValueChange={(value) => {
-                  setCurrentTime(value);
-                }}
-                step={0}
-                style={styles.fsSlider}
-                thumbTintColor={colors.brand500}
-                value={fsSliderMax > 0 ? Math.min(currentTime, fsSliderMax) : 0}
-              />
-              <Text style={styles.fsTimeText}>{formatClock(totalDuration)}</Text>
-              <Pressable onPress={() => setPlaying((prev) => !prev)} style={styles.fsPlayButton}>
-                <Text style={styles.playIcon}>{playing ? "⏸" : "▶"}</Text>
-              </Pressable>
-            </View>
-          </>
-        ) : (
-          <>
-            <Pressable
-              onPress={() => router.back()}
-              style={[styles.backButton, { top: insets.top + 8 }]}
-            >
-              <Text style={styles.backIcon}>‹</Text>
-            </Pressable>
-
-            {/* 竖屏右下角:进全屏 */}
-            <Pressable
-              onPress={() => void enterFullscreen()}
-              style={[styles.fsEnterButton, { top: insets.top + 8, right: 12 }]}
-            >
-              <Text style={styles.fsEnterIcon}>⛶</Text>
-            </Pressable>
-
-            {/* 竖屏:下载字幕讲义(全量翻译后生成 PDF,进度显示在控制条上方) */}
-            <Pressable
-              onPress={handleDownloadSubtitles}
-              disabled={downloadJob.running}
-              style={[styles.fsEnterButton, { top: insets.top + 52, right: 12 }]}
-            >
-              <Text style={styles.fsEnterIcon}>{downloadJob.running ? "…" : "⬇"}</Text>
-            </Pressable>
-          </>
-        )}
-      </View>
+      {/* 视频占位区：真正的 <YoutubePlayer> 挂在根级 GlobalMediaHost（支持切出悬浮小窗与后台/熄屏继续播） */}
+      <View style={[styles.videoWrap, { height: videoHeight }]} />
 
       {/* 续播提示:明确告诉用户"不是从头开始",并给一个回到开头的出口 */}
       {resumeNotice !== null ? (
@@ -739,18 +616,26 @@ export default function WatchPlayerScreen() {
 
           {/* 倍速循环切换 0.75 → 1 → 1.25 → 1.5,记住上次的选择 */}
           <Pressable
-            onPress={() =>
-              setRate((prev) => {
-                const i = RATE_STEPS.indexOf(prev);
-                const next = RATE_STEPS[(i + 1) % RATE_STEPS.length];
-                void updatePreferences({ videoRate: next });
-                return next;
-              })
-            }
+            onPress={() => {
+              const i = RATE_STEPS.indexOf(rate);
+              const next = RATE_STEPS[(i + 1) % RATE_STEPS.length];
+              void updatePreferences({ videoRate: next });
+              setRate(next);
+            }}
             style={[styles.followChip, rate !== 1 && styles.followChipOn]}
           >
             <Text style={[styles.followChipText, rate !== 1 && styles.followChipTextOn]}>
               {rate}x
+            </Text>
+          </Pressable>
+
+          {/* 后台播开关：默认开启，熄屏/切出维持音频或悬浮 PiP 小窗 */}
+          <Pressable
+            onPress={() => setBgEnabled((prev) => !prev)}
+            style={[styles.followChip, bgEnabled && styles.followChipOn]}
+          >
+            <Text style={[styles.followChipText, bgEnabled && styles.followChipTextOn]}>
+              后台播
             </Text>
           </Pressable>
         </View>

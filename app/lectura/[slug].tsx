@@ -1,7 +1,8 @@
-// Timestamp: 2026-11-15 15:25
+// Timestamp: 2026-11-16 09:30
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +19,7 @@ import {
   translateParagraphs,
   type LecturaStory
 } from "@/api/lectura";
+import { getProxiedCoverUrl } from "@/api/podcasts";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
 import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
@@ -275,6 +277,14 @@ export default function LecturaReaderScreen() {
           </Text>
         </View>
 
+        {story.coverUrl ? (
+          <Image
+            resizeMode="cover"
+            source={{ uri: getProxiedCoverUrl(story.coverUrl) ?? story.coverUrl }}
+            style={styles.heroCover}
+          />
+        ) : null}
+
         <Text style={[styles.title, { color: theme.text }]}>{story.title}</Text>
         <Text style={[styles.titleZh, { color: theme.sub }]}>{story.titleZh}</Text>
 
@@ -288,7 +298,8 @@ export default function LecturaReaderScreen() {
                   showTitle: story.source,
                   level: story.level,
                   audioUrl: story.audioUrl,
-                  description: story.paragraphs.join("\n\n") || story.summaryZh
+                  description: story.paragraphs.join("\n\n") || story.summaryZh,
+                  coverUrl: story.coverUrl ?? ""
                 }
               } as never)
             }
@@ -526,6 +537,13 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   metaText: { fontSize: 11.5, flex: 1 },
+  heroCover: {
+    marginTop: spacing.md,
+    width: "100%",
+    aspectRatio: 16 / 9,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceMuted
+  },
   title: {
     marginTop: spacing.md,
     fontSize: 25,

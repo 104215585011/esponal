@@ -1,8 +1,9 @@
-// Timestamp: 2026-11-15 08:00
+// Timestamp: 2026-11-16 09:30
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -14,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { fetchStories, type LecturaListItem, type LecturaLevel } from "@/api/lectura";
+import { getProxiedCoverUrl } from "@/api/podcasts";
 import { ImportShelfPanel } from "@/components/ImportShelfPanel";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { colors, radius, spacing } from "@/theme";
@@ -154,6 +156,7 @@ export default function LecturaScreen() {
           }
           renderItem={({ item }) => {
             const isRss = item.sourceType === "rss";
+            const cover = item.coverUrl ? getProxiedCoverUrl(item.coverUrl) ?? item.coverUrl : null;
             return (
               <Pressable
                 onPress={() =>
@@ -164,20 +167,28 @@ export default function LecturaScreen() {
                 }
                 style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
               >
-                <View style={styles.badges}>
-                  <Text style={styles.levelBadge}>{item.level}</Text>
-                  {isRss ? <Text style={styles.rssBadge}>{item.source}</Text> : null}
-                  <Text style={styles.metaText}>
-                    {item.durationMin} 分钟 · {item.paragraphCount} 段
-                  </Text>
-                  {item.isRead ? <Text style={styles.readBadge}>已读</Text> : null}
-                </View>
+                <View style={styles.cardRow}>
+                  <View style={styles.cardMain}>
+                    <View style={styles.badges}>
+                      <Text style={styles.levelBadge}>{item.level}</Text>
+                      {isRss ? <Text style={styles.rssBadge}>{item.source}</Text> : null}
+                      <Text style={styles.metaText}>
+                        {item.durationMin} 分钟 · {item.paragraphCount} 段
+                      </Text>
+                      {item.isRead ? <Text style={styles.readBadge}>已读</Text> : null}
+                    </View>
 
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardTitleZh}>{item.titleZh}</Text>
-                <Text numberOfLines={2} style={styles.cardSummary}>
-                  {item.summaryZh}
-                </Text>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardTitleZh}>{item.titleZh}</Text>
+                    <Text numberOfLines={2} style={styles.cardSummary}>
+                      {item.summaryZh}
+                    </Text>
+                  </View>
+
+                  {cover ? (
+                    <Image source={{ uri: cover }} style={styles.cardCover} resizeMode="cover" />
+                  ) : null}
+                </View>
               </Pressable>
             );
           }}
@@ -262,8 +273,23 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.lg,
+    padding: spacing.lg
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md
+  },
+  cardMain: {
+    flex: 1,
     gap: 6
+  },
+  cardCover: {
+    width: 86,
+    height: 86,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
+    marginTop: 2
   },
   cardPressed: { opacity: 0.78 },
   badges: {

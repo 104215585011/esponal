@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+--- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebView.java
+@@ -117,6 +117,16 @@ public class RNCWebView extends WebView implements LifecycleEventListener {
+         // do nothing
+     }
+ 
++    @Override
++    protected void onWindowVisibilityChanged(int visibility) {
++        // Keep WebView media renderer active during screen-off / background playback
++        if (visibility != View.GONE) {
++            super.onWindowVisibilityChanged(visibility);
++        } else {
++            super.onWindowVisibilityChanged(View.VISIBLE);
++        }
++    }
++
+     @Override
+     public void onHostDestroy() {
+         cleanupCallbacksAndDestroy();

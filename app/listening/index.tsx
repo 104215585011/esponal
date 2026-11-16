@@ -1,10 +1,12 @@
-// Timestamp: 2026-11-15 08:00
+// Timestamp: 2026-11-16 09:30
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View
@@ -15,10 +17,12 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { fetchStories, type LecturaListItem, type LecturaLevel } from "@/api/lectura";
 import {
   fetchPodcasts,
+  getProxiedCoverUrl,
   type PodcastEpisode,
   type PodcastShow
 } from "@/api/podcasts";
 import { SegmentedControl } from "@/components/SegmentedControl";
+import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
 import {
   getStorySummary,
   loadListeningLog,
@@ -61,6 +65,7 @@ function formatDate(raw: string) {
  */
 export default function ListeningListScreen() {
   const router = useRouter();
+  const { activePodcast, podcastStatus } = useBackgroundMedia();
   const [mode, setMode] = useState<ModeTab>("podcasts");
 
   // 播客状态
@@ -193,34 +198,66 @@ export default function ListeningListScreen() {
               <View style={styles.intro}>
                 <Text style={styles.introTitle}>播客精听 · 真实语境输入</Text>
                 <Text style={styles.introLine}>
-                  来自西语母语与高口碑学习播客的最新音频。进入后可开「30 秒循环」精听连读，并调 0.75x 慢速。
+                  来自西语母语与高口碑学习播客的最新音频。支持 30 秒循环、变速及熄屏/后台连续播放。
                 </Text>
               </View>
 
-              <View style={styles.levelRow}>
-                <Pressable
-                  onPress={() => setShowFilter("ALL")}
-                  style={[styles.levelChip, showFilter === "ALL" && styles.levelChipActive]}
+              {shows.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.showStrip}
                 >
-                  <Text style={[styles.levelText, showFilter === "ALL" && styles.levelTextActive]}>
-                    全部节目
-                  </Text>
-                </Pressable>
-                {shows.map((show) => {
-                  const active = showFilter === show.id;
-                  return (
-                    <Pressable
-                      key={show.id}
-                      onPress={() => setShowFilter(show.id)}
-                      style={[styles.levelChip, active && styles.levelChipActive]}
+                  <Pressable
+                    onPress={() => setShowFilter("ALL")}
+                    style={[styles.showCard, showFilter === "ALL" && styles.showCardActive]}
+                  >
+                    <View style={styles.showAllIcon}>
+                      <Text style={styles.showAllEmoji}>📻</Text>
+                    </View>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.showCardTitle,
+                        showFilter === "ALL" && styles.showCardTitleActive
+                      ]}
                     >
-                      <Text style={[styles.levelText, active && styles.levelTextActive]}>
-                        {show.title}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+                      全部节目
+                    </Text>
+                    <Text style={styles.showCardSub}>{episodes.length} 集更新</Text>
+                  </Pressable>
+                  {shows.map((show) => {
+                    const active = showFilter === show.id;
+                    const showCover = show.coverUrl
+                      ? getProxiedCoverUrl(show.coverUrl) ?? show.coverUrl
+                      : null;
+                    return (
+                      <Pressable
+                        key={show.id}
+                        onPress={() => setShowFilter(show.id)}
+                        style={[styles.showCard, active && styles.showCardActive]}
+                      >
+                        {showCover ? (
+                          <Image source={{ uri: showCover }} style={styles.showCover} />
+                        ) : (
+                          <View style={styles.showAllIcon}>
+                            <Text style={styles.showAllEmoji}>🎙</Text>
+                          </View>
+                        )}
+                        <Text
+                          numberOfLines={1}
+                          style={[styles.showCardTitle, active && styles.showCardTitleActive]}
+                        >
+                          {show.title}
+                        </Text>
+                        <Text numberOfLines={1} style={styles.showCardSub}>
+                          {show.level} · {show.host}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              ) : null}
 
               {podLoading ? (
                 <View style={styles.center}>
@@ -237,41 +274,70 @@ export default function ListeningListScreen() {
               ) : null}
             </View>
           }
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: "/listening/podcast",
-                  params: {
-                    id: item.id,
-                    title: item.title,
-                    showTitle: item.showTitle,
-                    level: item.level,
-                    audioUrl: item.audioUrl,
-                    description: item.description,
-                    durationSec: item.durationSec ? String(item.durationSec) : ""
-                  }
-                } as never)
-              }
-              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-            >
-              <View style={styles.cardHead}>
-                <Text style={styles.levelBadge}>{item.level}</Text>
-                <Text style={styles.showBadge}>{item.showTitle}</Text>
-                <Text style={styles.cardMeta}>
-                  {formatDuration(item.durationSec)}
-                  {item.publishedAt ? ` · ${formatDate(item.publishedAt)}` : ""}
-                </Text>
-              </View>
+          renderItem={({ item }) => {
+            const epCover = item.coverUrl ? getProxiedCoverUrl(item.coverUrl) ?? item.coverUrl : null;
+            const isCurrent = activePodcast?.rawAudioUrl === item.audioUrl;
+            const isPlayingCurrent = isCurrent && podcastStatus.playing;
+            return (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/listening/podcast",
+                    params: {
+                      id: item.id,
+                      title: item.title,
+                      showTitle: item.showTitle,
+                      level: item.level,
+                      audioUrl: item.audioUrl,
+                      description: item.description,
+                      durationSec: item.durationSec ? String(item.durationSec) : "",
+                      coverUrl: item.coverUrl ?? ""
+                    }
+                  } as never)
+                }
+                style={({ pressed }) => [
+                  styles.card,
+                  isCurrent && styles.cardActive,
+                  pressed && styles.cardPressed
+                ]}
+              >
+                <View style={styles.epRow}>
+                  {epCover ? (
+                    <Image source={{ uri: epCover }} style={styles.epCover} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.epCoverFallback}>
+                      <Text style={styles.epCoverIcon}>🎧</Text>
+                    </View>
+                  )}
 
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              {item.description ? (
-                <Text numberOfLines={2} style={styles.cardSummary}>
-                  {item.description}
-                </Text>
-              ) : null}
-            </Pressable>
-          )}
+                  <View style={styles.epBody}>
+                    <View style={styles.cardHead}>
+                      <Text style={styles.levelBadge}>{item.level}</Text>
+                      <Text style={styles.showBadge}>{item.showTitle}</Text>
+                      {isCurrent ? (
+                        <Text style={styles.liveBadge}>
+                          {isPlayingCurrent ? "● 正在播放" : "已暂停"}
+                        </Text>
+                      ) : null}
+                      <Text style={styles.cardMeta}>
+                        {formatDuration(item.durationSec)}
+                        {item.publishedAt ? ` · ${formatDate(item.publishedAt)}` : ""}
+                      </Text>
+                    </View>
+
+                    <Text numberOfLines={2} style={styles.cardTitle}>
+                      {item.title}
+                    </Text>
+                    {item.description ? (
+                      <Text numberOfLines={2} style={styles.cardSummary}>
+                        {item.description}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+              </Pressable>
+            );
+          }}
           ListEmptyComponent={
             podLoading || podError ? undefined : (
               <View style={styles.center}>
@@ -434,6 +500,38 @@ const styles = StyleSheet.create({
   levelChipActive: { backgroundColor: colors.brand600, borderColor: colors.brand600 },
   levelText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
   levelTextActive: { color: "#FFFFFF" },
+  showStrip: { marginTop: spacing.md, paddingRight: spacing.lg, gap: 10 },
+  showCard: {
+    width: 112,
+    padding: 10,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
+    gap: 5
+  },
+  showCardActive: {
+    borderColor: colors.brand500,
+    backgroundColor: colors.brand50
+  },
+  showCover: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted
+  },
+  showAllIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  showAllEmoji: { fontSize: 22 },
+  showCardTitle: { fontSize: 12.5, fontWeight: "700", color: colors.text },
+  showCardTitleActive: { color: colors.brand700 },
+  showCardSub: { fontSize: 11, color: colors.textTertiary },
   trainedNote: { marginTop: spacing.md, fontSize: 12, color: colors.textTertiary },
   card: {
     marginTop: spacing.md,
@@ -444,7 +542,38 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: 4
   },
+  cardActive: {
+    borderColor: colors.brand500,
+    backgroundColor: "#F0FDF4"
+  },
   cardPressed: { backgroundColor: colors.surfaceMuted },
+  epRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  epCover: {
+    width: 76,
+    height: 76,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted
+  },
+  epCoverFallback: {
+    width: 76,
+    height: 76,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  epCoverIcon: { fontSize: 28 },
+  epBody: { flex: 1, gap: 3 },
+  liveBadge: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#059669",
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    overflow: "hidden"
+  },
   cardHead: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 },
   levelBadge: {
     fontSize: 10.5,
