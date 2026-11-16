@@ -41,7 +41,8 @@ export const CURATED_PODCASTS: PodcastShow[] = [
     level: "B1",
     description: "每日 10 分钟西班牙语新闻、文化与地道表达，语速适中适合精听。",
     feedUrl: "https://www.hoyhablamos.com/feed/podcast/",
-    coverUrl: "https://www.hoyhablamos.com/wp-content/uploads/2017/02/hoy-hablamos-itunes-01.jpg",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts125/v4/72/ee/37/72ee370b-3d51-27f2-92a2-37a3a3057391/mza_4998403547888481662.jpg/600x600bb.jpg",
   },
   {
     id: "espanol-con-juan",
@@ -54,8 +55,8 @@ export const CURATED_PODCASTS: PodcastShow[] = [
   },
 ];
 
-const PODCAST_CACHE_KEY = "listening:podcasts:v3";
-const COVER_CACHE_PREFIX = "listening:cover:v1:";
+const PODCAST_CACHE_KEY = "listening:podcasts:v4";
+const COVER_CACHE_PREFIX = "listening:cover:v2:";
 const PODCAST_TTL_SEC = 6 * 3600;
 const COVER_TTL_SEC = 7 * 24 * 3600;
 let memoryPodcastCache: { expiresAt: number; episodes: PodcastEpisode[] } | null = null;
@@ -133,7 +134,7 @@ export async function fetchPodcastEpisodes(forceRefresh = false): Promise<Podcas
         audioItems.map(async (item): Promise<PodcastEpisode> => {
           const fullText = stripHtmlToText(item.contentHtml || item.description);
           const cleanDesc = (fullText || item.description).slice(0, 6000);
-          const fallbackCover = item.coverUrl || channelImageUrl || show.coverUrl;
+          const fallbackCover = item.coverUrl || show.coverUrl || channelImageUrl || "";
           const coverUrl = item.coverUrl
             ? item.coverUrl
             : await resolveEpisodeCover(item.link, fallbackCover);

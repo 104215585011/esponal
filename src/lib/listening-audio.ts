@@ -17,6 +17,7 @@ const ALLOWED_PODCAST_HOST_SUFFIXES = [
   "ivoox.com",
   "hoyhablamos.com",
   "1001reasonstolearnspanish.com",
+  "mzstatic.com",
   "traffic.megaphone.fm"
 ];
 
