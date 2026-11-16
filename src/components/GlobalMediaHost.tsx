@@ -113,7 +113,8 @@ export function GlobalMediaHost() {
         audioUrl: activePodcast.rawAudioUrl,
         description: activePodcast.description ?? "",
         durationSec: activePodcast.durationSec ? String(activePodcast.durationSec) : "",
-        coverUrl: activePodcast.coverUrl ?? ""
+        coverUrl: activePodcast.coverUrl ?? "",
+        link: activePodcast.link ?? ""
       }
     } as never);
   };

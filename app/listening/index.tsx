@@ -291,7 +291,8 @@ export default function ListeningListScreen() {
                       audioUrl: item.audioUrl,
                       description: item.description,
                       durationSec: item.durationSec ? String(item.durationSec) : "",
-                      coverUrl: item.coverUrl ?? ""
+                      coverUrl: item.coverUrl ?? "",
+                      link: item.link ?? ""
                     }
                   } as never)
                 }

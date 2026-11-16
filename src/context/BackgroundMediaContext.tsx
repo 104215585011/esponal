@@ -35,6 +35,7 @@ export interface ActivePodcastTrack {
   description?: string;
   durationSec?: number;
   coverUrl?: string;
+  link?: string;
 }
 
 export interface ActiveVideoTrack {
@@ -431,16 +432,19 @@ export function BackgroundMediaProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // 全局视频进度轮询：无论在视频页还是悬浮 PiP 状态都能持续刷新时间与持久化续播进度
+  // 加上 inFlight 互斥锁与暂停跳过，杜绝 WebView EventEmitter 监听堆积导致播到一半内存/桥接崩溃
   useEffect(() => {
     if (!activeVideo) return;
+    let inFlight = false;
     const timer = setInterval(async () => {
-      if (seekingVideoRef.current) return;
+      if (seekingVideoRef.current || inFlight || !videoPlayingRef.current) return;
+      inFlight = true;
       try {
         const t = await videoPlayerRef.current?.getCurrentTime();
-        if (typeof t === "number" && Number.isFinite(t)) {
-          setVideoCurrentTime(t);
+        if (typeof t === "number" && Number.isFinite(t) && t > 0) {
+          setVideoCurrentTime((prev) => (Math.abs(t - prev) >= 0.18 ? t : prev));
           const vid = activeVideoRef.current?.videoId;
-          if (vid && t > 0) {
+          if (vid) {
             const now = Date.now();
             if (now - lastSavedVideoRef.current > 5000) {
               lastSavedVideoRef.current = now;
@@ -454,8 +458,10 @@ export function BackgroundMediaProvider({ children }: { children: ReactNode }) {
         }
       } catch {
         // 播放器未就绪时忽略
+      } finally {
+        inFlight = false;
       }
-    }, 400);
+    }, 450);
 
     return () => clearInterval(timer);
   }, [activeVideo]);

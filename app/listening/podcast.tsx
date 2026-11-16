@@ -21,9 +21,15 @@ import {
 } from "@/api/podcasts";
 import { LookupSheet } from "@/components/LookupSheet";
 import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
+import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
 import { colors, radius, spacing } from "@/theme";
 
 const RATES = [0.75, 0.9, 1.0, 1.2] as const;
+const WINDOW_SEC = 30;
+/** 每轮批量预缓冲 3 分钟（6 × 30s），且保持至少 90s（1.5 分钟）安全余量 */
+const BATCH_WINDOW_COUNT = 6;
+const REBUFFER_MARGIN_SEC = 90;
+const MAX_SUB_WORKERS = 2;
 
 type BottomTab = "subtitles" | "notes";
 
@@ -69,6 +75,7 @@ export default function PodcastPlayerScreen() {
     description?: string;
     durationSec?: string;
     coverUrl?: string;
+    link?: string;
   }>();
 
   const episodeId = typeof params.id === "string" ? params.id : undefined;
@@ -79,6 +86,7 @@ export default function PodcastPlayerScreen() {
   const description = typeof params.description === "string" ? params.description : "";
   const initialDurationSec = Number(params.durationSec) || 0;
   const rawCoverUrl = typeof params.coverUrl === "string" ? params.coverUrl : "";
+  const episodeLink = typeof params.link === "string" ? params.link : "";
 
   const playbackUrl = useMemo(() => getProxiedPodcastAudioUrl(rawAudioUrl), [rawAudioUrl]);
   const proxiedCoverUrl = useMemo(
@@ -105,13 +113,19 @@ export default function PodcastPlayerScreen() {
   const [cues, setCues] = useState<PodcastCue[]>([]);
   const [subLoading, setSubLoading] = useState(false);
   const [subError, setSubError] = useState<string | null>(null);
+  const [bufferedUntilSec, setBufferedUntilSec] = useState(0);
+  const [subSourceLabel, setSubSourceLabel] = useState<string | null>(null);
 
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState<string | undefined>(undefined);
 
   const scrollRef = useRef<ComponentRef<typeof ScrollView> | null>(null);
   const cueYMap = useRef<Record<number, number>>({});
-  const fetchedWindows = useRef<Set<number>>(new Set());
+  const completedWindows = useRef<Set<number>>(new Set());
+  const inFlightWindows = useRef<Set<number>>(new Set());
+  const pendingQueue = useRef<number[]>([]);
+  const activeWorkers = useRef(0);
+  const episodeGenRef = useRef(0);
 
   const duration = status.duration || initialDurationSec || 0;
   const currentTime = status.currentTime || 0;
@@ -128,66 +142,153 @@ export default function PodcastPlayerScreen() {
       playbackUrl,
       description,
       durationSec: initialDurationSec > 0 ? initialDurationSec : undefined,
-      coverUrl: rawCoverUrl || undefined
+      coverUrl: rawCoverUrl || undefined,
+      link: episodeLink || undefined
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playbackUrl]);
 
-  const loadSubtitlesAt = useCallback(
-    async (startSec: number, force = false) => {
-      if (!rawAudioUrl) return;
-      const alignedWindow = Math.floor(Math.max(0, startSec) / 30) * 30;
-      if (!force && fetchedWindows.current.has(alignedWindow)) return;
-      if (subLoading) return;
+  const recomputeBufferedUntil = useCallback(
+    (anchorSec: number) => {
+      const startWin = Math.floor(Math.max(0, anchorSec) / WINDOW_SEC) * WINDOW_SEC;
+      let cursor = startWin;
+      while (completedWindows.current.has(cursor)) {
+        cursor += WINDOW_SEC;
+      }
+      setBufferedUntilSec(cursor);
+    },
+    []
+  );
 
-      fetchedWindows.current.add(alignedWindow);
-      setSubLoading(true);
-      setSubError(null);
+  const pumpQueue = useCallback(() => {
+    if (!rawAudioUrl) return;
+    const gen = episodeGenRef.current;
+
+    const runOne = async (winSec: number, isManualPriority: boolean) => {
       try {
         const res = await fetchPodcastSubtitles({
           audioUrl: rawAudioUrl,
-          startSec: alignedWindow,
-          durationSec: duration > 0 ? Math.round(duration) : undefined
+          startSec: winSec,
+          durationSec: duration > 0 ? Math.round(duration) : undefined,
+          pageUrl: episodeLink || undefined,
+          sourceText: description.trim().length >= 450 ? description : undefined
         });
+        if (episodeGenRef.current !== gen) return;
+
+        completedWindows.current.add(winSec);
+        if (res.source === "transcript") setSubSourceLabel("源文稿");
+        else if (res.source === "article-text") setSubSourceLabel("文章正文");
+        else if (res.source === "ai-asr") setSubSourceLabel((prev) => prev ?? "AI 听译");
+
         if (res.cues && res.cues.length > 0) {
           setCues((prev) => mergeSortedCues(prev, res.cues));
-        } else if (force) {
-          setSubError("这一段未识别到有效语音，可拖到有人声的位置再试一次。");
+        } else if (isManualPriority && winSec === 0) {
+          setSubError("开篇片头暂无人声，已继续向后缓冲前 3 分钟字幕…");
         }
+        recomputeBufferedUntil(currentTime);
       } catch (e) {
-        fetchedWindows.current.delete(alignedWindow);
-        setSubError(e instanceof Error ? e.message : "字幕生成失败，请点重试");
+        if (episodeGenRef.current !== gen) return;
+        if (isManualPriority) {
+          setSubError(e instanceof Error ? e.message : "字幕生成失败，请点重试");
+        }
       } finally {
-        setSubLoading(false);
+        inFlightWindows.current.delete(winSec);
+        if (episodeGenRef.current === gen) {
+          setSubLoading(inFlightWindows.current.size > 0 || pendingQueue.current.length > 0);
+        }
       }
+    };
+
+    while (activeWorkers.current < MAX_SUB_WORKERS && pendingQueue.current.length > 0) {
+      const nextWin = pendingQueue.current.shift()!;
+      if (completedWindows.current.has(nextWin) || inFlightWindows.current.has(nextWin)) {
+        continue;
+      }
+      inFlightWindows.current.add(nextWin);
+      setSubLoading(true);
+      activeWorkers.current += 1;
+      void runOne(nextWin, nextWin === 0).finally(() => {
+        activeWorkers.current = Math.max(0, activeWorkers.current - 1);
+        if (episodeGenRef.current === gen) {
+          pumpQueue();
+        }
+      });
+    }
+  }, [rawAudioUrl, duration, episodeLink, description, currentTime, recomputeBufferedUntil]);
+
+  const scheduleRangeFrom = useCallback(
+    (anchorSec: number, front = false, forceRetry = false) => {
+      if (!rawAudioUrl) return;
+      const startWin = Math.floor(Math.max(0, anchorSec) / WINDOW_SEC) * WINDOW_SEC;
+      const maxEnd = duration > 0 ? Math.ceil(duration) : startWin + BATCH_WINDOW_COUNT * WINDOW_SEC;
+      const batch: number[] = [];
+
+      for (let i = 0; i < BATCH_WINDOW_COUNT; i += 1) {
+        const win = startWin + i * WINDOW_SEC;
+        if (duration > 0 && win >= maxEnd) break;
+        if (forceRetry && i === 0) {
+          completedWindows.current.delete(win);
+        }
+        if (
+          !completedWindows.current.has(win) &&
+          !inFlightWindows.current.has(win) &&
+          !pendingQueue.current.includes(win)
+        ) {
+          batch.push(win);
+        }
+      }
+
+      if (batch.length === 0) return;
+      setSubError(null);
+
+      if (front) {
+        pendingQueue.current = [...batch, ...pendingQueue.current];
+      } else {
+        pendingQueue.current = [...pendingQueue.current, ...batch];
+      }
+      pumpQueue();
     },
-    [rawAudioUrl, duration, subLoading]
+    [rawAudioUrl, duration, pumpQueue]
   );
 
-  // 首屏自动拉取开篇 0~30s 双语字幕，打开就能看
+  // 开局预缓冲前 3 分钟（0:00~3:00）：优先 0~30s 尽快落屏，其余 5 段紧随并发填充
   useEffect(() => {
     if (!rawAudioUrl) return;
-    fetchedWindows.current.clear();
+    episodeGenRef.current += 1;
+    completedWindows.current.clear();
+    inFlightWindows.current.clear();
+    pendingQueue.current = [];
+    activeWorkers.current = 0;
     setCues([]);
-    void loadSubtitlesAt(0, true);
+    setBufferedUntilSec(0);
+    setSubSourceLabel(null);
+    scheduleRangeFrom(0, true, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawAudioUrl]);
 
-  // 播放过程中自动按 30s 窗口滚动作业：快播到当前窗结尾时提前预取下一段
+  // 滑动超前缓冲：只要未来 REBUFFER_MARGIN_SEC（90s，留足 >1 分钟余量）内存在未生成段落，
+  // 立即以 3 分钟为一批续订（如播到 1:30~2:00 即拉取 3:00~6:00，播到 4:30~5:00 即拉取 6:00~9:00）
   useEffect(() => {
-    if (!status.playing || !rawAudioUrl || subLoading) return;
-    const currentWin = Math.floor(Math.max(0, currentTime) / 30) * 30;
-    if (!fetchedWindows.current.has(currentWin)) {
-      void loadSubtitlesAt(currentWin, false);
-      return;
-    }
-    if (currentTime - currentWin >= 20) {
-      const nextWin = currentWin + 30;
-      if ((duration <= 0 || nextWin < duration) && !fetchedWindows.current.has(nextWin)) {
-        void loadSubtitlesAt(nextWin, false);
+    if (!rawAudioUrl) return;
+    const baseWin = Math.floor(Math.max(0, currentTime) / WINDOW_SEC) * WINDOW_SEC;
+    const horizonWin = Math.floor((Math.max(0, currentTime) + REBUFFER_MARGIN_SEC) / WINDOW_SEC) * WINDOW_SEC;
+    const maxEnd = duration > 0 ? Math.ceil(duration) : horizonWin + WINDOW_SEC;
+
+    recomputeBufferedUntil(currentTime);
+
+    for (let win = baseWin; win <= horizonWin; win += WINDOW_SEC) {
+      if (duration > 0 && win >= maxEnd) break;
+      if (
+        !completedWindows.current.has(win) &&
+        !inFlightWindows.current.has(win) &&
+        !pendingQueue.current.includes(win)
+      ) {
+        // 如果当前播放点这一窗还没出（刚拖动进度条），置顶加急；否则按顺序批拉 3 分钟
+        scheduleRangeFrom(win, win === baseWin, false);
+        break;
       }
     }
-  }, [status.playing, currentTime, duration, rawAudioUrl, subLoading, loadSubtitlesAt]);
+  }, [currentTime, duration, rawAudioUrl, scheduleRangeFrom, recomputeBufferedUntil]);
 
   // 当前播放高亮字幕索引
   const activeCueIndex = useMemo(() => {
@@ -375,21 +476,25 @@ export default function PodcastPlayerScreen() {
           <>
             <View style={styles.subActionCard}>
               <View style={styles.subActionInfo}>
-                <Text style={styles.subActionTitle}>AI 双语字幕（随播放进度按段生成）</Text>
+                <Text style={styles.subActionTitle}>
+                  双语字幕 {subSourceLabel ? `· ${subSourceLabel}` : "· 优先源文稿"}
+                </Text>
                 <Text style={styles.subActionHint}>
-                  点任意时间跳转播放，点句子里的西语单词可直接查词与变位
+                  {bufferedUntilSec > 0
+                    ? `已超前缓冲至 ${formatClock(bufferedUntilSec)}（余量 ≥1.5 分钟自动续订下 3 分钟），点固定搭配/单词可直接查词`
+                    : "开局自动缓冲前 3 分钟字幕，优先匹配源文稿与固定搭配识别"}
                 </Text>
               </View>
               <Pressable
-                disabled={subLoading || !rawAudioUrl}
-                onPress={() => void loadSubtitlesAt(currentTime, true)}
+                disabled={!rawAudioUrl}
+                onPress={() => scheduleRangeFrom(currentTime, true, true)}
                 style={[styles.genSubBtn, subLoading && styles.genSubBtnDisabled]}
               >
                 {subLoading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <Text style={styles.genSubBtnText}>
-                    生成 {formatClock(Math.floor(currentTime / 30) * 30)} 字幕
+                    补齐 {formatClock(Math.floor(currentTime / WINDOW_SEC) * WINDOW_SEC)}
                   </Text>
                 )}
               </Pressable>
@@ -401,7 +506,7 @@ export default function PodcastPlayerScreen() {
               <View style={styles.emptyBox}>
                 <Text style={styles.emptyTitle}>当前片段还没有字幕</Text>
                 <Text style={styles.emptyHint}>
-                  点击上方“生成字幕”即可自动识别该段播客音频并配中文翻译。
+                  点击上方按钮即可优先拉取源文稿或生成该段双语字幕。
                 </Text>
               </View>
             ) : (
@@ -422,24 +527,14 @@ export default function PodcastPlayerScreen() {
                       <Text style={styles.cueJump}>{active ? "正在播放" : "跳到此处 ▶"}</Text>
                     </Pressable>
 
-                    <Text style={styles.cueEs}>
-                      {splitTokens(cue.text).map((tok, tIdx) => {
-                        const clean = cleanWordToken(tok);
-                        if (!clean) return <Text key={tIdx}>{tok}</Text>;
-                        return (
-                          <Text
-                            key={tIdx}
-                            onPress={() => {
-                              setSelectedWord(clean);
-                              setSelectedContext(cue.text);
-                            }}
-                            style={styles.wordTap}
-                          >
-                            {tok}
-                          </Text>
-                        );
-                      })}
-                    </Text>
+                    <InteractiveSpanishBlock
+                      onSelectWord={(target) => {
+                        setSelectedWord(target);
+                        setSelectedContext(cue.text);
+                      }}
+                      text={cue.text}
+                      textStyle={styles.cueEs}
+                    />
 
                     {cue.zh ? <Text style={styles.cueZh}>{cue.zh}</Text> : null}
                   </View>
@@ -449,26 +544,19 @@ export default function PodcastPlayerScreen() {
           </>
         ) : noteParagraphs.length > 0 ? (
           <View style={styles.notesCard}>
-            <Text style={styles.notesTitle}>本期完整简介 / 正文（点击西语词可直接查词）</Text>
+            <Text style={styles.notesTitle}>
+              本期完整简介 / 正文（自动识别固定搭配，点击词组可直接查词）
+            </Text>
             {noteParagraphs.map((para, pIdx) => (
-              <Text key={pIdx} style={styles.notesBody}>
-                {splitTokens(para).map((tok, tIdx) => {
-                  const clean = cleanWordToken(tok);
-                  if (!clean) return <Text key={tIdx}>{tok}</Text>;
-                  return (
-                    <Text
-                      key={tIdx}
-                      onPress={() => {
-                        setSelectedWord(clean);
-                        setSelectedContext(para.slice(0, 160));
-                      }}
-                      style={styles.wordTap}
-                    >
-                      {tok}
-                    </Text>
-                  );
-                })}
-              </Text>
+              <InteractiveSpanishBlock
+                key={pIdx}
+                onSelectWord={(target) => {
+                  setSelectedWord(target);
+                  setSelectedContext(para.slice(0, 160));
+                }}
+                text={para}
+                textStyle={styles.notesBody}
+              />
             ))}
           </View>
         ) : (
@@ -486,6 +574,102 @@ export default function PodcastPlayerScreen() {
         word={selectedWord}
       />
     </SafeAreaView>
+  );
+}
+
+/** 渲染播客西语段落/字幕并自动高亮固定搭配 */
+function InteractiveSpanishBlock({
+  text,
+  textStyle,
+  onSelectWord
+}: {
+  text: string;
+  textStyle: object;
+  onSelectWord: (wordOrPhrase: string) => void;
+}) {
+  const spans = useMemo<DetectedPhraseSpan[]>(() => detectPhrasesInSentence(text), [text]);
+  const uniqueSpans = useMemo(() => {
+    const seen = new Set<string>();
+    return spans.filter((s) => {
+      if (seen.has(s.lemma)) return false;
+      seen.add(s.lemma);
+      return true;
+    });
+  }, [spans]);
+
+  const segments = useMemo(() => {
+    type Seg =
+      | { kind: "phrase"; raw: string; lemma: string }
+      | { kind: "chunk"; raw: string };
+    const out: Seg[] = [];
+    let cursor = 0;
+    for (const span of spans) {
+      if (span.start > cursor) {
+        out.push({ kind: "chunk", raw: text.slice(cursor, span.start) });
+      }
+      if (span.end > span.start) {
+        out.push({ kind: "phrase", raw: text.slice(span.start, span.end), lemma: span.lemma });
+        cursor = span.end;
+      }
+    }
+    if (cursor < text.length) {
+      out.push({ kind: "chunk", raw: text.slice(cursor) });
+    }
+    return out;
+  }, [text, spans]);
+
+  return (
+    <View style={styles.spanBlock}>
+      <Text style={textStyle}>
+        {segments.map((seg, sIdx) => {
+          if (seg.kind === "phrase") {
+            return (
+              <Text
+                key={sIdx}
+                onPress={() => onSelectWord(seg.lemma)}
+                style={styles.phraseTap}
+              >
+                {seg.raw}
+              </Text>
+            );
+          }
+          return splitTokens(seg.raw).map((tok, tIdx) => {
+            const clean = cleanWordToken(tok);
+            if (!clean) return <Text key={`${sIdx}-${tIdx}`}>{tok}</Text>;
+            return (
+              <Text
+                key={`${sIdx}-${tIdx}`}
+                onPress={() => onSelectWord(clean)}
+                style={styles.wordTap}
+              >
+                {tok}
+              </Text>
+            );
+          });
+        })}
+      </Text>
+
+      {uniqueSpans.length > 0 ? (
+        <View style={styles.collocationRow}>
+          {uniqueSpans.map((span) => (
+            <Pressable
+              key={span.lemma}
+              hitSlop={6}
+              onPress={() => onSelectWord(span.lemma)}
+              style={styles.collocationChip}
+            >
+              <Text style={styles.collocationBadge}>搭配</Text>
+              <Text style={styles.collocationLemma}>{span.lemma}</Text>
+              {span.zh ? (
+                <Text numberOfLines={1} style={styles.collocationZh}>
+                  · {span.zh}
+                </Text>
+              ) : null}
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -704,6 +888,38 @@ const styles = StyleSheet.create({
   cueEs: { fontSize: 15.5, lineHeight: 24, color: colors.text, fontWeight: "500" },
   cueZh: { fontSize: 13, lineHeight: 19, color: colors.textSecondary },
   wordTap: { color: colors.text },
+  spanBlock: { gap: 4 },
+  phraseTap: {
+    color: "#B45309",
+    backgroundColor: "rgba(251, 191, 36, 0.18)",
+    fontWeight: "700",
+    textDecorationLine: "underline",
+    textDecorationColor: "rgba(217, 119, 6, 0.55)"
+  },
+  collocationRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 },
+  collocationChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: "#FEF3C7",
+    borderWidth: 1,
+    borderColor: "#FDE68A"
+  },
+  collocationBadge: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#92400E",
+    backgroundColor: "rgba(217, 119, 6, 0.16)",
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    overflow: "hidden"
+  },
+  collocationLemma: { fontSize: 12, fontWeight: "700", color: "#78350F" },
+  collocationZh: { fontSize: 11.5, fontWeight: "500", color: "#92400E", maxWidth: 140 },
   notesCard: {
     backgroundColor: colors.bg,
     borderRadius: radius.xl,

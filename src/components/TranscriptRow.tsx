@@ -1,69 +1,132 @@
-// Timestamp: 2026-11-13 23:10
+// Timestamp: 2026-11-16 14:20
 import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
 import { colors, radius, spacing } from "@/theme";
 
 type TranscriptRowProps = {
   text: string;
+  start: number;
   translation?: string | null;
   active: boolean;
-  onSeek: () => void;
-  onWordPress: (word: string) => void;
-  onPhrasePress: () => void;
+  onSeek: (start: number) => void;
+  onWordPress: (word: string, sentence: string) => void;
+  onPhrasePress: (phraseLemma: string, sentence: string) => void;
 };
 
-/** 把句子切成「可点的词」与「不可点的标点/空白」 */
-function tokenize(text: string) {
-  const parts = text.split(/(\s+)/);
-  return parts.filter((p) => p.length > 0);
+type RenderSegment =
+  | { type: "plain"; raw: string }
+  | { type: "word"; raw: string; clean: string }
+  | { type: "phrase"; raw: string; span: DetectedPhraseSpan };
+
+/** 把非短语区切成「可点的词」与「不可点的标点/空白」 */
+function tokenizePlainChunk(chunk: string): RenderSegment[] {
+  const parts = chunk.split(/(\s+)/);
+  const out: RenderSegment[] = [];
+  for (const part of parts) {
+    if (!part) continue;
+    if (/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(part)) {
+      const clean = part
+        .replace(/^[¿¡"“”'«»(\[]+/, "")
+        .replace(/[.,;:!?"“”'»)\]]+$/, "")
+        .trim();
+      if (clean) {
+        out.push({ type: "word", raw: part, clean });
+        continue;
+      }
+    }
+    out.push({ type: "plain", raw: part });
+  }
+  return out;
 }
 
-function isWord(token: string) {
-  return /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(token);
-}
+function buildSegments(text: string, spans: DetectedPhraseSpan[]): RenderSegment[] {
+  if (spans.length === 0) {
+    return tokenizePlainChunk(text);
+  }
 
-function normalize(token: string) {
-  return token
-    .replace(/^[¿¡"“”'«»(\[]+/, "")
-    .replace(/[.,;:!?"“”'»)\]]+$/, "")
-    .trim();
+  const segments: RenderSegment[] = [];
+  let cursor = 0;
+
+  for (const span of spans) {
+    if (span.start > cursor) {
+      segments.push(...tokenizePlainChunk(text.slice(cursor, span.start)));
+    }
+    if (span.end > span.start) {
+      segments.push({
+        type: "phrase",
+        raw: text.slice(span.start, span.end),
+        span
+      });
+      cursor = span.end;
+    }
+  }
+
+  if (cursor < text.length) {
+    segments.push(...tokenizePlainChunk(text.slice(cursor)));
+  }
+
+  return segments;
 }
 
 /**
- * 一行字幕。
- * 西语在上(当前句放大加粗),中文小字在下;单词可点查词。
- * 用 memo 避免每秒时间更新导致整列表重渲染。
+ * 一行视频字幕。
+ * - 自动识别并琥珀色高亮西语固定搭配/短语/习语（点击直接查整个搭配并暂停视频）
+ * - 底部展示本句识别到的固定搭配标签条（如「🔗 tener que · 必须」）
+ * - 稳定 props 配合 React.memo，避免播放轮询导致整列表重绘闪退
  */
 export const TranscriptRow = memo(function TranscriptRow({
   text,
+  start,
   translation,
   active,
   onSeek,
   onWordPress,
   onPhrasePress
 }: TranscriptRowProps) {
-  const tokens = useMemo(() => tokenize(text), [text]);
+  const spans = useMemo(() => detectPhrasesInSentence(text), [text]);
+  const segments = useMemo(() => buildSegments(text, spans), [text, spans]);
+
+  // 去重展示本句识别到的固定搭配胶丸
+  const uniqueSpans = useMemo(() => {
+    if (spans.length === 0) return [];
+    const seen = new Set<string>();
+    return spans.filter((s) => {
+      if (seen.has(s.lemma)) return false;
+      seen.add(s.lemma);
+      return true;
+    });
+  }, [spans]);
 
   return (
-    <Pressable onPress={onSeek} style={[styles.row, active && styles.rowActive]}>
+    <Pressable onPress={() => onSeek(start)} style={[styles.row, active && styles.rowActive]}>
       <View style={styles.content}>
         <View style={styles.textColumn}>
           <Text style={[styles.text, active && styles.textActive]}>
-            {tokens.map((token, index) => {
-              if (!isWord(token)) {
+            {segments.map((seg, index) => {
+              if (seg.type === "plain") {
                 return (
                   <Text key={index} style={[styles.text, active && styles.textActive]}>
-                    {token}
+                    {seg.raw}
                   </Text>
                 );
               }
 
-              const word = normalize(token);
-              if (!word) {
+              if (seg.type === "phrase") {
                 return (
-                  <Text key={index} style={[styles.text, active && styles.textActive]}>
-                    {token}
+                  <Text
+                    key={index}
+                    onPress={() => onPhrasePress(seg.span.lemma, text)}
+                    style={[
+                      styles.text,
+                      active && styles.textActive,
+                      styles.phraseHighlight,
+                      active && styles.phraseHighlightActive
+                    ]}
+                    suppressHighlighting={false}
+                  >
+                    {seg.raw}
                   </Text>
                 );
               }
@@ -71,11 +134,11 @@ export const TranscriptRow = memo(function TranscriptRow({
               return (
                 <Text
                   key={index}
-                  onPress={() => onWordPress(word)}
+                  onPress={() => onWordPress(seg.clean, text)}
                   style={[styles.text, active && styles.textActive]}
                   suppressHighlighting={false}
                 >
-                  {token}
+                  {seg.raw}
                 </Text>
               );
             })}
@@ -89,11 +152,36 @@ export const TranscriptRow = memo(function TranscriptRow({
               {translation}
             </Text>
           ) : null}
+
+          {uniqueSpans.length > 0 ? (
+            <View style={styles.collocationBar}>
+              {uniqueSpans.map((span) => (
+                <Pressable
+                  key={span.lemma}
+                  hitSlop={6}
+                  onPress={() => onPhrasePress(span.lemma, text)}
+                  style={[styles.collocationChip, active && styles.collocationChipActive]}
+                >
+                  <Text style={styles.collocationBadge}>搭配</Text>
+                  <Text style={styles.collocationLemma}>{span.lemma}</Text>
+                  {span.zh ? (
+                    <Text numberOfLines={1} style={styles.collocationZh}>
+                      · {span.zh}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
         </View>
 
-        {active ? (
-          <Pressable onPress={onPhrasePress} hitSlop={8} style={styles.phraseButton}>
-            <Text style={styles.phraseButtonText}>整句</Text>
+        {active && uniqueSpans.length > 0 ? (
+          <Pressable
+            hitSlop={8}
+            onPress={() => onPhrasePress(uniqueSpans[0].lemma, text)}
+            style={styles.phraseButton}
+          >
+            <Text style={styles.phraseButtonText}>查搭配</Text>
           </Pressable>
         ) : null}
       </View>
@@ -118,7 +206,7 @@ const styles = StyleSheet.create({
   },
   textColumn: {
     flex: 1,
-    gap: 3
+    gap: 4
   },
   text: {
     fontSize: 16.5,
@@ -131,6 +219,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.text
   },
+  phraseHighlight: {
+    color: "#B45309",
+    backgroundColor: "rgba(251, 191, 36, 0.16)",
+    fontWeight: "700",
+    textDecorationLine: "underline",
+    textDecorationColor: "rgba(217, 119, 6, 0.55)"
+  },
+  phraseHighlightActive: {
+    color: "#92400E",
+    backgroundColor: "rgba(251, 191, 36, 0.28)",
+    fontWeight: "700"
+  },
   translation: {
     fontSize: 12.5,
     lineHeight: 20,
@@ -141,16 +241,60 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     color: colors.textSecondary
   },
+  collocationBar: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 2
+  },
+  collocationChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: "#FEF3C7",
+    borderWidth: 1,
+    borderColor: "#FDE68A"
+  },
+  collocationChipActive: {
+    backgroundColor: "#FDE68A",
+    borderColor: "#F59E0B"
+  },
+  collocationBadge: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#92400E",
+    backgroundColor: "rgba(217, 119, 6, 0.16)",
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    overflow: "hidden"
+  },
+  collocationLemma: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#78350F"
+  },
+  collocationZh: {
+    fontSize: 11.5,
+    fontWeight: "500",
+    color: "#92400E",
+    maxWidth: 130
+  },
   phraseButton: {
     marginTop: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: radius.pill,
-    backgroundColor: colors.brand100
+    backgroundColor: "#FEF3C7",
+    borderWidth: 1,
+    borderColor: "#F59E0B"
   },
   phraseButtonText: {
     fontSize: 10.5,
     fontWeight: "700",
-    color: colors.brand700
+    color: "#92400E"
   }
 });

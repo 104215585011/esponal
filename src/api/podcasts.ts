@@ -58,11 +58,14 @@ export async function fetchPodcastSubtitles(body: {
   audioUrl: string;
   startSec?: number;
   durationSec?: number;
+  pageUrl?: string;
+  sourceText?: string;
 }) {
   return apiFetch<{
     cues: PodcastCue[];
     windowStartSec: number;
     windowEndSec: number;
+    source?: "transcript" | "article-text" | "ai-asr";
     cached?: boolean;
   }>("/api/listening/subtitles", {
     method: "POST",

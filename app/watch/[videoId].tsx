@@ -422,17 +422,22 @@ export default function WatchPlayerScreen() {
   }, [activeIndex, cues, bilingual]);
 
   // 自动跟随:滚动到当前句(用户手动滚动后会暂停跟随)
+  // 必须用 try/catch + onScrollToIndexFailed 兜底，防止播放到中后段未测量行触发 Invariant Violation 闪退
   useEffect(() => {
-    if (!follow || activeIndex < 0) return;
+    if (!follow || activeIndex < 0 || activeIndex >= cues.length) return;
     const raf = setTimeout(() => {
-      listRef.current?.scrollToIndex({
-        index: activeIndex,
-        animated: true,
-        viewPosition: 0.35
-      });
+      try {
+        listRef.current?.scrollToIndex({
+          index: activeIndex,
+          animated: true,
+          viewPosition: 0.35
+        });
+      } catch {
+        // 未测量行由 onScrollToIndexFailed 或下次滚动兜底
+      }
     }, 80);
     return () => clearTimeout(raf);
-  }, [activeIndex, follow]);
+  }, [activeIndex, follow, cues.length]);
 
   const seekTo = useCallback(
     (seconds: number) => {
@@ -479,12 +484,23 @@ export default function WatchPlayerScreen() {
     [activeIndex, cues, seekTo]
   );
 
+  // 点词或点固定搭配查词时：先自动暂停视频，再打开查词面板
   const handleWordPress = useCallback(
-    (word: string) => {
+    (word: string, sentence: string) => {
+      setPlaying(false);
       setLookupWord(word);
-      setLookupContext(cues[activeIndex]?.text);
+      setLookupContext(sentence);
     },
-    [cues, activeIndex]
+    [setPlaying]
+  );
+
+  const handlePhrasePress = useCallback(
+    (phraseLemma: string, sentence: string) => {
+      setPlaying(false);
+      setLookupWord(phraseLemma);
+      setLookupContext(sentence);
+    },
+    [setPlaying]
   );
 
   if (!videoId) {
@@ -656,26 +672,29 @@ export default function WatchPlayerScreen() {
         <FlatList
           contentContainerStyle={styles.listContent}
           data={cues}
-          initialNumToRender={14}
+          initialNumToRender={24}
           keyExtractor={(item, index) => `${index}-${item.start}`}
-          maxToRenderPerBatch={20}
+          maxToRenderPerBatch={24}
           onScrollBeginDrag={() => setFollow(false)}
+          onScrollToIndexFailed={(info) => {
+            const offset = Math.max(0, info.averageItemLength * info.index);
+            listRef.current?.scrollToOffset({ offset, animated: true });
+          }}
           ref={listRef}
+          removeClippedSubviews={false}
           renderItem={({ item, index }) => (
             <TranscriptRow
               active={index === activeIndex}
-              onPhrasePress={() => {
-                setLookupWord(item.text.split(/\s+/)[0] ?? "");
-                setLookupContext(item.text);
-              }}
-              onSeek={() => seekTo(item.start)}
+              onPhrasePress={handlePhrasePress}
+              onSeek={seekTo}
               onWordPress={handleWordPress}
+              start={item.start}
               text={item.text}
               translation={bilingual ? translations[index] : null}
             />
           )}
           showsVerticalScrollIndicator={false}
-          windowSize={9}
+          windowSize={15}
         />
       )}
 
