@@ -11,6 +11,11 @@ import {
   extractOgImageFromHtml,
   normalizeCoverUrl,
 } from "../src/lib/rss-extract.ts";
+import {
+  extractTranscriptFromHtml,
+  extractTranscriptFromSourceText,
+  parseId3v2Size,
+} from "../src/lib/podcast-transcript.ts";
 import { parseOmniAnalysisJson, wrapPcm24kMonoToWav } from "../src/lib/talk/omni-helpers.ts";
 
 const readText = (path) => readFileSync(path, "utf8");
@@ -105,7 +110,9 @@ test("podcast audio proxy, 30s subtitles, multi-lang TTS, lectura translate, and
   assert.match(audioProxy, /Accept-Ranges/);
 
   assert.match(subtitleRoute, /qwen3-omni-flash/);
-  assert.match(subtitleRoute, /listening:sub:v3:/);
+  assert.match(subtitleRoute, /listening:sub:v4:/);
+  assert.match(subtitleRoute, /loadTranscriptFromPageUrl/);
+  assert.match(subtitleRoute, /parseId3v2Size/);
   assert.match(subtitleRoute, /WINDOW_SEC = 30/);
 
   assert.match(ttsRoute, /en-US-JennyNeural/);
@@ -149,4 +156,30 @@ test("cover extraction normalizes itunes:image, media:thumbnail, BBC HD size, an
     "https://www.hoyhablamos.com/2400-el-efecto-halo/",
   );
   assert.equal(og, "https://www.hoyhablamos.com/wp-content/uploads/ep2400.webp");
+});
+
+test("podcast transcript extractor reads ID3v2 header size, free intro transcripts, and full articles", () => {
+  // ID3v2 synchsafe size: 0x00 0x01 0x00 0x00 -> (1 << 14) = 16384 + 10 header = 16394 bytes
+  const id3 = Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00]);
+  assert.equal(parseId3v2Size(id3), 16394);
+  assert.equal(parseId3v2Size(Buffer.from([0xff, 0xfb, 0x90, 0x00])), 0);
+
+  const hhSample = `<html><body>
+    <p>Roi: [00:00:00] Hoy Hablamos, episodio 2400. El efecto halo, con Paco.</p>
+    <p>Bienvenido a Hoy Hablamos, el podcast diario para aprender español con calma cada día.</p>
+    <p>El resto de la transcripción solo está disponible para los suscriptores premium.</p>
+  </body></html>`;
+  const extracted = extractTranscriptFromHtml(hhSample, 1800);
+  assert.ok(extracted);
+  assert.equal(extracted.partialPaywalled, true);
+  assert.ok(extracted.sentences.length >= 2);
+  assert.ok(extracted.coveredUntilSec >= 35 && extracted.coveredUntilSec < 200);
+
+  const longArticle = Array.from({ length: 6 }, (_, i) =>
+    `En el capítulo ${i + 1}, tenemos que pensar muy bien en lo que vamos a hacer hoy por la mañana.`
+  ).join(" ");
+  const fromSource = extractTranscriptFromSourceText(longArticle, 300);
+  assert.ok(fromSource);
+  assert.equal(fromSource.partialPaywalled, false);
+  assert.equal(fromSource.coveredUntilSec, 300);
 });
