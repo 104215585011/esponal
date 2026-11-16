@@ -27,3 +27,15 @@ test("TALK-007 single-shot /api/talk/voice supports Qwen-Omni direct audio with 
   assert.match(voiceRoute, /spendCredits/);
   assert.match(voiceRoute, /replyAudioBase64/);
 });
+
+test("TALK-008 dialogue prompts stay concise and natural like a real human conversation", () => {
+  const chars = readText("src/lib/talk/characters.ts");
+  const modelClient = readText("src/lib/talk/model-client.ts");
+  const omniLib = readText("src/lib/talk/qwen-omni.ts");
+
+  assert.doesNotMatch(chars, /Language teaching behaviour|Comportamiento pedagógico/);
+  assert.match(modelClient, /NATURAL_CONVERSATION_RULES/);
+  assert.match(modelClient, /max_tokens:\s*180/);
+  assert.match(omniLib, /maxTokens:\s*160/);
+  assert.match(omniLib, /maxTokens:\s*140/);
+});

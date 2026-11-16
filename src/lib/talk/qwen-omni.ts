@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:15
+// Timestamp: 2026-11-16 09:52
 import type { ChatMessageForModel } from "./model-client";
 import { isConfiguredSecret } from "./env";
 import {
@@ -31,6 +31,7 @@ async function callQwenOmniStream(input: {
   modalities: Array<"text" | "audio">;
   voice?: "Cherry" | "Ethan";
   messages: Array<{ role: "system" | "user" | "assistant"; content: unknown }>;
+  maxTokens?: number;
   timeoutMs?: number;
 }): Promise<{ text: string; wavAudioBuffer: Buffer | null }> {
   const response = await fetch(DASHSCOPE_COMPAT_URL, {
@@ -42,6 +43,7 @@ async function callQwenOmniStream(input: {
     body: JSON.stringify({
       model: OMNI_MODEL,
       modalities: input.modalities,
+      ...(input.maxTokens ? { max_tokens: input.maxTokens } : {}),
       ...(input.modalities.includes("audio")
         ? { audio: { voice: input.voice ?? "Cherry", format: "wav" } }
         : {}),
@@ -130,8 +132,9 @@ export async function talkDirectWithQwenOmni(input: {
   const directSystem = `${input.systemPrompt}
 
 Direct Voice Conversation Rules:
-- You are listening directly to the learner's spoken audio in ${targetLanguage}. Even if the pronunciation has a Chinese accent or hesitations, interpret what they meant in ${targetLanguage} rather than switching to Chinese.
-- Reply naturally in ${targetLanguage} in 1-3 clear spoken sentences (no markdown, no JSON, no bullet lists, since your reply is spoken aloud directly).`;
+- You are a real person having a relaxed spoken conversation in ${targetLanguage}, NOT a teacher or assistant.
+- Even if the learner's pronunciation has a Chinese accent or hesitations, understand what they meant in ${targetLanguage}.
+- Reply naturally in 1-2 short everyday spoken sentences (around 8-30 words), no markdown, no JSON, no bullet points, no unsolicited grammar lectures.`;
 
   const chatMessages: Array<{ role: "system" | "user" | "assistant"; content: unknown }> = [
     { role: "system", content: directSystem },
@@ -148,7 +151,7 @@ Direct Voice Conversation Rules:
         },
         {
           type: "text",
-          text: `Listen to my ${targetLanguage} audio and continue our conversation naturally in ${targetLanguage}.`
+          text: `Listen to my ${targetLanguage} audio and reply briefly and naturally in ${targetLanguage} like a real friend.`
         }
       ]
     }
@@ -157,11 +160,8 @@ Direct Voice Conversation Rules:
   const analysisMessages: Array<{ role: "system" | "user" | "assistant"; content: unknown }> = [
     {
       role: "system",
-      content: `You are a ${targetLanguage} speech evaluator. Listen directly to the raw learner audio.
-1. Transcribe faithfully what the learner tried to say in ${targetLanguage} (NEVER transcribe accented ${targetLanguage} into Chinese characters; if pure silence or unintelligible noise with zero words, set "userTranscript": "").
-2. Give 0-2 concise grammar/pronunciation tips in Chinese (format: "原表达 → 建议表达 · 简短中文说明").
-3. List 2-4 useful ${targetLanguage} words/phrases for the learner (format: "word · 中文释义").
-Return ONLY valid JSON: {"userTranscript":"...","corrections":["..."],"newWords":["..."]}`
+      content: `Transcribe the learner's raw ${targetLanguage} audio accurately (never turn accented ${targetLanguage} into Chinese characters; if pure silence/noise, set "userTranscript": ""). Keep notes minimal: 0-1 brief tip in Chinese only if there is a clear mistake ("原表达 → 建议表达 · 简短说明"), and 0-2 key words only if helpful; leave arrays [] for normal clear speech.
+Return ONLY valid JSON: {"userTranscript":"...","corrections":[],"newWords":[]}`
     },
     {
       role: "user",
@@ -181,12 +181,14 @@ Return ONLY valid JSON: {"userTranscript":"...","corrections":["..."],"newWords"
         modalities: input.wantAudio ? ["text", "audio"] : ["text"],
         voice,
         messages: chatMessages,
+        maxTokens: 160,
         timeoutMs: 28_000
       }),
       callQwenOmniStream({
         apiKey,
         modalities: ["text"],
         messages: analysisMessages,
+        maxTokens: 140,
         timeoutMs: 18_000
       }).catch(() => ({ text: "", wavAudioBuffer: null }))
     ]);

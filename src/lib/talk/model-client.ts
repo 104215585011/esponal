@@ -22,9 +22,13 @@ export type ModelClient = {
   streamMessage(input: ModelStreamInput): AsyncGenerator<ModelStreamEvent>;
 };
 
-const STRUCTURED_LEARNING_NOTES_INSTRUCTION = `At the very end of every reply, append exactly one machine-readable block in this format:
-<learning_notes>{"corrections":["short correction when useful"],"newWords":["useful word or phrase"]}</learning_notes>
-Use empty arrays only when there is genuinely no useful correction or vocabulary note. Do not wrap the block in Markdown.`;
+const NATURAL_CONVERSATION_RULES = `Conversation rules (strict):
+- Talk like a real human having a normal everyday chat — never dump paragraphs, bullet points, markdown, or unprompted grammar lectures.
+- Keep each reply crisp and natural: 1-2 short conversational sentences (typically 8-35 words total), unless the user explicitly asks for a detailed explanation.`;
+
+const STRUCTURED_LEARNING_NOTES_INSTRUCTION = `At the very end of every reply, append exactly one compact block:
+<learning_notes>{"corrections":[],"newWords":[]}</learning_notes>
+Leave both arrays empty [] for normal replies; only include 1 brief correction if the user made a clear error, or 1 genuinely new word/phrase if essential. Do not wrap the block in Markdown.`;
 
 function getFallbackReply(characterId: string, message: string) {
   if (characterId === "emma") return `Certainly. A more polished version would be: "${message}".`;
@@ -115,11 +119,14 @@ export function createModelClient(): ModelClient {
         },
         body: JSON.stringify({
           model,
-          max_tokens: 700,
+          max_tokens: 180,
           stream: true,
           messages: [
-            { role: "system", content: `${input.systemPrompt}\n\n${STRUCTURED_LEARNING_NOTES_INSTRUCTION}` },
-            ...input.messages
+            {
+              role: "system",
+              content: `${input.systemPrompt}\n\n${NATURAL_CONVERSATION_RULES}\n\n${STRUCTURED_LEARNING_NOTES_INSTRUCTION}`
+            },
+            ...input.messages.slice(-12)
           ]
         })
       });
