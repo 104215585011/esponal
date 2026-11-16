@@ -1,10 +1,13 @@
-// Timestamp: 2026-11-15 15:20
+// Timestamp: 2026-11-16 09:05
 import { createHash } from "node:crypto";
 import { redis } from "@/lib/redis";
 import {
   decodeHtmlEntities,
   extractArticleParagraphsFromHtml,
   extractArticleParagraphsFromMarkdown,
+  extractCoverUrlFromRssBlock,
+  extractOgImageFromHtml,
+  normalizeCoverUrl,
   stripHtmlToText,
 } from "@/lib/rss-extract";
 
@@ -12,6 +15,9 @@ export {
   decodeHtmlEntities,
   extractArticleParagraphsFromHtml,
   extractArticleParagraphsFromMarkdown,
+  extractCoverUrlFromRssBlock,
+  extractOgImageFromHtml,
+  normalizeCoverUrl,
   stripHtmlToText,
 };
 
@@ -24,6 +30,7 @@ export type ParsedRssItem = {
   enclosureUrl: string | null;
   enclosureType: string | null;
   durationRaw: string | null;
+  coverUrl: string | null;
 };
 
 export function extractXmlTag(block: string, tag: string): string {
@@ -44,7 +51,14 @@ function extractEnclosure(block: string): { url: string | null; type: string | n
   return { url: url ? decodeHtmlEntities(url) : null, type };
 }
 
-export function parseRssItems(xml: string, limit = 15): ParsedRssItem[] {
+export function parseRssFeed(
+  xml: string,
+  limit = 15,
+): { channelImageUrl: string | null; items: ParsedRssItem[] } {
+  const firstItemIdx = xml.search(/<item\b/i);
+  const channelHeader = firstItemIdx >= 0 ? xml.slice(0, firstItemIdx) : xml.slice(0, 8000);
+  const channelImageUrl = extractCoverUrlFromRssBlock(channelHeader);
+
   const items: ParsedRssItem[] = [];
   const itemMatches = xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi);
   for (const match of itemMatches) {
@@ -60,6 +74,7 @@ export function parseRssItems(xml: string, limit = 15): ParsedRssItem[] {
       extractXmlTag(block, "content:encoded") || extractXmlTag(block, "description");
     const enclosure = extractEnclosure(block);
     const durationRaw = extractXmlTag(block, "itunes:duration") || null;
+    const coverUrl = extractCoverUrlFromRssBlock(block, contentHtml, link);
 
     items.push({
       title,
@@ -70,9 +85,14 @@ export function parseRssItems(xml: string, limit = 15): ParsedRssItem[] {
       enclosureUrl: enclosure.url,
       enclosureType: enclosure.type,
       durationRaw,
+      coverUrl,
     });
   }
-  return items;
+  return { channelImageUrl, items };
+}
+
+export function parseRssItems(xml: string, limit = 15): ParsedRssItem[] {
+  return parseRssFeed(xml, limit).items;
 }
 
 export function stableShortHash(input: string): string {

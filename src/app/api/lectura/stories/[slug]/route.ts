@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:48
+// Timestamp: 2026-11-16 09:05
 import { NextResponse } from "next/server";
 import { lecturaStories } from "@/../content/lectura";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -36,6 +36,7 @@ export async function GET(
       glossary: story.glossary ?? [],
       sourceUrl: "sourceUrl" in story ? story.sourceUrl : undefined,
       audioUrl: "audioUrl" in story ? story.audioUrl : undefined,
+      coverUrl: "coverUrl" in story ? story.coverUrl : undefined,
     },
   });
 }

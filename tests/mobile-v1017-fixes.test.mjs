@@ -1,11 +1,16 @@
-// Timestamp: 2026-11-15 15:15
+// Timestamp: 2026-11-16 09:05
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
 import { joinPdfTextItems, parsePdfForReader } from "../src/lib/import/pdf.ts";
-import { extractArticleParagraphsFromMarkdown } from "../src/lib/rss-extract.ts";
+import {
+  extractArticleParagraphsFromMarkdown,
+  extractCoverUrlFromRssBlock,
+  extractOgImageFromHtml,
+  normalizeCoverUrl,
+} from "../src/lib/rss-extract.ts";
 import { parseOmniAnalysisJson, wrapPcm24kMonoToWav } from "../src/lib/talk/omni-helpers.ts";
 
 const readText = (path) => readFileSync(path, "utf8");
@@ -117,4 +122,31 @@ test("podcast audio proxy, 30s subtitles, multi-lang TTS, lectura translate, and
   assert.match(docsRoute, /searchParams\.get\("all"\)/);
   assert.match(translateRoute, /translateTextToZh/);
   assert.match(translateRoute, /lectura:zh:v1:/);
+
+  const imageRoute = readText("src/app/api/listening/image/route.ts");
+  assert.match(imageRoute, /isAllowedPodcastAudioUrl/);
+  assert.match(imageRoute, /image\//);
+});
+
+test("cover extraction normalizes itunes:image, media:thumbnail, BBC HD size, and og:image", () => {
+  const bbcUrl = normalizeCoverUrl(
+    "http://ichef.bbci.co.uk/ace/ws/240/cpsprodpb/test.jpg",
+  );
+  assert.equal(bbcUrl, "https://ichef.bbci.co.uk/ace/ws/800/cpsprodpb/test.jpg");
+
+  const rssCover = extractCoverUrlFromRssBlock(
+    '<item><title>Demo</title><media:thumbnail width="240" url="https://s.rfi.fr/media/demo.jpg"/></item>',
+  );
+  assert.equal(rssCover, "https://s.rfi.fr/media/demo.jpg");
+
+  const itunesCover = extractCoverUrlFromRssBlock(
+    '<channel><itunes:image href="https://www.hoyhablamos.com/cover.jpg" /></channel>',
+  );
+  assert.equal(itunesCover, "https://www.hoyhablamos.com/cover.jpg");
+
+  const og = extractOgImageFromHtml(
+    '<html><head><meta property="og:image" content="/wp-content/uploads/ep2400.webp" /></head></html>',
+    "https://www.hoyhablamos.com/2400-el-efecto-halo/",
+  );
+  assert.equal(og, "https://www.hoyhablamos.com/wp-content/uploads/ep2400.webp");
 });

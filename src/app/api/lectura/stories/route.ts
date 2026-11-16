@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:10
+// Timestamp: 2026-11-16 09:05
 import { NextResponse } from "next/server";
 import { lecturaStories } from "@/../content/lectura";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -55,6 +55,7 @@ export async function GET(request: Request) {
     paragraphCount: story.paragraphs.length,
     publishedAt: story.publishedAt,
     audioUrl: story.audioUrl,
+    coverUrl: story.coverUrl,
     isRead: readSlugs.has(story.slug),
   }));
 

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 15:16
+// Timestamp: 2026-11-16 09:05
 export function decodeHtmlEntities(value: string): string {
   return value
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
@@ -103,4 +103,111 @@ export function extractArticleParagraphsFromMarkdown(markdown: string, maxParagr
   }
 
   return paragraphs;
+}
+
+export function normalizeCoverUrl(raw: string | null | undefined, baseUrl?: string): string | null {
+  if (!raw) return null;
+  let cleaned = decodeHtmlEntities(raw).trim();
+  if (!cleaned || cleaned.startsWith("data:")) return null;
+
+  if (cleaned.startsWith("//")) {
+    cleaned = `https:${cleaned}`;
+  } else if (!/^https?:\/\//i.test(cleaned) && baseUrl) {
+    try {
+      cleaned = new URL(cleaned, baseUrl).toString();
+    } catch {
+      return null;
+    }
+  }
+
+  if (!/^https?:\/\//i.test(cleaned)) return null;
+  // 屏蔽明显为追踪像素的小图标
+  if (/1x1|spacer|pixel|favicon.*\.ico$/i.test(cleaned)) return null;
+
+  // BBC RSS 缩略图默认仅 240px，升级到 800px 高清图
+  if (/^https?:\/\/ichef\.bbci\.co\.uk\/ace\/ws\/\d+\//i.test(cleaned)) {
+    cleaned = cleaned.replace(/\/ace\/ws\/\d+\//i, "/ace/ws/800/");
+  }
+
+  return cleaned.replace(/^http:\/\//i, "https://");
+}
+
+function readAttr(attrs: string, name: string): string | null {
+  const m = attrs.match(new RegExp(`\\b${name}=["']([^"']+)["']`, "i"));
+  return m?.[1] ?? null;
+}
+
+export function extractCoverUrlFromRssBlock(
+  block: string,
+  contentHtml = "",
+  baseUrl?: string,
+): string | null {
+  const itunesMatch = block.match(/<itunes:image\b([^>]*)\/?>/i);
+  if (itunesMatch) {
+    const href = normalizeCoverUrl(readAttr(itunesMatch[1], "href") ?? extractXmlInner(itunesMatch[1]), baseUrl);
+    if (href) return href;
+  }
+
+  const mediaMatches = block.matchAll(/<media:(?:content|thumbnail)\b([^>]*)\/?>/gi);
+  for (const m of mediaMatches) {
+    const attrs = m[1];
+    const url = readAttr(attrs, "url");
+    if (!url) continue;
+    const medium = readAttr(attrs, "medium");
+    const type = readAttr(attrs, "type");
+    if (medium && medium.toLowerCase() !== "image" && (!type || !type.toLowerCase().startsWith("image/"))) {
+      continue;
+    }
+    const normalized = normalizeCoverUrl(url, baseUrl);
+    if (normalized) return normalized;
+  }
+
+  const enclosureMatches = block.matchAll(/<enclosure\b([^>]*)\/?>/gi);
+  for (const m of enclosureMatches) {
+    const attrs = m[1];
+    const type = readAttr(attrs, "type") ?? "";
+    const url = readAttr(attrs, "url");
+    if (type.toLowerCase().startsWith("image/") && url) {
+      const normalized = normalizeCoverUrl(url, baseUrl);
+      if (normalized) return normalized;
+    }
+  }
+
+  const imgMatch =
+    contentHtml.match(/<img\b[^>]+src=["']([^"']+)["']/i) ??
+    block.match(/<img\b[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch?.[1]) {
+    const normalized = normalizeCoverUrl(imgMatch[1], baseUrl);
+    if (normalized) return normalized;
+  }
+
+  const imageTag = block.match(/<image\b[^>]*>[\s\S]*?<url>([\s\S]*?)<\/url>[\s\S]*?<\/image>/i);
+  if (imageTag?.[1]) {
+    const normalized = normalizeCoverUrl(imageTag[1], baseUrl);
+    if (normalized) return normalized;
+  }
+
+  return null;
+}
+
+function extractXmlInner(raw: string): string {
+  return raw.trim();
+}
+
+export function extractOgImageFromHtml(html: string, baseUrl?: string): string | null {
+  const patterns = [
+    /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+    /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i,
+  ];
+  for (const re of patterns) {
+    const m = html.match(re);
+    if (m?.[1]) {
+      const normalized = normalizeCoverUrl(m[1], baseUrl);
+      if (normalized) return normalized;
+    }
+  }
+  return null;
 }

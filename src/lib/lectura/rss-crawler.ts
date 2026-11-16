@@ -1,10 +1,11 @@
-// Timestamp: 2026-11-15 15:16
+// Timestamp: 2026-11-16 09:05
 import { type LecturaStory } from "@/../content/lectura";
 import {
   extractArticleParagraphsFromHtml,
   extractArticleParagraphsFromMarkdown,
+  extractOgImageFromHtml,
   fetchFeedXml,
-  parseRssItems,
+  parseRssFeed,
   readJsonCache,
   stableShortHash,
   stripHtmlToText,
@@ -14,6 +15,7 @@ import {
 export type CrawledLecturaItem = LecturaStory & {
   sourceUrl: string;
   audioUrl?: string;
+  coverUrl?: string;
   publishedAt: string;
   feedId: string;
 };
@@ -50,9 +52,9 @@ const NEWS_FEEDS: FeedSource[] = [
   },
 ];
 
-// v4 缓存命名空间：全量刷新此前截断的 RFI / 博客短文并剔除空 Markdown 链接
-const LIST_CACHE_KEY = "lectura:rss:stories:v4";
-const STORY_CACHE_PREFIX = "lectura:rss:story:v4:";
+// v5 缓存命名空间：为每篇博客与西媒新闻抓取高清封面图，并保持完整原文段落
+const LIST_CACHE_KEY = "lectura:rss:stories:v5";
+const STORY_CACHE_PREFIX = "lectura:rss:story:v5:";
 const LIST_TTL_SEC = 6 * 3600;
 const STORY_TTL_SEC = 24 * 3600;
 
@@ -76,7 +78,10 @@ function estimateReadingMinutes(paragraphs: string[]): number {
 /**
  * 抓取原文完整段落：先直连原文 HTML；遇到反爬 403（如 RFI）或提取过少时，自动走 Jina Reader 提取干净正文。
  */
-async function fetchFullArticleParagraphs(sourceUrl: string): Promise<string[]> {
+async function fetchFullArticleData(
+  sourceUrl: string,
+): Promise<{ paragraphs: string[]; ogImage: string | null }> {
+  let ogImage: string | null = null;
   try {
     const response = await fetch(sourceUrl, {
       headers: {
@@ -90,9 +95,10 @@ async function fetchFullArticleParagraphs(sourceUrl: string): Promise<string[]> 
     });
     if (response.ok) {
       const html = await response.text();
+      ogImage = extractOgImageFromHtml(html, sourceUrl);
       const extracted = extractArticleParagraphsFromHtml(html, 35);
       if (extracted.length >= 4) {
-        return extracted;
+        return { paragraphs: extracted, ogImage };
       }
     }
   } catch {
@@ -110,29 +116,37 @@ async function fetchFullArticleParagraphs(sourceUrl: string): Promise<string[]> 
     });
     if (jinaRes.ok) {
       const md = await jinaRes.text();
-      return extractArticleParagraphsFromMarkdown(md, 35);
+      return { paragraphs: extractArticleParagraphsFromMarkdown(md, 35), ogImage };
     }
   } catch {
     // 保留 RSS 原文摘要
   }
 
-  return [];
+  return { paragraphs: [], ogImage };
 }
 
 async function enrichShortItems(items: CrawledLecturaItem[]): Promise<CrawledLecturaItem[]> {
   const enriched = await Promise.all(
     items.map(async (item) => {
-      if (item.paragraphs.length >= 6 || !item.sourceUrl) {
+      const needsBody = item.paragraphs.length < 6;
+      const needsCover = !item.coverUrl;
+      if ((!needsBody && !needsCover) || !item.sourceUrl) {
         return item;
       }
-      const full = await fetchFullArticleParagraphs(item.sourceUrl);
-      if (full.length <= item.paragraphs.length) {
+      const fetched = await fetchFullArticleData(item.sourceUrl);
+      const nextParagraphs =
+        needsBody && fetched.paragraphs.length > item.paragraphs.length
+          ? fetched.paragraphs
+          : item.paragraphs;
+      const nextCover = item.coverUrl || fetched.ogImage || undefined;
+      if (nextParagraphs === item.paragraphs && nextCover === item.coverUrl) {
         return item;
       }
       const next: CrawledLecturaItem = {
         ...item,
-        paragraphs: full,
-        durationMin: estimateReadingMinutes(full),
+        paragraphs: nextParagraphs,
+        durationMin: estimateReadingMinutes(nextParagraphs),
+        coverUrl: nextCover,
       };
       memoryStoryCache.set(item.slug, next);
       void writeJsonCache(`${STORY_CACHE_PREFIX}${item.slug}`, next, STORY_TTL_SEC);
@@ -157,7 +171,7 @@ export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<Crawle
   const results = await Promise.allSettled(
     NEWS_FEEDS.map(async (feed) => {
       const xml = await fetchFeedXml(feed.url, 6500);
-      const parsed = parseRssItems(xml, feed.limit);
+      const { channelImageUrl, items: parsed } = parseRssFeed(xml, feed.limit);
       return parsed.map((entry): CrawledLecturaItem => {
         const slug = `rss-${feed.id}-${stableShortHash(entry.link)}`;
         const inlineParagraphs = toParagraphsFromText(stripHtmlToText(entry.contentHtml));
@@ -177,6 +191,7 @@ export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<Crawle
             entry.enclosureUrl && /^https?:\/\//i.test(entry.enclosureUrl)
               ? entry.enclosureUrl
               : undefined,
+          coverUrl: entry.coverUrl || channelImageUrl || undefined,
           publishedAt: entry.pubDate,
           feedId: feed.id,
         };
@@ -221,16 +236,21 @@ export async function getCrawledLecturaStoryBySlug(
   if (!base) return null;
 
   let paragraphs = base.paragraphs;
-  if (paragraphs.length < 6 && base.sourceUrl) {
-    const extracted = await fetchFullArticleParagraphs(base.sourceUrl);
-    if (extracted.length > paragraphs.length) {
-      paragraphs = extracted;
+  let coverUrl = base.coverUrl;
+  if ((paragraphs.length < 6 || !coverUrl) && base.sourceUrl) {
+    const fetched = await fetchFullArticleData(base.sourceUrl);
+    if (fetched.paragraphs.length > paragraphs.length) {
+      paragraphs = fetched.paragraphs;
+    }
+    if (!coverUrl && fetched.ogImage) {
+      coverUrl = fetched.ogImage;
     }
   }
 
   const fullStory: CrawledLecturaItem = {
     ...base,
     paragraphs,
+    coverUrl,
     durationMin: estimateReadingMinutes(paragraphs),
   };
 
