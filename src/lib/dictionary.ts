@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 23:02
+// Timestamp: 2026-11-17 23:21
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -229,9 +229,28 @@ async function fetchAIEntry(
   language: LearningLanguage = "es",
   context?: string
 ): Promise<DictionaryEntry | null> {
-  const apiKey = process.env.DASHSCOPE_API_KEY?.trim();
-  const model = process.env.DASHSCOPE_MODEL?.trim() || "glm-5";
-  if (!apiKey) return null;
+  const dashKey = process.env.DASHSCOPE_API_KEY?.trim();
+  const dashModel = process.env.DASHSCOPE_MODEL?.trim() || "glm-5";
+  const deepSeekKey = process.env.DEEPSEEK_API_KEY?.trim();
+  const deepSeekBase = (process.env.DEEPSEEK_BASE_URL?.trim() || "https://api.deepseek.com").replace(/\/+$/, "");
+  const deepSeekModel = process.env.DEEPSEEK_MODEL?.trim() || "deepseek-chat";
+
+  const providers: Array<{ url: string; apiKey: string; model: string }> = [];
+  if (deepSeekKey) {
+    providers.push({
+      url: `${deepSeekBase}/v1/chat/completions`,
+      apiKey: deepSeekKey,
+      model: deepSeekModel
+    });
+  }
+  if (dashKey) {
+    providers.push({
+      url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      apiKey: dashKey,
+      model: dashModel
+    });
+  }
+  if (providers.length === 0) return null;
 
   const langPromptName =
     language === "de"
@@ -278,30 +297,38 @@ async function fetchAIEntry(
     .filter(Boolean)
     .join("\n");
 
-  const res = await fetch(
-    "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: promptLines }],
-        temperature: 0.1
-      })
+  let parsed: RawAIEntry | null = null;
+  for (const provider of providers) {
+    try {
+      const res = await fetch(provider.url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${provider.apiKey}`
+        },
+        body: JSON.stringify({
+          model: provider.model,
+          messages: [{ role: "user", content: promptLines }],
+          temperature: 0.1
+        }),
+        signal: AbortSignal.timeout(12000)
+      });
+
+      if (!res.ok) continue;
+
+      const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+      const raw = data.choices?.[0]?.message?.content;
+      if (!raw) continue;
+
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+      parsed = JSON.parse(cleaned) as RawAIEntry;
+      break;
+    } catch {
+      continue;
     }
-  );
+  }
 
-  if (!res.ok) return null;
-
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  const raw = data.choices?.[0]?.message?.content;
-  if (!raw) return null;
-
-  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
-  const parsed = JSON.parse(cleaned) as RawAIEntry;
+  if (!parsed) return null;
 
   const aiLemma =
     typeof parsed.lemma === "string" && parsed.lemma.trim().length > 0

@@ -114,6 +114,7 @@ test("channels, podcasts, audio allowlist, dictionary, and RSS crawler cover en 
   assert.match(dictSrc, /language === "ja"/);
   assert.match(dictSrc, /language === "fr"/);
   assert.match(dictSrc, /phonetic:\s*aiPhonetic/);
+  assert.match(dictSrc, /DEEPSEEK_API_KEY/);
 
   const crawlerSrc = await readFile("src/lib/lectura/rss-crawler.ts", "utf8");
   assert.match(crawlerSrc, /theguardian\.com\/world\/rss/);
