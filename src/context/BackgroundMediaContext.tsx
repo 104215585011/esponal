@@ -22,7 +22,8 @@ import type { YoutubeIframeRef } from "react-native-youtube-iframe";
 
 import { getProxiedCoverUrl } from "@/api/podcasts";
 import { pushServerProgress } from "@/api/watchProgress";
-import { getPreferences } from "@/lib/preferences";
+// Timestamp: 2026-11-17 16:54
+import { getPreferences, loadPreferences } from "@/lib/preferences";
 import { saveWatchProgress } from "@/lib/watchProgress";
 
 export interface ActivePodcastTrack {
@@ -119,6 +120,14 @@ export function BackgroundMediaProvider({ children }: { children: ReactNode }) {
   const [activeVideo, setActiveVideo] = useState<ActiveVideoTrack | null>(null);
   const [videoPlaying, setVideoPlayingState] = useState(false);
   const [videoRate, setVideoRate] = useState(() => getPreferences().videoRate ?? 1);
+
+  useEffect(() => {
+    void loadPreferences().then((prefs) => {
+      if (typeof prefs.videoRate === "number" && prefs.videoRate > 0) {
+        setVideoRate(prefs.videoRate);
+      }
+    });
+  }, []);
   const [videoBgEnabled, setVideoBgEnabled] = useState(true);
   const [videoFullscreen, setVideoFullscreen] = useState(false);
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);

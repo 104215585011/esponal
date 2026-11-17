@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-youtube-iframe/lib/commonjs/PlayerScripts.js b/node_modules/react-native-youtube-iframe/lib/commonjs/PlayerScripts.js
-index 7867fe7..2a5fa49 100644
+index 7867fe7..44e260b 100644
 --- a/node_modules/react-native-youtube-iframe/lib/commonjs/PlayerScripts.js
 +++ b/node_modules/react-native-youtube-iframe/lib/commonjs/PlayerScripts.js
 @@ -136,6 +136,14 @@ const MAIN_SCRIPT = (videoId, playList, initialPlayerParams, allowWebViewZoom, c
@@ -17,8 +17,58 @@ index 7867fe7..2a5fa49 100644
      <style>
        body {
          margin: 0;
+@@ -214,12 +222,27 @@ const MAIN_SCRIPT = (videoId, playList, initialPlayerParams, allowWebViewZoom, c
+         window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerQualityChange', data: event.data}))
+       }
+ 
++      var desiredRate = 1;
++      function applyDesiredRate() {
++        try {
++          if (player && typeof player.setPlaybackRate === 'function' && typeof player.getPlaybackRate === 'function') {
++            if (player.getPlaybackRate() !== desiredRate) {
++              player.setPlaybackRate(desiredRate);
++            }
++          }
++        } catch (e) {}
++      }
++
+       function onPlayerReady(event) {
++        applyDesiredRate();
+         window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerReady'}))
+       }
+ 
+       var done = false;
+       function onPlayerStateChange(event) {
++        if (event && event.data === 1) {
++          applyDesiredRate();
++        }
+         window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerStateChange', data: event.data}))
+       }
+ 
+@@ -256,6 +279,21 @@ const MAIN_SCRIPT = (videoId, playList, initialPlayerParams, allowWebViewZoom, c
+             case 'unMuteVideo':
+               player.unMute();
+               break;
++
++            case 'setPlaybackRate':
++              if (parsedData.meta && typeof parsedData.meta.playbackRate === 'number') {
++                desiredRate = parsedData.meta.playbackRate;
++                if (player && typeof player.setPlaybackRate === 'function') {
++                  player.setPlaybackRate(desiredRate);
++                }
++              }
++              break;
++
++            case 'setVolume':
++              if (parsedData.meta && typeof parsedData.meta.volume === 'number' && player && typeof player.setVolume === 'function') {
++                player.setVolume(parsedData.meta.volume);
++              }
++              break;
+           }
+         } catch (error) {
+           console.error('Error parsing data', event, error);
 diff --git a/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js b/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js
-index 0be2dad..a2ad308 100644
+index 0be2dad..6ee88eb 100644
 --- a/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js
 +++ b/node_modules/react-native-youtube-iframe/lib/commonjs/YoutubeIframe.js
 @@ -54,7 +54,17 @@ const YoutubeIframe = (props, ref) => {
@@ -78,3 +128,18 @@ index 0be2dad..a2ad308 100644
        });
      },
      isMuted: () => {
+@@ -123,10 +153,13 @@ const YoutubeIframe = (props, ref) => {
+     });
+   }, [sendPostMessage, volume]);
+   (0, _react.useEffect)(() => {
++    if (playerReady && webViewRef.current && typeof webViewRef.current.injectJavaScript === 'function') {
++      webViewRef.current.injectJavaScript(_PlayerScripts.PLAYER_FUNCTIONS.setPlaybackRate(playbackRate));
++    }
+     sendPostMessage('setPlaybackRate', {
+       playbackRate
+     });
+-  }, [sendPostMessage, playbackRate]);
++  }, [playerReady, sendPostMessage, playbackRate]);
+   (0, _react.useEffect)(() => {
+     if (!playerReady || lastVideoIdRef.current === videoId) {
+       // no instance of player is ready
