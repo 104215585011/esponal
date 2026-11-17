@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 15:55
+// Timestamp: 2026-11-17 23:16
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,19 +19,19 @@ import { getProxiedCoverUrl } from "@/api/podcasts";
 import { ImportShelfPanel } from "@/components/ImportShelfPanel";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { usePreferences } from "@/hooks/usePreferences";
-import { LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
+import { LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 
 type ReadTab = "stories" | "shelf";
 type FilterKey = "ALL" | "RSS" | LecturaLevel;
 
-const FILTERS: Array<{ key: FilterKey; label: string }> = [
-  { key: "ALL", label: "全部" },
-  { key: "RSS", label: "西媒实时" },
-  { key: "A1", label: "A1 入门" },
-  { key: "A2", label: "A2 基础" },
-  { key: "B1", label: "B1 进阶" }
-];
+const RSS_LABEL_BY_LANG: Record<LearningLanguage, string> = {
+  es: "西媒实时",
+  de: "德语博客",
+  en: "Guardian",
+  fr: "RFI 法语",
+  ja: "NHK 新闻"
+};
 
 /**
  * 阅读 Tab：合并「精选短文（含西媒 RSS 爬虫） / 我的书架（导入 EPUB·PDF）」。
@@ -93,7 +93,7 @@ export default function LecturaScreen() {
   const filters = useMemo<Array<{ key: FilterKey; label: string }>>(
     () => [
       { key: "ALL", label: "全部" },
-      { key: "RSS", label: learningLang === "de" ? "德语博客" : "西媒实时" },
+      { key: "RSS", label: RSS_LABEL_BY_LANG[learningLang] ?? "实时新闻" },
       { key: "A1", label: "A1 入门" },
       { key: "A2", label: "A2 基础" },
       { key: "B1", label: "B1 进阶" }
@@ -111,7 +111,7 @@ export default function LecturaScreen() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.topHeader}>
         <Text style={styles.eyebrow}>Lectura · {langLabel}</Text>
-        <Text style={styles.title}>{learningLang === "de" ? "德语阅读" : "阅读"}</Text>
+        <Text style={styles.title}>{learningLang === "es" ? "阅读" : `${langLabel}阅读`}</Text>
         <View style={styles.segWrap}>
           <SegmentedControl
             onChange={setSubTab}

@@ -34,6 +34,36 @@ const SUGGESTIONS_BY_LANG: Partial<Record<LearningLanguage, string[]>> = {
     "德语听力 入门",
     "德语日常对话"
   ],
+  en: [
+    "BBC Learning English",
+    "VOA Learning English",
+    "Speak English With Vanessa",
+    "6 Minute English",
+    "Everyday English conversation",
+    "English podcast beginner",
+    "英语慢速听力",
+    "英式日常对话"
+  ],
+  fr: [
+    "Easy French A1",
+    "Français Authentique",
+    "innerFrench podcast",
+    "RFI Français facile",
+    "Dialogue en français",
+    "French beginner vlog",
+    "法语日常对话",
+    "慢速法语听力"
+  ],
+  ja: [
+    "Japanese with Shun",
+    "Speak Japanese Naturally",
+    "Miku Real Japanese",
+    "JLPT N5 listening",
+    "Nihongo con Teppei",
+    "日本語 会話 初心者",
+    "日语日常听力",
+    "初级日语 vlog"
+  ],
   es: [
     "慢速西语 听力",
     "西语日常对话",

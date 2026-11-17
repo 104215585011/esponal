@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 16:28
+// Timestamp: 2026-11-17 23:14
 import { type ComponentRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -289,13 +289,13 @@ export default function WatchScreen() {
   };
 
   const levelPills = useMemo(() => {
-    const allLabel = learningLang === "de" ? "德语精选" : "全部";
+    const allLabel = learningLang === "es" ? "全部" : `${langLabel}精选`;
     const available = feed?.availableLevels ?? [];
     return [
       { key: "all", label: allLabel },
       ...available.map((lvl) => ({ key: lvl, label: lvl }))
     ];
-  }, [learningLang, feed?.availableLevels]);
+  }, [learningLang, langLabel, feed?.availableLevels]);
 
   const activeChannel = useMemo(
     () => feed?.channels.find((c) => c.id === selectedChannelId) ?? null,

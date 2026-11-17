@@ -20,19 +20,12 @@ import {
   type LecturaStory
 } from "@/api/lectura";
 import { getProxiedCoverUrl } from "@/api/podcasts";
-// Timestamp: 2026-11-17 15:55
-import { getPreferences, type LearningLanguage } from "@/lib/preferences";
+// Timestamp: 2026-11-17 23:12
+import { getPreferences, normalizeSupportedLang, type LearningLanguage } from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
 import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
 import { colors, radius, spacing } from "@/theme";
-
-function normalizeParamLang(raw?: string | null): LearningLanguage | null {
-  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
-    return raw;
-  }
-  return null;
-}
 
 type DisplayMode = "bilingual" | "target" | "zh";
 type PaperTheme = "white" | "warm" | "night";
@@ -82,7 +75,7 @@ export default function LecturaReaderScreen() {
   const [story, setStory] = useState<LecturaStory | null>(null);
   const materialLang: LearningLanguage =
     story?.language ??
-    normalizeParamLang(typeof lang === "string" ? lang : undefined) ??
+    normalizeSupportedLang(typeof lang === "string" ? lang : undefined) ??
     getPreferences().learningLang;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

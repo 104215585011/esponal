@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 15:18
+// Timestamp: 2026-11-17 23:14
 import { apiFetch } from "@/api/client";
 import type { LearningLanguage } from "@/lib/preferences";
 
@@ -27,7 +27,7 @@ export type VideoChannelSource = {
 };
 
 export type VideoFeedResponse = {
-  language: "es" | "de";
+  language: LearningLanguage;
   seed: number;
   level: string;
   channelId: string | null;
@@ -67,8 +67,30 @@ export const germanCuratedChannels: readonly CuratedChannelItem[] = [
   { id: "UCbxb2fqe9oNgglAoYqsYOtQ", title: "Easy German", hint: "街头真实德语", level: "A2–B1" }
 ];
 
+export const englishCuratedChannels: readonly CuratedChannelItem[] = [
+  { id: "UCHaHD477h-FeBbVh9Sh7syA", title: "BBC Learning English", hint: "英音 6 分钟精讲", level: "A2–B1" },
+  { id: "UCKyTokYo0nK2OA-az-sDijA", title: "VOA Learning English", hint: "慢速清晰新闻", level: "A1–A2" },
+  { id: "UCxJGMJbjokfnr2-s4_RXPxQ", title: "Speak English With Vanessa", hint: "自然美式日常", level: "A2–B1" }
+];
+
+export const frenchCuratedChannels: readonly CuratedChannelItem[] = [
+  { id: "UCoUWq2QawqdC3-nRXKk-JUw", title: "Easy French", hint: "街头真实法语", level: "A1–B1" },
+  { id: "UCQpM25U6iqaRSO-SZxd5oDw", title: "Français Authentique", hint: "自然法语播客", level: "A2–B1" },
+  { id: "UCI4xp8qHD1MDErkqxb1dPbA", title: "innerFrench", hint: "中速可理解法语", level: "A2–B1" }
+];
+
+export const japaneseCuratedChannels: readonly CuratedChannelItem[] = [
+  { id: "UCu6sZrHyl4hSS2PvlUo2XZA", title: "Japanese with Shun", hint: "N5–N4 初级精讲", level: "N5–N4 (A1–A2)" },
+  { id: "UCSbH_BPR_AoARW6RDYLlLog", title: "Speak Japanese Naturally", hint: "自然日语 vlog", level: "N4–N3 (A2–B1)" },
+  { id: "UCsQCbl3a9FtYvA55BxdzYiQ", title: "Miku Real Japanese", hint: "地道对谈听力", level: "N4–N2 (A2–B1)" }
+];
+
 export function getCuratedChannels(lang: LearningLanguage): readonly CuratedChannelItem[] {
-  return lang === "de" ? germanCuratedChannels : curatedChannels;
+  if (lang === "de") return germanCuratedChannels;
+  if (lang === "en") return englishCuratedChannels;
+  if (lang === "fr") return frenchCuratedChannels;
+  if (lang === "ja") return japaneseCuratedChannels;
+  return curatedChannels;
 }
 
 export async function fetchChannelVideos(channelId: string, maxResults = 12) {

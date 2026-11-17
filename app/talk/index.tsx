@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:35
+// Timestamp: 2026-11-17 23:14
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,10 +12,17 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useRouter } from "expo-router";
 
 import { fetchTalkCharacters, fetchTalkSessions, type TalkCharacter, type TalkSessionItem } from "@/api/talk";
+import { usePreferences } from "@/hooks/usePreferences";
+import { LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 
-/** 只有 Carlos 是西语角色,其余作为「其它语言」展示,避免误点 */
-const SPANISH_CHARACTER = "carlos";
+const PREFERRED_CHARACTER_BY_LANG: Record<LearningLanguage, string> = {
+  es: "carlos",
+  en: "emma",
+  fr: "sophie",
+  ja: "kenji",
+  de: "carlos"
+};
 
 const LANG_HINT: Record<string, string> = {
   emma: "英语 · 英式",
@@ -28,6 +35,10 @@ const LANG_HINT: Record<string, string> = {
 export default function TalkScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { learningLang } = usePreferences();
+  const featuredCharId = PREFERRED_CHARACTER_BY_LANG[learningLang] ?? "carlos";
+  const langLabel =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === learningLang)?.shortLabel ?? "西语";
 
   const [characters, setCharacters] = useState<TalkCharacter[]>([]);
   const [sessions, setSessions] = useState<TalkSessionItem[]>([]);
@@ -39,14 +50,13 @@ export default function TalkScreen() {
     setError(null);
     try {
       const list = await fetchTalkCharacters();
-      // Carlos(西语)置顶
       const sorted = [...list].sort((a, b) =>
-        a.id === SPANISH_CHARACTER ? -1 : b.id === SPANISH_CHARACTER ? 1 : 0
+        a.id === featuredCharId ? -1 : b.id === featuredCharId ? 1 : 0
       );
       setCharacters(sorted);
 
       try {
-        setSessions(await fetchTalkSessions(SPANISH_CHARACTER));
+        setSessions(await fetchTalkSessions(featuredCharId));
       } catch {
         setSessions([]);
       }
@@ -55,14 +65,14 @@ export default function TalkScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [featuredCharId]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const spanish = characters.find((item) => item.id === SPANISH_CHARACTER);
-  const others = characters.filter((item) => item.id !== SPANISH_CHARACTER);
+  const featured = characters.find((item) => item.id === featuredCharId) ?? characters[0];
+  const others = characters.filter((item) => item.id !== featured?.id);
   const lastSession = sessions[0];
 
   return (
@@ -94,45 +104,47 @@ export default function TalkScreen() {
           </View>
         ) : (
           <>
-            {spanish ? (
+            {featured ? (
               <Pressable
                 onPress={() =>
                   router.push({
                     pathname: "/talk/[characterId]",
-                    params: { characterId: spanish.id }
+                    params: { characterId: featured.id }
                   } as never)
                 }
                 style={({ pressed }) => [styles.heroCard, pressed && styles.pressed]}
               >
                 <View style={styles.avatarLarge}>
                   <Text style={styles.avatarLargeText}>
-                    {spanish.name.slice(0, 1).toUpperCase()}
+                    {featured.name.slice(0, 1).toUpperCase()}
                   </Text>
                 </View>
                 <View style={styles.heroText}>
                   <View style={styles.heroTitleRow}>
-                    <Text style={styles.heroName}>{spanish.name}</Text>
+                    <Text style={styles.heroName}>{featured.name}</Text>
                     <View style={styles.badge}>
-                      <Text style={styles.badgeText}>西语 · 语音直聊</Text>
+                      <Text style={styles.badgeText}>
+                        {LANG_HINT[featured.id] ?? langLabel} · 语音直聊
+                      </Text>
                     </View>
                   </View>
                   <Text numberOfLines={2} style={styles.heroBio}>
-                    {spanish.bio}
+                    {featured.bio}
                   </Text>
                   <Text style={styles.heroStyle} numberOfLines={2}>
-                    {spanish.style}
+                    {featured.style}
                   </Text>
                 </View>
                 <Text style={styles.heroArrow}>→</Text>
               </Pressable>
             ) : null}
 
-            {lastSession ? (
+            {lastSession && featured ? (
               <Pressable
                 onPress={() =>
                   router.push({
                     pathname: "/talk/[characterId]",
-                    params: { characterId: SPANISH_CHARACTER, sessionId: lastSession.id }
+                    params: { characterId: featured.id, sessionId: lastSession.id }
                   } as never)
                 }
                 style={({ pressed }) => [styles.resumeCard, pressed && styles.pressed]}
@@ -149,7 +161,7 @@ export default function TalkScreen() {
 
             {others.length > 0 ? (
               <>
-                <Text style={styles.sectionTitle}>其它语言(本站以西语为主)</Text>
+                <Text style={styles.sectionTitle}>全部陪练角色</Text>
                 {others.map((item) => (
                   <Pressable
                     key={item.id}

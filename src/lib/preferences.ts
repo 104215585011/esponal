@@ -16,6 +16,13 @@ const KEY = "esponal.preferences.v1";
 export type SpeechAccent = "es-ES" | "es-MX" | "es-AR";
 export type LearningLanguage = "es" | "de" | "en" | "fr" | "ja";
 
+export function normalizeSupportedLang(raw?: string | null): LearningLanguage | null {
+  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
+    return raw;
+  }
+  return null;
+}
+
 export const LEARNING_LANGUAGE_OPTIONS: Array<{
   value: LearningLanguage;
   label: string;

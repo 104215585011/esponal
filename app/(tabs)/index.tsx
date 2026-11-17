@@ -128,7 +128,75 @@ const QUICK_TOOLS_DE: QuickTool[] = [
   }
 ];
 
-const QUICK_HOME_LANGS: LearningLanguage[] = ["es", "de"];
+const QUICK_HOME_LANGS: LearningLanguage[] = ["es", "de", "en", "fr", "ja"];
+
+const HELLO_BY_LANG: Record<LearningLanguage, string> = {
+  es: "Hola",
+  de: "Hallo",
+  en: "Hello",
+  fr: "Bonjour",
+  ja: "こんにちは"
+};
+
+const HERO_SUB_BY_LANG: Record<LearningLanguage, string> = {
+  es: "双语字幕与阅读正文都支持轻触查词、查看完整动词变位。",
+  de: "支持德语原声字幕、可分动词还原、名词冠词与复数查询。",
+  en: "支持英/美原声视频、BBC 播客精听、Guardian 阅读与即时查词。",
+  fr: "支持法语原声字幕、InnerFrench / RFI 播客、短文阅读与阴阳性词形。",
+  ja: "支持日语分词点词查假名读音、Teppei 播客、NHK 与 N5–N4 短文精读。"
+};
+
+function getQuickTools(lang: LearningLanguage): QuickTool[] {
+  if (lang === "es") return QUICK_TOOLS_ES;
+  if (lang === "de") return QUICK_TOOLS_DE;
+
+  const meta =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === lang) ?? LEARNING_LANGUAGE_OPTIONS[0];
+  const short = meta.shortLabel;
+  return [
+    {
+      icon: "headphones",
+      tint: colors.brand700,
+      tintBg: colors.brand50,
+      tag: "播客精听",
+      title: `${short}听力`,
+      desc:
+        lang === "en"
+          ? "BBC 6 Minute English 播客与原稿"
+          : lang === "fr"
+            ? "InnerFrench / RFI 播客精听"
+            : "Teppei / Shun 日语播客与文稿",
+      href: "/listening"
+    },
+    {
+      icon: "mic",
+      tint: colors.indigo600,
+      tintBg: colors.indigo50,
+      tag: "AI 对话",
+      title: "口语练习",
+      desc: `情景${short}语音陪练 + 即时纠错`,
+      href: "/talk"
+    },
+    {
+      icon: "play",
+      tint: colors.amber700,
+      tintBg: colors.amber50,
+      tag: "原声字幕",
+      title: `${short}视频`,
+      desc: `跨频道${short}推荐 · 点词即查`,
+      href: "/watch"
+    },
+    {
+      icon: "book",
+      tint: colors.sky600,
+      tintBg: colors.sky50,
+      tag: lang === "ja" ? "N5–N4" : "A1–A2",
+      title: `${short}短文`,
+      desc: `分级短文 + ${lang === "ja" ? "NHK" : lang === "fr" ? "RFI" : "Guardian"} 实时阅读`,
+      href: "/lectura"
+    }
+  ];
+}
 
 const BUCKET_COLORS = ["#D6EFE3", "#A7DFC6", "#5EC79B", colors.brand600];
 
@@ -149,7 +217,7 @@ export default function HomeScreen() {
   const activeLangMeta =
     LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === activeLang) ??
     LEARNING_LANGUAGE_OPTIONS[0];
-  const visibleTools = activeLang === "de" ? QUICK_TOOLS_DE : QUICK_TOOLS_ES;
+  const visibleTools = useMemo(() => getQuickTools(activeLang), [activeLang]);
 
   const [due, setDue] = useState<number | null>(null);
   const [stats, setStats] = useState<VocabStats | null>(null);
@@ -304,7 +372,7 @@ export default function HomeScreen() {
         </View>
 
         <Text style={styles.hello}>
-          {activeLang === "de" ? "Hallo" : "Hola"}
+          {HELLO_BY_LANG[activeLang]}
           {user?.name ? `, ${user.name}` : ""} · 当前学习{activeLangMeta.label}
         </Text>
 
@@ -329,9 +397,7 @@ export default function HomeScreen() {
                 看一条{activeLangMeta.shortLabel}视频，或读一篇短文
               </Text>
               <Text style={styles.heroSub}>
-                {activeLang === "de"
-                  ? "支持德语原声字幕、可分动词还原、名词冠词与复数查询。"
-                  : "双语字幕与阅读正文都支持轻触查词、查看完整动词变位。"}
+                {HERO_SUB_BY_LANG[activeLang]}
               </Text>
             </>
           )}

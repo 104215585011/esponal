@@ -19,19 +19,18 @@ import {
   getProxiedPodcastAudioUrl,
   type PodcastCue
 } from "@/api/podcasts";
-// Timestamp: 2026-11-17 16:02
+// Timestamp: 2026-11-17 23:12
 import { LookupSheet } from "@/components/LookupSheet";
 import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
 import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
-import { getPreferences, LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferences";
+import {
+  getPreferences,
+  LEARNING_LANGUAGE_OPTIONS,
+  normalizeSupportedLang,
+  type LearningLanguage
+} from "@/lib/preferences";
+import { tokenizeTextChunk } from "@/lib/tokenizeText";
 import { colors, radius, spacing } from "@/theme";
-
-function normalizeParamLang(raw?: string | null): LearningLanguage | null {
-  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
-    return raw;
-  }
-  return null;
-}
 
 const RATES = [0.75, 0.9, 1.0, 1.2] as const;
 const WINDOW_SEC = 30;
@@ -89,7 +88,7 @@ export default function PodcastPlayerScreen() {
   }>();
 
   const materialLang: LearningLanguage =
-    normalizeParamLang(typeof params.language === "string" ? params.language : undefined) ??
+    normalizeSupportedLang(typeof params.language === "string" ? params.language : undefined) ??
     getPreferences().learningLang;
   const langLabel =
     LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === materialLang)?.shortLabel ?? "目标语";
@@ -667,16 +666,16 @@ function InteractiveSpanishBlock({
               </Text>
             );
           }
-          return splitTokens(seg.raw).map((tok, tIdx) => {
-            const clean = cleanWordToken(tok);
-            if (!clean) return <Text key={`${sIdx}-${tIdx}`}>{tok}</Text>;
+          return tokenizeTextChunk(seg.raw, language).map((tok, tIdx) => {
+            if (!tok.clean) return <Text key={`${sIdx}-${tIdx}`}>{tok.raw}</Text>;
+            const word = tok.clean;
             return (
               <Text
                 key={`${sIdx}-${tIdx}`}
-                onPress={() => onSelectWord(clean)}
+                onPress={() => onSelectWord(word)}
                 style={styles.wordTap}
               >
-                {tok}
+                {tok.raw}
               </Text>
             );
           });

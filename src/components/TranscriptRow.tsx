@@ -1,9 +1,10 @@
-// Timestamp: 2026-11-17 15:25
+// Timestamp: 2026-11-17 23:12
 import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { LearningLanguage } from "@/lib/preferences";
 import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
+import { tokenizeTextChunk } from "@/lib/tokenizeText";
 import { colors, radius, spacing } from "@/theme";
 
 type TranscriptRowProps = {
@@ -22,30 +23,22 @@ type RenderSegment =
   | { type: "word"; raw: string; clean: string }
   | { type: "phrase"; raw: string; span: DetectedPhraseSpan };
 
-/** 把非短语区切成「可点的词」与「不可点的标点/空白」 */
-function tokenizePlainChunk(chunk: string): RenderSegment[] {
-  const parts = chunk.split(/(\s+)/);
-  const out: RenderSegment[] = [];
-  for (const part of parts) {
-    if (!part) continue;
-    if (/[A-Za-zÄÖÜäöüßÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(part)) {
-      const clean = part
-        .replace(/^[¿¡"„“”'«»(\[]+/, "")
-        .replace(/[.,;:!?"„“”'»)\]]+$/, "")
-        .trim();
-      if (clean) {
-        out.push({ type: "word", raw: part, clean });
-        continue;
-      }
-    }
-    out.push({ type: "plain", raw: part });
-  }
-  return out;
+/** 把非短语区切成「可点的词」与「不可点的标点/空白」（支持日语无缝分词） */
+function tokenizePlainChunk(chunk: string, language: LearningLanguage): RenderSegment[] {
+  return tokenizeTextChunk(chunk, language).map((seg) =>
+    seg.clean
+      ? { type: "word", raw: seg.raw, clean: seg.clean }
+      : { type: "plain", raw: seg.raw }
+  );
 }
 
-function buildSegments(text: string, spans: DetectedPhraseSpan[]): RenderSegment[] {
+function buildSegments(
+  text: string,
+  spans: DetectedPhraseSpan[],
+  language: LearningLanguage
+): RenderSegment[] {
   if (spans.length === 0) {
-    return tokenizePlainChunk(text);
+    return tokenizePlainChunk(text, language);
   }
 
   const segments: RenderSegment[] = [];
@@ -53,7 +46,7 @@ function buildSegments(text: string, spans: DetectedPhraseSpan[]): RenderSegment
 
   for (const span of spans) {
     if (span.start > cursor) {
-      segments.push(...tokenizePlainChunk(text.slice(cursor, span.start)));
+      segments.push(...tokenizePlainChunk(text.slice(cursor, span.start), language));
     }
     if (span.end > span.start) {
       segments.push({
@@ -66,7 +59,7 @@ function buildSegments(text: string, spans: DetectedPhraseSpan[]): RenderSegment
   }
 
   if (cursor < text.length) {
-    segments.push(...tokenizePlainChunk(text.slice(cursor)));
+    segments.push(...tokenizePlainChunk(text.slice(cursor), language));
   }
 
   return segments;
@@ -92,7 +85,7 @@ export const TranscriptRow = memo(function TranscriptRow({
     () => (language === "es" ? detectPhrasesInSentence(text) : []),
     [text, language]
   );
-  const segments = useMemo(() => buildSegments(text, spans), [text, spans]);
+  const segments = useMemo(() => buildSegments(text, spans, language), [text, spans, language]);
 
   // 去重展示本句识别到的固定搭配胶丸
   const uniqueSpans = useMemo(() => {

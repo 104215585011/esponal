@@ -23,8 +23,13 @@ import {
   subscribeDownloadJob,
   type DownloadJobState
 } from "@/subtitles/subtitleDownload";
-// Timestamp: 2026-11-17 15:30
-import { getPreferences, updatePreferences, type LearningLanguage } from "@/lib/preferences";
+// Timestamp: 2026-11-17 23:12
+import {
+  getPreferences,
+  normalizeSupportedLang,
+  updatePreferences,
+  type LearningLanguage
+} from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
 import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
@@ -53,13 +58,6 @@ import { colors, radius, spacing } from "@/theme";
 /** 倍速档位:点一下循环切换 */
 const RATE_STEPS = [0.75, 1, 1.25, 1.5];
 
-function normalizeMaterialLang(raw?: string | null): LearningLanguage | null {
-  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
-    return raw;
-  }
-  return null;
-}
-
 export default function WatchPlayerScreen() {
   const { videoId, title, channelTitle, thumbnail, lang } = useLocalSearchParams<{
     videoId: string;
@@ -68,7 +66,7 @@ export default function WatchPlayerScreen() {
     thumbnail?: string;
     lang?: string;
   }>();
-  const explicitParamLang = normalizeMaterialLang(typeof lang === "string" ? lang : undefined);
+  const explicitParamLang = normalizeSupportedLang(typeof lang === "string" ? lang : undefined);
   const [materialLang, setMaterialLang] = useState<LearningLanguage>(() => {
     const cachedLang = videoId ? getWatchProgress(String(videoId))?.language : undefined;
     return explicitParamLang ?? cachedLang ?? getPreferences().learningLang;

@@ -245,7 +245,12 @@ export function LookupSheet({
             : data.nounForms.gender === "mf"
               ? "阴阳同形"
               : "阳性";
-      if (lookupLang === "de" || /^(der|die|das)\s+/i.test(data.nounForms.singular)) {
+      if (
+        lookupLang === "de" ||
+        lookupLang === "fr" ||
+        /^(der|die|das|le|la)\s+/i.test(data.nounForms.singular) ||
+        /^l[’']/i.test(data.nounForms.singular)
+      ) {
         return `${data.nounForms.singular} → ${data.nounForms.plural} · ${g}`;
       }
       return `单数 ${data.nounForms.singular} · 复数 ${data.nounForms.plural} · ${g}`;
