@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:35
+// Timestamp: 2026-11-17 15:05
 const ALLOWED_PODCAST_HOST_SUFFIXES = [
   "blubrry.com",
   "blubrry.net",
@@ -17,6 +17,8 @@ const ALLOWED_PODCAST_HOST_SUFFIXES = [
   "ivoox.com",
   "hoyhablamos.com",
   "1001reasonstolearnspanish.com",
+  "slowgerman.com",
+  "svmaudio.com",
   "mzstatic.com",
   "traffic.megaphone.fm"
 ];

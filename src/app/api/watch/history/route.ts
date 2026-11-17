@@ -68,6 +68,7 @@ export async function POST(request: Request) {
       ok: true,
       view: {
         id: view.id,
+        language: view.language,
         videoId: view.videoId,
         title: view.title,
         channelTitle: view.channelTitle,
@@ -93,15 +94,19 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const limitValue = Number.parseInt(searchParams.get("limit") ?? "100", 10);
-  const language = await resolveRequestLanguage(
-    request,
-    searchParams.get("lang") ?? searchParams.get("language"),
-    userId
-  );
+  const allLanguages = searchParams.get("all") === "1";
+  const language = allLanguages
+    ? undefined
+    : await resolveRequestLanguage(
+        request,
+        searchParams.get("lang") ?? searchParams.get("language"),
+        userId
+      );
   const views = await getVideoViewsByUser(
     userId,
     Number.isFinite(limitValue) ? limitValue : 100,
-    language
+    language,
+    { allLanguages }
   );
 
   // 顺带把观看进度带上，App 首页「接着看」才能显示看到哪
@@ -113,6 +118,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     videos: views.map((view) => ({
       id: view.id,
+      language: view.language,
       videoId: view.videoId,
       title: view.title,
       channelTitle: view.channelTitle,

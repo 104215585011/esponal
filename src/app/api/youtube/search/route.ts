@@ -1,4 +1,6 @@
+// Timestamp: 2026-11-17 14:58
 import { NextResponse } from "next/server";
+import { normalizeLanguage } from "@/lib/languages";
 import {
   checkRateLimit,
   getRetryAfterSec,
@@ -83,6 +85,7 @@ type SearchOptions = {
   order: SearchOrder;
   region: string;
   pageToken: string;
+  language: string;
 };
 
 async function fetchSearchVideos(
@@ -94,7 +97,7 @@ async function fetchSearchVideos(
     part: "snippet",
     q: query,
     type: "video",
-    relevanceLanguage: "es",
+    relevanceLanguage: options.language,
     // Only ask for videos we can actually show in the iframe player. The old
     // flow fetched 20 and then silently dropped non-embeddable ones, so the
     // page could show far fewer than 20 while the videos ranked 21+ (which
@@ -226,6 +229,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() ?? "";
   const maxResults = clampMaxResults(searchParams.get("maxResults"), 20);
+  const language = normalizeLanguage(searchParams.get("lang") ?? searchParams.get("language"));
 
   if (!query) {
     return NextResponse.json({ error: "q is required" }, { status: 400 });
@@ -247,9 +251,9 @@ export async function GET(request: Request) {
     const cacheTtlSeconds = getConfiguredSearchTtl();
     const cached = await getCachedJsonWithMeta<SearchPayload>(
       "youtube:v2:search",
-      buildSearchCacheInput({ query, maxResults, order, region, pageToken }),
+      buildSearchCacheInput({ query, maxResults, order, region, pageToken, language }),
       cacheTtlSeconds,
-      () => fetchSearchVideos(query, maxResults, { order, region, pageToken }),
+      () => fetchSearchVideos(query, maxResults, { order, region, pageToken, language }),
       { forceFresh }
     );
     const payload = coerceSearchPayload(cached.data);
@@ -262,6 +266,7 @@ export async function GET(request: Request) {
         fetchedAt: cached.fetchedAt,
         order,
         region,
+        language,
         cacheTtlSeconds
       }
     });

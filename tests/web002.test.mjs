@@ -35,7 +35,8 @@ test("WEB-002 search route exists and uses YouTube search with Spanish relevance
   assert.match(route, /export\s+async\s+function\s+GET/);
   assert.match(route, /search/);
   assert.match(route, /type["']?\s*:\s*["']video["']/);
-  assert.match(route, /relevanceLanguage["']?\s*:\s*["']es["']/);
+  assert.match(route, /relevanceLanguage\s*:\s*(?:["']es["']|options\.language)/);
+  assert.match(route, /normalizeLanguage/);
   assert.match(route, /videoEmbeddable:\s*["']true["']/);
   assert.match(route, /NextResponse\.json\(\{\s*\.\.\.payload/);
   assert.match(route, /error:\s*["']quota_exceeded["']/);

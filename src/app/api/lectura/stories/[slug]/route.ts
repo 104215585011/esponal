@@ -1,13 +1,14 @@
-// Timestamp: 2026-11-16 09:05
+// Timestamp: 2026-11-17 15:03
 import { NextResponse } from "next/server";
 import { lecturaStories } from "@/../content/lectura";
 import { getOptionalUserId } from "@/lib/api-auth";
+import { normalizeLanguage } from "@/lib/languages";
 import { getCrawledLecturaStoryBySlug } from "@/lib/lectura/rss-crawler";
 
 /**
  * GET /api/lectura/stories/[slug]
  *
- * 单篇详情（含正文段落 + 生词表），兼容静态精选短文与 RSS 爬取文章。
+ * 单篇详情（含正文段落 + 生词表 + 材料自身语种 language），兼容静态精选短文与 RSS 爬取文章。
  */
 export async function GET(
   request: Request,
@@ -26,6 +27,7 @@ export async function GET(
   return NextResponse.json({
     story: {
       slug: story.slug,
+      language: normalizeLanguage(story.language),
       title: story.title,
       titleZh: story.titleZh,
       level: story.level,

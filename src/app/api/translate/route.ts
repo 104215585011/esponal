@@ -1,3 +1,4 @@
+// Timestamp: 2026-11-17 15:12
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -8,7 +9,8 @@ import {
   translateLimiter
 } from "@/lib/ratelimit";
 import { redis } from "@/lib/redis";
-import { translateEsToZh } from "@/lib/translate";
+import { resolveRequestLanguage } from "@/lib/languages";
+import { translateEsToZh, translateTextToZh } from "@/lib/translate";
 
 const TRANSLATION_CACHE_TTL = 60 * 60 * 24 * 7;
 
@@ -57,8 +59,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json()) as { text?: unknown };
+    const body = (await request.json()) as {
+      text?: unknown;
+      lang?: unknown;
+      language?: unknown;
+      sourceLang?: unknown;
+    };
     const text = typeof body.text === "string" ? body.text.trim() : "";
+    const sourceLang = await resolveRequestLanguage(
+      request,
+      body.sourceLang ?? body.lang ?? body.language,
+      userId
+    );
 
     if (!text) {
       return NextResponse.json({ error: "text is required" }, { status: 400 });
@@ -68,10 +80,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "text is too long" }, { status: 400 });
     }
 
-    // v3 namespace: v2 entries were written by the Tencent provider and may
-    // contain source-as-translation echoes from quota-expired days. Bump to
-    // start clean under the new DeepSeek/DashScope chain.
-    const cacheKey = `translate:v3:${sha256Hex(text)}`;
+    const cacheKey =
+      sourceLang === "es"
+        ? `translate:v3:${sha256Hex(text)}`
+        : `translate:v4:${sourceLang}:${sha256Hex(text)}`;
     const cached = await safeCacheGet(cacheKey);
 
     if (cached) {
@@ -79,7 +91,10 @@ export async function POST(request: Request) {
     }
 
     try {
-      const result = await translateEsToZh(text);
+      const result =
+        sourceLang === "es"
+          ? await translateEsToZh(text)
+          : await translateTextToZh(text, sourceLang);
 
       if (!result) {
         throw new Error("No translation provider is configured or available");

@@ -1,7 +1,7 @@
-// Timestamp: 2026-11-16 14:45
+// Timestamp: 2026-11-17 15:08
 import type { PodcastCue } from "./listening-audio.ts";
 import { stripHtmlToText } from "./rss-extract.ts";
-import { translateEsToZh } from "./translate.ts";
+import { translateTextToZh } from "./translate.ts";
 
 const PAYWALL_PATTERNS = [
   /solo est[aá]n? disponibles? para (?:los )?suscriptores premium/i,
@@ -183,8 +183,9 @@ export async function sliceTranscriptWindow(input: {
   coveredUntilSec: number;
   windowStartSec: number;
   windowSec: number;
+  language?: string;
 }): Promise<PodcastCue[] | null> {
-  const { sentences, coveredUntilSec, windowStartSec, windowSec } = input;
+  const { sentences, coveredUntilSec, windowStartSec, windowSec, language = "es" } = input;
   if (sentences.length === 0 || windowStartSec >= coveredUntilSec) {
     return null;
   }
@@ -218,7 +219,7 @@ export async function sliceTranscriptWindow(input: {
   // 并行用 DeepSeek 翻译当前窗内的少数几句源文稿（~0.8-1.5s），速度远快于从头 ASR
   const translations = await Promise.all(
     inWindow.map((cue) =>
-      translateEsToZh(cue.text)
+      translateTextToZh(cue.text, language)
         .then((res) => res?.translation ?? "")
         .catch(() => "")
     )

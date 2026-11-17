@@ -1,13 +1,14 @@
-// Timestamp: 2026-11-15 08:00
+// Timestamp: 2026-11-17 14:45
 import { prisma } from "@/lib/prisma";
 
-export const SUPPORTED_LANGUAGES = ["es", "en", "fr", "ja"] as const;
+export const SUPPORTED_LANGUAGES = ["es", "de", "en", "fr", "ja"] as const;
 export type LearningLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const DEFAULT_LANGUAGE: LearningLanguage = "es";
 
 export const LANGUAGE_LABELS: Record<LearningLanguage, string> = {
   es: "西班牙语",
+  de: "德语",
   en: "英语",
   fr: "法语",
   ja: "日语"
@@ -51,15 +52,29 @@ const COMMON_ENGLISH_ONLY_WORDS = new Set([
   "thank", "thanks", "sorry", "hello", "today", "tomorrow", "yesterday"
 ]);
 
+const COMMON_GERMAN_ONLY_WORDS = new Set([
+  "der", "die", "das", "ein", "eine", "einen", "einem", "eines", "einer",
+  "ich", "du", "er", "wir", "ihr", "und", "oder", "aber", "nicht", "kein",
+  "keine", "mit", "auf", "aus", "bei", "nach", "seit", "von", "für", "um",
+  "über", "unter", "uhr", "sieben", "heute", "morgen", "fahrrad", "aufstehen",
+  "stehe", "stehen", "ist", "sind", "bin", "bist", "haben", "habe"
+]);
+
 export function detectQueryLanguage(text: string): LearningLanguage | null {
   const cleaned = text.trim().toLowerCase();
   if (!cleaned) return null;
 
   if (/[\u3040-\u30ff]/.test(cleaned)) return "ja";
-  if (/[áéíóúüñ¿¡]/i.test(cleaned)) return "es";
+  if (/ß/.test(cleaned)) return "de";
+  if (/[ñ¿¡]/i.test(cleaned)) return "es";
+  if (/[äö]/i.test(cleaned)) return "de";
+  if (/[áéíóú]/i.test(cleaned)) return "es";
   if (/[àâæçèêëîïôœùûÿ]/i.test(cleaned)) return "fr";
 
   const tokens = cleaned.split(/\s+/).filter(Boolean);
+  if (tokens.some((token) => COMMON_GERMAN_ONLY_WORDS.has(token))) {
+    return "de";
+  }
   if (tokens.some((token) => COMMON_ENGLISH_ONLY_WORDS.has(token))) {
     return "en";
   }

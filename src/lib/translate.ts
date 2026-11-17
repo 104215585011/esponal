@@ -32,6 +32,7 @@ function extractContent(
 
 const LANG_NAME: Record<string, string> = {
   es: "Spanish",
+  de: "German",
   en: "English",
   fr: "French",
   ja: "Japanese"

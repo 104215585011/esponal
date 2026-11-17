@@ -69,8 +69,19 @@ export async function upsertVideoView({
 export async function getVideoViewsByUser(
   userId: string,
   limit = 100,
-  language?: string
+  language?: string,
+  options?: { allLanguages?: boolean }
 ) {
+  if (options?.allLanguages) {
+    return prisma.videoView.findMany({
+      where: { userId },
+      orderBy: {
+        viewedAt: "desc"
+      },
+      take: Math.min(Math.max(limit, 1), 200)
+    });
+  }
+
   const lang = language
     ? normalizeLanguage(language)
     : await resolveRequestLanguage(null, undefined, userId);

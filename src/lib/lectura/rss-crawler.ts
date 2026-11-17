@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-16 09:05
+// Timestamp: 2026-11-17 15:03
 import { type LecturaStory } from "@/../content/lectura";
+import { normalizeLanguage, type LearningLanguage } from "@/lib/languages";
 import {
   extractArticleParagraphsFromHtml,
   extractArticleParagraphsFromMarkdown,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/rss-shared";
 
 export type CrawledLecturaItem = LecturaStory & {
+  language: LearningLanguage;
   sourceUrl: string;
   audioUrl?: string;
   coverUrl?: string;
@@ -23,6 +25,7 @@ export type CrawledLecturaItem = LecturaStory & {
 type FeedSource = {
   id: string;
   label: string;
+  language: LearningLanguage;
   url: string;
   defaultLevel: "A2" | "B1";
   limit: number;
@@ -32,6 +35,7 @@ const NEWS_FEEDS: FeedSource[] = [
   {
     id: "rfi",
     label: "RFI 西语之声",
+    language: "es",
     url: "https://www.rfi.fr/es/rss",
     defaultLevel: "B1",
     limit: 5,
@@ -39,6 +43,7 @@ const NEWS_FEEDS: FeedSource[] = [
   {
     id: "bbc",
     label: "BBC Mundo",
+    language: "es",
     url: "https://feeds.bbci.co.uk/mundo/rss.xml",
     defaultLevel: "B1",
     limit: 5,
@@ -46,15 +51,24 @@ const NEWS_FEEDS: FeedSource[] = [
   {
     id: "juan",
     label: "Español con Juan 博客",
+    language: "es",
     url: "https://1001reasonstolearnspanish.com/feed/",
     defaultLevel: "A2",
     limit: 4,
   },
+  {
+    id: "slowgerman",
+    label: "Slow German 博客",
+    language: "de",
+    url: "https://slowgerman.com/feed/",
+    defaultLevel: "A2",
+    limit: 5,
+  },
 ];
 
-// v5 缓存命名空间：为每篇博客与西媒新闻抓取高清封面图，并保持完整原文段落
-const LIST_CACHE_KEY = "lectura:rss:stories:v5";
-const STORY_CACHE_PREFIX = "lectura:rss:story:v5:";
+// v6 缓存命名空间：为每篇阅读条目绑定明确语种与封面
+const LIST_CACHE_KEY = "lectura:rss:stories:v6";
+const STORY_CACHE_PREFIX = "lectura:rss:story:v6:";
 const LIST_TTL_SEC = 6 * 3600;
 const STORY_TTL_SEC = 24 * 3600;
 
@@ -178,8 +192,12 @@ export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<Crawle
         const fallbackSummary = entry.description || inlineParagraphs[0] || entry.title;
         return {
           slug,
+          language: feed.language,
           title: entry.title,
-          titleZh: `${feed.label} · 真实西语阅读`,
+          titleZh:
+            feed.language === "de"
+              ? `${feed.label} · 真实德语阅读`
+              : `${feed.label} · 真实西语阅读`,
           level: feed.defaultLevel,
           source: `${feed.label} RSS`,
           durationMin: estimateReadingMinutes(inlineParagraphs),

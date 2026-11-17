@@ -1,9 +1,14 @@
+// Timestamp: 2026-11-17 14:50
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   tryConjugateVerb,
   type VerbConjugations
 } from "@/lib/conjugate";
+import {
+  lookupCuratedGermanEntry,
+  resolveGermanSeparableVerb
+} from "@/lib/german-lexicon";
 import {
   LANGUAGE_LABELS,
   normalizeLanguage,
@@ -30,7 +35,7 @@ export type DictionaryEntry = {
   nounForms?: {
     singular: string;
     plural: string;
-    gender: "m" | "f" | "mf";
+    gender: "m" | "f" | "n" | "mf";
   };
   adjectiveForms?: {
     ms: string;
@@ -74,7 +79,7 @@ function normalizeWord(word: string) {
   return word
     .trim()
     .toLowerCase()
-    .replace(/^[^\p{L}áéíóúüñ]+|[^\p{L}áéíóúüñ]+$/giu, "");
+    .replace(/^[^\p{L}áéíóúüñäöüß]+|[^\p{L}áéíóúüñäöüß]+$/giu, "");
 }
 
 function isPlaceholder(value: string | undefined | null) {
@@ -131,6 +136,7 @@ function getNounGender(partOfSpeech: string | null) {
   if (normalized.includes("n.mf")) return "mf";
   if (normalized.includes("n.m")) return "m";
   if (normalized.includes("n.f")) return "f";
+  if (normalized.includes("n.n")) return "n";
   return null;
 }
 
@@ -141,7 +147,8 @@ function isVerbPos(partOfSpeech: string | null) {
 function validateNounForms(
   lemma: string,
   partOfSpeech: string | null,
-  forms: unknown
+  forms: unknown,
+  language: LearningLanguage = "es"
 ): DictionaryEntry["nounForms"] | undefined {
   const gender = getNounGender(partOfSpeech);
   if (!gender || !forms || typeof forms !== "object") {
@@ -152,6 +159,10 @@ function validateNounForms(
   const plural = normalizeFormValue((forms as { plural?: unknown }).plural);
   if (!singular || !plural) {
     return undefined;
+  }
+
+  if (language === "de") {
+    return { singular, plural, gender };
   }
 
   const normalizedLemma = lemma.toLowerCase();
@@ -214,34 +225,42 @@ async function fetchAIEntry(
   word: string,
   hintLemma: string,
   morphInfo: string | null,
-  language: LearningLanguage = "es"
+  language: LearningLanguage = "es",
+  context?: string
 ): Promise<DictionaryEntry | null> {
   const apiKey = process.env.DASHSCOPE_API_KEY?.trim();
   const model = process.env.DASHSCOPE_MODEL?.trim() || "glm-5";
   if (!apiKey) return null;
 
   const langPromptName =
-    language === "en"
-      ? "English"
-      : language === "fr"
-        ? "French"
-        : language === "ja"
-          ? "Japanese"
-          : "Spanish";
+    language === "de"
+      ? "German"
+      : language === "en"
+        ? "English"
+        : language === "fr"
+          ? "French"
+          : language === "ja"
+            ? "Japanese"
+            : "Spanish";
 
   const promptLines = [
     `You are a ${langPromptName} (${LANGUAGE_LABELS[language]}) morphological analyzer and dictionary assistant.`,
     `The learner saw the word "${word}" in a ${langPromptName} text.`,
-    "Step 1: Identify its lemma (infinitive/dictionary base form for verbs; singular nominative for nouns/adjectives).",
+    context ? `Sentence context: "${context}"` : "",
+    "Step 1: Identify its lemma (infinitive/dictionary base form for verbs, including German separable verbs like aufstehen; singular nominative for nouns/adjectives).",
     "Step 2: Generate a concise dictionary entry for that lemma in Chinese.",
     "Return JSON only, no markdown fences.",
     "",
-    language === "es"
-      ? 'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}'
-      : 'Verb example: {"lemma":"run","morphInfo":"past tense / base","pos":"v.","meanings":["跑","运行"],"example":{"es":"I run every morning.","zh":"我每天早上跑步。"}}',
-    language === "es"
-      ? 'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}'
-      : 'Noun example: {"lemma":"table","pos":"n.","meanings":["桌子","表格"],"example":{"es":"Put the book on the table.","zh":"把书放在桌子上。"}}',
+    language === "de"
+      ? 'Verb example: {"lemma":"aufstehen","morphInfo":"可分动词 (stehe ... auf)","pos":"v.","meanings":["起床","站起来"],"example":{"es":"Ich stehe um sieben Uhr auf.","zh":"我七点钟起床。"}}'
+      : language === "es"
+        ? 'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}'
+        : 'Verb example: {"lemma":"run","morphInfo":"past tense / base","pos":"v.","meanings":["跑","运行"],"example":{"es":"I run every morning.","zh":"我每天早上跑步。"}}',
+    language === "de"
+      ? 'Noun example (MUST use n.m./n.f./n.n. and include definite article + plural in forms): {"lemma":"Fahrrad","pos":"n.n.","meanings":["自行车"],"example":{"es":"Das Fahrrad ist neu.","zh":"这辆自行车是新的。"},"forms":{"singular":"das Fahrrad","plural":"die Fahrräder"}}'
+      : language === "es"
+        ? 'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}'
+        : 'Noun example: {"lemma":"table","pos":"n.","meanings":["桌子","表格"],"example":{"es":"Put the book on the table.","zh":"把书放在桌子上。"}}',
     language === "es"
       ? 'Adjective example: {"lemma":"rojo","pos":"adj.","meanings":["红色的"],"example":{"es":"La rosa es roja.","zh":"玫瑰是红色的。"},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}'
       : "",
@@ -301,8 +320,8 @@ async function fetchAIEntry(
     phonetic: null,
     morphInfo: aiMorphInfo,
     nounForms:
-      language === "es"
-        ? validateNounForms(aiLemma, partOfSpeech, parsed.forms)
+      language === "es" || language === "de"
+        ? validateNounForms(aiLemma, partOfSpeech, parsed.forms, language)
         : undefined,
     adjectiveForms:
       language === "es" && partOfSpeech?.toLowerCase().startsWith("adj")
@@ -323,11 +342,60 @@ export async function isLemmaInDict(value: string): Promise<boolean> {
 
 export async function lookupDictionary(
   wordInput: string,
-  options?: { language?: string }
+  options?: { language?: string; context?: string }
 ): Promise<DictionaryEntry | null> {
   const language = normalizeLanguage(options?.language);
+  const context = options?.context?.trim() || undefined;
   const word = normalizeWord(wordInput);
   if (!word) return null;
+
+  if (language === "de") {
+    const curated = lookupCuratedGermanEntry(wordInput, context);
+    if (curated) {
+      return {
+        language: "de",
+        word,
+        lemma: curated.lemma,
+        partOfSpeech: curated.partOfSpeech,
+        meanings: curated.meanings,
+        examples: [{ es: curated.example.de, zh: curated.example.zh }],
+        phonetic: null,
+        morphInfo: curated.morphInfo ?? null,
+        nounForms: curated.nounForms
+      };
+    }
+
+    const sepMatch = resolveGermanSeparableVerb(wordInput, context);
+    const lookupKey = sepMatch ? sepMatch.lemma : word;
+    const hintMorph = sepMatch?.morphHint ?? null;
+    const cacheKey = `vocab:dict:v4:de:${lookupKey}`;
+    const cached = await safeCacheGet(cacheKey);
+    if (cached) {
+      return { ...(JSON.parse(cached) as DictionaryEntry), language: "de", word, cached: true };
+    }
+
+    const aiEntry = await fetchAIEntry(word, lookupKey, hintMorph, "de", context).catch((error) => {
+      reportLookupFailure(word, error);
+      return null;
+    });
+
+    if (aiEntry) {
+      await safeCacheSet(cacheKey, aiEntry);
+      return aiEntry;
+    }
+
+    return {
+      language: "de",
+      word,
+      lemma: lookupKey,
+      partOfSpeech: sepMatch ? "v.sep." : null,
+      meanings: [],
+      examples: [],
+      phonetic: null,
+      morphInfo: hintMorph,
+      degraded: true
+    };
+  }
 
   if (language !== "es") {
     const cacheKey = `vocab:dict:v3:${language}:${word}`;
@@ -336,7 +404,7 @@ export async function lookupDictionary(
       return { ...(JSON.parse(cached) as DictionaryEntry), language, word, cached: true };
     }
 
-    const aiEntry = await fetchAIEntry(word, word, null, language).catch((error) => {
+    const aiEntry = await fetchAIEntry(word, word, null, language, context).catch((error) => {
       reportLookupFailure(word, error);
       return null;
     });

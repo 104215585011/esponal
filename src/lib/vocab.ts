@@ -239,6 +239,12 @@ export async function getDueReviewWords(
           lte: now
         }
       },
+      include: {
+        encounters: {
+          orderBy: { createdAt: "desc" },
+          take: 2
+        }
+      },
       orderBy: [{ srsDue: "asc" }, { createdAt: "asc" }],
       take: batchSize
     });
@@ -250,6 +256,12 @@ export async function getDueReviewWords(
             userId,
             language: lang,
             srsState: null
+          },
+          include: {
+            encounters: {
+              orderBy: { createdAt: "desc" },
+              take: 2
+            }
           },
           orderBy: {
             createdAt: "asc"

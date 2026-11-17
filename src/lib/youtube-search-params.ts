@@ -18,6 +18,7 @@ export type SearchCacheInput = {
   order: SearchOrder;
   region: string;
   pageToken: string;
+  language?: string;
 };
 
 const DEFAULT_CACHE_INPUT = "relevance";
@@ -58,19 +59,25 @@ export function isFreshRequested(value: string | null | undefined): boolean {
 // (100 units per cold query). Only non-default dimensions get appended.
 export function buildSearchCacheInput(input: SearchCacheInput): string {
   const base = `${input.query}:${input.maxResults}`;
+  const lang = input.language?.trim().toLowerCase() ?? "";
+  const hasNonDefaultLang = Boolean(lang && lang !== "es");
   const isDefault =
-    input.order === "relevance" && !input.region && !input.pageToken;
+    input.order === "relevance" && !input.region && !input.pageToken && !hasNonDefaultLang;
 
   if (isDefault) {
     return base;
   }
 
-  return [
+  const parts = [
     base,
     input.order,
     input.region || "-",
     input.pageToken || "-"
-  ].join("|");
+  ];
+  if (hasNonDefaultLang) {
+    parts.push(`lang:${lang}`);
+  }
+  return parts.join("|");
 }
 
 export function isDefaultSearch(input: Pick<SearchCacheInput, "order" | "region" | "pageToken">) {

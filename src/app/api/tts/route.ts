@@ -14,6 +14,7 @@ export const runtime = "nodejs";
 const DEFAULT_VOICE = "es-MX-DaliaNeural";
 const LANGUAGE_VOICES: Record<string, string> = {
   es: "es-MX-DaliaNeural",
+  de: "de-DE-KatjaNeural",
   en: "en-US-JennyNeural",
   fr: "fr-FR-DeniseNeural",
   ja: "ja-JP-NanamiNeural"

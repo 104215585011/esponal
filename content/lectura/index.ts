@@ -34,10 +34,17 @@ import { elIntiRaymi } from "./el-inti-raymi";
 import { losDosApellidos } from "./los-dos-apellidos";
 import { laHoraLatina } from "./la-hora-latina";
 import { losApodosCarinosos } from "./los-apodos-carinosos";
+import { deMorgenroutine } from "./de-morgenroutine";
+import { deWochenendeImPark } from "./de-wochenende-im-park";
+import { deAufDemMarkt } from "./de-auf-dem-markt";
 
 export type { LecturaLevel, LecturaStory } from "./types";
 
 export const lecturaStories: LecturaStory[] = [
+  // Deutsch A1-A2
+  deMorgenroutine,
+  deWochenendeImPark,
+  deAufDemMarkt,
   // Originales (5)
   laTortugaYLaLiebre,
   elLeonYElRaton,

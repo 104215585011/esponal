@@ -1,3 +1,4 @@
+// Timestamp: 2026-11-17 14:52
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { resolveRequestLanguage } from "@/lib/languages";
@@ -31,13 +32,23 @@ export async function GET(request: Request) {
   // 按请求的 limit 截断(默认 20;历史行为见 getDueReviewWords 里的 take: 20)
   const words = dueWords.slice(0, limit).map((word) => ({
     id: word.id,
+    language: word.language,
     lemma: word.lemma,
     translation: word.translation,
     partOfSpeech: word.partOfSpeech,
     dictData: word.dictData,
     srsDue: word.srsDue?.toISOString() ?? null,
     srsState: word.srsState,
-    srsReps: word.srsReps
+    srsReps: word.srsReps,
+    encounters: (word.encounters ?? []).map((encounter) => ({
+      id: encounter.id,
+      sourceType: encounter.sourceType,
+      sourceUrl: encounter.sourceUrl,
+      timestampSec: encounter.timestampSec,
+      originalSentence: encounter.originalSentence,
+      translatedSentence: encounter.translatedSentence,
+      createdAt: encounter.createdAt.toISOString()
+    }))
   }));
 
   return NextResponse.json({ dueWords: words, totalDue });

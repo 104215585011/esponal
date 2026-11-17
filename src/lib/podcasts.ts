@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-16 09:05
+// Timestamp: 2026-11-17 15:05
+import { normalizeLanguage, type LearningLanguage } from "@/lib/languages";
 import {
   extractOgImageFromHtml,
   fetchFeedXml,
@@ -11,6 +12,7 @@ import {
 
 export type PodcastShow = {
   id: string;
+  language: LearningLanguage;
   title: string;
   host: string;
   level: "A2" | "B1";
@@ -21,6 +23,7 @@ export type PodcastShow = {
 
 export type PodcastEpisode = {
   id: string;
+  language: LearningLanguage;
   showId: string;
   showTitle: string;
   level: "A2" | "B1";
@@ -36,6 +39,7 @@ export type PodcastEpisode = {
 export const CURATED_PODCASTS: PodcastShow[] = [
   {
     id: "hoy-hablamos",
+    language: "es",
     title: "Hoy Hablamos",
     host: "Roi & Paco",
     level: "B1",
@@ -46,6 +50,7 @@ export const CURATED_PODCASTS: PodcastShow[] = [
   },
   {
     id: "espanol-con-juan",
+    language: "es",
     title: "Español con Juan",
     host: "Juan Fernández",
     level: "A2",
@@ -53,9 +58,20 @@ export const CURATED_PODCASTS: PodcastShow[] = [
     feedUrl: "https://1001reasonstolearnspanish.com/feed/",
     coverUrl: "https://1001reasonstolearnspanish.com/wp-content/uploads/powerpress/itunes_profile.jpg",
   },
+  {
+    id: "slow-german",
+    language: "de",
+    title: "Slow German mit Annik Rubens",
+    host: "Annik Rubens",
+    level: "A2",
+    description: "德国记者 Annik Rubens 慢速清晰朗读文化、生活与日常主题，每期附完整德语源文稿。",
+    feedUrl: "https://slowgerman.com/feed/",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/19/f6/0b/19f60bbe-3bb3-ce26-b346-e60dfbb3518c/mza_3134750145267089852.jpg/600x600bb.jpg",
+  },
 ];
 
-const PODCAST_CACHE_KEY = "listening:podcasts:v4";
+const PODCAST_CACHE_KEY = "listening:podcasts:v5";
 const COVER_CACHE_PREFIX = "listening:cover:v2:";
 const PODCAST_TTL_SEC = 6 * 3600;
 const COVER_TTL_SEC = 7 * 24 * 3600;
@@ -111,15 +127,24 @@ function parseDurationToSeconds(raw: string | null): number | null {
   return null;
 }
 
-export async function fetchPodcastEpisodes(forceRefresh = false): Promise<PodcastEpisode[]> {
+export async function fetchPodcastEpisodes(
+  forceRefresh = false,
+  language?: string | null
+): Promise<PodcastEpisode[]> {
+  const filterByLang = (list: PodcastEpisode[]) => {
+    if (!language) return list;
+    const target = normalizeLanguage(language);
+    return list.filter((ep) => normalizeLanguage(ep.language) === target);
+  };
+
   if (!forceRefresh) {
     if (memoryPodcastCache && memoryPodcastCache.expiresAt > Date.now()) {
-      return memoryPodcastCache.episodes;
+      return filterByLang(memoryPodcastCache.episodes);
     }
     const cached = await readJsonCache<PodcastEpisode[]>(PODCAST_CACHE_KEY);
     if (cached && cached.length > 0) {
       memoryPodcastCache = { expiresAt: Date.now() + 10 * 60 * 1000, episodes: cached };
-      return cached;
+      return filterByLang(cached);
     }
   }
 
@@ -133,13 +158,14 @@ export async function fetchPodcastEpisodes(forceRefresh = false): Promise<Podcas
       return Promise.all(
         audioItems.map(async (item): Promise<PodcastEpisode> => {
           const fullText = stripHtmlToText(item.contentHtml || item.description);
-          const cleanDesc = (fullText || item.description).slice(0, 6000);
+          const cleanDesc = (fullText || item.description).slice(0, 8000);
           const fallbackCover = item.coverUrl || show.coverUrl || channelImageUrl || "";
           const coverUrl = item.coverUrl
             ? item.coverUrl
             : await resolveEpisodeCover(item.link, fallbackCover);
           return {
             id: `${show.id}-${stableShortHash(item.enclosureUrl!)}`,
+            language: show.language,
             showId: show.id,
             showTitle: show.title,
             level: show.level,
@@ -175,5 +201,5 @@ export async function fetchPodcastEpisodes(forceRefresh = false): Promise<Podcas
     await writeJsonCache(PODCAST_CACHE_KEY, episodes, PODCAST_TTL_SEC);
   }
 
-  return episodes;
+  return filterByLang(episodes);
 }

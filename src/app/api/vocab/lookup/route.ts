@@ -1,9 +1,11 @@
+// Timestamp: 2026-11-17 14:55
 import { getOptionalUserId } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
 import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
 import { type DictionaryEntry, lookupDictionary } from "@/lib/dictionary";
+import { resolveGermanSeparableVerb } from "@/lib/german-lexicon";
 import {
   detectQueryLanguage,
   normalizeLanguage,
@@ -85,8 +87,23 @@ function nounForms(entry: LexiconEntry) {
   const plural = typeof morphology?.plural === "string" ? morphology.plural : null;
   if (!singular || !plural) return undefined;
 
+  const genderFromMorph =
+    morphology?.gender === "m" ||
+    morphology?.gender === "f" ||
+    morphology?.gender === "n" ||
+    morphology?.gender === "mf"
+      ? morphology.gender
+      : null;
   const pos = entry.partOfSpeech?.toLowerCase() ?? "";
-  const gender = pos.includes("noun_mf") ? "mf" : pos.includes("noun_f") ? "f" : "m";
+  const gender =
+    genderFromMorph ??
+    (pos.includes("noun_mf") || pos.includes("n.mf")
+      ? "mf"
+      : pos.includes("noun_f") || pos.includes("n.f")
+        ? "f"
+        : pos.includes("noun_n") || pos.includes("n.n")
+          ? "n"
+          : "m");
   return { singular, plural, gender };
 }
 
@@ -190,6 +207,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const word = searchParams.get("word")?.trim() ?? "";
+  const context = searchParams.get("context")?.trim() ?? "";
 
   if (!word) {
     return NextResponse.json({ error: "word is required" }, { status: 400 });
@@ -201,16 +219,19 @@ export async function GET(request: Request) {
     userId
   );
   const detectedLanguage = detectQueryLanguage(word);
+  const sepMatch =
+    language === "de" ? resolveGermanSeparableVerb(word, context) : null;
+  const lookupTerm = sepMatch?.lemma ?? word;
 
   try {
-    const relatedEntries = await findRelatedPhraseEntries(word, language);
-    const constructionEntry = await findConstructionEntry(word, language);
+    const relatedEntries = await findRelatedPhraseEntries(lookupTerm, language);
+    const constructionEntry = await findConstructionEntry(lookupTerm, language);
     const relatedPhrases = relatedEntries.map((entry) => ({
       lemma: entry.lemma,
       translationZh: entry.translationZh,
       kind: entry.kind
     }));
-    const lexiconEntry = await findLexiconLookupEntry(word, language);
+    const lexiconEntry = await findLexiconLookupEntry(lookupTerm, language);
     if (lexiconEntry) {
       await incrementLookupCount(lexiconEntry.id);
       const payload = {
@@ -237,7 +258,10 @@ export async function GET(request: Request) {
       }
     }
 
-    const entry = await lookupDictionary(word, { language: normalizeLanguage(language) });
+    const entry = await lookupDictionary(word, {
+      language: normalizeLanguage(language),
+      context: context || undefined
+    });
 
     if (!entry) {
       reportLookupFailure(word, new Error("dictionary returned null"));

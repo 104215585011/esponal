@@ -1,7 +1,8 @@
-// Timestamp: 2026-11-16 14:48
+// Timestamp: 2026-11-17 15:08
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
+import { normalizeLanguage } from "@/lib/languages";
 import { isAllowedPodcastAudioUrl, type PodcastCue } from "@/lib/listening-audio";
 import {
   extractTranscriptFromHtml,
@@ -185,6 +186,8 @@ export async function POST(request: Request) {
     durationSec?: unknown;
     pageUrl?: unknown;
     sourceText?: unknown;
+    language?: unknown;
+    lang?: unknown;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -198,6 +201,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unsupported_audio_url" }, { status: 400 });
   }
 
+  const language = normalizeLanguage(
+    typeof body.language === "string"
+      ? body.language
+      : typeof body.lang === "string"
+        ? body.lang
+        : "es"
+  );
   const requestedStart =
     typeof body.startSec === "number" && Number.isFinite(body.startSec)
       ? Math.max(0, Math.floor(body.startSec))
@@ -209,11 +219,16 @@ export async function POST(request: Request) {
       : 1200;
 
   const urlHash = createHash("sha1").update(target.toString()).digest("hex").slice(0, 12);
-  const cacheKey = `listening:sub:v4:${urlHash}:${windowStartSec}`;
+  const cacheKey =
+    language === "es"
+      ? `listening:sub:v4:${urlHash}:${windowStartSec}`
+      : `listening:sub:v4:${language}:${urlHash}:${windowStartSec}`;
   const cached = await readJsonCache<PodcastCue[]>(cacheKey);
   if (cached && cached.length > 0) {
     return NextResponse.json({
       cues: cached,
+      available: true,
+      language,
       windowStartSec,
       windowEndSec: windowStartSec + WINDOW_SEC,
       cached: true
@@ -230,12 +245,15 @@ export async function POST(request: Request) {
       sentences: clientTx.sentences,
       coveredUntilSec: clientTx.coveredUntilSec,
       windowStartSec,
-      windowSec: WINDOW_SEC
+      windowSec: WINDOW_SEC,
+      language
     });
     if (cues && cues.length > 0) {
       await writeJsonCache(cacheKey, cues, 7 * 24 * 3600);
       return NextResponse.json({
         cues,
+        available: true,
+        language,
         windowStartSec,
         windowEndSec: windowStartSec + WINDOW_SEC,
         source: "article-text",
@@ -252,12 +270,15 @@ export async function POST(request: Request) {
         sentences: pageTx.sentences,
         coveredUntilSec: pageTx.coveredUntilSec,
         windowStartSec,
-        windowSec: WINDOW_SEC
+        windowSec: WINDOW_SEC,
+        language
       });
       if (cues && cues.length > 0) {
         await writeJsonCache(cacheKey, cues, 7 * 24 * 3600);
         return NextResponse.json({
           cues,
+          available: true,
+          language,
           windowStartSec,
           windowEndSec: windowStartSec + WINDOW_SEC,
           source: "transcript",
@@ -343,6 +364,17 @@ export async function POST(request: Request) {
 
   const actualWindowSec = Math.max(15, Math.min(40, Math.round(mp3Buf.length / effectiveBps)));
 
+  const langDisplayName =
+    language === "de"
+      ? "German"
+      : language === "en"
+        ? "English"
+        : language === "fr"
+          ? "French"
+          : language === "ja"
+            ? "Japanese"
+            : "Spanish";
+
   let aiRes: Response;
   try {
     aiRes = await fetch(DASHSCOPE_COMPAT_URL, {
@@ -359,7 +391,7 @@ export async function POST(request: Request) {
         messages: [
           {
             role: "system",
-            content: `Transcribe this ~${actualWindowSec}s Spanish podcast excerpt into 4-8 chronological cues paired with natural Simplified Chinese translations. Output ONLY a JSON array: [{"offsetSec":0,"es":"...","zh":"..."}].`
+            content: `Transcribe this ~${actualWindowSec}s ${langDisplayName} podcast excerpt into 4-8 chronological cues paired with natural Simplified Chinese translations. Output ONLY a JSON array: [{"offsetSec":0,"es":"...","zh":"..."}].`
           },
           {
             role: "user",
@@ -410,6 +442,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     cues,
+    available: cues.length > 0,
+    language,
     windowStartSec,
     windowEndSec: windowStartSec + actualWindowSec,
     source: "ai-asr",
