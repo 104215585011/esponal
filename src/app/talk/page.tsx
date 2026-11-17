@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 11:18
+// Timestamp: 2026-11-17 13:54
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -33,7 +33,7 @@ export default async function TalkIndexPage() {
             选择一位 AI 老师
           </h1>
           <p className="mt-1.5 text-[13px] font-light leading-relaxed text-zinc-500 dark:text-zinc-400 md:text-sm">
-            用真人感的对话练口语。Carlos 是西语母语者，也是 Esponal 的默认推荐。
+            用真人感的对话练口语。Carlos 是西语母语者，也是 LinguaMind 的默认推荐。
           </p>
         </header>
 

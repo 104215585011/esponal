@@ -729,7 +729,7 @@ function showLoginHint() {
   link.href = ESPONAL_LOGIN_URL;
   link.target = "_blank";
   link.rel = "noreferrer";
-  link.textContent = "前往 Esponal 登录";
+  link.textContent = "前往 LinguaMind 登录";
   link.style.color = "#9CA3AF";
   loginHint.replaceChildren(link);
 }

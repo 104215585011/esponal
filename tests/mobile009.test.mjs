@@ -58,7 +58,7 @@ test("MOBILE-009 avatar drawer keeps only secondary destinations and uses correc
   assert.match(mobileNav, /个人信息/);
   assert.match(mobileNav, /次级功能/);
   assert.match(mobileNav, /设置/);
-  assert.match(mobileNav, /Esponal 积分/);
+  assert.match(mobileNav, /LinguaMind 积分/);
   assert.match(mobileNav, /积分订阅/);
   assert.match(mobileNav, /const primaryItems/);
   assert.match(mobileNav, /const primaryLandingPaths/);

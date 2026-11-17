@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 13:24
+// Timestamp: 2026-11-17 13:54
 import Link from "next/link";
 import EmptyState from "@/app/components/ui/EmptyState";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -111,7 +111,7 @@ function MobileLearnOverview({ units }: { units: UnitManifestEntry[] }) {
         </div>
       </section>
 
-      <div className="mt-[36px] px-[22px] text-[11px] tracking-[0.06em] text-zinc-300">Esponal</div>
+      <div className="mt-[36px] px-[22px] text-[11px] tracking-[0.06em] text-zinc-300">LinguaMind</div>
     </div>
   );
 }
@@ -174,7 +174,7 @@ function DesktopLearnOverview({ units }: { units: UnitManifestEntry[] }) {
     <div className="hidden md:block">
       <section className="rounded-hero bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400 px-5 py-6 text-white shadow-card sm:px-8 md:py-8 md:shadow-hero">
         <p className="text-sm font-medium uppercase tracking-[0.18em] text-brand-100 font-display">
-          Esponal Curriculum
+          LinguaMind Curriculum
         </p>
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">

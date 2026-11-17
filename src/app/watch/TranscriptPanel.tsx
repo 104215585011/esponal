@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 13:02
+// Timestamp: 2026-11-17 13:54
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -375,7 +375,7 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
     context.fillRect(0, 0, PDF_CANVAS_WIDTH, PDF_CANVAS_HEIGHT);
     context.fillStyle = "#18181b";
     context.font = `700 38px ${PDF_FONT_STACK}`;
-    context.fillText("Esponal 字幕讲义", PDF_MARGIN_X, 76);
+    context.fillText("LinguaMind 字幕讲义", PDF_MARGIN_X, 76);
     context.fillStyle = "#71717a";
     context.font = `500 18px ${PDF_FONT_STACK}`;
     context.fillText(title, PDF_MARGIN_X, 108);
@@ -392,7 +392,7 @@ function renderTranscriptPdfPages(rows: PdfRow[], displayMode: DisplayMode, titl
     context.textAlign = "center";
     context.fillText(`第 ${pageNumber} 页`, PDF_CANVAS_WIDTH / 2, PDF_CANVAS_HEIGHT - 48);
     context.textAlign = "right";
-    context.fillText("Esponal — 西班牙语学习平台", PDF_CANVAS_WIDTH - PDF_MARGIN_X, PDF_CANVAS_HEIGHT - 48);
+    context.fillText("LinguaMind — 西班牙语学习平台", PDF_CANVAS_WIDTH - PDF_MARGIN_X, PDF_CANVAS_HEIGHT - 48);
     context.textAlign = "left";
     pages.push({
       dataUrl: canvas.toDataURL("image/jpeg", 0.92),
@@ -1681,7 +1681,7 @@ export function TranscriptPanel({
             description={
               extensionInstalled
                 ? "去 YouTube 看一遍，扩展会自动采集回来。"
-                : "装上 Esponal 扩展后，在 YouTube 看一遍即可自动归档。"
+                : "装上 LinguaMind 扩展后，在 YouTube 看一遍即可自动归档。"
             }
             kind="empty"
             secondaryAction={
@@ -1697,7 +1697,7 @@ export function TranscriptPanel({
           />
         ) : showEmptyState ? (
           <EmptyState
-            description="Esponal 只能在有字幕的视频上工作"
+            description="LinguaMind 只能在有字幕的视频上工作"
             kind="empty"
             title="这个视频没有字幕"
           />

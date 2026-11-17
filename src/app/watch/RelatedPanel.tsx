@@ -31,7 +31,7 @@ export function RelatedPanel({ relatedVideos }: RelatedPanelProps) {
                   alt={video.title}
                   className="h-full w-full object-cover"
                   loading="lazy"
-                  src={video.thumbnail || "https://placehold.co/320x180?text=Esponal"}
+                  src={video.thumbnail || "https://placehold.co/320x180?text=LinguaMind"}
                 />
                 {video.duration ? (
                   <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-white">

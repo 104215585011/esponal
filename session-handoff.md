@@ -1,3 +1,8 @@
+### 2026-11-17 13:54 · LinguaMind 品牌更新
+
+- 用户指定暂用 LinguaMind 和双色圆角图标。更新 Web 页头、站点与 PWA 图标、扩展名称及下载包，以及 Android Expo 名称、启动图、桌面与自适应图标。
+- 保留应用包名、深链和现有下载地址。未发布 Vercel 或 APK，等待浏览器与 Android 真机验收。
+
 ## Codex1 Hotfix Report: IMPORT-7 M1 epub.js production load fix
 **Time**: 2026-06-11 16:05
 **From**: Codex1 (DEV)

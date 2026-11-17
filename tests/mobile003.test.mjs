@@ -46,7 +46,7 @@ test("MOBILE-003 hero is lightweight on mobile and restores the old desktop hero
 test("MOBILE-003 homepage uses mockup-style mobile stats and a horizontal learning rail", async () => {
   const source = await readText("src/app/page.tsx");
 
-  assert.match(source, /Timestamp: 2026-06-04 10:53|Timestamp: 2026-06-04 11:|Timestamp: 2026-06-04 12:/);
+  assert.match(source, /Timestamp: \d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
   assert.match(source, /mt-\[38px\] md:mt-16/);
   assert.match(source, /mx-\[22px\] mt-\[24px\] flex overflow-hidden rounded-\[16px\] border border-zinc-200\/70 bg-white/);
   assert.match(source, /px-4 py-\[14px\]/);

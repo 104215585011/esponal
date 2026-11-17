@@ -191,7 +191,7 @@ test("EXT-008 TranscriptPanel guides users differently depending on extension in
   assert.match(panel, /dataset\.esponalExt/);
   assert.match(panel, /这个视频暂时没有高质量字幕/);
   assert.match(panel, /扩展会自动采集回来/);
-  assert.match(panel, /装上 Esponal 扩展后/);
+  assert.match(panel, /装上 LinguaMind 扩展后/);
   assert.match(panel, /在 YouTube 打开/);
   assert.match(panel, /安装扩展/);
   assert.match(panel, /先去 YouTube 看/);

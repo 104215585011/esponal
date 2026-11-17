@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 13:02
+// Timestamp: 2026-11-17 13:54
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_SC, Plus_Jakarta_Sans } from "next/font/google";
 import { Suspense } from "react";
@@ -21,13 +21,13 @@ const notoSansSc = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "Esponal",
+  title: "LinguaMind",
   description: "面向中文母语者的西班牙语学习平台",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Esponal"
+    title: "LinguaMind"
   },
   icons: {
     icon: "/favicon.ico",

@@ -40,7 +40,7 @@ test("HOME-001 homepage adds learning path and tools while keeping curated video
   assert.match(page, /\/vocab/);
   assert.match(page, /curatedChannels/);
   assert.match(page, /video-sections/);
-  assert.match(page, /Esponal 为中文母语者设计的西语学习平台/);
+  assert.match(page, /LinguaMind 为中文母语者设计的西语学习平台/);
 });
 
 test("HOME-001 learning path keeps desktop arrows without forbidden progress rings or fake guest stats", async () => {

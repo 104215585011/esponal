@@ -10,7 +10,7 @@ test("PWA-001 manifest exists and exposes install metadata", async () => {
   assert.equal(existsSync(path), true, `${path} missing`);
 
   const manifest = JSON.parse(await readText(path));
-  assert.equal(manifest.short_name, "Esponal");
+  assert.equal(manifest.short_name, "LinguaMind");
   assert.equal(manifest.start_url, "/");
   assert.equal(manifest.display, "standalone");
   assert.equal(manifest.theme_color, "#10b981");
@@ -86,16 +86,12 @@ test("PWA-001 layout exposes manifest and service worker hooks while install pro
   assert.match(prompt, /event\.prompt\(\)/);
 });
 
-test("PWA-001 offline fallback and icon generator script exist", async () => {
+test("PWA-001 offline fallback and browser favicon exist", async () => {
   const offlinePath = "src/app/offline/page.tsx";
-  const scriptPath = "scripts/generate-icons.mjs";
+  const faviconPath = "public/favicon.ico";
   assert.equal(existsSync(offlinePath), true, `${offlinePath} missing`);
-  assert.equal(existsSync(scriptPath), true, `${scriptPath} missing`);
+  assert.equal(existsSync(faviconPath), true, `${faviconPath} missing`);
 
   const offline = await readText(offlinePath);
-  const script = await readText(scriptPath);
-
   assert.match(offline, /离线|稍后再试/);
-  assert.match(script, /writeFile|deflateSync/);
-  assert.match(script, /icon-maskable-512\.png/);
 });

@@ -45,7 +45,7 @@ test("WATCH-004 transcript user-facing Chinese copy is not mojibake", async () =
   const transcriptPanel = await readText("src/app/watch/TranscriptPanel.tsx");
 
   assert.match(transcriptPanel, /这个视频暂时没有高质量字幕/);
-  assert.match(transcriptPanel, /Esponal 只能在有字幕的视频上工作/);
+  assert.match(transcriptPanel, /LinguaMind 只能在有字幕的视频上工作/);
   assert.match(transcriptPanel, /这个视频没有字幕/);
   assert.match(transcriptPanel, /在 YouTube 打开/);
   assert.match(transcriptPanel, /安装扩展/);

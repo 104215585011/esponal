@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-01 22:15
+// Timestamp: 2026-11-17 13:54
 "use client";
 
 import { useState } from "react";
@@ -221,7 +221,7 @@ export function WatchDesktopLayout({
             {nextVideo?.title ?? "继续找一段适合现在的西语视频"}
           </p>
           <p className="mt-1 text-[11px] text-zinc-400 dark:text-zinc-500">
-            {nextVideo?.channelTitle ?? "Esponal"}
+            {nextVideo?.channelTitle ?? "LinguaMind"}
           </p>
           <Link
             className="mt-3 inline-flex h-8 items-center rounded-full bg-brand-600 px-3 text-[12px] font-semibold text-white shadow-sm transition hover:bg-brand-700"

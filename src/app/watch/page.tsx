@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 02:48
+// Timestamp: 2026-11-17 13:54
 import EmptyState from "@/app/components/ui/EmptyState";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -40,7 +40,7 @@ async function fetchVideoInfo(videoId: string) {
   if (!videoId) {
     return {
       title: "未提供视频",
-      channelTitle: "Esponal",
+      channelTitle: "LinguaMind",
       channelId: ""
     };
   }
@@ -208,7 +208,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           </div>
 
           <footer className="mt-16 border-t border-zinc-100 dark:border-zinc-800 pt-6 text-center text-xs text-zinc-400 dark:text-zinc-500">
-            Esponal · 为中文母语者设计的西语学习平台
+            LinguaMind · 为中文母语者设计的西语学习平台
           </footer>
         </div>
       )}

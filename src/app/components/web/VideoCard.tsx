@@ -20,7 +20,7 @@ export function VideoCard({ video, compact = false }: VideoCardProps) {
             alt={video.title}
             className="h-full w-full object-cover"
             loading="lazy"
-            src={video.thumbnail || "https://placehold.co/320x180?text=Esponal"}
+            src={video.thumbnail || "https://placehold.co/320x180?text=LinguaMind"}
           />
           {video.duration ? (
             <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1.5 py-0.5 text-[11px] font-medium text-white">
@@ -49,7 +49,7 @@ export function VideoCard({ video, compact = false }: VideoCardProps) {
             alt={video.title}
             className="h-full w-full object-cover"
             loading="lazy"
-            src={video.thumbnail || "https://placehold.co/480x270?text=Esponal"}
+            src={video.thumbnail || "https://placehold.co/480x270?text=LinguaMind"}
           />
           <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/10" />
           {video.duration ? (

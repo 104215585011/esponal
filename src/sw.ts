@@ -2,8 +2,8 @@
 
 declare const self: ServiceWorkerGlobalScope;
 
-const STATIC_CACHE = "esponal-static-v1";
-const PAGE_CACHE = "esponal-page-v2";
+const STATIC_CACHE = "esponal-static-v2";
+const PAGE_CACHE = "esponal-page-v3";
 const SUBTITLE_CACHE = "esponal-subtitle-v1";
 const LECTURA_AUDIO_CACHE = "esponal-lectura-audio-v1";
 const TTS_AUDIO_CACHE = "esponal-tts-audio-v1";

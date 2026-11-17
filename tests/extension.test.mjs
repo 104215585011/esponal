@@ -10,7 +10,7 @@ test("extension declares a Manifest V3 Chrome extension", async () => {
   const manifest = await readJson("extension/manifest.json");
 
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.name, "Esponal");
+  assert.equal(manifest.name, "LinguaMind");
   assert.equal(manifest.action.default_popup, "popup.html");
   assert.equal(manifest.background.service_worker, "background.js");
   assert.deepEqual(manifest.host_permissions, [
@@ -63,7 +63,7 @@ test("extension files provide background, content, and popup behavior", async ()
   assert.match(content, /ESPONAL_APP_ORIGIN/);
   assert.match(content, /api\/translate/);
   assert.match(content, /esponal-extension-ready/);
-  assert.match(popup, /Esponal/);
+  assert.match(popup, /LinguaMind/);
   assert.match(popupScript, /chrome\.tabs\.create/);
   assert.match(popupScript, /chrome\.storage\.local/);
   assert.match(popupScript, /TOGGLE_CHINESE_SUBTITLES/);

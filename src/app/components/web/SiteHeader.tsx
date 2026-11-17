@@ -1,4 +1,5 @@
-// Timestamp: 2026-06-05 14:48
+// Timestamp: 2026-11-17 13:54
+import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { PlaybackRateControl } from "@/app/components/audio/PlaybackRateControl";
@@ -27,7 +28,7 @@ export async function SiteHeader({
 }: SiteHeaderProps) {
   const session = await getServerSession(getAuthOptions());
   const userId = (session?.user as SessionUserWithId | undefined)?.id;
-  const displayName = session?.user?.name?.trim() || "Esponal User";
+  const displayName = session?.user?.name?.trim() || "LinguaMind User";
   const vocabHref = session?.user ? "/vocab" : "/auth/sign-in?callbackUrl=/vocab";
   const creditSummary = userId ? await getCreditSummary(userId) : null;
 
@@ -36,24 +37,9 @@ export async function SiteHeader({
       <div className="glass-header absolute inset-0 z-[-1]" />
       <div className="hidden md:flex mx-auto h-16 w-full max-w-app-shell items-center gap-3 px-4 sm:px-6 lg:gap-4">
         <Link className="group flex shrink-0 items-center gap-2.5" href="/">
-          <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 text-white shadow-md shadow-brand-500/20 transition-transform duration-300 group-hover:scale-105 dark:from-brand-600 dark:to-teal-400 dark:shadow-brand-950/20">
-            <svg className="h-[18px] w-[18px] text-white" fill="none" viewBox="0 0 24 24">
-              <path
-                d="M18 6H8.5C6.567 6 5 7.567 5 9.5V14.5C5 16.433 6.567 18 8.5 18H18"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="3.2"
-              />
-              <path
-                d="M5 12H15"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="3.2"
-              />
-            </svg>
-          </div>
+          <Image src="/icons/icon-192.png" alt="" width={34} height={34} className="shrink-0" />
           <span className="font-display text-[17px] font-bold tracking-tight text-zinc-900 transition-colors group-hover:text-brand-600 dark:text-zinc-50 dark:group-hover:text-brand-400">
-            Esponal
+            LinguaMind
           </span>
         </Link>
 

@@ -20,7 +20,7 @@ const features = [
 ];
 
 const steps = [
-  "下载 Esponal Chrome 插件安装包。",
+  "下载 LinguaMind Chrome 插件安装包。",
   "解压 zip 文件到一个固定文件夹。",
   "打开 chrome://extensions，并开启开发者模式。",
   "点击“加载已解压的扩展程序”，选择解压后的文件夹。"
@@ -41,7 +41,7 @@ const faqs = [
   },
   {
     question: "数据存在什么地方？",
-    answer: "账号、词库和遭遇记录保存在 Esponal 后端。后续会补充导出和更细的数据管理能力。"
+    answer: "账号、词库和遭遇记录保存在 LinguaMind 后端。后续会补充导出和更细的数据管理能力。"
   }
 ];
 
@@ -55,7 +55,7 @@ export default function ExtensionPage() {
             <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-700">
-                  Esponal Chrome Extension
+                  LinguaMind Chrome Extension
                 </p>
                 <h1 className="mt-4 max-w-2xl text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl">
                   把 YouTube 变成你的西语课堂

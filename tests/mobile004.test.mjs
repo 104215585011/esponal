@@ -21,7 +21,7 @@ test("MOBILE-004 learn overview follows the approved mockup structure on mobile"
   assert.match(source, /mt-\[14px\] flex flex-col gap-\[11px\] px-\[22px\]/);
   assert.match(source, /h-\[44px\] w-\[44px\] rounded-\[13px\]/);
   assert.match(source, /className="mt-\[36px\] px-\[22px\] text-\[11px\]/);
-  assert.match(source, /className="hidden md:block">[\s\S]*Esponal Curriculum/);
+  assert.match(source, /className="hidden md:block">[\s\S]*LinguaMind Curriculum/);
 });
 
 test("MOBILE-004 learn detail adds mobile anchor chips and safe-area spacing", async () => {

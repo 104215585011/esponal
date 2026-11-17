@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 12:08
+// Timestamp: 2026-11-17 13:54
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { ContinueLearning } from "@/app/components/web/ContinueLearning";
@@ -253,7 +253,7 @@ export default async function HomePage() {
         <div id="video-sections" className="hidden" />
 
         <footer className="mx-[22px] mt-[44px] text-[11px] tracking-[0.06em] text-zinc-300 md:mx-0 md:mt-16 md:border-t md:border-gray-100 md:pt-6 md:text-center md:text-xs md:tracking-normal md:text-gray-400">
-          Esponal 为中文母语者设计的西语学习平台
+          LinguaMind 为中文母语者设计的西语学习平台
         </footer>
       </div>
     </main>

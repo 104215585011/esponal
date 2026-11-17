@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-13 13:50
+// Timestamp: 2026-11-17 13:54
 "use client";
 
 import Link from "next/link";
@@ -34,7 +34,7 @@ export function AppShell() {
   const chromeVisible = shellActive && !immersive;
   const isTab = route?.level === "tab";
   const isRootLanding = pathname === "/";
-  const title = isRootLanding ? "" : route?.label ?? "Esponal";
+  const title = isRootLanding ? "" : route?.label ?? "LinguaMind";
 
   const goBack = useShellBack({
     closeSheet: () => setSheetMode(null),
@@ -85,7 +85,7 @@ export function AppShell() {
           <div className="flex h-[52px] items-center gap-1 px-3">
             {isRootLanding ? (
               <span className="px-2 font-display text-[19px] font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-zinc-50">
-                Esponal<span className="text-brand-500">.</span>
+                LinguaMind<span className="text-brand-500">.</span>
               </span>
             ) : (
               <>

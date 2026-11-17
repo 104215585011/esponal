@@ -1,6 +1,7 @@
-// Timestamp: 2026-06-05 14:47
+// Timestamp: 2026-11-17 13:54
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -137,24 +138,9 @@ export function MobileNav({
       >
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 dark:border-zinc-800/50">
           <Link className="group flex items-center gap-2.5" href="/" onClick={() => setOpen(false)}>
-            <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-400 text-white shadow-md shadow-brand-500/20 dark:from-brand-600 dark:to-teal-400 dark:shadow-brand-950/20">
-              <svg className="h-[18px] w-[18px] text-white" fill="none" viewBox="0 0 24 24">
-                <path
-                  d="M18 6H8.5C6.567 6 5 7.567 5 9.5V14.5C5 16.433 6.567 18 8.5 18H18"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="3.2"
-                />
-                <path
-                  d="M5 12H15"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="3.2"
-                />
-              </svg>
-            </div>
+            <Image src="/icons/icon-192.png" alt="" width={34} height={34} className="shrink-0" />
             <span className="font-display text-[17px] font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Esponal
+              LinguaMind
             </span>
           </Link>
           <button
@@ -191,9 +177,9 @@ export function MobileNav({
                 )}
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    {session?.user?.name || "Esponal User"}
+                    {session?.user?.name || "LinguaMind User"}
                   </div>
-                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Esponal 积分</div>
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">LinguaMind 积分</div>
                   {creditSummary ? (
                     <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
                       <span>⚡</span>
