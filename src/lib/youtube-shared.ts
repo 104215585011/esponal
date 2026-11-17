@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-17 16:15
+// Timestamp: 2026-11-17 23:09
 export type VideoLevel = "A1" | "A2" | "B1";
+export type SupportedVideoLanguage = "es" | "de" | "en" | "fr" | "ja";
 
 export type YouTubeVideoPayload = {
   id: string;
@@ -9,7 +10,7 @@ export type YouTubeVideoPayload = {
   channelId?: string;
   channelTitle: string;
   publishedAt: string;
-  language?: "es" | "de";
+  language?: SupportedVideoLanguage;
   level?: VideoLevel | null;
   levelSource?: "curated" | "inferred";
   topic?: string | null;

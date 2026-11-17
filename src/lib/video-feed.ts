@@ -24,7 +24,8 @@ export async function getUnifiedVideoFeed(options?: {
   perChannelLimit?: number;
 }): Promise<VideoFeedResponsePayload> {
   const norm = normalizeLanguage(options?.language);
-  const poolLang: PoolLanguage = norm === "de" ? "de" : "es";
+  const poolLang: PoolLanguage =
+    norm === "de" || norm === "en" || norm === "fr" || norm === "ja" ? norm : "es";
   const channels = getCuratedChannelsByLanguage(poolLang);
   const perChannelLimit = Math.min(20, Math.max(4, options?.perChannelLimit ?? 12));
 

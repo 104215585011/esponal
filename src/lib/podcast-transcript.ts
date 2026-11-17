@@ -60,9 +60,9 @@ function splitSentences(text: string): string[] {
   if (!raw) return [];
 
   const parts = raw
-    .split(/(?<=[.!?])\s+/)
+    .split(/(?<=[.!?])\s+|(?<=[。！？])/)
     .map((s) => s.trim())
-    .filter((s) => s.length >= 6);
+    .filter((s) => s.length >= 4);
 
   // 合并过短碎句、拆分过长整段，使每条字幕 40~130 字符阅读体验最好
   const normalized: string[] = [];

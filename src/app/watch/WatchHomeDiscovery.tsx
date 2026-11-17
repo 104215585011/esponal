@@ -40,6 +40,24 @@ const TOPICS_BY_LANG: Record<PoolLanguage, Array<{ label: string; query: string 
     { label: "日常情景", query: "Learn German Original Dialog" },
     { label: "柏林街头", query: "Easy German A1 A2" },
     { label: "慢速德语", query: "Slow German Podcast" }
+  ],
+  en: [
+    { label: "BBC 六分钟", query: "BBC Learning English 6 minute" },
+    { label: "VOA 慢速", query: "VOA Learning English everyday grammar" },
+    { label: "美式对话", query: "Speak English With Vanessa daily life" },
+    { label: "地道表达", query: "Real Easy English conversation" }
+  ],
+  fr: [
+    { label: "慢速法语", query: "Easy French slow conversation" },
+    { label: "日常讲解", query: "Francais Authentique cafe avec johan" },
+    { label: "文化播客", query: "innerFrench podcast" },
+    { label: "法语发音", query: "French pronunciation beginner" }
+  ],
+  ja: [
+    { label: "N5–N4 日语", query: "Japanese with Shun N4 N5" },
+    { label: "自然听力", query: "Speak Japanese Naturally listening" },
+    { label: "日语对谈", query: "Miku Real Japanese conversation" },
+    { label: "日常表达", query: "beginner Japanese daily conversation" }
   ]
 };
 
@@ -109,7 +127,13 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
           (saved.level ?? "all") !== (initialFeed.level ?? "all") ||
           (saved.channelId ?? null) !== (initialFeed.channelId ?? null))
       ) {
-        const nextLang: PoolLanguage = saved.language === "de" ? "de" : "es";
+        const nextLang: PoolLanguage =
+          saved.language === "de" ||
+          saved.language === "en" ||
+          saved.language === "fr" ||
+          saved.language === "ja"
+            ? saved.language
+            : "es";
         const nextLevel = saved.level ?? "all";
         const nextChannel = saved.channelId ?? null;
         const nextSeed = saved.seed;
@@ -202,7 +226,12 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
   );
 
   const levelPills = useMemo(() => {
-    const baseLabel = language === "de" ? "德语精选（全部）" : "全部";
+    const baseLabel =
+      language === "de"
+        ? "德语精选（全部）"
+        : language === "ja"
+          ? "全部 (N5–N3)"
+          : "全部";
     return [
       { key: "all", label: baseLabel },
       ...feed.availableLevels.map((lvl) => ({ key: lvl, label: lvl }))
@@ -215,11 +244,14 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
     <div className="space-y-8">
       {/* 语种与视图模式栏：跨频道推荐 vs 独立频道入口 */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-full border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="inline-flex flex-wrap rounded-full border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
           {(
             [
-              { key: "es", label: "西班牙语视频" },
-              { key: "de", label: "德语精选（首批）" }
+              { key: "es", label: "西班牙语" },
+              { key: "de", label: "德语" },
+              { key: "en", label: "英语" },
+              { key: "fr", label: "法语" },
+              { key: "ja", label: "日语" }
             ] as const
           ).map((item) => (
             <button

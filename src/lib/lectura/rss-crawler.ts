@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 15:03
+// Timestamp: 2026-11-17 23:05
 import { type LecturaStory } from "@/../content/lectura";
 import { normalizeLanguage, type LearningLanguage } from "@/lib/languages";
 import {
@@ -64,13 +64,45 @@ const NEWS_FEEDS: FeedSource[] = [
     defaultLevel: "A2",
     limit: 5,
   },
+  {
+    id: "guardian",
+    label: "The Guardian",
+    language: "en",
+    url: "https://www.theguardian.com/world/rss",
+    defaultLevel: "B1",
+    limit: 5,
+  },
+  {
+    id: "rfifr",
+    label: "RFI 法语之声",
+    language: "fr",
+    url: "https://www.rfi.fr/fr/rss",
+    defaultLevel: "B1",
+    limit: 5,
+  },
+  {
+    id: "nhk",
+    label: "NHK News",
+    language: "ja",
+    url: "https://www.nhk.or.jp/rss/news/cat0.xml",
+    defaultLevel: "B1",
+    limit: 5,
+  },
 ];
 
-// v6 缓存命名空间：为每篇阅读条目绑定明确语种与封面
-const LIST_CACHE_KEY = "lectura:rss:stories:v6";
-const STORY_CACHE_PREFIX = "lectura:rss:story:v6:";
+// v7 缓存命名空间：新增 en / fr / ja 三语真实阅读 RSS 源
+const LIST_CACHE_KEY = "lectura:rss:stories:v7";
+const STORY_CACHE_PREFIX = "lectura:rss:story:v7:";
 const LIST_TTL_SEC = 6 * 3600;
 const STORY_TTL_SEC = 24 * 3600;
+
+const LANG_READ_SUFFIX: Record<LearningLanguage, string> = {
+  es: "真实西语阅读",
+  de: "真实德语阅读",
+  en: "真实英语阅读",
+  fr: "真实法语阅读",
+  ja: "真实日语阅读",
+};
 
 let memoryListCache: { expiresAt: number; items: CrawledLecturaItem[] } | null = null;
 const memoryStoryCache = new Map<string, CrawledLecturaItem>();
@@ -85,8 +117,11 @@ function toParagraphsFromText(text: string): string[] {
 }
 
 function estimateReadingMinutes(paragraphs: string[]): number {
-  const words = paragraphs.join(" ").split(/\s+/).filter(Boolean).length;
-  return Math.max(2, Math.min(15, Math.ceil(words / 110)));
+  const joined = paragraphs.join(" ").trim();
+  const words = joined.split(/\s+/).filter(Boolean).length;
+  // 日语等无空格文本按字符数折算
+  const effectiveUnits = Math.max(words, Math.ceil(joined.length / 4));
+  return Math.max(2, Math.min(15, Math.ceil(effectiveUnits / 110)));
 }
 
 /**
@@ -194,10 +229,7 @@ export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<Crawle
           slug,
           language: feed.language,
           title: entry.title,
-          titleZh:
-            feed.language === "de"
-              ? `${feed.label} · 真实德语阅读`
-              : `${feed.label} · 真实西语阅读`,
+          titleZh: `${feed.label} · ${LANG_READ_SUFFIX[feed.language]}`,
           level: feed.defaultLevel,
           source: `${feed.label} RSS`,
           durationMin: estimateReadingMinutes(inlineParagraphs),

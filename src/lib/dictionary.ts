@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 14:50
+// Timestamp: 2026-11-17 23:02
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -57,6 +57,7 @@ type LemmaEntry = {
 type RawAIEntry = {
   lemma?: string;
   morphInfo?: string;
+  phonetic?: unknown;
   pos?: string;
   meanings?: string[];
   example?: { es?: string; zh?: string };
@@ -161,7 +162,7 @@ function validateNounForms(
     return undefined;
   }
 
-  if (language === "de") {
+  if (language === "de" || language === "fr") {
     return { singular, plural, gender };
   }
 
@@ -247,20 +248,28 @@ async function fetchAIEntry(
     `You are a ${langPromptName} (${LANGUAGE_LABELS[language]}) morphological analyzer and dictionary assistant.`,
     `The learner saw the word "${word}" in a ${langPromptName} text.`,
     context ? `Sentence context: "${context}"` : "",
-    "Step 1: Identify its lemma (infinitive/dictionary base form for verbs, including German separable verbs like aufstehen; singular nominative for nouns/adjectives).",
-    "Step 2: Generate a concise dictionary entry for that lemma in Chinese.",
+    "Step 1: Identify its lemma (infinitive/dictionary base form for verbs, including German separable verbs like aufstehen and Japanese dictionary forms like 食べる/起きる; singular nominative for nouns/adjectives).",
+    "Step 2: Generate a concise dictionary entry for that lemma in Chinese. Include phonetic (hiragana+romaji for Japanese e.g. おきる / okiru, or IPA for English/French when helpful).",
     "Return JSON only, no markdown fences.",
     "",
     language === "de"
       ? 'Verb example: {"lemma":"aufstehen","morphInfo":"可分动词 (stehe ... auf)","pos":"v.","meanings":["起床","站起来"],"example":{"es":"Ich stehe um sieben Uhr auf.","zh":"我七点钟起床。"}}'
-      : language === "es"
-        ? 'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}'
-        : 'Verb example: {"lemma":"run","morphInfo":"past tense / base","pos":"v.","meanings":["跑","运行"],"example":{"es":"I run every morning.","zh":"我每天早上跑步。"}}',
+      : language === "ja"
+        ? 'Verb example: {"lemma":"起きる","phonetic":"おきる (okiru)","morphInfo":"一段动词 · ます形 (起きます)","pos":"v.","meanings":["起床","发生"],"example":{"es":"毎朝七時に起きます。","zh":"我每天早上七点起床。"}}'
+        : language === "fr"
+          ? 'Verb example: {"lemma":"prendre","phonetic":"/pʁɑ̃dʁ/","morphInfo":"présent (je prends)","pos":"v.","meanings":["拿","乘坐","喝/吃"],"example":{"es":"Je prends le train le matin.","zh":"我早上坐火车。"}}'
+          : language === "es"
+            ? 'Verb example: {"lemma":"tener","morphInfo":"yo presente indicativo","pos":"v.","meanings":["有","拥有","持有"],"example":{"es":"Tengo hambre.","zh":"我饿了。"}}'
+            : 'Verb example: {"lemma":"commute","phonetic":"/kəˈmjuːt/","morphInfo":"past tense / base","pos":"v.","meanings":["通勤","往返"],"example":{"es":"I commute by train every morning.","zh":"我每天早上坐火车通勤。"}}',
     language === "de"
       ? 'Noun example (MUST use n.m./n.f./n.n. and include definite article + plural in forms): {"lemma":"Fahrrad","pos":"n.n.","meanings":["自行车"],"example":{"es":"Das Fahrrad ist neu.","zh":"这辆自行车是新的。"},"forms":{"singular":"das Fahrrad","plural":"die Fahrräder"}}'
-      : language === "es"
-        ? 'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}'
-        : 'Noun example: {"lemma":"table","pos":"n.","meanings":["桌子","表格"],"example":{"es":"Put the book on the table.","zh":"把书放在桌子上。"}}',
+      : language === "fr"
+        ? 'Noun example (use n.m./n.f. and include article + plural in forms): {"lemma":"gare","phonetic":"/ɡaʁ/","pos":"n.f.","meanings":["火车站"],"example":{"es":"La gare est près du centre.","zh":"火车站在市中心附近。"},"forms":{"singular":"la gare","plural":"les gares"}}'
+        : language === "ja"
+          ? 'Noun/Adjective example: {"lemma":"コーヒー","phonetic":"コーヒー (kōhī)","pos":"n.","meanings":["咖啡"],"example":{"es":"朝にコーヒーを飲みます。","zh":"早上喝咖啡。"}}'
+          : language === "es"
+            ? 'Noun example: {"lemma":"libro","pos":"n.m.","meanings":["书"],"example":{"es":"Leo un libro.","zh":"我读一本书。"},"forms":{"singular":"libro","plural":"libros"}}'
+            : 'Noun example: {"lemma":"platform","phonetic":"/ˈplætfɔːrm/","pos":"n.","meanings":["站台","平台"],"example":{"es":"Wait on platform two.","zh":"请在二号站台等候。"}}',
     language === "es"
       ? 'Adjective example: {"lemma":"rojo","pos":"adj.","meanings":["红色的"],"example":{"es":"La rosa es roja.","zh":"玫瑰是红色的。"},"forms":{"ms":"rojo","fs":"roja","mp":"rojos","fp":"rojas"}}'
       : "",
@@ -310,6 +319,11 @@ async function fetchAIEntry(
       ? parsed.morphInfo.trim()
       : morphInfo;
 
+  const aiPhonetic =
+    typeof parsed.phonetic === "string" && parsed.phonetic.trim().length > 0
+      ? parsed.phonetic.trim()
+      : null;
+
   return {
     language,
     word,
@@ -317,10 +331,10 @@ async function fetchAIEntry(
     partOfSpeech,
     meanings,
     examples: normalizeExample(parsed.example),
-    phonetic: null,
+    phonetic: aiPhonetic,
     morphInfo: aiMorphInfo,
     nounForms:
-      language === "es" || language === "de"
+      language === "es" || language === "de" || language === "fr"
         ? validateNounForms(aiLemma, partOfSpeech, parsed.forms, language)
         : undefined,
     adjectiveForms:

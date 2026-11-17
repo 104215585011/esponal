@@ -19,6 +19,11 @@ const ALLOWED_PODCAST_HOST_SUFFIXES = [
   "1001reasonstolearnspanish.com",
   "slowgerman.com",
   "svmaudio.com",
+  "tritondigital.com",
+  "audiomeans.fr",
+  "innerfrench.com",
+  "nihongoconteppei.com",
+  "redcircle.com",
   "mzstatic.com",
   "traffic.megaphone.fm"
 ];

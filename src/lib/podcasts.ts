@@ -69,9 +69,64 @@ export const CURATED_PODCASTS: PodcastShow[] = [
     coverUrl:
       "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/19/f6/0b/19f60bbe-3bb3-ce26-b346-e60dfbb3518c/mza_3134750145267089852.jpg/600x600bb.jpg",
   },
+  {
+    id: "bbc-6-minute-english",
+    language: "en",
+    title: "6 Minute English (BBC)",
+    host: "BBC Learning English",
+    level: "A2",
+    description: "BBC 经典 6 分钟英音精听节目，每期聚焦一个生活或社会话题，结构紧凑易跟听。",
+    feedUrl: "https://podcasts.files.bbci.co.uk/p02pc9tn.rss",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/ba/98/35/ba9835eb-1ef3-60e4-bf05-3d141b8d1c7a/mza_3844641997714022659.jpg/600x600bb.jpg",
+  },
+  {
+    id: "innerfrench",
+    language: "fr",
+    title: "InnerFrench",
+    host: "Hugo Cotton",
+    level: "A2",
+    description: "口碑极高的中慢速法语可理解输入播客，吐字清晰、围绕社会文化深度讲述。",
+    feedUrl: "https://podcast.innerfrench.com/feed.xml",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/5f/4b/51/5f4b5121-b307-4b0c-4ba9-3fba7aba161d/mza_1141892237621262066.jpg/600x600bb.jpg",
+  },
+  {
+    id: "rfi-francais-facile",
+    language: "fr",
+    title: "Journal en français facile (RFI)",
+    host: "RFI Savoirs",
+    level: "B1",
+    description: "法广 RFI 每日十分钟慢速法语国际新闻简报，用词规范，适合积累时事表达。",
+    feedUrl: "https://francaisfacile.rfi.fr/fr/podcasts/journal-en-fran%C3%A7ais-facile/podcast",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/e8/5c/ac/e85cacb6-6ef2-e0fa-bbc3-e4bfc135b2bf/mza_10847007516377223831.jpg/600x600bb.jpg",
+  },
+  {
+    id: "nihongo-con-teppei",
+    language: "ja",
+    title: "Nihongo con Teppei (Beginners)",
+    host: "Teppei",
+    level: "A2",
+    description: "专为初级日语学习者录制的 4 分钟自然日语闲聊，高频复现日常词汇与生活语法。",
+    feedUrl: "http://nihongoconteppei.com/feed/podcast",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts123/v4/6a/30/4c/6a304ce0-6794-5472-f436-c687bdda2745/mza_7253643594919702969.png/600x600bb.jpg",
+  },
+  {
+    id: "japanese-with-shun",
+    language: "ja",
+    title: "Japanese with Shun",
+    host: "Shun",
+    level: "A2",
+    description: "围绕 JLPT N5–N4 日常词汇展开的温和日语听力节目，语速友善清晰。",
+    feedUrl: "https://feeds.redcircle.com/e8ab057c-683d-4375-a197-2dcc42d4f851",
+    coverUrl:
+      "https://is1-ssl.mzstatic.com/image/thumb/Podcasts221/v4/8a/8e/3e/8a8e3e9f-6810-1658-a4aa-a16bcef05960/mza_7363683509923378665.jpg/600x600bb.jpg",
+  },
 ];
 
-const PODCAST_CACHE_KEY = "listening:podcasts:v5";
+const PODCAST_CACHE_KEY = "listening:podcasts:v6";
 const COVER_CACHE_PREFIX = "listening:cover:v2:";
 const PODCAST_TTL_SEC = 6 * 3600;
 const COVER_TTL_SEC = 7 * 24 * 3600;

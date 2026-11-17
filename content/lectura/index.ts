@@ -37,6 +37,15 @@ import { losApodosCarinosos } from "./los-apodos-carinosos";
 import { deMorgenroutine } from "./de-morgenroutine";
 import { deWochenendeImPark } from "./de-wochenende-im-park";
 import { deAufDemMarkt } from "./de-auf-dem-markt";
+import { enMorningCoffee } from "./en-morning-coffee";
+import { enLondonWeekend } from "./en-london-weekend";
+import { enBookshopRain } from "./en-bookshop-rain";
+import { frMatinAParis } from "./fr-matin-a-paris";
+import { frMarcheDimanche } from "./fr-marche-dimanche";
+import { frVoyageTrain } from "./fr-voyage-train";
+import { jaAsaNoKoohii } from "./ja-asa-no-koohii";
+import { jaKyotoSanpo } from "./ja-kyoto-sanpo";
+import { jaSuperKaimono } from "./ja-super-kaimono";
 
 export type { LecturaLevel, LecturaStory } from "./types";
 
@@ -45,6 +54,18 @@ export const lecturaStories: LecturaStory[] = [
   deMorgenroutine,
   deWochenendeImPark,
   deAufDemMarkt,
+  // English A1-A2
+  enMorningCoffee,
+  enLondonWeekend,
+  enBookshopRain,
+  // Français A1-A2
+  frMatinAParis,
+  frMarcheDimanche,
+  frVoyageTrain,
+  // 日本語 N5-N4 (A1-A2)
+  jaAsaNoKoohii,
+  jaKyotoSanpo,
+  jaSuperKaimono,
   // Originales (5)
   laTortugaYLaLiebre,
   elLeonYElRaton,

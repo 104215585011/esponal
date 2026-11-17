@@ -60,6 +60,13 @@ const COMMON_GERMAN_ONLY_WORDS = new Set([
   "stehe", "stehen", "ist", "sind", "bin", "bist", "haben", "habe"
 ]);
 
+const COMMON_FRENCH_ONLY_WORDS = new Set([
+  "bonjour", "bonsoir", "merci", "salut", "oui", "toujours", "jamais",
+  "avec", "dans", "pour", "vous", "nous", "elles", "suis", "sont",
+  "cette", "mais", "très", "être", "avoir", "faire", "aller", "demain",
+  "aujourd'hui", "français", "française", "gare", "matin", "prendre"
+]);
+
 export function detectQueryLanguage(text: string): LearningLanguage | null {
   const cleaned = text.trim().toLowerCase();
   if (!cleaned) return null;
@@ -68,12 +75,15 @@ export function detectQueryLanguage(text: string): LearningLanguage | null {
   if (/ß/.test(cleaned)) return "de";
   if (/[ñ¿¡]/i.test(cleaned)) return "es";
   if (/[äö]/i.test(cleaned)) return "de";
-  if (/[áéíóú]/i.test(cleaned)) return "es";
   if (/[àâæçèêëîïôœùûÿ]/i.test(cleaned)) return "fr";
+  if (/[áéíóú]/i.test(cleaned)) return "es";
 
   const tokens = cleaned.split(/\s+/).filter(Boolean);
   if (tokens.some((token) => COMMON_GERMAN_ONLY_WORDS.has(token))) {
     return "de";
+  }
+  if (tokens.some((token) => COMMON_FRENCH_ONLY_WORDS.has(token))) {
+    return "fr";
   }
   if (tokens.some((token) => COMMON_ENGLISH_ONLY_WORDS.has(token))) {
     return "en";

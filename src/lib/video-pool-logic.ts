@@ -1,7 +1,7 @@
-// Timestamp: 2026-11-17 16:16
-import type { VideoLevel, YouTubeVideoPayload } from "./youtube-shared";
+// Timestamp: 2026-11-17 22:56
+import type { SupportedVideoLanguage, VideoLevel, YouTubeVideoPayload } from "./youtube-shared";
 
-export type PoolLanguage = "es" | "de";
+export type PoolLanguage = SupportedVideoLanguage;
 
 export type ChannelSourceInfo = {
   id: string;
@@ -50,7 +50,7 @@ type CuratedVideoMeta = {
  * 频道仅代表内容来源；难度挂在单条视频上，Android 与 Web 共用同一规则。
  */
 export const CURATED_VIDEO_META: Record<string, CuratedVideoMeta> = {
-  // === 德语首批已验真有原文字幕的视频池（跨三个精选频道） ===
+  // === 德语 (de) ===
   mRGBj128pX4: {
     language: "de",
     level: "A1",
@@ -169,31 +169,116 @@ export const CURATED_VIDEO_META: Record<string, CuratedVideoMeta> = {
     duration: "PT15M29S"
   },
 
-  // === 西语单条覆盖（说明同频道下存在跨难度单条视频） ===
-  "5GoCkgdVqdo": {
-    language: "es",
+  // === 西语 (es) ===
+  "5GoCkgdVqdo": { language: "es", level: "A1", topic: "发音入门" },
+  L4NhZKk1MPk: { language: "es", level: "A1", topic: "慢速故事" },
+  ArNLvtcjf30: { language: "es", level: "A2", topic: "学习心态" },
+  "12bbekXC7Zo": { language: "es", level: "A2", topic: "历史地理" },
+  "sh-K-uiJV8s": { language: "es", level: "B1", topic: "长对话播客" },
+
+  // === 英语 (en) ===
+  q4PkX8_xUYk: {
+    language: "en",
     level: "A1",
-    topic: "发音入门"
+    topic: "日常语法",
+    channelId: "UCKyTokYo0nK2OA-az-sDijA",
+    channelTitle: "VOA Learning English",
+    title: "Everyday Grammar Video: Ramen, A Popular Food in Japan",
+    duration: "PT1M10S"
   },
-  L4NhZKk1MPk: {
-    language: "es",
-    level: "A1",
-    topic: "慢速故事"
-  },
-  ArNLvtcjf30: {
-    language: "es",
+  lbdsHwea9yk: {
+    language: "en",
     level: "A2",
-    topic: "学习心态"
+    topic: "词汇百科",
+    channelId: "UCHaHD477h-FeBbVh9Sh7syA",
+    channelTitle: "BBC Learning English",
+    title: "What causes tropical storms? Weather words",
+    duration: "PT2M25S"
   },
-  "12bbekXC7Zo": {
-    language: "es",
+  Z6pHAPhiQqM: {
+    language: "en",
     level: "A2",
-    topic: "历史地理"
+    topic: "轻松对话",
+    channelId: "UCHaHD477h-FeBbVh9Sh7syA",
+    channelTitle: "BBC Learning English",
+    title: "Do you like to relax in the countryside? | Improve your listening with Real Easy English",
+    duration: "PT7M17S"
   },
-  "sh-K-uiJV8s": {
-    language: "es",
+  YF2RL3D8IB4: {
+    language: "en",
     level: "B1",
-    topic: "长对话播客"
+    topic: "生活场景",
+    channelId: "UCxJGMJbjokfnr2-s4_RXPxQ",
+    channelTitle: "Speak English With Vanessa",
+    title: "Daily Life English with PICTURES",
+    duration: "PT22M0S"
+  },
+
+  // === 法语 (fr) ===
+  GP7NNcgK8H4: {
+    language: "fr",
+    level: "A1",
+    topic: "慢速对话",
+    channelId: "UCoUWq2QawqdC3-nRXKk-JUw",
+    channelTitle: "Easy French",
+    title: "How to Talk About What You Like in French (Slow French Conversation)",
+    duration: "PT6M30S"
+  },
+  _lu1rDsf3oc: {
+    language: "fr",
+    level: "B1",
+    topic: "时事讨论",
+    channelId: "UCQpM25U6iqaRSO-SZxd5oDw",
+    channelTitle: "Français Authentique",
+    title: "Et si la France quittait l'Union européenne ? (Café Avec Johan 23)",
+    duration: "PT12M0S"
+  },
+  kTSnYNClAao: {
+    language: "fr",
+    level: "A2",
+    topic: "深度播客",
+    channelId: "UCI4xp8qHD1MDErkqxb1dPbA",
+    channelTitle: "innerFrench",
+    title: "E199 Et si on se rencontrait ?",
+    duration: "PT29M27S"
+  },
+
+  // === 日语 (ja) ===
+  wItsg1V4g0s: {
+    language: "ja",
+    level: "A1",
+    topic: "N5–N4 入门",
+    channelId: "UCu6sZrHyl4hSS2PvlUo2XZA",
+    channelTitle: "Japanese with Shun",
+    title: "Do you know N4 but can't use it yet?🇯🇵",
+    duration: "PT1M36S"
+  },
+  bEbs3sCwdFo: {
+    language: "ja",
+    level: "A2",
+    topic: "学习建议",
+    channelId: "UCu6sZrHyl4hSS2PvlUo2XZA",
+    channelTitle: "Japanese with Shun",
+    title: "Is N4 Enough to Speak Japanese? The Honest Answer",
+    duration: "PT15M53S"
+  },
+  S4xz1Nrxgzw: {
+    language: "ja",
+    level: "A2",
+    topic: "日本文化",
+    channelId: "UCSbH_BPR_AoARW6RDYLlLog",
+    channelTitle: "Speak Japanese Naturally",
+    title: "Nostalgic Japan | Japanese Listening Practice",
+    duration: "PT10M30S"
+  },
+  "6xJfcoEaf3k": {
+    language: "ja",
+    level: "B1",
+    topic: "深度听力",
+    channelId: "UCsQCbl3a9FtYvA55BxdzYiQ",
+    channelTitle: "Miku Real Japanese",
+    title: "Why We See What We Believe | Japanese Listening Practice",
+    duration: "PT23M10S"
   }
 };
 
@@ -206,10 +291,10 @@ export function parseIsoDurationSeconds(duration: string): number {
 function inferTopic(title: string, channelTag: string): string {
   const lower = title.toLowerCase();
   if (/podcast|播客/.test(lower)) return "长对话播客";
-  if (/news|kurz und leicht|noticias/.test(lower)) return "慢速新闻";
-  if (/food|küche|comida|drink|cook|eat|tafelspitz/.test(lower)) return "饮食文化";
-  if (/dialog|conversation|bistro|büro|talk/.test(lower)) return "情景对话";
-  if (/beginner|anfänger|pronunciation|grammatik|fehler|richtig/.test(lower)) return "入门讲解";
+  if (/news|kurz und leicht|noticias|voa|report/.test(lower)) return "新闻听力";
+  if (/food|küche|comida|drink|cook|ramen|tafelspitz/.test(lower)) return "饮食文化";
+  if (/dialog|conversation|bistro|büro|talk|slow french|easy english/.test(lower)) return "情景对话";
+  if (/beginner|anfänger|pronunciation|grammar|grammatik|n5|n4|a1/.test(lower)) return "入门讲解";
   return channelTag || "精选输入";
 }
 
@@ -226,13 +311,13 @@ export function inferSingleVideoLevel(
   const title = video.title ?? "";
   const durSec = parseIsoDurationSeconds(video.duration);
 
-  if (/\bA1\b|superbeginner|for beginners|principiante|anfänger/i.test(title)) {
+  if (/\bA1\b|\bN5\b|superbeginner|for beginners|principiante|anfänger|slow french|real easy/i.test(title)) {
     return { level: "A1", levelSource: "inferred" };
   }
-  if (/\bA2\b|kurz und leicht|a1-a2/i.test(title)) {
+  if (/\bA2\b|\bN4\b|kurz und leicht|a1-a2|everyday grammar/i.test(title)) {
     return { level: "A2", levelSource: "inferred" };
   }
-  if (/\bB1\b|\bB2\b|\bC1\b|advanced|avanzado/i.test(title)) {
+  if (/\bB1\b|\bB2\b|\bC1\b|\bN3\b|\bN2\b|\bN1\b|advanced|avanzado/i.test(title)) {
     return { level: "B1", levelSource: "inferred" };
   }
   if (/intermediate|intermedio/i.test(title)) {
@@ -240,7 +325,6 @@ export function inferSingleVideoLevel(
   }
 
   if (language === "de") {
-    // 德语首版只给有把握的视频标难度；无法把握的留空归入「全部 / 德语精选」
     if (durSec > 0 && durSec <= 55 && /learn german|sprachtipp/i.test(title)) {
       return { level: "A1", levelSource: "inferred" };
     }
@@ -248,6 +332,45 @@ export function inferSingleVideoLevel(
       return { level: "B1", levelSource: "inferred" };
     }
     return { level: null };
+  }
+
+  if (language === "en") {
+    if (channelId === "UCKyTokYo0nK2OA-az-sDijA") {
+      return { level: durSec >= 240 ? "A2" : "A1", levelSource: "inferred" };
+    }
+    if (channelId === "UCHaHD477h-FeBbVh9Sh7syA") {
+      return { level: durSec >= 480 ? "B1" : durSec > 0 && durSec <= 120 ? "A1" : "A2", levelSource: "inferred" };
+    }
+    if (channelId === "UCxJGMJbjokfnr2-s4_RXPxQ") {
+      return { level: durSec >= 720 ? "B1" : "A2", levelSource: "inferred" };
+    }
+    return { level: "A2", levelSource: "inferred" };
+  }
+
+  if (language === "fr") {
+    if (channelId === "UCoUWq2QawqdC3-nRXKk-JUw") {
+      return { level: /slow french/i.test(title) || (durSec > 0 && durSec <= 180) ? "A1" : "A2", levelSource: "inferred" };
+    }
+    if (channelId === "UCQpM25U6iqaRSO-SZxd5oDw") {
+      return { level: durSec >= 600 ? "B1" : "A2", levelSource: "inferred" };
+    }
+    if (channelId === "UCI4xp8qHD1MDErkqxb1dPbA") {
+      return { level: durSec >= 1800 ? "B1" : "A2", levelSource: "inferred" };
+    }
+    return { level: "A2", levelSource: "inferred" };
+  }
+
+  if (language === "ja") {
+    if (channelId === "UCu6sZrHyl4hSS2PvlUo2XZA") {
+      return { level: durSec > 0 && durSec <= 180 ? "A1" : "A2", levelSource: "inferred" };
+    }
+    if (channelId === "UCSbH_BPR_AoARW6RDYLlLog") {
+      return { level: durSec >= 900 ? "B1" : "A2", levelSource: "inferred" };
+    }
+    if (channelId === "UCsQCbl3a9FtYvA55BxdzYiQ") {
+      return { level: durSec >= 1200 ? "B1" : "A2", levelSource: "inferred" };
+    }
+    return { level: "A2", levelSource: "inferred" };
   }
 
   // 西语频道（Dreaming Spanish / Spanish Okay / Easy Spanish）按片长与标题信号给单条视频打级
@@ -325,7 +448,6 @@ const NEARBY_ORDER: Record<VideoLevel, VideoLevel[]> = {
 const ALL_LEVELS: VideoLevel[] = ["A1", "A2", "B1"];
 
 export function defaultSessionSeed(nowMs = Date.now()): number {
-  // 默认按小时分桶：同一次浏览（60 分钟内）切进视频再回来保持同一批顺序，主动刷新传新 seed 才轮换
   return Math.floor(nowMs / (1000 * 60 * 60));
 }
 
@@ -349,21 +471,19 @@ export function buildVideoFeedPayload(input: {
     const seenIds = new Set<string>();
     const mergedRaw = [...rawList];
 
-    // 把经过核验的核心单条精选（尤其德语跨级别示范视频）补入对应频道源，确保即使超出最新 12 条也能筛选到
-    if (language === "de") {
-      for (const [vid, meta] of Object.entries(CURATED_VIDEO_META)) {
-        if (meta.language === "de" && meta.channelId === ch.id && meta.title) {
-          if (!mergedRaw.some((v) => v.id === vid)) {
-            mergedRaw.push({
-              id: vid,
-              title: meta.title,
-              thumbnail: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
-              duration: meta.duration ?? "",
-              channelId: ch.id,
-              channelTitle: meta.channelTitle ?? ch.title,
-              publishedAt: meta.publishedAt ?? ""
-            });
-          }
+    // 补充各语种手选带字幕示范视频（若未包含在最新拉取中）
+    for (const [vid, meta] of Object.entries(CURATED_VIDEO_META)) {
+      if (meta.language === language && meta.channelId === ch.id && meta.title) {
+        if (!mergedRaw.some((v) => v.id === vid)) {
+          mergedRaw.push({
+            id: vid,
+            title: meta.title,
+            thumbnail: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
+            duration: meta.duration ?? "",
+            channelId: ch.id,
+            channelTitle: meta.channelTitle ?? ch.title,
+            publishedAt: meta.publishedAt ?? ""
+          });
         }
       }
     }
@@ -401,7 +521,6 @@ export function buildVideoFeedPayload(input: {
     if (item.level) countsByLevel[item.level] += 1;
   }
 
-  // 德语首版：仅当某个级别达到门槛 (>= 3 条) 时开放独立筛选入口，否则先看「德语精选 / 全部」
   const minLevelThreshold = language === "de" ? 3 : 1;
   const availableLevels = ALL_LEVELS.filter((lvl) => countsByLevel[lvl] >= minLevelThreshold);
 
