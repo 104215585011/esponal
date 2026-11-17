@@ -2,13 +2,43 @@
 import { apiFetch } from "@/api/client";
 import type { LearningLanguage } from "@/lib/preferences";
 
+export type VideoLevel = "A1" | "A2" | "B1";
+
 export type VideoItem = {
   id: string;
   title: string;
   thumbnail: string;
   duration: string;
+  channelId?: string;
   channelTitle: string;
   publishedAt: string;
+  language?: LearningLanguage;
+  level?: VideoLevel | null;
+  levelSource?: "curated" | "inferred";
+  topic?: string | null;
+};
+
+export type VideoChannelSource = {
+  id: string;
+  title: string;
+  language: LearningLanguage;
+  tag: string;
+  description: string;
+};
+
+export type VideoFeedResponse = {
+  language: "es" | "de";
+  seed: number;
+  level: string;
+  channelId: string | null;
+  channels: VideoChannelSource[];
+  availableLevels: VideoLevel[];
+  countsByLevel: Record<VideoLevel, number>;
+  totalCount: number;
+  videos: VideoItem[];
+  isSparse: boolean;
+  nearbyLevel: VideoLevel | null;
+  nearbyVideos: VideoItem[];
 };
 
 export type Cue = {
@@ -45,6 +75,23 @@ export async function fetchChannelVideos(channelId: string, maxResults = 12) {
   return apiFetch<VideoItem[]>(
     `/api/youtube/channel?id=${encodeURIComponent(channelId)}&maxResults=${maxResults}`
   );
+}
+
+export async function fetchVideoFeed(options: {
+  lang?: LearningLanguage;
+  level?: string;
+  channelId?: string | null;
+  seed?: number;
+} = {}) {
+  const params = new URLSearchParams();
+  if (options.lang) params.set("lang", options.lang);
+  if (options.level && options.level !== "all") params.set("level", options.level);
+  if (options.channelId) params.set("channelId", options.channelId);
+  if (typeof options.seed === "number" && Number.isFinite(options.seed)) {
+    params.set("seed", String(Math.floor(options.seed)));
+  }
+  const qs = params.toString();
+  return apiFetch<VideoFeedResponse>(`/api/videos/feed${qs ? `?${qs}` : ""}`);
 }
 
 export async function fetchSubtitles(videoId: string, lang: LearningLanguage = "es") {

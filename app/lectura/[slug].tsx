@@ -100,7 +100,8 @@ export default function LecturaReaderScreen() {
   const paragraphs = useMemo(() => story?.paragraphs ?? [], [story]);
   const speech = useParagraphSpeech(
     typeof slug === "string" ? slug : undefined,
-    paragraphs.length
+    paragraphs,
+    materialLang
   );
 
   const theme = PAPER_STYLES[paper];

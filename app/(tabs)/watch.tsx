@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-17 15:35
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+// Timestamp: 2026-11-17 16:28
+import { type ComponentRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,10 +15,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 
-import { fetchChannelVideos, formatDuration, getCuratedChannels, type VideoItem } from "@/api/watch";
+import {
+  fetchVideoFeed,
+  formatDuration,
+  type VideoFeedResponse,
+  type VideoItem
+} from "@/api/watch";
 import { AppIcon } from "@/components/AppIcon";
+import { SegmentedControl } from "@/components/SegmentedControl";
 import { usePreferences } from "@/hooks/usePreferences";
-import { LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
+import { LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferences";
 import {
   formatPosition,
   getAllWatchProgress,
@@ -28,25 +34,28 @@ import {
 } from "@/lib/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
-type ChannelState = {
-  id: string;
-  title: string;
-  hint: string;
-  level: string;
-  videos: VideoItem[];
-  error: string | null;
+type ViewMode = "feed" | "channels";
+
+type WatchSessionState = {
+  feed: VideoFeedResponse | null;
+  seed: number;
+  selectedLevel: string;
+  selectedChannelId: string | null;
+  viewMode: ViewMode;
+  scrollY: number;
 };
 
-function getFreshnessLabel(videos: VideoItem[]) {
-  const latest = videos
-    .map((v) => Date.parse(v.publishedAt))
-    .filter((t) => Number.isFinite(t))
-    .sort((a, b) => b - a)[0];
-  if (!latest) return null;
-  const ageDays = (Date.now() - latest) / (1000 * 60 * 60 * 24);
-  if (ageDays <= 45) return "近期更新";
-  if (ageDays >= 180) return "经典合集";
-  return "精选片库";
+/** 浏览会话级缓存：进视频再返回时保留当前混排列表、筛选条件与滚动位置，主动刷新才换批 */
+const feedSessionCache: Partial<Record<LearningLanguage, WatchSessionState>> = {};
+
+const LEVEL_BADGE_COLORS: Record<string, string> = {
+  A1: "#059669",
+  A2: "#0284C7",
+  B1: "#D97706"
+};
+
+function defaultSeed() {
+  return Math.floor(Date.now() / (1000 * 60 * 60));
 }
 
 function parseVideoIdInput(raw: string): string | null {
@@ -62,7 +71,11 @@ function parseVideoIdInput(raw: string): string | null {
     if (url.hostname.includes("youtu.be") && tail && /^[a-zA-Z0-9_-]{11}$/.test(tail)) {
       return tail;
     }
-    if ((segments[0] === "shorts" || segments[0] === "embed") && segments[1] && /^[a-zA-Z0-9_-]{11}$/.test(segments[1])) {
+    if (
+      (segments[0] === "shorts" || segments[0] === "embed") &&
+      segments[1] &&
+      /^[a-zA-Z0-9_-]{11}$/.test(segments[1])
+    ) {
       return segments[1];
     }
   } catch {
@@ -74,122 +87,334 @@ function parseVideoIdInput(raw: string): string | null {
 export default function WatchScreen() {
   const router = useRouter();
   const { learningLang } = usePreferences();
-  const activeChannels = useMemo(() => getCuratedChannels(learningLang), [learningLang]);
   const langLabel =
     LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === learningLang)?.shortLabel ?? "目标语";
+
+  const scrollRef = useRef<ComponentRef<typeof ScrollView> | null>(null);
+  const scrollYRef = useRef(0);
   const reqSeqRef = useRef(0);
   const latestLangRef = useRef(learningLang);
   latestLangRef.current = learningLang;
 
-  const [channels, setChannels] = useState<ChannelState[]>(() =>
-    activeChannels.map((c) => ({ ...c, videos: [], error: null }))
+  const initialSession = feedSessionCache[learningLang];
+  const [feed, setFeed] = useState<VideoFeedResponse | null>(initialSession?.feed ?? null);
+  const [seed, setSeed] = useState<number>(() => initialSession?.seed ?? defaultSeed());
+  const [selectedLevel, setSelectedLevel] = useState<string>(
+    initialSession?.selectedLevel ?? "all"
   );
-  const [loading, setLoading] = useState(true);
+  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(
+    initialSession?.selectedChannelId ?? null
+  );
+  const [viewMode, setViewMode] = useState<ViewMode>(initialSession?.viewMode ?? "feed");
+
+  const [loading, setLoading] = useState(!initialSession?.feed);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState<string>("全部");
-  const [shuffleSeed, setShuffleSeed] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [linkInput, setLinkInput] = useState("");
-  /** 观看进度只读快照：列表本身不拉接口，只从本地缓存取，避免每张卡片一次请求 */
   const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
-
-  const allVideos = useMemo(() => channels.flatMap((c) => c.videos), [channels]);
-  const featuredVideo = useMemo(() => {
-    if (allVideos.length === 0) return null;
-    return allVideos[shuffleSeed % allVideos.length];
-  }, [allVideos, shuffleSeed]);
-
-  const levels = useMemo(() => ["全部", ...activeChannels.map((c) => c.level)], [activeChannels]);
-
-  const visibleChannels = useMemo(() => {
-    const filtered =
-      selectedLevel === "全部"
-        ? channels
-        : channels.filter((c) => c.level === selectedLevel);
-    if (shuffleSeed === 0) return filtered;
-    return filtered.map((c) => {
-      if (c.videos.length <= 1) return c;
-      const offset = shuffleSeed % c.videos.length;
-      return { ...c, videos: [...c.videos.slice(offset), ...c.videos.slice(0, offset)] };
-    });
-  }, [channels, selectedLevel, shuffleSeed]);
 
   const refreshProgress = useCallback(async () => {
     await loadWatchProgress();
     setProgress(getAllWatchProgress());
   }, []);
 
-  const load = useCallback(async (isRefresh = false) => {
-    const seq = ++reqSeqRef.current;
-    const reqLang = learningLang;
-    const targetChannels = getCuratedChannels(reqLang);
+  const persistSession = useCallback(
+    (langKey: LearningLanguage, patch: Partial<WatchSessionState>) => {
+      const prev = feedSessionCache[langKey] ?? {
+        feed: null,
+        seed: defaultSeed(),
+        selectedLevel: "all",
+        selectedChannelId: null,
+        viewMode: "feed" as ViewMode,
+        scrollY: 0
+      };
+      feedSessionCache[langKey] = { ...prev, ...patch };
+    },
+    []
+  );
 
-    if (isRefresh) setRefreshing(true);
-    else {
-      setLoading(true);
-      setSelectedLevel("全部");
-      setChannels(targetChannels.map((c) => ({ ...c, videos: [], error: null })));
-    }
+  const loadFeed = useCallback(
+    async (opts: {
+      reqLang: LearningLanguage;
+      level: string;
+      channelId: string | null;
+      nextSeed: number;
+      isRefresh?: boolean;
+    }) => {
+      const seq = ++reqSeqRef.current;
+      if (opts.isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
 
-    // 从播放页返回时进度已经落盘，这里顺手刷一次，不用等下拉刷新
-    void refreshProgress();
+      void refreshProgress();
 
-    const next = await Promise.all(
-      targetChannels.map(async (channel) => {
-        try {
-          const videos = await fetchChannelVideos(channel.id, 8);
-          return { ...channel, videos, error: null };
-        } catch (e) {
-          return {
-            ...channel,
-            videos: [],
-            error: e instanceof Error ? e.message : "加载失败"
-          };
+      try {
+        const res = await fetchVideoFeed({
+          lang: opts.reqLang,
+          level: opts.level,
+          channelId: opts.channelId,
+          seed: opts.nextSeed
+        });
+        if (seq !== reqSeqRef.current || opts.reqLang !== latestLangRef.current) return;
+        setFeed(res);
+        persistSession(opts.reqLang, {
+          feed: res,
+          seed: opts.nextSeed,
+          selectedLevel: opts.level,
+          selectedChannelId: opts.channelId
+        });
+      } catch (e) {
+        if (seq !== reqSeqRef.current || opts.reqLang !== latestLangRef.current) return;
+        setError(e instanceof Error ? e.message : "加载视频失败");
+      } finally {
+        if (seq === reqSeqRef.current) {
+          setLoading(false);
+          setRefreshing(false);
         }
-      })
-    );
+      }
+    },
+    [persistSession, refreshProgress]
+  );
 
-    if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) {
+  // 切换学习语种或首次加载时：优先复用当前会话缓存（不打乱已有浏览列表），没有缓存再请求共用 API
+  useEffect(() => {
+    const cached = feedSessionCache[learningLang];
+    if (cached?.feed) {
+      setFeed(cached.feed);
+      setSeed(cached.seed);
+      setSelectedLevel(cached.selectedLevel);
+      setSelectedChannelId(cached.selectedChannelId);
+      setViewMode(cached.viewMode);
+      setLoading(false);
+      void refreshProgress();
       return;
     }
 
-    setChannels(next);
-    setLoading(false);
-    setRefreshing(false);
-  }, [learningLang, refreshProgress]);
+    const freshSeed = defaultSeed();
+    setFeed(null);
+    setSeed(freshSeed);
+    setSelectedLevel("all");
+    setSelectedChannelId(null);
+    setViewMode("feed");
+    void loadFeed({
+      reqLang: learningLang,
+      level: "all",
+      channelId: null,
+      nextSeed: freshSeed
+    });
+  }, [learningLang, loadFeed, refreshProgress]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  // 从播放页返回时列表不会重新挂载，回到前台补刷一次进度
+  // 从播放页返回时：不重新抓列表（保持列表稳定），仅补刷播放进度并恢复原先滚动位置
   useFocusEffect(
     useCallback(() => {
       void refreshProgress();
+      const savedY = feedSessionCache[latestLangRef.current]?.scrollY ?? 0;
+      if (savedY > 0) {
+        const timer = setTimeout(() => {
+          scrollRef.current?.scrollTo({ y: savedY, animated: false });
+        }, 40);
+        return () => clearTimeout(timer);
+      }
+      return undefined;
     }, [refreshProgress])
   );
+
+  const openVideoPlayer = useCallback(
+    (video: VideoItem) => {
+      persistSession(learningLang, { scrollY: scrollYRef.current });
+      router.push({
+        pathname: "/watch/[videoId]",
+        params: {
+          videoId: video.id,
+          title: video.title,
+          channelTitle: video.channelTitle,
+          thumbnail: video.thumbnail,
+          lang: video.language ?? learningLang
+        }
+      } as never);
+    },
+    [learningLang, persistSession, router]
+  );
+
+  const handleSelectLevel = (nextLevel: string) => {
+    if (nextLevel === selectedLevel) return;
+    setSelectedLevel(nextLevel);
+    scrollYRef.current = 0;
+    persistSession(learningLang, { selectedLevel: nextLevel, scrollY: 0 });
+    void loadFeed({
+      reqLang: learningLang,
+      level: nextLevel,
+      channelId: selectedChannelId,
+      nextSeed: seed
+    });
+  };
+
+  const handleSelectChannel = (channelId: string | null) => {
+    setSelectedChannelId(channelId);
+    setSelectedLevel("all");
+    scrollYRef.current = 0;
+    persistSession(learningLang, {
+      selectedChannelId: channelId,
+      selectedLevel: "all",
+      scrollY: 0
+    });
+    void loadFeed({
+      reqLang: learningLang,
+      level: "all",
+      channelId,
+      nextSeed: seed
+    });
+  };
+
+  const handleShuffleBatch = () => {
+    const nextSeed = seed + 1;
+    setSeed(nextSeed);
+    scrollYRef.current = 0;
+    persistSession(learningLang, { seed: nextSeed, scrollY: 0 });
+    void loadFeed({
+      reqLang: learningLang,
+      level: selectedLevel,
+      channelId: selectedChannelId,
+      nextSeed,
+      isRefresh: true
+    });
+  };
+
+  const handleModeChange = (nextMode: ViewMode) => {
+    setViewMode(nextMode);
+    persistSession(learningLang, { viewMode: nextMode });
+    if (nextMode === "feed" && selectedChannelId) {
+      handleSelectChannel(null);
+    }
+  };
+
+  const levelPills = useMemo(() => {
+    const allLabel = learningLang === "de" ? "德语精选" : "全部";
+    const available = feed?.availableLevels ?? [];
+    return [
+      { key: "all", label: allLabel },
+      ...available.map((lvl) => ({ key: lvl, label: lvl }))
+    ];
+  }, [learningLang, feed?.availableLevels]);
+
+  const activeChannel = useMemo(
+    () => feed?.channels.find((c) => c.id === selectedChannelId) ?? null,
+    [feed?.channels, selectedChannelId]
+  );
+
+  const spotlight = useMemo(
+    () => feed?.videos[0] ?? feed?.nearbyVideos[0] ?? null,
+    [feed?.videos, feed?.nearbyVideos]
+  );
+
+  const renderVideoCard = (video: VideoItem, keyPrefix = "") => {
+    const saved = progress[video.id];
+    const resumable = shouldResume(saved);
+    const pct =
+      resumable && saved && saved.duration > 0
+        ? Math.min(100, (saved.position / saved.duration) * 100)
+        : 0;
+    const lvlColor = video.level ? LEVEL_BADGE_COLORS[video.level] : undefined;
+
+    return (
+      <Pressable
+        key={`${keyPrefix}${video.id}`}
+        onPress={() => openVideoPlayer(video)}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      >
+        <View style={styles.thumbWrap}>
+          <Image source={{ uri: video.thumbnail }} style={styles.thumb} />
+          {video.level && lvlColor ? (
+            <View style={[styles.videoLevelBadge, { backgroundColor: lvlColor }]}>
+              <Text style={styles.videoLevelText}>{video.level}</Text>
+            </View>
+          ) : null}
+          {video.duration ? (
+            <View style={styles.durationBadge}>
+              <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
+            </View>
+          ) : null}
+
+          {resumable && saved ? (
+            <>
+              <View style={styles.resumeBadge}>
+                <Text style={styles.resumeText}>看到 {formatPosition(saved.position)}</Text>
+              </View>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${Math.max(3, pct)}%` }]} />
+              </View>
+            </>
+          ) : null}
+        </View>
+        <View style={styles.cardBody}>
+          <Text numberOfLines={2} style={styles.videoTitle}>
+            {video.title}
+          </Text>
+          <View style={styles.metaRow}>
+            <Text numberOfLines={1} style={styles.videoMeta}>
+              {video.channelTitle}
+            </Text>
+            {video.topic ? (
+              <View style={styles.topicChip}>
+                <Text style={styles.topicText}>{video.topic}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scroll}
+        onScroll={(e) => {
+          scrollYRef.current = e.nativeEvent.contentOffset.y;
+          persistSession(learningLang, { scrollY: scrollYRef.current });
+        }}
+        scrollEventThrottle={120}
         refreshControl={
           <RefreshControl
             colors={[colors.brand500]}
-            onRefresh={() => load(true)}
+            onRefresh={handleShuffleBatch}
             refreshing={refreshing}
             tintColor={colors.brand500}
           />
         }
       >
-        <Text style={styles.eyebrow}>Video · {langLabel}</Text>
-        <Text style={styles.title}>{learningLang === "de" ? "德语视频" : "视频"}</Text>
+        <View style={styles.topRow}>
+          <View>
+            <Text style={styles.eyebrow}>Video · {langLabel}</Text>
+            <Text style={styles.title}>{learningLang === "de" ? "德语视频" : "推荐视频"}</Text>
+          </View>
+        </View>
+
         <Text style={styles.subtitle}>
-          精选{langLabel}频道,配逐句字幕。点视频进入播放页,点单词直接查词。
+          跨频道混排精选，难度标在每条视频上。进出播放保持当前列表与位置。
         </Text>
+
+        {/* 推荐混排 vs 独立频道目录 */}
+        <View style={styles.segWrap}>
+          <SegmentedControl
+            onChange={handleModeChange}
+            options={[
+              { key: "feed", label: "推荐混排" },
+              {
+                key: "channels",
+                label: `频道 (${feed?.channels.length ?? 3})`
+              }
+            ]}
+            value={viewMode}
+          />
+        </View>
 
         {/* 搜索入口 */}
         <Pressable
-          onPress={() => router.push({ pathname: "/search", params: { lang: learningLang } } as never)}
+          onPress={() =>
+            router.push({ pathname: "/search", params: { lang: learningLang } } as never)
+          }
           style={({ pressed }) => [styles.searchBar, pressed && styles.cardPressed]}
         >
           <AppIcon color={colors.textTertiary} name="search" size={16} />
@@ -226,165 +451,151 @@ export default function WatchScreen() {
           </Pressable>
         </View>
 
-        {!loading && featuredVideo ? (
-          <View style={styles.discoveryCard}>
-            <Text style={styles.discoveryEyebrow}>随机挑一集</Text>
-            <Text numberOfLines={2} style={styles.discoveryTitle}>
-              {featuredVideo.title}
-            </Text>
-            <Text style={styles.discoveryMeta}>
-              {featuredVideo.channelTitle} · {formatDuration(featuredVideo.duration)}
-            </Text>
-            <View style={styles.discoveryActions}>
+        {/* 独立频道目录列表（未选定某个频道时） */}
+        {viewMode === "channels" && !selectedChannelId ? (
+          <View style={styles.channelDirList}>
+            {(feed?.channels ?? []).map((ch) => (
               <Pressable
-                onPress={() => setShuffleSeed((s) => s + 1)}
-                style={({ pressed }) => [styles.shuffleBtn, pressed && styles.cardPressed]}
+                key={ch.id}
+                onPress={() => handleSelectChannel(ch.id)}
+                style={({ pressed }) => [styles.channelDirCard, pressed && styles.cardPressed]}
               >
-                <Text style={styles.shuffleBtnText}>换一批排列</Text>
+                <View style={styles.channelDirHead}>
+                  <Text style={styles.channelTitle}>{ch.title}</Text>
+                  <View style={styles.levelBadge}>
+                    <Text style={styles.levelBadgeText}>{ch.tag}</Text>
+                  </View>
+                </View>
+                <Text style={styles.channelDirDesc}>{ch.description}</Text>
+                <Text style={styles.channelDirLink}>进入频道看全部视频 ›</Text>
               </Pressable>
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/watch/[videoId]",
-                    params: {
-                      videoId: featuredVideo.id,
-                      title: featuredVideo.title,
-                      channelTitle: featuredVideo.channelTitle,
-                      thumbnail: featuredVideo.thumbnail,
-                      lang: learningLang
-                    }
-                  } as never)
-                }
-                style={({ pressed }) => [styles.playNowBtn, pressed && styles.cardPressed]}
-              >
-                <Text style={styles.playNowBtnText}>立即观看 →</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
-        {!loading ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterRow}
-          >
-            {levels.map((level) => {
-              const active = selectedLevel === level;
-              return (
-                <Pressable
-                  key={level}
-                  onPress={() => setSelectedLevel(level)}
-                  style={[styles.filterPill, active && styles.filterPillActive]}
-                >
-                  <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
-                    {level}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        ) : null}
-
-        {loading ? (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator color={colors.brand500} />
-            <Text style={styles.loadingText}>正在取视频列表…</Text>
+            ))}
           </View>
         ) : (
-          visibleChannels.map((channel) => {
-            const freshness = getFreshnessLabel(channel.videos);
-            return (
-            <View key={channel.id} style={styles.section}>
-              <View style={styles.sectionHead}>
-                <View style={styles.sectionTitleRow}>
-                  <Text style={styles.channelTitle}>{channel.title}</Text>
-                  <View style={styles.levelBadge}>
-                    <Text style={styles.levelBadgeText}>{channel.level}</Text>
-                  </View>
-                  {freshness ? (
-                    <View style={styles.freshBadge}>
-                      <Text style={styles.freshBadgeText}>{freshness}</Text>
-                    </View>
-                  ) : null}
-                </View>
-                <Text style={styles.channelHint}>{channel.hint}</Text>
-              </View>
-
-              {channel.error ? (
-                <Text style={styles.sectionError}>{channel.error}</Text>
-              ) : (
-                channel.videos.map((video) => {
-                  const saved = progress[video.id];
-                  const resumable = shouldResume(saved);
-                  const pct =
-                    resumable && saved && saved.duration > 0
-                      ? Math.min(100, (saved.position / saved.duration) * 100)
-                      : 0;
-
-                  return (
+          <>
+            {!loading && spotlight ? (
+              <View style={styles.discoveryCard}>
+                <Text style={styles.discoveryEyebrow}>
+                  {activeChannel ? `频道精选 · ${activeChannel.title}` : "随机挑一集"}
+                </Text>
+                <Text numberOfLines={2} style={styles.discoveryTitle}>
+                  {spotlight.title}
+                </Text>
+                <Text style={styles.discoveryMeta}>
+                  {spotlight.channelTitle}
+                  {spotlight.level ? ` · ${spotlight.level}` : ""}
+                  {spotlight.duration ? ` · ${formatDuration(spotlight.duration)}` : ""}
+                </Text>
+                <View style={styles.discoveryActions}>
+                  {!activeChannel ? (
                     <Pressable
-                      key={video.id}
-                      onPress={() =>
-                        // typedRoutes 的类型在首次 `expo start` 后才生成,这里先绕过
-                        router.push({
-                          pathname: "/watch/[videoId]",
-                          params: {
-                            videoId: video.id,
-                            title: video.title,
-                            channelTitle: video.channelTitle,
-                            thumbnail: video.thumbnail,
-                            lang: learningLang
-                          }
-                        } as never)
-                      }
-                      style={({ pressed }) => [
-                        styles.card,
-                        pressed && styles.cardPressed
-                      ]}
+                      onPress={handleShuffleBatch}
+                      style={({ pressed }) => [styles.shuffleBtn, pressed && styles.cardPressed]}
                     >
-                      <View style={styles.thumbWrap}>
-                        <Image
-                          source={{ uri: video.thumbnail }}
-                          style={styles.thumb}
-                          // 缩略图来自 i.ytimg.com,加载失败时留一块底色而不是破图
-                        />
-                        <View style={styles.durationBadge}>
-                          <Text style={styles.durationText}>
-                            {formatDuration(video.duration)}
-                          </Text>
-                        </View>
-
-                        {/* 看了一半的标记:和首页「接着看」用同一套 shouldResume 判定 */}
-                        {resumable && saved ? (
-                          <>
-                            <View style={styles.resumeBadge}>
-                              <Text style={styles.resumeText}>
-                                看到 {formatPosition(saved.position)}
-                              </Text>
-                            </View>
-                            <View style={styles.progressTrack}>
-                              <View
-                                style={[styles.progressFill, { width: `${Math.max(3, pct)}%` }]}
-                              />
-                            </View>
-                          </>
-                        ) : null}
-                      </View>
-
-                      <View style={styles.cardBody}>
-                        <Text numberOfLines={2} style={styles.videoTitle}>
-                          {video.title}
-                        </Text>
-                        <Text style={styles.videoMeta}>{video.channelTitle}</Text>
-                      </View>
+                      <Text style={styles.shuffleBtnText}>换一批推荐</Text>
                     </Pressable>
-                  );
-                })
-              )}
-            </View>
-            );
-          })
+                  ) : (
+                    <Pressable
+                      onPress={() => handleSelectChannel(null)}
+                      style={({ pressed }) => [styles.shuffleBtn, pressed && styles.cardPressed]}
+                    >
+                      <Text style={styles.shuffleBtnText}>返回跨频道混排</Text>
+                    </Pressable>
+                  )}
+                  <Pressable
+                    onPress={() => openVideoPlayer(spotlight)}
+                    style={({ pressed }) => [styles.playNowBtn, pressed && styles.cardPressed]}
+                  >
+                    <Text style={styles.playNowBtnText}>立即观看 →</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+
+            {/* 难度筛选（挂在单条视频上；德语未达阈值暂只显示精选） */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRow}
+            >
+              {levelPills.map((item) => {
+                const active = selectedLevel === item.key;
+                return (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => handleSelectLevel(item.key)}
+                    style={[styles.filterPill, active && styles.filterPillActive]}
+                  >
+                    <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            {loading ? (
+              <View style={styles.loadingBox}>
+                <ActivityIndicator color={colors.brand500} />
+                <Text style={styles.loadingText}>正在加载混排视频…</Text>
+              </View>
+            ) : error ? (
+              <View style={styles.loadingBox}>
+                <Text style={styles.sectionError}>{error}</Text>
+                <Pressable
+                  onPress={() =>
+                    void loadFeed({
+                      reqLang: learningLang,
+                      level: selectedLevel,
+                      channelId: selectedChannelId,
+                      nextSeed: seed
+                    })
+                  }
+                  style={styles.retryBtn}
+                >
+                  <Text style={styles.retryText}>重试</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                {feed?.isSparse ? (
+                  <View style={styles.sparseNotice}>
+                    <Text style={styles.sparseNoticeText}>
+                      当前「{feed.level}」共 {feed.videos.length} 条可用视频，已在下方附带相近难度推荐。
+                    </Text>
+                  </View>
+                ) : null}
+
+                {feed && feed.videos.length > 0 ? (
+                  <View style={styles.section}>
+                    {feed.videos.map((video) => renderVideoCard(video))}
+                  </View>
+                ) : (
+                  <View style={styles.loadingBox}>
+                    <Text style={styles.loadingText}>
+                      当前筛选暂无可用视频，可以看看下方相近难度推荐。
+                    </Text>
+                  </View>
+                )}
+
+                {feed && feed.nearbyVideos.length > 0 ? (
+                  <View style={styles.nearbySection}>
+                    <View style={styles.nearbyHeader}>
+                      <Text style={styles.channelTitle}>
+                        相近难度推荐（{feed.nearbyLevel}）
+                      </Text>
+                      {feed.nearbyLevel ? (
+                        <Pressable onPress={() => handleSelectLevel(feed.nearbyLevel!)}>
+                          <Text style={styles.channelDirLink}>全部 {feed.nearbyLevel} ›</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                    {feed.nearbyVideos.map((video) => renderVideoCard(video, "nearby-"))}
+                  </View>
+                ) : null}
+              </>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -398,6 +609,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl
   },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
   eyebrow: {
     fontSize: 11,
     fontWeight: "700",
@@ -407,171 +623,285 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: 4,
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "800",
-    letterSpacing: -0.6,
-    color: colors.text
+    color: colors.text,
+    letterSpacing: -0.6
   },
   subtitle: {
-    marginTop: spacing.xs + 2,
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textSecondary
+    marginTop: 6,
+    fontSize: 13.5,
+    color: colors.textSecondary,
+    lineHeight: 20
+  },
+  segWrap: {
+    marginTop: spacing.md
   },
   searchBar: {
-    marginTop: spacing.md + 2,
+    marginTop: spacing.md,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    height: 42,
-    borderRadius: radius.pill,
+    gap: spacing.sm,
     backgroundColor: colors.bg,
+    borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 14
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: 11
   },
-  searchPlaceholder: { fontSize: 13, color: colors.textTertiary },
+  searchPlaceholder: { fontSize: 13.5, color: colors.textTertiary },
   linkRow: {
-    marginTop: spacing.sm,
+    marginTop: spacing.sm + 2,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8
+    gap: spacing.sm
   },
   linkInput: {
     flex: 1,
-    height: 40,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
     backgroundColor: colors.bg,
-    paddingHorizontal: 14,
-    fontSize: 12.5,
-    color: colors.text
-  },
-  linkBtn: {
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: colors.brand500,
-    paddingHorizontal: 16,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  linkBtnText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
-  discoveryCard: {
-    marginTop: spacing.lg,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.bg,
-    padding: spacing.md,
-    gap: 6
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    fontSize: 13,
+    color: colors.text
   },
-  discoveryEyebrow: { fontSize: 11, fontWeight: "700", color: colors.brand600 },
-  discoveryTitle: { fontSize: 15, fontWeight: "700", lineHeight: 21, color: colors.text },
-  discoveryMeta: { fontSize: 11.5, color: colors.textSecondary },
-  discoveryActions: { marginTop: 6, flexDirection: "row", gap: 8 },
-  shuffleBtn: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 14,
-    paddingVertical: 8
+  linkBtn: {
+    backgroundColor: colors.brand600,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: 10
   },
-  shuffleBtnText: { fontSize: 12, fontWeight: "600", color: colors.text },
-  playNowBtn: {
-    borderRadius: radius.pill,
-    backgroundColor: colors.brand500,
-    paddingHorizontal: 14,
-    paddingVertical: 8
-  },
-  playNowBtnText: { fontSize: 12, fontWeight: "600", color: "#fff" },
-  filterRow: { marginTop: spacing.md, gap: 8, paddingVertical: 2 },
-  filterPill: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bg,
-    paddingHorizontal: 12,
-    paddingVertical: 6
-  },
-  filterPillActive: { borderColor: colors.brand500, backgroundColor: colors.brand500 },
-  filterPillText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
-  filterPillTextActive: { color: "#fff" },
-  loadingBox: {
-    paddingVertical: 60,
-    alignItems: "center",
+  linkBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  channelDirList: {
+    marginTop: spacing.lg,
     gap: spacing.md
   },
-  loadingText: { fontSize: 12.5, color: colors.textTertiary },
-  section: { marginTop: spacing.xl, gap: spacing.md },
-  sectionHead: { gap: 4 },
-  sectionTitleRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 },
-  levelBadge: {
+  channelDirCard: {
+    backgroundColor: colors.bg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: 8
+  },
+  channelDirHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  channelDirDesc: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.textSecondary
+  },
+  channelDirLink: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: colors.brand600
+  },
+  discoveryCard: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.bg,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.brand100,
+    padding: spacing.lg,
+    gap: 6
+  },
+  discoveryEyebrow: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.brand600,
+    letterSpacing: 0.6
+  },
+  discoveryTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 22,
+    color: colors.text
+  },
+  discoveryMeta: {
+    fontSize: 12,
+    color: colors.textSecondary
+  },
+  discoveryActions: {
+    marginTop: spacing.sm,
+    flexDirection: "row",
+    gap: spacing.sm
+  },
+  shuffleBtn: {
+    flex: 1,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 9,
+    alignItems: "center"
+  },
+  shuffleBtnText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.text
+  },
+  playNowBtn: {
+    flex: 1,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand600,
+    paddingVertical: 9,
+    alignItems: "center"
+  },
+  playNowBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#fff"
+  },
+  filterRow: {
+    marginTop: spacing.md,
+    gap: spacing.sm,
+    paddingVertical: 2
+  },
+  filterPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bg
+  },
+  filterPillActive: {
+    borderColor: colors.brand600,
+    backgroundColor: colors.brand600
+  },
+  filterPillText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: colors.textSecondary
+  },
+  filterPillTextActive: {
+    color: "#fff"
+  },
+  sparseNotice: {
+    marginTop: spacing.md,
+    backgroundColor: colors.amber50,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm
+  },
+  sparseNoticeText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.amber700
+  },
+  loadingBox: {
+    marginTop: spacing.xxl,
+    alignItems: "center",
+    gap: spacing.sm
+  },
+  loadingText: { fontSize: 13, color: colors.textSecondary, textAlign: "center" },
+  retryBtn: {
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand600
+  },
+  retryText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  section: { marginTop: spacing.lg },
+  nearbySection: {
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border
+  },
+  nearbyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.md
+  },
+  channelTitle: { fontSize: 17, fontWeight: "700", color: colors.text },
+  levelBadge: {
     backgroundColor: colors.brand50,
     paddingHorizontal: 8,
-    paddingVertical: 2
+    paddingVertical: 2,
+    borderRadius: radius.pill
   },
-  levelBadgeText: { fontSize: 10.5, fontWeight: "700", color: colors.brand600 },
-  freshBadge: {
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceMuted,
-    paddingHorizontal: 8,
-    paddingVertical: 2
-  },
-  freshBadgeText: { fontSize: 10.5, fontWeight: "600", color: colors.textSecondary },
-  channelTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
-  channelHint: { fontSize: 12, color: colors.textTertiary },
-  sectionError: { fontSize: 12.5, color: colors.danger },
+  levelBadgeText: { fontSize: 11, fontWeight: "700", color: colors.brand700 },
+  sectionError: { fontSize: 13, color: colors.danger, paddingVertical: spacing.sm },
   card: {
     backgroundColor: colors.bg,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    overflow: "hidden"
+    overflow: "hidden",
+    marginBottom: spacing.md
   },
-  cardPressed: { backgroundColor: colors.surfaceMuted },
+  cardPressed: { opacity: 0.85 },
   thumbWrap: { position: "relative" },
-  thumb: {
-    width: "100%",
-    aspectRatio: 16 / 9,
-    backgroundColor: colors.surfaceMuted
+  thumb: { width: "100%", aspectRatio: 16 / 9, backgroundColor: colors.surfaceMuted },
+  videoLevelBadge: {
+    position: "absolute",
+    left: 10,
+    top: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  videoLevelText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#fff"
   },
   durationBadge: {
     position: "absolute",
-    right: 8,
-    bottom: 8,
+    right: 10,
+    bottom: 10,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
     paddingHorizontal: 7,
     paddingVertical: 3,
-    borderRadius: 6,
-    backgroundColor: "rgba(0,0,0,0.72)"
+    borderRadius: 6
   },
-  durationText: { fontSize: 10.5, fontWeight: "700", color: "#fff" },
+  durationText: { fontSize: 11, fontWeight: "600", color: "#fff" },
   resumeBadge: {
     position: "absolute",
-    left: 8,
-    bottom: 8,
-    paddingHorizontal: 7,
+    left: 10,
+    bottom: 10,
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
-    backgroundColor: "rgba(0,0,0,0.72)"
+    borderRadius: 6
   },
-  resumeText: { fontSize: 10.5, fontWeight: "700", color: "#fff" },
+  resumeText: { fontSize: 11, fontWeight: "700", color: "#fff" },
   progressTrack: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     height: 3,
-    backgroundColor: "rgba(255,255,255,0.3)"
+    backgroundColor: "rgba(15, 23, 42, 0.25)"
   },
-  progressFill: { height: "100%", backgroundColor: colors.brand500 },
-  cardBody: { padding: spacing.md, gap: 4 },
-  videoTitle: {
-    fontSize: 14,
-    lineHeight: 20,
+  progressFill: { height: 3, backgroundColor: colors.brand500 },
+  cardBody: { padding: spacing.md, gap: 6 },
+  videoTitle: { fontSize: 15, fontWeight: "700", lineHeight: 21, color: colors.text },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  videoMeta: { fontSize: 12, color: colors.textSecondary, flexShrink: 1 },
+  topicChip: {
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6
+  },
+  topicText: {
+    fontSize: 10.5,
     fontWeight: "600",
-    color: colors.text
-  },
-  videoMeta: { fontSize: 11.5, color: colors.textSecondary }
+    color: colors.textSecondary
+  }
 });
