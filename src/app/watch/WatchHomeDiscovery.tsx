@@ -1,224 +1,468 @@
-// Timestamp: 2026-11-15 02:45
+// Timestamp: 2026-11-17 16:22
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Shuffle, Sparkles, Clock } from "lucide-react";
-import type { CuratedChannel } from "@/lib/channels";
-import { formatVideoDurationBadge, type YouTubeVideoPayload } from "@/lib/youtube-shared";
+import { Tv, Shuffle, Sparkles, Compass, ArrowLeft } from "lucide-react";
+import type {
+  PoolLanguage,
+  TaggedVideoItem,
+  VideoFeedResponsePayload
+} from "@/lib/video-pool-logic";
+import { formatVideoDurationBadge } from "@/lib/youtube-shared";
 import { VideoCard } from "@/app/components/web/VideoCard";
 
-export type ChannelSectionData = {
-  channel: CuratedChannel;
-  videos: YouTubeVideoPayload[];
-};
-
 type WatchHomeDiscoveryProps = {
-  sections: ChannelSectionData[];
+  initialFeed: VideoFeedResponsePayload;
 };
 
-const TOPIC_CHIPS = [
-  { label: "慢速故事", query: "spanish comprehensible input beginner" },
-  { label: "日常对话", query: "spanish daily conversation" },
-  { label: "西语美食", query: "comida española vlog" },
-  { label: "旅行西语", query: "viajar por españa vlog" },
-];
+type ViewMode = "feed" | "channels";
 
-function getChannelFreshnessLabel(videos: YouTubeVideoPayload[]) {
-  const latest = videos
-    .map((v) => Date.parse(v.publishedAt))
-    .filter((t) => Number.isFinite(t))
-    .sort((a, b) => b - a)[0];
+const SESSION_KEY = "esponal.web.watch.session.v1";
 
-  if (!latest) return null;
-  const ageDays = (Date.now() - latest) / (1000 * 60 * 60 * 24);
-  if (ageDays <= 45) return { text: "近期更新", fresh: true };
-  if (ageDays >= 180) return { text: "经典合集", fresh: false };
-  return { text: "精选片库", fresh: false };
-}
+type SessionSnapshot = {
+  language: PoolLanguage;
+  seed: number;
+  level: string;
+  channelId: string | null;
+  viewMode: ViewMode;
+};
 
-export function WatchHomeDiscovery({ sections }: WatchHomeDiscoveryProps) {
-  const [selectedLevel, setSelectedLevel] = useState<string>("全部");
-  const [shuffleSeed, setShuffleSeed] = useState<number>(0);
+const TOPICS_BY_LANG: Record<PoolLanguage, Array<{ label: string; query: string }>> = {
+  es: [
+    { label: "慢速故事", query: "spanish comprehensible input beginner" },
+    { label: "日常对话", query: "spanish daily conversation" },
+    { label: "西语美食", query: "comida española vlog" },
+    { label: "旅行西语", query: "viajar por españa vlog" }
+  ],
+  de: [
+    { label: "DW 入门新闻", query: "DW Deutsch lernen A1 A2" },
+    { label: "日常情景", query: "Learn German Original Dialog" },
+    { label: "柏林街头", query: "Easy German A1 A2" },
+    { label: "慢速德语", query: "Slow German Podcast" }
+  ]
+};
 
-  const allVideos = useMemo(
-    () => sections.flatMap((section) => section.videos),
-    [sections]
+export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
+  const [feed, setFeed] = useState<VideoFeedResponsePayload>(initialFeed);
+  const [language, setLanguage] = useState<PoolLanguage>(initialFeed.language);
+  const [seed, setSeed] = useState<number>(initialFeed.seed);
+  const [selectedLevel, setSelectedLevel] = useState<string>(initialFeed.level || "all");
+  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(initialFeed.channelId);
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    initialFeed.channelId ? "channels" : "feed"
+  );
+  const [loading, setLoading] = useState(false);
+
+  const reqSeqRef = useRef(0);
+  const restoredRef = useRef(false);
+
+  const loadFeed = useCallback(
+    async (opts: {
+      nextLang: PoolLanguage;
+      nextLevel: string;
+      nextChannelId: string | null;
+      nextSeed: number;
+    }) => {
+      const seq = ++reqSeqRef.current;
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          lang: opts.nextLang,
+          seed: String(opts.nextSeed)
+        });
+        if (opts.nextLevel && opts.nextLevel !== "all") {
+          params.set("level", opts.nextLevel);
+        }
+        if (opts.nextChannelId) {
+          params.set("channelId", opts.nextChannelId);
+        }
+        const res = await fetch(`/api/videos/feed?${params.toString()}`, {
+          cache: "no-store"
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as VideoFeedResponsePayload;
+        if (seq !== reqSeqRef.current) return;
+        setFeed(data);
+      } finally {
+        if (seq === reqSeqRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    []
   );
 
-  const featuredVideo = useMemo(() => {
-    if (allVideos.length === 0) return null;
-    const index = shuffleSeed % allVideos.length;
-    return allVideos[index];
-  }, [allVideos, shuffleSeed]);
+  // 同一次浏览会话里，点进视频再返回时恢复上一次列表、难度筛选与批号
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const raw = window.sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<SessionSnapshot>;
+      if (
+        saved.language &&
+        saved.seed !== undefined &&
+        (saved.language !== initialFeed.language ||
+          saved.seed !== initialFeed.seed ||
+          (saved.level ?? "all") !== (initialFeed.level ?? "all") ||
+          (saved.channelId ?? null) !== (initialFeed.channelId ?? null))
+      ) {
+        const nextLang: PoolLanguage = saved.language === "de" ? "de" : "es";
+        const nextLevel = saved.level ?? "all";
+        const nextChannel = saved.channelId ?? null;
+        const nextSeed = saved.seed;
+        setLanguage(nextLang);
+        setSelectedLevel(nextLevel);
+        setSelectedChannelId(nextChannel);
+        setSeed(nextSeed);
+        if (saved.viewMode) setViewMode(saved.viewMode);
+        void loadFeed({
+          nextLang,
+          nextLevel,
+          nextChannelId: nextChannel,
+          nextSeed
+        });
+      } else if (saved.viewMode) {
+        setViewMode(saved.viewMode);
+      }
+    } catch {
+      // ignore sessionStorage failure
+    }
+  }, [initialFeed, loadFeed]);
 
-  const levels = useMemo(
-    () => ["全部", ...sections.map((s) => s.channel.level)],
-    [sections]
-  );
+  useEffect(() => {
+    try {
+      const snap: SessionSnapshot = {
+        language,
+        seed,
+        level: selectedLevel,
+        channelId: selectedChannelId,
+        viewMode
+      };
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(snap));
+    } catch {
+      // ignore
+    }
+  }, [language, seed, selectedLevel, selectedChannelId, viewMode]);
 
-  const visibleSections = useMemo(() => {
-    const filtered =
-      selectedLevel === "全部"
-        ? sections
-        : sections.filter((s) => s.channel.level === selectedLevel);
+  const handleSelectLanguage = (nextLang: PoolLanguage) => {
+    if (nextLang === language) return;
+    const nextLevel = "all";
+    const nextChannel = null;
+    setLanguage(nextLang);
+    setSelectedLevel(nextLevel);
+    setSelectedChannelId(nextChannel);
+    setViewMode("feed");
+    void loadFeed({ nextLang, nextLevel, nextChannelId: nextChannel, nextSeed: seed });
+  };
 
-    if (shuffleSeed === 0) return filtered;
-
-    return filtered.map((section) => {
-      if (section.videos.length <= 1) return section;
-      const offset = shuffleSeed % section.videos.length;
-      const rotated = [
-        ...section.videos.slice(offset),
-        ...section.videos.slice(0, offset),
-      ];
-      return { ...section, videos: rotated };
+  const handleSelectLevel = (nextLevel: string) => {
+    if (nextLevel === selectedLevel) return;
+    setSelectedLevel(nextLevel);
+    void loadFeed({
+      nextLang: language,
+      nextLevel,
+      nextChannelId: selectedChannelId,
+      nextSeed: seed
     });
-  }, [sections, selectedLevel, shuffleSeed]);
+  };
+
+  const handleSelectChannel = (channelId: string | null) => {
+    setSelectedChannelId(channelId);
+    setSelectedLevel("all");
+    void loadFeed({
+      nextLang: language,
+      nextLevel: "all",
+      nextChannelId: channelId,
+      nextSeed: seed
+    });
+  };
+
+  const handleShuffle = () => {
+    const nextSeed = seed + 1;
+    setSeed(nextSeed);
+    void loadFeed({
+      nextLang: language,
+      nextLevel: selectedLevel,
+      nextChannelId: selectedChannelId,
+      nextSeed
+    });
+  };
+
+  const spotlight: TaggedVideoItem | null = useMemo(
+    () => feed.videos[0] ?? feed.nearbyVideos[0] ?? null,
+    [feed.videos, feed.nearbyVideos]
+  );
+
+  const activeChannel = useMemo(
+    () => feed.channels.find((ch) => ch.id === selectedChannelId) ?? null,
+    [feed.channels, selectedChannelId]
+  );
+
+  const levelPills = useMemo(() => {
+    const baseLabel = language === "de" ? "德语精选（全部）" : "全部";
+    return [
+      { key: "all", label: baseLabel },
+      ...feed.availableLevels.map((lvl) => ({ key: lvl, label: lvl }))
+    ];
+  }, [language, feed.availableLevels]);
+
+  const topicChips = TOPICS_BY_LANG[language] ?? TOPICS_BY_LANG.es;
 
   return (
     <div className="space-y-8">
-      {/* 发现条：随机推荐一集 + 难度筛选 + 话题直达 */}
+      {/* 语种与视图模式栏：跨频道推荐 vs 独立频道入口 */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex rounded-full border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
+          {(
+            [
+              { key: "es", label: "西班牙语视频" },
+              { key: "de", label: "德语精选（首批）" }
+            ] as const
+          ).map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => handleSelectLanguage(item.key)}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                language === item.key
+                  ? "bg-brand-500 text-white shadow-sm"
+                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="inline-flex rounded-full border border-zinc-200 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-900">
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("feed");
+              if (selectedChannelId) handleSelectChannel(null);
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+              viewMode === "feed" && !selectedChannelId
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300"
+            }`}
+          >
+            <Compass className="h-3.5 w-3.5" aria-hidden />
+            <span>推荐视频</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("channels")}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+              viewMode === "channels" || Boolean(selectedChannelId)
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300"
+            }`}
+          >
+            <Tv className="h-3.5 w-3.5" aria-hidden />
+            <span>频道目录 ({feed.channels.length})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 发现条：随机挑一集 + 换一批推荐 */}
       <div className="flex flex-col gap-4 rounded-surface border border-zinc-200/70 bg-white p-5 shadow-card dark:border-zinc-800/70 dark:bg-zinc-900 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs font-semibold text-brand-600 dark:text-brand-400">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            <span>不知道看什么？随机挑一集</span>
+            <span>
+              {activeChannel
+                ? `正在浏览频道 · ${activeChannel.title}`
+                : "跨频道精选推荐 · 同一次浏览保持稳定顺序"}
+            </span>
           </div>
-          {featuredVideo ? (
+          {spotlight ? (
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <Link
-                href={`/watch?v=${featuredVideo.id}`}
+                href={`/watch?v=${spotlight.id}`}
                 className="line-clamp-1 font-display text-base font-bold text-zinc-900 transition hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
               >
-                {featuredVideo.title}
+                {spotlight.title}
               </Link>
               <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                {featuredVideo.channelTitle} · {formatVideoDurationBadge(featuredVideo.duration)}
+                {spotlight.channelTitle}
+                {spotlight.level ? ` · ${spotlight.level}` : ""}
+                {spotlight.duration ? ` · ${formatVideoDurationBadge(spotlight.duration)}` : ""}
               </span>
             </div>
           ) : (
             <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
-              粘贴任意 YouTube 链接，或按下方话题搜索你想看的西语内容。
+              粘贴任意 YouTube 链接，或从下方探索话题搜索你想看的内容。
             </p>
           )}
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {featuredVideo ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setShuffleSeed((s) => s + 1)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-              >
-                <Shuffle className="h-3.5 w-3.5" aria-hidden />
-                <span>换一批排列</span>
-              </button>
-              <Link
-                href={`/watch?v=${featuredVideo.id}`}
-                className="inline-flex items-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-600"
-              >
-                立即观看 →
-              </Link>
-            </>
+          {!activeChannel ? (
+            <button
+              type="button"
+              onClick={handleShuffle}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            >
+              <Shuffle className="h-3.5 w-3.5" aria-hidden />
+              <span>换一批推荐</span>
+            </button>
+          ) : null}
+          {spotlight ? (
+            <Link
+              href={`/watch?v=${spotlight.id}`}
+              className="inline-flex items-center rounded-full bg-brand-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-600"
+            >
+              立即观看 →
+            </Link>
           ) : null}
         </div>
       </div>
 
-      {/* 难度筛选 + 话题探索 */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {levels.map((level) => (
-            <button
-              key={level}
-              type="button"
-              onClick={() => setSelectedLevel(level)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                selectedLevel === level
-                  ? "bg-brand-500 text-white shadow-sm"
-                  : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-              }`}
+      {/* 独立频道目录或具体某频道详情 */}
+      {viewMode === "channels" && !selectedChannelId ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {feed.channels.map((ch) => (
+            <div
+              key={ch.id}
+              className="flex flex-col justify-between rounded-surface border border-zinc-200/70 bg-white p-5 shadow-card dark:border-zinc-800/70 dark:bg-zinc-900"
             >
-              {level}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">探索话题：</span>
-          {TOPIC_CHIPS.map((topic) => (
-            <Link
-              key={topic.label}
-              href={`/search?q=${encodeURIComponent(topic.query)}`}
-              className="rounded-full border border-zinc-200/80 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600 transition hover:border-brand-300 hover:text-brand-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-brand-400"
-            >
-              {topic.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* 频道列表 */}
-      <div id="video-sections">
-        {visibleSections.map(({ channel, videos }) => {
-          const freshness = getChannelFreshnessLabel(videos);
-          return (
-            <section
-              className="mb-12 border-t border-zinc-100 pt-8 first:border-t-0 first:pt-0 dark:border-zinc-800"
-              key={channel.id}
-            >
-              <div className="mb-4 flex items-end justify-between gap-4">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
-                      {channel.title}
-                    </h2>
-                    <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950/50 dark:text-brand-400">
-                      {channel.level}
-                    </span>
-                    <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
-                      {channel.tag}
-                    </span>
-                    {freshness ? (
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-                          freshness.fresh
-                            ? "bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-400"
-                            : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-                        }`}
-                      >
-                        <Clock className="h-3 w-3" aria-hidden />
-                        {freshness.text}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">
-                    {channel.description}
-                  </p>
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="font-display text-base font-bold text-zinc-900 dark:text-zinc-100">
+                    {ch.title}
+                  </h2>
+                  <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    {ch.tag}
+                  </span>
                 </div>
-                <Link
-                  className="shrink-0 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
-                  href={`/search?q=${encodeURIComponent(channel.title)}`}
+                <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                  {ch.description}
+                </p>
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => handleSelectChannel(ch.id)}
+                  className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
                 >
-                  查看全部 →
+                  进入频道看全部视频 →
+                </button>
+                <Link
+                  href={`/search?q=${encodeURIComponent(ch.title)}`}
+                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500"
+                >
+                  搜索更多
                 </Link>
               </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
-              <div className="flex gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {videos.map((video) => (
-                  <VideoCard key={video.id} video={video} />
-                ))}
-                {videos.length === 0 ? (
-                  <div className="flex h-40 w-full items-center justify-center rounded-surface border border-dashed border-zinc-200 bg-surface text-sm text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
-                    暂时还没有拉到视频数据
+      {/* 难度筛选（挂在单条视频上，不绑频道） + 话题探索 */}
+      {(viewMode === "feed" || selectedChannelId) ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedChannelId ? (
+                <button
+                  type="button"
+                  onClick={() => handleSelectChannel(null)}
+                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+                >
+                  <ArrowLeft className="h-3 w-3" aria-hidden />
+                  <span>返回跨频道推荐</span>
+                </button>
+              ) : null}
+
+              {levelPills.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => handleSelectLevel(item.key)}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                    selectedLevel === item.key
+                      ? "bg-brand-500 text-white shadow-sm"
+                      : "border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-zinc-400 dark:text-zinc-500">探索话题：</span>
+              {topicChips.map((topic) => (
+                <Link
+                  key={topic.label}
+                  href={`/search?q=${encodeURIComponent(topic.query)}`}
+                  className="rounded-full border border-zinc-200/80 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600 transition hover:border-brand-300 hover:text-brand-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-brand-400"
+                >
+                  {topic.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div id="video-sections" className="space-y-8">
+            {loading ? (
+              <div className="rounded-surface border border-zinc-200/70 bg-white p-8 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900">
+                正在刷新视频列表…
+              </div>
+            ) : (
+              <>
+                {feed.isSparse ? (
+                  <div className="rounded-surface border border-amber-200/70 bg-amber-50/70 px-4 py-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+                    当前「{feed.level}」共 {feed.videos.length} 条可用视频，已如实展示；下方同时为你补充了相近难度推荐。
                   </div>
                 ) : null}
-              </div>
-            </section>
-          );
-        })}
-      </div>
+
+                {feed.videos.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    {feed.videos.map((video) => (
+                      <VideoCard key={video.id} fullWidth video={video} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-surface border border-dashed border-zinc-200 bg-surface px-6 py-10 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+                    当前「{feed.level}」暂无可用视频，请查看下方相近难度推荐或切回「全部」。
+                  </div>
+                )}
+
+                {feed.nearbyVideos.length > 0 ? (
+                  <section className="border-t border-zinc-100 pt-6 dark:border-zinc-800">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
+                        相近难度推荐（{feed.nearbyLevel}）
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => feed.nearbyLevel && handleSelectLevel(feed.nearbyLevel)}
+                        className="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                      >
+                        全部 {feed.nearbyLevel} →
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                      {feed.nearbyVideos.map((video) => (
+                        <VideoCard key={`nearby-${video.id}`} fullWidth video={video} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </>
+            )}
+          </div>
+        </>
+      ) : (
+        <div id="video-sections" />
+      )}
     </div>
   );
 }

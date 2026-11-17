@@ -1,10 +1,18 @@
+// Timestamp: 2026-11-17 16:15
+export type VideoLevel = "A1" | "A2" | "B1";
+
 export type YouTubeVideoPayload = {
   id: string;
   title: string;
   thumbnail: string;
   duration: string;
+  channelId?: string;
   channelTitle: string;
   publishedAt: string;
+  language?: "es" | "de";
+  level?: VideoLevel | null;
+  levelSource?: "curated" | "inferred";
+  topic?: string | null;
 };
 
 export function formatVideoDurationBadge(duration: string) {

@@ -7,19 +7,22 @@ const readText = (path) => readFile(path, "utf8");
 
 test("WEB-002 channel route exists and uses YouTube playlistItems plus Redis caching", async () => {
   const routePath = "src/app/api/youtube/channel/route.ts";
+  const channelLibPath = "src/lib/youtube-channel.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
+  assert.ok(existsSync(channelLibPath), `${channelLibPath} should exist`);
 
   const route = await readText(routePath);
+  const channelLib = await readText(channelLibPath);
   const youtubeLib = await readText("src/lib/youtube.ts");
 
   assert.match(route, /export\s+async\s+function\s+GET/);
-  assert.match(route, /playlistItems/);
-  assert.match(route, /feeds\/videos\.xml/);
+  assert.match(channelLib, /playlistItems/);
+  assert.match(channelLib, /feeds\/videos\.xml/);
   assert.match(route, /maxResults/);
   assert.match(route, /NextResponse\.json\(videos\)/);
-  assert.match(route, /60\s*\*\s*60/);
-  assert.match(route, /duration/);
-  assert.match(route, /channelTitle/);
+  assert.match(channelLib, /60\s*\*\s*60/);
+  assert.match(channelLib, /duration/);
+  assert.match(channelLib, /channelTitle/);
   assert.match(youtubeLib, /YOUTUBE_API_KEY/);
   assert.match(youtubeLib, /redis\.get/);
   assert.match(youtubeLib, /redis\.set/);

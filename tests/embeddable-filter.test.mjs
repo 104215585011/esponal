@@ -7,9 +7,11 @@ const readText = (path) => readFile(path, "utf8");
 
 test("Embeddable video filter in channel route", async () => {
   const routePath = "src/app/api/youtube/channel/route.ts";
+  const channelLibPath = "src/lib/youtube-channel.ts";
   assert.ok(existsSync(routePath), `${routePath} should exist`);
+  assert.ok(existsSync(channelLibPath), `${channelLibPath} should exist`);
 
-  const code = await readText(routePath);
+  const code = await readText(channelLibPath);
 
   // Asserting key elements from embeddable filter implementation
   assert.match(code, /part:\s*["']contentDetails,status["']/);

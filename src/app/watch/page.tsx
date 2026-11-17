@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 13:54
+// Timestamp: 2026-11-17 16:22
 import EmptyState from "@/app/components/ui/EmptyState";
 import { BackLink } from "@/app/components/web/BackLink";
 import { SiteHeader } from "@/app/components/web/SiteHeader";
@@ -6,6 +6,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { fetchYouTubeJson } from "@/lib/youtube";
 import type { YouTubeVideoPayload } from "@/lib/youtube-shared";
 import { curatedChannels } from "@/lib/channels";
+import { getUnifiedVideoFeed } from "@/lib/video-feed";
 import { OpenVideoInput } from "@/app/components/web/OpenVideoInput";
 import { WatchClient } from "./WatchClient";
 import { WatchHomeDiscovery } from "./WatchHomeDiscovery";
@@ -18,6 +19,9 @@ type WatchPageProps = {
   searchParams?: {
     v?: string;
     t?: string;
+    lang?: string;
+    level?: string;
+    channel?: string;
   };
 };
 
@@ -166,14 +170,13 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
   const videoInfo = await fetchVideoInfo(videoId);
   const relatedVideos = await fetchRelatedVideos(videoInfo.channelId, videoInfo.channelTitle, videoId);
 
-  const channelSections = !videoId
-    ? await Promise.all(
-        curatedChannels.map(async (channel) => ({
-          channel,
-          videos: await fetchChannelVideos(channel.id)
-        }))
-      )
-    : [];
+  const initialFeed = !videoId
+    ? await getUnifiedVideoFeed({
+        language: searchParams?.lang,
+        level: searchParams?.level,
+        channelId: searchParams?.channel
+      })
+    : null;
 
   return (
     <main className={videoId ? "bg-app lg:h-screen lg:overflow-hidden" : "bg-app min-h-screen"}>
@@ -191,16 +194,16 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
       ) : (
         <div className="mx-auto w-full max-w-app-shell px-4 py-12 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold font-display text-zinc-800 dark:text-zinc-200">西语视频</h1>
+            <h1 className="text-2xl font-bold font-display text-zinc-800 dark:text-zinc-200">精选视频</h1>
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              精选 YouTube 优质西语频道，搭配逐词翻译与智能拆解，带你边听边记。
+              跨频道混排推荐与分级筛选，搭配逐句双语字幕与智能查词，带你边看边学。
             </p>
             <div className="mt-4 max-w-2xl">
               <OpenVideoInput />
             </div>
           </div>
 
-          <WatchHomeDiscovery sections={channelSections} />
+          {initialFeed ? <WatchHomeDiscovery initialFeed={initialFeed} /> : null}
 
           {/* Kept for tests: EmptyState */}
           <div className="hidden">
