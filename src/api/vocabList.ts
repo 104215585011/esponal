@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-14 15:14
+// Timestamp: 2026-11-17 15:45
 import { apiFetch } from "@/api/client";
+import type { LearningLanguage } from "@/lib/preferences";
 
 export type VocabBucket = "all" | "new" | "learning" | "mastered";
 export type VocabSort = "recent" | "alpha" | "due";
@@ -30,12 +31,14 @@ export async function fetchVocabList(
     sort?: VocabSort;
     limit?: number;
     offset?: number;
+    lang?: LearningLanguage;
   } = {}
 ) {
   const search = new URLSearchParams();
   if (params.q?.trim()) search.set("q", params.q.trim());
   if (params.bucket && params.bucket !== "all") search.set("bucket", params.bucket);
   if (params.sort) search.set("sort", params.sort);
+  if (params.lang) search.set("lang", params.lang);
   search.set("limit", String(params.limit ?? 60));
   search.set("offset", String(params.offset ?? 0));
 

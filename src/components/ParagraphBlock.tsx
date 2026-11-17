@@ -1,7 +1,8 @@
-// Timestamp: 2026-11-16 14:35
+// Timestamp: 2026-11-17 15:25
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { LearningLanguage } from "@/lib/preferences";
 import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
 import { colors, radius, spacing } from "@/theme";
 
@@ -10,6 +11,7 @@ type ParagraphBlockProps = {
   first?: boolean;
   fontSize?: number;
   textColor?: string;
+  language?: LearningLanguage;
   onWordPress: (word: string) => void;
 };
 
@@ -74,9 +76,13 @@ export function ParagraphBlock({
   first,
   fontSize = 17,
   textColor = colors.text,
+  language = "es",
   onWordPress
 }: ParagraphBlockProps) {
-  const spans = useMemo(() => detectPhrasesInSentence(text), [text]);
+  const spans = useMemo(
+    () => (language === "es" ? detectPhrasesInSentence(text) : []),
+    [text, language]
+  );
   const segments = useMemo(() => buildSegments(text, spans), [text, spans]);
   const uniqueSpans = useMemo(() => {
     if (spans.length === 0) return [];

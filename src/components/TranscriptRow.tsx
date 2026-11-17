@@ -1,7 +1,8 @@
-// Timestamp: 2026-11-16 14:20
+// Timestamp: 2026-11-17 15:25
 import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { LearningLanguage } from "@/lib/preferences";
 import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
 import { colors, radius, spacing } from "@/theme";
 
@@ -9,6 +10,7 @@ type TranscriptRowProps = {
   text: string;
   start: number;
   translation?: string | null;
+  language?: LearningLanguage;
   active: boolean;
   onSeek: (start: number) => void;
   onWordPress: (word: string, sentence: string) => void;
@@ -26,10 +28,10 @@ function tokenizePlainChunk(chunk: string): RenderSegment[] {
   const out: RenderSegment[] = [];
   for (const part of parts) {
     if (!part) continue;
-    if (/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(part)) {
+    if (/[A-Za-zÄÖÜäöüßÁÉÍÓÚÜÑáéíóúüñ¿¡]/.test(part)) {
       const clean = part
-        .replace(/^[¿¡"“”'«»(\[]+/, "")
-        .replace(/[.,;:!?"“”'»)\]]+$/, "")
+        .replace(/^[¿¡"„“”'«»(\[]+/, "")
+        .replace(/[.,;:!?"„“”'»)\]]+$/, "")
         .trim();
       if (clean) {
         out.push({ type: "word", raw: part, clean });
@@ -80,12 +82,16 @@ export const TranscriptRow = memo(function TranscriptRow({
   text,
   start,
   translation,
+  language = "es",
   active,
   onSeek,
   onWordPress,
   onPhrasePress
 }: TranscriptRowProps) {
-  const spans = useMemo(() => detectPhrasesInSentence(text), [text]);
+  const spans = useMemo(
+    () => (language === "es" ? detectPhrasesInSentence(text) : []),
+    [text, language]
+  );
   const segments = useMemo(() => buildSegments(text, spans), [text, spans]);
 
   // 去重展示本句识别到的固定搭配胶丸

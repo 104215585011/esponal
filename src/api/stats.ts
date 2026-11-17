@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-14 14:35
+// Timestamp: 2026-11-17 15:20
 import { apiFetch } from "@/api/client";
+import type { LearningLanguage } from "@/lib/preferences";
 
 /** 与 Web 端 /api/vocab/stats 返回结构对齐 */
 export type EncounterBucket = {
@@ -24,6 +25,7 @@ export type VocabStats = {
 
 export type WatchHistoryItem = {
   id: string;
+  language?: LearningLanguage;
   videoId: string;
   title: string;
   channelTitle: string;
@@ -34,13 +36,20 @@ export type WatchHistoryItem = {
   duration?: number | null;
 };
 
-export async function fetchVocabStats() {
-  return apiFetch<VocabStats>("/api/vocab/stats");
+export async function fetchVocabStats(lang?: LearningLanguage) {
+  const qs = lang ? `?lang=${encodeURIComponent(lang)}` : "";
+  return apiFetch<VocabStats>(`/api/vocab/stats${qs}`);
 }
 
-export async function fetchWatchHistory(limit = 8) {
+export async function fetchWatchHistory(
+  limit = 8,
+  options?: { lang?: LearningLanguage; all?: boolean }
+) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (options?.all) params.set("all", "1");
+  else if (options?.lang) params.set("lang", options.lang);
   const res = await apiFetch<{ videos?: WatchHistoryItem[] }>(
-    `/api/watch/history?limit=${limit}`
+    `/api/watch/history?${params.toString()}`
   );
   return res.videos ?? [];
 }
@@ -51,6 +60,7 @@ export async function reportWatchHistory(item: {
   title: string;
   channelTitle: string;
   thumbnail?: string | null;
+  language?: LearningLanguage;
 }) {
   try {
     await apiFetch("/api/watch/history", {
@@ -59,7 +69,8 @@ export async function reportWatchHistory(item: {
         videoId: item.videoId,
         title: item.title,
         channelTitle: item.channelTitle,
-        thumbnail: item.thumbnail ?? null
+        thumbnail: item.thumbnail ?? null,
+        ...(item.language ? { language: item.language } : {})
       })
     });
   } catch {

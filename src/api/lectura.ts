@@ -1,10 +1,12 @@
-// Timestamp: 2026-11-16 09:08
+// Timestamp: 2026-11-17 15:20
 import { apiFetch } from "@/api/client";
+import type { LearningLanguage } from "@/lib/preferences";
 
 export type LecturaLevel = "A1" | "A2" | "B1";
 
 export type LecturaListItem = {
   slug: string;
+  language?: LearningLanguage;
   title: string;
   titleZh: string;
   level: LecturaLevel;
@@ -26,10 +28,13 @@ export type LecturaStory = LecturaListItem & {
   coverUrl?: string;
 };
 
-export async function fetchStories(forceRefresh = false) {
-  const query = forceRefresh ? "?refresh=1" : "";
+export async function fetchStories(forceRefresh = false, lang?: LearningLanguage) {
+  const params = new URLSearchParams();
+  if (forceRefresh) params.set("refresh", "1");
+  if (lang) params.set("lang", lang);
+  const query = params.toString();
   const res = await apiFetch<{ items: LecturaListItem[]; total: number }>(
-    `/api/lectura/stories${query}`
+    `/api/lectura/stories${query ? `?${query}` : ""}`
   );
   return res.items;
 }

@@ -1,8 +1,9 @@
-// Timestamp: 2026-11-15 07:05
-import { useCallback, useState } from "react";
+// Timestamp: 2026-11-17 15:50
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -14,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 
 import { useAuth } from "@/auth/AuthProvider";
+import { fetchAccountLanguage, updateAccountLanguage } from "@/api/account";
 import { fetchReviewQueue } from "@/api/review";
 import {
   fetchVocabStats,
@@ -22,6 +24,12 @@ import {
   type WatchHistoryItem
 } from "@/api/stats";
 import { AppIcon, type AppIconName } from "@/components/AppIcon";
+import { usePreferences } from "@/hooks/usePreferences";
+import {
+  LEARNING_LANGUAGE_OPTIONS,
+  updatePreferences,
+  type LearningLanguage
+} from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 import {
   adoptServerProgress,
@@ -42,7 +50,7 @@ type QuickTool = {
   href: string;
 };
 
-const QUICK_TOOLS: QuickTool[] = [
+const QUICK_TOOLS_ES: QuickTool[] = [
   {
     icon: "headphones",
     tint: colors.brand700,
@@ -81,6 +89,47 @@ const QUICK_TOOLS: QuickTool[] = [
   }
 ];
 
+const QUICK_TOOLS_DE: QuickTool[] = [
+  {
+    icon: "headphones",
+    tint: colors.brand700,
+    tintBg: colors.brand50,
+    tag: "播客精听",
+    title: "德语听力",
+    desc: "Slow German 慢速播客 + 源文稿",
+    href: "/listening"
+  },
+  {
+    icon: "play",
+    tint: colors.indigo600,
+    tintBg: colors.indigo50,
+    tag: "原声字幕",
+    title: "德语视频",
+    desc: "DW / Easy German 点词查可分动词",
+    href: "/watch"
+  },
+  {
+    icon: "book",
+    tint: colors.amber700,
+    tintBg: colors.amber50,
+    tag: "A1–A2",
+    title: "德语短文",
+    desc: "分级精读与冠词/复数卡片",
+    href: "/lectura"
+  },
+  {
+    icon: "shelf",
+    tint: colors.sky600,
+    tintBg: colors.sky50,
+    tag: "词库复习",
+    title: "德语词库",
+    desc: "FSRS 复习与收藏原句回看",
+    href: "/review"
+  }
+];
+
+const QUICK_HOME_LANGS: LearningLanguage[] = ["es", "de"];
+
 const BUCKET_COLORS = ["#D6EFE3", "#A7DFC6", "#5EC79B", colors.brand600];
 
 /**
@@ -95,24 +144,43 @@ const BUCKET_COLORS = ["#D6EFE3", "#A7DFC6", "#5EC79B", colors.brand600];
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const prefs = usePreferences();
+  const activeLang = prefs.learningLang;
+  const activeLangMeta =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === activeLang) ??
+    LEARNING_LANGUAGE_OPTIONS[0];
+  const visibleTools = activeLang === "de" ? QUICK_TOOLS_DE : QUICK_TOOLS_ES;
 
   const [due, setDue] = useState<number | null>(null);
   const [stats, setStats] = useState<VocabStats | null>(null);
   const [history, setHistory] = useState<WatchHistoryItem[]>([]);
+  const [allHistory, setAllHistory] = useState<WatchHistoryItem[]>([]);
+  const [historyScope, setHistoryScope] = useState<"active" | "all">("active");
+  const [langModalOpen, setLangModalOpen] = useState(false);
   const [progress, setProgress] = useState<Record<string, WatchProgress>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const reqSeqRef = useRef(0);
+  const latestLangRef = useRef(activeLang);
+  latestLangRef.current = activeLang;
 
-  const load = useCallback(async (isRefresh = false) => {
+  const load = useCallback(async (isRefresh = false, langOverride?: LearningLanguage) => {
+    const seq = ++reqSeqRef.current;
+    const targetLang = langOverride ?? latestLangRef.current;
     if (isRefresh) setRefreshing(true);
 
     await loadWatchProgress();
 
-    const [queueRes, statsRes, historyRes] = await Promise.allSettled([
-      fetchReviewQueue(),
-      fetchVocabStats(),
-      fetchWatchHistory(6)
+    const [queueRes, statsRes, historyRes, allHistoryRes] = await Promise.allSettled([
+      fetchReviewQueue(20, targetLang),
+      fetchVocabStats(targetLang),
+      fetchWatchHistory(6, { lang: targetLang }),
+      fetchWatchHistory(12, { all: true })
     ]);
+
+    if (seq !== reqSeqRef.current || targetLang !== latestLangRef.current) {
+      return;
+    }
 
     if (queueRes.status === "fulfilled") setDue(queueRes.value.totalDue ?? 0);
     if (statsRes.status === "fulfilled") setStats(statsRes.value);
@@ -126,15 +194,55 @@ export default function HomeScreen() {
       });
     }
 
+    if (allHistoryRes.status === "fulfilled") {
+      setAllHistory(allHistoryRes.value);
+    }
+
     setProgress(getAllWatchProgress());
     setLoading(false);
     setRefreshing(false);
   }, []);
 
+  useEffect(() => {
+    void fetchAccountLanguage()
+      .then((res) => {
+        if (res?.activeLanguage && res.activeLanguage !== latestLangRef.current) {
+          void updatePreferences({ learningLang: res.activeLanguage });
+        }
+      })
+      .catch(() => {
+        // Offline keeps local learningLang
+      });
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      void load();
-    }, [load])
+      void load(false, activeLang);
+    }, [load, activeLang])
+  );
+
+  const handleSwitchLanguage = useCallback(
+    (nextLang: LearningLanguage) => {
+      setLangModalOpen(false);
+      if (nextLang === activeLang) return;
+      latestLangRef.current = nextLang;
+      setDue(null);
+      setStats(null);
+      setHistory([]);
+      setHistoryScope("active");
+      setLoading(true);
+      void updatePreferences({ learningLang: nextLang });
+      void updateAccountLanguage(nextLang).catch(() => {
+        // Offline header X-Learning-Lang remains active
+      });
+      void load(false, nextLang);
+    },
+    [activeLang, load]
+  );
+
+  const displayedHistory = useMemo(
+    () => (historyScope === "all" ? allHistory : history),
+    [historyScope, allHistory, history]
   );
 
   const totalSaved = stats?.totalSaved ?? 0;
@@ -162,9 +270,17 @@ export default function HomeScreen() {
       >
         {/* 顶栏 */}
         <View style={styles.brandRow}>
-          <Text style={styles.brand}>
-            LinguaMind<Text style={styles.brandDot}>.</Text>
-          </Text>
+          <View style={styles.brandGroup}>
+            <Text style={styles.brand}>
+              LinguaMind<Text style={styles.brandDot}>.</Text>
+            </Text>
+            <Pressable
+              onPress={() => setLangModalOpen(true)}
+              style={({ pressed }) => [styles.langSwitchPill, pressed && styles.pressed]}
+            >
+              <Text style={styles.langSwitchText}>{activeLangMeta.shortLabel} ▾</Text>
+            </Pressable>
+          </View>
           <View style={styles.topActions}>
             <Pressable
               onPress={() =>
@@ -176,7 +292,9 @@ export default function HomeScreen() {
               <Text style={styles.topPillText}>书架</Text>
             </Pressable>
             <Pressable
-              onPress={() => router.push("/search" as never)}
+              onPress={() =>
+                router.push({ pathname: "/search", params: { lang: activeLang } } as never)
+              }
               style={({ pressed }) => [styles.topPill, pressed && styles.pressed]}
             >
               <AppIcon color={colors.textSecondary} name="search" size={14} />
@@ -186,12 +304,15 @@ export default function HomeScreen() {
         </View>
 
         <Text style={styles.hello}>
-          {user?.name ? `Hola, ${user.name}` : "Hola"} · 今天逛点什么？
+          {activeLang === "de" ? "Hallo" : "Hola"}
+          {user?.name ? `, ${user.name}` : ""} · 当前学习{activeLangMeta.label}
         </Text>
 
         {/* 主引导卡：泛听泛读优先 + 温和复习联动 */}
         <View style={styles.heroCard}>
-          <Text style={styles.heroEyebrow}>IMMERSION · 泛听泛读</Text>
+          <Text style={styles.heroEyebrow}>
+            IMMERSION · {activeLangMeta.label}泛听泛读
+          </Text>
           {canResume && resumeItem ? (
             <>
               <Text numberOfLines={2} style={styles.heroTitle}>
@@ -204,9 +325,13 @@ export default function HomeScreen() {
             </>
           ) : (
             <>
-              <Text style={styles.heroTitle}>看一条西语视频，或读一篇短文</Text>
+              <Text style={styles.heroTitle}>
+                看一条{activeLangMeta.shortLabel}视频，或读一篇短文
+              </Text>
               <Text style={styles.heroSub}>
-                双语字幕与阅读正文都支持轻触查词、查看完整动词变位。
+                {activeLang === "de"
+                  ? "支持德语原声字幕、可分动词还原、名词冠词与复数查询。"
+                  : "双语字幕与阅读正文都支持轻触查词、查看完整动词变位。"}
               </Text>
             </>
           )}
@@ -221,7 +346,8 @@ export default function HomeScreen() {
                       videoId: resumeItem.videoId,
                       title: resumeItem.title,
                       channelTitle: resumeItem.channelTitle,
-                      thumbnail: resumeItem.thumbnail ?? ""
+                      thumbnail: resumeItem.thumbnail ?? "",
+                      lang: resumeItem.language ?? activeLang
                     }
                   } as never);
                 } else {
@@ -252,26 +378,50 @@ export default function HomeScreen() {
         </View>
 
         {/* 最近观看 */}
-        {history.length > 0 ? (
+        {(history.length > 0 || allHistory.length > 0) ? (
           <View style={styles.section}>
             <View style={styles.sectionHead}>
-              <Text style={styles.sectionTitle}>接着看</Text>
+              <View style={styles.historyHeadLeft}>
+                <Text style={styles.sectionTitle}>接着看</Text>
+                {allHistory.length > 0 ? (
+                  <Pressable
+                    onPress={() =>
+                      setHistoryScope((prev) => (prev === "active" ? "all" : "active"))
+                    }
+                    style={styles.historyScopePill}
+                  >
+                    <Text style={styles.historyScopeText}>
+                      {historyScope === "all" ? `仅看${activeLangMeta.shortLabel}` : "全部历史"}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
               <Pressable onPress={() => router.push("/watch" as never)}>
                 <Text style={styles.sectionMore}>全部视频 ›</Text>
               </Pressable>
             </View>
+            {displayedHistory.length === 0 ? (
+              <View style={styles.emptyHistoryBox}>
+                <Text style={styles.emptyHistoryText}>
+                  当前{activeLangMeta.label}还没有观看记录，可点上方「全部历史」重温其他语种。
+                </Text>
+              </View>
+            ) : (
             <ScrollView
               contentContainerStyle={styles.historyRow}
               horizontal
               showsHorizontalScrollIndicator={false}
             >
-              {history.map((item) => {
+              {displayedHistory.map((item) => {
                 const saved = progress[item.videoId];
                 const resumable = shouldResume(saved);
                 const pct =
                   resumable && saved && saved.duration > 0
                     ? Math.min(100, (saved.position / saved.duration) * 100)
                     : 0;
+                const itemLang = item.language ?? activeLang;
+                const itemLangLabel =
+                  LEARNING_LANGUAGE_OPTIONS.find((o) => o.value === itemLang)?.shortLabel ?? "";
 
                 return (
                   <Pressable
@@ -283,7 +433,8 @@ export default function HomeScreen() {
                           videoId: item.videoId,
                           title: item.title,
                           channelTitle: item.channelTitle,
-                          thumbnail: item.thumbnail ?? ""
+                          thumbnail: item.thumbnail ?? "",
+                          lang: itemLang
                         }
                       } as never)
                     }
@@ -298,6 +449,7 @@ export default function HomeScreen() {
                       {item.title}
                     </Text>
                     <Text numberOfLines={1} style={styles.historyChannel}>
+                      {historyScope === "all" && itemLangLabel ? `[${itemLangLabel}] ` : ""}
                       {item.channelTitle}
                     </Text>
                     {resumable && saved ? (
@@ -316,13 +468,16 @@ export default function HomeScreen() {
                 );
               })}
             </ScrollView>
+            )}
           </View>
         ) : null}
 
-        {/* 2x2 专项工具与训练 */}
+        {/* 专项工具与参考 */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
-            <Text style={styles.sectionTitle}>专项训练与参考</Text>
+            <Text style={styles.sectionTitle}>
+              {activeLang === "de" ? "德语核心学习入口" : "专项训练与参考"}
+            </Text>
             <Pressable
               onPress={() => router.push("/lectura" as never)}
             >
@@ -331,7 +486,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.toolGrid}>
-            {QUICK_TOOLS.map((tool) => (
+            {visibleTools.map((tool) => (
               <Pressable
                 key={tool.title}
                 onPress={() => router.push(tool.href as never)}
@@ -360,7 +515,7 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.vocabCard, pressed && styles.pressed]}
         >
           <View style={styles.vocabHead}>
-            <Text style={styles.vocabTitle}>我的词汇积累</Text>
+            <Text style={styles.vocabTitle}>{activeLangMeta.shortLabel}词汇积累</Text>
             <Text style={styles.vocabLink}>查看词库 ›</Text>
           </View>
 
@@ -416,6 +571,59 @@ export default function HomeScreen() {
           ) : null}
         </Pressable>
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setLangModalOpen(false)}
+        transparent
+        visible={langModalOpen}
+      >
+        <Pressable onPress={() => setLangModalOpen(false)} style={styles.modalBackdrop}>
+          <Pressable onPress={() => {}} style={styles.langModalCard}>
+            <Text style={styles.langModalTitle}>切换当前学习语种</Text>
+            <Text style={styles.langModalSub}>
+              首页内容、最近观看、词库统计与待复习队列将立即同步切换；历史中已学材料仍按各自语种保留隔离。
+            </Text>
+            <View style={styles.langModalList}>
+              {QUICK_HOME_LANGS.map((code) => {
+                const opt = LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === code);
+                if (!opt) return null;
+                const selected = opt.value === activeLang;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => handleSwitchLanguage(opt.value)}
+                    style={[styles.langOptionRow, selected && styles.langOptionRowActive]}
+                  >
+                    <View>
+                      <Text style={[styles.langOptionLabel, selected && styles.langOptionLabelActive]}>
+                        {opt.label}
+                      </Text>
+                      <Text style={styles.langOptionHint}>
+                        {opt.value === "de"
+                          ? "德语视频 · 短文精读 · Slow German 播客 · 词库复习"
+                          : "西语视频 · 短文/外刊 · 播客 · 语法/发音全模块"}
+                      </Text>
+                    </View>
+                    <Text style={[styles.langOptionCheck, selected && styles.langOptionLabelActive]}>
+                      {selected ? "当前" : "切换"}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable
+              onPress={() => {
+                setLangModalOpen(false);
+                router.push("/settings" as never);
+              }}
+              style={styles.langSettingsLink}
+            >
+              <Text style={styles.langSettingsLinkText}>前往设置查看全部语种与语音音色 ›</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -632,5 +840,119 @@ const styles = StyleSheet.create({
   legendRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   legendDot: { width: 7, height: 7, borderRadius: 4 },
-  legendText: { fontSize: 10.5, color: colors.textSecondary }
+  legendText: { fontSize: 10.5, color: colors.textSecondary },
+  brandGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  langSwitchPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand100
+  },
+  langSwitchText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.brand700
+  },
+  historyHeadLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8
+  },
+  historyScopePill: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  historyScopeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textSecondary
+  },
+  emptyHistoryBox: {
+    backgroundColor: colors.bg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md
+  },
+  emptyHistoryText: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: colors.textSecondary
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    justifyContent: "center",
+    paddingHorizontal: spacing.xl
+  },
+  langModalCard: {
+    backgroundColor: colors.bg,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    gap: spacing.md
+  },
+  langModalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.text
+  },
+  langModalSub: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: colors.textSecondary
+  },
+  langModalList: {
+    gap: spacing.sm
+  },
+  langOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgSubtle
+  },
+  langOptionRowActive: {
+    borderColor: colors.brand500,
+    backgroundColor: colors.brand50
+  },
+  langOptionLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.text
+  },
+  langOptionLabelActive: {
+    color: colors.brand700
+  },
+  langOptionHint: {
+    marginTop: 2,
+    fontSize: 11.5,
+    color: colors.textSecondary
+  },
+  langOptionCheck: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.textTertiary
+  },
+  langSettingsLink: {
+    alignItems: "center",
+    paddingTop: spacing.xs
+  },
+  langSettingsLinkText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.brand600
+  }
 });

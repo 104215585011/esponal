@@ -23,7 +23,8 @@ import {
   subscribeDownloadJob,
   type DownloadJobState
 } from "@/subtitles/subtitleDownload";
-import { getPreferences, updatePreferences } from "@/lib/preferences";
+// Timestamp: 2026-11-17 15:30
+import { getPreferences, updatePreferences, type LearningLanguage } from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { TranscriptRow } from "@/components/TranscriptRow";
 import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
@@ -52,13 +53,26 @@ import { colors, radius, spacing } from "@/theme";
 /** 倍速档位:点一下循环切换 */
 const RATE_STEPS = [0.75, 1, 1.25, 1.5];
 
+function normalizeMaterialLang(raw?: string | null): LearningLanguage | null {
+  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
+    return raw;
+  }
+  return null;
+}
+
 export default function WatchPlayerScreen() {
-  const { videoId, title, channelTitle, thumbnail } = useLocalSearchParams<{
+  const { videoId, title, channelTitle, thumbnail, lang } = useLocalSearchParams<{
     videoId: string;
     title?: string;
     channelTitle?: string;
     thumbnail?: string;
+    lang?: string;
   }>();
+  const explicitParamLang = normalizeMaterialLang(typeof lang === "string" ? lang : undefined);
+  const [materialLang, setMaterialLang] = useState<LearningLanguage>(() => {
+    const cachedLang = videoId ? getWatchProgress(String(videoId))?.language : undefined;
+    return explicitParamLang ?? cachedLang ?? getPreferences().learningLang;
+  });
   const router = useRouter();
   const { width } = useWindowDimensions();
 
@@ -116,12 +130,12 @@ export default function WatchPlayerScreen() {
     if (!videoId) return;
     openVideo({
       videoId: String(videoId),
-      title: title ? String(title) : "西语视频",
+      title: title ? String(title) : materialLang === "de" ? "德语视频" : "西语视频",
       channelTitle: channelTitle ? String(channelTitle) : undefined,
       thumbnail: thumbnail ? String(thumbnail) : undefined
     });
     void updatePreferences({ videoRate: getPreferences().videoRate ?? 1 });
-  }, [videoId, title, channelTitle, thumbnail, openVideo]);
+  }, [videoId, title, channelTitle, thumbnail, materialLang, openVideo]);
 
   useEffect(() => {
     return () => {
@@ -146,19 +160,23 @@ export default function WatchPlayerScreen() {
   const videoHeight = Math.round((width * 9) / 16);
   const totalDuration = duration > 0 ? duration : cueDuration;
 
-  // 字幕加载
+  // 字幕加载（按材料自身语种加载，切换视频/语种时防竞态覆盖）
   useEffect(() => {
     if (!videoId) return;
     let cancelled = false;
 
     setLoading(true);
     setError(null);
+    setCues([]);
+    translationCacheRef.current.clear();
+    translationsRef.current = {};
+    setTranslations({});
 
-    fetchSubtitles(String(videoId))
+    fetchSubtitles(String(videoId), materialLang)
       .then((data) => {
         if (cancelled) return;
         setCues(data);
-        if (data.length === 0) setError("这部视频还没有字幕");
+        if (data.length === 0) setError("这部视频还没有该语种的字幕");
       })
       .catch((e) => {
         if (cancelled) return;
@@ -171,7 +189,7 @@ export default function WatchPlayerScreen() {
     return () => {
       cancelled = true;
     };
-  }, [videoId]);
+  }, [videoId, materialLang]);
 
   // 续播:先读本地（立刻可用）,再问服务端要一份（换设备时靠它把进度带过来）
   useEffect(() => {
@@ -191,6 +209,9 @@ export default function WatchPlayerScreen() {
       if (cancelled) return;
 
       const local = getWatchProgress(String(videoId));
+      if (!explicitParamLang && local?.language) {
+        setMaterialLang(local.language);
+      }
       if (local && shouldResume(local)) setResumeAt(local.position);
 
       const server = await fetchServerProgress([String(videoId)]);
@@ -262,16 +283,16 @@ export default function WatchPlayerScreen() {
     void clearWatchProgress(String(videoId));
   }, [videoId]);
 
-  // 离开页面时补存一次，避免最后 5 秒的进度丢掉
+  // 离开页面时补存一次，避免最后 5 秒的进度丢掉，同时记住材料语种
   useEffect(() => {
     videoIdRef.current = String(videoId ?? "");
     return () => {
       const t = currentTimeRef.current;
       if (t <= 1) return;
-      void saveWatchProgress(videoIdRef.current, t, durationRef.current);
+      void saveWatchProgress(videoIdRef.current, t, durationRef.current, materialLang);
       void pushServerProgress(videoIdRef.current, t, durationRef.current);
     };
-  }, [videoId]);
+  }, [videoId, materialLang]);
 
   // 当全局播放器探测到视频时长后，自动触发一次续播定位
   useEffect(() => {
@@ -345,13 +366,20 @@ export default function WatchPlayerScreen() {
   // 进入播放页静默上报观看历史(首页「最近观看」从这里来);缺频道信息就不报
   useEffect(() => {
     if (!videoId || !title || !channelTitle) return;
+    void saveWatchProgress(
+      String(videoId),
+      currentTimeRef.current,
+      durationRef.current,
+      materialLang
+    );
     void reportWatchHistory({
       videoId: String(videoId),
       title: String(title),
       channelTitle: String(channelTitle),
-      thumbnail: thumbnail ? String(thumbnail) : null
+      thumbnail: thumbnail ? String(thumbnail) : null,
+      language: materialLang
     });
-  }, [videoId, title, channelTitle, thumbnail]);
+  }, [videoId, title, channelTitle, thumbnail, materialLang]);
 
   const handleDownloadSubtitles = useCallback(() => {
     if (downloadJob.running || cues.length === 0 || !videoId) return;
@@ -403,7 +431,7 @@ export default function WatchPlayerScreen() {
         }
 
         translatingRef.current.add(i);
-        const result = await translateText(text);
+        const result = await translateText(text, materialLang);
         translatingRef.current.delete(i);
 
         if (cancelled || !result) continue;
@@ -419,7 +447,7 @@ export default function WatchPlayerScreen() {
     return () => {
       cancelled = true;
     };
-  }, [activeIndex, cues, bilingual]);
+  }, [activeIndex, cues, bilingual, materialLang]);
 
   // 自动跟随:滚动到当前句(用户手动滚动后会暂停跟随)
   // 必须用 try/catch + onScrollToIndexFailed 兜底，防止播放到中后段未测量行触发 Invariant Violation 闪退
@@ -685,6 +713,7 @@ export default function WatchPlayerScreen() {
           renderItem={({ item, index }) => (
             <TranscriptRow
               active={index === activeIndex}
+              language={materialLang}
               onPhrasePress={handlePhrasePress}
               onSeek={seekTo}
               onWordPress={handleWordPress}
@@ -700,7 +729,10 @@ export default function WatchPlayerScreen() {
 
       <LookupSheet
         context={lookupContext}
+        language={materialLang}
         onClose={() => setLookupWord(null)}
+        sourceType="video"
+        sourceUrl={`youtube://${String(videoId)}`}
         word={lookupWord}
       />
     </View>

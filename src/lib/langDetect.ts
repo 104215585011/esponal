@@ -13,13 +13,16 @@
  *   - 识别的作用是「纠正明显的错判」，比如西语对话里出现 "How are you?"、英语角色说了 "¡Hola!"
  */
 
-export type LangCode = "es" | "en" | "fr" | "ja" | "zh";
+// Timestamp: 2026-11-17 15:18
+export type LangCode = "es" | "de" | "en" | "fr" | "ja" | "zh";
 
 const KANA = /[\u3040-\u30ff]/;
 const HAN = /[\u4e00-\u9fff]/;
 
 /** 只有西语用 ñ / ¿ / ¡ */
 const ES_ONLY = /[ñ¿¡]/i;
+/** 德语特有字母 ß 及变元音 ä/ö */
+const DE_ONLY = /[ßäöÄÖ]/;
 /** á í ó ú ü 也出现在葡语、德语里，但配合其它信号足够用 */
 const ES_ACCENT = /[áíóúü]/i;
 /** ç œ æ 基本只出现在法语（葡语也有 ç，单独不强） */
@@ -32,6 +35,13 @@ const ES_WORDS = new Set([
   "hola", "gracias", "porque", "cuando", "donde", "todo", "todos", "se", "su", "sus",
   "mi", "tu", "yo", "tú", "él", "ella", "nosotros", "vosotros", "ellos", "esto", "eso",
   "hay", "ser", "estar", "tener", "hacer", "muy", "bien", "mal", "sí", "no"
+]);
+
+const DE_WORDS = new Set([
+  "der", "die", "das", "ein", "eine", "und", "ich", "du", "er", "sie", "wir", "ihr",
+  "nicht", "mit", "auf", "für", "ist", "sind", "war", "waren", "haben", "hat", "wird",
+  "werden", "kann", "können", "muss", "um", "uhr", "fahrrad", "fahrräder", "aufstehen",
+  "stehe", "schule", "bahnhof", "morgen", "woche", "heute", "danke", "hallo", "tschüss"
 ]);
 
 const EN_WORDS = new Set([
@@ -75,6 +85,7 @@ export function detectLang(text: string | null | undefined): LangCode | null {
 
   if (KANA.test(content)) return "ja";
   if (HAN.test(content)) return "zh";
+  if (DE_ONLY.test(content)) return "de";
   if (FR_ONLY.test(content)) return "fr";
   if (ES_ONLY.test(content)) return "es";
 
@@ -88,6 +99,7 @@ export function detectLang(text: string | null | undefined): LangCode | null {
 
     const hits = [
       ES_WORDS.has(token) ? "es" : null,
+      DE_WORDS.has(token) ? "de" : null,
       EN_WORDS.has(token) ? "en" : null,
       FR_WORDS.has(token) ? "fr" : null
     ].filter(Boolean) as LangCode[];
@@ -105,11 +117,13 @@ export function detectLang(text: string | null | undefined): LangCode | null {
   }
 
   let es = 0;
+  let de = 0;
   let en = 0;
   let fr = 0;
 
   tokens.forEach((token) => {
     if (ES_WORDS.has(token)) es += 1;
+    if (DE_WORDS.has(token)) de += 1;
     if (EN_WORDS.has(token)) en += 1;
     if (FR_WORDS.has(token)) fr += 1;
   });
@@ -122,6 +136,7 @@ export function detectLang(text: string | null | undefined): LangCode | null {
 
   const scores: Array<[LangCode, number]> = [
     ["es", es],
+    ["de", de],
     ["en", en],
     ["fr", fr]
   ];

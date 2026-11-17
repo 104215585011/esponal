@@ -29,10 +29,15 @@ import {
 } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 
+// Timestamp: 2026-11-17 15:25
 const SAMPLE_BY_LANG: Record<LearningLanguage, { speed: string; preview: string }> = {
   es: {
     speed: "Buenos días, vamos a practicar.",
     preview: "Hola, ¿qué tal? Esta es la voz que se está usando ahora."
+  },
+  de: {
+    speed: "Guten Morgen, ich stehe um sieben Uhr auf.",
+    preview: "Hallo! So klingt die deutsche Stimme beim Lernen."
   },
   en: {
     speed: "Good morning, let's practice at this speed.",

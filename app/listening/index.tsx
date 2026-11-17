@@ -21,6 +21,9 @@ import {
   type PodcastEpisode,
   type PodcastShow
 } from "@/api/podcasts";
+// Timestamp: 2026-11-17 15:58
+import { usePreferences } from "@/hooks/usePreferences";
+import { LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
 import {
@@ -66,7 +69,19 @@ function formatDate(raw: string) {
 export default function ListeningListScreen() {
   const router = useRouter();
   const { activePodcast, podcastStatus } = useBackgroundMedia();
+  const { learningLang } = usePreferences();
+  const langLabel =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === learningLang)?.shortLabel ?? "目标语";
   const [mode, setMode] = useState<ModeTab>("podcasts");
+  const reqSeqRef = useRef(0);
+  const latestLangRef = useRef(learningLang);
+  latestLangRef.current = learningLang;
+
+  useEffect(() => {
+    if (learningLang !== "es" && mode !== "podcasts") {
+      setMode("podcasts");
+    }
+  }, [learningLang, mode]);
 
   // 播客状态
   const [shows, setShows] = useState<PodcastShow[]>([]);
@@ -86,20 +101,31 @@ export default function ListeningListScreen() {
   const itemsRef = useRef<LecturaListItem[]>([]);
 
   const loadPodcasts = useCallback(async (isRefresh = false) => {
+    const seq = ++reqSeqRef.current;
+    const reqLang = learningLang;
     if (isRefresh) setPodRefreshing(true);
-    else setPodLoading(true);
+    else {
+      setPodLoading(true);
+      setShowFilter("ALL");
+      setShows([]);
+      setEpisodes([]);
+    }
     setPodError(null);
     try {
-      const res = await fetchPodcasts(isRefresh);
+      const res = await fetchPodcasts(isRefresh, reqLang);
+      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
       setShows(res.shows ?? []);
       setEpisodes(res.episodes ?? []);
     } catch (e) {
+      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
       setPodError(e instanceof Error ? e.message : "加载播客失败");
     } finally {
-      setPodLoading(false);
-      setPodRefreshing(false);
+      if (seq === reqSeqRef.current) {
+        setPodLoading(false);
+        setPodRefreshing(false);
+      }
     }
-  }, []);
+  }, [learningLang]);
 
   const refreshProgress = useCallback(async (list: LecturaListItem[]) => {
     await loadListeningLog();
@@ -112,24 +138,33 @@ export default function ListeningListScreen() {
 
   const loadCurated = useCallback(
     async (isRefresh = false) => {
+      const reqLang = learningLang;
+      if (reqLang !== "es") {
+        setItems([]);
+        setCurLoading(false);
+        setCurRefreshing(false);
+        return;
+      }
       if (isRefresh) setCurRefreshing(true);
       else setCurLoading(true);
       setCurError(null);
 
       try {
-        const data = await fetchStories(false);
+        const data = await fetchStories(false, "es");
+        if (reqLang !== latestLangRef.current) return;
         const audioCapable = data.filter((item) => item.sourceType !== "rss");
         itemsRef.current = audioCapable;
         setItems(audioCapable);
         await refreshProgress(audioCapable);
       } catch (e) {
+        if (reqLang !== latestLangRef.current) return;
         setCurError(e instanceof Error ? e.message : "加载失败");
       } finally {
         setCurLoading(false);
         setCurRefreshing(false);
       }
     },
-    [refreshProgress]
+    [learningLang, refreshProgress]
   );
 
   useEffect(() => {
@@ -167,19 +202,21 @@ export default function ListeningListScreen() {
         <Pressable hitSlop={12} onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.back}>←</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>听力精听</Text>
+        <Text style={styles.headerTitle}>{langLabel}听力精听</Text>
       </View>
 
-      <View style={styles.segWrap}>
-        <SegmentedControl
-          onChange={setMode}
-          options={[
-            { key: "podcasts", label: "西语播客" },
-            { key: "curated", label: "分级盲听" }
-          ]}
-          value={mode}
-        />
-      </View>
+      {learningLang === "es" ? (
+        <View style={styles.segWrap}>
+          <SegmentedControl
+            onChange={setMode}
+            options={[
+              { key: "podcasts", label: "西语播客" },
+              { key: "curated", label: "分级盲听" }
+            ]}
+            value={mode}
+          />
+        </View>
+      ) : null}
 
       {mode === "podcasts" ? (
         <FlatList
@@ -196,9 +233,9 @@ export default function ListeningListScreen() {
           ListHeaderComponent={
             <View>
               <View style={styles.intro}>
-                <Text style={styles.introTitle}>播客精听 · 真实语境输入</Text>
+                <Text style={styles.introTitle}>播客精听 · 真实{langLabel}输入</Text>
                 <Text style={styles.introLine}>
-                  来自西语母语与高口碑学习播客的最新音频。支持 30 秒循环、变速及熄屏/后台连续播放。
+                  来自{langLabel}原声与高口碑学习播客的最新音频。支持 30 秒循环、变速、源文稿字幕与熄屏连续播放。
                 </Text>
               </View>
 
@@ -292,7 +329,8 @@ export default function ListeningListScreen() {
                       description: item.description,
                       durationSec: item.durationSec ? String(item.durationSec) : "",
                       coverUrl: item.coverUrl ?? "",
-                      link: item.link ?? ""
+                      link: item.link ?? "",
+                      language: item.language ?? learningLang
                     }
                   } as never)
                 }

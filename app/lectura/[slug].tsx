@@ -20,10 +20,19 @@ import {
   type LecturaStory
 } from "@/api/lectura";
 import { getProxiedCoverUrl } from "@/api/podcasts";
+// Timestamp: 2026-11-17 15:55
+import { getPreferences, type LearningLanguage } from "@/lib/preferences";
 import { LookupSheet } from "@/components/LookupSheet";
 import { ParagraphBlock } from "@/components/ParagraphBlock";
 import { useParagraphSpeech } from "@/hooks/useParagraphSpeech";
 import { colors, radius, spacing } from "@/theme";
+
+function normalizeParamLang(raw?: string | null): LearningLanguage | null {
+  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
+    return raw;
+  }
+  return null;
+}
 
 type DisplayMode = "bilingual" | "target" | "zh";
 type PaperTheme = "white" | "warm" | "night";
@@ -67,10 +76,14 @@ const FONT_SIZES = [16, 18, 21] as const;
  * - 支持「中西对照 / 纯西语 / 纯中文」即时切换、字号与护眼底色调节、单段/整篇朗读与点词查变位
  */
 export default function LecturaReaderScreen() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug, lang } = useLocalSearchParams<{ slug: string; lang?: string }>();
   const router = useRouter();
 
   const [story, setStory] = useState<LecturaStory | null>(null);
+  const materialLang: LearningLanguage =
+    story?.language ??
+    normalizeParamLang(typeof lang === "string" ? lang : undefined) ??
+    getPreferences().learningLang;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lookupWord, setLookupWord] = useState<string | null>(null);
@@ -105,7 +118,8 @@ export default function LecturaReaderScreen() {
       void markStoryRead(String(slug));
 
       try {
-        const all = await fetchStories();
+        const storyLang = data.language ?? materialLang;
+        const all = await fetchStories(false, storyLang);
         const sameLevel = all.filter((item) => item.level === data.level);
         const pos = sameLevel.findIndex((item) => item.slug === data.slug);
         const next = pos >= 0 ? sameLevel[pos + 1] : null;
@@ -118,20 +132,20 @@ export default function LecturaReaderScreen() {
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, materialLang]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  // 自动拉取当前文章全部段落的中西对照译文
+  // 自动拉取当前文章全部段落的双语对照译文（始终按文章自身语种）
   useEffect(() => {
     if (!story || story.paragraphs.length === 0 || displayMode === "target") return;
     if (translations.length > 0) return;
 
     let cancelled = false;
     setTranslating(true);
-    translateParagraphs(story.paragraphs.slice(0, 35), "es")
+    translateParagraphs(story.paragraphs.slice(0, 35), materialLang)
       .then((list) => {
         if (!cancelled) setTranslations(list);
       })
@@ -145,7 +159,7 @@ export default function LecturaReaderScreen() {
     return () => {
       cancelled = true;
     };
-  }, [story, displayMode, translations.length]);
+  }, [story, displayMode, translations.length, materialLang]);
 
   if (loading) {
     return (
@@ -191,7 +205,8 @@ export default function LecturaReaderScreen() {
                   showTitle: story.source,
                   level: story.level,
                   audioUrl: story.audioUrl,
-                  description: story.paragraphs.join("\n\n") || story.summaryZh
+                  description: story.paragraphs.join("\n\n") || story.summaryZh,
+                  language: materialLang
                 }
               } as never);
               return;
@@ -340,6 +355,7 @@ export default function LecturaReaderScreen() {
                 <ParagraphBlock
                   first
                   fontSize={fontSize}
+                  language={materialLang}
                   onWordPress={(word) => {
                     setLookupWord(word);
                     setLookupContext(paragraph);
@@ -400,7 +416,10 @@ export default function LecturaReaderScreen() {
                   <Pressable
                     key={index}
                     onPress={() => {
-                      setLookupWord(item.word.replace(/[^\wÁÉÍÓÚÜÑáéíóúüñ]/g, ""));
+                      const cleanTerm = item.word
+                        .replace(/^(der|die|das)\s+/i, "")
+                        .replace(/[^\wÄÖÜäöüßÁÉÍÓÚÜÑáéíóúüñ]/g, "");
+                      setLookupWord(cleanTerm || item.word);
                       setLookupContext(undefined);
                     }}
                     style={[styles.glossaryRow, { borderTopColor: theme.border }]}
@@ -414,7 +433,7 @@ export default function LecturaReaderScreen() {
         ) : null}
 
         <Text style={[styles.footnote, { color: theme.sub }]}>
-          轻触任意西语单词即可查词与查看全部动词变位。
+          轻触任意单词即可查词、看原句并加入对应语种词库。
         </Text>
 
         {nextSlug ? (
@@ -422,7 +441,7 @@ export default function LecturaReaderScreen() {
             onPress={() =>
               router.replace({
                 pathname: "/lectura/[slug]",
-                params: { slug: nextSlug }
+                params: { slug: nextSlug, lang: materialLang }
               } as never)
             }
             style={[styles.nextButton, { borderColor: theme.border, backgroundColor: theme.card }]}
@@ -441,8 +460,10 @@ export default function LecturaReaderScreen() {
 
       <LookupSheet
         context={lookupContext}
-        language="es"
+        language={materialLang}
         onClose={() => setLookupWord(null)}
+        sourceType="lectura"
+        sourceUrl={`lectura://${String(slug)}`}
         word={lookupWord}
       />
     </SafeAreaView>

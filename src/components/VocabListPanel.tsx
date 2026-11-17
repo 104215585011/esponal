@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-15 08:08
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Timestamp: 2026-11-17 15:45
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -70,9 +70,14 @@ export function VocabListPanel({
   const [error, setError] = useState<string | null>(null);
   const [detailWord, setDetailWord] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const reqSeqRef = useRef(0);
+  const latestLangRef = useRef(learningLang);
+  latestLangRef.current = learningLang;
 
   const load = useCallback(
     async (options: { isRefresh?: boolean; append?: boolean } = {}) => {
+      const seq = ++reqSeqRef.current;
+      const reqLang = learningLang;
       if (options.isRefresh) setRefreshing(true);
       else if (options.append) setLoadingMore(true);
       else setLoading(true);
@@ -85,21 +90,26 @@ export function VocabListPanel({
           bucket,
           sort,
           limit: 60,
-          offset
+          offset,
+          lang: reqLang
         });
+        if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
         setTotal(res.total);
         onTotalChange?.(res.total);
         setItems((prev) => (options.append ? [...prev, ...res.items] : res.items));
       } catch (e) {
+        if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
         setError(e instanceof Error ? e.message : "加载失败");
         if (!options.append) setItems([]);
       } finally {
-        setLoading(false);
-        setRefreshing(false);
-        setLoadingMore(false);
+        if (seq === reqSeqRef.current) {
+          setLoading(false);
+          setRefreshing(false);
+          setLoadingMore(false);
+        }
       }
     },
-    [query, bucket, sort, items.length, onTotalChange]
+    [query, bucket, sort, items.length, learningLang, onTotalChange]
   );
 
   useEffect(() => {

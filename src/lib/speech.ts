@@ -74,8 +74,9 @@ function pushWarning(next: VoiceWarning | null) {
  * 完全不知道发生了什么。宁可多一次网络请求,也要让耳朵收到正确的音。
  * 服务端 `/api/tts` 限 200 字符,单词/短句够用;长句仍然走设备朗读。
  */
+// Timestamp: 2026-11-17 15:18
 const SERVER_TTS_MAX_LEN = 180;
-const SERVER_TTS_LANGS = new Set(["es", "en", "fr", "ja"]);
+const SERVER_TTS_LANGS = new Set(["es", "de", "en", "fr", "ja"]);
 let remotePlayer: AudioPlayer | null = null;
 
 function speakViaServer(text: string, rate: number, lang: string): boolean {

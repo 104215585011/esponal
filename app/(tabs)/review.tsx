@@ -81,17 +81,31 @@ export default function ReviewScreen() {
     Good: 0,
     Easy: 0
   });
+// Timestamp: 2026-11-17 15:45
   const doneTotalRef = useRef(0);
   const forgottenRef = useRef<DueWord[]>([]);
   const [autoLoading, setAutoLoading] = useState(false);
+  const reqSeqRef = useRef(0);
+  const latestLangRef = useRef(prefs.learningLang);
+  latestLangRef.current = prefs.learningLang;
+  const activeLangMeta =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === prefs.learningLang) ??
+    LEARNING_LANGUAGE_OPTIONS[0];
 
   const load = useCallback(async (isRefresh = false) => {
+    const seq = ++reqSeqRef.current;
+    const reqLang = prefs.learningLang;
     if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    else {
+      setLoading(true);
+      setQueue([]);
+      setTotalDue(0);
+    }
     setError(null);
 
     try {
-      const res = await fetchReviewQueue();
+      const res = await fetchReviewQueue(undefined, reqLang);
+      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
       setQueue(res.dueWords ?? []);
       setTotalDue(res.totalDue ?? 0);
       setIndex(0);
@@ -104,16 +118,19 @@ export default function ReviewScreen() {
         forgottenRef.current = [];
       }
     } catch (e) {
+      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (seq === reqSeqRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, []);
+  }, [prefs.learningLang]);
 
   useEffect(() => {
     void load();
-  }, [load, prefs.learningLang]);
+  }, [load]);
 
   useEffect(() => {
     if (subTab !== "queue" || !prefs.autoSpeakReview) return;
@@ -160,9 +177,11 @@ export default function ReviewScreen() {
 
   const continueNextBatch = useCallback(async () => {
     if (autoLoading) return;
+    const reqLang = prefs.learningLang;
     setAutoLoading(true);
     try {
-      const res = await fetchReviewQueue();
+      const res = await fetchReviewQueue(undefined, reqLang);
+      if (reqLang !== latestLangRef.current) return;
       const next = res.dueWords ?? [];
       setTotalDue(res.totalDue ?? 0);
       if (next.length === 0) return;
@@ -307,6 +326,8 @@ export default function ReviewScreen() {
 
     const meanings = current.dictData?.meanings ?? [];
     const examples = current.dictData?.examples ?? [];
+    const nounForms = current.dictData?.nounForms;
+    const encounters = current.encounters ?? [];
 
     return (
       <>
@@ -339,6 +360,13 @@ export default function ReviewScreen() {
 
             <Text style={styles.lemma}>{current.lemma}</Text>
 
+            {encounters[0]?.originalSentence ? (
+              <View style={styles.encounterBox}>
+                <Text style={styles.encounterLabel}>收藏原句</Text>
+                <Text style={styles.encounterText}>{encounters[0].originalSentence}</Text>
+              </View>
+            ) : null}
+
             {!flipped ? (
               <Pressable
                 onPress={() => setFlipped(true)}
@@ -352,6 +380,12 @@ export default function ReviewScreen() {
 
                 {current.translation ? (
                   <Text style={styles.translation}>{current.translation}</Text>
+                ) : null}
+
+                {nounForms ? (
+                  <Text style={styles.nounFormsLine}>
+                    {nounForms.singular} → {nounForms.plural}
+                  </Text>
                 ) : null}
 
                 {meanings.length > 0 ? (
@@ -429,8 +463,15 @@ export default function ReviewScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.tabHeader}>
-        <Text style={styles.eyebrow}>Repaso</Text>
-        <Text style={styles.pageTitle}>复习与词库</Text>
+        <View style={styles.headerTopRow}>
+          <View>
+            <Text style={styles.eyebrow}>Repaso · {activeLangMeta.label}</Text>
+            <Text style={styles.pageTitle}>复习与词库</Text>
+          </View>
+          <View style={styles.langPill}>
+            <Text style={styles.langPillText}>{activeLangMeta.shortLabel}词库</Text>
+          </View>
+        </View>
         <View style={styles.segWrap}>
           <SegmentedControl
             onChange={setSubTab}
@@ -648,5 +689,48 @@ const styles = StyleSheet.create({
   },
   refreshLink: { alignItems: "center", paddingBottom: spacing.lg },
   refreshText: { fontSize: 12, color: colors.textTertiary },
-  refreshSpin: { position: "absolute", bottom: 40, alignSelf: "center" }
+  refreshSpin: { position: "absolute", bottom: 40, alignSelf: "center" },
+  headerTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  langPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand100
+  },
+  langPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.brand700
+  },
+  encounterBox: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgSubtle,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 4
+  },
+  encounterLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.brand600
+  },
+  encounterText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: colors.text
+  },
+  nounFormsLine: {
+    marginTop: spacing.xs,
+    fontSize: 13.5,
+    fontWeight: "600",
+    color: colors.brand700
+  }
 });

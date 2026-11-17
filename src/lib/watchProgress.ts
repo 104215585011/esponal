@@ -1,5 +1,6 @@
-// Timestamp: 2026-11-14 23:18
+// Timestamp: 2026-11-17 15:18
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { LearningLanguage } from "@/lib/preferences";
 
 /**
  * 视频观看进度（本地）。
@@ -21,6 +22,8 @@ export type WatchProgress = {
   position: number;
   /** 视频总长（秒），0 表示还没探测到 */
   duration: number;
+  /** 材料自身语种，便于从历史打开时保持原语种隔离 */
+  language?: LearningLanguage;
   updatedAt: string;
 };
 
@@ -108,7 +111,8 @@ export function adoptServerProgress(
 export async function saveWatchProgress(
   videoId: string,
   position: number,
-  duration: number
+  duration: number,
+  language?: LearningLanguage
 ): Promise<void> {
   if (!videoId) return;
   if (!Number.isFinite(position) || position < 0) return;
@@ -119,6 +123,7 @@ export async function saveWatchProgress(
       videoId,
       position: Math.floor(position),
       duration: Number.isFinite(duration) && duration > 0 ? Math.floor(duration) : 0,
+      language: language ?? cache[videoId]?.language,
       updatedAt: new Date().toISOString()
     }
   };

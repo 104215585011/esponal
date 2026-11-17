@@ -19,10 +19,19 @@ import {
   getProxiedPodcastAudioUrl,
   type PodcastCue
 } from "@/api/podcasts";
+// Timestamp: 2026-11-17 16:02
 import { LookupSheet } from "@/components/LookupSheet";
 import { useBackgroundMedia } from "@/context/BackgroundMediaContext";
 import { detectPhrasesInSentence, type DetectedPhraseSpan } from "@/lib/phraseDetector";
+import { getPreferences, LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
+
+function normalizeParamLang(raw?: string | null): LearningLanguage | null {
+  if (raw === "es" || raw === "de" || raw === "en" || raw === "fr" || raw === "ja") {
+    return raw;
+  }
+  return null;
+}
 
 const RATES = [0.75, 0.9, 1.0, 1.2] as const;
 const WINDOW_SEC = 30;
@@ -76,10 +85,16 @@ export default function PodcastPlayerScreen() {
     durationSec?: string;
     coverUrl?: string;
     link?: string;
+    language?: string;
   }>();
 
+  const materialLang: LearningLanguage =
+    normalizeParamLang(typeof params.language === "string" ? params.language : undefined) ??
+    getPreferences().learningLang;
+  const langLabel =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === materialLang)?.shortLabel ?? "目标语";
   const episodeId = typeof params.id === "string" ? params.id : undefined;
-  const title = typeof params.title === "string" ? params.title : "西语播客";
+  const title = typeof params.title === "string" ? params.title : `${langLabel}播客`;
   const showTitle = typeof params.showTitle === "string" ? params.showTitle : "Podcast";
   const level = typeof params.level === "string" ? params.level : "B1";
   const rawAudioUrl = typeof params.audioUrl === "string" ? params.audioUrl : "";
@@ -113,6 +128,7 @@ export default function PodcastPlayerScreen() {
   const [cues, setCues] = useState<PodcastCue[]>([]);
   const [subLoading, setSubLoading] = useState(false);
   const [subError, setSubError] = useState<string | null>(null);
+  const [subUnavailable, setSubUnavailable] = useState(false);
   const [bufferedUntilSec, setBufferedUntilSec] = useState(0);
   const [subSourceLabel, setSubSourceLabel] = useState<string | null>(null);
 
@@ -171,7 +187,8 @@ export default function PodcastPlayerScreen() {
           startSec: winSec,
           durationSec: duration > 0 ? Math.round(duration) : undefined,
           pageUrl: episodeLink || undefined,
-          sourceText: description.trim().length >= 450 ? description : undefined
+          sourceText: description.trim().length >= 450 ? description : undefined,
+          language: materialLang
         });
         if (episodeGenRef.current !== gen) return;
 
@@ -181,15 +198,20 @@ export default function PodcastPlayerScreen() {
         else if (res.source === "ai-asr") setSubSourceLabel((prev) => prev ?? "AI 听译");
 
         if (res.cues && res.cues.length > 0) {
+          setSubUnavailable(false);
           setCues((prev) => mergeSortedCues(prev, res.cues));
-        } else if (isManualPriority && winSec === 0) {
-          setSubError("开篇片头暂无人声，已继续向后缓冲前 3 分钟字幕…");
+        } else if (res.available === false || (isManualPriority && winSec === 0)) {
+          setSubUnavailable(true);
+          if (isManualPriority && winSec === 0) {
+            setSubError(`当前音频未提供可用${langLabel}字幕，已标为字幕不可用。`);
+          }
         }
         recomputeBufferedUntil(currentTime);
       } catch (e) {
         if (episodeGenRef.current !== gen) return;
+        setSubUnavailable(true);
         if (isManualPriority) {
-          setSubError(e instanceof Error ? e.message : "字幕生成失败，请点重试");
+          setSubError(e instanceof Error ? e.message : "字幕不可用（生成失败）");
         }
       } finally {
         inFlightWindows.current.delete(winSec);
@@ -248,7 +270,7 @@ export default function PodcastPlayerScreen() {
       }
       pumpQueue();
     },
-    [rawAudioUrl, duration, pumpQueue]
+    [rawAudioUrl, duration, pumpQueue, materialLang, langLabel]
   );
 
   // 开局预缓冲前 3 分钟（0:00~3:00）：优先 0~30s 尽快落屏，其余 5 段紧随并发填充
@@ -260,11 +282,12 @@ export default function PodcastPlayerScreen() {
     pendingQueue.current = [];
     activeWorkers.current = 0;
     setCues([]);
+    setSubUnavailable(false);
     setBufferedUntilSec(0);
     setSubSourceLabel(null);
     scheduleRangeFrom(0, true, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawAudioUrl]);
+  }, [rawAudioUrl, materialLang]);
 
   // 滑动超前缓冲：只要未来 REBUFFER_MARGIN_SEC（90s，留足 >1 分钟余量）内存在未生成段落，
   // 立即以 3 分钟为一批续订（如播到 1:30~2:00 即拉取 3:00~6:00，播到 4:30~5:00 即拉取 6:00~9:00）
@@ -504,9 +527,11 @@ export default function PodcastPlayerScreen() {
 
             {cues.length === 0 && !subLoading ? (
               <View style={styles.emptyBox}>
-                <Text style={styles.emptyTitle}>当前片段还没有字幕</Text>
+                <Text style={styles.emptyTitle}>字幕不可用</Text>
                 <Text style={styles.emptyHint}>
-                  点击上方按钮即可优先拉取源文稿或生成该段双语字幕。
+                  {subUnavailable && subError
+                    ? subError
+                    : `当前音频尚未获取到可用的${langLabel}字幕或文稿，你仍可先收听原声或查看下方简介正文。`}
                 </Text>
               </View>
             ) : (
@@ -528,6 +553,7 @@ export default function PodcastPlayerScreen() {
                     </Pressable>
 
                     <InteractiveSpanishBlock
+                      language={materialLang}
                       onSelectWord={(target) => {
                         setSelectedWord(target);
                         setSelectedContext(cue.text);
@@ -550,6 +576,7 @@ export default function PodcastPlayerScreen() {
             {noteParagraphs.map((para, pIdx) => (
               <InteractiveSpanishBlock
                 key={pIdx}
+                language={materialLang}
                 onSelectWord={(target) => {
                   setSelectedWord(target);
                   setSelectedContext(para.slice(0, 160));
@@ -562,32 +589,39 @@ export default function PodcastPlayerScreen() {
         ) : (
           <View style={styles.emptyBox}>
             <Text style={styles.emptyTitle}>本期暂无文字简介</Text>
-            <Text style={styles.emptyHint}>请切换到「字幕精听」生成双语字幕边听边学。</Text>
+            <Text style={styles.emptyHint}>请切换到「字幕精听」查看可用字幕并边听边学。</Text>
           </View>
         )}
       </ScrollView>
 
       <LookupSheet
         context={selectedContext ?? description.slice(0, 160)}
-        language="es"
+        language={materialLang}
         onClose={() => setSelectedWord(null)}
+        sourceType="lectura"
+        sourceUrl={episodeId ? `podcast://${episodeId}` : "app://mobile/podcast"}
         word={selectedWord}
       />
     </SafeAreaView>
   );
 }
 
-/** 渲染播客西语段落/字幕并自动高亮固定搭配 */
+/** 渲染播客原文段落/字幕；仅西语自动高亮搭配，德语/其他语种直接点词查可分动词与名词 */
 function InteractiveSpanishBlock({
   text,
   textStyle,
+  language = "es",
   onSelectWord
 }: {
   text: string;
   textStyle: object;
+  language?: LearningLanguage;
   onSelectWord: (wordOrPhrase: string) => void;
 }) {
-  const spans = useMemo<DetectedPhraseSpan[]>(() => detectPhrasesInSentence(text), [text]);
+  const spans = useMemo<DetectedPhraseSpan[]>(
+    () => (language === "es" ? detectPhrasesInSentence(text) : []),
+    [text, language]
+  );
   const uniqueSpans = useMemo(() => {
     const seen = new Set<string>();
     return spans.filter((s) => {

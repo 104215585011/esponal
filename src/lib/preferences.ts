@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 08:05
+// Timestamp: 2026-11-17 15:18
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const KEY = "esponal.preferences.v1";
 
 export type SpeechAccent = "es-ES" | "es-MX" | "es-AR";
-export type LearningLanguage = "es" | "en" | "fr" | "ja";
+export type LearningLanguage = "es" | "de" | "en" | "fr" | "ja";
 
 export const LEARNING_LANGUAGE_OPTIONS: Array<{
   value: LearningLanguage;
@@ -23,6 +23,7 @@ export const LEARNING_LANGUAGE_OPTIONS: Array<{
   ttsLang: string;
 }> = [
   { value: "es", label: "西班牙语", shortLabel: "西语", ttsLang: "es-ES" },
+  { value: "de", label: "德语", shortLabel: "德语", ttsLang: "de-DE" },
   { value: "en", label: "英语", shortLabel: "英语", ttsLang: "en-US" },
   { value: "fr", label: "法语", shortLabel: "法语", ttsLang: "fr-FR" },
   { value: "ja", label: "日语", shortLabel: "日语", ttsLang: "ja-JP" }

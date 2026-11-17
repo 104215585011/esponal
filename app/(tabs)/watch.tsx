@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-15 02:45
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Timestamp: 2026-11-17 15:35
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,8 +15,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 
-import { curatedChannels, fetchChannelVideos, formatDuration, type VideoItem } from "@/api/watch";
+import { fetchChannelVideos, formatDuration, getCuratedChannels, type VideoItem } from "@/api/watch";
 import { AppIcon } from "@/components/AppIcon";
+import { usePreferences } from "@/hooks/usePreferences";
+import { LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
 import {
   formatPosition,
   getAllWatchProgress,
@@ -71,8 +73,16 @@ function parseVideoIdInput(raw: string): string | null {
 
 export default function WatchScreen() {
   const router = useRouter();
-  const [channels, setChannels] = useState<ChannelState[]>(
-    curatedChannels.map((c) => ({ ...c, videos: [], error: null }))
+  const { learningLang } = usePreferences();
+  const activeChannels = useMemo(() => getCuratedChannels(learningLang), [learningLang]);
+  const langLabel =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === learningLang)?.shortLabel ?? "目标语";
+  const reqSeqRef = useRef(0);
+  const latestLangRef = useRef(learningLang);
+  latestLangRef.current = learningLang;
+
+  const [channels, setChannels] = useState<ChannelState[]>(() =>
+    activeChannels.map((c) => ({ ...c, videos: [], error: null }))
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -88,7 +98,7 @@ export default function WatchScreen() {
     return allVideos[shuffleSeed % allVideos.length];
   }, [allVideos, shuffleSeed]);
 
-  const levels = useMemo(() => ["全部", ...curatedChannels.map((c) => c.level)], []);
+  const levels = useMemo(() => ["全部", ...activeChannels.map((c) => c.level)], [activeChannels]);
 
   const visibleChannels = useMemo(() => {
     const filtered =
@@ -109,14 +119,22 @@ export default function WatchScreen() {
   }, []);
 
   const load = useCallback(async (isRefresh = false) => {
+    const seq = ++reqSeqRef.current;
+    const reqLang = learningLang;
+    const targetChannels = getCuratedChannels(reqLang);
+
     if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    else {
+      setLoading(true);
+      setSelectedLevel("全部");
+      setChannels(targetChannels.map((c) => ({ ...c, videos: [], error: null })));
+    }
 
     // 从播放页返回时进度已经落盘，这里顺手刷一次，不用等下拉刷新
     void refreshProgress();
 
     const next = await Promise.all(
-      curatedChannels.map(async (channel) => {
+      targetChannels.map(async (channel) => {
         try {
           const videos = await fetchChannelVideos(channel.id, 8);
           return { ...channel, videos, error: null };
@@ -130,10 +148,14 @@ export default function WatchScreen() {
       })
     );
 
+    if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) {
+      return;
+    }
+
     setChannels(next);
     setLoading(false);
     setRefreshing(false);
-  }, [refreshProgress]);
+  }, [learningLang, refreshProgress]);
 
   useEffect(() => {
     load();
@@ -159,19 +181,19 @@ export default function WatchScreen() {
           />
         }
       >
-        <Text style={styles.eyebrow}>Video</Text>
-        <Text style={styles.title}>视频</Text>
+        <Text style={styles.eyebrow}>Video · {langLabel}</Text>
+        <Text style={styles.title}>{learningLang === "de" ? "德语视频" : "视频"}</Text>
         <Text style={styles.subtitle}>
-          精选西语频道,配逐句字幕。点视频进入播放页,点单词直接查词。
+          精选{langLabel}频道,配逐句字幕。点视频进入播放页,点单词直接查词。
         </Text>
 
         {/* 搜索入口 */}
         <Pressable
-          onPress={() => router.push("/search" as never)}
+          onPress={() => router.push({ pathname: "/search", params: { lang: learningLang } } as never)}
           style={({ pressed }) => [styles.searchBar, pressed && styles.cardPressed]}
         >
           <AppIcon color={colors.textTertiary} name="search" size={16} />
-          <Text style={styles.searchPlaceholder}>搜任意西语视频…</Text>
+          <Text style={styles.searchPlaceholder}>搜任意{langLabel}视频…</Text>
         </Pressable>
 
         {/* 贴 YouTube 链接直看 */}
@@ -193,7 +215,10 @@ export default function WatchScreen() {
                 return;
               }
               setLinkInput("");
-              router.push({ pathname: "/watch/[videoId]", params: { videoId: id } } as never);
+              router.push({
+                pathname: "/watch/[videoId]",
+                params: { videoId: id, lang: learningLang }
+              } as never);
             }}
             style={({ pressed }) => [styles.linkBtn, pressed && styles.cardPressed]}
           >
@@ -225,7 +250,8 @@ export default function WatchScreen() {
                       videoId: featuredVideo.id,
                       title: featuredVideo.title,
                       channelTitle: featuredVideo.channelTitle,
-                      thumbnail: featuredVideo.thumbnail
+                      thumbnail: featuredVideo.thumbnail,
+                      lang: learningLang
                     }
                   } as never)
                 }
@@ -307,7 +333,8 @@ export default function WatchScreen() {
                             videoId: video.id,
                             title: video.title,
                             channelTitle: video.channelTitle,
-                            thumbnail: video.thumbnail
+                            thumbnail: video.thumbnail,
+                            lang: learningLang
                           }
                         } as never)
                       }

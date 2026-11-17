@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 08:06
+// Timestamp: 2026-11-17 15:18
 import { apiFetch } from "@/api/client";
 import type { LearningLanguage } from "@/lib/preferences";
 
@@ -17,12 +17,29 @@ export type Cue = {
   text: string;
 };
 
+export type CuratedChannelItem = {
+  id: string;
+  title: string;
+  hint: string;
+  level: string;
+};
+
 /** 精选频道 —— 与 Web 端 src/lib/channels.ts 保持一致 */
-export const curatedChannels = [
+export const curatedChannels: readonly CuratedChannelItem[] = [
   { id: "UCouyFdE9-Lrjo3M_2idKq1A", title: "Dreaming Spanish", hint: "推荐入门,语速慢", level: "A1 入门" },
   { id: "UCW1FQuVy10_biDAxAj1iTEQ", title: "Spanish Okay", hint: "日常对话", level: "A1–A2" },
   { id: "UCAL4AMMMXKxHDu3FqZV6CbQ", title: "Easy Spanish", hint: "街头采访", level: "A2–B1" }
-] as const;
+];
+
+export const germanCuratedChannels: readonly CuratedChannelItem[] = [
+  { id: "UCxUWIEL-USsiPak0Qy6_vVg", title: "DW Deutsch lernen", hint: "清晰德语原声", level: "A1–A2" },
+  { id: "UCaeT58uDMlPpBlwAYaxN0LA", title: "Learn German Original", hint: "情景对话入门", level: "A1 入门" },
+  { id: "UCbxb2fqe9oNgglAoYqsYOtQ", title: "Easy German", hint: "街头真实德语", level: "A2–B1" }
+];
+
+export function getCuratedChannels(lang: LearningLanguage): readonly CuratedChannelItem[] {
+  return lang === "de" ? germanCuratedChannels : curatedChannels;
+}
 
 export async function fetchChannelVideos(channelId: string, maxResults = 12) {
   return apiFetch<VideoItem[]>(
@@ -30,9 +47,9 @@ export async function fetchChannelVideos(channelId: string, maxResults = 12) {
   );
 }
 
-export async function fetchSubtitles(videoId: string) {
+export async function fetchSubtitles(videoId: string, lang: LearningLanguage = "es") {
   const res = await apiFetch<{ cues?: Cue[] }>(
-    `/api/subtitle?v=${encodeURIComponent(videoId)}&lang=es`
+    `/api/subtitle?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lang)}`
   );
   return res.cues ?? [];
 }
@@ -80,9 +97,14 @@ export type LookupResult = {
   wordId?: string | null;
 };
 
-export async function lookupWord(word: string, language?: LearningLanguage) {
+export async function lookupWord(
+  word: string,
+  language?: LearningLanguage,
+  context?: string
+) {
   const qs = new URLSearchParams({ word });
   if (language) qs.set("lang", language);
+  if (context?.trim()) qs.set("context", context.trim().slice(0, 260));
   return apiFetch<LookupResult>(`/api/vocab/lookup?${qs.toString()}`);
 }
 
@@ -136,19 +158,25 @@ export async function savePhrase(body: {
   });
 }
 
-/** 句级翻译。服务端有 v3 缓存,同一句不会重复花额度。 */
-export async function translateText(text: string): Promise<string | null> {
+/** 句级翻译。服务端按源语种分片缓存,同一句不会重复花额度。 */
+export async function translateText(
+  text: string,
+  sourceLang?: LearningLanguage
+): Promise<string | null> {
   const trimmed = text.trim();
   if (!trimmed) return null;
 
   try {
     const res = await apiFetch<{ translation?: string }>("/api/translate", {
       method: "POST",
-      body: JSON.stringify({ text: trimmed })
+      body: JSON.stringify({
+        text: trimmed,
+        ...(sourceLang ? { sourceLang } : {})
+      })
     });
     return res.translation?.trim() || null;
   } catch {
-    // 翻译失败不能影响字幕显示 —— 静默降级为只显示西语
+    // 翻译失败不能影响字幕显示 —— 静默降级为只显示原文
     return null;
   }
 }

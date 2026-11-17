@@ -1,8 +1,10 @@
-// Timestamp: 2026-11-16 09:08
+// Timestamp: 2026-11-17 15:20
 import { API_BASE, apiFetch } from "@/api/client";
+import type { LearningLanguage } from "@/lib/preferences";
 
 export type PodcastShow = {
   id: string;
+  language?: LearningLanguage;
   title: string;
   host: string;
   level: "A2" | "B1";
@@ -12,6 +14,7 @@ export type PodcastShow = {
 
 export type PodcastEpisode = {
   id: string;
+  language?: LearningLanguage;
   showId: string;
   showTitle: string;
   level: "A2" | "B1";
@@ -47,10 +50,13 @@ export function getProxiedPodcastAudioUrl(rawUrl: string): string {
   return `${API_BASE}/api/listening/audio?url=${encodeURIComponent(trimmed)}`;
 }
 
-export async function fetchPodcasts(forceRefresh = false) {
-  const query = forceRefresh ? "?refresh=1" : "";
+export async function fetchPodcasts(forceRefresh = false, lang?: LearningLanguage) {
+  const params = new URLSearchParams();
+  if (forceRefresh) params.set("refresh", "1");
+  if (lang) params.set("lang", lang);
+  const query = params.toString();
   return apiFetch<{ shows: PodcastShow[]; episodes: PodcastEpisode[]; total: number }>(
-    `/api/listening/podcasts${query}`
+    `/api/listening/podcasts${query ? `?${query}` : ""}`
   );
 }
 
@@ -60,9 +66,11 @@ export async function fetchPodcastSubtitles(body: {
   durationSec?: number;
   pageUrl?: string;
   sourceText?: string;
+  language?: LearningLanguage;
 }) {
   return apiFetch<{
     cues: PodcastCue[];
+    available?: boolean;
     windowStartSec: number;
     windowEndSec: number;
     source?: "transcript" | "article-text" | "ai-asr";

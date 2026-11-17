@@ -56,10 +56,13 @@ const PERSON_ROWS: Array<{ key: keyof VerbConjugationPersons; label: string }> =
   { key: "ellos", label: "ellos" }
 ];
 
+// Timestamp: 2026-11-17 15:25
 type LookupSheetProps = {
   word: string | null;
   context?: string;
   language?: LearningLanguage;
+  sourceType?: "video" | "course" | "lectura" | "dissect" | "grammar" | "import" | "talk";
+  sourceUrl?: string;
   onClose: () => void;
 };
 
@@ -73,7 +76,14 @@ function langLabel(code?: string | null) {
  * 渲染服务端返回的全部字段:释义 / 词法讲解 / 用法 / 例句 / 相关词组 / 名词与形容词变位。
  * 支持在弹窗内即时切换查词与保存的目标语种（避免英文/法文词误入西语词库）。
  */
-export function LookupSheet({ word, context, language, onClose }: LookupSheetProps) {
+export function LookupSheet({
+  word,
+  context,
+  language,
+  sourceType = "lectura",
+  sourceUrl = "app://mobile/lookup",
+  onClose
+}: LookupSheetProps) {
   const insets = useSafeAreaInsets();
   const [lookupLang, setLookupLang] = useState<LearningLanguage>(
     () => language ?? getPreferences().learningLang
@@ -117,7 +127,7 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
     setActiveTense("presente");
     setMtMeaning(null);
 
-    lookupWord(word, lookupLang)
+    lookupWord(word, lookupLang, context)
       .then(async (res) => {
         if (cancelled) return;
         setData(res);
@@ -134,7 +144,7 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
           !res.adjectiveForms;
 
         if (empty) {
-          const mt = await translateText(word);
+          const mt = await translateText(word, lookupLang);
           if (!cancelled) setMtMeaning(mt);
         }
       })
@@ -149,7 +159,7 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
     return () => {
       cancelled = true;
     };
-  }, [word, lookupLang]);
+  }, [word, lookupLang, context]);
 
   const handleSave = useCallback(async () => {
     if (!data || saving || saved) return;
@@ -174,8 +184,8 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
         translation: resolvedTranslation,
         context: resolvedSentence,
         form: data.word || word || data.lemma,
-        sourceType: "lectura",
-        sourceUrl: "app://mobile/lookup",
+        sourceType,
+        sourceUrl,
         originalSentence: resolvedSentence,
         translatedSentence: data.examples?.[0]?.zh?.trim() || resolvedTranslation,
         timestampSec: 0,
@@ -188,7 +198,7 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
     } finally {
       setSaving(false);
     }
-  }, [data, saving, saved, context, lookupLang, mtMeaning, word]);
+  }, [data, saving, saved, context, lookupLang, mtMeaning, word, sourceType, sourceUrl]);
 
   const meanings = data?.meanings ?? [];
   const examples = data?.examples ?? [];
@@ -230,9 +240,14 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
       const g =
         data.nounForms.gender === "f"
           ? "阴性"
-          : data.nounForms.gender === "mf"
-            ? "阴阳同形"
-            : "阳性";
+          : data.nounForms.gender === "n"
+            ? "中性"
+            : data.nounForms.gender === "mf"
+              ? "阴阳同形"
+              : "阳性";
+      if (lookupLang === "de" || /^(der|die|das)\s+/i.test(data.nounForms.singular)) {
+        return `${data.nounForms.singular} → ${data.nounForms.plural} · ${g}`;
+      }
       return `单数 ${data.nounForms.singular} · 复数 ${data.nounForms.plural} · ${g}`;
     }
     if (data.adjectiveForms) {
@@ -240,7 +255,7 @@ export function LookupSheet({ word, context, language, onClose }: LookupSheetPro
       return `阳性 ${f.ms} · 阴性 ${f.fs} · 复数 ${f.mp}/${f.fp}`;
     }
     return null;
-  }, [data]);
+  }, [data, lookupLang]);
 
   /** 有没有任何可展示的内容(决定是否显示空态提示) */
   const hasContent = useMemo(() => {

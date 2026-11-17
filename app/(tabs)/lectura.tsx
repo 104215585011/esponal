@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-16 09:30
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Timestamp: 2026-11-17 15:55
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -18,6 +18,8 @@ import { fetchStories, type LecturaListItem, type LecturaLevel } from "@/api/lec
 import { getProxiedCoverUrl } from "@/api/podcasts";
 import { ImportShelfPanel } from "@/components/ImportShelfPanel";
 import { SegmentedControl } from "@/components/SegmentedControl";
+import { usePreferences } from "@/hooks/usePreferences";
+import { LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
 import { colors, radius, spacing } from "@/theme";
 
 type ReadTab = "stories" | "shelf";
@@ -38,6 +40,13 @@ const FILTERS: Array<{ key: FilterKey; label: string }> = [
 export default function LecturaScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ tab?: string }>();
+  const { learningLang } = usePreferences();
+  const langLabel =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === learningLang)?.shortLabel ?? "目标语";
+  const reqSeqRef = useRef(0);
+  const latestLangRef = useRef(learningLang);
+  latestLangRef.current = learningLang;
+
   const [subTab, setSubTab] = useState<ReadTab>(params.tab === "shelf" ? "shelf" : "stories");
 
   useEffect(() => {
@@ -52,24 +61,45 @@ export default function LecturaScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async (isRefresh = false) => {
+    const seq = ++reqSeqRef.current;
+    const reqLang = learningLang;
     if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    else {
+      setLoading(true);
+      setItems([]);
+      setFilter("ALL");
+    }
     setError(null);
 
     try {
-      const data = await fetchStories(isRefresh);
+      const data = await fetchStories(isRefresh, reqLang);
+      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
       setItems(data);
     } catch (e) {
+      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (seq === reqSeqRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, []);
+  }, [learningLang]);
 
   useEffect(() => {
     void load(false);
   }, [load]);
+
+  const filters = useMemo<Array<{ key: FilterKey; label: string }>>(
+    () => [
+      { key: "ALL", label: "全部" },
+      { key: "RSS", label: learningLang === "de" ? "德语博客" : "西媒实时" },
+      { key: "A1", label: "A1 入门" },
+      { key: "A2", label: "A2 基础" },
+      { key: "B1", label: "B1 进阶" }
+    ],
+    [learningLang]
+  );
 
   const filtered = useMemo(() => {
     if (filter === "ALL") return items;
@@ -80,8 +110,8 @@ export default function LecturaScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.topHeader}>
-        <Text style={styles.eyebrow}>Lectura</Text>
-        <Text style={styles.title}>阅读</Text>
+        <Text style={styles.eyebrow}>Lectura · {langLabel}</Text>
+        <Text style={styles.title}>{learningLang === "de" ? "德语阅读" : "阅读"}</Text>
         <View style={styles.segWrap}>
           <SegmentedControl
             onChange={setSubTab}
@@ -122,14 +152,14 @@ export default function LecturaScreen() {
           ListHeaderComponent={
             <View style={styles.storiesHeader}>
               <Text style={styles.subtitle}>
-                实时抓取西媒新闻与分级短文，点击任意单词可查词与查看动词变位。
+                实时抓取{langLabel}博客/外刊与分级短文，点击任意单词可查词与收藏。
               </Text>
               <ScrollView
                 contentContainerStyle={styles.chips}
                 horizontal
                 showsHorizontalScrollIndicator={false}
               >
-                {FILTERS.map((item) => {
+                {filters.map((item) => {
                   const on = filter === item.key;
                   return (
                     <Pressable
@@ -162,7 +192,7 @@ export default function LecturaScreen() {
                 onPress={() =>
                   router.push({
                     pathname: "/lectura/[slug]",
-                    params: { slug: item.slug }
+                    params: { slug: item.slug, lang: item.language ?? learningLang }
                   } as never)
                 }
                 style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}

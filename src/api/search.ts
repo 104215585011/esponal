@@ -1,6 +1,7 @@
-// Timestamp: 2026-11-14 14:40
+// Timestamp: 2026-11-17 15:20
 import { ApiError, apiFetch } from "@/api/client";
 import type { VideoItem } from "@/api/watch";
+import type { LearningLanguage } from "@/lib/preferences";
 
 export type VideoSearchResult = {
   videos: VideoItem[];
@@ -14,13 +15,14 @@ export type VideoSearchResult = {
  */
 export async function searchVideos(
   query: string,
-  options: { maxResults?: number; pageToken?: string } = {}
+  options: { maxResults?: number; pageToken?: string; language?: LearningLanguage } = {}
 ) {
   const params = new URLSearchParams({
     q: query,
     maxResults: String(options.maxResults ?? 20)
   });
   if (options.pageToken) params.set("page", options.pageToken);
+  if (options.language) params.set("lang", options.language);
 
   try {
     return await apiFetch<VideoSearchResult>(`/api/youtube/search?${params.toString()}`);

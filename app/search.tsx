@@ -12,24 +12,39 @@ import {
   View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
+// Timestamp: 2026-11-17 15:40
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 
 import { searchVideos } from "@/api/search";
 import { formatDuration, type VideoItem } from "@/api/watch";
+import { usePreferences } from "@/hooks/usePreferences";
+import { LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferences";
 import { getAllWatchProgress, loadWatchProgress, shouldResume, type WatchProgress } from "@/lib/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
-/** 一键试搜的主题词(都是真实能搜到西语内容的方向) */
-const SUGGESTIONS = [
-  "慢速西语 听力",
-  "西语日常对话",
-  "街头采访 español",
-  "西语 vlog 生活",
-  "西语新闻 noticias",
-  "西语歌曲 letra",
-  "西语语法 explicación",
-  "西班牙旅行"
-];
+/** 一键试搜的主题词(按语种区分，都是真实能搜到对应原声内容的方向) */
+const SUGGESTIONS_BY_LANG: Partial<Record<LearningLanguage, string[]>> = {
+  de: [
+    "DW Deutsch lernen A1",
+    "Easy German A1",
+    "Learn German Original",
+    "Deutsch Alltag A1",
+    "Slow German Podcast",
+    "Nicos Weg Deutsch",
+    "德语听力 入门",
+    "德语日常对话"
+  ],
+  es: [
+    "慢速西语 听力",
+    "西语日常对话",
+    "街头采访 español",
+    "西语 vlog 生活",
+    "西语新闻 noticias",
+    "西语歌曲 letra",
+    "西语语法 explicación",
+    "西班牙旅行"
+  ]
+};
 
 /**
  * 视频搜索页。
@@ -40,6 +55,15 @@ const SUGGESTIONS = [
 export default function SearchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ lang?: string }>();
+  const { learningLang } = usePreferences();
+  const activeLang: LearningLanguage =
+    params.lang === "de" || params.lang === "es" || params.lang === "en" || params.lang === "fr" || params.lang === "ja"
+      ? params.lang
+      : learningLang;
+  const langLabel =
+    LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === activeLang)?.shortLabel ?? "目标语";
+  const suggestions = SUGGESTIONS_BY_LANG[activeLang] ?? SUGGESTIONS_BY_LANG.es!;
 
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
@@ -70,7 +94,7 @@ export default function SearchScreen() {
     setSubmitted(q);
 
     try {
-      const res = await searchVideos(q);
+      const res = await searchVideos(q, { language: activeLang });
       setVideos(res.videos ?? []);
       setNextPage(res.nextPageToken ?? "");
       if ((res.videos ?? []).length === 0) setError("没搜到结果,换个关键词试试");
@@ -81,13 +105,13 @@ export default function SearchScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeLang]);
 
   const loadMore = useCallback(async () => {
     if (!nextPage || loadingMore || !submitted) return;
     setLoadingMore(true);
     try {
-      const res = await searchVideos(submitted, { pageToken: nextPage });
+      const res = await searchVideos(submitted, { pageToken: nextPage, language: activeLang });
       setVideos((prev) => [...prev, ...(res.videos ?? [])]);
       setNextPage(res.nextPageToken ?? "");
     } catch (e) {
@@ -95,7 +119,7 @@ export default function SearchScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [nextPage, loadingMore, submitted]);
+  }, [nextPage, loadingMore, submitted, activeLang]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -111,7 +135,11 @@ export default function SearchScreen() {
             enterKeyHint="search"
             onChangeText={setQuery}
             onSubmitEditing={() => void runSearch(query)}
-            placeholder="搜西语视频,如 Spanish listening"
+            placeholder={
+              activeLang === "de"
+                ? `搜${langLabel}视频,如 Easy German A1`
+                : `搜${langLabel}视频,如 Spanish listening`
+            }
             placeholderTextColor={colors.textTertiary}
             returnKeyType="search"
             style={styles.input}
@@ -142,7 +170,7 @@ export default function SearchScreen() {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <Text style={styles.emptyTitle}>试试这些方向</Text>
           <View style={styles.chips}>
-            {SUGGESTIONS.map((item) => (
+            {suggestions.map((item) => (
               <Pressable
                 key={item}
                 onPress={() => {
@@ -199,7 +227,8 @@ export default function SearchScreen() {
                       videoId: item.id,
                       title: item.title,
                       channelTitle: item.channelTitle,
-                      thumbnail: item.thumbnail
+                      thumbnail: item.thumbnail,
+                      lang: activeLang
                     }
                   } as never)
                 }
