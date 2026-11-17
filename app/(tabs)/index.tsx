@@ -163,7 +163,7 @@ export default function HomeScreen() {
         {/* 顶栏 */}
         <View style={styles.brandRow}>
           <Text style={styles.brand}>
-            Esponal<Text style={styles.brandDot}>.</Text>
+            LinguaMind<Text style={styles.brandDot}>.</Text>
           </Text>
           <View style={styles.topActions}>
             <Pressable

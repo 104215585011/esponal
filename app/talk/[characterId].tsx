@@ -452,7 +452,7 @@ export default function TalkRobotScreen() {
 
     const permission = await requestRecordingPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("需要麦克风权限", "请在系统设置中允许 Esponal 使用麦克风后再试。");
+      Alert.alert("需要麦克风权限", "请在系统设置中允许 LinguaMind 使用麦克风后再试。");
       return;
     }
 

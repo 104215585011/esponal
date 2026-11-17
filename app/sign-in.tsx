@@ -89,7 +89,7 @@ export default function SignInScreen() {
         >
           <View style={styles.brandRow}>
             <Text style={styles.brand}>
-              Esponal<Text style={styles.brandDot}>.</Text>
+              LinguaMind<Text style={styles.brandDot}>.</Text>
             </Text>
           </View>
 
