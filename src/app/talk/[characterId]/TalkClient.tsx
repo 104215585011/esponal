@@ -142,6 +142,14 @@ export function TalkClient({
 }: TalkClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [practiceWords, setPracticeWords] = useState<string[]>(() => {
+    const raw = searchParams.get("words") ?? "";
+    return raw
+      .split(/[,，|]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+  });
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -316,7 +324,12 @@ export function TalkClient({
       const response = await fetch("/api/talk/message", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ characterId, message: text, sessionId })
+        body: JSON.stringify({
+          characterId,
+          message: text,
+          sessionId,
+          ...(practiceWords.length > 0 ? { targetWords: practiceWords } : {})
+        })
       });
 
       if (!response.ok || !response.body) {
@@ -617,6 +630,28 @@ export function TalkClient({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {practiceWords.length > 0 ? (
+        <div className="mx-4 mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-200/70 bg-brand-50/70 px-3 py-2 text-xs text-brand-800 dark:border-brand-800/40 dark:bg-brand-950/30 dark:text-brand-300 md:mx-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-semibold">复习输出挑战：试着在对话里用出</span>
+            {practiceWords.map((w) => (
+              <span
+                key={w}
+                className="rounded-full bg-white/80 px-2 py-0.5 font-semibold text-brand-700 dark:bg-zinc-900/60 dark:text-brand-200"
+              >
+                {w}
+              </span>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setPracticeWords([])}
+            className="text-[11px] opacity-70 hover:opacity-100"
+          >
+            关闭
+          </button>
+        </div>
+      ) : null}
       <div
         className="flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 md:space-y-4 md:px-0 md:py-0 md:pb-3"
         data-testid="talk-message-list"

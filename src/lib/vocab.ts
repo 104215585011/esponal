@@ -1,7 +1,18 @@
-import { Prisma, WordStatus } from "@prisma/client";
+// Timestamp: 2026-11-18 16:35
+import { Prisma, WordStatus, type Word } from "@prisma/client";
 import { tryConjugateVerb } from "@/lib/conjugate";
 import { normalizeLanguage, resolveRequestLanguage } from "@/lib/languages";
 import { prisma } from "@/lib/prisma";
+import {
+  buildContextCloze,
+  buildNounArticleCue,
+  detectSpanishCognateHint,
+  isLowFrequencyWordCandidate,
+  scoreNewReviewPriority,
+  type CognateHint,
+  type ContextCloze,
+  type NounArticleCue
+} from "@/lib/vocab-learning";
 
 type CreateWordInput = {
   userId: string;
@@ -188,27 +199,48 @@ export async function getDueReviewCount(userId: string, now = new Date(), langua
       ? normalizeLanguage(language)
       : await resolveRequestLanguage(null, undefined, userId);
 
-    const dueCount = await prisma.word.count({
-      where: {
-        userId,
-        language: lang,
-        srsState: {
-          not: null
-        },
-        srsDue: {
-          lte: now
+    const [dueWordCount, newWordCount, duePhraseCount, newPhraseCount] = await Promise.all([
+      prisma.word.count({
+        where: {
+          userId,
+          language: lang,
+          status: { not: WordStatus.KNOWN },
+          srsState: { not: null },
+          srsDue: { lte: now }
         }
-      }
-    });
-    const newCount = await prisma.word.count({
-      where: {
-        userId,
-        language: lang,
-        srsState: null
-      }
-    });
+      }),
+      prisma.word.count({
+        where: {
+          userId,
+          language: lang,
+          status: { not: WordStatus.KNOWN },
+          srsState: null
+        }
+      }),
+      prisma.savedPhrase
+        .count({
+          where: {
+            userId,
+            language: lang,
+            status: { not: WordStatus.KNOWN },
+            srsState: { not: null },
+            srsDue: { lte: now }
+          }
+        })
+        .catch(() => 0),
+      prisma.savedPhrase
+        .count({
+          where: {
+            userId,
+            language: lang,
+            status: { not: WordStatus.KNOWN },
+            srsState: null
+          }
+        })
+        .catch(() => 0)
+    ]);
 
-    return dueCount + Math.min(newCount, 10);
+    return dueWordCount + duePhraseCount + Math.min(newWordCount + newPhraseCount, 10);
   } catch {
     // SRS migration not yet applied to this database
     return 0;
@@ -232,6 +264,7 @@ export async function getDueReviewWords(
       where: {
         userId,
         language: lang,
+        status: { not: WordStatus.KNOWN },
         srsState: {
           not: null
         },
@@ -250,31 +283,399 @@ export async function getDueReviewWords(
     });
 
     const slotsForNew = Math.max(0, Math.min(10, batchSize - dueWords.length));
-    const newWords = slotsForNew
+    const candidateNewWords = slotsForNew
       ? await prisma.word.findMany({
           where: {
             userId,
             language: lang,
+            status: { not: WordStatus.KNOWN },
             srsState: null
           },
           include: {
             encounters: {
               orderBy: { createdAt: "desc" },
-              take: 2
+              take: 3
+            },
+            _count: {
+              select: { encounters: true }
             }
           },
           orderBy: {
             createdAt: "asc"
           },
-          take: slotsForNew
+          take: Math.max(slotsForNew, 50)
         })
       : [];
 
-    return [...dueWords, ...newWords];
+    if (candidateNewWords.length <= slotsForNew) {
+      return [...dueWords, ...candidateNewWords];
+    }
+
+    const lexRows = await prisma.lexiconEntry
+      .findMany({
+        where: {
+          language: lang,
+          lemma: { in: candidateNewWords.map((w) => w.lemma) }
+        },
+        select: { lemma: true, level: true, frequency: true }
+      })
+      .catch(() => []);
+    const lexMap = new Map(lexRows.map((row) => [row.lemma, row]));
+
+    const prioritizedNew = [...candidateNewWords]
+      .sort((a, b) => {
+        const lexA = lexMap.get(a.lemma);
+        const lexB = lexMap.get(b.lemma);
+        const cogA = lang === "es" ? detectSpanishCognateHint(a.lemma) : null;
+        const cogB = lang === "es" ? detectSpanishCognateHint(b.lemma) : null;
+        const scoreA = scoreNewReviewPriority({
+          itemType: "word",
+          encounterCount: a._count.encounters,
+          lexiconLevel: lexA?.level ?? null,
+          lexiconFrequency: lexA?.frequency ?? null,
+          isEasyCognate: Boolean(cogA?.isCognate),
+          createdAtMs: a.createdAt.getTime()
+        }).score;
+        const scoreB = scoreNewReviewPriority({
+          itemType: "word",
+          encounterCount: b._count.encounters,
+          lexiconLevel: lexB?.level ?? null,
+          lexiconFrequency: lexB?.frequency ?? null,
+          isEasyCognate: Boolean(cogB?.isCognate),
+          createdAtMs: b.createdAt.getTime()
+        }).score;
+        return scoreB - scoreA;
+      })
+      .slice(0, slotsForNew);
+
+    return [...dueWords, ...prioritizedNew];
   } catch {
     // SRS migration not yet applied to this database
     return [];
   }
+}
+
+export type ReviewQueueEncounter = {
+  id: string;
+  sourceType: string;
+  sourceUrl: string;
+  timestampSec: number;
+  originalSentence: string;
+  translatedSentence: string;
+  createdAt: string;
+};
+
+export type ReviewQueueItem = {
+  id: string;
+  itemType: "word" | "phrase";
+  phraseKind?: string | null;
+  language: string;
+  lemma: string;
+  forms: string[];
+  translation: string;
+  partOfSpeech: string | null;
+  dictData: unknown;
+  status: string;
+  srsDue: string | null;
+  srsState: string | null;
+  srsReps: number;
+  srsLapses: number;
+  encounters: ReviewQueueEncounter[];
+  encounterCount: number;
+  encounterForm: string | null;
+  articleCue: NounArticleCue | null;
+  cloze: ContextCloze | null;
+  cognateHint: CognateHint | null;
+  frequencyLevel: string | null;
+  lexiconFrequency: number | null;
+  priorityReason: string | null;
+  isLowFrequency: boolean;
+};
+
+type WordWithEncountersRow = Word & {
+  encounters?: Array<{
+    id: string;
+    sourceType: string;
+    sourceUrl: string;
+    timestampSec: number;
+    originalSentence: string;
+    translatedSentence: string;
+    createdAt: Date;
+  }>;
+  _count?: { encounters: number };
+};
+
+export async function enrichDueReviewQueue(params: {
+  userId: string;
+  language: string;
+  now: Date;
+  limit: number;
+  wordItems: WordWithEncountersRow[];
+}): Promise<ReviewQueueItem[]> {
+  const { userId, language, now, limit, wordItems } = params;
+  const lang = normalizeLanguage(language);
+  const batchSize = Math.max(1, Math.min(50, Math.floor(limit)));
+
+  const duePhraseRows = await prisma.savedPhrase
+    .findMany({
+      where: {
+        userId,
+        language: lang,
+        status: { not: WordStatus.KNOWN },
+        srsState: { not: null },
+        srsDue: { lte: now }
+      },
+      orderBy: [{ srsDue: "asc" }, { createdAt: "asc" }],
+      take: Math.min(10, batchSize)
+    })
+    .catch(() => []);
+
+  const newPhraseRows = await prisma.savedPhrase
+    .findMany({
+      where: {
+        userId,
+        language: lang,
+        status: { not: WordStatus.KNOWN },
+        srsState: null
+      },
+      orderBy: { createdAt: "asc" },
+      take: 25
+    })
+    .catch(() => []);
+
+  const allLemmas = Array.from(
+    new Set([
+      ...wordItems.map((w) => w.lemma),
+      ...duePhraseRows.map((p) => p.lemma),
+      ...newPhraseRows.map((p) => p.lemma)
+    ])
+  );
+
+  const [lexRows, encounterCounts] = await Promise.all([
+    allLemmas.length > 0
+      ? prisma.lexiconEntry
+          .findMany({
+            where: { language: lang, lemma: { in: allLemmas } },
+            select: { lemma: true, level: true, frequency: true, examples: true }
+          })
+          .catch(() => [])
+      : [],
+    wordItems.length > 0
+      ? prisma.wordEncounter
+          .groupBy({
+            by: ["wordId"],
+            where: { wordId: { in: wordItems.map((w) => w.id) } },
+            _count: { _all: true }
+          })
+          .catch(() => [])
+      : []
+  ]);
+
+  const lexMap = new Map(lexRows.map((row) => [row.lemma, row]));
+  const countMap = new Map(encounterCounts.map((row) => [row.wordId, row._count._all]));
+
+  const mapWord = (word: WordWithEncountersRow): ReviewQueueItem & { _priority: number } => {
+    const lex = lexMap.get(word.lemma);
+    const encList = word.encounters ?? [];
+    const encounterCount = word._count?.encounters ?? countMap.get(word.id) ?? encList.length;
+    const dictObj =
+      word.dictData && typeof word.dictData === "object"
+        ? (word.dictData as {
+            meanings?: string[];
+            examples?: Array<{ es: string; zh: string }>;
+          })
+        : null;
+    const cognateHint =
+      lang === "es" ? detectSpanishCognateHint(word.lemma, dictObj?.meanings ?? []) : null;
+    const articleCue = buildNounArticleCue({
+      lemma: word.lemma,
+      partOfSpeech: word.partOfSpeech,
+      dictData: word.dictData,
+      language: lang
+    });
+
+    const firstEncounter = encList[0];
+    const clozeFromEncounter = firstEncounter
+      ? buildContextCloze({
+          sentence: firstEncounter.originalSentence,
+          translatedSentence: firstEncounter.translatedSentence,
+          lemma: word.lemma,
+          forms: word.forms
+        })
+      : null;
+    const firstExample = dictObj?.examples?.[0];
+    const cloze =
+      clozeFromEncounter ??
+      (firstExample
+        ? buildContextCloze({
+            sentence: firstExample.es,
+            translatedSentence: firstExample.zh,
+            lemma: word.lemma,
+            forms: word.forms
+          })
+        : null);
+
+    const priorityInfo = scoreNewReviewPriority({
+      itemType: "word",
+      encounterCount,
+      lexiconLevel: lex?.level ?? null,
+      lexiconFrequency: lex?.frequency ?? null,
+      isEasyCognate: Boolean(cognateHint?.isCognate),
+      createdAtMs: word.createdAt.getTime()
+    });
+    const isLowFrequency = isLowFrequencyWordCandidate({
+      encounterCount,
+      lexiconLevel: lex?.level ?? null,
+      lexiconFrequency: lex?.frequency ?? null,
+      srsLapses: word.srsLapses
+    });
+
+    return {
+      id: word.id,
+      itemType: "word",
+      phraseKind: null,
+      language: word.language,
+      lemma: word.lemma,
+      forms: word.forms,
+      translation: word.translation,
+      partOfSpeech: word.partOfSpeech,
+      dictData: word.dictData,
+      status: word.status,
+      srsDue: word.srsDue?.toISOString() ?? null,
+      srsState: word.srsState,
+      srsReps: word.srsReps,
+      srsLapses: word.srsLapses,
+      encounters: encList.map((e) => ({
+        id: e.id,
+        sourceType: e.sourceType,
+        sourceUrl: e.sourceUrl,
+        timestampSec: e.timestampSec,
+        originalSentence: e.originalSentence,
+        translatedSentence: e.translatedSentence,
+        createdAt: e.createdAt.toISOString()
+      })),
+      encounterCount,
+      encounterForm: cloze?.answerForm ?? word.forms.find((f) => f !== word.lemma) ?? null,
+      articleCue,
+      cloze,
+      cognateHint,
+      frequencyLevel: lex?.level ?? null,
+      lexiconFrequency: lex?.frequency ?? null,
+      priorityReason:
+        priorityInfo.priorityReason ??
+        (isLowFrequency && word.srsLapses >= 2 ? "屡忘低频词 · 可暂缓" : null),
+      isLowFrequency,
+      _priority: priorityInfo.score
+    };
+  };
+
+  const mapPhrase = (phrase: (typeof duePhraseRows)[number]): ReviewQueueItem & { _priority: number } => {
+    const lex = lexMap.get(phrase.lemma);
+    const dataObj =
+      phrase.data && typeof phrase.data === "object"
+        ? (phrase.data as {
+            meanings?: string[];
+            examples?: Array<{ es: string; zh: string }>;
+            source?: { sentence?: string; type?: string };
+          })
+        : null;
+    const sourceSentence = dataObj?.source?.sentence?.trim() ?? "";
+    const firstEx = dataObj?.examples?.[0];
+    const cloze =
+      buildContextCloze({
+        sentence: sourceSentence || firstEx?.es,
+        translatedSentence: firstEx?.zh ?? phrase.translationZh ?? "",
+        lemma: phrase.lemma,
+        forms: [phrase.lemma]
+      }) ?? null;
+    const encounters: ReviewQueueEncounter[] = sourceSentence
+      ? [
+          {
+            id: `phrase-${phrase.id}`,
+            sourceType: dataObj?.source?.type ?? "phrase",
+            sourceUrl: "",
+            timestampSec: 0,
+            originalSentence: sourceSentence,
+            translatedSentence: phrase.translationZh ?? "",
+            createdAt: phrase.createdAt.toISOString()
+          }
+        ]
+      : [];
+
+    const priorityInfo = scoreNewReviewPriority({
+      itemType: "phrase",
+      encounterCount: 1,
+      lexiconLevel: lex?.level ?? null,
+      lexiconFrequency: lex?.frequency ?? null,
+      isEasyCognate: false,
+      createdAtMs: phrase.createdAt.getTime()
+    });
+
+    const kindLabel =
+      phrase.kind === "collocation"
+        ? "固定搭配"
+        : phrase.kind === "idiom"
+          ? "习语表达"
+          : "实用语块";
+
+    return {
+      id: phrase.id,
+      itemType: "phrase",
+      phraseKind: phrase.kind,
+      language: phrase.language,
+      lemma: phrase.lemma,
+      forms: [phrase.lemma],
+      translation: phrase.translationZh ?? phrase.explanationZh ?? phrase.lemma,
+      partOfSpeech: kindLabel,
+      dictData: {
+        ...(dataObj ?? {}),
+        meanings:
+          dataObj?.meanings && dataObj.meanings.length > 0
+            ? dataObj.meanings
+            : [phrase.translationZh, phrase.explanationZh].filter(
+                (v): v is string => Boolean(v?.trim())
+              )
+      },
+      status: phrase.status,
+      srsDue: phrase.srsDue?.toISOString() ?? null,
+      srsState: phrase.srsState,
+      srsReps: phrase.srsReps,
+      srsLapses: phrase.srsLapses,
+      encounters,
+      encounterCount: 1,
+      encounterForm: cloze?.answerForm ?? phrase.lemma,
+      articleCue: null,
+      cloze,
+      cognateHint: null,
+      frequencyLevel: lex?.level ?? null,
+      lexiconFrequency: lex?.frequency ?? null,
+      priorityReason: priorityInfo.priorityReason ?? kindLabel,
+      isLowFrequency: false,
+      _priority: priorityInfo.score
+    };
+  };
+
+  const mappedWords = wordItems.map(mapWord);
+  const dueWordsOut = mappedWords.filter((item) => item.srsState !== null);
+  const newWordsOut = mappedWords.filter((item) => item.srsState === null);
+  const duePhrasesOut = duePhraseRows.map(mapPhrase);
+  const newPhrasesOut = newPhraseRows.map(mapPhrase);
+
+  const combinedDue = [...dueWordsOut, ...duePhrasesOut].sort((a, b) => {
+    const dueA = a.srsDue ? new Date(a.srsDue).getTime() : 0;
+    const dueB = b.srsDue ? new Date(b.srsDue).getTime() : 0;
+    return dueA - dueB;
+  });
+
+  const newSlots = Math.max(0, Math.min(10, batchSize - combinedDue.length));
+  const combinedNew = [...newWordsOut, ...newPhrasesOut]
+    .sort((a, b) => b._priority - a._priority)
+    .slice(0, newSlots);
+
+  // Interleave new phrases & prioritized new words cleanly and strip internal _priority
+  return [...combinedDue, ...combinedNew]
+    .slice(0, batchSize)
+    .map(({ _priority: _ignored, ...rest }) => rest);
 }
 
 export async function getWordWithEncounters(

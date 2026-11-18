@@ -1,3 +1,4 @@
+import { WordStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getAuthedUserId } from "@/lib/api-auth";
 import { assertUnlimitedSavesAccess, FREE_SAVE_LIMIT } from "@/lib/credits/access";
@@ -9,6 +10,7 @@ type AddVocabBody = {
   language?: unknown;
   lemma?: unknown;
   word?: unknown;
+  status?: unknown;
   translation?: unknown;
   meaning?: unknown;
   context?: unknown;
@@ -119,6 +121,13 @@ export async function POST(request: Request) {
       }
     }
 
+    const wordStatus =
+      body.status === "KNOWN"
+        ? WordStatus.KNOWN
+        : body.status === "LEARNING"
+          ? WordStatus.LEARNING
+          : existingWord?.status ?? WordStatus.NEW;
+
     const word = await createWord({
       userId: userId,
       language,
@@ -126,7 +135,8 @@ export async function POST(request: Request) {
       translation,
       forms: existingWord ? [...existingWord.forms, form] : [form],
       dictData,
-      partOfSpeech
+      partOfSpeech,
+      status: wordStatus
     });
 
     const encounter = await addEncounter({

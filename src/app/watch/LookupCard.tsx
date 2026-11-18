@@ -77,6 +77,24 @@ type LookupCardStackCard = LookupCardProps & {
   id: string;
 };
 
+type CognateHint = {
+  isCognate: boolean;
+  isFalseFriend?: boolean;
+  englishWord: string;
+  patternLabel: string;
+  tipZh: string;
+};
+
+type NounArticleCue = {
+  article: string;
+  pluralArticle: string;
+  singularWithArticle: string;
+  pluralWithArticle: string | null;
+  maskedWithArticle: string;
+  gender: "m" | "f" | "mf" | "n";
+  genderLabel: string;
+};
+
 type LookupResponse = {
   word: string;
   lemma: string | null;
@@ -87,6 +105,7 @@ type LookupResponse = {
   phonetic: string | null;
   isSaved?: boolean;
   wordId?: string | null;
+  wordStatus?: string | null;
   totalEncounters?: number | null;
   conjugations?: unknown;
   nounForms?: unknown;
@@ -94,6 +113,8 @@ type LookupResponse = {
   degraded?: boolean;
   relatedPhrases?: RelatedPhrase[];
   usageNote?: string | null;
+  cognateHint?: CognateHint | null;
+  articleCue?: NounArticleCue | null;
 };
 
 type ButtonState = "default" | "loading" | "success" | "login" | "disabled" | "already_saved";
@@ -113,12 +134,15 @@ type LookupState =
       phonetic: string | null;
       isSaved?: boolean;
       wordId?: string | null;
+      wordStatus?: string | null;
       totalEncounters?: number | null;
       conjugations?: LookupResponse["conjugations"];
       nounForms?: LookupResponse["nounForms"];
       adjectiveForms?: LookupResponse["adjectiveForms"];
       relatedPhrases?: RelatedPhrase[];
       usageNote?: string | null;
+      cognateHint?: CognateHint | null;
+      articleCue?: NounArticleCue | null;
     };
 
 const LEGACY_LEMMATIZE_ROUTE = "/api/lemmatize";
@@ -359,12 +383,15 @@ export function LookupCard({
           phonetic: payload.phonetic,
           isSaved: payload.isSaved,
           wordId: payload.wordId,
+          wordStatus: payload.wordStatus,
           totalEncounters: payload.totalEncounters,
           conjugations: payload.conjugations,
           nounForms: payload.nounForms,
           adjectiveForms: payload.adjectiveForms,
           relatedPhrases: payload.relatedPhrases,
-          usageNote: payload.usageNote
+          usageNote: payload.usageNote,
+          cognateHint: payload.cognateHint,
+          articleCue: payload.articleCue
         });
         if (payload.isSaved === true) {
           setButtonState("already_saved");
@@ -485,7 +512,7 @@ export function LookupCard({
     };
   }, [lookupState, source, currentTimeSec, originalSentence, translatedSentence]);
 
-  async function handleAddToVocab() {
+  async function handleAddToVocab(markAsKnown = false) {
     if (lookupState.kind !== "ready") return;
 
     const resolvedSource = source ?? getDefaultVideoSource(currentTimeSec, originalSentence);
@@ -503,6 +530,7 @@ export function LookupCard({
           lemma: lookupState.lemma,
           translation: lookupState.translation,
           form: normalizedForm,
+          ...(markAsKnown ? { status: "KNOWN" } : {}),
           dictData: {
             meanings: lookupState.meanings,
             examples: lookupState.examples,
@@ -624,7 +652,9 @@ export function LookupCard({
     }
   }
 
-  const handlePrimarySave = isPhraseLookup ? handleSavePhrase : handleAddToVocab;
+  const handlePrimarySave = isPhraseLookup
+    ? handleSavePhrase
+    : () => void handleAddToVocab(false);
 
   const isReady = lookupState.kind === "ready";
   const lemma = isReady ? lookupState.lemma : normalizedForm;
@@ -867,6 +897,34 @@ export function LookupCard({
           )
         ) : null}
       </div>
+
+      {/* 同源词/假朋友提示 & 名词冠词绑定 */}
+      {isReady && (lookupState.articleCue || lookupState.cognateHint) ? (
+        <div className="mt-2.5 space-y-1.5">
+          {lookupState.articleCue ? (
+            <div className="rounded-lg bg-brand-50/70 dark:bg-brand-950/30 border border-brand-200/50 dark:border-brand-800/40 px-2.5 py-1.5 text-xs text-brand-800 dark:text-brand-300">
+              <span className="font-semibold">名词记冠词：</span>
+              <span className="font-bold">{lookupState.articleCue.singularWithArticle}</span>
+              {lookupState.articleCue.pluralWithArticle ? (
+                <span> → {lookupState.articleCue.pluralWithArticle}</span>
+              ) : null}
+              <span className="ml-1.5 opacity-80">（{lookupState.articleCue.genderLabel}）</span>
+            </div>
+          ) : null}
+          {lookupState.cognateHint ? (
+            <div
+              className={`rounded-lg border px-2.5 py-1.5 text-xs leading-relaxed ${
+                lookupState.cognateHint.isFalseFriend
+                  ? "bg-amber-50/80 dark:bg-amber-950/30 border-amber-200/70 dark:border-amber-800/50 text-amber-800 dark:text-amber-300"
+                  : "bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-200/60 dark:border-indigo-800/40 text-indigo-800 dark:text-indigo-300"
+              }`}
+            >
+              <span className="font-semibold mr-1">{lookupState.cognateHint.patternLabel} ·</span>
+              <span>{lookupState.cognateHint.tipZh}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* 用法提示 Usage Note */}
       {isReady && lookupState.usageNote && (
@@ -1128,6 +1186,7 @@ export function LookupCard({
             </>
           )
         ) : (
+          <>
           <button
             className={
               useStaticLayout
@@ -1160,7 +1219,7 @@ export function LookupCard({
               buttonState === "success" ||
               buttonState === "already_saved"
             }
-            onClick={handlePrimarySave}
+            onClick={() => void (isPhraseLookup ? handleSavePhrase() : handleAddToVocab(false))}
             type="button"
           >
             {buttonState === "already_saved" && useStaticLayout && (
@@ -1184,6 +1243,19 @@ export function LookupCard({
                       ? "收藏短语"
                       : "加入我的词库"}
           </button>
+          {isReady &&
+          !isPhraseLookup &&
+          lookupState.cognateHint?.isCognate &&
+          buttonState === "default" ? (
+            <button
+              className="mt-2 h-8 w-full rounded-full border border-indigo-200 dark:border-indigo-800/50 bg-indigo-50/70 dark:bg-indigo-950/20 text-xs font-medium text-indigo-700 dark:text-indigo-300 transition hover:bg-indigo-100"
+              onClick={() => void handleAddToVocab(true)}
+              type="button"
+            >
+              同源词秒懂 · 记入词库并跳过复习
+            </button>
+          ) : null}
+        </>
         )}
         {buttonState === "already_saved" && totalEncounters !== null && (
           <p className={

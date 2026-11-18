@@ -26,6 +26,10 @@ import { isLemmaInDict } from "@/lib/dictionary";
 import { reportLookupFailure } from "@/lib/monitor";
 import { getWordWithEncounters } from "@/lib/vocab";
 import {
+  buildNounArticleCue,
+  detectSpanishCognateHint
+} from "@/lib/vocab-learning";
+import {
   checkRateLimit,
   getRetryAfterSec,
   lookupLimiter
@@ -166,7 +170,14 @@ function scheduleLexiconBackfill(entry: DictionaryEntry, language: LearningLangu
   }, 0);
 }
 
-async function withSavedState<T extends { lemma: string }>(
+async function withSavedState<
+  T extends {
+    lemma: string;
+    partOfSpeech?: string | null;
+    meanings?: string[];
+    nounForms?: unknown;
+  }
+>(
   payload: T,
   userId: string | null,
   language: LearningLanguage,
@@ -177,13 +188,27 @@ async function withSavedState<T extends { lemma: string }>(
       ? await getWordWithEncounters(userId, payload.lemma, language)
       : null;
 
+  const cognateHint =
+    language === "es"
+      ? detectSpanishCognateHint(payload.lemma, payload.meanings ?? [])
+      : null;
+  const articleCue = buildNounArticleCue({
+    lemma: payload.lemma,
+    partOfSpeech: payload.partOfSpeech,
+    dictData: payload.nounForms ? { nounForms: payload.nounForms } : null,
+    language
+  });
+
   return {
     ...payload,
     language,
     detectedLanguage,
     isSaved: Boolean(savedWord),
     wordId: savedWord?.id ?? null,
-    totalEncounters: savedWord ? savedWord.encounters.length : null
+    wordStatus: savedWord?.status ?? null,
+    totalEncounters: savedWord ? savedWord.encounters.length : null,
+    cognateHint,
+    articleCue
   };
 }
 

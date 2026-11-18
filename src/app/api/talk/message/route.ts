@@ -7,7 +7,7 @@ import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
 import { prisma } from "@/lib/prisma";
 import { getTalkCharacterById } from "@/lib/talk/characters";
-import { streamChatMessage } from "@/lib/talk/chat-service";
+import { normalizeTargetWords, streamChatMessage } from "@/lib/talk/chat-service";
 import { getMessageEncryptionSecret } from "@/lib/talk/env";
 import { getAuthedUserId } from "@/lib/api-auth";
 
@@ -15,6 +15,7 @@ type Body = {
   characterId?: unknown;
   message?: unknown;
   sessionId?: unknown;
+  targetWords?: unknown;
 };
 
 function jsonError(status: number, code: string, message: string) {
@@ -54,6 +55,7 @@ async function handleRequest(request: Request, userId: string | null) {
   const characterId = typeof body.characterId === "string" ? body.characterId : "";
   const message = typeof body.message === "string" ? body.message.trim() : "";
   const sessionId = typeof body.sessionId === "string" && body.sessionId ? body.sessionId : undefined;
+  const targetWords = normalizeTargetWords(body.targetWords);
 
   if (!characterId || !getTalkCharacterById(characterId)) {
     return jsonError(404, "CHARACTER_NOT_FOUND", "未知角色");
@@ -105,7 +107,8 @@ async function handleRequest(request: Request, userId: string | null) {
         characterId,
         message,
         sessionId,
-        encryptionSecret
+        encryptionSecret,
+        targetWords
       })) {
         if (event.type === "delta") {
           streamed += event.text;
@@ -155,7 +158,8 @@ async function handleRequest(request: Request, userId: string | null) {
           characterId,
           message,
           sessionId,
-          encryptionSecret
+          encryptionSecret,
+          targetWords
         })) {
           if (event.type === "delta") {
             controller.enqueue(encodeSse("delta", { text: event.text }));

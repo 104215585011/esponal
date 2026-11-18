@@ -20,7 +20,38 @@ export type SendChatMessageInput = {
   sessionId?: string;
   encryptionSecret: string;
   modelClient?: ModelClient;
+  targetWords?: string[];
 };
+
+export function normalizeTargetWords(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return Array.from(
+      new Set(
+        raw
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0 && item.length <= 48)
+      )
+    ).slice(0, 6);
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    return normalizeTargetWords(raw.split(/[,，|]/));
+  }
+  return [];
+}
+
+export function buildSystemPromptWithTargetWords(
+  basePrompt: string,
+  targetWords?: string[]
+): string {
+  const words = normalizeTargetWords(targetWords);
+  if (words.length === 0) return basePrompt;
+  return `${basePrompt}
+
+【本次复习输出练习目标】
+用户刚刚复习了以下词汇/语块：${words.join("、")}。
+请在自然日常对话中创造贴近生活的语境，温和引导用户在回复里尝试用出其中 1-2 个表达；若用户用了其中一个，先肯定或自然接话，不要生硬说教或一次性考所有词。`;
+}
 
 export type ChatStreamEvent =
   | { type: "delta"; text: string }
@@ -159,7 +190,7 @@ export async function* streamChatMessage(
 
   for await (const event of modelClient.streamMessage({
     characterId: character.id,
-    systemPrompt: character.systemPrompt,
+    systemPrompt: buildSystemPromptWithTargetWords(character.systemPrompt, input.targetWords),
     messages
   })) {
     if (event.type === "delta") {

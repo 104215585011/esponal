@@ -8,7 +8,12 @@ import { requireCredits } from "@/lib/credits/runtime";
 import { spendCredits } from "@/lib/credits/service";
 import { prisma } from "@/lib/prisma";
 import { getTalkCharacterById } from "@/lib/talk/characters";
-import { buildInitialSessionTitle, streamChatMessage } from "@/lib/talk/chat-service";
+import {
+  buildInitialSessionTitle,
+  buildSystemPromptWithTargetWords,
+  normalizeTargetWords,
+  streamChatMessage
+} from "@/lib/talk/chat-service";
 import {
   synthesizeAudioWithDeepSeek,
   transcribeAudioWithDeepSeek
@@ -29,6 +34,7 @@ function jsonError(status: number, code: string, message: string) {
 type VoicePayload = {
   characterId: string;
   sessionId?: string;
+  targetWords: string[];
   language: string;
   mimeType: string;
   filename: string;
@@ -55,6 +61,7 @@ async function parseVoiceRequest(request: Request): Promise<VoicePayload | { err
     return {
       characterId: String(form.get("characterId") ?? ""),
       sessionId: form.get("sessionId") ? String(form.get("sessionId")) : undefined,
+      targetWords: normalizeTargetWords(form.get("targetWords") ? String(form.get("targetWords")) : []),
       language: String(form.get("language") ?? "es-MX") || "es-MX",
       mimeType,
       filename,
@@ -92,6 +99,7 @@ async function parseVoiceRequest(request: Request): Promise<VoicePayload | { err
     characterId: typeof body.characterId === "string" ? body.characterId : "",
     sessionId:
       typeof body.sessionId === "string" && body.sessionId ? body.sessionId : undefined,
+    targetWords: normalizeTargetWords(body.targetWords),
     language:
       typeof body.language === "string" && body.language ? body.language : "es-MX",
     mimeType,
@@ -215,7 +223,7 @@ async function handleRequest(request: Request, userId: string | null) {
 
     const omniRes = await talkDirectWithQwenOmni({
       characterId: character.id,
-      systemPrompt: character.systemPrompt,
+      systemPrompt: buildSystemPromptWithTargetWords(character.systemPrompt, parsed.targetWords),
       historyMessages,
       audioBuffer: parsed.audioBuffer,
       audioFormat,
@@ -368,7 +376,8 @@ async function handleRequest(request: Request, userId: string | null) {
       characterId: parsed.characterId,
       message: transcript,
       sessionId: parsed.sessionId,
-      encryptionSecret
+      encryptionSecret,
+      targetWords: parsed.targetWords
     })) {
       if (event.type === "delta") {
         streamed += event.text;
