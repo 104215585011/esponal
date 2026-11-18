@@ -22,17 +22,18 @@ import { LEARNING_LANGUAGE_OPTIONS, type LearningLanguage } from "@/lib/preferen
 import { getAllWatchProgress, loadWatchProgress, shouldResume, type WatchProgress } from "@/lib/watchProgress";
 import { colors, radius, spacing } from "@/theme";
 
-/** 一键试搜的主题词(按语种区分，都是真实能搜到对应原声内容的方向) */
-const SUGGESTIONS_BY_LANG: Partial<Record<LearningLanguage, string[]>> = {
+// Timestamp: 2026-11-18 09:24
+/** 一键试搜的主题词(按语种区分，全部使用英文检索词以避免命中中文讲解作者) */
+const SUGGESTIONS_BY_LANG: Record<LearningLanguage, string[]> = {
   de: [
-    "DW Deutsch lernen A1",
     "Easy German A1",
+    "DW Deutsch lernen",
     "Learn German Original",
-    "Deutsch Alltag A1",
-    "Slow German Podcast",
-    "Nicos Weg Deutsch",
-    "德语听力 入门",
-    "德语日常对话"
+    "Slow German listening",
+    "German daily conversation",
+    "Nicos Weg A1 German",
+    "German comprehensible input",
+    "German podcast beginner"
   ],
   en: [
     "BBC Learning English",
@@ -40,40 +41,48 @@ const SUGGESTIONS_BY_LANG: Partial<Record<LearningLanguage, string[]>> = {
     "Speak English With Vanessa",
     "6 Minute English",
     "Everyday English conversation",
-    "English podcast beginner",
-    "英语慢速听力",
-    "英式日常对话"
+    "English listening practice A2",
+    "British English daily vlog",
+    "English podcast beginner"
   ],
   fr: [
     "Easy French A1",
-    "Français Authentique",
+    "Slow French listening",
     "innerFrench podcast",
-    "RFI Français facile",
-    "Dialogue en français",
+    "French daily conversation",
+    "RFI simple French",
     "French beginner vlog",
-    "法语日常对话",
-    "慢速法语听力"
+    "French comprehensible input",
+    "Paris travel vlog French"
   ],
   ja: [
     "Japanese with Shun",
     "Speak Japanese Naturally",
     "Miku Real Japanese",
     "JLPT N5 listening",
+    "Slow Japanese conversation",
     "Nihongo con Teppei",
-    "日本語 会話 初心者",
-    "日语日常听力",
-    "初级日语 vlog"
+    "Beginner Japanese vlog",
+    "Japanese comprehensible input"
   ],
   es: [
-    "慢速西语 听力",
-    "西语日常对话",
-    "街头采访 español",
-    "西语 vlog 生活",
-    "西语新闻 noticias",
-    "西语歌曲 letra",
-    "西语语法 explicación",
-    "西班牙旅行"
+    "Slow Spanish listening",
+    "Spanish daily conversation",
+    "Easy Spanish street interview",
+    "Spanish comprehensible input A1",
+    "Spanish travel vlog",
+    "Spanish news slow",
+    "Dreaming Spanish beginner",
+    "Spanish podcast beginner"
   ]
+};
+
+const SEARCH_PLACEHOLDER_EXAMPLE: Record<LearningLanguage, string> = {
+  es: "Slow Spanish listening",
+  de: "Easy German A1",
+  en: "BBC Learning English",
+  fr: "Easy French A1",
+  ja: "Japanese with Shun"
 };
 
 /**
@@ -165,11 +174,7 @@ export default function SearchScreen() {
             enterKeyHint="search"
             onChangeText={setQuery}
             onSubmitEditing={() => void runSearch(query)}
-            placeholder={
-              activeLang === "de"
-                ? `搜${langLabel}视频,如 Easy German A1`
-                : `搜${langLabel}视频,如 Spanish listening`
-            }
+            placeholder={`搜${langLabel}视频,如 ${SEARCH_PLACEHOLDER_EXAMPLE[activeLang]}`}
             placeholderTextColor={colors.textTertiary}
             returnKeyType="search"
             style={styles.input}
