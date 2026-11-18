@@ -4,10 +4,12 @@ import test from "node:test";
 import {
   buildContextCloze,
   buildNounArticleCue,
+  buildQuick5Mix,
   detectSpanishCognateHint,
   isLowFrequencyWordCandidate,
   scoreNewReviewPriority
 } from "../src/lib/vocab-learning.ts";
+import { SPANISH_STARTER_PACK } from "../src/lib/vocab-starter.ts";
 
 test("detectSpanishCognateHint identifies cognate rules and guards false friends", () => {
   const cion = detectSpanishCognateHint("información");
@@ -119,4 +121,50 @@ test("scoreNewReviewPriority puts repeated encounters & core frequency ahead of 
     }),
     true
   );
+});
+
+test("buildQuick5Mix combines 2 recent + 3 due without duplicates and backfills cleanly", () => {
+  const w1 = { id: "1", itemType: "word", lemma: "hay" };
+  const w2 = { id: "2", itemType: "word", lemma: "quedar" };
+  const w3 = { id: "3", itemType: "word", lemma: "puede" };
+  const w4 = { id: "4", itemType: "phrase", lemma: "tiene que" };
+  const w5 = { id: "5", itemType: "word", lemma: "llevar" };
+  const w6 = { id: "6", itemType: "word", lemma: "decir" };
+
+  // When w2 is in both recent and due, it should appear only once and draw the next due item
+  const mixed = buildQuick5Mix({
+    recent: [w1, w2, w3],
+    due: [w2, w4, w5, w6],
+    recentQuota: 2,
+    dueQuota: 3,
+    totalMax: 5
+  });
+  assert.equal(mixed.length, 5);
+  const ids = mixed.map((item) => item.id);
+  assert.equal(new Set(ids).size, 5);
+  assert.deepEqual(ids, ["1", "2", "4", "5", "6"]);
+
+  // Backfill when due has fewer than 3
+  const recentHeavy = buildQuick5Mix({
+    recent: [w1, w2, w3, w4],
+    due: [w5],
+    recentQuota: 2,
+    dueQuota: 3,
+    totalMax: 5
+  });
+  assert.deepEqual(
+    recentHeavy.map((i) => i.id),
+    ["1", "2", "5", "3", "4"]
+  );
+});
+
+test("SPANISH_STARTER_PACK covers core high-frequency skeleton words & chunks", () => {
+  assert.ok(SPANISH_STARTER_PACK.length >= 20);
+  const lemmas = new Set(SPANISH_STARTER_PACK.map((i) => i.lemma));
+  assert.ok(lemmas.has("hay"));
+  assert.ok(lemmas.has("poder"));
+  assert.ok(lemmas.has("tener que"));
+  for (const item of SPANISH_STARTER_PACK) {
+    assert.ok(item.translationZh && item.exampleEs && item.exampleZh);
+  }
 });

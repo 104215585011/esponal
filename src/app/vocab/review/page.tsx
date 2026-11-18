@@ -1,3 +1,4 @@
+// Timestamp: 2026-11-18 17:38
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { BackLink } from "@/app/components/web/BackLink";
@@ -23,9 +24,9 @@ export default async function VocabReviewPage() {
         <BackLink href="/vocab" label="语料库" />
 
         <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">SRS 复习</h1>
+          <h1 className="text-2xl font-bold text-gray-900">复习与巩固</h1>
           <p className="mt-2 text-sm text-gray-500">
-            先看词，再翻面确认释义和例句，然后给出熟悉度评分。
+            挑合你当下时间的入口：刚看完材料回看「最近遇到」、按计划回想「到期复习」，或用「练 5 分钟」随时短练。
           </p>
         </header>
         <ReviewClient />

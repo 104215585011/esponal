@@ -573,3 +573,73 @@ export function isLowFrequencyWordCandidate(params: {
   }
   return false;
 }
+
+/**
+ * 「练 5 分钟」短练组合器：
+ * 默认取 2 条「最近遇到」+ 3 条「到期复习」；
+ * 同一个词如果在两边都出现，严格只出一次；哪边不足，用另一边（或候补池）补足到 5 条。
+ */
+export function buildQuick5Mix<
+  T extends { id: string; itemType?: string; lemma: string }
+>(params: {
+  recent: T[];
+  due: T[];
+  backfill?: T[];
+  recentQuota?: number;
+  dueQuota?: number;
+  totalMax?: number;
+}): Array<T & { queueBucket: "recent" | "due" | "new" }> {
+  const recentQuota = params.recentQuota ?? 2;
+  const dueQuota = params.dueQuota ?? 3;
+  const totalMax = params.totalMax ?? 5;
+
+  const seenIds = new Set<string>();
+  const seenLemmas = new Set<string>();
+  const out: Array<T & { queueBucket: "recent" | "due" | "new" }> = [];
+
+  const markAndPush = (item: T, bucket: "recent" | "due" | "new"): boolean => {
+    const idKey = `${item.itemType ?? "word"}:${item.id}`;
+    const lemmaKey = `${item.itemType ?? "word"}:${item.lemma.trim().toLowerCase()}`;
+    if (seenIds.has(idKey) || seenLemmas.has(lemmaKey)) {
+      return false;
+    }
+    seenIds.add(idKey);
+    seenLemmas.add(lemmaKey);
+    out.push({ ...item, queueBucket: bucket });
+    return true;
+  };
+
+  let addedRecent = 0;
+  for (const item of params.recent) {
+    if (addedRecent >= recentQuota || out.length >= totalMax) break;
+    if (markAndPush(item, "recent")) addedRecent += 1;
+  }
+
+  let addedDue = 0;
+  for (const item of params.due) {
+    if (addedDue >= dueQuota || out.length >= totalMax) break;
+    if (markAndPush(item, "due")) addedDue += 1;
+  }
+
+  // Fill remaining slots cleanly: alternate due -> recent -> optional unstarted backfill
+  if (out.length < totalMax) {
+    for (const item of params.due) {
+      if (out.length >= totalMax) break;
+      markAndPush(item, "due");
+    }
+  }
+  if (out.length < totalMax) {
+    for (const item of params.recent) {
+      if (out.length >= totalMax) break;
+      markAndPush(item, "recent");
+    }
+  }
+  if (out.length < totalMax && params.backfill) {
+    for (const item of params.backfill) {
+      if (out.length >= totalMax) break;
+      markAndPush(item, "new");
+    }
+  }
+
+  return out;
+}
