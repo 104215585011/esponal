@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:58
+// Timestamp: 2026-11-18 17:30
 import { meteredFetch, withApiUsage } from "@/lib/api-usage";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
@@ -7,7 +7,6 @@ import { normalizeLanguage } from "@/lib/languages";
 import { isAllowedPodcastAudioUrl, type PodcastCue } from "@/lib/listening-audio";
 import {
   extractTranscriptFromHtml,
-  extractTranscriptFromSourceText,
   parseId3v2Size,
   sliceTranscriptWindow,
   type ExtractedTranscript
@@ -101,7 +100,7 @@ async function loadTranscriptFromPageUrl(
   if (!allowed) return null;
 
   const pageHash = createHash("sha1").update(allowed.toString()).digest("hex").slice(0, 12);
-  const cacheKey = `listening:tx:v1:${pageHash}`;
+  const cacheKey = `listening:tx:v2:${pageHash}`;
   const cached = await readJsonCache<ExtractedTranscript | { none: true }>(cacheKey);
   if (cached) {
     return "none" in cached ? null : cached;
@@ -176,7 +175,7 @@ async function detectAudioMeta(
 
 /**
  * POST /api/listening/subtitles
- * 优先解析博客/文章源文稿 + DeepSeek 配译文，没有完整文稿时回落到 ID3v2 偏移修正后的 Qwen3-Omni-Flash 音频识别。
+ * 优先解析带时间码的播客文稿，再回退到原声音频识别。
  */
 export async function POST(request: Request) {
   const userId = await getOptionalUserId(request);
@@ -190,7 +189,6 @@ async function handleRequest(request: Request) {
     startSec?: unknown;
     durationSec?: unknown;
     pageUrl?: unknown;
-    sourceText?: unknown;
     language?: unknown;
     lang?: unknown;
   };
@@ -226,8 +224,8 @@ async function handleRequest(request: Request) {
   const urlHash = createHash("sha1").update(target.toString()).digest("hex").slice(0, 12);
   const cacheKey =
     language === "es"
-      ? `listening:sub:v4:${urlHash}:${windowStartSec}`
-      : `listening:sub:v4:${language}:${urlHash}:${windowStartSec}`;
+      ? `listening:sub:v5:${urlHash}:${windowStartSec}`
+      : `listening:sub:v5:${language}:${urlHash}:${windowStartSec}`;
   const cached = await readJsonCache<PodcastCue[]>(cacheKey);
   if (cached && cached.length > 0) {
     return NextResponse.json({
@@ -238,33 +236,6 @@ async function handleRequest(request: Request) {
       windowEndSec: windowStartSec + WINDOW_SEC,
       cached: true
     });
-  }
-
-  // 1) 优先尝试源文稿（传入文章全文或博客网页正文/免费时间码开篇），避免白白跑语音 ASR
-  const rawSourceText = typeof body.sourceText === "string" ? body.sourceText : "";
-  const clientTx = rawSourceText
-    ? extractTranscriptFromSourceText(rawSourceText, durationSec)
-    : null;
-  if (clientTx && windowStartSec < clientTx.coveredUntilSec) {
-    const cues = await sliceTranscriptWindow({
-      sentences: clientTx.sentences,
-      coveredUntilSec: clientTx.coveredUntilSec,
-      windowStartSec,
-      windowSec: WINDOW_SEC,
-      language
-    });
-    if (cues && cues.length > 0) {
-      await writeJsonCache(cacheKey, cues, 7 * 24 * 3600);
-      return NextResponse.json({
-        cues,
-        available: true,
-        language,
-        windowStartSec,
-        windowEndSec: windowStartSec + WINDOW_SEC,
-        source: "article-text",
-        cached: false
-      });
-    }
   }
 
   const rawPageUrl = typeof body.pageUrl === "string" ? body.pageUrl.trim() : "";

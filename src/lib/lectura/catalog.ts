@@ -1,8 +1,9 @@
-// Timestamp: 2026-11-18 11:14
+// Timestamp: 2026-11-18 17:30
 import { lecturaStories } from "@/../content/lectura";
 import { normalizeLanguage, type LearningLanguage } from "@/lib/languages";
 import {
   inferCuratedStoryTopic,
+  isMediaPromoPage,
   mixLecturaRecommendations,
   recommendNextLecturaStory,
   type LecturaAudioType,
@@ -69,7 +70,9 @@ async function readSpanishSeedJson(): Promise<LecturaCatalogItem[]> {
   try {
     const mod = await import("@/data/spanish-lectura-catalog.json");
     const arr = (mod.default ?? mod) as unknown;
-    return Array.isArray(arr) ? (arr as LecturaCatalogItem[]) : [];
+    return Array.isArray(arr)
+      ? (arr as LecturaCatalogItem[]).filter((item) => !isMediaPromoPage(item.paragraphs))
+      : [];
   } catch {
     return [];
   }
@@ -222,8 +225,9 @@ export async function loadReadyLecturaCatalog(
         },
         orderBy: [{ sortWeight: "desc" }, { updatedAt: "desc" }]
       });
-      if (dbRows.length > 0) {
-        return dbRows.map((row) => ({
+      const readyRows = dbRows.filter((row) => !isMediaPromoPage(parseJsonStringArray(row.paragraphs)));
+      if (readyRows.length > 0) {
+        return readyRows.map((row) => ({
           slug: row.slug,
           language: "es" as const,
           contentKind:
@@ -442,6 +446,8 @@ export async function getCatalogStoryBySlug(slug: string): Promise<LecturaCatalo
   try {
     const dbRow = await prisma.lecturaCatalog.findUnique({ where: { slug } });
     if (dbRow) {
+      const paragraphs = parseJsonStringArray(dbRow.paragraphs);
+      if (isMediaPromoPage(paragraphs)) return null;
       return {
         slug: dbRow.slug,
         language: normalizeLanguage(dbRow.language),
@@ -460,7 +466,7 @@ export async function getCatalogStoryBySlug(slug: string): Promise<LecturaCatalo
             ? dbRow.levelSource
             : null,
         durationMin: dbRow.durationMin,
-        paragraphs: parseJsonStringArray(dbRow.paragraphs),
+        paragraphs,
         paragraphCount: dbRow.paragraphCount,
         isFullText: dbRow.isFullText,
         bodyStatus: dbRow.bodyStatus === "excerpt" ? "excerpt" : "ready",
@@ -511,6 +517,7 @@ export async function getCatalogStoryBySlug(slug: string): Promise<LecturaCatalo
   if (!crawled) return null;
 
   const lang = normalizeLanguage(crawled.language);
+  if (lang === "es" && isMediaPromoPage(crawled.paragraphs)) return null;
   return {
     slug: crawled.slug,
     language: lang,

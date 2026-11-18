@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 11:30
+// Timestamp: 2026-11-18 17:30
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -34,6 +34,28 @@ test("assessArticleBody validates full text beyond 35 paragraphs and rejects inc
   assert.equal(fullResult.bodyStatus, "ready");
   assert.equal(fullResult.isFullText, true);
   assert.equal(fullResult.paragraphs.length, 42);
+});
+
+test("Spanish reading rejects video and podcast promo pages even when they exceed the length threshold", () => {
+  const promo = [
+    "Categories Advanced: Real Fluency Collection, Our Spanish Learning Videos",
+    "In the video we discuss our addiction to an active and sporty lifestyle and tell viewers what happened over the summer.",
+    "Make sure you get the full Real Fluency Collection course that goes with this video and includes:",
+    "12 Core Video Units with complete pro subtitles, so you miss nothing while you watch the episodes.",
+    "Key vocabulary listed and explained with exercises to help you remember all of the new material.",
+    "The full collection also includes a bonus section with additional material for anyone who wants to keep practising after watching the video."
+  ];
+  assert.equal(assessArticleBody(promo).bodyStatus, "failed");
+
+  const podcastPromo = [
+    "Podcast: Play in new window | Download (Duration: 27:28 — 25.1MB)",
+    "En este episodio voy a contar dos historias, explicar qué pasó en el pueblo y compartir varias expresiones que puedes usar en una conversación.",
+    "Si quieres seguir mejorando tu nivel de español, echa un vistazo a nuestros cursos online.",
+    "Vídeos, audios, juegos divertidos, ejercicios de gramática y un montón de historias para aprender español en contexto.",
+    "Muchas gracias por el pódcast. Me gusta mucho escucharte y espero con ganas tu siguiente episodio.",
+    "Gracias Juan por compartir este episodio, me recordó a cuando vivía en un pueblo pequeño con toda mi familia."
+  ];
+  assert.equal(assessArticleBody(podcastPromo).bodyStatus, "failed");
 });
 
 test("mixLecturaRecommendations places blogs & stories ahead of news rather than burying them", () => {

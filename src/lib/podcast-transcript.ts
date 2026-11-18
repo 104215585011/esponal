@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 15:08
+// Timestamp: 2026-11-18 17:30
 import type { PodcastCue } from "./listening-audio.ts";
 import { stripHtmlToText } from "./rss-extract.ts";
 import { translateTextToZh } from "./translate.ts";
@@ -44,7 +44,7 @@ export type ExtractedTranscript = {
 };
 
 function parseTimestampToken(raw: string): number | null {
-  const m = raw.match(/\[(\d{1,2}):(\d{2})(?::(\d{2}))?\]/);
+  const m = raw.match(/^(?:[\p{L}][\p{L} .'-]{0,39}:\s*)?\[(\d{1,2}):(\d{2})(?::(\d{2}))?\]/u);
   if (!m) return null;
   if (typeof m[3] === "string") {
     return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
@@ -140,23 +140,19 @@ export function extractTranscriptFromHtml(
       continue;
     }
 
-    // 去除角色说话前缀时间码，如 "Roi: [00:00:00] "
     const ts = parseTimestampToken(para);
     if (ts !== null) {
       hasTimestamp = true;
       maxTimestampSec = Math.max(maxTimestampSec, ts);
     }
 
-    if (para.length >= 18) {
+    if (hasTimestamp && para.length >= 18) {
       keptParagraphs.push(para);
     }
   }
 
   const joined = keptParagraphs.join(" ").trim();
-  if (!hasTimestamp && joined.length < 450) {
-    // 只有一两行节目简介，不算完整文稿
-    return null;
-  }
+  if (!hasTimestamp) return null;
 
   const sentences = splitSentences(joined);
   if (sentences.length < 2) return null;
@@ -176,7 +172,7 @@ export function extractTranscriptFromHtml(
 }
 
 /**
- * 从长文本（如 Lectura 外刊全文、文章导入正文或已抓取的播客文稿）按时间比例切出指定窗口的字幕并批量配中文译文。
+ * 从取到的播客文稿按时间比例切出指定窗口，并批量生成中文译文。
  */
 export async function sliceTranscriptWindow(input: {
   sentences: string[];
@@ -231,22 +227,4 @@ export async function sliceTranscriptWindow(input: {
     text: cue.text,
     zh: translations[idx] ?? ""
   }));
-}
-
-export function extractTranscriptFromSourceText(
-  sourceText: string,
-  totalDurationSec: number
-): ExtractedTranscript | null {
-  const trimmed = sourceText.trim();
-  if (trimmed.length < 450) return null;
-  if (PAYWALL_PATTERNS.some((re) => re.test(trimmed))) return null;
-
-  const sentences = splitSentences(trimmed);
-  if (sentences.length < 3) return null;
-
-  return {
-    sentences,
-    coveredUntilSec: totalDurationSec > 0 ? totalDurationSec : Math.max(180, Math.round(trimmed.length / 13)),
-    partialPaywalled: false
-  };
 }

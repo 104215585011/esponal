@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 11:08
+// Timestamp: 2026-11-18 17:30
 export type LecturaLevel = "A1" | "A2" | "B1";
 export type LecturaContentKind = "story" | "blog" | "news";
 export type LecturaAudioType = "native" | "tts";
@@ -40,6 +40,17 @@ const INCOMPLETE_PATTERNS = [
 const BOILERPLATE_PARA_RE =
   /^(utilizamos cookies|pol[ií]tica de privacidad|copyright|todos los derechos|men[uú] de navegaci[oó]n|compartir en redes)/i;
 
+export function isMediaPromoPage(paragraphs: string[]): boolean {
+  const body = paragraphs.join(" ");
+  const isVideoPromo =
+    /our spanish learning videos/i.test(body) &&
+    /get the full real fluency collection course/i.test(body);
+  const isPodcastPromo =
+    /podcast:\s*play in new window/i.test(body) &&
+    /echa un vistazo a nuestros cursos online/i.test(body);
+  return isVideoPromo || isPodcastPromo;
+}
+
 export function assessArticleBody(
   rawParagraphs: string[],
   maxParagraphs = 120
@@ -55,7 +66,7 @@ export function assessArticleBody(
     .filter((p) => p.length >= 25 && !BOILERPLATE_PARA_RE.test(p));
 
   const wordCount = cleaned.join(" ").split(/\s+/).filter(Boolean).length;
-  if (cleaned.length < 4 || wordCount < 85) {
+  if (cleaned.length < 4 || wordCount < 85 || isMediaPromoPage(cleaned)) {
     return {
       paragraphs: cleaned,
       wordCount,
