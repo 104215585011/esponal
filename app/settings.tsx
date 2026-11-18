@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:58
+// Timestamp: 2026-11-18 14:01
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -54,12 +54,6 @@ const SAMPLE_BY_LANG: Record<LearningLanguage, { speed: string; preview: string 
   }
 };
 
-/**
- * 设置。
- *
- * 只放"设备本地"的偏好 —— 发音口音/语速、自动朗读、缓存清理、关于。
- * 账号相关的(邮箱、改密码、退出)留在「我的」页,两处不重复。
- */
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
@@ -202,6 +196,8 @@ export default function SettingsScreen() {
             })}
           </View>
         </View>
+
+        {user && <AdminSettings key={user.id} userId={user.id} />}
 
         <Text style={styles.sectionTitle}>发音与语速（{activeLangMeta.shortLabel}）</Text>
         <View style={styles.card}>
@@ -355,8 +351,6 @@ export default function SettingsScreen() {
             <Text style={[styles.rowLabel, styles.danger]}>清除下载的讲义</Text>
           </Pressable>
         </View>
-
-        {user && <AdminSettings key={user.id} userId={user.id} />}
 
         <Text style={styles.sectionTitle}>关于</Text>
         <View style={styles.card}>

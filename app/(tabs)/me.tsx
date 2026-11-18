@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 07:05
+// Timestamp: 2026-11-18 14:01
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -138,7 +138,7 @@ export default function MeScreen() {
           >
             <View style={styles.rowLeft}>
               <AppIcon color={colors.textSecondary} name="settings" size={16} />
-              <Text style={styles.metaLabel}>发音与缓存设置</Text>
+              <Text style={styles.metaLabel}>通用设置</Text>
             </View>
             <AppIcon color={colors.textTertiary} name="chevron" size={14} />
           </Pressable>
