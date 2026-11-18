@@ -14,6 +14,7 @@ export type YouTubeVideoPayload = {
   level?: VideoLevel | null;
   levelSource?: "curated" | "inferred";
   topic?: string | null;
+  isViewed?: boolean;
 };
 
 export function formatVideoDurationBadge(duration: string) {

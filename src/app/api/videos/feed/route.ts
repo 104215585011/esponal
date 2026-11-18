@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 16:18
+// Timestamp: 2026-11-18 10:15
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
 import { getUnifiedVideoFeed } from "@/lib/video-feed";
@@ -8,14 +8,13 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/videos/feed
  *
- * Android 与 Web 共用的跨频道混排视频池 API：
- * - 频道仅作内容来源，难度标记在单条视频上；
- * - 默认按语种跨频道混排推荐；
- * - 支持 `?level=A1|A2|B1`、?channelId=...（单独追某频道）、?seed=<num>（会话内稳定/主动刷新换批）；
- * - 某个级别内容不足时，如实返回少量结果并附带 nearbyLevel + nearbyVideos（「相近难度」推荐）。
+ * Android 与 Web 共用的跨来源混排视频池 API：
+ * - 优先从共享视频库 VideoCatalog 读取已完成字幕检查（subtitleStatus = ready）的条目；
+ * - 登录用户优先展示近期未看过的视频，再排已观看历史；
+ * - 控制单个频道在首页推荐中的占比，支持 ?level=A1|A2|B1、?channelId=...、?seed=...。
  */
 export async function GET(request: Request) {
-  await getOptionalUserId(request);
+  const userId = await getOptionalUserId(request);
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang") ?? searchParams.get("language");
   const level = searchParams.get("level");
@@ -28,7 +27,8 @@ export async function GET(request: Request) {
       language: lang,
       level,
       channelId,
-      seed
+      seed,
+      userId
     });
     return NextResponse.json(payload);
   } catch (error) {

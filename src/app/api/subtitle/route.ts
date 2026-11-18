@@ -1,3 +1,4 @@
+// Timestamp: 2026-11-18 10:02
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
@@ -7,6 +8,8 @@ import { getLocalWhisperSubtitles } from "@/lib/localWhisper";
 import { reportSubtitleFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 import { fetchYouTubeJson, getCachedJson } from "@/lib/youtube";
+import { fetchYouTubeInnerTubeSubtitles } from "@/lib/youtube-subtitles";
+import { recordCatalogSubtitleVerification } from "@/lib/video-catalog";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -41,6 +44,7 @@ type SubtitleSource =
   | "supadata"
   | "apify"
   | "whisper"
+  | "youtube"
   | "cache"
   | "none";
 
@@ -457,6 +461,12 @@ async function fetchSubtitlesWithFallback(
     }
   }
 
+  const youtubeCues = await fetchYouTubeInnerTubeSubtitles(videoId, lang);
+
+  if (!shouldUseWhisperFallback(youtubeCues, false)) {
+    return { cues: youtubeCues, source: "youtube" };
+  }
+
   try {
     const whisperCues = await getLocalWhisperSubtitles(videoId, lang);
 
@@ -472,6 +482,10 @@ async function fetchSubtitlesWithFallback(
     }
   } catch (error) {
     console.warn("[subtitle] Whisper fallback failed:", error);
+  }
+
+  if (youtubeCues.length > 0) {
+    return { cues: youtubeCues, source: "youtube" };
   }
 
   if (apifyCues.length > 0) {
@@ -546,6 +560,13 @@ export async function GET(request: Request) {
     }
 
     const { cues, source } = await fetchSubtitlesWithFallback(videoId, lang, forceWhisper);
+
+    void recordCatalogSubtitleVerification({
+      videoId,
+      language: lang,
+      cues,
+      source
+    });
 
     if (cues.length > 0) {
       try {

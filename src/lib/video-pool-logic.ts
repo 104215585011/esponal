@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 22:56
+// Timestamp: 2026-11-18 10:12
 import type { SupportedVideoLanguage, VideoLevel, YouTubeVideoPayload } from "./youtube-shared";
 
 export type PoolLanguage = SupportedVideoLanguage;
@@ -17,6 +17,20 @@ export type TaggedVideoItem = YouTubeVideoPayload & {
   level: VideoLevel | null;
   levelSource?: "curated" | "inferred";
   topic: string;
+  sourceType?: "channel" | "playlist" | "curated";
+  sourceLabel?: string | null;
+  subtitleStatus?: "ready";
+  subtitleSource?: string | null;
+  subtitleCueCount?: number | null;
+  isViewed?: boolean;
+};
+
+export type CatalogRawVideoInput = YouTubeVideoPayload & {
+  sourceType?: "channel" | "playlist" | "curated";
+  sourceLabel?: string | null;
+  subtitleStatus?: "ready";
+  subtitleSource?: string | null;
+  subtitleCueCount?: number | null;
 };
 
 export type VideoFeedResponsePayload = {
@@ -373,20 +387,16 @@ export function inferSingleVideoLevel(
     return { level: "A2", levelSource: "inferred" };
   }
 
-  // 西语频道（Dreaming Spanish / Spanish Okay / Easy Spanish）按片长与标题信号给单条视频打级
+  // 西语频道若仅有频道信息但缺乏单条标题或字幕依据，先不硬标难度（level = null）
   if (channelId === "UCouyFdE9-Lrjo3M_2idKq1A") {
     if (durSec >= 1200 || /podcast/i.test(title)) return { level: "B1", levelSource: "inferred" };
-    if (durSec >= 300) return { level: "A2", levelSource: "inferred" };
-    return { level: "A1", levelSource: "inferred" };
-  }
-  if (channelId === "UCW1FQuVy10_biDAxAj1iTEQ") {
-    return { level: durSec > 0 && durSec <= 60 ? "A1" : "A2", levelSource: "inferred" };
+    return { level: null };
   }
   if (channelId === "UCAL4AMMMXKxHDu3FqZV6CbQ") {
-    if (durSec > 0 && durSec <= 480 && /guide|beginner|phrase/i.test(title)) {
+    if (durSec > 0 && durSec <= 480 && /guide|beginner|phrase|slow/i.test(title)) {
       return { level: "A1", levelSource: "inferred" };
     }
-    return { level: durSec >= 480 ? "B1" : "A2", levelSource: "inferred" };
+    return { level: null };
   }
 
   return { level: null };
@@ -451,39 +461,81 @@ export function defaultSessionSeed(nowMs = Date.now()): number {
   return Math.floor(nowMs / (1000 * 60 * 60));
 }
 
+/**
+ * 控制首页前段推荐批（默认前 24 条）中单一频道的最大占比，防止某一高产频道刷屏。
+ */
+export function enforceChannelWindowCap(
+  items: TaggedVideoItem[],
+  windowSize = 24,
+  maxShareRatio = 0.3
+): TaggedVideoItem[] {
+  if (items.length <= 4) return items;
+  const distinctChannels = new Set(items.map((item) => item.channelId)).size;
+  if (distinctChannels < 3) return items;
+
+  const capPerChannel = Math.max(4, Math.ceil(windowSize * maxShareRatio));
+  const top: TaggedVideoItem[] = [];
+  const deferred: TaggedVideoItem[] = [];
+  const counts = new Map<string, number>();
+
+  for (const item of items) {
+    if (top.length >= windowSize) {
+      deferred.push(item);
+      continue;
+    }
+    const used = counts.get(item.channelId) ?? 0;
+    if (used < capPerChannel) {
+      top.push(item);
+      counts.set(item.channelId, used + 1);
+    } else {
+      deferred.push(item);
+    }
+  }
+
+  return [...top, ...deferred];
+}
+
 export function buildVideoFeedPayload(input: {
   language: PoolLanguage;
   channels: ChannelSourceInfo[];
-  rawByChannel: Array<{ channelId: string; videos: YouTubeVideoPayload[] }>;
+  rawByChannel: Array<{ channelId: string; videos: CatalogRawVideoInput[] }>;
   level?: string | null;
   channelId?: string | null;
   seed?: number | null;
+  viewedVideoIds?: Set<string> | string[];
+  skipCuratedFallback?: boolean;
 }): VideoFeedResponsePayload {
   const { language, channels } = input;
   const seed =
     typeof input.seed === "number" && Number.isFinite(input.seed)
       ? Math.max(0, Math.floor(input.seed))
       : defaultSessionSeed();
+  const viewedSet =
+    input.viewedVideoIds instanceof Set
+      ? input.viewedVideoIds
+      : new Set(input.viewedVideoIds ?? []);
 
   const channelMap = new Map(channels.map((ch) => [ch.id, ch]));
   const taggedByChannel = channels.map((ch) => {
     const rawList = input.rawByChannel.find((r) => r.channelId === ch.id)?.videos ?? [];
     const seenIds = new Set<string>();
-    const mergedRaw = [...rawList];
+    const mergedRaw: CatalogRawVideoInput[] = [...rawList];
 
-    // 补充各语种手选带字幕示范视频（若未包含在最新拉取中）
-    for (const [vid, meta] of Object.entries(CURATED_VIDEO_META)) {
-      if (meta.language === language && meta.channelId === ch.id && meta.title) {
-        if (!mergedRaw.some((v) => v.id === vid)) {
-          mergedRaw.push({
-            id: vid,
-            title: meta.title,
-            thumbnail: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
-            duration: meta.duration ?? "",
-            channelId: ch.id,
-            channelTitle: meta.channelTitle ?? ch.title,
-            publishedAt: meta.publishedAt ?? ""
-          });
+    // 补充各语种手选带字幕示范视频（若未包含在最新拉取中；开启共享库精准池时可跳过以免混入未核验条目）
+    if (!input.skipCuratedFallback) {
+      for (const [vid, meta] of Object.entries(CURATED_VIDEO_META)) {
+        if (meta.language === language && meta.channelId === ch.id && meta.title) {
+          if (!mergedRaw.some((v) => v.id === vid)) {
+            mergedRaw.push({
+              id: vid,
+              title: meta.title,
+              thumbnail: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
+              duration: meta.duration ?? "",
+              channelId: ch.id,
+              channelTitle: meta.channelTitle ?? ch.title,
+              publishedAt: meta.publishedAt ?? ""
+            });
+          }
         }
       }
     }
@@ -493,16 +545,20 @@ export function buildVideoFeedPayload(input: {
       if (!raw.id || seenIds.has(raw.id)) continue;
       seenIds.add(raw.id);
       const curatedMeta = CURATED_VIDEO_META[raw.id];
-      const inferred = inferSingleVideoLevel(raw, ch.id, language);
-      const topic = curatedMeta?.topic ?? inferTopic(raw.title, ch.tag);
+      const hasExplicitCatalogLevel = Object.prototype.hasOwnProperty.call(raw, "level");
+      const resolvedLevel = hasExplicitCatalogLevel
+        ? { level: raw.level ?? null, levelSource: raw.levelSource }
+        : inferSingleVideoLevel(raw, ch.id, language);
+      const topic = raw.topic ?? curatedMeta?.topic ?? inferTopic(raw.title, ch.tag);
       tagged.push({
         ...raw,
         channelId: ch.id,
         channelTitle: raw.channelTitle || ch.title,
         language,
-        level: inferred.level,
-        levelSource: inferred.levelSource,
-        topic
+        level: resolvedLevel.level,
+        levelSource: resolvedLevel.levelSource,
+        topic,
+        isViewed: viewedSet.has(raw.id)
       });
     }
 
@@ -512,9 +568,31 @@ export function buildVideoFeedPayload(input: {
   const normalizedChannelId =
     input.channelId && channelMap.has(input.channelId) ? input.channelId : null;
 
+  const mixWithUnseenPriority = (
+    groups: Array<{ channel: ChannelSourceInfo; videos: TaggedVideoItem[] }>
+  ) => {
+    const unseenGroups = groups.map((g) => ({
+      channel: g.channel,
+      videos: g.videos.filter((v) => !v.isViewed)
+    }));
+    const seenGroups = groups.map((g) => ({
+      channel: g.channel,
+      videos: g.videos.filter((v) => Boolean(v.isViewed))
+    }));
+    const mixedUnseen = enforceChannelWindowCap(mixVideosCrossChannel(unseenGroups, seed));
+    const mixedSeen = enforceChannelWindowCap(mixVideosCrossChannel(seenGroups, seed));
+    return [...mixedUnseen, ...mixedSeen];
+  };
+
   const poolAll = normalizedChannelId
-    ? taggedByChannel.find((entry) => entry.channel.id === normalizedChannelId)?.videos ?? []
-    : mixVideosCrossChannel(taggedByChannel, seed);
+    ? (() => {
+        const list =
+          taggedByChannel.find((entry) => entry.channel.id === normalizedChannelId)?.videos ?? [];
+        const unseen = list.filter((v) => !v.isViewed);
+        const seen = list.filter((v) => Boolean(v.isViewed));
+        return [...unseen, ...seen];
+      })()
+    : mixWithUnseenPriority(taggedByChannel);
 
   const countsByLevel: Record<VideoLevel, number> = { A1: 0, A2: 0, B1: 0 };
   for (const item of poolAll) {

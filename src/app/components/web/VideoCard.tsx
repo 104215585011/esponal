@@ -100,6 +100,11 @@ export function VideoCard({ video, compact = false, fullWidth = false }: VideoCa
             </span>
           </>
         ) : null}
+        {video.isViewed ? (
+          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500">
+            已看过
+          </span>
+        ) : null}
       </div>
     </Link>
   );

@@ -360,3 +360,43 @@ model ChatMessage {
 
   @@index([sessionId, createdAt])
 }
+
+enum VideoSubtitleStatus {
+  pending
+  ready
+  missing
+  failed
+}
+
+model VideoCatalog {
+  id                String              @id @default(cuid())
+  videoId           String              @unique
+  language          String              @default("es")
+  sourceType        String              @default("playlist")
+  sourceId          String
+  sourceLabel       String?
+  channelId         String
+  channelTitle      String
+  title             String
+  thumbnail         String
+  duration          String              @default("")
+  durationSec       Int?
+  publishedAt       String              @default("")
+  topic             String?
+  level             String?
+  levelSource       String?
+  subtitleStatus    VideoSubtitleStatus @default(pending)
+  subtitleSource    String?
+  subtitleCueCount  Int?
+  subtitleSampleEs  String?
+  subtitleCheckedAt DateTime?
+  embeddable        Boolean             @default(true)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([language, subtitleStatus, isActive])
+  @@index([language, level])
+  @@index([language, channelId])
+  @@map("video_catalog")
+}

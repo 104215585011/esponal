@@ -26,6 +26,7 @@ type SessionSnapshot = {
   level: string;
   channelId: string | null;
   viewMode: ViewMode;
+  scrollY?: number;
 };
 
 const TOPICS_BY_LANG: Record<PoolLanguage, Array<{ label: string; query: string }>> = {
@@ -74,6 +75,7 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
 
   const reqSeqRef = useRef(0);
   const restoredRef = useRef(false);
+  const pendingScrollYRef = useRef<number | null>(null);
 
   const loadFeed = useCallback(
     async (opts: {
@@ -81,6 +83,7 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
       nextLevel: string;
       nextChannelId: string | null;
       nextSeed: number;
+      restoreScrollY?: number | null;
     }) => {
       const seq = ++reqSeqRef.current;
       setLoading(true);
@@ -102,6 +105,10 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
         const data = (await res.json()) as VideoFeedResponsePayload;
         if (seq !== reqSeqRef.current) return;
         setFeed(data);
+        if (typeof opts.restoreScrollY === "number" && opts.restoreScrollY > 0) {
+          const y = opts.restoreScrollY;
+          requestAnimationFrame(() => window.scrollTo({ top: y, behavior: "auto" }));
+        }
       } finally {
         if (seq === reqSeqRef.current) {
           setLoading(false);
@@ -111,7 +118,7 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
     []
   );
 
-  // 同一次浏览会话里，点进视频再返回时恢复上一次列表、难度筛选与批号
+  // 同一次浏览会话里，点进视频再返回时恢复上一次列表、难度筛选、批号与滚动位置
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
@@ -119,6 +126,7 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
       const raw = window.sessionStorage.getItem(SESSION_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw) as Partial<SessionSnapshot>;
+      const savedY = typeof saved.scrollY === "number" && saved.scrollY > 0 ? saved.scrollY : null;
       if (
         saved.language &&
         saved.seed !== undefined &&
@@ -146,10 +154,15 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
           nextLang,
           nextLevel,
           nextChannelId: nextChannel,
-          nextSeed
+          nextSeed,
+          restoreScrollY: savedY
         });
-      } else if (saved.viewMode) {
-        setViewMode(saved.viewMode);
+      } else {
+        if (saved.viewMode) setViewMode(saved.viewMode);
+        if (savedY) {
+          pendingScrollYRef.current = savedY;
+          requestAnimationFrame(() => window.scrollTo({ top: savedY, behavior: "auto" }));
+        }
       }
     } catch {
       // ignore sessionStorage failure
@@ -157,18 +170,36 @@ export function WatchHomeDiscovery({ initialFeed }: WatchHomeDiscoveryProps) {
   }, [initialFeed, loadFeed]);
 
   useEffect(() => {
-    try {
-      const snap: SessionSnapshot = {
-        language,
-        seed,
-        level: selectedLevel,
-        channelId: selectedChannelId,
-        viewMode
-      };
-      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(snap));
-    } catch {
-      // ignore
-    }
+    const saveSnapshot = (scrollYOverride?: number) => {
+      try {
+        const snap: SessionSnapshot = {
+          language,
+          seed,
+          level: selectedLevel,
+          channelId: selectedChannelId,
+          viewMode,
+          scrollY: scrollYOverride ?? (typeof window !== "undefined" ? window.scrollY : 0)
+        };
+        window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(snap));
+      } catch {
+        // ignore
+      }
+    };
+
+    saveSnapshot(pendingScrollYRef.current ?? undefined);
+    pendingScrollYRef.current = null;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onScroll = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => saveSnapshot(), 150);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      if (timer) clearTimeout(timer);
+      saveSnapshot();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [language, seed, selectedLevel, selectedChannelId, viewMode]);
 
   const handleSelectLanguage = (nextLang: PoolLanguage) => {
