@@ -1,4 +1,6 @@
-// Timestamp: 2026-11-17 16:15
+// Timestamp: 2026-11-18 10:58
+import { getOptionalUserId } from "@/lib/api-auth";
+import { withApiUsage } from "@/lib/api-usage";
 import { NextResponse } from "next/server";
 import {
   channelLimiter,
@@ -11,6 +13,11 @@ import { fetchChannelVideosCached } from "@/lib/youtube-channel";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const userId = await getOptionalUserId(request);
+  return withApiUsage(userId, () => handleRequest(request));
+}
+
+async function handleRequest(request: Request) {
   try {
     const rateLimit = await checkRateLimit(channelLimiter, request, null);
 

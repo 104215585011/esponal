@@ -30,6 +30,7 @@ model User {
   chatSessions       ChatSession[]
   creditTransactions CreditTransaction[]
   importedDocuments  ImportedDocument[]
+  featurePolicies    AdminFeaturePolicy[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -88,6 +89,64 @@ enum CreditReason {
   grant
   refill
   spend
+  adjustment
+}
+
+model AdminFeaturePolicy {
+  userId    String
+  feature   String
+  enabled   Boolean @default(true)
+  dailyLimit Int?
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, feature])
+}
+
+model AdminFeatureCounter {
+  userId  String
+  feature String
+  day     String
+  used    Int @default(0)
+
+  @@id([userId, feature, day])
+}
+
+model AdminAction {
+  id        String @id @default(cuid())
+  actorId   String
+  target    String
+  action    String
+  reason    String
+  before    Json
+  after     Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model ApiUsageEvent {
+  id        String @id @default(cuid())
+  userId    String?
+  provider  String
+  feature   String
+  origin    String
+  outcome   String
+  unit      String?
+  units     Int?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+model ApiQuota {
+  provider    String @id
+  unit        String
+  allowance   Int
+  baseline    Int
+  usdPerThousand Float?
+  resetAt     DateTime
+  updatedAt   DateTime @updatedAt
 }
 
 model CreditTransaction {

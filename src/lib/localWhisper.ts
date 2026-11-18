@@ -1,3 +1,5 @@
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 import { spawn } from "node:child_process";
 import { mkdir, readdir, stat } from "node:fs/promises";
 import path from "node:path";
@@ -200,7 +202,7 @@ async function fetchRemoteWhisperSubtitles(
     headers.Authorization = `Bearer ${config.apiToken}`;
   }
 
-  const response = await fetch(`${config.apiUrl}/transcribe`, {
+  const response = await meteredFetch({ provider: "whisper", feature: "video_transcription", unit: "calls", units: 1 }, `${config.apiUrl}/transcribe`, {
     method: "POST",
     headers,
     body: JSON.stringify({ videoId, lang }),

@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-17 15:12
+// Timestamp: 2026-11-18 10:58
+import { withApiUsage } from "@/lib/api-usage";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -42,8 +43,13 @@ async function safeCacheSet(cacheKey: string, translation: string) {
 }
 
 export async function POST(request: Request) {
-  // PLATFORM-001: 翻译登录非必需(匿名也能翻,只是限流 key 不同)
   const userId = await getOptionalUserId(request);
+  return withApiUsage(userId, () => handleRequest(request, userId));
+}
+
+async function handleRequest(request: Request, userId: string | null) {
+  // PLATFORM-001: 翻译登录非必需(匿名也能翻,只是限流 key 不同)
+
   const rateLimit = await checkRateLimit(translateLimiter, request, userId);
 
   if (!rateLimit.allowed) {

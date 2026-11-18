@@ -1,3 +1,5 @@
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 type WhisperSegment = {
   start?: number;
   end?: number;
@@ -48,7 +50,7 @@ export async function transcribeViaWhisperTunnel(input: WhisperInput): Promise<W
   const timer = setTimeout(() => controller.abort(), 20_000);
 
   try {
-    const response = await fetch(url, {
+    const response = await meteredFetch({ provider: "whisper", feature: "voice_recognition", unit: "calls", units: 1 }, url, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

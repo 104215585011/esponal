@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-04 17:23
+// Timestamp: 2026-11-18 10:58
 import { prisma } from "../prisma.ts";
 import { deduct, grantSignup } from "./account.ts";
 import { SIGNUP_GRANT_MINOR } from "./config.ts";
@@ -28,13 +28,15 @@ export async function ensureSignupGrant(userId: string): Promise<void> {
       balanceMinor: user.creditBalanceMinor,
     });
 
-    await tx.user.update({
-      where: { id: userId },
+    const updated = await tx.user.updateMany({
+      where: { id: userId, signupGranted: false },
       data: {
         signupGranted: true,
-        creditBalanceMinor: next.balanceMinor,
+        creditBalanceMinor: { increment: next.balanceMinor - user.creditBalanceMinor },
       },
     });
+    if (!updated.count) return;
+    const saved = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { creditBalanceMinor: true } });
 
     await tx.creditTransaction.create({
       data: {
@@ -42,7 +44,7 @@ export async function ensureSignupGrant(userId: string): Promise<void> {
         deltaMinor: SIGNUP_GRANT_MINOR,
         reason: "grant",
         refType: "signup",
-        balanceAfterMinor: next.balanceMinor,
+        balanceAfterMinor: saved.creditBalanceMinor,
       },
     });
   });
@@ -69,10 +71,13 @@ export async function spendCredits(
       return { ok: false, balanceMinor: result.balanceMinor };
     }
 
-    await tx.user.update({
-      where: { id: userId },
-      data: { creditBalanceMinor: result.balanceMinor },
+    const updated = await tx.user.updateMany({
+      where: { id: userId, creditBalanceMinor: { gte: costMinor } },
+      data: { creditBalanceMinor: { decrement: costMinor } },
     });
+    const saved = await tx.user.findUnique({ where: { id: userId }, select: { creditBalanceMinor: true } });
+    const balanceMinor = saved?.creditBalanceMinor ?? 0;
+    if (!updated.count) return { ok: false, balanceMinor };
 
     await tx.creditTransaction.create({
       data: {
@@ -81,10 +86,10 @@ export async function spendCredits(
         reason: "spend",
         refType,
         refId,
-        balanceAfterMinor: result.balanceMinor,
+        balanceAfterMinor: balanceMinor,
       },
     });
 
-    return { ok: true, balanceMinor: result.balanceMinor };
+    return { ok: true, balanceMinor };
   });
 }

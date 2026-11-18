@@ -1,4 +1,6 @@
-// Timestamp: 2026-11-18 10:32
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch, recordApiUsage, withApiUsage } from "@/lib/api-usage";
+import { checkAdminFeature } from "@/lib/admin-policy";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
@@ -231,7 +233,7 @@ async function fetchSupadataSubtitles(
   url.searchParams.set("lang", requestedLang);
 
   try {
-    const response = await fetch(url, {
+    const response = await meteredFetch({ provider: "supadata", feature: "video_subtitles", unit: "credits", units: 1 }, url, {
       headers: {
         "x-api-key": apiKey,
         Accept: "application/json"
@@ -276,7 +278,7 @@ async function callApify(
   }
 
   const url = `${APIFY_ACTOR_URL}?token=${token}&timeout=55&memory=256`;
-  const response = await fetch(url, {
+  const response = await meteredFetch({ provider: "apify", feature: "video_subtitles", unit: "calls", units: 1 }, url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -518,6 +520,7 @@ export async function GET(request: Request) {
     const cached = await redis.get(cacheKey);
 
     if (cached) {
+      await recordApiUsage({ provider: "cache", feature: "video_subtitles" }, "hit");
       const parsed = JSON.parse(cached) as CachedSubtitlePayload | SubtitleCue[];
       const isEnvelope = !Array.isArray(parsed) && Array.isArray(parsed.cues);
       const cues = isEnvelope ? (parsed as CachedSubtitlePayload).cues : (parsed as SubtitleCue[]);
@@ -557,7 +560,9 @@ export async function GET(request: Request) {
       }
     }
 
-    const { cues, source } = await fetchSubtitlesWithFallback(videoId, lang, forceWhisper);
+    const denied = await checkAdminFeature(userId, "subtitle");
+    if (denied) return denied;
+    const { cues, source } = await withApiUsage(userId, () => fetchSubtitlesWithFallback(videoId, lang, forceWhisper));
 
     void recordCatalogSubtitleVerification({
       videoId,

@@ -1,3 +1,5 @@
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 import { createHash } from "node:crypto";
 import { redis } from "@/lib/redis";
 
@@ -219,7 +221,8 @@ export async function fetchYouTubeJson<T>(
     ...params,
     key: apiKey
   });
-  const response = await fetch(
+  const response = await meteredFetch(
+    { provider: resource === "search" ? "youtube_search" : "youtube", feature: resource, unit: resource === "search" ? "search_calls" : "units", units: 1 },
     `${YOUTUBE_API_BASE_URL}/${resource}?${searchParams.toString()}`,
     {
       next: { revalidate: 0 }

@@ -1,3 +1,5 @@
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 import { NextResponse } from "next/server";
 import {
   buildFallbackDissectionAnalysis,
@@ -76,7 +78,7 @@ async function analyzeWithDeepseek(sentence: string) {
     return null;
   }
 
-  const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+  const response = await meteredFetch({ provider: "deepseek", feature: "sentence_analysis", unit: "tokens" }, `${baseUrl}/v1/chat/completions`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${apiKey}`,
@@ -123,7 +125,7 @@ async function analyzeWithDeepseek(sentence: string) {
         }
       ]
     })
-  });
+  }, true);
 
   if (!response.ok) {
     throw new Error(`DeepSeek analyze failed: ${response.status}`);

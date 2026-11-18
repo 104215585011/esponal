@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 14:18
+// Timestamp: 2026-11-18 10:58
 import { prisma } from "@/lib/prisma";
 import { toDisplay } from "./config";
 
@@ -6,7 +6,7 @@ export type CreditTransactionItem = {
   id: string;
   deltaMinor: number;
   deltaDisplay: number;
-  reason: "grant" | "refill" | "spend";
+  reason: "grant" | "refill" | "spend" | "adjustment";
   refType: string | null;
   refId: string | null;
   balanceAfterMinor: number;

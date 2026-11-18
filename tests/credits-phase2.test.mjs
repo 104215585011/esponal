@@ -81,7 +81,9 @@ test("CREDITS Phase 2 TTS route only charges uncached synthesis and leaves cache
   assert.match(source, /getServerSession/);
   assert.match(source, /requireCredits/);
   assert.match(source, /ACTION_COST_MINOR\.tts/);
-  assert.match(source, /if\s*\(typeof cached === "string"\)\s*\{\s*return audioResponse/s);
+  const cacheHit = source.match(/if\s*\(typeof cached === "string"\)\s*\{([\s\S]*?)return audioResponse/);
+  assert.ok(cacheHit);
+  assert.doesNotMatch(cacheHit[1], /requireCredits|spendCredits/);
   assert.match(source, /spendCredits/);
   assert.match(source, /void redis\.set/);
 });

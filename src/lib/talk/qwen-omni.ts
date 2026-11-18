@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-16 09:52
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 import type { ChatMessageForModel } from "./model-client";
 import { isConfiguredSecret } from "./env";
 import {
@@ -34,7 +35,7 @@ async function callQwenOmniStream(input: {
   maxTokens?: number;
   timeoutMs?: number;
 }): Promise<{ text: string; wavAudioBuffer: Buffer | null }> {
-  const response = await fetch(DASHSCOPE_COMPAT_URL, {
+  const response = await meteredFetch({ provider: "dashscope", feature: "talk", unit: "tokens" }, DASHSCOPE_COMPAT_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${input.apiKey}`,
@@ -51,7 +52,7 @@ async function callQwenOmniStream(input: {
       messages: input.messages
     }),
     signal: AbortSignal.timeout(input.timeoutMs ?? 28_000)
-  });
+  }, true);
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "");

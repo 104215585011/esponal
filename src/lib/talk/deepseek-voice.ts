@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-15 08:05
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 import { getDeepseekConfig, isConfiguredSecret } from "./env";
 
 export type DeepSeekAsrResult =
@@ -38,7 +39,7 @@ export async function transcribeAudioWithDeepSeek(input: {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/v1/tools/asr`, {
+    const response = await meteredFetch({ provider: "deepseek", feature: "voice_recognition", unit: "calls", units: 1 }, `${baseUrl}/v1/tools/asr`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`
@@ -95,7 +96,7 @@ export async function synthesizeAudioWithDeepSeek(
   const voiceId = MALE_VOICE_CHARACTERS.has(characterId) ? "tide" : "stella";
 
   try {
-    const response = await fetch(`${baseUrl}/v1/tools/tts`, {
+    const response = await meteredFetch({ provider: "deepseek", feature: "voice_synthesis", unit: "calls", units: 1 }, `${baseUrl}/v1/tools/tts`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,

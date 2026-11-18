@@ -1,4 +1,5 @@
-// Timestamp: 2026-06-08 21:42
+// Timestamp: 2026-11-18 10:58
+import { checkAdminFeature } from "@/lib/admin-policy";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -51,6 +52,9 @@ export async function POST(request: Request) {
   if (sizeBytes > MAX_FILE_BYTES) {
     return NextResponse.json({ error: "file_too_large" }, { status: 400 });
   }
+
+  const denied = await checkAdminFeature(userId, "import", false);
+  if (denied) return denied;
 
   const randomId = randomUUID().replace(/-/g, "");
   const extension = extensionForKind(kind);

@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-15 14:12
+// Timestamp: 2026-11-18 10:58
+import { checkAdminFeature } from "@/lib/admin-policy";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -145,6 +146,9 @@ export async function POST(request: Request) {
   }
 
   const language = await resolveRequestLanguage(request, rawLanguage, userId);
+
+  const denied = await checkAdminFeature(userId, "import");
+  if (denied) return denied;
 
   const document = await createImportedDocument({
     userId,

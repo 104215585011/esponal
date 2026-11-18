@@ -1,4 +1,5 @@
-// Timestamp: 2026-06-08 21:42
+// Timestamp: 2026-11-18 10:58
+import { checkAdminFeature } from "@/lib/admin-policy";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { getAuthOptions } from "@/lib/auth";
@@ -52,6 +53,9 @@ export async function POST(request: Request) {
   const unitCount = typeof body.unitCount === "number" && Number.isFinite(body.unitCount)
     ? Math.max(0, Math.floor(body.unitCount))
     : 0;
+
+  const denied = await checkAdminFeature(userId, "import");
+  if (denied) return denied;
 
   const document = await createImportedDocument({
     userId,

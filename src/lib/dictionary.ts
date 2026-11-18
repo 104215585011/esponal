@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-17 23:21
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "@/lib/api-usage";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -235,9 +236,10 @@ async function fetchAIEntry(
   const deepSeekBase = (process.env.DEEPSEEK_BASE_URL?.trim() || "https://api.deepseek.com").replace(/\/+$/, "");
   const deepSeekModel = process.env.DEEPSEEK_MODEL?.trim() || "deepseek-chat";
 
-  const providers: Array<{ url: string; apiKey: string; model: string }> = [];
+  const providers: Array<{ name: string; url: string; apiKey: string; model: string }> = [];
   if (deepSeekKey) {
     providers.push({
+      name: "deepseek",
       url: `${deepSeekBase}/v1/chat/completions`,
       apiKey: deepSeekKey,
       model: deepSeekModel
@@ -245,6 +247,7 @@ async function fetchAIEntry(
   }
   if (dashKey) {
     providers.push({
+      name: "dashscope",
       url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
       apiKey: dashKey,
       model: dashModel
@@ -300,7 +303,7 @@ async function fetchAIEntry(
   let parsed: RawAIEntry | null = null;
   for (const provider of providers) {
     try {
-      const res = await fetch(provider.url, {
+      const res = await meteredFetch({ provider: provider.name, feature: "dictionary", unit: "tokens" }, provider.url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -312,7 +315,7 @@ async function fetchAIEntry(
           temperature: 0.1
         }),
         signal: AbortSignal.timeout(12000)
-      });
+      }, true);
 
       if (!res.ok) continue;
 

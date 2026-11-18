@@ -1,6 +1,8 @@
+// Timestamp: 2026-11-18 10:58
 // 模型客户端：DeepSeek（OpenAI 兼容接口）流式调用
 // 改自 talks/src/lib/chat/model-client.ts；将 aicodee/MiniMax 端点换成 DeepSeek
 
+import { meteredFetch, recordApiUsage } from "@/lib/api-usage";
 import { getDeepseekConfig, isConfiguredSecret } from "./env";
 
 export type ChatMessageForModel = {
@@ -56,7 +58,7 @@ export async function generateSessionTitle(messages: ChatMessageForModel[]) {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    const response = await meteredFetch({ provider: "deepseek", feature: "talk_title", unit: "tokens" }, `${baseUrl}/v1/chat/completions`, {
       method: "POST",
       headers: {
         authorization: `Bearer ${apiKey}`,
@@ -81,7 +83,7 @@ export async function generateSessionTitle(messages: ChatMessageForModel[]) {
           }
         ]
       })
-    });
+    }, true);
 
     if (!response.ok) return fallback || "新会话";
 
@@ -111,7 +113,7 @@ export function createModelClient(): ModelClient {
         return;
       }
 
-      const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+      const response = await meteredFetch({ provider: "deepseek", feature: "talk", unit: "tokens" }, `${baseUrl}/v1/chat/completions`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${apiKey}`,
@@ -121,6 +123,7 @@ export function createModelClient(): ModelClient {
           model,
           max_tokens: 180,
           stream: true,
+          stream_options: { include_usage: true },
           messages: [
             {
               role: "system",
@@ -156,7 +159,12 @@ export function createModelClient(): ModelClient {
           try {
             const event = JSON.parse(data) as {
               choices?: Array<{ delta?: { content?: string } }>;
+              usage?: { total_tokens?: number };
             };
+            const total = event.usage?.total_tokens;
+            if (typeof total === "number" && Number.isSafeInteger(total) && total >= 0 && total <= 2147483647) {
+              await recordApiUsage({ provider: "deepseek", feature: "talk", unit: "tokens", units: total }, "usage");
+            }
             const text = event.choices?.[0]?.delta?.content;
             if (text) yield { type: "delta", text };
           } catch {

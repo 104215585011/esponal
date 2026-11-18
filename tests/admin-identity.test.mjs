@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:47
+// Timestamp: 2026-11-18 10:58
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -33,7 +33,7 @@ async function resolveAdmin({ userId = "owner-id", email = "easternwang123@gmail
     }
   });
   const request = new Request("https://example.com/api/admin/me?email=easternwang123@gmail.com");
-  return { user: await admin.getAdminUser(request), queries };
+  return { ...(await admin.getAdminAccess(request)), queries };
 }
 
 test("only the authenticated owner's database email grants administrator access", async () => {
@@ -52,14 +52,59 @@ test("anonymous requests cannot gain admin access by supplying the owner's email
 });
 
 test("admin identity responses are private, uncached and reject non-admins", async () => {
-  for (const user of [null, { id: "owner-id" }]) {
+  for (const [signedIn, user, status] of [[false, null, 401], [true, null, 403], [true, { id: "owner-id" }, 200]]) {
     const route = await loadModule("src/app/api/admin/me/route.ts", {
-      "@/lib/admin": { getAdminUser: async () => user },
+      "@/lib/admin": { getAdminAccess: async () => ({ signedIn, user }) },
       "next/server": { NextResponse: Response }
     });
     const response = await route.GET(new Request("https://example.com/api/admin/me"));
-    assert.equal(response.status, user ? 200 : 403);
+    assert.equal(response.status, status);
     assert.match(response.headers.get("cache-control"), /no-store/);
     if (user) assert.equal((await response.json()).isAdmin, true);
   }
+});
+
+test("ordinary users and anonymous requests cannot read or write admin data", async () => {
+  for (const signedIn of [true, false]) {
+    const route = await loadModule("src/app/api/admin/manage/route.ts", {
+      "@/lib/admin": { getAdminAccess: async () => ({ signedIn, user: null }) },
+      "@/lib/admin-data": {},
+      "@/lib/admin-input": {},
+      "@/lib/prisma": {},
+      "next/server": { NextResponse: Response }
+    });
+    const request = new Request("https://example.com/api/admin/manage?view=users");
+    assert.equal((await route.GET(request)).status, signedIn ? 403 : 401);
+    assert.equal((await route.POST(request)).status, signedIn ? 403 : 401);
+  }
+});
+
+test("a per-user daily limit admits at most the configured number of simultaneous requests", async () => {
+  const adminInput = await import("../src/lib/admin-input.ts");
+  const date = adminInput.adminDayStart(new Date("2026-11-18T16:00:00Z"));
+  assert.equal(date.toISOString(), "2026-11-18T16:00:00.000Z");
+  let used = 0;
+  const rule = { enabled: true, dailyLimit: 2 };
+  const policy = await loadModule("src/lib/admin-policy.ts", {
+    "@/lib/admin-input": adminInput,
+    "@/lib/prisma": {
+      prisma: {
+        adminFeaturePolicy: { findUnique: async () => rule },
+        adminFeatureCounter: {
+          upsert: async () => undefined,
+          updateMany: async ({ where }) => {
+            if (used >= where.used.lt) return { count: 0 };
+            used += 1;
+            return { count: 1 };
+          }
+        }
+      }
+    },
+    "next/server": { NextResponse: Response }
+  });
+  const results = await Promise.all(Array.from({ length: 5 }, () => policy.checkAdminFeature("learner", "talk")));
+  assert.equal(results.filter((result) => result === null).length, 2);
+  assert.equal(results.filter((result) => result?.status === 429).length, 3);
+  rule.enabled = false;
+  assert.equal((await policy.checkAdminFeature("learner", "talk")).status, 403);
 });

@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-15 15:10
+// Timestamp: 2026-11-18 10:58
+import { withApiUsage } from "@/lib/api-usage";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -45,6 +46,11 @@ async function translateOne(text: string, sourceLang: string): Promise<string> {
  */
 export async function POST(request: Request) {
   const userId = await getOptionalUserId(request);
+  return withApiUsage(userId, () => handleRequest(request, userId));
+}
+
+async function handleRequest(request: Request, userId: string | null) {
+
   const rateLimit = await checkRateLimit(translateLimiter, request, userId);
 
   if (!rateLimit.allowed) {

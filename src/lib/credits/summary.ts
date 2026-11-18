@@ -1,6 +1,6 @@
-// Timestamp: 2026-06-05 11:05
+// Timestamp: 2026-11-18 10:58
 import { toDisplay, type Plan } from "./config.ts";
-import { getCreditSnapshot, refreshCreditsIfDue } from "./runtime.ts";
+import { activePlan, getCreditSnapshot, refreshCreditsIfDue } from "./runtime.ts";
 import { ensureSignupGrant } from "./service.ts";
 
 export type CreditCycle = "free" | "monthly" | "yearly" | "founder";
@@ -55,11 +55,12 @@ export async function getCreditSummary(userId: string): Promise<CreditSummary> {
     };
   }
 
+  const currentPlan = activePlan(snapshot);
   return {
     plan: snapshot.plan,
-    currentPlan: snapshot.plan,
-    currentCycle: getCurrentCycle(snapshot.plan),
-    planLabel: PLAN_LABELS[snapshot.plan],
+    currentPlan,
+    currentCycle: getCurrentCycle(currentPlan),
+    planLabel: PLAN_LABELS[currentPlan],
     balanceMinor: snapshot.creditBalanceMinor,
     balanceDisplay: toDisplay(snapshot.creditBalanceMinor),
   };

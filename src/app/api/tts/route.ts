@@ -1,4 +1,6 @@
+// Timestamp: 2026-11-18 10:58
 import { createHash } from "node:crypto";
+import { recordApiUsage, withApiUsage } from "@/lib/api-usage";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
@@ -94,6 +96,7 @@ export async function GET(request: Request) {
     const cached = await redis.get(cacheKey);
 
     if (typeof cached === "string") {
+      await withApiUsage(userId, () => recordApiUsage({ provider: "cache", feature: "tts" }, "hit"));
       return audioResponse(Buffer.from(cached, "base64"));
     }
   } catch {
@@ -101,6 +104,7 @@ export async function GET(request: Request) {
   }
 
   const tts = new MsEdgeTTS();
+  let started = false;
 
   try {
     if (userId) {
@@ -114,6 +118,7 @@ export async function GET(request: Request) {
       }
     }
 
+    started = true;
     await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(text);
     const chunks: Buffer[] = [];
@@ -138,6 +143,10 @@ export async function GET(request: Request) {
       throw new Error("Generated audio is too small");
     }
 
+    await withApiUsage(userId, () => recordApiUsage({
+      provider: "edge", feature: "tts", unit: "characters", units: Array.from(text).length
+    }, "success"));
+    started = false;
     if (userId) {
       const spendResult = await spendCredits(userId, ACTION_COST_MINOR.tts, "tts", hash);
       if (!spendResult.ok) {
@@ -151,6 +160,9 @@ export async function GET(request: Request) {
     void redis.set(cacheKey, buffer.toString("base64"), "EX", CACHE_TTL).catch(() => undefined);
     return audioResponse(buffer);
   } catch (error) {
+    if (started) {
+      await withApiUsage(userId, () => recordApiUsage({ provider: "edge", feature: "tts", unit: "characters" }, "error"));
+    }
     console.error("TTS synth failed", error);
     return NextResponse.json({ error: "synth failed" }, { status: 500, headers: CORS_HEADERS });
   } finally {

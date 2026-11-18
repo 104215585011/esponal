@@ -1,5 +1,7 @@
+// Timestamp: 2026-11-18 10:58
 // Fish Audio TTS. ASR now lives in whisper-client.ts.
 
+import { meteredFetch } from "@/lib/api-usage";
 import { isConfiguredSecret } from "./env";
 
 type VoiceConfig = {
@@ -69,7 +71,7 @@ export async function synthesizeSpeech(input: SynthesizeInput): Promise<Synthesi
     return fallbackAudio();
   }
 
-  const response = await fetch("https://api.fish.audio/v1/tts", {
+  const response = await meteredFetch({ provider: "fish", feature: "voice_synthesis", unit: "characters", units: Array.from(input.text).length }, "https://api.fish.audio/v1/tts", {
     method: "POST",
     headers: {
       authorization: `Bearer ${apiKey}`,

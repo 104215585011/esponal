@@ -1,3 +1,6 @@
+// Timestamp: 2026-11-18 10:58
+import { checkAdminFeature } from "@/lib/admin-policy";
+import { withApiUsage } from "@/lib/api-usage";
 import { NextResponse } from "next/server";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
 import { requireCredits } from "@/lib/credits/runtime";
@@ -34,6 +37,11 @@ function encodeSse(event: string, data: unknown) {
 
 export async function POST(request: Request) {
   const userId = await getAuthedUserId(request);
+  return withApiUsage(userId, () => handleRequest(request, userId));
+}
+
+async function handleRequest(request: Request, userId: string | null) {
+
   if (!userId) return jsonError(401, "UNAUTHORIZED", "登录后再来聊");
 
   let body: Body;
@@ -66,6 +74,9 @@ export async function POST(request: Request) {
       return jsonError(404, "SESSION_NOT_FOUND", "找不到该对话或无权访问");
     }
   }
+
+  const denied = await checkAdminFeature(userId, "talk");
+  if (denied) return denied;
 
   const creditGuard = await requireCredits(userId, ACTION_COST_MINOR.talk_turn);
   if (!creditGuard.ok) {

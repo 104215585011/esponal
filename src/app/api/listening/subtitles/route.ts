@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-17 15:08
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch, withApiUsage } from "@/lib/api-usage";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
@@ -178,7 +179,11 @@ async function detectAudioMeta(
  * 优先解析博客/文章源文稿 + DeepSeek 配译文，没有完整文稿时回落到 ID3v2 偏移修正后的 Qwen3-Omni-Flash 音频识别。
  */
 export async function POST(request: Request) {
-  await getOptionalUserId(request);
+  const userId = await getOptionalUserId(request);
+  return withApiUsage(userId, () => handleRequest(request));
+}
+
+async function handleRequest(request: Request) {
 
   let body: {
     audioUrl?: unknown;
@@ -377,7 +382,7 @@ export async function POST(request: Request) {
 
   let aiRes: Response;
   try {
-    aiRes = await fetch(DASHSCOPE_COMPAT_URL, {
+    aiRes = await meteredFetch({ provider: "dashscope", feature: "podcast_subtitles", unit: "tokens" }, DASHSCOPE_COMPAT_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -408,7 +413,7 @@ export async function POST(request: Request) {
         ]
       }),
       signal: AbortSignal.timeout(48_000)
-    });
+    }, true);
   } catch (err) {
     return NextResponse.json(
       { error: "subtitle_ai_timeout", detail: err instanceof Error ? err.message : "timeout" },

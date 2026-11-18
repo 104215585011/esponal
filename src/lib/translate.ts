@@ -1,3 +1,5 @@
+// Timestamp: 2026-11-18 10:58
+import { meteredFetch } from "./api-usage.ts";
 // Spanish → Chinese translation providers.
 //
 // The original Tencent TMT integration depended on a monthly free resource
@@ -47,7 +49,7 @@ async function translateWithOpenAICompatible(
   sourceLang = "es"
 ): Promise<TranslateResult> {
   const sourceName = LANG_NAME[sourceLang] ?? "Spanish";
-  const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/v1/chat/completions`, {
+  const response = await meteredFetch({ provider, feature: "translation", unit: "tokens" }, `${baseUrl.replace(/\/+$/, "")}/v1/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -73,7 +75,7 @@ async function translateWithOpenAICompatible(
         }
       ]
     })
-  });
+  }, true);
 
   if (!response.ok) {
     throw new Error(`${provider} translate failed: ${response.status}`);

@@ -1,3 +1,6 @@
+// Timestamp: 2026-11-18 10:58
+import { checkAdminFeature } from "@/lib/admin-policy";
+import { withApiUsage } from "@/lib/api-usage";
 import { NextResponse } from "next/server";
 import { transcribeViaWhisperTunnel } from "@/lib/talk/whisper-client";
 import { getAuthedUserId } from "@/lib/api-auth";
@@ -9,7 +12,12 @@ type Body = {
 };
 
 export async function POST(request: Request) {
-  if (!(await getAuthedUserId(request))) {
+  const userId = await getAuthedUserId(request);
+  return withApiUsage(userId, () => handleRequest(request, userId));
+}
+
+async function handleRequest(request: Request, userId: string | null) {
+  if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -21,6 +29,9 @@ export async function POST(request: Request) {
   if (!audioBase64) {
     return NextResponse.json({ error: "empty_audio" }, { status: 400 });
   }
+
+  const denied = await checkAdminFeature(userId, "talk");
+  if (denied) return denied;
 
   const result = await transcribeViaWhisperTunnel({ audioBase64, language, mimeType });
 

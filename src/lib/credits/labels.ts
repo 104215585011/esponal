@@ -1,5 +1,5 @@
-// Timestamp: 2026-06-08 16:16
-type CreditReason = "grant" | "refill" | "spend";
+// Timestamp: 2026-11-18 10:58
+type CreditReason = "grant" | "refill" | "spend" | "adjustment";
 
 const SPEND_LABELS: Record<string, string> = {
   talk: "AI 对话",
@@ -11,6 +11,7 @@ const SPEND_LABELS: Record<string, string> = {
 };
 
 export function getCreditTransactionLabel(reason: CreditReason, refType?: string | null) {
+  if (reason === "adjustment") return "管理员调整";
   if (reason === "grant") {
     return refType === "signup" || !refType ? "注册赠送" : "配额赠送";
   }

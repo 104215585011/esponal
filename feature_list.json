@@ -2074,5 +2074,21 @@
     ],
     "evidence": "2026-11-18 10:47 数据库只读确认账号存在；3 项管理员行为测试先失败后通过；npm test 567/567，编码、差异检查和生产构建通过。尚未实现管理 UI、用量统计和用户调整功能。",
     "notes": "服务端固定邮箱名单，无角色迁移。每次检查从数据库取得邮箱，客户端不能提交管理员身份。"
+  },
+  "123": {
+    "id": "ADMIN-002",
+    "priority": 124,
+    "area": "backend",
+    "title": "PC 管理后台和 Android 设置管理入口",
+    "user_visible_behavior": "唯一管理员可查询 API 用量和估算余额、搜索用户并调整积分、到期时间和功能限额。操作记录可查。",
+    "status": "ready_for_qa",
+    "verification": [
+      "匿名和普通用户不得访问管理 API",
+      "核对积分流水及审计并验证权限与每日限额",
+      "检查 PC 构建、Android 类型与 React Hooks 检查",
+      "真实管理员跨端验收，发版前应用迁移"
+    ],
+    "evidence": "2026-11-18 10:58 隔离工作区 npm test、编码检查和生产构建通过。Android 42de01c；类型与 React Hooks 检查通过。真实账号联调及生产部署待完成。",
+    "notes": "参见 docs/tickets/ADMIN-002-design.md。西语阅读和视频并行改动独立保留。"
   }
 }

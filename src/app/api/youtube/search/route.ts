@@ -1,4 +1,6 @@
-// Timestamp: 2026-11-17 14:58
+// Timestamp: 2026-11-18 10:58
+import { getOptionalUserId } from "@/lib/api-auth";
+import { withApiUsage } from "@/lib/api-usage";
 import { NextResponse } from "next/server";
 import { normalizeLanguage } from "@/lib/languages";
 import {
@@ -212,6 +214,11 @@ function coerceSearchPayload(data: unknown): SearchPayload {
 }
 
 export async function GET(request: Request) {
+  const userId = await getOptionalUserId(request);
+  return withApiUsage(userId, () => handleRequest(request));
+}
+
+async function handleRequest(request: Request) {
   const rateLimit = await checkRateLimit(searchLimiter, request, null);
 
   if (!rateLimit.allowed) {

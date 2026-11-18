@@ -1,3 +1,6 @@
+// Timestamp: 2026-11-18 10:58
+import { checkAdminFeature } from "@/lib/admin-policy";
+import { withApiUsage } from "@/lib/api-usage";
 import { getTalkCharacterById } from "@/lib/talk/characters";
 import { synthesizeSpeech } from "@/lib/talk/speech";
 import { getAuthedUserId } from "@/lib/api-auth";
@@ -5,7 +8,12 @@ import { getAuthedUserId } from "@/lib/api-auth";
 type Body = { characterId?: unknown; text?: unknown };
 
 export async function POST(request: Request) {
-  if (!(await getAuthedUserId(request))) {
+  const userId = await getAuthedUserId(request);
+  return withApiUsage(userId, () => handleRequest(request, userId));
+}
+
+async function handleRequest(request: Request, userId: string | null) {
+  if (!userId) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { "content-type": "application/json" }
@@ -34,6 +42,9 @@ export async function POST(request: Request) {
       headers: { "content-type": "application/json" }
     });
   }
+
+  const denied = await checkAdminFeature(userId, "talk", false);
+  if (denied) return denied;
 
   const result = await synthesizeSpeech({ characterId, text });
 

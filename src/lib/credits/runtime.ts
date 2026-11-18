@@ -1,4 +1,4 @@
-// Timestamp: 2026-06-05 00:18
+// Timestamp: 2026-11-18 10:58
 import { prisma } from "../prisma.ts";
 import { applyMonthlyRefill } from "./account.ts";
 import { PLAN_CONFIG, type CreditSource, type Plan } from "./config.ts";
@@ -16,6 +16,13 @@ export type CreditGuardSuccess = {
   ok: true;
   snapshot: UserCreditSnapshot;
 };
+
+export function activePlan(snapshot: UserCreditSnapshot, now = new Date()): Plan {
+  if (snapshot.creditSource === "subscription" && snapshot.planExpiresAt && snapshot.planExpiresAt <= now) {
+    return "free";
+  }
+  return snapshot.plan;
+}
 
 export type CreditGuardFailure = {
   ok: false;
@@ -69,7 +76,7 @@ export async function refreshCreditsIfDue(
       return null;
     }
 
-    const config = PLAN_CONFIG[user.plan];
+    const config = PLAN_CONFIG[activePlan(user, now)];
     if (config.source === "free" || !isMonthlyRefillDue(user.lastRefillAt, now)) {
       return user;
     }
@@ -81,13 +88,20 @@ export async function refreshCreditsIfDue(
     });
     const deltaMinor = next.balanceMinor - user.creditBalanceMinor;
 
-    await tx.user.update({
-      where: { id: userId },
+    const result = await tx.user.updateMany({
+      where: {
+        id: userId, plan: user.plan, planExpiresAt: user.planExpiresAt, lastRefillAt: user.lastRefillAt,
+        creditBalanceMinor: user.creditBalanceMinor
+      },
       data: {
         creditSource: config.source,
         creditBalanceMinor: next.balanceMinor,
         lastRefillAt: now,
       },
+    });
+    if (!result.count) return tx.user.findUnique({
+      where: { id: userId },
+      select: { plan: true, creditSource: true, creditBalanceMinor: true, planExpiresAt: true, lastRefillAt: true }
     });
 
     if (deltaMinor !== 0) {
@@ -147,7 +161,7 @@ export async function requirePlan(
     return { ok: false, code: "UNAUTHORIZED", snapshot: null };
   }
 
-  if (!allowedPlans.includes(snapshot.plan)) {
+  if (!allowedPlans.includes(activePlan(snapshot, now))) {
     return { ok: false, code: "PLAN_UPGRADE_REQUIRED", snapshot };
   }
 

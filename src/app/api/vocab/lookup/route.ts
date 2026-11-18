@@ -1,4 +1,5 @@
-// Timestamp: 2026-11-17 14:55
+// Timestamp: 2026-11-18 10:58
+import { withApiUsage } from "@/lib/api-usage";
 import { getOptionalUserId } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
@@ -187,10 +188,15 @@ async function withSavedState<T extends { lemma: string }>(
 }
 
 export async function GET(request: Request) {
+  const userId = await getOptionalUserId(request);
+  return withApiUsage(userId, () => handleRequest(request, userId));
+}
+
+async function handleRequest(request: Request, userId: string | null) {
   const startedAt = performance.now();
   // 双通道鉴权:Web 走 cookie session,App 走 Bearer token。
   // 之前只用 getServerSession,App 的 Bearer 解不出来 → isSaved 永远 false、限流只能按 IP。
-  const userId = await getOptionalUserId(request);
+
   const rateLimit = await checkRateLimit(lookupLimiter, request, userId);
 
   if (!rateLimit.allowed) {
