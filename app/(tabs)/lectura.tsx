@@ -131,7 +131,7 @@ export default function LecturaScreen() {
 
   const activeSourceLabel = useMemo(() => {
     if (!sourceFilter) return null;
-    return sources.find((s) => s.sourceId === sourceFilter)?.sourceLabel ?? sourceFilter;
+    return sources.find((s) => s.id === sourceFilter)?.label ?? sourceFilter;
   }, [sourceFilter, sources]);
 
   const filtered = useMemo(() => {
@@ -196,7 +196,7 @@ export default function LecturaScreen() {
         <FlatList
           contentContainerStyle={styles.list}
           data={sources}
-          keyExtractor={(item) => item.sourceId}
+          keyExtractor={(item) => item.id}
           ListEmptyComponent={
             loading ? (
               <View style={styles.center}>
@@ -218,14 +218,14 @@ export default function LecturaScreen() {
           renderItem={({ item }) => (
             <Pressable
               onPress={() => {
-                setSourceFilter(item.sourceId);
+                setSourceFilter(item.id);
                 setSubTab("stories");
               }}
               style={({ pressed }) => [styles.sourceCard, pressed && styles.cardPressed]}
             >
               <View style={styles.sourceCardMain}>
                 <Text style={styles.kindTag}>{KIND_LABEL[item.contentKind]}</Text>
-                <Text style={styles.sourceName}>{item.sourceLabel}</Text>
+                <Text style={styles.sourceName}>{item.label}</Text>
               </View>
               <Text style={styles.sourceCount}>{item.count} 篇 ›</Text>
             </Pressable>

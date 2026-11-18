@@ -47,8 +47,8 @@ export type LecturaContinueItem = {
 };
 
 export type LecturaSourceSummary = {
-  sourceId: string;
-  sourceLabel: string;
+  id: string;
+  label: string;
   contentKind: LecturaContentKind;
   count: number;
 };
