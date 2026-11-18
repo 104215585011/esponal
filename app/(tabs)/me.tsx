@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 14:01
+// Timestamp: 2026-11-18 14:03
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,15 +16,18 @@ import { useAuth } from "@/auth/AuthProvider";
 import { fetchCredits } from "@/api/account";
 import { API_BASE } from "@/api/client";
 import { checkForUpdate, currentVersion, type AppVersionInfo } from "@/api/appVersion";
-import { AppIcon } from "@/components/AppIcon";
+import { AdminSettings } from "@/components/AdminSettings";
+import { AppIcon, type AppIconName } from "@/components/AppIcon";
 import { UpdateDialog } from "@/components/UpdateDialog";
+import { getPreferences, resetPreferences } from "@/lib/preferences";
+import { stopSpeaking } from "@/lib/speech";
 import { colors, radius, spacing } from "@/theme";
 
-/**
- * 我的（瘦身后的纯个人中心）：
- * 学习功能已按职责归入「首页快捷工具 / 阅读(书架) / 复习(词库·搭配)」，
- * 这里只保留账号资产、离线下载与设备偏好设置。
- */
+const learningSettings = [
+  { section: "language", label: "学习语种", icon: "book" },
+  { section: "voice", label: "发音与朗读", icon: "speak" }
+] satisfies { section: string; label: string; icon: AppIconName }[];
+
 export default function MeScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
@@ -51,6 +54,20 @@ export default function MeScreen() {
     Alert.alert("退出登录", "下次需要重新输入密码。", [
       { text: "取消", style: "cancel" },
       { text: "退出", style: "destructive", onPress: () => void signOut() }
+    ]);
+  };
+
+  const confirmReset = () => {
+    Alert.alert("恢复默认偏好", "播放速度、发音和朗读选项将恢复为默认值。", [
+      { text: "取消", style: "cancel" },
+      {
+        text: "恢复",
+        onPress: () => {
+          stopSpeaking();
+          const learningLang = getPreferences().learningLang;
+          void resetPreferences({ learningLang });
+        }
+      }
     ]);
   };
 
@@ -94,7 +111,7 @@ export default function MeScreen() {
         </View>
 
         {/* 资产与离线内容 */}
-        <Text style={styles.groupTitle}>资产与离线</Text>
+        <Text style={styles.groupTitle}>账户与离线</Text>
         <View style={styles.metaList}>
           <Pressable
             onPress={() => router.push("/credits" as never)}
@@ -114,7 +131,6 @@ export default function MeScreen() {
             onPress={() => router.push("/downloads" as never)}
             style={({ pressed }) => [
               styles.metaRow,
-              styles.metaRowLast,
               pressed && styles.metaRowPressed
             ]}
           >
@@ -127,22 +143,45 @@ export default function MeScreen() {
               <AppIcon color={colors.textTertiary} name="chevron" size={14} />
             </View>
           </Pressable>
-        </View>
-
-        {/* 偏好与应用 */}
-        <Text style={styles.groupTitle}>设置与版本</Text>
-        <View style={styles.metaList}>
           <Pressable
-            onPress={() => router.push("/settings" as never)}
-            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: "/settings", params: { section: "storage" } } as never)}
+            style={({ pressed }) => [styles.metaRow, styles.metaRowLast, pressed && styles.metaRowPressed]}
           >
             <View style={styles.rowLeft}>
               <AppIcon color={colors.textSecondary} name="settings" size={16} />
-              <Text style={styles.metaLabel}>通用设置</Text>
+              <Text style={styles.metaLabel}>存储管理</Text>
             </View>
             <AppIcon color={colors.textTertiary} name="chevron" size={14} />
           </Pressable>
+        </View>
 
+        <Text style={styles.groupTitle}>学习设置</Text>
+        <View style={styles.metaList}>
+          {learningSettings.map(({ section, label, icon }, index) => (
+            <Pressable
+              key={section}
+              accessibilityRole="button"
+              onPress={() => router.push({ pathname: "/settings", params: { section } } as never)}
+              style={({ pressed }) => [
+                styles.metaRow,
+                index === learningSettings.length - 1 && styles.metaRowLast,
+                pressed && styles.metaRowPressed
+              ]}
+            >
+              <View style={styles.rowLeft}>
+                <AppIcon color={colors.textSecondary} name={icon} size={16} />
+                <Text style={styles.metaLabel}>{label}</Text>
+              </View>
+              <AppIcon color={colors.textTertiary} name="chevron" size={14} />
+            </Pressable>
+          ))}
+        </View>
+
+        {user && <AdminSettings key={user.id} userId={user.id} />}
+
+        <Text style={styles.groupTitle}>应用</Text>
+        <View style={styles.metaList}>
           <Pressable
             disabled={checking}
             onPress={handleCheckUpdate}
@@ -157,6 +196,15 @@ export default function MeScreen() {
             ) : (
               <Text style={styles.metaValue}>v{currentVersion()}</Text>
             )}
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={confirmReset}
+            style={({ pressed }) => [styles.metaRow, pressed && styles.metaRowPressed]}
+          >
+            <Text style={styles.metaLabel}>恢复默认偏好</Text>
+            <AppIcon color={colors.textTertiary} name="chevron" size={14} />
           </Pressable>
 
           <View style={[styles.metaRow, styles.metaRowLast]}>

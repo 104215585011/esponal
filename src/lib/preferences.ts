@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 15:18
+// Timestamp: 2026-11-18 14:03
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
@@ -139,6 +139,6 @@ export async function updatePreferences(patch: Partial<Preferences>): Promise<Pr
   return cache;
 }
 
-export async function resetPreferences(): Promise<Preferences> {
-  return updatePreferences(DEFAULT_PREFERENCES);
+export async function resetPreferences({ learningLang = DEFAULT_PREFERENCES.learningLang } = {}): Promise<Preferences> {
+  return updatePreferences({ ...DEFAULT_PREFERENCES, learningLang });
 }

@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-17 15:50
+// Timestamp: 2026-11-18 14:03
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -681,11 +681,11 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => {
                 setLangModalOpen(false);
-                router.push("/settings" as never);
+                router.push({ pathname: "/settings", params: { section: "language" } } as never);
               }}
               style={styles.langSettingsLink}
             >
-              <Text style={styles.langSettingsLinkText}>前往设置查看全部语种与语音音色 ›</Text>
+              <Text style={styles.langSettingsLinkText}>查看全部学习语种 ›</Text>
             </Pressable>
           </Pressable>
         </Pressable>

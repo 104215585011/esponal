@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:58
+// Timestamp: 2026-11-18 14:03
 import { useEffect, useState } from "react";
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -208,8 +208,8 @@ function Button({ label, onPress, disabled = false }: { label: string; onPress: 
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bgSubtle },
-  sectionTitle: { fontSize: 13, fontWeight: "700", color: colors.textSecondary },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, paddingHorizontal: spacing.md },
+  sectionTitle: { marginTop: spacing.xl, marginBottom: spacing.sm, fontSize: 12, fontWeight: "700", color: colors.textTertiary, letterSpacing: 0.4 },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.lg },
   row: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   header: { padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   contents: { padding: 16, gap: 12 },
