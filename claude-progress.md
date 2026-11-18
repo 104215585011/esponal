@@ -1,3 +1,11 @@
+### 2026-11-18 10:47 · ADMIN-001 单账号管理员身份
+
+- 用户指定 easternwang123@gmail.com 为首版唯一管理员。只读数据库确认账号存在。
+- 新增 src/lib/admin.ts，按既有 Cookie/Bearer 鉴权取得 userId，再从数据库核验邮箱；新增 GET /api/admin/me，管理员返回 isAdmin=true，其余返回 403，响应 private/no-store。
+- 身份使用服务端固定名单。未更改套餐或积分。Android 管理菜单、Web 后台、用量统计及用户调整接口仍未实现。
+- tests/admin-identity.test.mjs 先红后绿，覆盖指定邮箱、大小写、普通用户、缺失用户、匿名伪造参数、身份响应缓存。npm test 567/567，编码及差异检查通过，生产构建通过（既有 Sentry/img 提示）。
+- 待上线后验证真实账号身份与客户端管理入口。状态 ready_for_qa。
+
 ### 2026-11-18 10:32 · SUBS-005 原生字幕优先
 
 - 用户授权本轮修改并推送。普通字幕链路调整为缓存 → YouTube 原生字幕 → Supadata → Apify（仅启用时）→ Whisper。继续使用原有字幕完整性判断和部分字幕兜底。

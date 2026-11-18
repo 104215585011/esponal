@@ -2058,5 +2058,21 @@
     ],
     "evidence": "2026-11-18 10:32 基线 npm test 560/560。先新增行为回归并确认旧顺序失败，调整后定向测试 11/11，npm test 564/564，lint:encoding 与 git diff --check 通过。生产构建通过（既有 img/Sentry 警告）；npm run dev 在 127.0.0.1:3049 Ready，验证后停止。线上供应商成功率及节省额度未实测。",
     "notes": "用户明确授权修改并推送调用顺序。本轮涉及 route.ts、subs002/subs004 测试和交接记录。"
+  },
+  "122": {
+    "id": "ADMIN-001",
+    "priority": 123,
+    "area": "backend",
+    "title": "首版唯一管理员账号识别",
+    "user_visible_behavior": "2026-11-18 10:47 服务端仅将 easternwang123@gmail.com 对应的已登录数据库账号识别为管理员，Web Cookie 和 App Bearer 共用 GET /api/admin/me。",
+    "status": "ready_for_qa",
+    "verification": [
+      "指定账号通过管理员校验，普通用户、匿名请求和不存在用户均拒绝",
+      "管理员身份接口响应禁止缓存",
+      "npm test、编码检查和生产构建通过",
+      "线上真实账号验证，客户端入口待后续接入"
+    ],
+    "evidence": "2026-11-18 10:47 数据库只读确认账号存在；3 项管理员行为测试先失败后通过；npm test 567/567，编码、差异检查和生产构建通过。尚未实现管理 UI、用量统计和用户调整功能。",
+    "notes": "服务端固定邮箱名单，无角色迁移。每次检查从数据库取得邮箱，客户端不能提交管理员身份。"
   }
 }
