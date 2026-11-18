@@ -1,3 +1,10 @@
+### 2026-11-18 10:32 · SUBS-005 原生字幕优先
+
+- 用户授权本轮修改并推送。普通字幕链路调整为缓存 → YouTube 原生字幕 → Supadata → Apify（仅启用时）→ Whisper。继续使用原有字幕完整性判断和部分字幕兜底。
+- 修改 src/app/api/subtitle/route.ts、tests/subs002.test.mjs、tests/subs004.test.mjs，并新增 feature_list.json 的 SUBS-005 待 QA 记录。
+- 基线 npm test 560/560；行为回归先失败后通过，定向 11/11；全量 564/564；编码检查及差异空白检查通过。
+- 生产构建通过（既有 img/Sentry 警告）。npm run dev 在 127.0.0.1:3049 Ready，验证后停止。上线后需观察 X-Subtitle-Source、缓存命中与 Supadata 调用量，尚未实测供应商成功率或节省比例。
+
 ### 2026-11-17 13:54 · LinguaMind 品牌更新
 
 - 用户指定暂用 LinguaMind 和双色圆角图标。更新 Web 页头、站点与 PWA 图标、扩展名称及下载包，以及 Android Expo 名称、启动图、桌面与自适应图标。

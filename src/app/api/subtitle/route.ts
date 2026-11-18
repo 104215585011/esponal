@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:02
+// Timestamp: 2026-11-18 10:32
 import { NextResponse } from "next/server";
 import { getOptionalUserId } from "@/lib/api-auth";
 import { ACTION_COST_MINOR } from "@/lib/credits/config";
@@ -20,9 +20,7 @@ const SUPADATA_TRANSCRIPT_URL = "https://api.supadata.ai/v1/youtube/transcript";
 const SUBTITLE_CACHE_TTL = 2592000; // 30 days — subtitles are generic (not user-bound), so cache long to avoid re-billing Supadata/Apify/Whisper
 const MIN_REASONABLE_CUE_COUNT = 6;
 const MAX_REASONABLE_CUE_GAP_SEC = 25;
-// Apify is disabled by default to save quota — Supadata is the primary source
-// and local Whisper is the fallback. Set APIFY_ENABLED="1" to re-enable the
-// Apify hybrid (manual + ASR) source without removing any of its code.
+// Set APIFY_ENABLED="1" to enable the hybrid (manual + ASR) fallback.
 const APIFY_ENABLED = process.env.APIFY_ENABLED === "1";
 
 type SubtitleCue = {
@@ -442,6 +440,12 @@ async function fetchSubtitlesWithFallback(
     return { cues: [], source: "none" };
   }
 
+  const youtubeCues = await fetchYouTubeInnerTubeSubtitles(videoId, lang);
+
+  if (!shouldUseWhisperFallback(youtubeCues, false)) {
+    return { cues: youtubeCues, source: "youtube" };
+  }
+
   const supadataCues = await fetchSupadataSubtitles(videoId, lang);
 
   if (!shouldUseWhisperFallback(supadataCues, false)) {
@@ -459,12 +463,6 @@ async function fetchSubtitlesWithFallback(
     if (!shouldUseWhisperFallback(apifyCues, false)) {
       return { cues: apifyCues, source: "apify" };
     }
-  }
-
-  const youtubeCues = await fetchYouTubeInnerTubeSubtitles(videoId, lang);
-
-  if (!shouldUseWhisperFallback(youtubeCues, false)) {
-    return { cues: youtubeCues, source: "youtube" };
   }
 
   try {

@@ -27,12 +27,13 @@ test("SUBS-004 keeps Apify code intact (soft-off, not removed)", async () => {
   assert.match(route, /function mergeManualWithAsr/);
 });
 
-test("SUBS-004 preserves the Supadata-first ordering and Whisper fallback", async () => {
+test("SUBS-004 preserves native-first ordering, the Apify gate and Whisper fallback", async () => {
   const route = await readText("src/app/api/subtitle/route.ts");
 
-  // Supadata is still attempted before the Apify gate.
+  const youtubeIdx = route.indexOf("const youtubeCues = await fetchYouTubeInnerTubeSubtitles");
   const supadataIdx = route.indexOf("const supadataCues = await fetchSupadataSubtitles");
   const gateIdx = route.indexOf("if (APIFY_ENABLED)");
+  assert.ok(youtubeIdx > -1 && youtubeIdx < supadataIdx);
   assert.ok(supadataIdx > -1 && gateIdx > -1 && supadataIdx < gateIdx);
 
   // Whisper fallback remains.

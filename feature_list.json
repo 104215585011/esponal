@@ -2040,5 +2040,23 @@
     "status": "ready_for_qa",
     "priority": "P0",
     "evidence": "2026-06-11 PM定位病根建票:PDF getDocument整本下载→改url+Range;effectivePdfZoom百分比→fit-width;EPUB容器锁单列width→去掉让多栏横铺,删verticalPages | 2026-06-11 14:35 Codex1 IMPORT-7 ready_for_qa: PDF reader now uses pdf.js URL loading with HTTP Range through same-origin /api/import/[id]/file, 64KB chunks, disableAutoFetch, credentials, 206/Accept-Ranges/Content-Range proxy support, lazy page rendering, and fit-screen sizing from measured frame width/height. EPUB reader removed locked content width and verticalPages fallback, uses true horizontal CSS columns with column-fill:auto and break-inside image guards while keeping reflow anchor restoration. Verification: red tests/import033 failed first; import018/023/025/030/031/032/033 15/15 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass. Final verification: npm test 505/505 pass; npm run build pass with existing img/Sentry warnings only. | 2026-06-11 用户真机再证手搓不可用(截断/丢图/黏字/PDF灰边卡顿)→决策换成熟引擎epub.js,pdf.js走Range+fit;只叠查词层 | 2026-06-11 派Codex1,分段交付M1(epub.js最小可用:翻页+图+空格)→用户真机确认→M2查词/M3主题/M4 PDF | 2026-06-11 15:25 Codex1 IMPORT-7 M1 ready_for_true_device: replaced EPUB reader internals with epub.js minimal paginated rendering. Added epubjs dependency; EpubReader fetches /api/import/[id]/url, creates an epub.js book, renderTo paginated spread-none stage, displays the original EPUB, and maps existing previous/next shell actions to rendition.prev()/next(). Removed the active local dangerouslySetInnerHTML, word wrapping, and CSS column pagination path. Scope intentionally stops before M2 lookup, M3 themes/TOC/CFI, and M4 PDF. Verification: red tests/import034 failed first; import027/029/030/031/032/033/034 14/14 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 506/506 pass; npm run build pass with existing img/Sentry warnings only. | 2026-06-11 16:05 Codex1 IMPORT-7 M1 production hotfix ready_for_true_device: fixed deployed epub.js loading hang where internal EPUB resources resolved to missing /api/import/<id>/... routes. EpubReader now fetches authenticated /api/import/[id]/file bytes, creates an application/epub+zip Blob URL for epub.js, revokes it on cleanup, and gates resize/page turns behind renditionReady after display(). Verification: red import034+import027 failed first; import034+import027 4/4 pass; import027/029/030/031/032/033/034 14/14 pass; npx tsc --noEmit --pretty false pass; npm run lint:encoding pass; npm test 506/506 pass; npm run build pass with existing img/Sentry warnings only."
+  },
+  "121": {
+    "id": "SUBS-005",
+    "priority": 122,
+    "area": "backend",
+    "title": "原生字幕优先，Supadata 作为备用",
+    "user_visible_behavior": "2026-11-18 10:32 普通字幕请求先使用缓存，缓存未命中时先获取 YouTube 原生字幕，字幕不足时回退 Supadata、启用的 Apify、Whisper。强制 Whisper 保持独立路径。",
+    "status": "ready_for_qa",
+    "verification": [
+      "原生字幕可用时不调用 Supadata、Apify 或 Whisper",
+      "原生字幕为空或不足时回退 Supadata，继续传递视频 ID 和语种",
+      "Apify 仅在启用时调用，强制 Whisper 跳过其他提供方",
+      "所有源为空时返回 none，最后仍可返回部分原生字幕",
+      "npm test、编码检查和生产构建通过",
+      "上线后确认缓存与字幕来源响应，实际 Supadata 用量留待监测"
+    ],
+    "evidence": "2026-11-18 10:32 基线 npm test 560/560。先新增行为回归并确认旧顺序失败，调整后定向测试 11/11，npm test 564/564，lint:encoding 与 git diff --check 通过。生产构建通过（既有 img/Sentry 警告）；npm run dev 在 127.0.0.1:3049 Ready，验证后停止。线上供应商成功率及节省额度未实测。",
+    "notes": "用户明确授权修改并推送调用顺序。本轮涉及 route.ts、subs002/subs004 测试和交接记录。"
   }
 }
