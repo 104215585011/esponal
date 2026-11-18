@@ -1,6 +1,6 @@
-// Timestamp: 2026-11-18 16:45
+// Timestamp: 2026-11-18 17:38
 import { apiFetch } from "@/api/client";
-import type { CognateHint, NounArticleCue } from "@/api/watch";
+import { savePhrase, saveWord, type CognateHint, type NounArticleCue } from "@/api/watch";
 import type { LearningLanguage } from "@/lib/preferences";
 
 export type WordEncounterItem = {
@@ -20,10 +20,20 @@ export type ReviewCloze = {
   translatedSentence: string;
 };
 
+export type ReviewQueueMode = "all" | "recent" | "due" | "quick5";
+
+export type ReviewCounts = {
+  recent: number;
+  due: number;
+  quick5: number;
+  unstartedNew: number;
+};
+
 export type DueWord = {
   id: string;
   itemType?: "word" | "phrase";
   phraseKind?: string | null;
+  queueBucket?: "recent" | "due" | "new";
   language?: LearningLanguage | string;
   lemma: string;
   forms?: string[];
@@ -55,6 +65,8 @@ export type DueWord = {
 export type ReviewQueue = {
   dueWords: DueWord[];
   totalDue: number;
+  mode?: ReviewQueueMode;
+  counts?: ReviewCounts;
 };
 
 export type ReviewRating = "Again" | "Hard" | "Good" | "Easy";
@@ -65,11 +77,31 @@ export type GradeResult = {
   itemType?: "word" | "phrase";
 };
 
-/** 批大小可选(默认 20,服务端上限 50);自动续批时用同一默认,保持节奏稳定 */
-export async function fetchReviewQueue(limit?: number, lang?: LearningLanguage) {
+export type StarterHighFreqItem = {
+  id: string;
+  language: LearningLanguage | string;
+  lemma: string;
+  displayForm: string;
+  kind: "word" | "phrase";
+  posLabel: string;
+  translationZh: string;
+  exampleEs: string;
+  exampleZh: string;
+  noteZh: string;
+  inVocab?: boolean;
+  status?: string | null;
+};
+
+/** 按模式拉取复习队列：recent（最近遇到） / due（到期复习） / quick5（练5分钟） / all */
+export async function fetchReviewQueue(
+  limit?: number,
+  lang?: LearningLanguage,
+  mode: ReviewQueueMode = "all"
+) {
   const params = new URLSearchParams();
   if (limit && limit > 0) params.set("limit", String(Math.floor(limit)));
   if (lang) params.set("lang", lang);
+  if (mode !== "all") params.set("mode", mode);
   const qs = params.toString();
   return apiFetch<ReviewQueue>(`/api/vocab/review${qs ? `?${qs}` : ""}`);
 }
@@ -95,5 +127,49 @@ export function markVocabStatus(
   return apiFetch<{ ok: boolean; status: string }>("/api/vocab/status", {
     method: "POST",
     body: JSON.stringify({ id, status, itemType })
+  });
+}
+
+/** 获取起步高频骨架词卡包（先混眼熟、看中文听读音） */
+export async function fetchStarterPack(lang?: LearningLanguage) {
+  const qs = lang ? `?lang=${encodeURIComponent(lang)}` : "";
+  const res = await apiFetch<{ language: string; items: StarterHighFreqItem[] }>(
+    `/api/vocab/starter${qs}`
+  );
+  return res.items ?? [];
+}
+
+/** 将起步卡包中的词/语块一键加入待复习或标为早就会了 */
+export async function saveStarterItem(
+  item: StarterHighFreqItem,
+  status: "NEW" | "KNOWN",
+  lang: LearningLanguage
+) {
+  if (item.kind === "phrase") {
+    return savePhrase({
+      lemma: item.lemma,
+      kind: "phrase",
+      translationZh: item.translationZh,
+      explanationZh: item.noteZh,
+      language: lang,
+      data: {
+        meanings: [item.translationZh],
+        examples: [{ es: item.exampleEs, zh: item.exampleZh }],
+        source: { sentence: item.exampleEs, type: "starter" }
+      }
+    });
+  }
+  return saveWord({
+    word: item.lemma,
+    lemma: item.lemma,
+    status,
+    translation: item.translationZh,
+    form: item.lemma,
+    language: lang,
+    sourceType: "course",
+    sourceUrl: "app://mobile/starter",
+    originalSentence: item.exampleEs,
+    translatedSentence: item.exampleZh,
+    timestampSec: 0
   });
 }
