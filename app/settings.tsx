@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 14:25
+// Timestamp: 2026-11-18 10:58
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import Constants from "expo-constants";
 
 import { useAuth } from "@/auth/AuthProvider";
+import { AdminSettings } from "@/components/AdminSettings";
 import { usePreferences } from "@/hooks/usePreferences";
 import { preloadVoices, speakAuto, speakSpanish, speechStatus, stopSpeaking } from "@/lib/speech";
 import { checkForUpdate, type AppVersionInfo } from "@/api/appVersion";
@@ -61,7 +62,7 @@ const SAMPLE_BY_LANG: Record<LearningLanguage, { speed: string; preview: string 
  */
 export default function SettingsScreen() {
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const prefs = usePreferences();
 
   const [checking, setChecking] = useState(false);
@@ -354,6 +355,8 @@ export default function SettingsScreen() {
             <Text style={[styles.rowLabel, styles.danger]}>清除下载的讲义</Text>
           </Pressable>
         </View>
+
+        {user && <AdminSettings key={user.id} userId={user.id} />}
 
         <Text style={styles.sectionTitle}>关于</Text>
         <View style={styles.card}>
