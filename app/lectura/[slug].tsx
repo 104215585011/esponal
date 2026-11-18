@@ -1,5 +1,5 @@
-// Timestamp: 2026-11-16 09:30
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Timestamp: 2026-11-18 11:26
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -13,10 +13,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import {
-  fetchStories,
+  completeLecturaStory,
   fetchStory,
-  markStoryRead,
+  reportLecturaProgress,
   translateParagraphs,
+  type LecturaNextRecommendation,
   type LecturaStory
 } from "@/api/lectura";
 import { getProxiedCoverUrl } from "@/api/podcasts";
@@ -69,7 +70,7 @@ const FONT_SIZES = [16, 18, 21] as const;
  * - 支持「中西对照 / 纯西语 / 纯中文」即时切换、字号与护眼底色调节、单段/整篇朗读与点词查变位
  */
 export default function LecturaReaderScreen() {
-  const { slug, lang } = useLocalSearchParams<{ slug: string; lang?: string }>();
+  const { slug, lang, p } = useLocalSearchParams<{ slug: string; lang?: string; p?: string }>();
   const router = useRouter();
 
   const [story, setStory] = useState<LecturaStory | null>(null);
@@ -82,13 +83,20 @@ export default function LecturaReaderScreen() {
   const [lookupWord, setLookupWord] = useState<string | null>(null);
   const [lookupContext, setLookupContext] = useState<string | undefined>();
   const [glossaryOpen, setGlossaryOpen] = useState(false);
-  const [nextSlug, setNextSlug] = useState<string | null>(null);
+  const [completed, setCompleted] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [nextRec, setNextRec] = useState<LecturaNextRecommendation | null>(null);
 
   const [displayMode, setDisplayMode] = useState<DisplayMode>("bilingual");
   const [paper, setPaper] = useState<PaperTheme>("warm");
   const [fontSizeIdx, setFontSizeIdx] = useState<number>(1);
   const [translations, setTranslations] = useState<string[]>([]);
   const [translating, setTranslating] = useState(false);
+
+  const scrollViewRef = useRef<ComponentRef<typeof ScrollView> | null>(null);
+  const paraYRef = useRef<Record<number, number>>({});
+  const restoredScrollRef = useRef(false);
+  const lastReportedParaRef = useRef(-1);
 
   const paragraphs = useMemo(() => story?.paragraphs ?? [], [story]);
   const speech = useParagraphSpeech(
@@ -100,33 +108,49 @@ export default function LecturaReaderScreen() {
   const theme = PAPER_STYLES[paper];
   const fontSize = FONT_SIZES[fontSizeIdx] ?? 18;
 
+  const targetResumeIndex = useMemo(() => {
+    const parsed = typeof p === "string" ? Number.parseInt(p, 10) : Number.NaN;
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    const saved = story?.lastParagraphIndex ?? 0;
+    return saved > 0 ? saved : 0;
+  }, [p, story?.lastParagraphIndex]);
+
+  const persistProgress = useCallback(
+    (paragraphIndex: number) => {
+      if (!story || completed) return;
+      if (paragraphIndex <= lastReportedParaRef.current) return;
+      lastReportedParaRef.current = paragraphIndex;
+      void reportLecturaProgress(story.slug, paragraphIndex, story.paragraphs.length);
+    },
+    [completed, story]
+  );
+
+  useEffect(() => {
+    if (speech.playingIndex !== null) {
+      persistProgress(speech.playingIndex);
+    }
+  }, [persistProgress, speech.playingIndex]);
+
   const load = useCallback(async () => {
     if (!slug) return;
     setLoading(true);
     setError(null);
     setTranslations([]);
+    paraYRef.current = {};
+    restoredScrollRef.current = false;
+    lastReportedParaRef.current = -1;
 
     try {
       const data = await fetchStory(String(slug));
       setStory(data);
-      void markStoryRead(String(slug));
-
-      try {
-        const storyLang = data.language ?? materialLang;
-        const all = await fetchStories(false, storyLang);
-        const sameLevel = all.filter((item) => item.level === data.level);
-        const pos = sameLevel.findIndex((item) => item.slug === data.slug);
-        const next = pos >= 0 ? sameLevel[pos + 1] : null;
-        setNextSlug(next?.slug ?? null);
-      } catch {
-        setNextSlug(null);
-      }
+      setCompleted(Boolean(data.completed ?? data.isRead));
+      setNextRec(data.nextRecommendation ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
       setLoading(false);
     }
-  }, [slug, materialLang]);
+  }, [slug]);
 
   useEffect(() => {
     void load();
@@ -139,7 +163,7 @@ export default function LecturaReaderScreen() {
 
     let cancelled = false;
     setTranslating(true);
-    translateParagraphs(story.paragraphs.slice(0, 35), materialLang)
+    translateParagraphs(story.paragraphs, materialLang)
       .then((list) => {
         if (!cancelled) setTranslations(list);
       })
@@ -154,6 +178,19 @@ export default function LecturaReaderScreen() {
       cancelled = true;
     };
   }, [story, displayMode, translations.length, materialLang]);
+
+  const handleMarkCompleted = async () => {
+    if (!story || completing) return;
+    setCompleting(true);
+    const res = await completeLecturaStory(story.slug, story.paragraphs.length);
+    setCompleting(false);
+    if (res.ok) {
+      setCompleted(true);
+      if (res.nextRecommendation) {
+        setNextRec(res.nextRecommendation);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -197,7 +234,7 @@ export default function LecturaReaderScreen() {
                 params: {
                   title: story.title,
                   showTitle: story.source,
-                  level: story.level,
+                  level: story.level ?? "A2",
                   audioUrl: story.audioUrl,
                   description: story.paragraphs.join("\n\n") || story.summaryZh,
                   language: materialLang
@@ -278,13 +315,27 @@ export default function LecturaReaderScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.badges}>
-          <Text style={styles.levelBadge}>{story.level}</Text>
+          <Text style={styles.levelBadge}>{story.level ?? "难度待确认"}</Text>
           <Text style={[styles.metaText, { color: theme.sub }]}>
-            {story.source} · {story.durationMin} 分钟 · {story.paragraphs.length} 段
+            {story.source} · {story.topic ? `${story.topic} · ` : ""}约 {story.durationMin} 分钟 ·{" "}
+            {story.isFullText === false ? "节选" : "全文"} ·{" "}
+            {story.audioType === "native" ? "🎧 原声" : "🔊 合成朗读"}
           </Text>
         </View>
+
+        {targetResumeIndex > 0 ? (
+          <View style={styles.resumeBanner}>
+            <Text style={styles.resumeBannerText}>
+              已定位到上次阅读的第 {targetResumeIndex + 1} 段
+            </Text>
+          </View>
+        ) : null}
 
         {story.coverUrl ? (
           <Image
@@ -305,19 +356,20 @@ export default function LecturaReaderScreen() {
                 params: {
                   title: story.title,
                   showTitle: story.source,
-                  level: story.level,
+                  level: story.level ?? "A2",
                   audioUrl: story.audioUrl,
                   description: story.paragraphs.join("\n\n") || story.summaryZh,
-                  coverUrl: story.coverUrl ?? ""
+                  coverUrl: story.coverUrl ?? "",
+                  language: materialLang
                 }
               } as never)
             }
             style={styles.podcastCard}
           >
             <View style={styles.podcastCardBody}>
-              <Text style={styles.podcastCardTitle}>🎧 打开播客原声 + 双语字幕</Text>
+              <Text style={styles.podcastCardTitle}>🎧 打开博客原声 + 双语字幕</Text>
               <Text style={styles.podcastCardHint}>
-                带进度拖拽、倍速、30s 循环与 AI 字幕精听
+                带进度拖拽、倍速、30s 循环与原声精听
               </Text>
             </View>
             <Text style={styles.podcastCardArrow}>›</Text>
@@ -339,6 +391,21 @@ export default function LecturaReaderScreen() {
           return (
             <View
               key={index}
+              onLayout={(e) => {
+                const y = e.nativeEvent.layout.y;
+                paraYRef.current[index] = y;
+                if (
+                  targetResumeIndex > 0 &&
+                  !restoredScrollRef.current &&
+                  index === targetResumeIndex
+                ) {
+                  restoredScrollRef.current = true;
+                  scrollViewRef.current?.scrollTo({
+                    y: Math.max(0, y - 16),
+                    animated: false
+                  });
+                }
+              }}
               style={[
                 styles.paraWrap,
                 { borderBottomColor: theme.border },
@@ -351,6 +418,7 @@ export default function LecturaReaderScreen() {
                   fontSize={fontSize}
                   language={materialLang}
                   onWordPress={(word) => {
+                    persistProgress(index);
                     setLookupWord(word);
                     setLookupContext(paragraph);
                   }}
@@ -430,26 +498,61 @@ export default function LecturaReaderScreen() {
           轻触任意单词即可查词、看原句并加入对应语种词库。
         </Text>
 
-        {nextSlug ? (
-          <Pressable
-            onPress={() =>
-              router.replace({
-                pathname: "/lectura/[slug]",
-                params: { slug: nextSlug, lang: materialLang }
-              } as never)
-            }
-            style={[styles.nextButton, { borderColor: theme.border, backgroundColor: theme.card }]}
-          >
-            <Text style={[styles.nextText, { color: theme.text }]}>读下一篇 →</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => router.back()}
-            style={[styles.nextButton, { borderColor: theme.border, backgroundColor: theme.card }]}
-          >
-            <Text style={[styles.nextText, { color: theme.text }]}>返回列表</Text>
-          </Pressable>
-        )}
+        <View style={[styles.completionBox, { borderColor: theme.border, backgroundColor: theme.card }]}>
+          {!completed ? (
+            <View style={styles.completionPrompt}>
+              <Text style={[styles.completionTitle, { color: theme.text }]}>读到末尾了吗？</Text>
+              <Text style={[styles.completionHint, { color: theme.sub }]}>
+                点「读完了」保存阅读完成记录，并为你推荐相近难度、相关主题的下一篇。
+              </Text>
+              <Pressable
+                disabled={completing}
+                onPress={() => void handleMarkCompleted()}
+                style={[styles.completeBtn, completing && styles.completeBtnDisabled]}
+              >
+                <Text style={styles.completeBtnText}>
+                  {completing ? "正在保存…" : "✓ 读完了"}
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.completedWrap}>
+              <View style={styles.completedBadgeRow}>
+                <Text style={styles.completedBadge}>✓ 本篇已读完</Text>
+                <Pressable onPress={() => router.back()}>
+                  <Text style={styles.backToListLink}>返回列表</Text>
+                </Pressable>
+              </View>
+
+              {nextRec ? (
+                <Pressable
+                  onPress={() =>
+                    router.replace({
+                      pathname: "/lectura/[slug]",
+                      params: { slug: nextRec.slug, lang: materialLang }
+                    } as never)
+                  }
+                  style={styles.nextRecCard}
+                >
+                  <Text style={styles.nextRecReason}>为你推荐下一篇 · {nextRec.reasonZh}</Text>
+                  <Text style={styles.nextRecTitle}>{nextRec.titleZh}</Text>
+                  <Text style={styles.nextRecSummary} numberOfLines={2}>
+                    {nextRec.summaryZh}
+                  </Text>
+                  <Text style={styles.nextRecMeta}>
+                    {nextRec.level ?? "难度待确认"} · {nextRec.topic} · 约 {nextRec.durationMin}{" "}
+                    分钟 · {nextRec.sourceLabel}
+                  </Text>
+                  {nextRec.matchedWords.length > 0 ? (
+                    <Text style={styles.nextRecWords}>
+                      复现生词：{nextRec.matchedWords.join("、")}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              ) : null}
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       <LookupSheet
@@ -646,12 +749,61 @@ const styles = StyleSheet.create({
   glossaryWord: { fontSize: 14.5, fontWeight: "700" },
   glossaryNote: { marginTop: 2, fontSize: 13 },
   footnote: { marginTop: spacing.xl, fontSize: 12, textAlign: "center" },
-  nextButton: {
-    marginTop: spacing.lg,
-    paddingVertical: 14,
+  resumeBanner: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
     borderRadius: radius.md,
+    backgroundColor: colors.indigo50,
+    alignSelf: "flex-start"
+  },
+  resumeBannerText: { fontSize: 11.5, fontWeight: "700", color: colors.indigo600 },
+  completionBox: {
+    marginTop: spacing.lg,
+    borderRadius: radius.lg,
     borderWidth: 1,
+    padding: spacing.lg
+  },
+  completionPrompt: { gap: 8 },
+  completionTitle: { fontSize: 15, fontWeight: "800" },
+  completionHint: { fontSize: 12.5, lineHeight: 19 },
+  completeBtn: {
+    marginTop: 6,
+    paddingVertical: 13,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand500,
     alignItems: "center"
   },
-  nextText: { fontSize: 14, fontWeight: "700" }
+  completeBtnDisabled: { opacity: 0.6 },
+  completeBtnText: { fontSize: 14.5, fontWeight: "800", color: "#fff" },
+  completedWrap: { gap: 12 },
+  completedBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  completedBadge: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: colors.brand700,
+    backgroundColor: colors.brand50,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    overflow: "hidden"
+  },
+  backToListLink: { fontSize: 12.5, fontWeight: "700", color: colors.brand600 },
+  nextRecCard: {
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand100,
+    backgroundColor: colors.brand50,
+    padding: spacing.md,
+    gap: 5
+  },
+  nextRecReason: { fontSize: 11.5, fontWeight: "700", color: colors.brand700 },
+  nextRecTitle: { fontSize: 15.5, fontWeight: "800", color: colors.text },
+  nextRecSummary: { fontSize: 12.5, lineHeight: 18, color: colors.textSecondary },
+  nextRecMeta: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  nextRecWords: { fontSize: 11.5, fontWeight: "700", color: colors.indigo600, marginTop: 2 }
 });
