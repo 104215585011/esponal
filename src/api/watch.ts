@@ -145,6 +145,24 @@ export type VerbConjugationsPayload = {
   gerundio?: string;
 };
 
+export type CognateHint = {
+  isCognate: boolean;
+  isFalseFriend?: boolean;
+  englishWord: string;
+  patternLabel: string;
+  tipZh: string;
+};
+
+export type NounArticleCue = {
+  article: string;
+  pluralArticle: string;
+  singularWithArticle: string;
+  pluralWithArticle: string | null;
+  maskedWithArticle: string;
+  gender: "m" | "f" | "mf" | "n";
+  genderLabel: string;
+};
+
 export type LookupResult = {
   word: string;
   lemma: string;
@@ -164,6 +182,9 @@ export type LookupResult = {
   conjugations?: VerbConjugationsPayload;
   isSaved?: boolean;
   wordId?: string | null;
+  wordStatus?: string | null;
+  cognateHint?: CognateHint | null;
+  articleCue?: NounArticleCue | null;
 };
 
 export async function lookupWord(
@@ -180,6 +201,7 @@ export async function lookupWord(
 export async function saveWord(body: {
   word: string;
   lemma?: string;
+  status?: "NEW" | "LEARNING" | "KNOWN";
   translation?: string;
   context?: string;
   language?: LearningLanguage;

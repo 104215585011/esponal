@@ -161,44 +161,52 @@ export function LookupSheet({
     };
   }, [word, lookupLang, context]);
 
-  const handleSave = useCallback(async () => {
-    if (!data || saving || saved) return;
-    setSaving(true);
-    setSavedHint(null);
+  const handleSave = useCallback(
+    async (markAsKnown = false) => {
+      if (!data || saving || saved) return;
+      setSaving(true);
+      setSavedHint(null);
 
-    try {
-      const resolvedTranslation =
-        data.meanings?.[0]?.trim() ||
-        mtMeaning?.trim() ||
-        data.morphInfo?.trim() ||
-        data.lemma;
-      const resolvedSentence =
-        context?.trim() ||
-        data.examples?.[0]?.es?.trim() ||
-        data.word ||
-        data.lemma;
+      try {
+        const resolvedTranslation =
+          data.meanings?.[0]?.trim() ||
+          mtMeaning?.trim() ||
+          data.morphInfo?.trim() ||
+          data.lemma;
+        const resolvedSentence =
+          context?.trim() ||
+          data.examples?.[0]?.es?.trim() ||
+          data.word ||
+          data.lemma;
 
-      await saveWord({
-        word: data.word || word || data.lemma,
-        lemma: data.lemma,
-        translation: resolvedTranslation,
-        context: resolvedSentence,
-        form: data.word || word || data.lemma,
-        sourceType,
-        sourceUrl,
-        originalSentence: resolvedSentence,
-        translatedSentence: data.examples?.[0]?.zh?.trim() || resolvedTranslation,
-        timestampSec: 0,
-        language: lookupLang
-      });
-      setSaved(true);
-      setSavedHint(`已加入${langLabel(lookupLang)}词库`);
-    } catch (e) {
-      setSavedHint(e instanceof Error ? e.message : "加入失败");
-    } finally {
-      setSaving(false);
-    }
-  }, [data, saving, saved, context, lookupLang, mtMeaning, word, sourceType, sourceUrl]);
+        await saveWord({
+          word: data.word || word || data.lemma,
+          lemma: data.lemma,
+          status: markAsKnown ? "KNOWN" : undefined,
+          translation: resolvedTranslation,
+          context: resolvedSentence,
+          form: data.word || word || data.lemma,
+          sourceType,
+          sourceUrl,
+          originalSentence: resolvedSentence,
+          translatedSentence: data.examples?.[0]?.zh?.trim() || resolvedTranslation,
+          timestampSec: 0,
+          language: lookupLang
+        });
+        setSaved(true);
+        setSavedHint(
+          markAsKnown
+            ? `已标记为已掌握（记入${langLabel(lookupLang)}词库并跳过复习）`
+            : `已加入${langLabel(lookupLang)}词库`
+        );
+      } catch (e) {
+        setSavedHint(e instanceof Error ? e.message : "加入失败");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [data, saving, saved, context, lookupLang, mtMeaning, word, sourceType, sourceUrl]
+  );
 
   const meanings = data?.meanings ?? [];
   const examples = data?.examples ?? [];
@@ -367,6 +375,34 @@ export function LookupSheet({
               <Text style={styles.meaning}>{data.morphInfo.trim()}</Text>
             ) : null}
 
+            {data.articleCue ? (
+              <View style={styles.articleBox}>
+                <Text style={styles.articleText}>
+                  名词冠词：{data.articleCue.singularWithArticle}
+                  {data.articleCue.pluralWithArticle ? ` → ${data.articleCue.pluralWithArticle}` : ""}
+                  {`（${data.articleCue.genderLabel}）`}
+                </Text>
+              </View>
+            ) : null}
+
+            {data.cognateHint ? (
+              <View
+                style={[
+                  styles.cognateBox,
+                  data.cognateHint.isFalseFriend && styles.falseFriendBox
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.cognateText,
+                    data.cognateHint.isFalseFriend && styles.falseFriendText
+                  ]}
+                >
+                  {data.cognateHint.patternLabel} · {data.cognateHint.tipZh}
+                </Text>
+              </View>
+            ) : null}
+
             {formsLine ? <Text style={styles.formsLine}>{formsLine}</Text> : null}
 
             {data.conjugations ? (
@@ -426,7 +462,7 @@ export function LookupSheet({
             <View style={styles.actionRow}>
               <Pressable
                 disabled={saving || saved}
-                onPress={handleSave}
+                onPress={() => void handleSave(false)}
                 style={[styles.saveButton, styles.actionFlex, saved && styles.saveButtonDone]}
               >
                 <Text style={[styles.saveButtonText, saved && styles.saveButtonTextDone]}>
@@ -454,6 +490,16 @@ export function LookupSheet({
                 </Text>
               </Pressable>
             </View>
+
+            {data.cognateHint?.isCognate && !saved ? (
+              <Pressable
+                disabled={saving}
+                onPress={() => void handleSave(true)}
+                style={styles.knownQuickBtn}
+              >
+                <Text style={styles.knownQuickText}>同源秒懂 · 记入词库并跳过复习</Text>
+              </Pressable>
+            ) : null}
 
             {savedHint ? <Text style={styles.savedHint}>{savedHint}</Text> : null}
           </ScrollView>
@@ -764,5 +810,35 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     fontWeight: "600",
     color: "#92400E"
-  }
+  },
+  articleBox: {
+    marginTop: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand100,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6
+  },
+  articleText: { fontSize: 12.5, fontWeight: "700", color: colors.brand700 },
+  cognateBox: {
+    marginTop: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.indigo50,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7
+  },
+  cognateText: { fontSize: 12, lineHeight: 18, fontWeight: "600", color: colors.indigo600 },
+  falseFriendBox: { backgroundColor: colors.amber50 },
+  falseFriendText: { color: colors.amber700 },
+  knownQuickBtn: {
+    marginTop: spacing.sm,
+    paddingVertical: 10,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.indigo50,
+    backgroundColor: colors.indigo50,
+    alignItems: "center"
+  },
+  knownQuickText: { fontSize: 12.5, fontWeight: "700", color: colors.indigo600 }
 });

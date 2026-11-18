@@ -85,6 +85,7 @@ export async function sendTalkMessage(input: {
   characterId: string;
   message: string;
   sessionId?: string;
+  targetWords?: string[];
 }) {
   return apiFetch<TalkReply>("/api/talk/message", {
     method: "POST",
@@ -92,7 +93,10 @@ export async function sendTalkMessage(input: {
     body: JSON.stringify({
       characterId: input.characterId,
       message: input.message,
-      sessionId: input.sessionId
+      sessionId: input.sessionId,
+      ...(input.targetWords && input.targetWords.length > 0
+        ? { targetWords: input.targetWords }
+        : {})
     })
   });
 }
@@ -170,6 +174,7 @@ export type TalkVoiceTurnReply = {
 export async function sendTalkVoiceTurn(input: {
   characterId: string;
   sessionId?: string;
+  targetWords?: string[];
   audioBase64: string;
   mimeType?: string;
   filename?: string;
@@ -181,6 +186,9 @@ export async function sendTalkVoiceTurn(input: {
     body: JSON.stringify({
       characterId: input.characterId,
       sessionId: input.sessionId,
+      ...(input.targetWords && input.targetWords.length > 0
+        ? { targetWords: input.targetWords }
+        : {}),
       audioBase64: input.audioBase64,
       mimeType: input.mimeType ?? "audio/wav",
       filename: input.filename ?? "speech.wav",

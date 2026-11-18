@@ -132,10 +132,18 @@ function formatDuration(ms: number): string {
 }
 
 export default function TalkRobotScreen() {
-  const { characterId, sessionId: initialSessionId } = useLocalSearchParams<{
+  const { characterId, sessionId: initialSessionId, words: initialWords } = useLocalSearchParams<{
     characterId: string;
     sessionId?: string;
+    words?: string;
   }>();
+  const [targetWords, setTargetWords] = useState<string[]>(() =>
+    (initialWords ?? "")
+      .split(/[,，|]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 6)
+  );
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<ChatBubble>>(null);
@@ -297,7 +305,8 @@ export default function TalkRobotScreen() {
         const res = await sendTalkMessage({
           characterId: String(characterId),
           message: text,
-          sessionId: sessionId ?? undefined
+          sessionId: sessionId ?? undefined,
+          targetWords
         });
 
         const assistantId = `assistant-${Date.now()}`;
@@ -334,7 +343,7 @@ export default function TalkRobotScreen() {
         setSending(false);
       }
     },
-    [characterId, sessionId, autoSpeak, speakLine]
+    [characterId, sessionId, autoSpeak, speakLine, targetWords]
   );
 
   const handleSendText = useCallback(async () => {
@@ -373,6 +382,7 @@ export default function TalkRobotScreen() {
         const res = await sendTalkVoiceTurn({
           characterId: String(characterId),
           sessionId: sessionId ?? undefined,
+          targetWords,
           audioBase64,
           mimeType,
           filename,
@@ -442,7 +452,7 @@ export default function TalkRobotScreen() {
         setSending(false);
       }
     },
-    [characterId, sessionId, activeLang, autoSpeak, playAssistantAudio]
+    [characterId, sessionId, activeLang, autoSpeak, playAssistantAudio, targetWords]
   );
 
   const startRecording = useCallback(async () => {
@@ -757,6 +767,22 @@ export default function TalkRobotScreen() {
         keyboardVerticalOffset={0}
         style={styles.flex}
       >
+        {targetWords.length > 0 ? (
+          <View style={styles.targetWordsBar}>
+            <View style={styles.targetWordsBody}>
+              <Text style={styles.targetWordsLabel}>
+                复习输出挑战：试着在对话里用出
+              </Text>
+              <Text style={styles.targetWordsList} numberOfLines={2}>
+                {targetWords.join(" · ")}
+              </Text>
+            </View>
+            <Pressable hitSlop={8} onPress={() => setTargetWords([])}>
+              <Text style={styles.targetWordsClose}>关闭</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={colors.brand500} />
@@ -1249,5 +1275,23 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   sendButtonDisabled: { opacity: 0.45 },
-  sendText: { fontSize: 13, fontWeight: "700", color: "#fff" }
+  sendText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  targetWordsBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand50,
+    borderWidth: 1,
+    borderColor: colors.brand100
+  },
+  targetWordsBody: { flex: 1, gap: 2 },
+  targetWordsLabel: { fontSize: 11, fontWeight: "700", color: colors.brand700 },
+  targetWordsList: { fontSize: 12.5, fontWeight: "700", color: colors.text },
+  targetWordsClose: { fontSize: 11.5, fontWeight: "600", color: colors.brand600 }
 });

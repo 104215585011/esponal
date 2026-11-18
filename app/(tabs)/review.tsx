@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-15 08:08
+// Timestamp: 2026-11-18 16:45
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   fetchReviewQueue,
   gradeReviewWord,
+  markVocabStatus,
   type DueWord,
   type ReviewRating
 } from "@/api/review";
@@ -22,11 +23,16 @@ import { PhrasesListPanel } from "@/components/PhrasesListPanel";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { VocabListPanel } from "@/components/VocabListPanel";
 import { usePreferences } from "@/hooks/usePreferences";
-import { getPreferences, LEARNING_LANGUAGE_OPTIONS } from "@/lib/preferences";
+import {
+  getPreferences,
+  LEARNING_LANGUAGE_OPTIONS,
+  type LearningLanguage
+} from "@/lib/preferences";
 import { speakAuto } from "@/lib/speech";
 import { colors, radius, spacing } from "@/theme";
 
 type ReviewTab = "queue" | "vocab" | "phrases";
+type ReviewMode = "context" | "cloze" | "audio";
 
 const RATING_BUTTONS: Array<{
   rating: ReviewRating;
@@ -39,6 +45,14 @@ const RATING_BUTTONS: Array<{
   { rating: "Easy", label: "简单", color: "#0284C7" }
 ];
 
+const TALK_CHAR_BY_LANG: Record<LearningLanguage, string> = {
+  es: "carlos",
+  en: "emma",
+  fr: "sophie",
+  ja: "kenji",
+  de: "carlos"
+};
+
 function speakEs(text: string) {
   const lang = getPreferences().learningLang;
   const opt = LEARNING_LANGUAGE_OPTIONS.find((o) => o.value === lang);
@@ -46,8 +60,11 @@ function speakEs(text: string) {
 }
 
 /**
- * 复习与词库中心：
- * 顶部三段切换「今日复习 / 我的词库 / 短语搭配」，把原本散落在「我的」里的词汇资产统一收口。
+ * 复习与词库中心（升级版）：
+ * - 单词与短语搭配（SavedPhrase）共用 FSRS 队列，优先高频词与重复遭遇词
+ * - 支持三种练习模式：语境记忆（含名词冠词强化）、原句挖空（Cloze）、听音辨义
+ * - 同源秒懂 / 屡忘低频词支持一键标熟跳过
+ * - 复习结束携带本轮词汇直达语音 Robot 做造句输出闭环
  */
 export default function ReviewScreen() {
   const router = useRouter();
@@ -66,6 +83,7 @@ export default function ReviewScreen() {
   const [totalDue, setTotalDue] = useState(0);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [mode, setMode] = useState<ReviewMode>("context");
   const [grading, setGrading] = useState<ReviewRating | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,9 +99,9 @@ export default function ReviewScreen() {
     Good: 0,
     Easy: 0
   });
-// Timestamp: 2026-11-17 15:45
   const doneTotalRef = useRef(0);
   const forgottenRef = useRef<DueWord[]>([]);
+  const sessionTermsRef = useRef<string[]>([]);
   const [autoLoading, setAutoLoading] = useState(false);
   const reqSeqRef = useRef(0);
   const latestLangRef = useRef(prefs.learningLang);
@@ -92,52 +110,62 @@ export default function ReviewScreen() {
     LEARNING_LANGUAGE_OPTIONS.find((item) => item.value === prefs.learningLang) ??
     LEARNING_LANGUAGE_OPTIONS[0];
 
-  const load = useCallback(async (isRefresh = false) => {
-    const seq = ++reqSeqRef.current;
-    const reqLang = prefs.learningLang;
-    if (isRefresh) setRefreshing(true);
-    else {
-      setLoading(true);
-      setQueue([]);
-      setTotalDue(0);
-    }
-    setError(null);
+  const load = useCallback(
+    async (isRefresh = false) => {
+      const seq = ++reqSeqRef.current;
+      const reqLang = prefs.learningLang;
+      if (isRefresh) setRefreshing(true);
+      else {
+        setLoading(true);
+        setQueue([]);
+        setTotalDue(0);
+      }
+      setError(null);
 
-    try {
-      const res = await fetchReviewQueue(undefined, reqLang);
-      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
-      setQueue(res.dueWords ?? []);
-      setTotalDue(res.totalDue ?? 0);
-      setIndex(0);
-      setFlipped(false);
-      if (!isRefresh) {
-        setCounts({ Again: 0, Hard: 0, Good: 0, Easy: 0 });
-        setReinforcing(false);
-        setReinforceDone(false);
-        doneTotalRef.current = 0;
-        forgottenRef.current = [];
+      try {
+        const res = await fetchReviewQueue(undefined, reqLang);
+        if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
+        setQueue(res.dueWords ?? []);
+        setTotalDue(res.totalDue ?? 0);
+        setIndex(0);
+        setFlipped(false);
+        if (!isRefresh) {
+          setCounts({ Again: 0, Hard: 0, Good: 0, Easy: 0 });
+          setReinforcing(false);
+          setReinforceDone(false);
+          doneTotalRef.current = 0;
+          forgottenRef.current = [];
+          sessionTermsRef.current = [];
+        }
+      } catch (e) {
+        if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
+        setError(e instanceof Error ? e.message : "加载失败");
+      } finally {
+        if (seq === reqSeqRef.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
-    } catch (e) {
-      if (seq !== reqSeqRef.current || reqLang !== latestLangRef.current) return;
-      setError(e instanceof Error ? e.message : "加载失败");
-    } finally {
-      if (seq === reqSeqRef.current) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    }
-  }, [prefs.learningLang]);
+    },
+    [prefs.learningLang]
+  );
 
   useEffect(() => {
     void load();
   }, [load]);
 
   useEffect(() => {
-    if (subTab !== "queue" || !prefs.autoSpeakReview) return;
+    if (subTab !== "queue") return;
     const word = queue[index];
     if (!word?.lemma) return;
-    speakEs(word.lemma);
-  }, [subTab, prefs.autoSpeakReview, queue, index]);
+    if (mode === "audio" && !flipped) {
+      speakEs(word.cloze?.fullSentence || word.lemma);
+      return;
+    }
+    if (prefs.autoSpeakReview) {
+      speakEs(word.lemma);
+    }
+  }, [subTab, mode, flipped, prefs.autoSpeakReview, queue, index]);
 
   const handleGrade = useCallback(
     async (rating: ReviewRating) => {
@@ -146,9 +174,13 @@ export default function ReviewScreen() {
 
       setGrading(rating);
       try {
-        const result = await gradeReviewWord(word.id, rating);
+        const result = await gradeReviewWord(word.id, rating, word.itemType ?? "word");
         doneTotalRef.current += 1;
         setCounts((c) => ({ ...c, [rating]: c[rating] + 1 }));
+
+        if (!sessionTermsRef.current.includes(word.lemma)) {
+          sessionTermsRef.current.push(word.lemma);
+        }
 
         if (rating === "Again") {
           const list = forgottenRef.current;
@@ -175,6 +207,24 @@ export default function ReviewScreen() {
     [queue, index, grading]
   );
 
+  const handleQuickKnown = useCallback(async () => {
+    const word = queue[index];
+    if (!word || grading) return;
+    setGrading("Easy");
+    try {
+      await markVocabStatus(word.id, "KNOWN", word.itemType ?? "word");
+      doneTotalRef.current += 1;
+      setLastFeedback("已标为掌握，移出今日队列");
+      setTimeout(() => setLastFeedback(null), 2000);
+      setFlipped(false);
+      setIndex((i) => i + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "操作失败");
+    } finally {
+      setGrading(null);
+    }
+  }, [queue, index, grading]);
+
   const continueNextBatch = useCallback(async () => {
     if (autoLoading) return;
     const reqLang = prefs.learningLang;
@@ -194,7 +244,7 @@ export default function ReviewScreen() {
     } finally {
       setAutoLoading(false);
     }
-  }, [autoLoading]);
+  }, [autoLoading, prefs.learningLang]);
 
   useEffect(() => {
     if (loading || autoLoading) return;
@@ -265,6 +315,8 @@ export default function ReviewScreen() {
       const offerReinforce = !reinforcing && forgottenCount > 0 && !reinforceDone;
       const reinforceJustFinished = !reinforcing && reinforceDone && forgottenCount > 0;
       const totalGraded = counts.Again + counts.Hard + counts.Good + counts.Easy;
+      const talkTargets = sessionTermsRef.current.slice(0, 5);
+      const targetCharacterId = TALK_CHAR_BY_LANG[prefs.learningLang] ?? "carlos";
 
       return (
         <View style={styles.center}>
@@ -275,7 +327,7 @@ export default function ReviewScreen() {
           <Text style={styles.doneText}>
             {totalGraded > 0
               ? `刚才复习了 ${totalGraded} 张${remaining > 0 ? `，今日还剩 ${remaining} 张` : ""}`
-              : "去看看视频或阅读文章，点选新词收藏就会进入复习队列。"}
+              : "去看看视频、阅读文章或收藏常用语块，就会按高频优先进入队列。"}
           </Text>
 
           {totalGraded > 0 ? (
@@ -290,10 +342,7 @@ export default function ReviewScreen() {
                 <Text style={styles.retryText}>再过一遍忘词 ({forgottenCount})</Text>
               </Pressable>
               {remaining > 0 ? (
-                <Pressable
-                  onPress={() => setReinforceDone(true)}
-                  style={styles.skipButton}
-                >
+                <Pressable onPress={() => setReinforceDone(true)} style={styles.skipButton}>
                   <Text style={styles.skipText}>跳过,继续复习</Text>
                 </Pressable>
               ) : null}
@@ -306,17 +355,32 @@ export default function ReviewScreen() {
             </Pressable>
           )}
 
-          {/* 任务流联动：复习完成后自然引导去口语练习造句 */}
+          {/* 任务流联动：带上刚复习过的词直达语音 Robot 进行真实造句输出 */}
           <Pressable
-            onPress={() => router.push("/talk" as never)}
+            onPress={() =>
+              router.push(
+                talkTargets.length > 0
+                  ? ({
+                      pathname: "/talk/[characterId]",
+                      params: { characterId: targetCharacterId, words: talkTargets.join(",") }
+                    } as never)
+                  : ("/talk" as never)
+              )
+            }
             style={({ pressed }) => [styles.bridgeCard, pressed && { opacity: 0.8 }]}
           >
             <View style={styles.bridgeIconBox}>
               <AppIcon color={colors.indigo600} name="mic" size={16} />
             </View>
             <View style={styles.bridgeText}>
-              <Text style={styles.bridgeTitle}>去口语里用一用</Text>
-              <Text style={styles.bridgeDesc}>和 AI 对话把刚记住的词说出来</Text>
+              <Text style={styles.bridgeTitle}>
+                {talkTargets.length > 0 ? "去口语里把这些词用出来" : "去口语里用一用"}
+              </Text>
+              <Text numberOfLines={1} style={styles.bridgeDesc}>
+                {talkTargets.length > 0
+                  ? `练习：${talkTargets.join(" · ")}`
+                  : "和 AI 对话把刚记住的词说出来"}
+              </Text>
             </View>
             <AppIcon color={colors.textTertiary} name="chevron" size={14} />
           </Pressable>
@@ -328,6 +392,16 @@ export default function ReviewScreen() {
     const examples = current.dictData?.examples ?? [];
     const nounForms = current.dictData?.nounForms;
     const encounters = current.encounters ?? [];
+    const isPhrase = current.itemType === "phrase";
+    const headline =
+      current.encounterForm &&
+      current.encounterForm.toLowerCase() !== current.lemma.toLowerCase()
+        ? `${current.encounterForm}（${current.lemma}）`
+        : current.articleCue?.maskedWithArticle ?? current.lemma;
+    const canQuickKnown =
+      Boolean(current.cognateHint?.isCognate) ||
+      Boolean(current.isLowFrequency) ||
+      (current.srsLapses ?? 0) >= 2;
 
     return (
       <>
@@ -344,57 +418,154 @@ export default function ReviewScreen() {
           )}
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.body}
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.modeRow}>
+          {(
+            [
+              { key: "context", label: "语境记忆" },
+              { key: "cloze", label: "原句挖空" },
+              { key: "audio", label: "听音辨义" }
+            ] as const
+          ).map((item) => {
+            const on = mode === item.key;
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => {
+                  setMode(item.key);
+                  setFlipped(false);
+                }}
+                style={[styles.modePill, on && styles.modePillOn]}
+              >
+                <Text style={[styles.modePillText, on && styles.modePillTextOn]}>
+                  {item.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
             <View style={styles.cardHead}>
-              {current.partOfSpeech ? (
-                <Text style={styles.pos}>{current.partOfSpeech}</Text>
-              ) : <View />}
-              <Pressable onPress={() => speakEs(current.lemma)} hitSlop={8}>
+              <View style={styles.cardBadgeGroup}>
+                {isPhrase ? (
+                  <Text style={styles.phraseTag}>{current.partOfSpeech ?? "实用语块"}</Text>
+                ) : current.partOfSpeech ? (
+                  <Text style={styles.pos}>{current.partOfSpeech}</Text>
+                ) : null}
+                {current.frequencyLevel ? (
+                  <Text style={styles.freqTag}>{current.frequencyLevel}</Text>
+                ) : null}
+                {current.priorityReason ? (
+                  <Text style={styles.reasonTag}>{current.priorityReason}</Text>
+                ) : null}
+              </View>
+              <Pressable
+                onPress={() =>
+                  speakEs(
+                    mode === "audio" && current.cloze?.fullSentence
+                      ? current.cloze.fullSentence
+                      : current.lemma
+                  )
+                }
+                hitSlop={8}
+              >
                 <AppIcon color={colors.brand600} name="speak" size={20} />
               </Pressable>
             </View>
 
-            <Text style={styles.lemma}>{current.lemma}</Text>
-
-            {encounters[0]?.originalSentence ? (
-              <View style={styles.encounterBox}>
-                <Text style={styles.encounterLabel}>收藏原句</Text>
-                <Text style={styles.encounterText}>{encounters[0].originalSentence}</Text>
+            {mode === "audio" && !flipped ? (
+              <Pressable
+                onPress={() => speakEs(current.cloze?.fullSentence || current.lemma)}
+                style={styles.audioPromptBox}
+              >
+                <Text style={styles.audioPromptTitle}>🎧 点此再听一遍发音</Text>
+                {current.cloze?.translatedSentence ? (
+                  <Text style={styles.audioPromptSub}>
+                    句意提示：{current.cloze.translatedSentence}
+                  </Text>
+                ) : (
+                  <Text style={styles.audioPromptSub}>先听音辨认词义和冠词/变位，再翻面确认</Text>
+                )}
+              </Pressable>
+            ) : mode === "cloze" && current.cloze ? (
+              <View style={styles.clozeWrap}>
+                <Text style={styles.clozeSentence}>{current.cloze.maskedSentence}</Text>
+                {current.cloze.translatedSentence ? (
+                  <Text style={styles.clozeHint}>{current.cloze.translatedSentence}</Text>
+                ) : null}
               </View>
-            ) : null}
+            ) : (
+              <>
+                <Text style={styles.lemma}>{headline}</Text>
+                {current.articleCue ? (
+                  <Text style={styles.articlePromptHint}>
+                    先在心里想出冠词（{current.articleCue.genderLabel}）：el / la ?
+                  </Text>
+                ) : null}
+                {encounters[0]?.originalSentence ? (
+                  <View style={styles.encounterBox}>
+                    <Text style={styles.encounterLabel}>
+                      收藏原句
+                      {(current.encounterCount ?? 1) > 1
+                        ? ` · 累计遇到 ${current.encounterCount} 次`
+                        : ""}
+                    </Text>
+                    <Text style={styles.encounterText}>{encounters[0].originalSentence}</Text>
+                  </View>
+                ) : null}
+              </>
+            )}
 
             {!flipped ? (
-              <Pressable
-                onPress={() => setFlipped(true)}
-                style={styles.revealButton}
-              >
+              <Pressable onPress={() => setFlipped(true)} style={styles.revealButton}>
                 <Text style={styles.revealText}>想不起来？查看释义</Text>
               </Pressable>
             ) : (
               <>
                 <View style={styles.divider} />
 
-                {current.translation ? (
-                  <Text style={styles.translation}>{current.translation}</Text>
+                {mode !== "context" ? (
+                  <Text style={styles.revealedTarget}>
+                    {current.cloze?.answerForm ?? current.lemma}
+                    {current.cloze?.answerForm &&
+                    current.cloze.answerForm.toLowerCase() !== current.lemma.toLowerCase()
+                      ? `（原形 ${current.lemma}）`
+                      : ""}
+                  </Text>
                 ) : null}
 
-                {nounForms ? (
+                {current.articleCue ? (
+                  <Text style={styles.nounFormsLine}>
+                    冠词绑定：{current.articleCue.singularWithArticle}
+                    {current.articleCue.pluralWithArticle
+                      ? ` → ${current.articleCue.pluralWithArticle}`
+                      : ""}{" "}
+                    ({current.articleCue.genderLabel})
+                  </Text>
+                ) : nounForms ? (
                   <Text style={styles.nounFormsLine}>
                     {nounForms.singular} → {nounForms.plural}
                   </Text>
                 ) : null}
 
-                {meanings.length > 0 ? (
-                  meanings.slice(0, 3).map((m, i) => (
-                    <Text key={i} style={styles.meaningLine}>
-                      {i + 1}. {m}
-                    </Text>
-                  ))
+                {current.translation ? (
+                  <Text style={styles.translation}>{current.translation}</Text>
                 ) : null}
+
+                {current.cognateHint ? (
+                  <Text style={styles.cognateNote}>
+                    {current.cognateHint.patternLabel} · {current.cognateHint.tipZh}
+                  </Text>
+                ) : null}
+
+                {meanings.length > 0
+                  ? meanings.slice(0, 3).map((m, i) => (
+                      <Text key={i} style={styles.meaningLine}>
+                        {i + 1}. {m}
+                      </Text>
+                    ))
+                  : null}
 
                 {examples.length > 0 ? (
                   <View style={styles.examples}>
@@ -410,7 +581,9 @@ export default function ReviewScreen() {
                 <Text style={styles.repsHint}>
                   {(current.srsReps ?? 0) > 0
                     ? `已复习 ${current.srsReps} 次`
-                    : "第一次见到这个词"}
+                    : isPhrase
+                      ? "首次复习这个语块"
+                      : "第一次复习这个词"}
                 </Text>
 
                 {reinforcing ? (
@@ -438,6 +611,20 @@ export default function ReviewScreen() {
                   </View>
                 )}
 
+                {!reinforcing && canQuickKnown ? (
+                  <Pressable
+                    disabled={Boolean(grading)}
+                    onPress={() => void handleQuickKnown()}
+                    style={styles.knownSkipBtn}
+                  >
+                    <Text style={styles.knownSkipText}>
+                      {current.cognateHint?.isCognate
+                        ? "同源秒懂 · 标为已掌握"
+                        : "低频先跳过 · 标为已掌握"}
+                    </Text>
+                  </Pressable>
+                ) : null}
+
                 {error ? <Text style={styles.gradeError}>{error}</Text> : null}
               </>
             )}
@@ -448,7 +635,7 @@ export default function ReviewScreen() {
               ? "补练只重看一遍，不影响复习计划"
               : flipped
                 ? "凭诚实评分：想不起来就点「忘了」，间隔会自动缩短"
-                : "先自己想意思，再翻面"}
+                : "先结合原句与冠词/变位回想，再翻面"}
           </Text>
         </ScrollView>
 
@@ -589,6 +776,26 @@ const styles = StyleSheet.create({
     color: colors.brand700
   },
   dueText: { fontSize: 12, color: colors.textTertiary },
+  modeRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm
+  },
+  modePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  modePillOn: {
+    backgroundColor: colors.brand500,
+    borderColor: colors.brand500
+  },
+  modePillText: { fontSize: 11.5, fontWeight: "600", color: colors.textSecondary },
+  modePillTextOn: { color: "#fff" },
   body: {
     flexGrow: 1,
     paddingHorizontal: spacing.xl,
@@ -605,7 +812,15 @@ const styles = StyleSheet.create({
   cardHead: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    gap: 8
+  },
+  cardBadgeGroup: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 6
   },
   pos: {
     fontSize: 11,
@@ -617,12 +832,55 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     overflow: "hidden"
   },
+  phraseTag: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.amber700,
+    backgroundColor: colors.amber50,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    overflow: "hidden"
+  },
+  freqTag: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: colors.indigo600,
+    backgroundColor: colors.indigo50,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    overflow: "hidden"
+  },
+  reasonTag: {
+    fontSize: 10.5,
+    fontWeight: "600",
+    color: colors.textSecondary
+  },
+  audioPromptBox: {
+    marginTop: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.indigo50,
+    padding: spacing.lg,
+    gap: 6
+  },
+  audioPromptTitle: { fontSize: 16, fontWeight: "800", color: colors.indigo600 },
+  audioPromptSub: { fontSize: 13, lineHeight: 19, color: colors.textSecondary },
+  clozeWrap: { marginTop: spacing.lg, gap: 8 },
+  clozeSentence: { fontSize: 20, fontWeight: "700", lineHeight: 30, color: colors.text },
+  clozeHint: { fontSize: 13, lineHeight: 19, color: colors.textSecondary },
   lemma: {
     marginTop: spacing.md,
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "800",
     color: colors.text,
     letterSpacing: -0.6
+  },
+  articlePromptHint: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.brand600
   },
   revealButton: {
     marginTop: spacing.xl,
@@ -638,11 +896,27 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.border
   },
+  revealedTarget: {
+    marginTop: spacing.md,
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.brand700
+  },
   translation: {
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     fontSize: 19,
     fontWeight: "700",
     color: colors.text
+  },
+  cognateNote: {
+    marginTop: spacing.xs,
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.indigo600,
+    backgroundColor: colors.indigo50,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radius.sm
   },
   meaningLine: {
     marginTop: 6,
@@ -675,6 +949,16 @@ const styles = StyleSheet.create({
   },
   ratingButtonActive: { opacity: 0.6 },
   ratingText: { fontSize: 13.5, fontWeight: "700", color: "#fff" },
+  knownSkipBtn: {
+    marginTop: spacing.md,
+    paddingVertical: 10,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgSubtle,
+    alignItems: "center"
+  },
+  knownSkipText: { fontSize: 12, fontWeight: "600", color: colors.textSecondary },
   gradeError: {
     marginTop: spacing.md,
     fontSize: 12,
@@ -730,7 +1014,7 @@ const styles = StyleSheet.create({
   nounFormsLine: {
     marginTop: spacing.xs,
     fontSize: 13.5,
-    fontWeight: "600",
+    fontWeight: "700",
     color: colors.brand700
   }
 });
