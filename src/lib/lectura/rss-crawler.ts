@@ -112,7 +112,7 @@ function toParagraphsFromText(text: string): string[] {
     .split(/\n{2,}/)
     .map((p) => p.replace(/\s+/g, " ").trim())
     .filter((p) => p.length >= 25);
-  if (parts.length > 0) return parts.slice(0, 35);
+  if (parts.length > 0) return parts.slice(0, 120);
   return text.trim() ? [text.trim()] : [];
 }
 
@@ -145,7 +145,8 @@ async function fetchFullArticleData(
     if (response.ok) {
       const html = await response.text();
       ogImage = extractOgImageFromHtml(html, sourceUrl);
-      const extracted = extractArticleParagraphsFromHtml(html, 35);
+      const extractLimit = 120;
+      const extracted = extractArticleParagraphsFromHtml(html, extractLimit);
       if (extracted.length >= 4) {
         return { paragraphs: extracted, ogImage };
       }
@@ -165,7 +166,7 @@ async function fetchFullArticleData(
     });
     if (jinaRes.ok) {
       const md = await jinaRes.text();
-      return { paragraphs: extractArticleParagraphsFromMarkdown(md, 35), ogImage };
+      return { paragraphs: extractArticleParagraphsFromMarkdown(md, 120), ogImage };
     }
   } catch {
     // 保留 RSS 原文摘要
@@ -205,20 +206,30 @@ async function enrichShortItems(items: CrawledLecturaItem[]): Promise<CrawledLec
   return enriched;
 }
 
-export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<CrawledLecturaItem[]> {
+export async function crawlLecturaRssFeeds(
+  forceRefresh = false,
+  targetLanguage?: LearningLanguage
+): Promise<CrawledLecturaItem[]> {
+  const cacheKey = targetLanguage ? `${LIST_CACHE_KEY}:${targetLanguage}` : LIST_CACHE_KEY;
   if (!forceRefresh) {
-    if (memoryListCache && memoryListCache.expiresAt > Date.now()) {
+    if (!targetLanguage && memoryListCache && memoryListCache.expiresAt > Date.now()) {
       return memoryListCache.items;
     }
-    const cached = await readJsonCache<CrawledLecturaItem[]>(LIST_CACHE_KEY);
+    const cached = await readJsonCache<CrawledLecturaItem[]>(cacheKey);
     if (cached && cached.length > 0) {
-      memoryListCache = { expiresAt: Date.now() + 10 * 60 * 1000, items: cached };
-      return cached;
+      if (!targetLanguage) {
+        memoryListCache = { expiresAt: Date.now() + 10 * 60 * 1000, items: cached };
+      }
+      return targetLanguage ? cached.filter((i) => i.language === targetLanguage) : cached;
     }
   }
 
+  const feedsToFetch = targetLanguage
+    ? NEWS_FEEDS.filter((f) => f.language === targetLanguage)
+    : NEWS_FEEDS;
+
   const results = await Promise.allSettled(
-    NEWS_FEEDS.map(async (feed) => {
+    feedsToFetch.map(async (feed) => {
       const xml = await fetchFeedXml(feed.url, 6500);
       const { channelImageUrl, items: parsed } = parseRssFeed(xml, feed.limit);
       return parsed.map((entry): CrawledLecturaItem => {
@@ -260,8 +271,10 @@ export async function crawlLecturaRssFeeds(forceRefresh = false): Promise<Crawle
   const items = rawItems.length > 0 ? await enrichShortItems(rawItems) : [];
 
   if (items.length > 0) {
-    memoryListCache = { expiresAt: Date.now() + 10 * 60 * 1000, items };
-    await writeJsonCache(LIST_CACHE_KEY, items, LIST_TTL_SEC);
+    if (!targetLanguage) {
+      memoryListCache = { expiresAt: Date.now() + 10 * 60 * 1000, items };
+    }
+    await writeJsonCache(cacheKey, items, LIST_TTL_SEC);
   }
 
   return items;

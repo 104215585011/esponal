@@ -12,12 +12,12 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { SPANISH_CURATED_SOURCES } from "../src/lib/channels.ts";
+import { SPANISH_CURATED_SOURCES } from "../src/lib/spanish-sources.ts";
 import {
   analyzeSpanishSubtitleCues,
   assessSpanishVideoLevel,
   inferSpanishVideoTopic
-} from "../src/lib/video-catalog.ts";
+} from "../src/lib/video-catalog-logic.ts";
 import { parseIsoDurationSeconds } from "../src/lib/video-pool-logic.ts";
 import { fetchYouTubeInnerTubeSubtitles } from "../src/lib/youtube-subtitles.ts";
 

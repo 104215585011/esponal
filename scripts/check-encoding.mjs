@@ -11,6 +11,7 @@ const IGNORED_DIRS = new Set([
   ".claude",
   ".qa",
   ".npm-cache",
+  ".worktrees",
   "node_modules"
 ]);
 const ALLOWLIST = new Set([

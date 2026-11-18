@@ -15,7 +15,7 @@ export async function GET() {
   }
 
   const reads = await prisma.lecturaRead.findMany({
-    where: { userId: session.user.id },
+    where: { userId: session.user.id, completed: true },
     orderBy: { readAt: "desc" },
     select: { slug: true }
   });

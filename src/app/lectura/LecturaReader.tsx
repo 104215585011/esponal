@@ -1,8 +1,9 @@
-// Timestamp: 2026-06-03 15:44
+// Timestamp: 2026-11-18 11:28
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Volume2, Pause, Check } from "lucide-react";
+import Link from "next/link";
+import { Volume2, Pause, Check, ArrowRight } from "lucide-react";
 import { LookupCardStack } from "@/app/watch/LookupCard";
 import {
   PHRASE_HIGHLIGHT_CLASSES,
@@ -15,10 +16,13 @@ import { ReadingPreferences, type ReadingFontSize, type ReadingLookupMode } from
 import { ReadingDock } from "./ReadingDock";
 import { useReadingPosition } from "@/hooks/useReadingPosition";
 import type { LecturaStory } from "@/../content/lectura";
+import type { NextStoryRecommendation } from "@/lib/lectura/catalog-logic";
 
 type LecturaReaderProps = {
   story: LecturaStory;
   isRead: boolean;
+  initialParagraphIndex?: number;
+  nextRecommendation?: NextStoryRecommendation | null;
 };
 
 type ActiveLookupCard = {
@@ -144,11 +148,17 @@ function MobileReadingBar({
   );
 }
 
-export function LecturaReader({ story, isRead }: LecturaReaderProps) {
+export function LecturaReader({
+  story,
+  isRead,
+  initialParagraphIndex = 0,
+  nextRecommendation = null
+}: LecturaReaderProps) {
   const [activeLookup, setActiveLookup] = useState<ActiveLookup | null>(null);
   const [playingParagraphIndex, setPlayingParagraphIndex] = useState<number | null>(null);
   const [playingSentenceKey, setPlayingSentenceKey] = useState<string | null>(null);
   const [isMarked, setIsMarked] = useState(isRead);
+  const [nextStory, setNextStory] = useState<NextStoryRecommendation | null>(nextRecommendation);
   const [savedSet, setSavedSet] = useState<Set<string>>(() => new Set());
   const [phraseSpansByParagraph, setPhraseSpansByParagraph] = useState<Record<number, PhraseSpan[]>>({});
   const [playbackRate] = usePlaybackRate();
@@ -188,7 +198,33 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     handleSetFontSize(fontSize === "sm" ? "md" : fontSize === "md" ? "lg" : "sm");
   };
 
-  useReadingPosition(story.slug, isMounted);
+  useReadingPosition(story.slug, isMounted && initialParagraphIndex <= 0);
+
+  const reportProgress = useCallback(
+    (paragraphIndex: number) => {
+      if (isMarked) return;
+      fetch(`/api/lectura/${story.slug}/read`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "progress",
+          paragraphIndex,
+          totalParagraphs: story.paragraphs.length
+        })
+      }).catch(() => {
+        // Silent background progress update
+      });
+    },
+    [isMarked, story.slug, story.paragraphs.length]
+  );
+
+  useEffect(() => {
+    if (!isMounted || initialParagraphIndex <= 0) return;
+    const el = document.getElementById(`p${initialParagraphIndex}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isMounted, initialParagraphIndex]);
 
   useEffect(() => {
     if (currentAudioRef.current) {
@@ -322,6 +358,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
   }, [stopAllReadingAudio, story.slug]);
 
   const toggleParagraphAudio = (paragraphIndex: number) => {
+    reportProgress(paragraphIndex);
     if (playingParagraphIndex === paragraphIndex) {
       stopCurrentAudio();
       return;
@@ -355,11 +392,23 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     isAutoMarkingRef.current = true;
     try {
       const response = await fetch(`/api/lectura/${story.slug}/read`, {
-        method: "POST"
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "complete",
+          totalParagraphs: story.paragraphs.length
+        })
       });
 
       if (!response.ok) {
         return;
+      }
+
+      const data = (await response.json().catch(() => ({}))) as {
+        nextStory?: NextStoryRecommendation | null;
+      };
+      if (data.nextStory) {
+        setNextStory(data.nextStory);
       }
 
       setIsMarked(true);
@@ -371,7 +420,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     } finally {
       isAutoMarkingRef.current = false;
     }
-  }, [isMarked, story.slug]);
+  }, [isMarked, story.slug, story.paragraphs.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -461,7 +510,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (isMarked) {
+      if (isMarked || isAutoMarkingRef.current) {
         return;
       }
 
@@ -470,7 +519,8 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
       );
 
       if (progress >= 90) {
-        void markAsRead();
+        isAutoMarkingRef.current = true;
+        reportProgress(Math.max(0, story.paragraphs.length - 1));
       }
     };
 
@@ -480,7 +530,7 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [isMarked, markAsRead]);
+  }, [isMarked, reportProgress, story.paragraphs.length]);
 
   const dockLookup = activeLookup
     ? {
@@ -645,13 +695,54 @@ export function LecturaReader({ story, isRead }: LecturaReaderProps) {
           })}
         </div>
 
-        {isMarked ? (
-          <div className="mt-8 hidden justify-end md:flex">
-            <span className="inline-flex min-h-[36px] items-center rounded-full bg-emerald-50 dark:bg-emerald-950/20 px-3.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 cursor-default border border-emerald-100 dark:border-emerald-900/30">
-              已读 ✓
-            </span>
-          </div>
-        ) : null}
+        {/* 读完了操作 + 读后推荐下一篇 */}
+        <div className="mt-10 rounded-2xl border border-zinc-200/70 bg-surface p-5 dark:border-zinc-800/70">
+          {!isMarked ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  读到末尾了吗？
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  点「读完了」保存完成记录，并为你挑选下一篇相近难度、相关主题的好文章。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void markAsRead()}
+                className="inline-flex min-h-[42px] shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand-500 px-5 text-sm font-semibold text-white transition hover:bg-brand-600"
+              >
+                <Check className="h-4 w-4" aria-hidden />
+                <span>读完了</span>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex min-h-[32px] cursor-default items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  <Check className="h-3.5 w-3.5" aria-hidden />
+                  <span>本篇已读完</span>
+                </span>
+              </div>
+
+              {nextStory ? (
+                <Link
+                  href={`/lectura/${nextStory.slug}`}
+                  className="group flex flex-col gap-2 rounded-xl border border-brand-200/60 bg-brand-50/40 p-4 transition hover:border-brand-300 dark:border-brand-800/40 dark:bg-brand-950/20"
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs font-semibold text-brand-700 dark:text-brand-400">
+                    <span>为你推荐下一篇 · {nextStory.reasonZh}</span>
+                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+                  </div>
+                  <p className="text-base font-bold text-zinc-900 group-hover:text-brand-600 dark:text-zinc-100">
+                    {nextStory.titleZh}
+                  </p>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">{nextStory.summaryZh}</p>
+                </Link>
+              ) : null}
+            </div>
+          )}
+        </div>
       </div>
 
       {lookupMode === "dock" && (
