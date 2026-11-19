@@ -1,6 +1,9 @@
+// Timestamp: 2026-11-19 17:08
 import { NextResponse } from "next/server";
+import { getOptionalUserId } from "@/lib/api-auth";
 import { checkRateLimit, getRetryAfterSec, ingestLimiter } from "@/lib/ratelimit";
 import { redis } from "@/lib/redis";
+import { recordCatalogSubtitleVerification } from "@/lib/video-catalog";
 
 export const runtime = "nodejs";
 
@@ -11,7 +14,7 @@ const MAX_PAYLOAD_BYTES = 500_000;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-Esponal-Ingest-Token",
+  "Access-Control-Allow-Headers": "Content-Type, X-Esponal-Ingest-Token, Authorization",
   "Access-Control-Max-Age": "86400"
 } as const;
 
@@ -88,12 +91,16 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   const token = request.headers.get("x-esponal-ingest-token");
+  const hasExtToken = Boolean(
+    token && process.env.EXT_INGEST_TOKEN && token === process.env.EXT_INGEST_TOKEN
+  );
+  const userId = hasExtToken ? null : await getOptionalUserId(request);
 
-  if (!token || token !== process.env.EXT_INGEST_TOKEN) {
+  if (!hasExtToken && !userId) {
     return jsonResponse({ error: "unauthorized" }, { status: 401 });
   }
 
-  const rateLimit = await checkRateLimit(ingestLimiter, request, null);
+  const rateLimit = await checkRateLimit(ingestLimiter, request, userId);
 
   if (!rateLimit.allowed) {
     const retryAfterSec = getRetryAfterSec(rateLimit.reset);
@@ -138,15 +145,25 @@ export async function POST(request: Request) {
   }
 
   // Store with provenance so /api/subtitle can report the source. Extension
-  // captures are YouTube's native track (highest quality), distinguishable
-  // from the Apify/Whisper server fallbacks via the `source` field/header.
+  // captures and authenticated mobile client InnerTube captures are YouTube's
+  // native tracks (highest quality, zero server quota cost), distinguishable
+  // from Supadata/Apify/Whisper fallbacks via the `source` field/header.
+  const source = hasExtToken ? "extension" : "client_youtube";
   const cacheKey = `subtitle:v4:${body.videoId}:${body.lang}:auto`;
-  const envelope = { cues, source: "extension", at: Date.now() };
+  const envelope = { cues, source, at: Date.now() };
   await redis.set(cacheKey, JSON.stringify(envelope), "EX", SUBTITLE_CACHE_TTL);
+
+  void recordCatalogSubtitleVerification({
+    videoId: body.videoId,
+    language: body.lang,
+    cues,
+    source
+  });
 
   return jsonResponse({
     success: true,
     cueCount: cues.length,
+    source,
     written: true
   });
 }

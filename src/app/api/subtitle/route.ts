@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:58
+// Timestamp: 2026-11-19 17:08
 import { meteredFetch, recordApiUsage, withApiUsage } from "@/lib/api-usage";
 import { checkAdminFeature } from "@/lib/admin-policy";
 import { NextResponse } from "next/server";
@@ -31,16 +31,19 @@ type SubtitleCue = {
   text: string;
 };
 
+type SubtitleHintReason = "no_subtitle" | "provider_unavailable" | "quota_exceeded";
+
 type SubtitleHint = {
-  reason: "no_subtitle";
+  reason: SubtitleHintReason;
 };
 
 // Provenance of the returned subtitle cues, exposed via the `source` field
 // and the `X-Subtitle-Source` response header so it's easy to tell whether
-// the displayed subtitles came from the browser-extension capture (accurate
-// YouTube native captions) vs the Supadata/Apify/Whisper server fallbacks.
+// the displayed subtitles came from the browser-extension / mobile-client capture
+// (accurate YouTube native captions) vs the Supadata/Apify/Whisper server fallbacks.
 type SubtitleSource =
   | "extension"
+  | "client_youtube"
   | "supadata"
   | "apify"
   | "whisper"
@@ -217,13 +220,19 @@ function normalizeCueList(items: SupadataCueItem[]): SubtitleCue[] {
     .filter((cue): cue is SubtitleCue => Boolean(cue));
 }
 
+type SubtitleFetchDiagnostics = {
+  failureReason?: Exclude<SubtitleHintReason, "no_subtitle">;
+};
+
 async function fetchSupadataSubtitles(
   videoId: string,
-  lang: string
+  lang: string,
+  diagnostics?: SubtitleFetchDiagnostics
 ): Promise<SubtitleCue[]> {
   const apiKey = process.env.SUPADATA_API_KEY?.trim();
 
   if (!apiKey) {
+    if (diagnostics) diagnostics.failureReason = "provider_unavailable";
     return [];
   }
 
@@ -244,6 +253,13 @@ async function fetchSupadataSubtitles(
 
     if (!response.ok) {
       console.warn("[subtitle] Supadata request failed:", response.status);
+      if (diagnostics) {
+        if (response.status === 402) {
+          diagnostics.failureReason = "quota_exceeded";
+        } else if (response.status === 429 || response.status >= 500) {
+          diagnostics.failureReason = "provider_unavailable";
+        }
+      }
       return [];
     }
 
@@ -261,6 +277,7 @@ async function fetchSupadataSubtitles(
     return cues;
   } catch (error) {
     console.warn("[subtitle] Supadata fetch failed:", error);
+    if (diagnostics) diagnostics.failureReason = "provider_unavailable";
     return [];
   }
 }
@@ -420,7 +437,7 @@ async function fetchSubtitlesWithFallback(
   videoId: string,
   lang: string,
   forceWhisper: boolean
-): Promise<{ cues: SubtitleCue[]; source: SubtitleSource }> {
+): Promise<{ cues: SubtitleCue[]; source: SubtitleSource; failureReason?: SubtitleHintReason }> {
   if (forceWhisper) {
     try {
       const whisperCues = await getLocalWhisperSubtitles(videoId, lang);
@@ -439,7 +456,7 @@ async function fetchSubtitlesWithFallback(
       console.warn("[subtitle] Whisper fallback failed:", error);
     }
 
-    return { cues: [], source: "none" };
+    return { cues: [], source: "none", failureReason: "provider_unavailable" };
   }
 
   const youtubeCues = await fetchYouTubeInnerTubeSubtitles(videoId, lang);
@@ -448,7 +465,8 @@ async function fetchSubtitlesWithFallback(
     return { cues: youtubeCues, source: "youtube" };
   }
 
-  const supadataCues = await fetchSupadataSubtitles(videoId, lang);
+  const diagnostics: SubtitleFetchDiagnostics = {};
+  const supadataCues = await fetchSupadataSubtitles(videoId, lang, diagnostics);
 
   if (!shouldUseWhisperFallback(supadataCues, false)) {
     return { cues: supadataCues, source: "supadata" };
@@ -496,7 +514,11 @@ async function fetchSubtitlesWithFallback(
     return { cues: supadataCues, source: "supadata" };
   }
 
-  return { cues: [], source: "none" };
+  return {
+    cues: [],
+    source: "none",
+    failureReason: diagnostics.failureReason ?? "no_subtitle"
+  };
 }
 
 export async function GET(request: Request) {
@@ -562,7 +584,9 @@ export async function GET(request: Request) {
 
     const denied = await checkAdminFeature(userId, "subtitle");
     if (denied) return denied;
-    const { cues, source } = await withApiUsage(userId, () => fetchSubtitlesWithFallback(videoId, lang, forceWhisper));
+    const { cues, source, failureReason } = await withApiUsage(userId, () =>
+      fetchSubtitlesWithFallback(videoId, lang, forceWhisper)
+    );
 
     void recordCatalogSubtitleVerification({
       videoId,
@@ -602,7 +626,7 @@ export async function GET(request: Request) {
     const payload: SubtitleResponse =
       cues.length > 0
         ? { cues: clampOverlappingCues(cues), source }
-        : { cues: [], hint: { reason: "no_subtitle" }, source: "none" };
+        : { cues: [], hint: { reason: failureReason ?? "no_subtitle" }, source: "none" };
 
     return NextResponse.json(payload, {
       headers: { "Cache-Control": "no-store", "X-Subtitle-Source": source }
