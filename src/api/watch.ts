@@ -1,6 +1,7 @@
-// Timestamp: 2026-11-17 23:14
-import { apiFetch } from "@/api/client";
+// Timestamp: 2026-11-19 17:11
+import { ApiError, apiFetch, tokenStore } from "@/api/client";
 import type { LearningLanguage } from "@/lib/preferences";
+import { fetchYouTubeSubtitlesDirect } from "@/lib/youtubeSubtitles";
 
 export type VideoLevel = "A1" | "A2" | "B1";
 
@@ -116,11 +117,68 @@ export async function fetchVideoFeed(options: {
   return apiFetch<VideoFeedResponse>(`/api/videos/feed${qs ? `?${qs}` : ""}`);
 }
 
+async function ingestSubtitlesToServer(
+  videoId: string,
+  lang: LearningLanguage,
+  cues: Cue[]
+) {
+  if (cues.length < 5 || cues.length > 5000) return;
+  try {
+    const token = await tokenStore.getAccess();
+    if (!token) return;
+    await apiFetch(
+      "/api/subtitle/ingest",
+      {
+        method: "POST",
+        body: JSON.stringify({ videoId, lang, cues })
+      },
+      false
+    );
+  } catch {
+    // 后台回写缓存失败不影响当前观看体验
+  }
+}
+
 export async function fetchSubtitles(videoId: string, lang: LearningLanguage = "es") {
-  const res = await apiFetch<{ cues?: Cue[] }>(
-    `/api/subtitle?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lang)}`
-  );
-  return res.cues ?? [];
+  let serverHintReason: string | undefined;
+  let serverError: unknown = null;
+
+  try {
+    const res = await apiFetch<{
+      cues?: Cue[];
+      hint?: { reason?: string };
+    }>(`/api/subtitle?v=${encodeURIComponent(videoId)}&lang=${encodeURIComponent(lang)}`);
+    if (Array.isArray(res.cues) && res.cues.length > 0) {
+      return res.cues;
+    }
+    serverHintReason = res.hint?.reason;
+  } catch (err) {
+    // 登录态失效或积分不足直接透传，不绕过服务端校验
+    if (err instanceof ApiError && (err.status === 401 || err.status === 402)) {
+      throw err;
+    }
+    serverError = err;
+  }
+
+  // 服务端未命中缓存或机房 IP 被 YouTube 屏蔽时，直接在手机端通过 YouTube InnerTube 拉取
+  const direct = await fetchYouTubeSubtitlesDirect(videoId, lang);
+  if (direct.cues.length > 0) {
+    void ingestSubtitlesToServer(videoId, lang, direct.cues);
+    return direct.cues;
+  }
+
+  if (serverError) {
+    throw serverError;
+  }
+
+  if (
+    !direct.reachable &&
+    (serverHintReason === "provider_unavailable" || serverHintReason === "quota_exceeded")
+  ) {
+    throw new Error("暂时无法获取字幕，请检查网络后重试");
+  }
+
+  return [];
 }
 
 export type VerbConjugationPersons = {

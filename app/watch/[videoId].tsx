@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-16 09:25
+// Timestamp: 2026-11-19 17:11
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -159,6 +159,7 @@ export default function WatchPlayerScreen() {
   const totalDuration = duration > 0 ? duration : cueDuration;
 
   // 字幕加载（按材料自身语种加载，切换视频/语种时防竞态覆盖）
+  const [subtitleRetryTick, setSubtitleRetryTick] = useState(0);
   useEffect(() => {
     if (!videoId) return;
     let cancelled = false;
@@ -187,7 +188,7 @@ export default function WatchPlayerScreen() {
     return () => {
       cancelled = true;
     };
-  }, [videoId, materialLang]);
+  }, [videoId, materialLang, subtitleRetryTick]);
 
   // 续播:先读本地（立刻可用）,再问服务端要一份（换设备时靠它把进度带过来）
   useEffect(() => {
@@ -692,7 +693,17 @@ export default function WatchPlayerScreen() {
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.hint}>这部视频可能没有生成双语字幕</Text>
+          <Text style={styles.hint}>
+            {error.includes("没有该语种")
+              ? "原视频可能未上传该语种字幕，或可稍后重试"
+              : "请确认网络可访问 YouTube 后重试"}
+          </Text>
+          <Pressable
+            onPress={() => setSubtitleRetryTick((n) => n + 1)}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryButtonText}>重试获取字幕</Text>
+          </Pressable>
         </View>
       ) : (
         <FlatList
@@ -977,5 +988,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40
   },
   hint: { fontSize: 12.5, color: colors.textTertiary, textAlign: "center" },
-  errorText: { fontSize: 14, color: colors.text, textAlign: "center" }
+  errorText: { fontSize: 14, color: colors.text, textAlign: "center" },
+  retryButton: {
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 9,
+    borderRadius: radius.pill,
+    backgroundColor: colors.brand50
+  },
+  retryButtonText: { fontSize: 13, fontWeight: "700", color: colors.brand700 }
 });
