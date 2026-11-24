@@ -474,7 +474,7 @@ async function callAiSentenceSplitter(chunkText: string, lang: string): Promise<
               { role: "user", content: chunkText }
             ]
           }),
-          signal: AbortSignal.timeout(14000)
+          signal: AbortSignal.timeout(9500)
         },
         true
       );

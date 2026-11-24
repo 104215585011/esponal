@@ -19,6 +19,7 @@ import { recordCatalogSubtitleVerification } from "@/lib/video-catalog";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const APIFY_ACTOR_URL =
   "https://api.apify.com/v2/acts/streamers~youtube-scraper/run-sync-get-dataset-items";
@@ -554,7 +555,13 @@ async function resolveSentenceSegmentedCues(
     // Redis unavailable, compute sentence segmentation on the fly
   }
 
-  const segmented = await segmentSubtitleCuesToSentences(clamped, lang);
+  let segmented: { cues: SubtitleCue[]; mode: "punctuation" | "ai" | "raw" };
+  try {
+    segmented = await segmentSubtitleCuesToSentences(clamped, lang);
+  } catch (error) {
+    console.warn("[subtitle] sentence segmentation failed, returning clamped raw cues:", error);
+    return { cues: clamped, mode: "raw" };
+  }
   const finalCues = segmented.cues.length > 0 ? segmented.cues : clamped;
 
   try {
