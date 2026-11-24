@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-24 10:15
+// Timestamp: 2026-11-24 10:59
 /**
  * 轻量级本地 YouTube 字幕中转服务（零第三方依赖，配合 Cloudflare Tunnel 给 Vercel 后端用）。
  *
@@ -177,29 +177,48 @@ function pickPreferredCaptionTrack(tracks, lang) {
   );
 }
 
+async function fetchWithRetry(url, init, retries = 1) {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 450));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function fetchYouTubeDirect(videoId, lang) {
   const hl = (lang || "es").trim().toLowerCase().split(/[-_]/)[0] || "es";
 
   for (const profile of INNERTUBE_CLIENTS) {
     try {
-      const playerRes = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": profile.userAgent
-        },
-        body: JSON.stringify({
-          context: {
-            client: {
-              ...profile.client,
-              hl,
-              gl: "US"
-            }
+      const playerRes = await fetchWithRetry(
+        "https://www.youtube.com/youtubei/v1/player?prettyPrint=false",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": profile.userAgent
           },
-          videoId
-        }),
-        signal: AbortSignal.timeout(10000)
-      });
+          body: JSON.stringify({
+            context: {
+              client: {
+                ...profile.client,
+                hl,
+                gl: "US"
+              }
+            },
+            videoId
+          }),
+          signal: AbortSignal.timeout(10000)
+        },
+        1
+      );
 
       if (!playerRes.ok) continue;
 
@@ -213,10 +232,14 @@ async function fetchYouTubeDirect(videoId, lang) {
         continue;
       }
 
-      const capRes = await fetch(chosen.baseUrl, {
-        headers: { "User-Agent": profile.userAgent },
-        signal: AbortSignal.timeout(10000)
-      });
+      const capRes = await fetchWithRetry(
+        chosen.baseUrl,
+        {
+          headers: { "User-Agent": profile.userAgent },
+          signal: AbortSignal.timeout(10000)
+        },
+        1
+      );
       if (!capRes.ok) continue;
 
       const xml = await capRes.text();

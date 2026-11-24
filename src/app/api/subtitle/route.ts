@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-19 17:08
+// Timestamp: 2026-11-24 11:01
 import { meteredFetch, recordApiUsage, withApiUsage } from "@/lib/api-usage";
 import { checkAdminFeature } from "@/lib/admin-policy";
 import { NextResponse } from "next/server";
@@ -11,6 +11,10 @@ import { reportSubtitleFailure } from "@/lib/monitor";
 import { redis } from "@/lib/redis";
 import { fetchYouTubeJson, getCachedJson } from "@/lib/youtube";
 import { fetchYouTubeInnerTubeSubtitles } from "@/lib/youtube-subtitles";
+import {
+  buildSubtitleFingerprint,
+  segmentSubtitleCuesToSentences
+} from "@/lib/subtitle-sentences";
 import { recordCatalogSubtitleVerification } from "@/lib/video-catalog";
 
 export const dynamic = "force-dynamic";
@@ -521,6 +525,52 @@ async function fetchSubtitlesWithFallback(
   };
 }
 
+async function resolveSentenceSegmentedCues(
+  videoId: string,
+  lang: string,
+  rawCues: SubtitleCue[],
+  rawOnly: boolean
+): Promise<{ cues: SubtitleCue[]; mode: "punctuation" | "ai" | "raw" }> {
+  const clamped = clampOverlappingCues(rawCues);
+  if (rawOnly || clamped.length === 0) {
+    return { cues: clamped, mode: "raw" };
+  }
+
+  const fingerprint = buildSubtitleFingerprint(clamped);
+  const sentCacheKey = `subtitle:sent:v1:${videoId}:${lang}:${fingerprint}`;
+
+  try {
+    const cachedSent = await redis.get(sentCacheKey);
+    if (cachedSent) {
+      const parsed = JSON.parse(cachedSent) as {
+        cues?: SubtitleCue[];
+        mode?: "punctuation" | "ai" | "raw";
+      };
+      if (Array.isArray(parsed?.cues) && parsed.cues.length > 0) {
+        return { cues: parsed.cues, mode: parsed.mode ?? "punctuation" };
+      }
+    }
+  } catch {
+    // Redis unavailable, compute sentence segmentation on the fly
+  }
+
+  const segmented = await segmentSubtitleCuesToSentences(clamped, lang);
+  const finalCues = segmented.cues.length > 0 ? segmented.cues : clamped;
+
+  try {
+    await redis.set(
+      sentCacheKey,
+      JSON.stringify({ cues: finalCues, mode: segmented.mode, at: Date.now() }),
+      "EX",
+      SUBTITLE_CACHE_TTL
+    );
+  } catch {
+    // Redis write failed, still return segmented cues
+  }
+
+  return { cues: finalCues, mode: segmented.mode };
+}
+
 export async function GET(request: Request) {
   // PLATFORM-001: 字幕是公开资源但登录后有更好体验(个性化缓存/额度),
   // 用 optional 通道 —— Bearer 或 cookie 都能认,cookie 异常也不阻断。
@@ -529,6 +579,7 @@ export async function GET(request: Request) {
   const videoId = searchParams.get("v")?.trim() ?? "";
   const lang = searchParams.get("lang")?.trim() || "es";
   const forceWhisper = searchParams.get("forceWhisper") === "1";
+  const rawOnly = searchParams.get("raw") === "1";
 
   if (!videoId) {
     return NextResponse.json({ cues: [] satisfies SubtitleCue[] }, { status: 200 });
@@ -550,10 +601,15 @@ export async function GET(request: Request) {
         ? (parsed as CachedSubtitlePayload).source ?? "cache"
         : "cache";
 
+      const segmented = await resolveSentenceSegmentedCues(videoId, lang, cues, rawOnly);
       return NextResponse.json(
-        { cues: clampOverlappingCues(cues), source } satisfies SubtitleResponse,
+        { cues: segmented.cues, source } satisfies SubtitleResponse,
         {
-          headers: { "Cache-Control": "no-store", "X-Subtitle-Source": source }
+          headers: {
+            "Cache-Control": "no-store",
+            "X-Subtitle-Source": source,
+            "X-Subtitle-Segmentation": segmented.mode
+          }
         }
       );
     }
@@ -623,13 +679,22 @@ export async function GET(request: Request) {
       }
     }
 
-    const payload: SubtitleResponse =
+    const segmented =
       cues.length > 0
-        ? { cues: clampOverlappingCues(cues), source }
+        ? await resolveSentenceSegmentedCues(videoId, lang, cues, rawOnly)
+        : { cues: [] as SubtitleCue[], mode: "raw" as const };
+
+    const payload: SubtitleResponse =
+      segmented.cues.length > 0
+        ? { cues: segmented.cues, source }
         : { cues: [], hint: { reason: failureReason ?? "no_subtitle" }, source: "none" };
 
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "no-store", "X-Subtitle-Source": source }
+      headers: {
+        "Cache-Control": "no-store",
+        "X-Subtitle-Source": source,
+        "X-Subtitle-Segmentation": segmented.mode
+      }
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
