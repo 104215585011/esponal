@@ -1,4 +1,4 @@
-// Timestamp: 2026-11-18 10:02
+// Timestamp: 2026-11-24 10:15
 export type YouTubeSubtitleCue = {
   start: number;
   dur: number;
@@ -106,8 +106,92 @@ export function pickPreferredCaptionTrack(
   return asrExact ?? matching[0];
 }
 
+function sanitizeRelayCues(raw: unknown): YouTubeSubtitleCue[] {
+  if (!Array.isArray(raw)) return [];
+  const cues: YouTubeSubtitleCue[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const candidate = item as { start?: unknown; dur?: unknown; text?: unknown };
+    const start = Number(candidate.start);
+    const dur = Number(candidate.dur);
+    const text = typeof candidate.text === "string" ? candidate.text.trim() : "";
+    if (text && Number.isFinite(start) && Number.isFinite(dur) && start >= 0 && dur > 0) {
+      cues.push({ start, dur, text });
+    }
+  }
+  return cues;
+}
+
 /**
- * 通过 YouTube InnerTube ANDROID player 接口抓取公开原声字幕轨（优先人工字幕，其次 ASR）。
+ * 可选自建中转（如家里电脑 + Cloudflare Tunnel）拉取 YouTube InnerTube 字幕。
+ * 只要配置了 YOUTUBE_SUBTITLE_RELAY_URL 就优先走中转；电脑关机或超时时静默回退。
+ */
+async function fetchYouTubeSubtitlesViaRelay(
+  videoId: string,
+  lang: string
+): Promise<YouTubeSubtitleCue[]> {
+  const relayBase = process.env.YOUTUBE_SUBTITLE_RELAY_URL?.trim();
+  if (!relayBase) return [];
+
+  const token = process.env.YOUTUBE_SUBTITLE_RELAY_TOKEN?.trim();
+  try {
+    const url = new URL("/subtitle", relayBase.endsWith("/") ? relayBase : `${relayBase}/`);
+    url.searchParams.set("v", videoId);
+    url.searchParams.set("lang", lang);
+
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+      signal: AbortSignal.timeout(12000)
+    });
+
+    if (!res.ok) {
+      console.warn("[subtitle] Relay request failed:", res.status);
+      return [];
+    }
+
+    const payload = (await res.json()) as { cues?: unknown };
+    const cues = sanitizeRelayCues(payload?.cues);
+    if (cues.length > 0) {
+      console.log("[subtitle] Relay fetched", cues.length, "cues for", videoId, lang);
+    }
+    return cues;
+  } catch (error) {
+    console.warn(
+      "[subtitle] Relay unavailable, falling back:",
+      error instanceof Error ? error.message : String(error)
+    );
+    return [];
+  }
+}
+
+const INNERTUBE_CLIENTS = [
+  {
+    userAgent: "com.google.android.youtube/20.10.38 (Linux; U; Android 14)",
+    client: {
+      clientName: "ANDROID",
+      clientVersion: "20.10.38",
+      androidSdkVersion: 34
+    }
+  },
+  {
+    userAgent: "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3 like Mac OS X)",
+    client: {
+      clientName: "IOS",
+      clientVersion: "20.10.4"
+    }
+  }
+] as const;
+
+/**
+ * 通过 YouTube InnerTube player 接口抓取公开原声字幕轨（优先人工字幕，其次 ASR）。
+ * 若配置了 YOUTUBE_SUBTITLE_RELAY_URL，优先通过自建中转抓取（绕开云机房 IP 封锁）。
  * 零付费配额消耗，用于在 Supadata 不可用或配额耗尽时保证视频字幕稳定可用。
  */
 export async function fetchYouTubeInnerTubeSubtitles(
@@ -115,56 +199,70 @@ export async function fetchYouTubeInnerTubeSubtitles(
   lang = "es"
 ): Promise<YouTubeSubtitleCue[]> {
   if (!videoId) return [];
+
+  const relayCues = await fetchYouTubeSubtitlesViaRelay(videoId, lang);
+  if (relayCues.length > 0) {
+    return relayCues;
+  }
+
   const hl = (lang || "es").trim().toLowerCase().split(/[-_]/)[0] || "es";
 
-  try {
-    const playerRes = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "com.google.android.youtube/20.10.38 (Linux; U; Android 14)"
-      },
-      body: JSON.stringify({
-        context: {
-          client: {
-            clientName: "ANDROID",
-            clientVersion: "20.10.38",
-            androidSdkVersion: 34,
-            hl,
-            gl: "US"
-          }
+  for (const profile of INNERTUBE_CLIENTS) {
+    try {
+      const playerRes = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": profile.userAgent
         },
-        videoId
-      }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(12000)
-    });
+        body: JSON.stringify({
+          context: {
+            client: {
+              ...profile.client,
+              hl,
+              gl: "US"
+            }
+          },
+          videoId
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(12000)
+      });
 
-    if (!playerRes.ok) {
-      return [];
+      if (!playerRes.ok) {
+        continue;
+      }
+
+      const payload = (await playerRes.json()) as InnerTubePlayerResponse;
+      const tracks = payload.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
+      const chosen = pickPreferredCaptionTrack(tracks, lang);
+      if (!chosen?.baseUrl) {
+        if (tracks.length > 0) {
+          return [];
+        }
+        continue;
+      }
+
+      const capRes = await fetch(chosen.baseUrl, {
+        headers: {
+          "User-Agent": profile.userAgent
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(12000)
+      });
+      if (!capRes.ok) {
+        continue;
+      }
+
+      const xml = await capRes.text();
+      const cues = parseTimedTextXml(xml);
+      if (cues.length > 0) {
+        return cues;
+      }
+    } catch {
+      // 网络波动或机房被拒，尝试下一个客户端
     }
-
-    const payload = (await playerRes.json()) as InnerTubePlayerResponse;
-    const tracks = payload.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
-    const chosen = pickPreferredCaptionTrack(tracks, lang);
-    if (!chosen?.baseUrl) {
-      return [];
-    }
-
-    const capRes = await fetch(chosen.baseUrl, {
-      headers: {
-        "User-Agent": "com.google.android.youtube/20.10.38 (Linux; U; Android 14)"
-      },
-      cache: "no-store",
-      signal: AbortSignal.timeout(12000)
-    });
-    if (!capRes.ok) {
-      return [];
-    }
-
-    const xml = await capRes.text();
-    return parseTimedTextXml(xml);
-  } catch {
-    return [];
   }
+
+  return [];
 }

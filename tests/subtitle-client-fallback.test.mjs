@@ -1,11 +1,14 @@
-// Timestamp: 2026-11-19 17:10
+// Timestamp: 2026-11-24 10:16
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import assert from "node:assert/strict";
+import http from "node:http";
 import {
+  fetchYouTubeInnerTubeSubtitles,
   parseTimedTextXml,
   pickPreferredCaptionTrack
 } from "../src/lib/youtube-subtitles.ts";
+import { createRelayServer } from "../scripts/subtitle-relay-server.mjs";
 
 test("subtitle ingest route accepts authenticated mobile/web users alongside extension token", async () => {
   const route = await readFile("src/app/api/subtitle/ingest/route.ts", "utf8");
@@ -56,3 +59,68 @@ test("youtube-subtitles parser handles format-3 and legacy timedtext XML and pre
   );
   assert.equal(asrPicked?.baseUrl, "https://example.com/asr");
 });
+
+test("fetchYouTubeInnerTubeSubtitles delegates to configured YOUTUBE_SUBTITLE_RELAY_URL with Bearer token", async () => {
+  let receivedAuth = "";
+  let receivedQuery = "";
+
+  const mockRelay = http.createServer((req, res) => {
+    receivedAuth = req.headers.authorization || "";
+    receivedQuery = req.url || "";
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        cues: [
+          { start: 0.5, dur: 2.0, text: "Hola desde relay" },
+          { start: 2.5, dur: 2.1, text: "Funciona perfecto" }
+        ]
+      })
+    );
+  });
+
+  await new Promise((resolve) => mockRelay.listen(0, "127.0.0.1", resolve));
+  const addr = mockRelay.address();
+  const prevUrl = process.env.YOUTUBE_SUBTITLE_RELAY_URL;
+  const prevToken = process.env.YOUTUBE_SUBTITLE_RELAY_TOKEN;
+
+  try {
+    process.env.YOUTUBE_SUBTITLE_RELAY_URL = `http://127.0.0.1:${addr.port}`;
+    process.env.YOUTUBE_SUBTITLE_RELAY_TOKEN = "test-secret-token";
+    const cues = await fetchYouTubeInnerTubeSubtitles("5oTmkLZcFxE", "es");
+    assert.equal(cues.length, 2);
+    assert.equal(cues[0].text, "Hola desde relay");
+    assert.equal(receivedAuth, "Bearer test-secret-token");
+    assert.match(receivedQuery, /^\/subtitle\?v=5oTmkLZcFxE&lang=es$/);
+  } finally {
+    if (prevUrl === undefined) delete process.env.YOUTUBE_SUBTITLE_RELAY_URL;
+    else process.env.YOUTUBE_SUBTITLE_RELAY_URL = prevUrl;
+    if (prevToken === undefined) delete process.env.YOUTUBE_SUBTITLE_RELAY_TOKEN;
+    else process.env.YOUTUBE_SUBTITLE_RELAY_TOKEN = prevToken;
+    await new Promise((resolve) => mockRelay.close(resolve));
+  }
+});
+
+test("local subtitle relay server enforces Bearer auth and responds to /health", async () => {
+  const relay = createRelayServer({ token: "my-local-secret-token" });
+  await new Promise((resolve) => relay.listen(0, "127.0.0.1", resolve));
+  const addr = relay.address();
+  const base = `http://127.0.0.1:${addr.port}`;
+
+  try {
+    const healthRes = await fetch(`${base}/health`);
+    assert.equal(healthRes.status, 200);
+    const health = await healthRes.json();
+    assert.equal(health.ok, true);
+
+    const unauthRes = await fetch(`${base}/subtitle?v=5oTmkLZcFxE&lang=es`);
+    assert.equal(unauthRes.status, 401);
+
+    const badParamsRes = await fetch(`${base}/subtitle?v=bad/id&lang=es`, {
+      headers: { Authorization: "Bearer my-local-secret-token" }
+    });
+    assert.equal(badParamsRes.status, 400);
+  } finally {
+    await new Promise((resolve) => relay.close(resolve));
+  }
+});
+
